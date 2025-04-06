@@ -1,6 +1,6 @@
 #![feature(allocator_api)]
 use std::alloc::{Global, System};
-use imgui_vulkan_renderer_opaque_alloc::OpaqueAlloc;
+use opaque_alloc::OpaqueAlloc;
 
 #[test]
 fn test_opaque_alloc_is_type_global() {

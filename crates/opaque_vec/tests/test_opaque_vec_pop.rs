@@ -1,4 +1,4 @@
-use imgui_vulkan_renderer_opaque_vec::OpaqueVec;
+use opaque_vec::OpaqueVec;
 
 #[test]
 fn test_opaque_vec_pop_empty1() {

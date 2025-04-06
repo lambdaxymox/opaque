@@ -1,4 +1,4 @@
-use imgui_vulkan_renderer_opaque_vec::OpaqueVec;
+use opaque_vec::OpaqueVec;
 
 fn nonnegative_integer_values<const N: usize>() -> [i32; N] {
     let mut prefix = [0_i32; N];

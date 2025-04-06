@@ -1,4 +1,4 @@
-use imgui_vulkan_renderer_opaque_map::OpaqueMap;
+use opaque_map::OpaqueMap;
 
 #[test]
 fn test_opaque_map_empty_is_empty() {

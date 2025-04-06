@@ -1,7 +1,7 @@
 #![feature(allocator_api)]
 #![feature(slice_ptr_get)]
 use std::alloc::{Allocator, Layout, Global};
-use imgui_vulkan_renderer_opaque_alloc::OpaqueAlloc;
+use opaque_alloc::OpaqueAlloc;
 
 fn run_test_opaque_alloc_allocate_zeroed_with_layout(opaque_alloc: OpaqueAlloc, layout: Layout) {
     unsafe {

@@ -1,4 +1,4 @@
-use imgui_vulkan_renderer_opaque_map::OpaqueMap;
+use opaque_map::OpaqueMap;
 
 #[derive(Copy, Clone, PartialEq, Debug)]
 struct TestStruct {

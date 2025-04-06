@@ -1,7 +1,7 @@
 #![feature(allocator_api)]
 #![feature(slice_ptr_get)]
 use std::alloc::{Allocator, Global, Layout};
-use imgui_vulkan_renderer_opaque_alloc::OpaqueAlloc;
+use opaque_alloc::OpaqueAlloc;
 
 fn run_test_opaque_alloc_allocate_size_with_layout(opaque_alloc: OpaqueAlloc, layout: Layout) {
     let expected = layout.size();

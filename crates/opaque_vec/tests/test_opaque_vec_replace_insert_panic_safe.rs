@@ -1,6 +1,6 @@
 use std::panic::{self, AssertUnwindSafe};
 
-use imgui_vulkan_renderer_opaque_vec::OpaqueVec;
+use opaque_vec::OpaqueVec;
 use std::rc::Rc;
 use std::cell::RefCell;
 

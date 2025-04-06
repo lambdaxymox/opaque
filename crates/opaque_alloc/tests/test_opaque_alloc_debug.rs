@@ -1,5 +1,5 @@
 #![feature(allocator_api)]
-use imgui_vulkan_renderer_opaque_alloc::OpaqueAlloc;
+use opaque_alloc::OpaqueAlloc;
 use std::alloc::Global;
 
 #[test]
