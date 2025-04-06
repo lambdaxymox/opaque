@@ -1346,6 +1346,77 @@ where
     }
 }
 
+pub struct MapMut<'a, T> {
+    opaque_vec: &'a mut OpaqueVec,
+    _marker: PhantomData<T>,
+}
+
+impl<'a, T> MapMut<'a, T>
+where
+    T: 'static,
+{
+    #[inline]
+    const fn new(opaque_vec: &'a mut OpaqueVec) -> Self {
+        Self {
+            opaque_vec,
+            _marker: PhantomData,
+        }
+    }
+
+    #[inline]
+    pub const fn element_layout(&self) -> Layout {
+        self.opaque_vec.element_layout()
+    }
+
+    #[inline]
+    pub const fn capacity(&self) -> usize {
+        self.opaque_vec.capacity()
+    }
+
+    #[inline]
+    pub const fn is_empty(&self) -> bool {
+        self.opaque_vec.is_empty()
+    }
+
+    #[inline]
+    pub const fn len(&self) -> usize {
+        self.opaque_vec.len()
+    }
+
+    #[inline]
+    pub fn get_unchecked(&mut self, index: usize) -> &T {
+        self.opaque_vec.get_unchecked(index)
+    }
+
+    pub fn get(&self, index: usize) -> Option<&T> {
+        if index >= self.opaque_vec.len() {
+            return None;
+        }
+
+        Some(self.opaque_vec.get_unchecked(index))
+    }
+
+    #[inline]
+    pub fn iter(&self) -> Iter<'_, T> {
+        self.opaque_vec.iter::<T>()
+    }
+
+    #[inline]
+    pub const fn as_ptr(&self) -> *const T {
+        self.opaque_vec.as_ptr_unchecked()
+    }
+
+    #[inline]
+    pub fn as_slice(&self) -> &[T] {
+        self.opaque_vec.as_slice_unchecked()
+    }
+
+    #[inline]
+    pub fn as_byte_slice(&self) -> &[u8] {
+        self.opaque_vec.as_byte_slice()
+    }
+}
+
 impl OpaqueVec {
     pub fn as_map<T>(&self) -> Map<'_, T>
     where
@@ -1354,5 +1425,14 @@ impl OpaqueVec {
         self.ensure_element_type::<T>();
 
         Map::new(self)
+    }
+
+    pub fn as_map_mut<T>(&mut self) -> MapMut<'_, T>
+    where
+        T: 'static,
+    {
+        self.ensure_element_type::<T>();
+
+        MapMut::new(self)
     }
 }

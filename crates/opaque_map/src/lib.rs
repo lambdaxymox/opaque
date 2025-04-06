@@ -2069,7 +2069,6 @@ where
     }
 }
 
-#[derive()]
 pub struct MapMut<'a, K, V> {
     opaque_map: &'a mut OpaqueMap,
     _marker: std::marker::PhantomData<(K, V)>,
