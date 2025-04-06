@@ -12,8 +12,5 @@ default-features = false
 [dependencies.hashbrown]
 version = "0.15.2"
 
-[dependencies.indexmap]
-version = "2.8.0"
-
 [dependencies.opaque_vec]
 path = "../opaque_vec"
