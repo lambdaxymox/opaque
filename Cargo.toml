@@ -1,0 +1,20 @@
+[package]
+name = "opaque_collections"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+
+[dependencies.opaque_alloc]
+path = "crates/opaque_alloc"
+
+[dependencies.opaque_vec]
+path = "crates/opaque_vec"
+
+[dependencies.opaque_map]
+path = "crates/opaque_map"
+
+[workspace]
+members = [
+    "crates/*"
+]
