@@ -2125,3 +2125,21 @@ where
         self.opaque_map.as_slice::<K, V>()
     }
 }
+
+impl OpaqueMap {
+    pub fn as_map<K, V>(&self) -> Map<'_, K, V>
+    where
+        K: 'static,
+        V: 'static,
+    {
+        Map::<K, V>::new(self)
+    }
+
+    pub fn as_map_mut<K, V>(&mut self) -> MapMut<'_, K, V>
+    where
+        K: 'static,
+        V: 'static,
+    {
+        MapMut::<K, V>::new(self)
+    }
+}

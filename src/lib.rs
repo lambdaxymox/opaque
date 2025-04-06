@@ -1,3 +1,11 @@
-pub use opaque_alloc::OpaqueAlloc;
-pub use opaque_vec::OpaqueVec;
-pub use opaque_map::OpaqueMap;
+pub mod opaque_alloc {
+    pub use opaque_alloc::*;
+}
+
+pub mod opaque_vec {
+    pub use opaque_vec::*;
+}
+
+pub mod opaque_map {
+    pub use opaque_map::*;
+}
