@@ -1384,7 +1384,7 @@ where
     }
 
     #[inline]
-    pub fn get_unchecked(&mut self, index: usize) -> &T {
+    pub fn get_unchecked(&self, index: usize) -> &T {
         self.opaque_vec.get_unchecked(index)
     }
 
@@ -1394,6 +1394,19 @@ where
         }
 
         Some(self.opaque_vec.get_unchecked(index))
+    }
+
+    #[inline]
+    pub fn get_mut_unchecked(&mut self, index: usize) -> &mut T {
+        self.opaque_vec.get_mut_unchecked(index)
+    }
+
+    pub fn get_mut(&mut self, index: usize) -> Option<&mut T> {
+        if index >= self.opaque_vec.len() {
+            return None;
+        }
+
+        Some(self.opaque_vec.get_mut_unchecked(index))
     }
 
     #[inline]
