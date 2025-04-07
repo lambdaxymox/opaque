@@ -121,6 +121,24 @@ impl<'a, K, V> Slice<'a, K, V> {
     {
         self.entries.binary_search_by(move |a| f(&a.key, &a.value))
     }
+
+    #[inline]
+    pub fn binary_search_by_key<B, F>(&'a self, b: &B, mut f: F) -> Result<usize, usize>
+    where
+        F: FnMut(&'a K, &'a V) -> B,
+        B: Ord,
+    {
+        self.binary_search_by(|k, v| f(k, v).cmp(b))
+    }
+
+    #[must_use]
+    pub fn partition_point<P>(&self, mut pred: P) -> usize
+    where
+        P: FnMut(&K, &V) -> bool,
+    {
+        self.entries
+            .partition_point(move |a| pred(&a.key, &a.value))
+    }
 }
 
 #[repr(transparent)]
@@ -865,7 +883,8 @@ impl OpaqueMapInner {
             .shrink_to(min_capacity, get_hash(&self.entries));
         self.entries.shrink_to(min_capacity);
     }
-    */
+
+     */
 
     pub(crate) fn pop<K, V>(&mut self) -> Option<(K, V)>
     where
@@ -1061,9 +1080,11 @@ impl OpaqueMapInner {
         insert_bulk_no_grow(&mut self.indices, self.entries.as_slice::<Bucket<K, V>>());
     }
 
-    /*
-    pub(crate) fn reverse(&mut self) {
-        self.entries.reverse();
+    pub(crate) fn reverse<V>(&mut self)
+    where
+        V: 'static,
+    {
+        self.entries.reverse::<V>();
 
         // No need to save hash indices, can easily calculate what they should
         // be, given that this is an in-place reversal.
@@ -1072,7 +1093,6 @@ impl OpaqueMapInner {
             *i = len - *i - 1;
         }
     }
-    */
 }
 
 impl OpaqueMapInner {
@@ -1947,19 +1967,28 @@ impl OpaqueMap {
         self.inner.insert_full(hash, key, value)
     }
 
-    /*
-    pub fn insert_sorted(&mut self, key: K, value: V) -> (usize, Option<V>)
+    pub fn insert_sorted<K, V>(&mut self, key: K, value: V) -> (usize, Option<V>)
     where
-        K: Ord,
+        K: Eq + hash::Hash + Ord + 'static,
+        V: 'static,
     {
-        match self.binary_search_keys(&key) {
-            Ok(i) => (i, Some(mem::replace(&mut self[i], value))),
-            Err(i) => self.insert_before(i, key, value),
+        match self.binary_search_keys::<K, V>(&key) {
+            Ok(i) => {
+                let destination = self.get_index_mut::<K, V>(i).unwrap().1;
+                let old_value = core::mem::replace(destination, value);
+
+                (i, Some(old_value))
+            },
+            Err(i) => self.insert_before::<K, V>(i, key, value),
         }
     }
 
     #[track_caller]
-    pub fn insert_before(&mut self, mut index: usize, key: K, value: V) -> (usize, Option<V>) {
+    pub fn insert_before<K, V>(&mut self, mut index: usize, key: K, value: V) -> (usize, Option<V>)
+    where
+        K: Eq + hash::Hash + 'static,
+        V: 'static,
+    {
         let len = self.len();
 
         assert!(
@@ -1967,7 +1996,7 @@ impl OpaqueMap {
             "index out of bounds: the len is {len} but the index is {index}. Expected index <= len"
         );
 
-        match self.entry(key) {
+        match self.entry::<K, V>(key) {
             Entry::Occupied(mut entry) => {
                 if index > entry.index() {
                     // Some entries will shift down when this one moves up,
@@ -1975,18 +2004,19 @@ impl OpaqueMap {
                     // keeping the entry at the original index unmoved.
                     index -= 1;
                 }
-                let old = mem::replace(entry.get_mut(), value);
+                let old = core::mem::replace(entry.get_mut(), value);
                 entry.move_index(index);
+
                 (index, Some(old))
             }
             Entry::Vacant(entry) => {
                 entry.shift_insert(index, value);
+
                 (index, None)
             }
         }
     }
-    */
-    /*
+
     #[track_caller]
     pub fn shift_insert<K, V>(&mut self, index: usize, key: K, value: V) -> Option<V>
     where
@@ -2019,10 +2049,250 @@ impl OpaqueMap {
         }
     }
 
-    pub fn entry<K, V>(&mut self, key: K) -> Entry<'_, K, V> {
+    pub fn entry<K, V>(&mut self, key: K) -> Entry<'_, K, V>
+    where
+        K: Eq + hash::Hash + 'static,
+        V: 'static,
+    {
         let hash = self.hash(&key);
 
         self.inner.entry(hash, key)
+    }
+
+    /*
+    #[track_caller]
+    pub fn splice<R, I>(&mut self, range: R, replace_with: I) -> Splice<'_, I::IntoIter, K, V, S>
+    where
+        R: RangeBounds<usize>,
+        I: IntoIterator<Item = (K, V)>,
+    {
+        Splice::new(self, range, replace_with.into_iter())
+    }
+
+    pub fn append<S2>(&mut self, other: &mut IndexMap<K, V, S2>) {
+        self.extend(other.drain(..));
+    }
+     */
+}
+
+impl OpaqueMap {
+    /*
+    #[doc(alias = "pop_last")] // like `BTreeMap`
+    pub fn pop(&mut self) -> Option<(K, V)> {
+        self.core.pop()
+    }
+
+    pub fn retain<F>(&mut self, mut keep: F)
+    where
+        F: FnMut(&K, &mut V) -> bool,
+    {
+        self.core.retain_in_order(move |k, v| keep(k, v));
+    }
+
+    pub fn sort_keys(&mut self)
+    where
+        K: Ord,
+    {
+        self.with_entries(move |entries| {
+            entries.sort_by(move |a, b| K::cmp(&a.key, &b.key));
+        });
+    }
+
+    pub fn sort_by<F>(&mut self, mut cmp: F)
+    where
+        F: FnMut(&K, &V, &K, &V) -> Ordering,
+    {
+        self.with_entries(move |entries| {
+            entries.sort_by(move |a, b| cmp(&a.key, &a.value, &b.key, &b.value));
+        });
+    }
+
+    pub fn sorted_by<F>(self, mut cmp: F) -> IntoIter<K, V>
+    where
+        F: FnMut(&K, &V, &K, &V) -> Ordering,
+    {
+        let mut entries = self.into_entries();
+        entries.sort_by(move |a, b| cmp(&a.key, &a.value, &b.key, &b.value));
+        IntoIter::new(entries)
+    }
+
+    pub fn sort_unstable_keys(&mut self)
+    where
+        K: Ord,
+    {
+        self.with_entries(move |entries| {
+            entries.sort_unstable_by(move |a, b| K::cmp(&a.key, &b.key));
+        });
+    }
+
+    pub fn sort_unstable_by<F>(&mut self, mut cmp: F)
+    where
+        F: FnMut(&K, &V, &K, &V) -> Ordering,
+    {
+        self.with_entries(move |entries| {
+            entries.sort_unstable_by(move |a, b| cmp(&a.key, &a.value, &b.key, &b.value));
+        });
+    }
+
+    #[inline]
+    pub fn sorted_unstable_by<F>(self, mut cmp: F) -> IntoIter<K, V>
+    where
+        F: FnMut(&K, &V, &K, &V) -> Ordering,
+    {
+        let mut entries = self.into_entries();
+        entries.sort_unstable_by(move |a, b| cmp(&a.key, &a.value, &b.key, &b.value));
+        IntoIter::new(entries)
+    }
+
+    pub fn sort_by_cached_key<T, F>(&mut self, mut sort_key: F)
+    where
+        T: Ord,
+        F: FnMut(&K, &V) -> T,
+    {
+        self.with_entries(move |entries| {
+            entries.sort_by_cached_key(move |a| sort_key(&a.key, &a.value));
+        });
+    }
+     */
+
+    pub fn binary_search_keys<K, V>(&self, key: &K) -> Result<usize, usize>
+    where
+        K: Ord + 'static,
+        V: 'static,
+    {
+        self.as_slice::<K, V>().binary_search_keys(key)
+    }
+
+    #[inline]
+    pub fn binary_search_by<F, K, V>(&self, f: F) -> Result<usize, usize>
+    where
+        K: 'static,
+        V: 'static,
+        F: FnMut(&K, &V) -> Ordering,
+    {
+        self.as_slice::<K, V>().binary_search_by(f)
+    }
+
+    #[inline]
+    pub fn binary_search_by_key<B, F, K, V>(&self, b: &B, f: F) -> Result<usize, usize>
+    where
+        K: 'static,
+        V: 'static,
+        F: FnMut(&K, &V) -> B,
+        B: Ord,
+    {
+        self.as_slice::<K, V>().binary_search_by_key(b, f)
+    }
+
+    #[must_use]
+    pub fn partition_point<P, K, V>(&self, pred: P) -> usize
+    where
+        K: 'static,
+        V: 'static,
+        P: FnMut(&K, &V) -> bool,
+    {
+        self.as_slice().partition_point(pred)
+    }
+
+    pub fn reverse<V>(&mut self)
+    where
+        V: 'static,
+    {
+        self.inner.reverse::<V>();
+    }
+
+    /*
+    pub fn as_slice(&self) -> &Slice<K, V> {
+        Slice::from_slice(self.as_entries())
+    }
+
+    pub fn as_mut_slice(&mut self) -> &mut Slice<K, V> {
+        Slice::from_mut_slice(self.as_entries_mut())
+    }
+
+    pub fn into_boxed_slice(self) -> Box<Slice<K, V>> {
+        Slice::from_boxed(self.into_entries().into_boxed_slice())
+    }
+    */
+
+    pub fn get_index<K, V>(&self, index: usize) -> Option<(&K, &V)>
+    where
+        K: 'static,
+        V: 'static,
+    {
+        self.as_entries::<K, V>().get(index).map(Bucket::refs)
+    }
+
+    pub fn get_index_mut<K, V>(&mut self, index: usize) -> Option<(&K, &mut V)>
+    where
+        K: 'static,
+        V: 'static,
+    {
+        self.as_entries_mut::<K, V>().get_mut(index).map(Bucket::ref_mut)
+    }
+
+    /*
+    pub fn get_index_entry(&mut self, index: usize) -> Option<IndexedEntry<'_, K, V>> {
+        if index >= self.len() {
+            return None;
+        }
+        Some(IndexedEntry::new(&mut self.core, index))
+    }
+
+    pub fn get_range<R: RangeBounds<usize>>(&self, range: R) -> Option<&Slice<K, V>> {
+        let entries = self.as_entries();
+        let range = try_simplify_range(range, entries.len())?;
+        entries.get(range).map(Slice::from_slice)
+    }
+
+    pub fn get_range_mut<R: RangeBounds<usize>>(&mut self, range: R) -> Option<&mut Slice<K, V>> {
+        let entries = self.as_entries_mut();
+        let range = try_simplify_range(range, entries.len())?;
+        entries.get_mut(range).map(Slice::from_mut_slice)
+    }
+
+    #[doc(alias = "first_key_value")] // like `BTreeMap`
+    pub fn first(&self) -> Option<(&K, &V)> {
+        self.as_entries().first().map(Bucket::refs)
+    }
+
+    pub fn first_mut(&mut self) -> Option<(&K, &mut V)> {
+        self.as_entries_mut().first_mut().map(Bucket::ref_mut)
+    }
+
+    pub fn first_entry(&mut self) -> Option<IndexedEntry<'_, K, V>> {
+        self.get_index_entry(0)
+    }
+
+    #[doc(alias = "last_key_value")] // like `BTreeMap`
+    pub fn last(&self) -> Option<(&K, &V)> {
+        self.as_entries().last().map(Bucket::refs)
+    }
+
+    pub fn last_mut(&mut self) -> Option<(&K, &mut V)> {
+        self.as_entries_mut().last_mut().map(Bucket::ref_mut)
+    }
+
+    pub fn last_entry(&mut self) -> Option<IndexedEntry<'_, K, V>> {
+        self.get_index_entry(self.len().checked_sub(1)?)
+    }
+
+    pub fn swap_remove_index(&mut self, index: usize) -> Option<(K, V)> {
+        self.core.swap_remove_index(index)
+    }
+
+    pub fn shift_remove_index(&mut self, index: usize) -> Option<(K, V)> {
+        self.core.shift_remove_index(index)
+    }
+
+    #[track_caller]
+    pub fn move_index(&mut self, from: usize, to: usize) {
+        self.core.move_index(from, to)
+    }
+
+    #[track_caller]
+    pub fn swap_indices(&mut self, a: usize, b: usize) {
+        self.core.swap_indices(a, b)
     }
      */
 }

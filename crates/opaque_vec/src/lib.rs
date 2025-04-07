@@ -1435,6 +1435,17 @@ where
     }
 }
 
+impl OpaqueVec {
+    #[inline]
+    pub fn reverse<T>(&mut self)
+    where
+        T: 'static,
+    {
+        self.ensure_element_type::<T>();
+        self.as_mut_slice::<T>().reverse();
+    }
+}
+
 impl<'a, T> MapMut<'a, T>
 where
     T: PartialEq + 'static,
