@@ -967,24 +967,34 @@ impl OpaqueMapInner {
         }
     }
 
-    /*
     #[inline]
-    pub(crate) fn shift_remove_index(&mut self, index: usize) -> Option<(K, V)> {
-        self.borrow_mut().shift_remove_index(index)
+    pub(crate) fn shift_remove_index<K, V>(&mut self, index: usize) -> Option<(K, V)>
+    where
+        K: 'static,
+        V: 'static,
+    {
+        self.borrow_mut::<K, V>().shift_remove_index(index)
     }
 
     #[inline]
     #[track_caller]
-    pub(super) fn move_index(&mut self, from: usize, to: usize) {
-        self.borrow_mut().move_index(from, to);
+    pub(crate) fn move_index<K, V>(&mut self, from: usize, to: usize)
+    where
+        K: 'static,
+        V: 'static,
+    {
+        self.borrow_mut::<K, V>().move_index(from, to);
     }
 
     #[inline]
     #[track_caller]
-    pub(crate) fn swap_indices(&mut self, a: usize, b: usize) {
-        self.borrow_mut().swap_indices(a, b);
+    pub(crate) fn swap_indices<K, V>(&mut self, a: usize, b: usize)
+    where
+        K: 'static,
+        V: 'static,
+    {
+        self.borrow_mut::<K, V>().swap_indices(a, b);
     }
-    */
 
     pub(crate) fn swap_remove_full<Q, K, V>(&mut self, hash: HashValue, key: &Q) -> Option<(usize, K, V)>
     where
