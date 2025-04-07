@@ -509,10 +509,10 @@ impl OpaqueVec {
         T: 'static,
     {
         unsafe {
-            std::slice::from_raw_parts_mut(
-                self.as_mut_ptr::<T>().add(self.len()) as *mut MaybeUninit<T>,
-                self.capacity() - self.len(),
-            )
+            let ptr = self.as_mut_ptr::<T>().add(self.len()) as *mut MaybeUninit<T>;
+            let len = self.capacity() - self.len();
+
+            std::slice::from_raw_parts_mut(ptr, len)
         }
     }
 }

@@ -9,6 +9,11 @@ edition = "2024"
 version = "0.1.0"
 path = "../opaque_alloc"
 
+[dev-dependencies]
+
+[dev-dependencies.criterion]
+version = "0.5.1"
+
 [features]
 panic_immediate_abort = []
 
@@ -17,3 +22,19 @@ level = "warn"
 check-cfg = [
     'cfg(no_global_oom_handling)',
 ]
+
+[[bench]]
+name = "bench_opaque_vec_push"
+harness = false
+
+[[bench]]
+name = "bench_opaque_vec_replace_insert"
+harness = false
+
+[[bench]]
+name = "bench_opaque_vec_get"
+harness = false
+
+[[bench]]
+name = "bench_opaque_vec_swap_remove"
+harness = false
