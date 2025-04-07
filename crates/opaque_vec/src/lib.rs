@@ -405,18 +405,12 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        if self.data.is_empty() {
-            return &[];
-        }
-
-        let slice = unsafe {
+        unsafe {
             let data_ptr = self.data.as_ptr() as *const T;
             let len = self.data.len();
 
             core::slice::from_raw_parts(data_ptr, len)
-        };
-
-        slice
+        }
     }
 
     #[inline]
@@ -424,18 +418,12 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        if self.data.is_empty() {
-            return &mut [];
-        }
-
-        let slice = unsafe {
+        unsafe {
             let data_ptr = self.data.as_mut_ptr() as *mut T;
             let len = self.data.len();
 
-            std::slice::from_raw_parts_mut(data_ptr, len)
-        };
-
-        slice
+            core::slice::from_raw_parts_mut(data_ptr, len)
+        }
     }
 
     #[inline]
