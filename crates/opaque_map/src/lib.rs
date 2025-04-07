@@ -6,6 +6,8 @@ use std::hash;
 use std::hash::{BuildHasher, Hash, Hasher};
 use std::marker::PhantomData;
 use core::cmp::Ordering;
+
+use opaque_hash;
 use opaque_vec::OpaqueVec;
 
 pub use equivalent::Equivalent;
@@ -336,7 +338,7 @@ impl OpaqueBucketSize {
         self.hash_size + self.key_size + self.value_size
     }
 }
-
+/*
 pub trait BoxedBuildHasher {
     fn clone_boxed(&self) -> Box<dyn BoxedBuildHasher>;
     fn build_hasher_boxed(&self) -> Box<dyn Hasher>;
@@ -446,6 +448,7 @@ impl hash::BuildHasher for OpaqueBuildHasher {
         OpaqueHasher::new(hasher, type_id)
     }
 }
+*/
 
 pub(crate) struct OpaqueMapInner {
     indices: hashbrown::HashTable<usize>,
@@ -1594,7 +1597,7 @@ where
 #[derive(Clone)]
 pub struct OpaqueMap {
     inner: OpaqueMapInner,
-    hash_builder: OpaqueBuildHasher,
+    hash_builder: opaque_hash::OpaqueBuildHasher,
 }
 
 impl OpaqueMap {
@@ -1638,7 +1641,7 @@ impl OpaqueMap {
         V: 'static,
     {
         let inner = OpaqueMapInner::new::<K, V>();
-        let opaque_hash_builder = OpaqueBuildHasher::new::<hash::RandomState>(Box::new(hash::RandomState::default()));
+        let opaque_hash_builder = opaque_hash::OpaqueBuildHasher::new::<hash::RandomState>(Box::new(hash::RandomState::default()));
 
         Self {
             inner,
@@ -1652,7 +1655,7 @@ impl OpaqueMap {
         V: 'static,
         S: hash::BuildHasher + Clone + 'static,
     {
-        let opaque_hash_builder = OpaqueBuildHasher::new::<S>(Box::new(hash_builder));
+        let opaque_hash_builder = opaque_hash::OpaqueBuildHasher::new::<S>(Box::new(hash_builder));
 
         Self {
             inner: OpaqueMapInner::new::<K, V>(),
@@ -1670,7 +1673,7 @@ impl OpaqueMap {
         if capacity == 0 {
             Self::with_hasher::<K, V, S>(hash_builder)
         } else {
-            let opaque_hash_builder = OpaqueBuildHasher::new::<S>(Box::new(hash_builder));
+            let opaque_hash_builder = opaque_hash::OpaqueBuildHasher::new::<S>(Box::new(hash_builder));
 
             OpaqueMap {
                 inner: OpaqueMapInner::with_capacity::<K, V>(capacity),
@@ -1685,7 +1688,7 @@ impl OpaqueMap {
         V: 'static,
     {
         let inner = OpaqueMapInner::with_capacity::<K, V>(capacity);
-        let opaque_hash_builder = OpaqueBuildHasher::new(Box::new(hash::RandomState::default()));
+        let opaque_hash_builder = opaque_hash::OpaqueBuildHasher::new(Box::new(hash::RandomState::default()));
 
         Self {
             inner,
@@ -1709,7 +1712,7 @@ impl OpaqueMap {
     }
 
     #[inline]
-    pub const fn hasher(&self) -> &OpaqueBuildHasher {
+    pub const fn hasher(&self) -> &opaque_hash::OpaqueBuildHasher {
         &self.hash_builder
     }
 
