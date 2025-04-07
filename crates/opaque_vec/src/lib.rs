@@ -1416,17 +1416,62 @@ where
 
     #[inline]
     pub const fn as_ptr(&self) -> *const T {
-        self.opaque_vec.as_ptr_unchecked()
+        self.opaque_vec.as_ptr_unchecked::<T>()
     }
 
     #[inline]
     pub fn as_slice(&self) -> &[T] {
-        self.opaque_vec.as_slice_unchecked()
+        self.opaque_vec.as_slice_unchecked::<T>()
     }
 
     #[inline]
     pub fn as_byte_slice(&self) -> &[u8] {
         self.opaque_vec.as_byte_slice()
+    }
+
+    #[inline]
+    pub fn as_mut_slice(&mut self) -> &mut [T] {
+        self.opaque_vec.as_mut_slice_unchecked::<T>()
+    }
+}
+
+impl<'a, T> MapMut<'a, T>
+where
+    T: PartialEq + 'static,
+{
+    pub fn contains(&self, value: &T) -> bool {
+        self.opaque_vec.contains(value)
+    }
+}
+
+impl<'a, T, I: slice::SliceIndex<[T]>> ops::Index<I> for MapMut<'a, T>
+where
+    T: 'static,
+{
+    type Output = I::Output;
+
+    #[inline]
+    fn index(&self, index: I) -> &Self::Output {
+        ops::Index::index(self.as_slice(), index)
+    }
+}
+
+impl<'a, T, I: slice::SliceIndex<[T]>> ops::IndexMut<I> for MapMut<'a, T>
+where
+    T: 'static,
+{
+    #[inline]
+    fn index_mut(&mut self, index: I) -> &mut Self::Output {
+        ops::IndexMut::index_mut(self.as_mut_slice(), index)
+    }
+}
+
+impl<'a, T> fmt::Debug for MapMut<'a, T>
+where
+    T: fmt::Debug + 'static,
+{
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.as_slice().fmt(formatter)
     }
 }
 
