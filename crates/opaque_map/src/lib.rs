@@ -338,117 +338,6 @@ impl OpaqueBucketSize {
         self.hash_size + self.key_size + self.value_size
     }
 }
-/*
-pub trait BoxedBuildHasher {
-    fn clone_boxed(&self) -> Box<dyn BoxedBuildHasher>;
-    fn build_hasher_boxed(&self) -> Box<dyn Hasher>;
-}
-
-impl<S> BoxedBuildHasher for S
-where
-    S: hash::BuildHasher + Clone + 'static,
-{
-    fn clone_boxed(&self) -> Box<dyn BoxedBuildHasher> {
-        Box::new(self.clone())
-    }
-
-    fn build_hasher_boxed(&self) -> Box<dyn Hasher> {
-        Box::new(self.build_hasher())
-    }
-}
-
-pub struct OpaqueHasher {
-    hasher: Box<dyn hash::Hasher>,
-    type_id: TypeId,
-}
-
-impl OpaqueHasher {
-    #[inline]
-    const fn new(hasher: Box<dyn hash::Hasher>, type_id: TypeId) -> Self {
-        Self {
-            hasher,
-            type_id,
-        }
-    }
-
-    pub fn is_hasher_type<H>(&self) -> bool
-    where
-        H: hash::Hasher + 'static,
-    {
-        self.type_id == TypeId::of::<H>()
-    }
-}
-
-impl hash::Hasher for OpaqueHasher {
-    fn finish(&self) -> u64 {
-        self.hasher.finish()
-    }
-
-    fn write(&mut self, bytes: &[u8]) {
-        self.hasher.write(bytes)
-    }
-}
-
-pub struct OpaqueBuildHasher {
-    build_hasher: Box<dyn BoxedBuildHasher>,
-    builder_type_id: TypeId,
-    hasher_type_id: TypeId,
-}
-
-impl OpaqueBuildHasher {
-    #[inline]
-    pub fn new<S>(build_hasher: Box<S>) -> Self
-    where
-        S: hash::BuildHasher + Clone + 'static,
-    {
-        let builder_type_id: TypeId = TypeId::of::<S>();
-        let hasher_type_id = TypeId::of::<S::Hasher>();
-
-        Self {
-            build_hasher,
-            builder_type_id,
-            hasher_type_id,
-        }
-    }
-
-    #[inline]
-    pub fn is_builder_type<S>(&self) -> bool
-    where
-        S: hash::BuildHasher + Clone + 'static,
-    {
-        self.builder_type_id == TypeId::of::<S>()
-    }
-
-    #[inline]
-    pub fn is_hasher_type<H>(&self) -> bool
-    where
-        H: hash::Hasher + 'static,
-    {
-        self.hasher_type_id == TypeId::of::<H>()
-    }
-}
-
-impl Clone for OpaqueBuildHasher {
-    fn clone(&self) -> Self {
-        Self {
-            build_hasher: self.build_hasher.clone_boxed(),
-            builder_type_id: self.builder_type_id,
-            hasher_type_id: self.hasher_type_id,
-        }
-    }
-}
-
-impl hash::BuildHasher for OpaqueBuildHasher {
-    type Hasher = OpaqueHasher;
-
-    fn build_hasher(&self) -> Self::Hasher {
-        let hasher= self.build_hasher.build_hasher_boxed();
-        let type_id = self.hasher_type_id;
-
-        OpaqueHasher::new(hasher, type_id)
-    }
-}
-*/
 
 pub(crate) struct OpaqueMapInner {
     indices: hashbrown::HashTable<usize>,
@@ -1937,12 +1826,6 @@ impl OpaqueMap {
         K: 'static,
         V: 'static,
     {
-        /*
-        if std::mem::size_of::<V>() != self.bucket_size.value_size() {
-            panic!("Size mismatch. Need `{}`, got `{}`", self.bucket_size.value_size(), std::mem::size_of::<V>());
-        }
-         */
-
         Slice::from_slice(self.as_entries::<K, V>())
     }
 
@@ -1951,12 +1834,6 @@ impl OpaqueMap {
         K: 'static,
         V: 'static,
     {
-        /*
-        if std::mem::size_of::<V>() != self.bucket_size.value_size() {
-            panic!("Size mismatch. Need `{}`, got `{}`", self.bucket_size.value_size(), std::mem::size_of::<V>());
-        }
-        */
-
         SliceMut::from_slice_mut(self.as_entries_mut::<K, V>())
     }
 }
