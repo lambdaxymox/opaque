@@ -305,8 +305,7 @@ impl OpaqueVec {
         }
     }
 
-    #[cfg(not(no_global_oom_handling))]
-    #[track_caller]
+    #[inline]
     pub(crate) fn replace_insert_unchecked<T>(&mut self, index: usize, value: T)
     where
         T: 'static,
@@ -319,8 +318,7 @@ impl OpaqueVec {
         self.data.replace_insert(index, value_ptr);
     }
 
-    #[cfg(not(no_global_oom_handling))]
-    #[track_caller]
+    #[inline]
     pub fn shift_insert_unchecked<T>(&mut self, index: usize, value: T)
     where
         T: 'static,
@@ -333,8 +331,7 @@ impl OpaqueVec {
         self.data.shift_insert(index, value_ptr);
     }
 
-    #[cfg(not(no_global_oom_handling))]
-    #[track_caller]
+    #[inline]
     pub(crate) fn swap_remove_unchecked<T>(&mut self, index: usize) -> T
     where
         T: 'static,
@@ -352,8 +349,7 @@ impl OpaqueVec {
         value
     }
 
-    #[cfg(not(no_global_oom_handling))]
-    #[track_caller]
+    #[inline]
     pub fn shift_remove_unchecked<T>(&mut self, index: usize) -> T
     where
         T: 'static,
@@ -371,17 +367,12 @@ impl OpaqueVec {
         value
     }
 
+    #[inline]
     pub(crate) fn contains_unchecked<T>(&self, value: &T) -> bool
     where
         T: PartialEq + 'static,
     {
-        for other_value in self.iter::<T>() {
-            if value == other_value {
-                return true;
-            }
-        }
-
-        false
+        self.as_slice::<T>().contains(value)
     }
 
     #[inline]
@@ -409,6 +400,7 @@ impl OpaqueVec {
         self.data.as_non_null().cast::<T>()
     }
 
+    #[inline]
     pub(crate) fn as_slice_unchecked<T>(&self) -> &[T]
     where
         T: 'static,
@@ -427,6 +419,7 @@ impl OpaqueVec {
         slice
     }
 
+    #[inline]
     pub(crate) fn as_mut_slice_unchecked<T>(&mut self) -> &mut [T]
     where
         T: 'static,
@@ -445,6 +438,7 @@ impl OpaqueVec {
         slice
     }
 
+    #[inline]
     #[must_use]
     pub(crate) fn into_raw_parts_unchecked<T>(self) -> (*mut T, usize, usize)
     where
@@ -458,6 +452,7 @@ impl OpaqueVec {
         (ptr, len, capacity)
     }
 
+    #[inline]
     #[must_use]
     pub(crate) fn into_parts_unchecked<T>(self) -> (NonNull<T>, usize, usize)
     where
@@ -473,6 +468,7 @@ impl OpaqueVec {
         (ptr, len, capacity)
     }
 
+    #[inline]
     #[must_use]
     pub(crate) fn into_raw_parts_with_alloc_unchecked<T>(self) -> (*mut T, usize, usize, OpaqueAlloc)
     where
@@ -487,6 +483,7 @@ impl OpaqueVec {
         (ptr, len, capacity, alloc)
     }
 
+    #[inline]
     #[must_use]
     pub(crate) fn into_parts_with_alloc_unchecked<T>(self) -> (NonNull<T>, usize, usize, OpaqueAlloc)
     where
