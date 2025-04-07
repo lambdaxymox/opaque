@@ -1,4 +1,5 @@
 #![feature(allocator_api)]
+#![feature(slice_iter_mut_as_mut_slice)]
 use std::any::TypeId;
 use std::iter::FusedIterator;
 use std::fmt;
@@ -203,11 +204,9 @@ impl<'a, K, V> IterMut<'a, K, V> {
         }
     }
 
-    /*
     fn as_slice_mut(&'a mut self) -> SliceMut<'a, K, V> {
         SliceMut::from_slice_mut(self.iter.as_mut_slice())
     }
-    */
 
     pub fn into_slice_mut(self) -> SliceMut<'a, K, V> {
         SliceMut::from_slice_mut(self.iter.into_slice())
