@@ -8,6 +8,7 @@ use std::hash::{BuildHasher, Hash, Hasher};
 use std::marker::PhantomData;
 use core::cmp::Ordering;
 
+use opaque_alloc;
 use opaque_hash;
 use opaque_vec::OpaqueVec;
 
@@ -37,17 +38,13 @@ impl<'a, K, V> Iterator for Keys<'a, K, V> {
     type Item = &'a K;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let bucket = self.iter.next()?;
-
-        Some(&bucket.key)
+        self.iter.next().map(Bucket::key_ref)
     }
 }
 
 impl<'a, K, V> DoubleEndedIterator for Keys<'a, K, V> {
     fn next_back(&mut self) -> Option<Self::Item> {
-        let bucket = self.iter.next_back()?;
-
-        Some(&bucket.key)
+        self.iter.next_back().map(Bucket::key_ref)
     }
 }
 
@@ -65,6 +62,79 @@ where
 {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter.debug_list().entries(self.clone()).finish()
+    }
+}
+
+impl<'a, K, V> core::ops::Index<usize> for Keys<'a, K, V> {
+    type Output = K;
+
+    fn index(&self, index: usize) -> &K {
+        &self.iter.as_slice()[index].key
+    }
+}
+
+pub struct IntoKeys<K, V> {
+    iter: opaque_vec::IntoIter<Bucket<K, V>, opaque_alloc::OpaqueAlloc>,
+}
+
+impl<K, V> IntoKeys<K, V>
+where
+    K: 'static,
+    V: 'static,
+{
+    fn new(entries: OpaqueVec) -> Self {
+        Self {
+            iter: entries.into_iter(),
+        }
+    }
+}
+
+impl<K, V> Iterator for IntoKeys<K, V> {
+    type Item = K;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next().map(Bucket::key)
+    }
+}
+
+impl<K, V> DoubleEndedIterator for IntoKeys<K, V> {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        self.iter.next_back().map(Bucket::key)
+    }
+
+    fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
+        self.iter.nth_back(n).map(Bucket::key)
+    }
+}
+
+impl<K, V> ExactSizeIterator for IntoKeys<K, V> {
+    fn len(&self) -> usize {
+        self.iter.len()
+    }
+}
+
+impl<K, V> FusedIterator for IntoKeys<K, V> {}
+
+impl<K, V> fmt::Debug for IntoKeys<K, V>
+where
+    K: fmt::Debug + 'static,
+    V: 'static,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let iter = self.iter.as_slice().iter().map(Bucket::key_ref);
+        f.debug_list().entries(iter).finish()
+    }
+}
+
+impl<K, V> Default for IntoKeys<K, V>
+where
+    K: 'static,
+    V: 'static,
+{
+    fn default() -> Self {
+        Self {
+            iter: OpaqueVec::new::<Bucket<K, V>>().into_iter(),
+        }
     }
 }
 
@@ -180,6 +250,70 @@ impl<K, V> Default for ValuesMut<'_, K, V> {
     }
 }
 
+pub struct IntoValues<K, V> {
+    iter: opaque_vec::IntoIter<Bucket<K, V>, opaque_alloc::OpaqueAlloc>,
+}
+
+impl<K, V> IntoValues<K, V>
+where
+    K: 'static,
+    V: 'static,
+{
+    fn new(entries: OpaqueVec) -> Self {
+        Self {
+            iter: entries.into_iter(),
+        }
+    }
+}
+
+impl<K, V> Iterator for IntoValues<K, V> {
+    type Item = V;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next().map(Bucket::value)
+    }
+}
+
+impl<K, V> DoubleEndedIterator for IntoValues<K, V> {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        self.iter.next_back().map(Bucket::value)
+    }
+
+    fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
+        self.iter.nth_back(n).map(Bucket::value)
+    }
+}
+
+impl<K, V> ExactSizeIterator for IntoValues<K, V> {
+    fn len(&self) -> usize {
+        self.iter.len()
+    }
+}
+
+impl<K, V> FusedIterator for IntoValues<K, V> {}
+
+impl<K, V> fmt::Debug for IntoValues<K, V>
+where
+    K: 'static,
+    V: fmt::Debug + 'static,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let iter = self.iter.as_slice().iter().map(Bucket::value_ref);
+        f.debug_list().entries(iter).finish()
+    }
+}
+
+impl<K, V> Default for IntoValues<K, V>
+where
+    K: 'static,
+    V: 'static,
+{
+    fn default() -> Self {
+        Self {
+            iter: OpaqueVec::new::<Bucket<K, V>>().into_iter(),
+        }
+    }
+}
 
 #[repr(transparent)]
 pub struct Slice<'a, K, V> {
@@ -1815,11 +1949,13 @@ impl OpaqueMap {
         Keys::new(self.as_entries::<K, V>())
     }
 
-    /*
-    pub fn into_keys(self) -> IntoKeys<K, V> {
+    pub fn into_keys<K, V>(self) -> IntoKeys<K, V>
+    where
+        K: 'static,
+        V: 'static,
+    {
         IntoKeys::new(self.into_entries())
     }
-    */
 
     pub fn iter<K, V>(&self) -> Iter<'_, K, V>
     where

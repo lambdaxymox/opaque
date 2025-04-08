@@ -23,6 +23,8 @@ use std::alloc;
 use std::any::TypeId;
 use std::marker::PhantomData;
 
+use core::iter::FusedIterator;
+
 use opaque_alloc::OpaqueAlloc;
 
 #[derive(Clone)]
@@ -35,6 +37,99 @@ impl<'a, T> Iterator for Iter<'a, T> {
 
     fn next(&mut self) -> Option<Self::Item> {
         self.slice.next()
+    }
+}
+
+pub struct IntoIter<T, A> {
+    opaque_vec: OpaqueVec,
+    _marker: core::marker::PhantomData<(T, A)>,
+}
+
+impl<T, A> fmt::Debug for IntoIter<T, A>
+where
+    T: fmt::Debug + 'static,
+    A: Allocator,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_tuple("IntoIter").field(&self.as_slice()).finish()
+    }
+}
+
+impl<T, A> IntoIter<T, A>
+where
+    T: 'static,
+    A: Allocator,
+{
+    pub fn as_slice(&self) -> &[T] {
+        self.opaque_vec.as_slice::<T>()
+    }
+
+    pub fn as_mut_slice(&mut self) -> &mut [T] {
+        self.opaque_vec.as_mut_slice::<T>()
+    }
+}
+
+impl<T> IntoIter<T, OpaqueAlloc>
+where
+    T: 'static,
+{
+    #[inline]
+    pub fn allocator(&self) -> &OpaqueAlloc {
+        self.opaque_vec.allocator()
+    }
+}
+
+impl<T, A> AsRef<[T]> for IntoIter<T, A>
+where
+    T: 'static,
+    A: Allocator,
+{
+    fn as_ref(&self) -> &[T] {
+        self.as_slice()
+    }
+}
+
+impl<T, A: Allocator> Iterator for IntoIter<T, A> {
+    type Item = T;
+
+    #[inline]
+    fn next(&mut self) -> Option<T> {
+        todo!()
+    }
+}
+
+impl<T, A: Allocator> DoubleEndedIterator for IntoIter<T, A> {
+    #[inline]
+    fn next_back(&mut self) -> Option<T> {
+        todo!()
+    }
+}
+
+impl<T, A: Allocator> ExactSizeIterator for IntoIter<T, A> {}
+impl<T, A: Allocator> FusedIterator for IntoIter<T, A> {}
+
+/*
+impl<T, A> Default for IntoIter<T, A>
+where
+    A: Allocator + Default,
+{
+    fn default() -> Self {
+        OpaqueVec::new_in(Default::default()).into_iter()
+    }
+}
+ */
+
+#[cfg(not(no_global_oom_handling))]
+impl<T, A> Clone for IntoIter<T, A>
+where
+    T: Clone + 'static,
+    A: Allocator + Clone,
+{
+    fn clone(&self) -> Self {
+        Self {
+            opaque_vec: self.opaque_vec.clone(),
+            _marker: self._marker,
+        }
     }
 }
 
@@ -717,6 +812,18 @@ impl OpaqueVec {
 
         Iter {
             slice: self.as_slice::<T>().iter(),
+        }
+    }
+
+    pub fn into_iter<T>(self) -> IntoIter<T, OpaqueAlloc>
+    where
+        T: 'static,
+    {
+        self.ensure_element_type::<T>();
+
+        IntoIter {
+            opaque_vec: self,
+            _marker: PhantomData,
         }
     }
 

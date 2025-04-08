@@ -12,6 +12,9 @@ default-features = false
 [dependencies.hashbrown]
 version = "0.15.2"
 
+[dependencies.opaque_alloc]
+path = "../opaque_alloc"
+
 [dependencies.opaque_hash]
 path = "../opaque_hash"
 
