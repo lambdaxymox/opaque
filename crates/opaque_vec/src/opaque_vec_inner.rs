@@ -488,6 +488,7 @@ impl OpaqueVecInner {
         }
     }
 
+    /*
     pub(crate) fn extend_from_iter<I>(&mut self, mut iterator: I)
     where
         I: Iterator<Item = NonNull<u8>>,
@@ -510,6 +511,7 @@ impl OpaqueVecInner {
             }
         }
     }
+     */
 }
 
 impl Clone for OpaqueVecInner {

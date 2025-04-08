@@ -975,8 +975,6 @@ impl OpaqueVec {
     where
         T: Clone + 'static,
     {
-        self.ensure_element_type::<T>();
-
         let value_ptr = unsafe {
             NonNull::new_unchecked(&value as *const T as *mut T as *mut u8)
         };
@@ -985,26 +983,21 @@ impl OpaqueVec {
     }
 
     #[inline]
-    fn extend_from_iter_unechecked<T, I>(&mut self, mut iterator: I)
+    fn extend_from_iter_unchecked<T, I>(&mut self, mut iterator: I)
     where
-        T: Clone + 'static,
+        T: Clone + 'static + fmt::Debug,
         I: Iterator<Item = T>,
     {
-        self.ensure_element_type::<T>();
-
-        let mut non_null_iterator = iterator.map(|item| unsafe {
-            NonNull::new_unchecked(&item as *const T as *mut T as *mut u8)
-        });
-        self.data.extend_from_iter(non_null_iterator);
+        for item in iterator {
+            self.push_unchecked::<T>(item);
+        }
     }
 
     #[inline]
     pub fn extend_from_slice_unchecked<T>(&mut self, other: &[T])
     where
-        T: Clone + 'static,
+        T: Clone + 'static + fmt::Debug,
     {
-        self.ensure_element_type::<T>();
-
         self.extend_from_iter::<T, _>(other.iter().cloned())
     }
 
@@ -1013,8 +1006,6 @@ impl OpaqueVec {
     where
         T: Clone + 'static,
     {
-        self.ensure_element_type::<T>();
-
         let len = self.len();
 
         if new_len > len {
@@ -1039,21 +1030,21 @@ impl OpaqueVec {
 
     #[cfg(not(no_global_oom_handling))]
     #[track_caller]
-    fn extend_from_iter<T, I>(&mut self, mut iterator: I)
+    fn extend_from_iter<T, I>(&mut self, iterator: I)
     where
-        T: Clone + 'static,
+        T: Clone + 'static + fmt::Debug,
         I: Iterator<Item = T>,
     {
         self.ensure_element_type::<T>();
 
-        self.extend_from_iter_unechecked::<T, _>(iterator)
+        self.extend_from_iter_unchecked::<T, _>(iterator)
     }
 
     #[cfg(not(no_global_oom_handling))]
     #[track_caller]
     pub fn extend_from_slice<T>(&mut self, other: &[T])
     where
-        T: Clone + 'static,
+        T: Clone + 'static + fmt::Debug,
     {
         self.ensure_element_type::<T>();
 
