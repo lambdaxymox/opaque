@@ -1,0 +1,57 @@
+use std::hash::{Hasher, Hash, BuildHasher, RandomState};
+use criterion;
+use criterion::{criterion_group, criterion_main};
+use opaque_hash::OpaqueBuildHasher;
+
+macro_rules! bench_hasher {
+    ($bench_name:ident, $bench_opaque_name:ident, $typ:ty, $value:expr) => {
+        fn $bench_name(c: &mut criterion::Criterion) {
+            let default_hash_builder = RandomState::new();
+            let value: $typ = $value;
+
+            c.bench_function(stringify!($bench_name), |b| {
+                b.iter(|| {
+                    let mut hasher = default_hash_builder.build_hasher();
+                    criterion::black_box(value).hash(&mut hasher);
+                    criterion::black_box(hasher.finish());
+                });
+            });
+        }
+
+        fn $bench_opaque_name(c: &mut criterion::Criterion) {
+            let default_hash_builder = RandomState::new();
+            let opaque_hash_builder = OpaqueBuildHasher::new(Box::new(default_hash_builder));
+            let value: $typ = $value;
+
+            c.bench_function(stringify!($bench_opaque_name), |b| {
+                b.iter(|| {
+                    let mut opaque_hasher = opaque_hash_builder.build_hasher();
+                    criterion::black_box(value).hash(&mut opaque_hasher);
+                    criterion::black_box(opaque_hasher.finish());
+                });
+            });
+        }
+    }
+}
+
+bench_hasher!(bench_default_hasher_i8, bench_opaque_default_hasher_i8, i8, i8::MAX);
+bench_hasher!(bench_default_hasher_i16, bench_opaque_default_hasher_i16, i16, i16::MAX);
+bench_hasher!(bench_default_hasher_i32, bench_opaque_default_hasher_i32, i32, i32::MAX);
+bench_hasher!(bench_default_hasher_i64, bench_opaque_default_hasher_i64, i64, i64::MAX);
+bench_hasher!(bench_default_hasher_i128, bench_opaque_default_hasher_i128, i128, i128::MAX);
+bench_hasher!(bench_default_hasher_isize, bench_opaque_default_hasher_isize, isize, isize::MAX);
+
+bench_hasher!(bench_default_hasher_str1, bench_opaque_default_hasher_str1, &str, "RA4Q8lJVNwU8G8En3LO2rR5xBAPur1uSGcLiO1IK");
+
+
+criterion_group!(opaque_hash_benches,
+    bench_default_hasher_i8, bench_opaque_default_hasher_i8,
+    bench_default_hasher_i16, bench_opaque_default_hasher_i16,
+    bench_default_hasher_i32, bench_opaque_default_hasher_i32,
+    bench_default_hasher_i64, bench_opaque_default_hasher_i64,
+    bench_default_hasher_i128, bench_opaque_default_hasher_i128,
+    bench_default_hasher_isize, bench_opaque_default_hasher_isize,
+
+    bench_default_hasher_str1, bench_opaque_default_hasher_str1,
+);
+criterion_main!(opaque_hash_benches);

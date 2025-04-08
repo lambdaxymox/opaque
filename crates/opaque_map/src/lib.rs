@@ -2373,10 +2373,15 @@ impl OpaqueMap {
     }
 
     /*
-    pub fn as_slice(&self) -> &Slice<K, V> {
+    pub fn as_slice<K, V>(&self) -> Slice<K, V>
+    where
+        K: 'static,
+        V: 'static,
+    {
         Slice::from_slice(self.as_entries())
     }
-
+    */
+    /*
     pub fn as_mut_slice(&mut self) -> &mut Slice<K, V> {
         Slice::from_mut_slice(self.as_entries_mut())
     }
