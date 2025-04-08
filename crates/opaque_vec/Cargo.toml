@@ -24,6 +24,14 @@ check-cfg = [
 ]
 
 [[bench]]
+name = "bench_opaque_vec_get"
+harness = false
+
+[[bench]]
+name = "bench_opaque_vec_pop"
+harness = false
+
+[[bench]]
 name = "bench_opaque_vec_push"
 harness = false
 
@@ -32,7 +40,11 @@ name = "bench_opaque_vec_replace_insert"
 harness = false
 
 [[bench]]
-name = "bench_opaque_vec_get"
+name = "bench_opaque_vec_shift_insert"
+harness = false
+
+[[bench]]
+name = "bench_opaque_vec_shift_remove"
 harness = false
 
 [[bench]]

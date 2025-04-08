@@ -9,6 +9,8 @@ use std::alloc::{Allocator, Layout, Global};
 use std::mem::{ManuallyDrop, MaybeUninit};
 use std::ptr::NonNull;
 use std::fmt;
+use core::slice;
+use core::ops;
 
 mod range_types;
 mod unique;
@@ -1712,10 +1714,6 @@ where
         self.opaque_vec.contains(value)
     }
 }
-
-use core::ops;
-use core::slice;
-use crate::try_reserve_error::TryReserveErrorKind;
 
 impl<'a, T, I: slice::SliceIndex<[T]>> ops::Index<I> for Map<'a, T>
 where
