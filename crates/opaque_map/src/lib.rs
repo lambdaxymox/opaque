@@ -84,11 +84,102 @@ impl<'a, K, V> Iterator for Values<'a, K, V> {
     type Item = &'a V;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let bucket = self.iter.next()?;
-
-        Some(&bucket.value)
+        self.iter.next().map(Bucket::value_ref)
     }
 }
+
+impl<'a, K, V> DoubleEndedIterator for Values<'a, K, V> {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        self.iter.next_back().map(Bucket::value_ref)
+    }
+
+    fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
+        self.iter.nth_back(n).map(Bucket::value_ref)
+    }
+}
+
+impl<'a, K, V> ExactSizeIterator for Values<'a, K, V> {
+    fn len(&self) -> usize {
+        self.iter.len()
+    }
+}
+
+impl<'a, K, V> FusedIterator for Values<'a, K, V> {}
+
+impl<K, V> Clone for Values<'_, K, V> {
+    fn clone(&self) -> Self {
+        Values {
+            iter: self.iter.clone(),
+        }
+    }
+}
+
+
+impl<K, V: fmt::Debug> fmt::Debug for Values<'_, K, V> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_list().entries(self.clone()).finish()
+    }
+}
+
+impl<K, V> Default for Values<'_, K, V> {
+    fn default() -> Self {
+        Self { iter: [].iter() }
+    }
+}
+
+pub struct ValuesMut<'a, K, V> {
+    iter: core::slice::IterMut<'a, Bucket<K, V>>,
+}
+
+impl<'a, K, V> ValuesMut<'a, K, V> {
+    fn new(entries: &'a mut [Bucket<K, V>]) -> Self {
+        Self {
+            iter: entries.iter_mut(),
+        }
+    }
+}
+
+impl<'a, K, V> Iterator for ValuesMut<'a, K, V> {
+    type Item = &'a mut V;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next().map(Bucket::value_mut)
+    }
+}
+
+impl<K, V> DoubleEndedIterator for ValuesMut<'_, K, V> {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        self.iter.next_back().map(Bucket::value_mut)
+    }
+
+    fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
+        self.iter.nth_back(n).map(Bucket::value_mut)
+    }
+}
+
+impl<'a, K, V> ExactSizeIterator for ValuesMut<'a, K, V> {
+    fn len(&self) -> usize {
+        self.iter.len()
+    }
+}
+
+impl<'a, K, V> FusedIterator for ValuesMut<'a, K, V> {}
+
+impl<K, V: fmt::Debug> fmt::Debug for ValuesMut<'_, K, V> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let iter = self.iter.as_slice().iter().map(Bucket::value_ref);
+        f.debug_list().entries(iter).finish()
+    }
+}
+
+impl<K, V> Default for ValuesMut<'_, K, V> {
+    fn default() -> Self {
+        Self {
+            iter: [].iter_mut(),
+        }
+    }
+}
+
 
 #[repr(transparent)]
 pub struct Slice<'a, K, V> {
@@ -653,14 +744,19 @@ impl OpaqueMapInner {
         self.indices.clear();
         self.entries.clear();
     }
-    /*
-    pub(crate) fn truncate(&mut self, len: usize) {
+
+    pub(crate) fn truncate<K, V>(&mut self, len: usize)
+    where
+        K: 'static,
+        V: 'static,
+    {
         if len < self.len() {
-            self.erase_indices(len, self.entries.len());
+            self.erase_indices::<K, V>(len, self.entries.len());
             self.entries.truncate(len);
         }
     }
 
+    /*
     #[track_caller]
     pub(crate) fn drain<R>(&mut self, range: R) -> vec::Drain<'_, Bucket<K, V>>
     where
@@ -904,18 +1000,21 @@ impl OpaqueMapInner {
         }
     }
 
-    /*
     #[inline]
-    pub(crate) fn swap_remove_index(&mut self, index: usize) -> Option<(K, V)> {
-        self.borrow_mut().swap_remove_index(index)
+    pub(crate) fn swap_remove_index<K, V>(&mut self, index: usize) -> Option<(K, V)>
+    where
+        K: 'static,
+        V: 'static,
+    {
+        self.borrow_mut::<K, V>().swap_remove_index(index)
     }
 
-    /// Erase `start..end` from `indices`, and shift `end..` indices down to `start..`
-    ///
-    /// All of these items should still be at their original location in `entries`.
-    /// This is used by `drain`, which will let `Vec::drain` do the work on `entries`.
-    fn erase_indices(&mut self, start: usize, end: usize) {
-        let (init, shifted_entries) = self.entries.split_at(end);
+    fn erase_indices<K, V>(&mut self, start: usize, end: usize)
+    where
+        K: 'static,
+        V: 'static,
+    {
+        let (init, shifted_entries) = self.entries.as_slice::<Bucket<K, V>>().split_at(end);
         let (start_entries, erased_entries) = init.split_at(start);
 
         let erased = erased_entries.len();
@@ -960,17 +1059,18 @@ impl OpaqueMapInner {
         debug_assert_eq!(self.indices.len(), start + shifted);
     }
 
-    pub(crate) fn retain_in_order<F>(&mut self, mut keep: F)
+    pub(crate) fn retain_in_order<F, K, V>(&mut self, mut keep: F)
     where
+        K: 'static,
+        V: 'static,
         F: FnMut(&mut K, &mut V) -> bool,
     {
         self.entries
-            .retain_mut(|entry| keep(&mut entry.key, &mut entry.value));
+            .retain_mut::<_, Bucket<K, V>>(|entry: &mut Bucket<K, V>| keep(&mut entry.key, &mut entry.value));
         if self.entries.len() < self.indices.len() {
-            self.rebuild_hash_table();
+            self.rebuild_hash_table::<K, V>();
         }
     }
-    */
 
     fn rebuild_hash_table<K, V>(&mut self)
     where
@@ -1715,6 +1815,12 @@ impl OpaqueMap {
         Keys::new(self.as_entries::<K, V>())
     }
 
+    /*
+    pub fn into_keys(self) -> IntoKeys<K, V> {
+        IntoKeys::new(self.into_entries())
+    }
+    */
+
     pub fn iter<K, V>(&self) -> Iter<'_, K, V>
     where
         K: 'static,
@@ -1729,6 +1835,46 @@ impl OpaqueMap {
         V: 'static,
     {
         IterMut::new(self.as_entries_mut::<K, V>())
+    }
+
+    pub fn values<K, V>(&self) -> Values<'_, K, V>
+    where
+        K: 'static,
+        V: 'static,
+    {
+        Values::new(self.as_entries())
+    }
+
+    pub fn values_mut<K, V>(&mut self) -> ValuesMut<'_, K, V>
+    where
+        K: 'static,
+        V: 'static,
+    {
+        ValuesMut::new(self.as_entries_mut())
+    }
+
+    /*
+    pub fn into_values(self) -> IntoValues<K, V> {
+        IntoValues::new(self.into_entries())
+    }
+    */
+
+    /// Remove all key-value pairs in the map, while preserving its capacity.
+    ///
+    /// Computes in **O(n)** time.
+    pub fn clear(&mut self) {
+        self.inner.clear();
+    }
+
+    /// Shortens the map, keeping the first `len` elements and dropping the rest.
+    ///
+    /// If `len` is greater than the map's current length, this has no effect.
+    pub fn truncate<K, V>(&mut self, len: usize)
+    where
+        K: 'static,
+        V: 'static,
+    {
+        self.inner.truncate::<K, V>(len);
     }
 
     pub fn swap_remove<Q, K, V>(&mut self, key: &Q) -> Option<V>
