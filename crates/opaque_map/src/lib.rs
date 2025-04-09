@@ -1989,11 +1989,13 @@ impl OpaqueMap {
         ValuesMut::new(self.as_entries_mut())
     }
 
-    /*
-    pub fn into_values(self) -> IntoValues<K, V> {
+    pub fn into_values<K, V>(self) -> IntoValues<K, V>
+    where
+        K: 'static,
+        V: 'static,
+    {
         IntoValues::new(self.into_entries())
     }
-    */
 
     /// Remove all key-value pairs in the map, while preserving its capacity.
     ///
