@@ -985,7 +985,7 @@ impl OpaqueVec {
     #[inline]
     fn extend_from_iter_unchecked<T, I>(&mut self, mut iterator: I)
     where
-        T: Clone + 'static + fmt::Debug,
+        T: Clone + 'static,
         I: Iterator<Item = T>,
     {
         for item in iterator {
@@ -996,7 +996,7 @@ impl OpaqueVec {
     #[inline]
     pub fn extend_from_slice_unchecked<T>(&mut self, other: &[T])
     where
-        T: Clone + 'static + fmt::Debug,
+        T: Clone + 'static,
     {
         self.extend_from_iter::<T, _>(other.iter().cloned())
     }
@@ -1032,7 +1032,7 @@ impl OpaqueVec {
     #[track_caller]
     fn extend_from_iter<T, I>(&mut self, iterator: I)
     where
-        T: Clone + 'static + fmt::Debug,
+        T: Clone + 'static,
         I: Iterator<Item = T>,
     {
         self.ensure_element_type::<T>();
@@ -1044,7 +1044,7 @@ impl OpaqueVec {
     #[track_caller]
     pub fn extend_from_slice<T>(&mut self, other: &[T])
     where
-        T: Clone + 'static + fmt::Debug,
+        T: Clone + 'static,
     {
         self.ensure_element_type::<T>();
 
