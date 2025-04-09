@@ -1,21 +1,17 @@
+mod common;
+
 use opaque_vec::OpaqueVec;
 
-use std::fmt;
+use core::fmt;
 
-fn nonnegative_integer_values<const N: usize>() -> [i32; N] {
-    let mut prefix = [0_i32; N];
-    for i in 0..N {
-        prefix[i] = (i as i32) + 1;
-    }
-
-    prefix
-}
+use common::array_generators as ag;
 
 fn run_test_opaque_vec_as_mut_slice<T>(values: &mut [T])
 where
-    T: PartialEq + Clone + fmt::Debug + 'static,
+    T: PartialEq + Clone + fmt::Debug + TryFrom<usize> + 'static,
+    <T as TryFrom<usize>>::Error: fmt::Debug,
 {
-    let mut vec = OpaqueVec::from(&mut *values);
+    let mut vec = OpaqueVec::from(&*values);
 
     let expected = values;
     let result = vec.as_mut_slice::<T>();
@@ -23,147 +19,53 @@ where
     assert_eq!(result, expected);
 }
 
-#[test]
-fn test_opaque_vec_as_mut_slice_empty1() {
-    let values: [i32; 0] = [];
-    let mut vec = OpaqueVec::from(&values);
-
-    assert!(vec.as_mut_slice::<i32>().is_empty());
+fn run_test_opaque_vec_as_mut_slice_values<T, const N: usize>(values: &mut [T])
+where
+    T: PartialEq + Clone + fmt::Debug + TryFrom<usize> + 'static,
+    <T as TryFrom<usize>>::Error: fmt::Debug,
+{
+    for len in 0..values.len() {
+        run_test_opaque_vec_as_mut_slice(&mut values[0..len]);
+    }
 }
 
-#[test]
-fn test_opaque_vec_as_mut_slice_empty2() {
-    let mut values: [i32; 0] = [];
-    let mut vec = OpaqueVec::from(&values);
+macro_rules! generate_tests {
+    ($typ:ident, $max_array_size:expr, $range_spec:expr, $alt_spec:expr) => {
+        mod $typ {
+            use super::*;
 
-    let expected = values.as_mut_slice();
-    let result = vec.as_mut_slice::<i32>();
+            #[test]
+            fn test_opaque_vec_as_mut_slice_empty() {
+                let mut values: [$typ; 0] = [];
 
-    assert_eq!(result, expected);
+                run_test_opaque_vec_as_mut_slice(&mut values);
+            }
+
+            #[test]
+            fn test_opaque_vec_as_mut_slice_range_values() {
+                let mut values = ag::range_values::<$typ, $max_array_size>($range_spec);
+                run_test_opaque_vec_as_mut_slice_values::<$typ, $max_array_size>(&mut values);
+            }
+
+            #[test]
+            fn test_opaque_vec_as_mut_slice_alternating_values() {
+                let mut values = ag::alternating_values::<$typ, $max_array_size>($alt_spec);
+                run_test_opaque_vec_as_mut_slice_values::<$typ, $max_array_size>(&mut values);
+            }
+        }
+    };
 }
 
-#[test]
-fn test_opaque_vec_as_mut_slice1() {
-    let mut values = nonnegative_integer_values::<1>();
+generate_tests!(i8,    128,  ag::RangeValuesSpec::new(0), ag::AlternatingValuesSpec::new(i8::MIN,    0));
+generate_tests!(i16,   1024, ag::RangeValuesSpec::new(0), ag::AlternatingValuesSpec::new(i16::MIN,   0));
+generate_tests!(i32,   1024, ag::RangeValuesSpec::new(0), ag::AlternatingValuesSpec::new(i32::MIN,   0));
+generate_tests!(i64,   1024, ag::RangeValuesSpec::new(0), ag::AlternatingValuesSpec::new(i64::MIN,   0));
+generate_tests!(i128,  1024, ag::RangeValuesSpec::new(0), ag::AlternatingValuesSpec::new(i128::MIN,  0));
+generate_tests!(isize, 1024, ag::RangeValuesSpec::new(0), ag::AlternatingValuesSpec::new(isize::MIN, 0));
 
-    run_test_opaque_vec_as_mut_slice(&mut values)
-}
-
-#[test]
-fn test_opaque_vec_as_mut_slice2() {
-    let mut values = nonnegative_integer_values::<2>();
-
-    run_test_opaque_vec_as_mut_slice(&mut values)
-}
-
-#[test]
-fn test_opaque_vec_as_mut_slice3() {
-    let mut values = nonnegative_integer_values::<3>();
-
-    run_test_opaque_vec_as_mut_slice(&mut values)
-}
-
-#[test]
-fn test_opaque_vec_as_mut_slice4() {
-    let mut values = nonnegative_integer_values::<4>();
-
-    run_test_opaque_vec_as_mut_slice(&mut values)
-}
-
-#[test]
-fn test_opaque_vec_as_mut_slice5() {
-    let mut values = nonnegative_integer_values::<5>();
-
-    run_test_opaque_vec_as_mut_slice(&mut values)
-}
-
-#[test]
-fn test_opaque_vec_as_mut_slice6() {
-    let mut values = nonnegative_integer_values::<6>();
-
-    run_test_opaque_vec_as_mut_slice(&mut values)
-}
-
-#[test]
-fn test_opaque_vec_as_mut_slice7() {
-    let mut values = nonnegative_integer_values::<7>();
-
-    run_test_opaque_vec_as_mut_slice(&mut values)
-}
-
-#[test]
-fn test_opaque_vec_as_mut_slice8() {
-    let mut values = nonnegative_integer_values::<8>();
-
-    run_test_opaque_vec_as_mut_slice(&mut values)
-}
-
-#[test]
-fn test_opaque_vec_as_mut_slice9() {
-    let mut values = nonnegative_integer_values::<9>();
-
-    run_test_opaque_vec_as_mut_slice(&mut values)
-}
-
-#[test]
-fn test_opaque_vec_as_mut_slice10() {
-    let mut values = nonnegative_integer_values::<10>();
-
-    run_test_opaque_vec_as_mut_slice(&mut values)
-}
-
-#[test]
-fn test_opaque_vec_as_mut_slice11() {
-    let mut values = nonnegative_integer_values::<11>();
-
-    run_test_opaque_vec_as_mut_slice(&mut values)
-}
-
-#[test]
-fn test_opaque_vec_as_mut_slice12() {
-    let mut values = nonnegative_integer_values::<12>();
-
-    run_test_opaque_vec_as_mut_slice(&mut values)
-}
-
-#[test]
-fn test_opaque_vec_as_mut_slice13() {
-    let mut values = nonnegative_integer_values::<13>();
-
-    run_test_opaque_vec_as_mut_slice(&mut values)
-}
-
-#[test]
-fn test_opaque_vec_as_mut_slice14() {
-    let mut values = nonnegative_integer_values::<14>();
-
-    run_test_opaque_vec_as_mut_slice(&mut values)
-}
-
-#[test]
-fn test_opaque_vec_as_mut_slice15() {
-    let mut values = nonnegative_integer_values::<15>();
-
-    run_test_opaque_vec_as_mut_slice(&mut values)
-}
-
-#[test]
-fn test_opaque_vec_as_mut_slice16() {
-    let mut values = nonnegative_integer_values::<16>();
-
-    run_test_opaque_vec_as_mut_slice(&mut values)
-}
-
-#[test]
-fn test_opaque_vec_as_mut_slice32() {
-    let mut values = nonnegative_integer_values::<32>();
-
-    run_test_opaque_vec_as_mut_slice(&mut values)
-}
-
-#[test]
-fn test_opaque_vec_as_mut_slice64() {
-    let mut values = nonnegative_integer_values::<64>();
-
-    run_test_opaque_vec_as_mut_slice(&mut values)
-}
+generate_tests!(u8,    128,  ag::RangeValuesSpec::new(0), ag::AlternatingValuesSpec::new(u8::MIN,    u8::MAX));
+generate_tests!(u16,   1024, ag::RangeValuesSpec::new(0), ag::AlternatingValuesSpec::new(u16::MIN,   u16::MAX));
+generate_tests!(u32,   1024, ag::RangeValuesSpec::new(0), ag::AlternatingValuesSpec::new(u32::MIN,   u32::MAX));
+generate_tests!(u64,   1024, ag::RangeValuesSpec::new(0), ag::AlternatingValuesSpec::new(u64::MIN,   u64::MAX));
+generate_tests!(u128,  1024, ag::RangeValuesSpec::new(0), ag::AlternatingValuesSpec::new(u128::MIN,  u128::MAX));
+generate_tests!(usize, 1024, ag::RangeValuesSpec::new(0), ag::AlternatingValuesSpec::new(usize::MIN, usize::MAX));
