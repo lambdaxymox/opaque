@@ -13,7 +13,10 @@ where
         vec.replace_insert::<T>(i, value);
     }
 
-    assert_eq!(vec.len(), values.len());
+    let expected = values.len();
+    let result = vec.len();
+
+    assert_eq!(result, expected);
 }
 
 fn run_test_opaque_vec_replace_insert_len_values<T>(values: &[T])

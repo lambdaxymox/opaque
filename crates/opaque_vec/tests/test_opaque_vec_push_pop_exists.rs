@@ -6,50 +6,33 @@ use core::fmt;
 
 use common::array_generators as ag;
 
-fn expected<T>(values: &[T]) -> OpaqueVec
+fn run_test_opaque_vec_push_pop_exists<T>(values: &[T])
 where
     T: PartialEq + Clone + fmt::Debug + 'static,
 {
-    let mut expected_vec = OpaqueVec::new::<T>();
-    for value in values.iter().rev().cloned() {
-        expected_vec.push::<T>(value);
+    let mut vec = OpaqueVec::new::<T>();
+    for value in values.iter().cloned() {
+        vec.push::<T>(value);
     }
 
-    expected_vec
-}
-
-fn result<T>(values: &[T]) -> OpaqueVec
-where
-    T: PartialEq + Clone + fmt::Debug + 'static,
-{
-    let mut vec = OpaqueVec::from(values);
-    let mut result_vec = OpaqueVec::new::<T>();
     for _ in 0..vec.len() {
-        let popped = vec.pop::<T>();
+        let result = vec.pop::<T>();
 
-        result_vec.push::<T>(popped.unwrap());
+        assert!(result.is_some());
     }
 
-    result_vec
+    let result = vec.pop::<T>();
+
+    assert!(result.is_none());
 }
 
-fn run_test_opaque_vec_push_pop<T>(values: &[T])
-where
-    T: PartialEq + Clone + fmt::Debug + 'static,
-{
-    let expected = expected(values);
-    let result = result(values);
-
-    assert_eq!(result, expected);
-}
-
-fn run_test_opaque_vec_push_pop_values<T>(values: &[T])
+fn run_test_opaque_vec_push_pop_exists_values<T>(values: &[T])
 where
     T: PartialEq + Clone + fmt::Debug + 'static,
 {
     for len in 0..values.len() {
         let prefix_values = &values[0..len];
-        run_test_opaque_vec_push_pop(prefix_values);
+        run_test_opaque_vec_push_pop_exists(prefix_values);
     }
 }
 
@@ -59,15 +42,15 @@ macro_rules! generate_tests {
             use super::*;
 
             #[test]
-            fn test_opaque_vec_push_pop_range_values() {
+            fn test_opaque_vec_push_pop_exists_range_values() {
                 let values = ag::range_values::<$typ, $max_array_size>($range_spec);
-                run_test_opaque_vec_push_pop_values(&values);
+                run_test_opaque_vec_push_pop_exists_values(&values);
             }
 
             #[test]
-            fn test_opaque_vec_push_pop_alternating_values() {
+            fn test_opaque_vec_push_pop_exists_alternating_values() {
                 let values = ag::alternating_values::<$typ, $max_array_size>($alt_spec);
-                run_test_opaque_vec_push_pop_values(&values);
+                run_test_opaque_vec_push_pop_exists_values(&values);
             }
         }
     };
