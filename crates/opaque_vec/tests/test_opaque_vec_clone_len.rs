@@ -6,17 +6,6 @@ use core::fmt;
 
 use common::array_generators as ag;
 
-/*
-fn nonnegative_integer_values<const N: usize>() -> [i32; N] {
-    let mut prefix = [0_i32; N];
-    for i in 0..N {
-        prefix[i] = (i as i32) + 1;
-    }
-
-    prefix
-}
-*/
-
 fn run_test_opaque_vec_clone_len<T>(values: &[T])
 where
     T: PartialEq + Clone + fmt::Debug + 'static,
@@ -39,19 +28,7 @@ where
         run_test_opaque_vec_clone_len(&values[0..len]);
     }
 }
-/*
-#[test]
-fn test_opaque_vec_clone_len_empty() {
-    let values: [i32; 0] = [];
-    let vec = OpaqueVec::from(values);
-    let cloned_vec = vec.clone();
 
-    let expected = vec.len();
-    let result = cloned_vec.len();
-
-    assert_eq!(result, expected);
-}
-*/
 macro_rules! generate_tests {
     ($typ:ident, $max_array_size:expr, $range_spec:expr, $alt_spec:expr) => {
         mod $typ {
@@ -92,131 +69,3 @@ generate_tests!(u32,   1024, ag::RangeValuesSpec::new(0), ag::AlternatingValuesS
 generate_tests!(u64,   1024, ag::RangeValuesSpec::new(0), ag::AlternatingValuesSpec::new(u64::MIN,   u64::MAX));
 generate_tests!(u128,  1024, ag::RangeValuesSpec::new(0), ag::AlternatingValuesSpec::new(u128::MIN,  u128::MAX));
 generate_tests!(usize, 1024, ag::RangeValuesSpec::new(0), ag::AlternatingValuesSpec::new(usize::MIN, usize::MAX));
-
-/*
-#[test]
-fn test_opaque_vec_clone_len1() {
-    let values = nonnegative_integer_values::<1>();
-
-    run_test_opaque_vec_clone_len(&values)
-}
-
-#[test]
-fn test_opaque_vec_clone_len2() {
-    let values = nonnegative_integer_values::<2>();
-
-    run_test_opaque_vec_clone_len(&values)
-}
-
-#[test]
-fn test_opaque_vec_clone_len3() {
-    let values = nonnegative_integer_values::<3>();
-
-    run_test_opaque_vec_clone_len(&values)
-}
-
-#[test]
-fn test_opaque_vec_clone_len4() {
-    let values = nonnegative_integer_values::<4>();
-
-    run_test_opaque_vec_clone_len(&values)
-}
-
-#[test]
-fn test_opaque_vec_clone_len5() {
-    let values = nonnegative_integer_values::<5>();
-
-    run_test_opaque_vec_clone_len(&values)
-}
-
-#[test]
-fn test_opaque_vec_clone_len6() {
-    let values = nonnegative_integer_values::<6>();
-
-    run_test_opaque_vec_clone_len(&values)
-}
-
-#[test]
-fn test_opaque_vec_clone_len7() {
-    let values = nonnegative_integer_values::<7>();
-
-    run_test_opaque_vec_clone_len(&values)
-}
-
-#[test]
-fn test_opaque_vec_clone_len8() {
-    let values = nonnegative_integer_values::<8>();
-
-    run_test_opaque_vec_clone_len(&values)
-}
-
-#[test]
-fn test_opaque_vec_clone_len9() {
-    let values = nonnegative_integer_values::<9>();
-
-    run_test_opaque_vec_clone_len(&values)
-}
-
-#[test]
-fn test_opaque_vec_clone_len10() {
-    let values = nonnegative_integer_values::<10>();
-
-    run_test_opaque_vec_clone_len(&values)
-}
-
-#[test]
-fn test_opaque_vec_clone_len11() {
-    let values = nonnegative_integer_values::<11>();
-
-    run_test_opaque_vec_clone_len(&values)
-}
-
-#[test]
-fn test_opaque_vec_clone_len12() {
-    let values = nonnegative_integer_values::<12>();
-
-    run_test_opaque_vec_clone_len(&values)
-}
-
-#[test]
-fn test_opaque_vec_clone_len13() {
-    let values = nonnegative_integer_values::<13>();
-
-    run_test_opaque_vec_clone_len(&values)
-}
-
-#[test]
-fn test_opaque_vec_clone_len14() {
-    let values = nonnegative_integer_values::<14>();
-
-    run_test_opaque_vec_clone_len(&values)
-}
-
-#[test]
-fn test_opaque_vec_clone_len15() {
-    let values = nonnegative_integer_values::<15>();
-
-    run_test_opaque_vec_clone_len(&values)
-}
-
-#[test]
-fn test_opaque_vec_clone_len16() {
-    let values = nonnegative_integer_values::<16>();
-
-    run_test_opaque_vec_clone_len(&values)
-}
-
-#[test]
-fn test_opaque_vec_clone_len32() {
-    let values = nonnegative_integer_values::<32>();
-
-    run_test_opaque_vec_clone_len(&values)
-}
-
-#[test]
-fn test_opaque_vec_clone_len64() {
-    let values = nonnegative_integer_values::<64>();
-
-    run_test_opaque_vec_clone_len(&values)
-}
-*/
