@@ -55,3 +55,23 @@ where
 
     array
 }
+
+#[derive(Clone)]
+pub struct ConstantValuesSpec<T> {
+    constant: T,
+}
+
+impl<T> ConstantValuesSpec<T> {
+    #[inline]
+    pub const fn new(constant: T) -> Self {
+        Self { constant, }
+    }
+}
+
+pub fn constant_values<T, const N: usize>(spec: ConstantValuesSpec<T>) -> [T; N]
+where
+    T: Copy + PartialEq + Clone + fmt::Debug + TryFrom<usize> + ops::Add<Output = T> + 'static,
+    <T as TryFrom<usize>>::Error: fmt::Debug,
+{
+    [spec.constant; N]
+}

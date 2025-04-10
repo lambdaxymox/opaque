@@ -19,7 +19,7 @@ where
     assert_eq!(result, expected);
 }
 
-fn run_test_opaque_vec_as_mut_slice_values<T, const N: usize>(values: &mut [T])
+fn run_test_opaque_vec_as_mut_slice_values<T>(values: &mut [T])
 where
     T: PartialEq + Clone + fmt::Debug + TryFrom<usize> + 'static,
     <T as TryFrom<usize>>::Error: fmt::Debug,
@@ -44,13 +44,13 @@ macro_rules! generate_tests {
             #[test]
             fn test_opaque_vec_as_mut_slice_range_values() {
                 let mut values = ag::range_values::<$typ, $max_array_size>($range_spec);
-                run_test_opaque_vec_as_mut_slice_values::<$typ, $max_array_size>(&mut values);
+                run_test_opaque_vec_as_mut_slice_values(&mut values);
             }
 
             #[test]
             fn test_opaque_vec_as_mut_slice_alternating_values() {
                 let mut values = ag::alternating_values::<$typ, $max_array_size>($alt_spec);
-                run_test_opaque_vec_as_mut_slice_values::<$typ, $max_array_size>(&mut values);
+                run_test_opaque_vec_as_mut_slice_values(&mut values);
             }
         }
     };

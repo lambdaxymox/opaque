@@ -1,24 +1,10 @@
+mod common;
+
 use opaque_vec::OpaqueVec;
 
-use std::fmt;
+use core::fmt;
 
-fn nonnegative_integer_values<const N: usize>() -> [i32; N] {
-    let mut prefix = [0_i32; N];
-    for i in 0..N {
-        prefix[i] = (i as i32) + 1;
-    }
-
-    prefix
-}
-
-fn negative_integer_values<const N: usize>() -> [i32; N] {
-    let mut prefix = [0_i32; N];
-    for i in 0..N {
-        prefix[i] = -((i as i32) + 1)
-    }
-
-    prefix
-}
+use common::array_generators as ag;
 
 fn expected<T>(values: &[T], extension_values: &[T]) -> OpaqueVec
 where
@@ -52,6 +38,56 @@ where
     assert_eq!(result.as_slice::<T>(), expected.as_slice::<T>());
 }
 
+fn run_test_opaque_vec_extend_from_slice_values<T>(values: &[T], extension_values: &[T])
+where
+    T: PartialEq + Clone + fmt::Debug + 'static,
+{
+    let expected = expected(values, extension_values);
+    let result = result(values, extension_values);
+    for len in 0..values.len() {
+        let prefix_values = &values[0..len];
+        let prefix_extension_values = &extension_values[0..len];
+        run_test_opaque_vec_extend_from_slice(prefix_values, prefix_extension_values);
+    }
+}
+
+macro_rules! generate_tests {
+    ($typ:ident, $max_array_size:expr, $range_spec:expr, $alt_spec:expr, $const_spec:expr) => {
+        mod $typ {
+            use super::*;
+
+            #[test]
+            fn test_opaque_vec_clone_len_range_values() {
+                let values = ag::range_values::<$typ, $max_array_size>($range_spec);
+                let extension_values = ag::constant_values::<$typ, $max_array_size>($const_spec);
+                run_test_opaque_vec_extend_from_slice_values(&values, &extension_values);
+            }
+
+            #[test]
+            fn test_opaque_vec_clone_len_alternating_values() {
+                let values = ag::alternating_values::<$typ, $max_array_size>($alt_spec);
+                let extension_values = ag::constant_values::<$typ, $max_array_size>($const_spec);
+                run_test_opaque_vec_extend_from_slice_values(&values, &extension_values);
+            }
+        }
+    };
+}
+
+generate_tests!(i8,    128,  ag::RangeValuesSpec::new(0), ag::AlternatingValuesSpec::new(i8::MIN,    0), ag::ConstantValuesSpec::new(i8::MAX));
+generate_tests!(i16,   1024, ag::RangeValuesSpec::new(0), ag::AlternatingValuesSpec::new(i16::MIN,   0), ag::ConstantValuesSpec::new(i16::MAX));
+generate_tests!(i32,   1024, ag::RangeValuesSpec::new(0), ag::AlternatingValuesSpec::new(i32::MIN,   0), ag::ConstantValuesSpec::new(i32::MAX));
+generate_tests!(i64,   1024, ag::RangeValuesSpec::new(0), ag::AlternatingValuesSpec::new(i64::MIN,   0), ag::ConstantValuesSpec::new(i64::MAX));
+generate_tests!(i128,  1024, ag::RangeValuesSpec::new(0), ag::AlternatingValuesSpec::new(i128::MIN,  0), ag::ConstantValuesSpec::new(i128::MAX));
+generate_tests!(isize, 1024, ag::RangeValuesSpec::new(0), ag::AlternatingValuesSpec::new(isize::MIN, 0), ag::ConstantValuesSpec::new(isize::MAX));
+
+generate_tests!(u8,    128,  ag::RangeValuesSpec::new(0), ag::AlternatingValuesSpec::new(u8::MIN,    u8::MAX),    ag::ConstantValuesSpec::new(u8::MAX));
+generate_tests!(u16,   1024, ag::RangeValuesSpec::new(0), ag::AlternatingValuesSpec::new(u16::MIN,   u16::MAX),   ag::ConstantValuesSpec::new(u16::MAX));
+generate_tests!(u32,   1024, ag::RangeValuesSpec::new(0), ag::AlternatingValuesSpec::new(u32::MIN,   u32::MAX),   ag::ConstantValuesSpec::new(u32::MAX));
+generate_tests!(u64,   1024, ag::RangeValuesSpec::new(0), ag::AlternatingValuesSpec::new(u64::MIN,   u64::MAX),   ag::ConstantValuesSpec::new(u64::MAX));
+generate_tests!(u128,  1024, ag::RangeValuesSpec::new(0), ag::AlternatingValuesSpec::new(u128::MIN,  u128::MAX),  ag::ConstantValuesSpec::new(u128::MAX));
+generate_tests!(usize, 1024, ag::RangeValuesSpec::new(0), ag::AlternatingValuesSpec::new(usize::MIN, usize::MAX), ag::ConstantValuesSpec::new(usize::MAX));
+
+/*
 #[test]
 fn test_opaque_vec_extend_from_slice1() {
     let values = nonnegative_integer_values::<1>();
@@ -195,3 +231,4 @@ fn test_opaque_vec_extend_from_slice64() {
 
     run_test_opaque_vec_extend_from_slice(&values, extension_values.as_slice::<i32>());
 }
+*/

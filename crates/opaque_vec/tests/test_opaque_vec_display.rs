@@ -1,6 +1,6 @@
 use opaque_vec::OpaqueVec;
 
-use std::fmt;
+use core::fmt;
 
 #[test]
 fn test_opaque_vec_display_empty() {
