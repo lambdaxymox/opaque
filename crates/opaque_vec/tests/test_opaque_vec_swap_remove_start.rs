@@ -6,27 +6,46 @@ use core::fmt;
 
 use common::array_generators as ag;
 
-fn run_test_opaque_vec_swap_remove_from_end<T>(values: &[T])
+fn expected<T>(values: &[T]) -> OpaqueVec
+where
+    T: PartialEq + Clone + fmt::Debug + 'static,
+{
+    let mut vec = OpaqueVec::new::<T>();
+    for value in values.iter().take(values.len() - 1).cloned() {
+        vec.push::<T>(value);
+    }
+
+    if !vec.is_empty() {
+        vec.replace_insert::<T>(0, values[values.len() - 1].clone());
+    }
+
+    vec
+}
+
+fn run_test_opaque_vec_swap_remove_start<T>(values: &[T])
 where
     T: PartialEq + Clone + fmt::Debug + 'static,
 {
     let mut vec = OpaqueVec::from(values);
 
-    let last_index = vec.len() - 1;
-    let expected = &values[0..last_index];
-    let _ = vec.swap_remove::<T>(last_index);
-    let result = vec.as_slice::<T>();
+    for i in 0..values.len() {
+        let last_index = values.len() - i;
+        let new_vec = expected(&values[0..last_index]);
+        let _ = vec.swap_remove::<T>(0);
+        let expected = new_vec.as_slice::<T>();
+        let result = vec.as_slice::<T>();
 
-    assert_eq!(result, expected);
+        assert_eq!(result, expected);
+    }
 }
 
-fn run_test_opaque_vec_swap_remove_from_end_values<T>(values: &[T])
+fn run_test_opaque_vec_swap_remove_start_values<T>(values: &[T])
 where
     T: PartialEq + Clone + fmt::Debug + 'static,
 {
-    for len in 1..values.len() {
+    for len in 0..values.len() {
         let prefix_values = &values[0..len];
-        run_test_opaque_vec_swap_remove_from_end(prefix_values);
+        run_test_opaque_vec_swap_remove_start(prefix_values);
     }
 }
 
@@ -36,15 +55,15 @@ macro_rules! generate_tests {
             use super::*;
 
             #[test]
-            fn test_opaque_vec_swap_remove_from_end_range_values() {
+            fn test_opaque_vec_swap_remove_start_range_values() {
                 let values = ag::range_values::<$typ, $max_array_size>($range_spec);
-                run_test_opaque_vec_swap_remove_from_end_values(&values);
+                run_test_opaque_vec_swap_remove_start_values(&values);
             }
 
             #[test]
-            fn test_opaque_vec_swap_remove_from_end_alternating_values() {
+            fn test_opaque_vec_swap_remove_start_alternating_values() {
                 let values = ag::alternating_values::<$typ, $max_array_size>($alt_spec);
-                run_test_opaque_vec_swap_remove_from_end_values(&values);
+                run_test_opaque_vec_swap_remove_start_values(&values);
             }
         }
     };
