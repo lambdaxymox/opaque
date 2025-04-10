@@ -563,13 +563,13 @@ impl OpaqueBucketSize {
     }
 }
 
-pub(crate) struct OpaqueMapInner {
+pub(crate) struct OpaqueIndexMapInner {
     indices: hashbrown::HashTable<usize>,
     entries: OpaqueVec,
     bucket_size: OpaqueBucketSize,
 }
 
-impl Clone for OpaqueMapInner {
+impl Clone for OpaqueIndexMapInner {
     fn clone(&self) -> Self {
         Self {
             indices: self.indices.clone(),
@@ -820,7 +820,7 @@ where
     }
 }
 
-impl OpaqueMapInner {
+impl OpaqueIndexMapInner {
     #[inline]
     pub(crate) fn new<K, V>() -> Self
     where
@@ -1230,7 +1230,7 @@ impl OpaqueMapInner {
     }
 }
 
-impl OpaqueMapInner {
+impl OpaqueIndexMapInner {
     #[inline]
     fn into_entries(self) -> OpaqueVec {
         self.entries
@@ -1266,7 +1266,7 @@ impl OpaqueMapInner {
     }
 }
 
-impl OpaqueMapInner {
+impl OpaqueIndexMapInner {
     pub(crate) fn entry<K, V>(&mut self, hash: HashValue, key: K) -> Entry<'_, K, V>
     where
         K: Eq + 'static,
@@ -1622,7 +1622,7 @@ where
     K: 'static,
     V: 'static,
 {
-    pub(crate) fn new(map: &'a mut OpaqueMap, index: usize) -> Self
+    pub(crate) fn new(map: &'a mut OpaqueIndexMap, index: usize) -> Self
     where
         K: Ord + 'static,
         V: 'static,
@@ -1717,12 +1717,12 @@ where
 
 
 #[derive(Clone)]
-pub struct OpaqueMap {
-    inner: OpaqueMapInner,
+pub struct OpaqueIndexMap {
+    inner: OpaqueIndexMapInner,
     hash_builder: opaque_hash::OpaqueBuildHasher,
 }
 
-impl OpaqueMap {
+impl OpaqueIndexMap {
     #[inline]
     fn into_entries(self) -> OpaqueVec {
         self.inner.into_entries()
@@ -1756,13 +1756,13 @@ impl OpaqueMap {
     }
 }
 
-impl OpaqueMap {
+impl OpaqueIndexMap {
     pub fn new<K, V>() -> Self
     where
         K: 'static,
         V: 'static,
     {
-        let inner = OpaqueMapInner::new::<K, V>();
+        let inner = OpaqueIndexMapInner::new::<K, V>();
         let opaque_hash_builder = opaque_hash::OpaqueBuildHasher::new::<hash::RandomState>(Box::new(hash::RandomState::default()));
 
         Self {
@@ -1780,7 +1780,7 @@ impl OpaqueMap {
         let opaque_hash_builder = opaque_hash::OpaqueBuildHasher::new::<S>(Box::new(hash_builder));
 
         Self {
-            inner: OpaqueMapInner::new::<K, V>(),
+            inner: OpaqueIndexMapInner::new::<K, V>(),
             hash_builder: opaque_hash_builder,
         }
     }
@@ -1797,8 +1797,8 @@ impl OpaqueMap {
         } else {
             let opaque_hash_builder = opaque_hash::OpaqueBuildHasher::new::<S>(Box::new(hash_builder));
 
-            OpaqueMap {
-                inner: OpaqueMapInner::with_capacity::<K, V>(capacity),
+            OpaqueIndexMap {
+                inner: OpaqueIndexMapInner::with_capacity::<K, V>(capacity),
                 hash_builder: opaque_hash_builder,
             }
         }
@@ -1809,7 +1809,7 @@ impl OpaqueMap {
         K: 'static,
         V: 'static,
     {
-        let inner = OpaqueMapInner::with_capacity::<K, V>(capacity);
+        let inner = OpaqueIndexMapInner::with_capacity::<K, V>(capacity);
         let opaque_hash_builder = opaque_hash::OpaqueBuildHasher::new(Box::new(hash::RandomState::default()));
 
         Self {
@@ -2121,7 +2121,7 @@ impl OpaqueMap {
     }
 }
 
-impl OpaqueMap {
+impl OpaqueIndexMap {
     pub fn insert<K, V>(&mut self, key: K, value: V) -> Option<V>
     where
         K: Eq + hash::Hash + 'static,
@@ -2248,7 +2248,7 @@ impl OpaqueMap {
      */
 }
 
-impl OpaqueMap {
+impl OpaqueIndexMap {
     /*
     #[doc(alias = "pop_last")] // like `BTreeMap`
     pub fn pop(&mut self) -> Option<(K, V)> {
@@ -2476,7 +2476,7 @@ impl OpaqueMap {
 }
 
 pub struct Map<'a, K, V> {
-    opaque_map: &'a OpaqueMap,
+    opaque_map: &'a OpaqueIndexMap,
     _marker: std::marker::PhantomData<(K, V)>,
 }
 
@@ -2486,7 +2486,7 @@ where
     V: 'static,
 {
     #[inline]
-    const fn new(opaque_map: &'a OpaqueMap) -> Self {
+    const fn new(opaque_map: &'a OpaqueIndexMap) -> Self {
         Self {
             opaque_map,
             _marker: std::marker::PhantomData,
@@ -2518,7 +2518,7 @@ where
 }
 
 pub struct MapMut<'a, K, V> {
-    opaque_map: &'a mut OpaqueMap,
+    opaque_map: &'a mut OpaqueIndexMap,
     _marker: std::marker::PhantomData<(K, V)>,
 }
 
@@ -2528,7 +2528,7 @@ where
     V: 'static,
 {
     #[inline]
-    const fn new(opaque_map: &'a mut OpaqueMap) -> Self {
+    const fn new(opaque_map: &'a mut OpaqueIndexMap) -> Self {
         Self {
             opaque_map,
             _marker: std::marker::PhantomData,
@@ -2573,7 +2573,7 @@ where
     }
 }
 
-impl OpaqueMap {
+impl OpaqueIndexMap {
     pub fn as_map<K, V>(&self) -> Map<'_, K, V>
     where
         K: 'static,

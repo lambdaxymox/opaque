@@ -2,14 +2,14 @@ extern crate core;
 
 use core::hash;
 use opaque_vec::OpaqueVec;
-use opaque_map::OpaqueMap;
+use opaque_index_map::OpaqueIndexMap;
 
-fn run_test_opaque_map_insert_as_slice<K, V>(entries: &[(K, V)])
+fn run_test_opaque_index_map_insert_as_slice<K, V>(entries: &[(K, V)])
 where
     K: Clone + Eq + hash::Hash + 'static,
     V: Clone + Eq + 'static,
 {
-    let mut map = OpaqueMap::new::<u32, i32>();
+    let mut map = OpaqueIndexMap::new::<u32, i32>();
     for (key, value) in entries.iter().cloned() {
         map.insert(key, value);
     }
@@ -27,36 +27,36 @@ where
 }
 
 #[test]
-fn test_opaque_map_insert_as_slice_empty() {
+fn test_opaque_index_map_insert_as_slice_empty() {
     let entries: [(u32, i32); 0] = [];
 
-    run_test_opaque_map_insert_as_slice(&entries);
+    run_test_opaque_index_map_insert_as_slice(&entries);
 }
 
 #[test]
-fn test_opaque_map_insert_as_slice1() {
+fn test_opaque_index_map_insert_as_slice1() {
     let entries: [(u32, i32); 1] = [(0, 1)];
 
-    run_test_opaque_map_insert_as_slice(&entries);
+    run_test_opaque_index_map_insert_as_slice(&entries);
 }
 
 #[test]
-fn test_opaque_map_insert_as_slice2() {
+fn test_opaque_index_map_insert_as_slice2() {
     let entries: [(u32, i32); 2] = [(0, 1), (1, 2)];
 
-    run_test_opaque_map_insert_as_slice(&entries);
+    run_test_opaque_index_map_insert_as_slice(&entries);
 }
 
 #[test]
-fn test_opaque_map_insert_as_slice3() {
+fn test_opaque_index_map_insert_as_slice3() {
     let entries: [(u32, i32); 3] = [(0, 1), (1, 2), (2, 3)];
 
-    run_test_opaque_map_insert_as_slice(&entries);
+    run_test_opaque_index_map_insert_as_slice(&entries);
 }
 
 #[test]
-fn test_opaque_map_insert_as_slice4() {
+fn test_opaque_index_map_insert_as_slice4() {
     let entries: [(u32, i32); 4] = [(0, 1), (1, 2), (2, 3), (3, 4)];
 
-    run_test_opaque_map_insert_as_slice(&entries);
+    run_test_opaque_index_map_insert_as_slice(&entries);
 }

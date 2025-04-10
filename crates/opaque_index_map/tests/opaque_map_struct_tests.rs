@@ -1,4 +1,4 @@
-use opaque_map::OpaqueMap;
+use opaque_index_map::OpaqueIndexMap;
 
 #[derive(Copy, Clone, PartialEq, Debug)]
 struct TestStruct {
@@ -18,22 +18,22 @@ impl TestStruct {
 }
 
 #[test]
-fn test_opaque_map_empty_is_empty() {
-    let map = OpaqueMap::new::<usize, TestStruct>();
+fn test_opaque_index_map_empty_is_empty() {
+    let map = OpaqueIndexMap::new::<usize, TestStruct>();
 
     assert!(map.is_empty());
 }
 
 #[test]
-fn test_opaque_map_empty_len() {
-    let map = OpaqueMap::new::<usize, TestStruct>();
+fn test_opaque_index_map_empty_len() {
+    let map = OpaqueIndexMap::new::<usize, TestStruct>();
 
     assert_eq!(map.len(), 0);
 }
 
 #[test]
-fn test_opaque_map_empty_map_get_none() {
-    let map = OpaqueMap::new::<usize, TestStruct>();
+fn test_opaque_index_map_empty_map_get_none() {
+    let map = OpaqueIndexMap::new::<usize, TestStruct>();
     for i in 0..10000 {
         let result = map.get::<usize, usize, TestStruct>(&i);
 
@@ -42,10 +42,10 @@ fn test_opaque_map_empty_map_get_none() {
 }
 
 #[test]
-fn test_opaque_map_insert_get1() {
+fn test_opaque_index_map_insert_get1() {
     let key = 0;
     let value = TestStruct::new(100, true, f32::MIN_POSITIVE);
-    let mut map = OpaqueMap::new::<usize, TestStruct>();
+    let mut map = OpaqueIndexMap::new::<usize, TestStruct>();
     map.insert(key, value);
 
     let expected = Some(value);
@@ -55,11 +55,11 @@ fn test_opaque_map_insert_get1() {
 }
 
 #[test]
-fn test_opaque_map_insert_get2() {
+fn test_opaque_index_map_insert_get2() {
     let value = TestStruct::new(100, true, f32::MIN_POSITIVE);
     let values = [value; 4];
         
-    let mut map = OpaqueMap::new::<usize, TestStruct>();
+    let mut map = OpaqueIndexMap::new::<usize, TestStruct>();
     for (key, value) in values.iter().copied().enumerate() {
         map.insert(key, value);
     }
@@ -73,10 +73,10 @@ fn test_opaque_map_insert_get2() {
 }
 
 #[test]
-fn test_opaque_map_insert_remove_contains_key1() {
+fn test_opaque_index_map_insert_remove_contains_key1() {
     let key = 0;
     let value = TestStruct::new(100, true, f32::MIN_POSITIVE);
-    let mut map = OpaqueMap::new::<usize, TestStruct>();
+    let mut map = OpaqueIndexMap::new::<usize, TestStruct>();
     map.insert(key, value);
 
     assert!(map.contains_key::<usize, usize, TestStruct>(&key));
@@ -87,11 +87,11 @@ fn test_opaque_map_insert_remove_contains_key1() {
 }
 
 #[test]
-fn test_opaque_map_as_slice1() {
+fn test_opaque_index_map_as_slice1() {
     let value = TestStruct::new(100, true, f32::MIN_POSITIVE);
     let values = [value; 4];
         
-    let mut map = OpaqueMap::new::<usize, TestStruct>();
+    let mut map = OpaqueIndexMap::new::<usize, TestStruct>();
     for (key, value) in values.iter().copied().enumerate() {
         map.insert(key, value);
     }

@@ -14,8 +14,8 @@ path = "crates/opaque_hash"
 [dependencies.opaque_vec]
 path = "crates/opaque_vec"
 
-[dependencies.opaque_map]
-path = "crates/opaque_map"
+[dependencies.opaque_index_map]
+path = "crates/opaque_index_map"
 
 [workspace]
 members = [
