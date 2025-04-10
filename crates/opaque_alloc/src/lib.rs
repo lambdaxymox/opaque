@@ -47,7 +47,7 @@ impl OpaqueAlloc {
         self.type_id == TypeId::of::<A>()
     }
 
-    pub fn downcast_any<A>(self) -> Option<Box<A>>
+    pub fn downcast<A>(self) -> Option<Box<A>>
     where
         A: Allocator + Clone + 'static,
     {

@@ -26,13 +26,19 @@ fn run_test_opaque_alloc_allocate_size_with_layout_over_aligned_allocation(opaqu
 
 fn run_test_opaque_alloc_allocate_size_over_aligned_allocation_with_size_align(size: usize, align: usize) {
     let opaque_alloc = OpaqueAlloc::new::<Global>(Global);
-    let layout = Layout::from_size_align(size, align).unwrap();
+    let layout = Layout::from_size_align(size, align)
+        .expect(&format!("Failed to construct layout with size `{:?}` and alignment `{:?}`", size, align));
 
     run_test_opaque_alloc_allocate_size_with_layout_over_aligned_allocation(opaque_alloc, layout);
 }
 
 #[test]
-fn test_opaque_alloc_allocate_size_over_aligned_allocation_with_size_1024_align_1() {
+fn test_opaque_alloc_allocate_size_over_aligned_allocation_with_size_1024_align_2048() {
+    run_test_opaque_alloc_allocate_size_over_aligned_allocation_with_size_align(1024, 2048);
+}
+
+#[test]
+fn test_opaque_alloc_allocate_size_over_aligned_allocation_with_size_1024_align_4096() {
     run_test_opaque_alloc_allocate_size_over_aligned_allocation_with_size_align(1024, 4096);
 }
 
