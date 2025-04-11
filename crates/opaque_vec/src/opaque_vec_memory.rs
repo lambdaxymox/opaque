@@ -1,11 +1,12 @@
 use std::alloc::{Allocator, Layout, Global};
-use std::ptr::NonNull;
+use core::ptr::NonNull;
 
-use crate::try_reserve_error::{TryReserveError, TryReserveErrorKind};
 use crate::range_types::UsizeNoHighBit;
 use crate::unique::Unique;
 
-// One central function responsible for reporting capacity overflows. This'll
+use opaque_error;
+
+// One central function responsible for reporting capacity overflows. This will
 // ensure that the code generation related to these panics is minimal as there's
 // only one location which panics rather than a bunch throughout the module.
 #[cfg(not(no_global_oom_handling))]
@@ -41,18 +42,18 @@ pub(crate) unsafe fn new_capacity(capacity: usize, layout: Layout) -> Capacity {
 #[cold]
 #[optimize(size)]
 #[track_caller]
-fn handle_error(err: TryReserveError) -> ! {
+fn handle_error(err: opaque_error::TryReserveError) -> ! {
     match err.kind() {
-        TryReserveErrorKind::CapacityOverflow => capacity_overflow(),
-        TryReserveErrorKind::AllocError { layout, .. } => std::alloc::handle_alloc_error(layout),
+        opaque_error::TryReserveErrorKind::CapacityOverflow => capacity_overflow(),
+        opaque_error::TryReserveErrorKind::AllocError { layout, .. } => std::alloc::handle_alloc_error(layout),
     }
 }
 
 #[inline]
-fn layout_array(capacity: usize, element_layout: Layout) -> Result<Layout, TryReserveError> {
+fn layout_array(capacity: usize, element_layout: Layout) -> Result<Layout, opaque_error::TryReserveError> {
     element_layout.repeat(capacity)
         .map(|(layout, _pad)| layout)
-        .map_err(|_| TryReserveError::from(TryReserveErrorKind::CapacityOverflow))
+        .map_err(|_| opaque_error::TryReserveError::from(opaque_error::TryReserveErrorKind::CapacityOverflow))
 }
 
 // We need to guarantee the following:
@@ -64,9 +65,9 @@ fn layout_array(capacity: usize, element_layout: Layout) -> Result<Layout, TryRe
 // an extra guard for this in case we're running on a platform which can use
 // all 4GB in user-space, e.g., PAE or x32.
 #[inline]
-fn alloc_guard(alloc_size: usize) -> Result<(), TryReserveError> {
+fn alloc_guard(alloc_size: usize) -> Result<(), opaque_error::TryReserveError> {
     if usize::BITS < 64 && alloc_size > isize::MAX as usize {
-        Err(TryReserveError::from(TryReserveErrorKind::CapacityOverflow))
+        Err(opaque_error::TryReserveError::from(opaque_error::TryReserveErrorKind::CapacityOverflow))
     } else {
         Ok(())
     }
@@ -79,7 +80,7 @@ fn finish_grow<A>(
     new_layout: Layout,
     current_memory: Option<(NonNull<u8>, Layout)>,
     alloc: &mut A,
-) -> Result<NonNull<[u8]>, TryReserveError>
+) -> Result<NonNull<[u8]>, opaque_error::TryReserveError>
 where
     A: std::alloc::Allocator,
 {
@@ -96,7 +97,7 @@ where
         alloc.allocate(new_layout)
     };
 
-    memory.map_err(|_| TryReserveError::from(TryReserveErrorKind::AllocError { layout: new_layout }))
+    memory.map_err(|_| opaque_error::TryReserveError::from(opaque_error::TryReserveErrorKind::AllocError { layout: new_layout }))
 }
 
 
@@ -142,12 +143,12 @@ where
         init: AllocInit,
         alloc: A,
         element_layout: Layout,
-    ) -> Result<Self, TryReserveError> {
+    ) -> Result<Self, opaque_error::TryReserveError> {
         // We avoid `unwrap_or_else` here because it bloats the amount of
         // LLVM IR generated.
         let layout = match layout_array(capacity, element_layout) {
             Ok(layout) => layout,
-            Err(_) => return Err(TryReserveError::from(TryReserveErrorKind::CapacityOverflow)),
+            Err(_) => return Err(opaque_error::TryReserveError::from(opaque_error::TryReserveErrorKind::CapacityOverflow)),
         };
 
         // Don't allocate here because `Drop` will not deallocate when `capacity` is 0.
@@ -166,7 +167,7 @@ where
         };
         let ptr = match result {
             Ok(ptr) => ptr,
-            Err(_) => return Err(TryReserveErrorKind::AllocError { layout, }.into()),
+            Err(_) => return Err(opaque_error::TryReserveErrorKind::AllocError { layout, }.into()),
         };
 
         // Allocators currently return a `NonNull<[u8]>` whose length
@@ -180,7 +181,7 @@ where
     }
 
     #[inline]
-    pub(crate) fn try_with_capacity_in(capacity: usize, alloc: A, element_layout: Layout) -> Result<Self, TryReserveError> {
+    pub(crate) fn try_with_capacity_in(capacity: usize, alloc: A, element_layout: Layout) -> Result<Self, opaque_error::TryReserveError> {
         Self::try_allocate_in(capacity, AllocInit::Uninitialized, alloc, element_layout)
     }
 
@@ -263,7 +264,7 @@ where
         len: usize,
         additional: usize,
         element_layout: Layout,
-    ) -> Result<(), TryReserveError> {
+    ) -> Result<(), opaque_error::TryReserveError> {
         if self.needs_to_grow(len, additional, element_layout) {
             self.grow_amortized(len, additional, element_layout)?;
         }
@@ -279,7 +280,7 @@ where
         len: usize,
         additional: usize,
         element_layout: Layout,
-    ) -> Result<(), TryReserveError> {
+    ) -> Result<(), opaque_error::TryReserveError> {
         if self.needs_to_grow(len, additional, element_layout) {
             self.grow_exact(len, additional, element_layout)?;
         }
@@ -353,7 +354,7 @@ where
         length: usize,
         additional: usize,
         element_layout: Layout,
-    ) -> Result<(), TryReserveError> {
+    ) -> Result<(), opaque_error::TryReserveError> {
         const fn min_non_zero_cap(size: usize) -> usize {
             if size == 1 {
                 8
@@ -370,13 +371,13 @@ where
         if element_layout.size() == 0 {
             // Since we return a capacity of `usize::MAX` when `elem_size` is
             // 0, getting to here necessarily means the `RawVec` is overfull.
-            return Err(TryReserveError::from(TryReserveErrorKind::CapacityOverflow));
+            return Err(opaque_error::TryReserveError::from(opaque_error::TryReserveErrorKind::CapacityOverflow));
         }
 
         // Nothing we can really do about these checks, sadly.
         let required_capacity = length
             .checked_add(additional)
-            .ok_or(TryReserveErrorKind::CapacityOverflow)?;
+            .ok_or(opaque_error::TryReserveErrorKind::CapacityOverflow)?;
 
         // This guarantees exponential growth. The doubling cannot overflow
         // because `cap <= isize::MAX` and the type of `cap` is `usize`.
@@ -398,14 +399,14 @@ where
         len: usize,
         additional: usize,
         element_layout: Layout,
-    ) -> Result<(), TryReserveError> {
+    ) -> Result<(), opaque_error::TryReserveError> {
         if element_layout.size() == 0 {
             // Since we return a capacity of `usize::MAX` when the type size is
             // 0, getting to here necessarily means the `RawVec` is overfull.
-            return Err(TryReserveError::from(TryReserveErrorKind::CapacityOverflow));
+            return Err(opaque_error::TryReserveError::from(opaque_error::TryReserveErrorKind::CapacityOverflow));
         }
 
-        let cap = len.checked_add(additional).ok_or(TryReserveError::from(TryReserveErrorKind::CapacityOverflow))?;
+        let cap = len.checked_add(additional).ok_or(opaque_error::TryReserveError::from(opaque_error::TryReserveErrorKind::CapacityOverflow))?;
         let new_layout = layout_array(cap, element_layout)?;
 
         let ptr = finish_grow(new_layout, self.current_memory(element_layout), &mut self.alloc)?;
@@ -422,8 +423,8 @@ where
     pub(crate) fn grow_one(&mut self, element_layout: Layout) {
         if let Err(err) = self.grow_amortized(self.capacity.as_inner(), 1, element_layout) {
             match err.kind() {
-                TryReserveErrorKind::CapacityOverflow => capacity_overflow(),
-                TryReserveErrorKind::AllocError { layout, .. } => std::alloc::handle_alloc_error(layout),
+                opaque_error::TryReserveErrorKind::CapacityOverflow => capacity_overflow(),
+                opaque_error::TryReserveErrorKind::AllocError { layout, .. } => std::alloc::handle_alloc_error(layout),
             }
         }
     }
@@ -443,7 +444,7 @@ where
         &mut self,
         capacity: usize,
         element_layout: Layout,
-    ) -> Result<(), TryReserveError> {
+    ) -> Result<(), opaque_error::TryReserveError> {
         let (ptr, layout) =
             if let Some(mem) = self.current_memory(element_layout) { mem } else { return Ok(()) };
 
@@ -463,7 +464,7 @@ where
                 let new_layout = Layout::from_size_align_unchecked(new_size, layout.align());
                 self.alloc
                     .shrink(ptr, layout, new_layout)
-                    .map_err(|_| TryReserveErrorKind::AllocError { layout: new_layout, })?
+                    .map_err(|_| opaque_error::TryReserveErrorKind::AllocError { layout: new_layout, })?
             };
             // SAFETY: if the allocation is valid, then the capacity is too
             unsafe {
@@ -476,7 +477,7 @@ where
 
     #[cfg(not(no_global_oom_handling))]
     #[inline]
-    fn shrink(&mut self, capacity: usize, element_layout: Layout) -> Result<(), TryReserveError> {
+    fn shrink(&mut self, capacity: usize, element_layout: Layout) -> Result<(), opaque_error::TryReserveError> {
         assert!(capacity <= self.capacity(element_layout.size()), "Tried to shrink to a larger capacity");
         // SAFETY: Just checked this isn't trying to grow
         unsafe { self.shrink_unchecked(capacity, element_layout) }

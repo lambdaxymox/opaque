@@ -4,7 +4,8 @@ use std::ptr::NonNull;
 use opaque_alloc::OpaqueAlloc;
 use crate::opaque_vec_memory;
 use crate::opaque_vec_memory::OpaqueVecMemory;
-use crate::try_reserve_error::TryReserveError;
+
+use opaque_error;
 
 pub(crate) struct OpaqueVecInner {
     element_layout: Layout,
@@ -50,7 +51,7 @@ impl OpaqueVecInner {
         alloc: OpaqueAlloc,
         element_layout: Layout,
         drop_fn: Option<unsafe fn(NonNull<u8>)>
-    ) -> Result<Self, TryReserveError>
+    ) -> Result<Self, opaque_error::TryReserveError>
     {
         let length = 0;
         let data = OpaqueVecMemory::try_with_capacity_in(capacity, alloc, element_layout)?;
@@ -356,12 +357,12 @@ impl OpaqueVecInner {
     }
 
     #[inline]
-    pub(crate) fn try_reserve(&mut self, additional: usize) -> Result<(), TryReserveError> {
+    pub(crate) fn try_reserve(&mut self, additional: usize) -> Result<(), opaque_error::TryReserveError> {
         self.data.try_reserve(self.length, additional, self.element_layout)
     }
 
     #[inline]
-    pub(crate) fn try_reserve_exact(&mut self, additional: usize) -> Result<(), TryReserveError> {
+    pub(crate) fn try_reserve_exact(&mut self, additional: usize) -> Result<(), opaque_error::TryReserveError> {
         self.data.try_reserve_exact(self.length, additional, self.element_layout)
     }
 

@@ -9,6 +9,10 @@ edition = "2024"
 version = "0.1.0"
 path = "../opaque_alloc"
 
+[dependencies.opaque_error]
+version = "0.1.0"
+path = "../opaque_error"
+
 [dev-dependencies]
 
 [dev-dependencies.criterion]

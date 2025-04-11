@@ -11,6 +11,7 @@ use core::cmp::Ordering;
 use opaque_alloc;
 use opaque_hash;
 use opaque_vec::OpaqueVec;
+use opaque_error::{TryReserveError, TryReserveErrorKind};
 
 pub use equivalent::Equivalent;
 
@@ -989,23 +990,41 @@ impl OpaqueIndexMapInner {
             .try_reserve_exact(additional)
             .map_err(TryReserveError::from_alloc)
     }
+    */
 
-    pub(crate) fn try_reserve_exact(&mut self, additional: usize) -> Result<(), TryReserveError> {
+    pub(crate) fn try_reserve_exact<K, V>(&mut self, additional: usize) -> Result<(), TryReserveError>
+    where
+        K: 'static,
+        V: 'static,
+    {
+        fn from_hashbrown(error: hashbrown::TryReserveError) -> TryReserveError {
+            let kind = match error {
+                    hashbrown::TryReserveError::CapacityOverflow => {
+                        TryReserveErrorKind::CapacityOverflow
+                    }
+                    hashbrown::TryReserveError::AllocError { layout } => {
+                        TryReserveErrorKind::AllocError { layout }
+                    }
+            };
+
+            TryReserveError::from(kind)
+        }
+
         self.indices
-            .try_reserve(additional, get_hash(&self.entries))
-            .map_err(TryReserveError::from_hashbrown)?;
+            .try_reserve(additional, get_hash(self.entries.as_slice::<Bucket<K, V>>()))
+            .map_err(from_hashbrown)?;
         self.entries
             .try_reserve_exact(additional)
-            .map_err(TryReserveError::from_alloc)
     }
 
-    pub(crate) fn shrink_to(&mut self, min_capacity: usize) {
-        self.indices
-            .shrink_to(min_capacity, get_hash(&self.entries));
+    pub(crate) fn shrink_to<K, V>(&mut self, min_capacity: usize)
+    where
+        K: 'static,
+        V: 'static,
+    {
+        self.indices.shrink_to(min_capacity, get_hash(self.entries.as_slice::<Bucket<K, V>>()));
         self.entries.shrink_to(min_capacity);
     }
-
-     */
 
     pub(crate) fn pop<K, V>(&mut self) -> Option<(K, V)>
     where

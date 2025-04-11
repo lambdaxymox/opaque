@@ -15,10 +15,8 @@ use core::ops;
 mod range_types;
 mod unique;
 mod opaque_vec_memory;
-mod try_reserve_error;
 mod opaque_vec_inner;
 
-use crate::try_reserve_error::TryReserveError;
 use crate::opaque_vec_inner::OpaqueVecInner;
 
 use std::alloc;
@@ -28,6 +26,7 @@ use std::marker::PhantomData;
 use core::iter::FusedIterator;
 
 use opaque_alloc::OpaqueAlloc;
+use opaque_error;
 
 #[derive(Clone)]
 pub struct Iter<'a, T> {
@@ -188,7 +187,7 @@ impl OpaqueVec {
     }
 
     #[inline]
-    pub fn try_with_capacity_in<T, A>(capacity: usize, alloc: A) -> Result<Self, TryReserveError>
+    pub fn try_with_capacity_in<T, A>(capacity: usize, alloc: A) -> Result<Self, opaque_error::TryReserveError>
     where
         T: 'static,
         A: Allocator + Clone + 'static,
@@ -280,7 +279,7 @@ impl OpaqueVec {
     }
 
     #[inline]
-    pub fn try_with_capacity<T>(capacity: usize) -> Result<Self, TryReserveError>
+    pub fn try_with_capacity<T>(capacity: usize) -> Result<Self, opaque_error::TryReserveError>
     where
         T: 'static,
     {
@@ -932,11 +931,11 @@ impl OpaqueVec {
 }
 
 impl OpaqueVec {
-    pub fn try_reserve(&mut self, additional: usize) -> Result<(), TryReserveError> {
+    pub fn try_reserve(&mut self, additional: usize) -> Result<(), opaque_error::TryReserveError> {
         self.data.try_reserve(additional)
     }
 
-    pub fn try_reserve_exact(&mut self, additional: usize) -> Result<(), TryReserveError> {
+    pub fn try_reserve_exact(&mut self, additional: usize) -> Result<(), opaque_error::TryReserveError> {
         self.data.try_reserve_exact(additional)
     }
 

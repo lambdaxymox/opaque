@@ -15,6 +15,9 @@ version = "0.15.2"
 [dependencies.opaque_alloc]
 path = "../opaque_alloc"
 
+[dependencies.opaque_error]
+path = "../opaque_error"
+
 [dependencies.opaque_hash]
 path = "../opaque_hash"
 

@@ -8,6 +8,9 @@ edition = "2024"
 [dependencies.opaque_alloc]
 path = "crates/opaque_alloc"
 
+[dependencies.opaque_error]
+path = "crates/opaque_error"
+
 [dependencies.opaque_hash]
 path = "crates/opaque_hash"
 
