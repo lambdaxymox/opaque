@@ -6,6 +6,7 @@ use std::fmt;
 use std::hash;
 use std::hash::{BuildHasher, Hash, Hasher};
 use std::marker::PhantomData;
+use core::ops;
 use core::cmp::Ordering;
 
 use opaque_alloc;
@@ -14,6 +15,82 @@ use opaque_vec::OpaqueVec;
 use opaque_error::{TryReserveError, TryReserveErrorKind};
 
 pub use equivalent::Equivalent;
+
+pub struct Drain<'a, K, V>
+where
+    K: 'static,
+    V: 'static,
+{
+    iter: opaque_vec::Drain<'a, Bucket<K, V>, opaque_alloc::OpaqueAlloc>,
+}
+
+impl<'a, K, V> Drain<'a, K, V>
+where
+    K: 'static,
+    V: 'static,
+{
+    fn new(iter: opaque_vec::Drain<'a, Bucket<K, V>, opaque_alloc::OpaqueAlloc>) -> Self {
+        Self { iter }
+    }
+
+    pub fn as_slice(&self) -> Slice<'_, K, V> {
+        Slice::from_slice(self.iter.as_slice())
+    }
+}
+
+impl<K, V> Iterator for Drain<'_, K, V>
+where
+    K: 'static,
+    V: 'static,
+{
+    type Item = (K, V);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next().map(Bucket::key_value)
+    }
+}
+
+impl<K, V> DoubleEndedIterator for Drain<'_, K, V>
+where
+    K: 'static,
+    V: 'static,
+{
+    fn next_back(&mut self) -> Option<Self::Item> {
+        self.iter.next_back().map(Bucket::key_value)
+    }
+
+    fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
+        self.iter.nth_back(n).map(Bucket::key_value)
+    }
+}
+
+impl<K, V> ExactSizeIterator for Drain<'_, K, V>
+where
+    K: 'static,
+    V: 'static,
+{
+    fn len(&self) -> usize {
+        <opaque_vec::Drain<'_, Bucket<K, V>, opaque_alloc::OpaqueAlloc> as ExactSizeIterator>::len(&self.iter)
+    }
+}
+
+impl<K, V> FusedIterator for Drain<'_, K, V>
+where
+    K: 'static,
+    V: 'static,
+{
+}
+
+impl<K, V> fmt::Debug for Drain<'_, K, V>
+where
+    K: fmt::Debug + 'static,
+    V: fmt::Debug + 'static,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let iter = self.iter.as_slice().iter().map(Bucket::refs);
+        f.debug_list().entries(iter).finish()
+    }
+}
 
 pub struct Keys<'a, K, V> {
     iter: std::slice::Iter<'a, Bucket<K, V>>,
@@ -46,6 +123,10 @@ impl<'a, K, V> Iterator for Keys<'a, K, V> {
 impl<'a, K, V> DoubleEndedIterator for Keys<'a, K, V> {
     fn next_back(&mut self) -> Option<Self::Item> {
         self.iter.next_back().map(Bucket::key_ref)
+    }
+
+    fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
+        self.iter.nth_back(n).map(Bucket::key_ref)
     }
 }
 
@@ -891,17 +972,53 @@ impl OpaqueIndexMapInner {
         }
     }
 
-    /*
     #[track_caller]
-    pub(crate) fn drain<R>(&mut self, range: R) -> vec::Drain<'_, Bucket<K, V>>
+    pub(crate) fn drain<R, K, V>(&mut self, range: R) -> opaque_vec::Drain<'_, Bucket<K, V>, opaque_alloc::OpaqueAlloc>
     where
-        R: RangeBounds<usize>,
+        K: 'static,
+        V: 'static,
+        R: ops::RangeBounds<usize>,
     {
+        #[track_caller]
+        fn simplify_range<R>(range: R, len: usize) -> ops::Range<usize>
+        where
+            R: ops::RangeBounds<usize>,
+        {
+            let start = match range.start_bound() {
+                ops::Bound::Unbounded => 0,
+                ops::Bound::Included(&i) if i <= len => i,
+                ops::Bound::Excluded(&i) if i < len => i + 1,
+                ops::Bound::Included(i) | ops::Bound::Excluded(i) => {
+                    panic!("range start index {i} out of range for slice of length {len}")
+                }
+            };
+            let end = match range.end_bound() {
+                ops::Bound::Unbounded => len,
+                ops::Bound::Excluded(&i) if i <= len => i,
+                ops::Bound::Included(&i) if i < len => i + 1,
+                ops::Bound::Included(i) | ops::Bound::Excluded(i) => {
+                    panic!("range end index {i} out of range for slice of length {len}")
+                }
+            };
+
+            if start > end {
+                panic!(
+                    "range start index {:?} should be <= range end index {:?}",
+                    range.start_bound(),
+                    range.end_bound()
+                );
+            }
+
+            start..end
+        }
+
         let range = simplify_range(range, self.entries.len());
-        self.erase_indices(range.start, range.end);
-        self.entries.drain(range)
+        self.erase_indices::<K, V>(range.start, range.end);
+
+        self.entries.drain::<_, Bucket<K, V>>(range)
     }
 
+    /*
     #[cfg(feature = "rayon")]
     pub(crate) fn par_drain<R>(&mut self, range: R) -> rayon::vec::Drain<'_, Bucket<K, V>>
     where
@@ -2026,6 +2143,16 @@ impl OpaqueIndexMap {
         V: 'static,
     {
         self.inner.truncate::<K, V>(len);
+    }
+
+    #[track_caller]
+    pub fn drain<R, K, V>(&mut self, range: R) -> Drain<'_, K, V>
+    where
+        K: 'static,
+        V: 'static,
+        R: ops::RangeBounds<usize>,
+    {
+        Drain::new(self.inner.drain(range))
     }
 
     pub fn swap_remove<Q, K, V>(&mut self, key: &Q) -> Option<V>

@@ -3,6 +3,7 @@
 #![feature(structural_match)]
 #![feature(alloc_layout_extra)]
 #![feature(optimize_attribute)]
+#![feature(slice_range)]
 extern crate core;
 
 use std::alloc::{Allocator, Layout, Global};
@@ -132,6 +133,244 @@ where
             _marker: self._marker,
         }
     }
+}
+
+pub struct Drain<'a, T, A>
+where
+    T: 'static,
+    A: Allocator,
+{
+    /*
+    /// Index of tail to preserve
+    pub(crate) tail_start: usize,
+    /// Length of tail
+    pub(crate) tail_len: usize,
+    /// Current remaining range to remove
+    pub(crate) iter: slice::Iter<'a, T>,
+    pub(crate) vec: NonNull<Vec<T, A>>,
+     */
+    /// Index of tail to preserve
+    pub(crate) tail_start: usize,
+    /// Length of tail
+    pub(crate) tail_len: usize,
+    /// Current remaining range to remove
+    pub(crate) iter: slice::Iter<'a, T>,
+    pub(crate) vec: NonNull<OpaqueVec>,
+    _marker: core::marker::PhantomData<A>,
+}
+
+impl<T: fmt::Debug, A: Allocator> fmt::Debug for Drain<'_, T, A> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_tuple("Drain").field(&self.iter.as_slice()).finish()
+    }
+}
+
+impl<'a, T, A> Drain<'a, T, A>
+where
+    T: 'static,
+    A: Allocator,
+{
+    #[must_use]
+    pub fn as_slice(&self) -> &[T] {
+        self.iter.as_slice()
+    }
+
+    /*
+    #[must_use]
+    #[inline]
+    pub fn allocator(&self) -> &A {
+        unsafe { self.vec.as_ref().allocator() }
+    }
+     */
+    #[must_use]
+    #[inline]
+    pub fn allocator(&self) -> &OpaqueAlloc {
+        unsafe { self.vec.as_ref().allocator() }
+    }
+
+    pub fn keep_rest(self) {
+        // At this moment layout looks like this:
+        //
+        // [head] [yielded by next] [unyielded] [yielded by next_back] [tail]
+        //        ^-- start         \_________/-- unyielded_len        \____/-- self.tail_len
+        //                          ^-- unyielded_ptr                  ^-- tail
+        //
+        // Normally `Drop` impl would drop [unyielded] and then move [tail] to the `start`.
+        // Here we want to
+        // 1. Move [unyielded] to `start`
+        // 2. Move [tail] to a new start at `start + len(unyielded)`
+        // 3. Update length of the original vec to `len(head) + len(unyielded) + len(tail)`
+        //    a. In case of ZST, this is the only thing we want to do
+        // 4. Do *not* drop self, as everything is put in a consistent state already, there is nothing to do
+        let mut this = ManuallyDrop::new(self);
+
+        unsafe {
+            let source_vec = this.vec.as_mut();
+
+            let start = source_vec.len();
+            let tail = this.tail_start;
+
+            let unyielded_len = this.iter.len();
+            let unyielded_ptr = this.iter.as_slice().as_ptr();
+
+            // ZSTs have no identity, so we don't need to move them around.
+            // if !T::IS_ZST {
+                let start_ptr = source_vec.as_mut_ptr::<T>().add(start);
+
+                // memmove back unyielded elements
+                if unyielded_ptr != start_ptr {
+                    let src = unyielded_ptr;
+                    let dst = start_ptr;
+
+                    core::ptr::copy(src, dst, unyielded_len);
+                }
+
+                // memmove back untouched tail
+                if tail != (start + unyielded_len) {
+                    let src = source_vec.as_ptr::<T>().add(tail);
+                    let dst = start_ptr.add(unyielded_len);
+                    core::ptr::copy(src, dst, this.tail_len);
+                }
+            // }
+
+
+            source_vec.set_len(start + unyielded_len + this.tail_len);
+        }
+    }
+}
+
+impl<'a, T, A: Allocator> AsRef<[T]> for Drain<'a, T, A>
+where
+    T: 'static,
+    A: Allocator,
+{
+    fn as_ref(&self) -> &[T] {
+        self.as_slice()
+    }
+}
+
+unsafe impl<T: Sync, A: Sync + Allocator> Sync for Drain<'_, T, A> {}
+unsafe impl<T: Send, A: Send + Allocator> Send for Drain<'_, T, A> {}
+
+impl<T, A> Iterator for Drain<'_, T, A>
+where
+    T: 'static,
+    A: Allocator,
+{
+    type Item = T;
+
+    #[inline]
+    fn next(&mut self) -> Option<T> {
+        self.iter.next().map(|elt| unsafe { core::ptr::read(elt as *const _) })
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.iter.size_hint()
+    }
+}
+
+impl<T, A> DoubleEndedIterator for Drain<'_, T, A>
+where
+    T: 'static,
+    A: Allocator,
+{
+    #[inline]
+    fn next_back(&mut self) -> Option<T> {
+        self.iter.next_back().map(|elt| unsafe { core::ptr::read(elt as *const _) })
+    }
+}
+
+impl<T, A> Drop for Drain<'_, T, A>
+where
+    T: 'static,
+    A: Allocator,
+{
+    fn drop(&mut self) {
+        /// Moves back the un-`Drain`ed elements to restore the original `Vec`.
+        struct DropGuard<'r, 'a, T: 'static, A: Allocator>(&'r mut Drain<'a, T, A>);
+
+        impl<'r, 'a, T, A> Drop for DropGuard<'r, 'a, T, A>
+        where
+            T: 'static,
+            A: Allocator,
+        {
+            fn drop(&mut self) {
+                if self.0.tail_len > 0 {
+                    unsafe {
+                        let source_vec = self.0.vec.as_mut();
+                        // memmove back untouched tail, update to new length
+                        let start = source_vec.len();
+                        let tail = self.0.tail_start;
+                        if tail != start {
+                            let src = source_vec.as_ptr::<T>().add(tail);
+                            let dst = source_vec.as_mut_ptr::<T>().add(start);
+                            core::ptr::copy(src, dst, self.0.tail_len);
+                        }
+                        source_vec.set_len(start + self.0.tail_len);
+                    }
+                }
+            }
+        }
+
+        let iter = core::mem::take(&mut self.iter);
+        let drop_len = iter.len();
+
+        let mut vec = self.vec;
+
+        /*
+        if T::IS_ZST {
+            // ZSTs have no identity, so we don't need to move them around, we only need to drop the correct amount.
+            // this can be achieved by manipulating the Vec length instead of moving values out from `iter`.
+            unsafe {
+                let vec = vec.as_mut();
+                let old_len = vec.len();
+                vec.set_len(old_len + drop_len + self.tail_len);
+                vec.truncate(old_len + self.tail_len);
+            }
+
+            return;
+        }
+         */
+
+        // ensure elements are moved back into their appropriate places, even when drop_in_place panics
+        let _guard = DropGuard(self);
+
+        if drop_len == 0 {
+            return;
+        }
+
+        // as_slice() must only be called when iter.len() is > 0 because
+        // it also gets touched by vec::Splice which may turn it into a dangling pointer
+        // which would make it and the vec pointer point to different allocations which would
+        // lead to invalid pointer arithmetic below.
+        let drop_ptr = iter.as_slice().as_ptr();
+
+        unsafe {
+            // drop_ptr comes from a slice::Iter which only gives us a &[T] but for drop_in_place
+            // a pointer with mutable provenance is necessary. Therefore we must reconstruct
+            // it from the original vec but also avoid creating a &mut to the front since that could
+            // invalidate raw pointers to it which some unsafe code might rely on.
+            let vec_ptr = vec.as_mut().as_mut_ptr();
+            let drop_offset = drop_ptr.offset_from_unsigned(vec_ptr);
+            let to_drop = core::ptr::slice_from_raw_parts_mut(vec_ptr.add(drop_offset), drop_len);
+            core::ptr::drop_in_place(to_drop);
+        }
+    }
+}
+
+impl<T, A: Allocator> ExactSizeIterator for Drain<'_, T, A> {
+    /*
+    fn is_empty(&self) -> bool {
+        self.iter.is_empty()
+    }
+     */
+}
+
+impl<T, A> FusedIterator for Drain<'_, T, A>
+where
+    T: 'static,
+    A: Allocator,
+{
 }
 
 pub struct OpaqueVec {
@@ -825,6 +1064,40 @@ impl OpaqueVec {
         IntoIter {
             opaque_vec: self,
             _marker: PhantomData,
+        }
+    }
+
+    pub fn drain<R, T>(&mut self, range: R) -> Drain<'_, T, OpaqueAlloc>
+    where
+        T: 'static,
+        R: ops::RangeBounds<usize>,
+    {
+        self.ensure_element_type::<T>();
+
+        // Memory safety
+        //
+        // When the Drain is first created, it shortens the length of
+        // the source vector to make sure no uninitialized or moved-from elements
+        // are accessible at all if the Drain's destructor never gets to run.
+        //
+        // Drain will ptr::read out the values to remove.
+        // When finished, remaining tail of the vec is copied back to cover
+        // the hole, and the vector length is restored to the new length.
+        //
+        let len = self.len();
+        let ops::Range { start, end } = core::slice::range(range, ..len);
+
+        unsafe {
+            // set self.vec length's to start, to be safe in case Drain is leaked
+            self.set_len(start);
+            let range_slice = slice::from_raw_parts(self.as_ptr::<T>().add(start), end - start);
+            Drain {
+                tail_start: end,
+                tail_len: len - end,
+                iter: range_slice.iter(),
+                vec: NonNull::from(self),
+                _marker: PhantomData,
+            }
         }
     }
 
