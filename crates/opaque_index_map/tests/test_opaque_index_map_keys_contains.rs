@@ -18,28 +18,25 @@ where
     map
 }
 
-fn run_test_opaque_index_map_insert_get<K, V>(entries: &[(K, V)])
+fn run_test_opaque_index_map_keys_contains<K, V>(entries: &[(K, V)])
 where
     K: Clone + Eq + hash::Hash + fmt::Debug + 'static,
     V: Clone + Eq + fmt::Debug + 'static,
 {
-    let map = from_entries(entries);
-    for (key, value) in entries.iter() {
-        let expected = Some(value);
-        let result = map.get::<K, K, V>(key);
-
-        assert_eq!(result, expected);
+    let map = from_entries(&entries);
+    for key in map.keys::<K, V>() {
+        assert!(map.contains_key::<K, K, V>(key));
     }
 }
 
-fn run_test_opaque_index_map_insert_get_values<K, V>(entries: &[(K, V)])
+fn run_test_opaque_index_map_keys_contains_values<K, V>(entries: &[(K, V)])
 where
     K: Clone + Eq + hash::Hash + fmt::Debug + 'static,
     V: Clone + Eq + fmt::Debug + 'static,
 {
     for len in 0..entries.len() {
         let prefix_entries = &entries[0..len];
-        run_test_opaque_index_map_insert_get(prefix_entries);
+        run_test_opaque_index_map_keys_contains(prefix_entries);
     }
 }
 
@@ -49,20 +46,20 @@ macro_rules! generate_tests {
             use super::*;
 
             #[test]
-            fn test_opaque_index_map_insert_get_empty() {
+            fn test_opaque_index_map_keys_contains_empty() {
                 let keys: [$key_typ; 0] = [];
                 let values: [$value_typ; 0] = [];
                 let keys_vec = OpaqueVec::from(&keys);
                 let values_vec = OpaqueVec::from(&values);
                 let entries = kvg::key_value_pairs(keys_vec.iter::<$key_typ>().cloned(), values_vec.iter::<$value_typ>().cloned());
 
-                run_test_opaque_index_map_insert_get_values(entries.as_slice::<($key_typ, $value_typ)>());
+                run_test_opaque_index_map_keys_contains_values(entries.as_slice::<($key_typ, $value_typ)>());
             }
 
             #[test]
-            fn test_opaque_index_map_insert_get_range_values() {
+            fn test_opaque_index_map_keys_contains_range_values() {
                 let entries = kvg::entries::<$key_typ, $value_typ>($key_range, $value_range);
-                run_test_opaque_index_map_insert_get_values(entries.as_slice::<($key_typ, $value_typ)>());
+                run_test_opaque_index_map_keys_contains_values(entries.as_slice::<($key_typ, $value_typ)>());
             }
         }
     };

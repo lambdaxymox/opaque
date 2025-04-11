@@ -1997,16 +1997,10 @@ impl OpaqueIndexMap {
         IntoValues::new(self.into_entries())
     }
 
-    /// Remove all key-value pairs in the map, while preserving its capacity.
-    ///
-    /// Computes in **O(n)** time.
     pub fn clear(&mut self) {
         self.inner.clear();
     }
 
-    /// Shortens the map, keeping the first `len` elements and dropping the rest.
-    ///
-    /// If `len` is greater than the map's current length, this has no effect.
     pub fn truncate<K, V>(&mut self, len: usize)
     where
         K: 'static,
@@ -2019,7 +2013,7 @@ impl OpaqueIndexMap {
     where
         K: 'static,
         V: 'static,
-        Q: ?Sized + hash::Hash + Equivalent<K>,
+        Q: ?Sized + hash::Hash + Equivalent<K> + 'static,
     {
         fn third<A, B, C>(triple: (A, B, C)) -> C {
             triple.2
@@ -2032,7 +2026,7 @@ impl OpaqueIndexMap {
     where
         K: 'static,
         V: 'static,
-        Q: ?Sized + hash::Hash + Equivalent<K>,
+        Q: ?Sized + hash::Hash + Equivalent<K> + 'static,
     {
         match self.swap_remove_full(key) {
             Some((_, key, value)) => Some((key, value)),
@@ -2044,7 +2038,7 @@ impl OpaqueIndexMap {
     where
         K: 'static,
         V: 'static,
-        Q: ?Sized + hash::Hash + Equivalent<K>,
+        Q: ?Sized + hash::Hash + Equivalent<K> + 'static,
     {
         match self.as_entries::<K, V>() {
             [x] if key.equivalent(&x.key) => {
@@ -2088,7 +2082,7 @@ impl OpaqueIndexMap {
     where
         K: 'static,
         V: 'static,
-        Q: ?Sized + Hash + Equivalent<K>,
+        Q: ?Sized + Hash + Equivalent<K> + 'static,
     {
         match self.as_entries::<K, V>() {
             [x] if key.equivalent(&x.key) => {

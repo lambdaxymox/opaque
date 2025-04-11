@@ -8,7 +8,7 @@ use opaque_index_map::OpaqueIndexMap;
 use crate::common::key_value_generators as kvg;
 
 
-fn create_map<K, V>(entries: &[(K, V)]) -> OpaqueIndexMap
+fn from_entries<K, V>(entries: &[(K, V)]) -> OpaqueIndexMap
 where
     K: Clone + Eq + hash::Hash + 'static,
     V: Clone + Eq + 'static,
@@ -53,7 +53,7 @@ where
     K: Clone + Eq + hash::Hash + fmt::Debug + 'static,
     V: Clone + Eq + fmt::Debug + 'static,
 {
-    let map = create_map::<K, V>(entries);
+    let map = from_entries::<K, V>(entries);
     let expected = expected::<K, V>(&entries);
     let result = result::<K, V>(&map);
 

@@ -1,9 +1,12 @@
 mod common;
 
+use core::hash;
+use core::fmt;
 use opaque_vec::OpaqueVec;
 use opaque_index_map::OpaqueIndexMap;
-use core::{fmt, hash};
+
 use crate::common::key_value_generators as kvg;
+
 
 fn from_entries<K, V>(entries: &[(K, V)]) -> OpaqueIndexMap
 where
@@ -18,28 +21,53 @@ where
     map
 }
 
-fn run_test_opaque_index_map_insert_get<K, V>(entries: &[(K, V)])
+fn expected<K, V>(entries: &[(K, V)]) -> OpaqueVec
+where
+    K: Clone + Eq + hash::Hash + 'static,
+    V: Clone + Eq + 'static,
+{
+    let expected: OpaqueVec = entries
+        .iter()
+        .map(|tuple| tuple.1.clone())
+        .collect();
+
+    expected
+}
+
+fn result<K, V>(map: &mut OpaqueIndexMap) -> OpaqueVec
+where
+    K: Clone + Eq + hash::Hash + 'static,
+    V: Clone + Eq + 'static,
+{
+    let result: OpaqueVec = map
+        .as_mut_slice::<K, V>()
+        .values()
+        .cloned()
+        .collect();
+
+    result
+}
+
+fn run_test_opaque_index_map_insert_as_mut_slice<K, V>(entries: &mut [(K, V)])
 where
     K: Clone + Eq + hash::Hash + fmt::Debug + 'static,
     V: Clone + Eq + fmt::Debug + 'static,
 {
-    let map = from_entries(entries);
-    for (key, value) in entries.iter() {
-        let expected = Some(value);
-        let result = map.get::<K, K, V>(key);
+    let mut map = from_entries::<K, V>(entries);
+    let mut expected = expected::<K, V>(&entries);
+    let mut result = result::<K, V>(&mut map);
 
-        assert_eq!(result, expected);
-    }
+    assert_eq!(result.as_mut_slice::<V>(), expected.as_mut_slice::<V>());
 }
 
-fn run_test_opaque_index_map_insert_get_values<K, V>(entries: &[(K, V)])
+fn run_test_opaque_index_map_insert_as_mut_slice_values<K, V>(entries: &mut [(K, V)])
 where
     K: Clone + Eq + hash::Hash + fmt::Debug + 'static,
     V: Clone + Eq + fmt::Debug + 'static,
 {
     for len in 0..entries.len() {
-        let prefix_entries = &entries[0..len];
-        run_test_opaque_index_map_insert_get(prefix_entries);
+        let prefix_entries = &mut entries[0..len];
+        run_test_opaque_index_map_insert_as_mut_slice(prefix_entries);
     }
 }
 
@@ -49,20 +77,20 @@ macro_rules! generate_tests {
             use super::*;
 
             #[test]
-            fn test_opaque_index_map_insert_get_empty() {
+            fn test_opaque_index_map_as_mut_slice_empty() {
                 let keys: [$key_typ; 0] = [];
                 let values: [$value_typ; 0] = [];
                 let keys_vec = OpaqueVec::from(&keys);
                 let values_vec = OpaqueVec::from(&values);
-                let entries = kvg::key_value_pairs(keys_vec.iter::<$key_typ>().cloned(), values_vec.iter::<$value_typ>().cloned());
+                let mut entries = kvg::key_value_pairs(keys_vec.iter::<$key_typ>().cloned(), values_vec.iter::<$value_typ>().cloned());
 
-                run_test_opaque_index_map_insert_get_values(entries.as_slice::<($key_typ, $value_typ)>());
+                run_test_opaque_index_map_insert_as_mut_slice_values(entries.as_mut_slice::<($key_typ, $value_typ)>());
             }
 
             #[test]
-            fn test_opaque_index_map_insert_get_range_values() {
-                let entries = kvg::entries::<$key_typ, $value_typ>($key_range, $value_range);
-                run_test_opaque_index_map_insert_get_values(entries.as_slice::<($key_typ, $value_typ)>());
+            fn test_opaque_index_map_as_mut_slice_range_values() {
+                let mut entries = kvg::entries::<$key_typ, $value_typ>($key_range, $value_range);
+                run_test_opaque_index_map_insert_as_mut_slice_values(entries.as_mut_slice::<($key_typ, $value_typ)>());
             }
         }
     };
