@@ -639,6 +639,18 @@ impl OpaqueVec {
     where
         T: 'static,
     {
+        #[cold]
+        #[track_caller]
+        #[optimize(size)]
+        fn index_out_of_bounds_failure(index: usize, length: usize) -> ! {
+            panic!("replace_insert index out of bounds: Got index `{index}`. Need index `{index}` <= len, where len is `{length}`.");
+        }
+
+        let length = self.len();
+        if index > length {
+            index_out_of_bounds_failure(index, length);
+        }
+
         let mut me = ManuallyDrop::new(value);
         let value_ptr = unsafe {
             NonNull::new_unchecked(&mut *me as *mut T as *mut u8)
@@ -652,6 +664,18 @@ impl OpaqueVec {
     where
         T: 'static,
     {
+        #[cold]
+        #[track_caller]
+        #[optimize(size)]
+        fn index_out_of_bounds_failure(index: usize, length: usize) -> ! {
+            panic!("shift_insert index out of bounds: Got index `{index}`. Need index `{index}` <= len, where len is `{length}`.");
+        }
+
+        let length = self.len();
+        if index > length {
+            index_out_of_bounds_failure(index, length);
+        }
+
         let mut me = ManuallyDrop::new(value);
         let value_ptr = unsafe {
             NonNull::new_unchecked(&mut *me as *mut T as *mut u8)
@@ -665,6 +689,18 @@ impl OpaqueVec {
     where
         T: 'static,
     {
+        #[cold]
+        #[track_caller]
+        #[optimize(size)]
+        fn index_out_of_bounds_failure(index: usize, length: usize) -> ! {
+            panic!("swap_remove index out of bounds: Got `{index}`, length is `{length}`.");
+        }
+
+        let length = self.len();
+        if index >= length {
+            index_out_of_bounds_failure(index, length);
+        }
+
         // index < self.len()
         let value = unsafe {
             let ptr = self.data.get_unchecked(index);
@@ -672,7 +708,6 @@ impl OpaqueVec {
             _value
         };
 
-        // SAFETY:
         let _ = self.data.swap_remove_forget_unchecked(index);
 
         value
@@ -683,6 +718,18 @@ impl OpaqueVec {
     where
         T: 'static,
     {
+        #[cold]
+        #[track_caller]
+        #[optimize(size)]
+        fn index_out_of_bounds_failure(index: usize, length: usize) -> ! {
+            panic!("shift_remove index out of bounds: Got `{index}`, length is `{length}`.");
+        }
+
+        let length = self.len();
+        if index >= length {
+            index_out_of_bounds_failure(index, length);
+        }
+
         // index < self.len()
         let value = unsafe {
             let ptr = self.data.get_unchecked(index);
@@ -829,6 +876,38 @@ impl OpaqueVec {
             std::slice::from_raw_parts_mut(ptr, len)
         }
     }
+
+    pub(crate) fn drain_unchecked<R, T>(&mut self, range: R) -> Drain<'_, T, OpaqueAlloc>
+    where
+        T: 'static,
+        R: ops::RangeBounds<usize>,
+    {
+        // Memory safety
+        //
+        // When the Drain is first created, it shortens the length of
+        // the source vector to make sure no uninitialized or moved-from elements
+        // are accessible at all if the Drain's destructor never gets to run.
+        //
+        // Drain will ptr::read out the values to remove.
+        // When finished, remaining tail of the vec is copied back to cover
+        // the hole, and the vector length is restored to the new length.
+        //
+        let len = self.len();
+        let ops::Range { start, end } = core::slice::range(range, ..len);
+
+        unsafe {
+            // set self.vec length's to start, to be safe in case Drain is leaked
+            self.set_len(start);
+            let range_slice = slice::from_raw_parts(self.as_ptr::<T>().add(start), end - start);
+            Drain {
+                tail_start: end,
+                tail_len: len - end,
+                iter: range_slice.iter(),
+                vec: NonNull::from(self),
+                _marker: PhantomData,
+            }
+        }
+    }
 }
 
 impl OpaqueVec {
@@ -942,21 +1021,8 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        #[cold]
-        #[track_caller]
-        #[optimize(size)]
-        fn index_out_of_bounds_failure(index: usize, length: usize) -> ! {
-            panic!("replace_insert index out of bounds: Got index `{index}`. Need index `{index}` <= len, where len is `{length}`.");
-        }
-
         self.ensure_element_type::<T>();
 
-        let length = self.len();
-        if index > length {
-            index_out_of_bounds_failure(index, length);
-        }
-
-        // SAFETY:
         self.replace_insert_unchecked::<T>(index, value);
     }
 
@@ -966,19 +1032,7 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        #[cold]
-        #[track_caller]
-        #[optimize(size)]
-        fn index_out_of_bounds_failure(index: usize, length: usize) -> ! {
-            panic!("shift_insert index out of bounds: Got index `{index}`. Need index `{index}` <= len, where len is `{length}`.");
-        }
-
         self.ensure_element_type::<T>();
-
-        let length = self.len();
-        if index > length {
-            index_out_of_bounds_failure(index, length);
-        }
 
         self.shift_insert_unchecked::<T>(index, value);
     }
@@ -989,19 +1043,7 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        #[cold]
-        #[track_caller]
-        #[optimize(size)]
-        fn index_out_of_bounds_failure(index: usize, length: usize) -> ! {
-            panic!("swap_remove index out of bounds: Got `{index}`, length is `{length}`.");
-        }
-
         self.ensure_element_type::<T>();
-
-        let length = self.len();
-        if index >= length {
-            index_out_of_bounds_failure(index, length);
-        }
 
         self.swap_remove_unchecked::<T>(index)
     }
@@ -1012,19 +1054,7 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        #[cold]
-        #[track_caller]
-        #[optimize(size)]
-        fn index_out_of_bounds_failure(index: usize, length: usize) -> ! {
-            panic!("shift_remove index out of bounds: Got `{index}`, length is `{length}`.");
-        }
-
         self.ensure_element_type::<T>();
-
-        let length = self.len();
-        if index >= length {
-            index_out_of_bounds_failure(index, length);
-        }
 
         self.shift_remove_unchecked::<T>(index)
     }
@@ -1075,31 +1105,7 @@ impl OpaqueVec {
     {
         self.ensure_element_type::<T>();
 
-        // Memory safety
-        //
-        // When the Drain is first created, it shortens the length of
-        // the source vector to make sure no uninitialized or moved-from elements
-        // are accessible at all if the Drain's destructor never gets to run.
-        //
-        // Drain will ptr::read out the values to remove.
-        // When finished, remaining tail of the vec is copied back to cover
-        // the hole, and the vector length is restored to the new length.
-        //
-        let len = self.len();
-        let ops::Range { start, end } = core::slice::range(range, ..len);
-
-        unsafe {
-            // set self.vec length's to start, to be safe in case Drain is leaked
-            self.set_len(start);
-            let range_slice = slice::from_raw_parts(self.as_ptr::<T>().add(start), end - start);
-            Drain {
-                tail_start: end,
-                tail_len: len - end,
-                iter: range_slice.iter(),
-                vec: NonNull::from(self),
-                _marker: PhantomData,
-            }
-        }
+        self.drain_unchecked::<R, T>(range)
     }
 
     #[inline]
@@ -1290,74 +1296,12 @@ impl OpaqueVec {
 }
 
 impl OpaqueVec {
-    #[cfg(not(no_global_oom_handling))]
-    #[track_caller]
-    fn extend_with<T>(&mut self, count: usize, value: T)
-    where
-        T: Clone + 'static,
-    {
-        self.ensure_element_type::<T>();
-
-        self.extend_with_unchecked::<T>(count, value);
-    }
-
-    #[cfg(not(no_global_oom_handling))]
-    #[track_caller]
-    fn extend_from_iter<T, I>(&mut self, iterator: I)
-    where
-        T: Clone + 'static,
-        I: Iterator<Item = T>,
-    {
-        self.ensure_element_type::<T>();
-
-        self.extend_from_iter_unchecked::<T, _>(iterator)
-    }
-
-    #[cfg(not(no_global_oom_handling))]
-    #[track_caller]
-    pub fn extend_from_slice<T>(&mut self, other: &[T])
-    where
-        T: Clone + 'static,
-    {
-        self.ensure_element_type::<T>();
-
-        self.extend_from_slice_unchecked::<T>(other);
-    }
-
-    #[cfg(not(no_global_oom_handling))]
-    #[track_caller]
-    pub fn resize<T>(&mut self, new_len: usize, value: T)
-    where
-        T: Clone + 'static,
-    {
-        self.ensure_element_type::<T>();
-
-        self.resize_unchecked::<T>(new_len, value);
-    }
-
-    #[inline]
-    pub fn truncate(&mut self, len: usize) {
-        self.data.truncate(len);
-    }
-}
-
-impl OpaqueVec {
     pub fn retain_unchecked<F, T>(&mut self, mut f: F)
     where
         T: 'static,
         F: FnMut(&T) -> bool,
     {
         self.retain_mut_unchecked(|elem| f(elem));
-    }
-
-    pub fn retain<F, T>(&mut self, mut f: F)
-    where
-        T: 'static,
-        F: FnMut(&T) -> bool,
-    {
-        self.ensure_element_type::<T>();
-
-        self.retain_unchecked(|elem| f(elem));
     }
 
     pub fn retain_mut_unchecked<F, T>(&mut self, mut f: F)
@@ -1477,27 +1421,7 @@ impl OpaqueVec {
         drop(g);
     }
 
-    pub fn retain_mut<F, T>(&mut self, mut f: F)
-    where
-        T: 'static,
-        F: FnMut(&mut T) -> bool,
-    {
-        self.ensure_element_type::<T>();
-
-        self.retain_mut_unchecked::<F, T>(f)
-    }
-
-    #[inline]
-    pub fn dedup_by_key<F, K, T>(&mut self, mut key: F)
-    where
-        T: 'static,
-        F: FnMut(&mut T) -> K,
-        K: PartialEq,
-    {
-        self.dedup_by(|a, b| key(a) == key(b))
-    }
-
-    pub fn dedup_by<F, T>(&mut self, mut same_bucket: F)
+    pub fn dedup_by_unchecked<F, T>(&mut self, mut same_bucket: F)
     where
         T: 'static,
         F: FnMut(&mut T, &mut T) -> bool,
@@ -1638,6 +1562,113 @@ impl OpaqueVec {
             gap.vec.set_len(gap.write);
             core::mem::forget(gap);
         }
+    }
+
+    #[inline]
+    pub fn dedup_by_key_unchecked<F, K, T>(&mut self, mut key: F)
+    where
+        T: 'static,
+        F: FnMut(&mut T) -> K,
+        K: PartialEq,
+    {
+        // self.dedup_by_unchecked::<F, T>(|a, b| key(a) == key(b))
+        todo!()
+    }
+}
+
+impl OpaqueVec {
+    #[cfg(not(no_global_oom_handling))]
+    #[track_caller]
+    fn extend_with<T>(&mut self, count: usize, value: T)
+    where
+        T: Clone + 'static,
+    {
+        self.ensure_element_type::<T>();
+
+        self.extend_with_unchecked::<T>(count, value);
+    }
+
+    #[cfg(not(no_global_oom_handling))]
+    #[track_caller]
+    fn extend_from_iter<T, I>(&mut self, iterator: I)
+    where
+        T: Clone + 'static,
+        I: Iterator<Item = T>,
+    {
+        self.ensure_element_type::<T>();
+
+        self.extend_from_iter_unchecked::<T, _>(iterator)
+    }
+
+    #[cfg(not(no_global_oom_handling))]
+    #[track_caller]
+    pub fn extend_from_slice<T>(&mut self, other: &[T])
+    where
+        T: Clone + 'static,
+    {
+        self.ensure_element_type::<T>();
+
+        self.extend_from_slice_unchecked::<T>(other);
+    }
+
+    #[cfg(not(no_global_oom_handling))]
+    #[track_caller]
+    pub fn resize<T>(&mut self, new_len: usize, value: T)
+    where
+        T: Clone + 'static,
+    {
+        self.ensure_element_type::<T>();
+
+        self.resize_unchecked::<T>(new_len, value);
+    }
+
+    #[inline]
+    pub fn truncate(&mut self, len: usize) {
+        self.data.truncate(len);
+    }
+}
+
+impl OpaqueVec {
+    pub fn retain<F, T>(&mut self, mut f: F)
+    where
+        T: 'static,
+        F: FnMut(&T) -> bool,
+    {
+        self.ensure_element_type::<T>();
+
+        self.retain_unchecked(|elem| f(elem));
+    }
+
+    pub fn retain_mut<F, T>(&mut self, mut f: F)
+    where
+        T: 'static,
+        F: FnMut(&mut T) -> bool,
+    {
+        self.ensure_element_type::<T>();
+
+        self.retain_mut_unchecked::<F, T>(f)
+    }
+
+    #[inline]
+    pub fn dedup_by_key<F, K, T>(&mut self, mut key: F)
+    where
+        T: 'static,
+        F: FnMut(&mut T) -> K,
+        K: PartialEq,
+    {
+        self.ensure_element_type::<T>();
+
+        self.dedup_by_key_unchecked::<F, K, T>(key)
+    }
+
+    pub fn dedup_by<F, T>(&mut self, mut same_bucket: F)
+    where
+        T: 'static,
+        F: FnMut(&mut T, &mut T) -> bool,
+    {
+        self.ensure_element_type::<T>();
+
+        self.dedup_by_unchecked::<F, T>(same_bucket)
     }
 }
 
