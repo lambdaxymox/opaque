@@ -2461,12 +2461,15 @@ impl OpaqueIndexMap {
     pub fn move_index(&mut self, from: usize, to: usize) {
         self.core.move_index(from, to)
     }
-
-    #[track_caller]
-    pub fn swap_indices(&mut self, a: usize, b: usize) {
-        self.core.swap_indices(a, b)
-    }
      */
+    #[track_caller]
+    pub fn swap_indices<K, V>(&mut self, a: usize, b: usize)
+    where
+        K: 'static,
+        V: 'static,
+    {
+        self.inner.swap_indices::<K, V>(a, b)
+    }
 }
 
 pub struct Map<'a, K, V> {
