@@ -2,8 +2,6 @@ mod common;
 
 use core::hash;
 use core::fmt;
-use core::ops;
-use std::hash::Hash;
 use opaque_vec::OpaqueVec;
 use opaque_index_map::OpaqueIndexMap;
 
@@ -72,18 +70,6 @@ where
         run_test_opaque_index_map_insert_as_slice(prefix_entries);
     }
 }
-
-/*
-pub fn entries<K, V>(keys: ops::RangeInclusive<K>, values: ops::RangeInclusive<V>) -> OpaqueVec
-where
-    K: Clone + Eq + hash::Hash + fmt::Debug  + 'static,
-    V: Clone + Eq + fmt::Debug + 'static,
-    ops::RangeInclusive<K>: DoubleEndedIterator<Item = K>,
-    ops::RangeInclusive<V>: DoubleEndedIterator<Item = V>,
-{
-    kvg::key_value_pairs(keys, values)
-}
- */
 
 macro_rules! generate_tests {
     ($module_name:ident, key_type = $key_typ:ty, value_type = $value_typ:ty, key_range = $key_range:expr, value_range = $value_range:expr) => {

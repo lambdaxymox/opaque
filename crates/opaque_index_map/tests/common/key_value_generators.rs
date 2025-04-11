@@ -2,7 +2,7 @@ use core::{fmt, hash};
 use std::ops;
 use opaque_vec::OpaqueVec;
 
-pub fn key_value_pairs<'a, 'b, K, V, I, J>(keys: I, values: J) -> OpaqueVec
+pub fn key_value_pairs<K, V, I, J>(keys: I, values: J) -> OpaqueVec
 where
     K: Clone + Eq + hash::Hash + 'static,
     V: Clone + Eq + 'static,
