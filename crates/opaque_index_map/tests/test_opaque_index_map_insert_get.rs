@@ -1,8 +1,11 @@
-use opaque_vec::OpaqueVec;
-use opaque_index_map::OpaqueIndexMap;
+mod common;
 
-use core::fmt;
-use core::hash;
+use opaque_index_map::OpaqueIndexMap;
+use opaque_vec::OpaqueVec;
+
+use core::{fmt, hash};
+use std::ops;
+use crate::common::key_value_generators as kvg;
 
 fn run_test_opaque_index_map_insert_get<K, V>(entries: &[(K, V)])
 where
@@ -22,50 +25,137 @@ where
     }
 }
 
-#[test]
-fn test_opaque_index_map_insert_get_empty() {
-    let map = OpaqueIndexMap::new::<u32, i32>();
-    for key in 0..65536 {
-        assert!(map.get::<u32, u32, i32>(&key).is_none());
+fn run_test_opaque_index_map_insert_get_values<K, V>(entries: &[(K, V)])
+where
+    K: Clone + Eq + hash::Hash + fmt::Debug + 'static,
+    V: Clone + Eq + fmt::Debug + 'static,
+{
+    for len in 0..entries.len() {
+        let prefix_entries = &entries[0..len];
+        run_test_opaque_index_map_insert_get(prefix_entries);
     }
 }
 
-#[test]
-fn test_opaque_index_map_insert_get1() {
-    let entries = {
-        let entries: [(u32, i32); 1] = [(0, 1)];
-        OpaqueVec::from(&entries)
-    };
-
-    run_test_opaque_index_map_insert_get(entries.as_slice::<(u32, i32)>());
+fn keys<K>(min_key: K, max_key: K) -> OpaqueVec
+where
+    K: Clone + Eq + hash::Hash + fmt::Debug + 'static,
+    ops::RangeInclusive<K>: DoubleEndedIterator<Item = K>,
+{
+    OpaqueVec::from_iter(min_key..=max_key)
 }
 
-#[test]
-fn test_opaque_index_map_insert_get2() {
-    let entries = {
-        let entries: [(u32, i32); 2] = [(0, 1), (1, 2)];
-        OpaqueVec::from(&entries)
-    };
-
-    run_test_opaque_index_map_insert_get(entries.as_slice::<(u32, i32)>());
+fn values<V>(min_value: V, max_value: V) -> OpaqueVec
+where
+    V: Clone + Eq + fmt::Debug + 'static,
+    ops::RangeInclusive<V>: DoubleEndedIterator<Item = V>,
+{
+    OpaqueVec::from_iter(min_value..=max_value)
 }
 
-#[test]
-fn test_opaque_index_map_insert_get3() {
-    let entries = {
-        let entries: [(u32, i32); 3] = [(0, 1), (1, 2), (2, 3)];
-        OpaqueVec::from(&entries)
-    };
+fn entries<K, V>(key_range_inclusive: (K, K), value_range_inclusive: (V, V)) -> OpaqueVec
+where
+    K: Clone + Eq + hash::Hash + fmt::Debug  + 'static,
+    V: Clone + Eq + fmt::Debug + 'static,
+    ops::RangeInclusive<K>: DoubleEndedIterator<Item = K>,
+    ops::RangeInclusive<V>: DoubleEndedIterator<Item = V>,
+{
+    let keys = keys(key_range_inclusive.0, key_range_inclusive.1);
+    let values = values(value_range_inclusive.0, value_range_inclusive.1);
 
-    run_test_opaque_index_map_insert_get(entries.as_slice::<(u32, i32)>());
+    kvg::key_value_pairs(keys.iter::<K>(), values.iter::<V>())
 }
 
-#[test]
-fn test_opaque_index_map_insert_get4() {
-    let entries = {
-        let entries: [(u32, i32); 4] = [(0, 1), (1, 2), (2, 3), (3, 4)];
-        OpaqueVec::from(&entries)
-    };
+macro_rules! generate_tests {
+    ($module_name:ident, key_type = $key_typ:ty, value_type = $value_typ:ty, key_range = $key_range:expr, value_range = $value_range:expr) => {
+        mod $module_name {
+            use super::*;
 
-    run_test_opaque_index_map_insert_get(entries.as_slice::<(u32, i32)>());
+            #[test]
+            fn test_opaque_index_map_insert_get_empty() {
+                let keys: [$key_typ; 0] = [];
+                let values: [$value_typ; 0] = [];
+                let keys_vec = OpaqueVec::from(&keys);
+                let values_vec = OpaqueVec::from(&values);
+                let entries = kvg::key_value_pairs(keys_vec.iter::<$key_typ>(), values_vec.iter::<$value_typ>());
+
+                run_test_opaque_index_map_insert_get_values(entries.as_slice::<($key_typ, $value_typ)>());
+            }
+
+            #[test]
+            fn test_opaque_index_map_insert_get_range_values() {
+                let entries = entries::<$key_typ, $value_typ>($key_range, $value_range);
+                run_test_opaque_index_map_insert_get_values(entries.as_slice::<($key_typ, $value_typ)>());
+            }
+        }
+    };
 }
+
+generate_tests!(u16_i8,    key_type = u16, value_type = i8,    key_range = (0, 126),  value_range = (1, 127));
+generate_tests!(u16_i16,   key_type = u16, value_type = i16,   key_range = (0, 1023), value_range = (1, 1024));
+generate_tests!(u16_i32,   key_type = u16, value_type = i32,   key_range = (0, 1023), value_range = (1, 1024));
+generate_tests!(u16_i64,   key_type = u16, value_type = i64,   key_range = (0, 1023), value_range = (1, 1024));
+generate_tests!(u16_i128,  key_type = u16, value_type = i128,  key_range = (0, 1023), value_range = (1, 1024));
+generate_tests!(u16_isize, key_type = u16, value_type = isize, key_range = (0, 1023), value_range = (1, 1024));
+
+generate_tests!(u32_i8,    key_type = u32, value_type = i8,    key_range = (0, 126),  value_range = (1, 127));
+generate_tests!(u32_i16,   key_type = u32, value_type = i16,   key_range = (0, 1023), value_range = (1, 1024));
+generate_tests!(u32_i32,   key_type = u32, value_type = i32,   key_range = (0, 1023), value_range = (1, 1024));
+generate_tests!(u32_i64,   key_type = u32, value_type = i64,   key_range = (0, 1023), value_range = (1, 1024));
+generate_tests!(u32_i128,  key_type = u32, value_type = i128,  key_range = (0, 1023), value_range = (1, 1024));
+generate_tests!(u32_isize, key_type = u32, value_type = isize, key_range = (0, 1023), value_range = (1, 1024));
+
+generate_tests!(u64_i8,    key_type = u64, value_type = i8,    key_range = (0, 126),  value_range = (1, 127));
+generate_tests!(u64_i16,   key_type = u64, value_type = i16,   key_range = (0, 1023), value_range = (1, 1024));
+generate_tests!(u64_i32,   key_type = u64, value_type = i32,   key_range = (0, 1023), value_range = (1, 1024));
+generate_tests!(u64_i64,   key_type = u64, value_type = i64,   key_range = (0, 1023), value_range = (1, 1024));
+generate_tests!(u64_i128,  key_type = u64, value_type = i128,  key_range = (0, 1023), value_range = (1, 1024));
+generate_tests!(u64_isize, key_type = u64, value_type = isize, key_range = (0, 1023), value_range = (1, 1024));
+
+generate_tests!(u128_i8,    key_type = u128, value_type = i8,    key_range = (0, 126),  value_range = (1, 127));
+generate_tests!(u128_i16,   key_type = u128, value_type = i16,   key_range = (0, 1023), value_range = (1, 1024));
+generate_tests!(u128_i32,   key_type = u128, value_type = i32,   key_range = (0, 1023), value_range = (1, 1024));
+generate_tests!(u128_i64,   key_type = u128, value_type = i64,   key_range = (0, 1023), value_range = (1, 1024));
+generate_tests!(u128_i128,  key_type = u128, value_type = i128,  key_range = (0, 1023), value_range = (1, 1024));
+generate_tests!(u128_isize, key_type = u128, value_type = isize, key_range = (0, 1023), value_range = (1, 1024));
+
+generate_tests!(usize_i8,    key_type = usize, value_type = i8,    key_range = (0, 126),  value_range = (1, 127));
+generate_tests!(usize_i16,   key_type = usize, value_type = i16,   key_range = (0, 1023), value_range = (1, 1024));
+generate_tests!(usize_i32,   key_type = usize, value_type = i32,   key_range = (0, 1023), value_range = (1, 1024));
+generate_tests!(usize_i64,   key_type = usize, value_type = i64,   key_range = (0, 1023), value_range = (1, 1024));
+generate_tests!(usize_i128,  key_type = usize, value_type = i128,  key_range = (0, 1023), value_range = (1, 1024));
+generate_tests!(usize_isize, key_type = usize, value_type = isize, key_range = (0, 1023), value_range = (1, 1024));
+
+generate_tests!(i16_i8,    key_type = i16, value_type = i8,    key_range = (0, 126),  value_range = (1, 127));
+generate_tests!(i16_i16,   key_type = i16, value_type = i16,   key_range = (0, 1023), value_range = (1, 1024));
+generate_tests!(i16_i32,   key_type = i16, value_type = i32,   key_range = (0, 1023), value_range = (1, 1024));
+generate_tests!(i16_i64,   key_type = i16, value_type = i64,   key_range = (0, 1023), value_range = (1, 1024));
+generate_tests!(i16_i128,  key_type = i16, value_type = i128,  key_range = (0, 1023), value_range = (1, 1024));
+generate_tests!(i16_isize, key_type = i16, value_type = isize, key_range = (0, 1023), value_range = (1, 1024));
+
+generate_tests!(i32_i8,    key_type = i32, value_type = i8,    key_range = (0, 126),  value_range = (1, 127));
+generate_tests!(i32_i16,   key_type = i32, value_type = i16,   key_range = (0, 1023), value_range = (1, 1024));
+generate_tests!(i32_i32,   key_type = i32, value_type = i32,   key_range = (0, 1023), value_range = (1, 1024));
+generate_tests!(i32_i64,   key_type = i32, value_type = i64,   key_range = (0, 1023), value_range = (1, 1024));
+generate_tests!(i32_i128,  key_type = i32, value_type = i128,  key_range = (0, 1023), value_range = (1, 1024));
+generate_tests!(i32_isize, key_type = i32, value_type = isize, key_range = (0, 1023), value_range = (1, 1024));
+
+generate_tests!(i64_i8,    key_type = i64, value_type = i8,    key_range = (0, 126),  value_range = (1, 127));
+generate_tests!(i64_i16,   key_type = i64, value_type = i16,   key_range = (0, 1023), value_range = (1, 1024));
+generate_tests!(i64_i32,   key_type = i64, value_type = i32,   key_range = (0, 1023), value_range = (1, 1024));
+generate_tests!(i64_i64,   key_type = i64, value_type = i64,   key_range = (0, 1023), value_range = (1, 1024));
+generate_tests!(i64_i128,  key_type = i64, value_type = i128,  key_range = (0, 1023), value_range = (1, 1024));
+generate_tests!(i64_isize, key_type = i64, value_type = isize, key_range = (0, 1023), value_range = (1, 1024));
+
+generate_tests!(i128_i8,    key_type = i128, value_type = i8,    key_range = (0, 126),  value_range = (1, 127));
+generate_tests!(i128_i16,   key_type = i128, value_type = i16,   key_range = (0, 1023), value_range = (1, 1024));
+generate_tests!(i128_i32,   key_type = i128, value_type = i32,   key_range = (0, 1023), value_range = (1, 1024));
+generate_tests!(i128_i64,   key_type = i128, value_type = i64,   key_range = (0, 1023), value_range = (1, 1024));
+generate_tests!(i128_i128,  key_type = i128, value_type = i128,  key_range = (0, 1023), value_range = (1, 1024));
+generate_tests!(i128_isize, key_type = i128, value_type = isize, key_range = (0, 1023), value_range = (1, 1024));
+
+generate_tests!(isize_i8,    key_type = isize, value_type = i8,    key_range = (0, 126),  value_range = (1, 127));
+generate_tests!(isize_i16,   key_type = isize, value_type = i16,   key_range = (0, 1023), value_range = (1, 1024));
+generate_tests!(isize_i32,   key_type = isize, value_type = i32,   key_range = (0, 1023), value_range = (1, 1024));
+generate_tests!(isize_i64,   key_type = isize, value_type = i64,   key_range = (0, 1023), value_range = (1, 1024));
+generate_tests!(isize_i128,  key_type = isize, value_type = i128,  key_range = (0, 1023), value_range = (1, 1024));
+generate_tests!(isize_isize, key_type = isize, value_type = isize, key_range = (0, 1023), value_range = (1, 1024));
