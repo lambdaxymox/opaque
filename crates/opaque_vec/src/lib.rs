@@ -1571,8 +1571,7 @@ impl OpaqueVec {
         F: FnMut(&mut T) -> K,
         K: PartialEq,
     {
-        // self.dedup_by_unchecked::<F, T>(|a, b| key(a) == key(b))
-        todo!()
+        self.dedup_by_unchecked::<_, T>(|a, b| key(a) == key(b))
     }
 }
 
