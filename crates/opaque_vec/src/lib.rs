@@ -29,20 +29,6 @@ use core::iter::FusedIterator;
 use opaque_alloc::OpaqueAlloc;
 use opaque_error;
 
-/*
-#[derive(Clone)]
-pub struct Iter<'a, T> {
-    slice: std::slice::Iter<'a, T>,
-}
-
-impl<'a, T> Iterator for Iter<'a, T> {
-    type Item = &'a T;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.slice.next()
-    }
-}
-*/
 
 pub struct IntoIter<T, A> {
     opaque_vec: OpaqueVec,
@@ -112,16 +98,6 @@ impl<T, A: Allocator> DoubleEndedIterator for IntoIter<T, A> {
 impl<T, A: Allocator> ExactSizeIterator for IntoIter<T, A> {}
 impl<T, A: Allocator> FusedIterator for IntoIter<T, A> {}
 
-/*
-impl<T, A> Default for IntoIter<T, A>
-where
-    A: Allocator + Default,
-{
-    fn default() -> Self {
-        OpaqueVec::new_in(Default::default()).into_iter()
-    }
-}
- */
 
 #[cfg(not(no_global_oom_handling))]
 impl<T, A> Clone for IntoIter<T, A>
