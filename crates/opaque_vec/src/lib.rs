@@ -29,6 +29,7 @@ use core::iter::FusedIterator;
 use opaque_alloc::OpaqueAlloc;
 use opaque_error;
 
+/*
 #[derive(Clone)]
 pub struct Iter<'a, T> {
     slice: std::slice::Iter<'a, T>,
@@ -41,6 +42,7 @@ impl<'a, T> Iterator for Iter<'a, T> {
         self.slice.next()
     }
 }
+*/
 
 pub struct IntoIter<T, A> {
     opaque_vec: OpaqueVec,
@@ -575,6 +577,22 @@ impl OpaqueVec {
 
 impl OpaqueVec {
     #[inline]
+    pub(crate) fn iter_unchecked<T>(&self) -> slice::Iter<'_, T>
+    where
+        T: 'static,
+    {
+        self.as_slice_unchecked::<T>().iter()
+    }
+
+    #[inline]
+    pub(crate) fn iter_mut_unchecked<T>(&mut self) -> slice::IterMut<'_, T>
+    where
+        T: 'static,
+    {
+        self.as_mut_slice_unchecked::<T>().iter_mut()
+    }
+
+    #[inline]
     #[must_use]
     pub fn get_unchecked<T>(&self, index: usize) -> &T
     where
@@ -1044,15 +1062,22 @@ impl OpaqueVec {
         self.contains_unchecked::<T>(value)
     }
 
-    pub fn iter<T>(&self) -> Iter<'_, T>
+    pub fn iter<T>(&self) -> slice::Iter<'_, T>
     where
         T: 'static,
     {
         self.ensure_element_type::<T>();
 
-        Iter {
-            slice: self.as_slice::<T>().iter(),
-        }
+        self.iter_unchecked::<T>()
+    }
+
+    pub fn iter_mut<T>(&mut self) -> slice::IterMut<'_, T>
+    where
+        T: 'static,
+    {
+        self.ensure_element_type::<T>();
+
+        self.iter_mut_unchecked::<T>()
     }
 
     pub fn into_iter<T>(self) -> IntoIter<T, OpaqueAlloc>
@@ -1949,8 +1974,8 @@ where
     }
 
     #[inline]
-    pub fn iter(&self) -> Iter<'_, T> {
-        self.opaque_vec.iter::<T>()
+    pub fn iter(&self) -> slice::Iter<'_, T> {
+        self.opaque_vec.iter_unchecked::<T>()
     }
 
     #[inline]
@@ -2063,8 +2088,13 @@ where
     }
 
     #[inline]
-    pub fn iter(&self) -> Iter<'_, T> {
-        self.opaque_vec.iter::<T>()
+    pub fn iter(&self) -> slice::Iter<'_, T> {
+        self.opaque_vec.iter_unchecked::<T>()
+    }
+
+    #[inline]
+    pub fn iter_mut(&mut self) -> slice::IterMut<'_, T> {
+        self.opaque_vec.iter_mut_unchecked::<T>()
     }
 
     #[inline]
