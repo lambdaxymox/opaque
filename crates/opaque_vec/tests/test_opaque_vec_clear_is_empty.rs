@@ -1,0 +1,68 @@
+mod common;
+
+use opaque_vec::OpaqueVec;
+
+use core::fmt;
+
+use common::array_generators as ag;
+
+fn run_test_opaque_vec_clear_is_empty<T>(values: &[T])
+where
+    T: PartialEq + Clone + fmt::Debug + 'static,
+{
+    let mut vec = OpaqueVec::from(values);
+    vec.clear();
+
+    assert!(vec.is_empty());
+}
+
+fn run_test_opaque_vec_clear_is_empty_values<T>(values: &[T])
+where
+    T: PartialEq + Clone + fmt::Debug + TryFrom<usize> + 'static,
+    <T as TryFrom<usize>>::Error: fmt::Debug,
+{
+    for len in 0..values.len() {
+        run_test_opaque_vec_clear_is_empty(&values[0..len]);
+    }
+}
+
+macro_rules! generate_tests {
+    ($typ:ident, $max_array_size:expr, $range_spec:expr, $alt_spec:expr) => {
+        mod $typ {
+            use super::*;
+
+            #[test]
+            fn test_opaque_vec_clear_is_empty_empty() {
+                let values: [$typ; 0] = [];
+
+                run_test_opaque_vec_clear_is_empty(&values);
+            }
+
+            #[test]
+            fn test_opaque_vec_clear_is_empty_range_values() {
+                let values = ag::range_values::<$typ, $max_array_size>($range_spec);
+                run_test_opaque_vec_clear_is_empty_values(&values);
+            }
+
+            #[test]
+            fn test_opaque_vec_clear_is_empty_alternating_values() {
+                let values = ag::alternating_values::<$typ, $max_array_size>($alt_spec);
+                run_test_opaque_vec_clear_is_empty_values(&values);
+            }
+        }
+    };
+}
+
+generate_tests!(i8,    128,  ag::RangeValuesSpec::new(0), ag::AlternatingValuesSpec::new(i8::MIN,    0));
+generate_tests!(i16,   1024, ag::RangeValuesSpec::new(0), ag::AlternatingValuesSpec::new(i16::MIN,   0));
+generate_tests!(i32,   1024, ag::RangeValuesSpec::new(0), ag::AlternatingValuesSpec::new(i32::MIN,   0));
+generate_tests!(i64,   1024, ag::RangeValuesSpec::new(0), ag::AlternatingValuesSpec::new(i64::MIN,   0));
+generate_tests!(i128,  1024, ag::RangeValuesSpec::new(0), ag::AlternatingValuesSpec::new(i128::MIN,  0));
+generate_tests!(isize, 1024, ag::RangeValuesSpec::new(0), ag::AlternatingValuesSpec::new(isize::MIN, 0));
+
+generate_tests!(u8,    128,  ag::RangeValuesSpec::new(0), ag::AlternatingValuesSpec::new(u8::MIN,    u8::MAX));
+generate_tests!(u16,   1024, ag::RangeValuesSpec::new(0), ag::AlternatingValuesSpec::new(u16::MIN,   u16::MAX));
+generate_tests!(u32,   1024, ag::RangeValuesSpec::new(0), ag::AlternatingValuesSpec::new(u32::MIN,   u32::MAX));
+generate_tests!(u64,   1024, ag::RangeValuesSpec::new(0), ag::AlternatingValuesSpec::new(u64::MIN,   u64::MAX));
+generate_tests!(u128,  1024, ag::RangeValuesSpec::new(0), ag::AlternatingValuesSpec::new(u128::MIN,  u128::MAX));
+generate_tests!(usize, 1024, ag::RangeValuesSpec::new(0), ag::AlternatingValuesSpec::new(usize::MIN, usize::MAX));
