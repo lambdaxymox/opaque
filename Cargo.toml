@@ -8,6 +8,9 @@ edition = "2024"
 [dependencies.opaque_alloc]
 path = "crates/opaque_alloc"
 
+[dependencies.opaque_blob_vec]
+path = "crates/opaque_blob_vec"
+
 [dependencies.opaque_error]
 path = "crates/opaque_error"
 

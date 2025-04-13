@@ -1,0 +1,14 @@
+[package]
+name = "opaque_blob_vec"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+
+[dependencies.opaque_alloc]
+version = "0.1.0"
+path = "../opaque_alloc"
+
+[dependencies.opaque_error]
+version = "0.1.0"
+path = "../opaque_error"

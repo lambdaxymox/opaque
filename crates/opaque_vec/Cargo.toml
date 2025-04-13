@@ -9,6 +9,10 @@ edition = "2024"
 version = "0.1.0"
 path = "../opaque_alloc"
 
+[dependencies.opaque_blob_vec]
+version = "0.1.0"
+path = "../opaque_blob_vec"
+
 [dependencies.opaque_error]
 version = "0.1.0"
 path = "../opaque_error"

@@ -7,18 +7,18 @@ use crate::opaque_vec_memory::OpaqueVecMemory;
 
 use opaque_error;
 
-pub(crate) struct OpaqueVecInner {
+pub struct OpaqueBlobVec {
     element_layout: Layout,
     length: usize,
     data: OpaqueVecMemory<OpaqueAlloc>,
     drop_fn: Option<unsafe fn(NonNull<u8>)>,
 }
 
-impl OpaqueVecInner {
+impl OpaqueBlobVec {
     #[inline]
     #[must_use]
     #[track_caller]
-    pub(crate) const fn new_in(alloc: OpaqueAlloc, element_layout: Layout, drop_fn: Option<unsafe fn(NonNull<u8>)>) -> Self {
+    pub const fn new_in(alloc: OpaqueAlloc, element_layout: Layout, drop_fn: Option<unsafe fn(NonNull<u8>)>) -> Self {
         let length = 0;
         let data = OpaqueVecMemory::new_in(alloc, element_layout);
 
@@ -33,7 +33,7 @@ impl OpaqueVecInner {
     #[inline]
     #[must_use]
     #[track_caller]
-    pub(crate) fn with_capacity_in(capacity: usize, alloc: OpaqueAlloc, element_layout: Layout, drop_fn: Option<unsafe fn(NonNull<u8>)>) -> Self {
+    pub fn with_capacity_in(capacity: usize, alloc: OpaqueAlloc, element_layout: Layout, drop_fn: Option<unsafe fn(NonNull<u8>)>) -> Self {
         let length = 0;
         let data = OpaqueVecMemory::with_capacity_in(capacity, alloc, element_layout);
 
@@ -46,7 +46,7 @@ impl OpaqueVecInner {
     }
 
     #[inline]
-    pub(crate) fn try_with_capacity_in(
+    pub fn try_with_capacity_in(
         capacity: usize,
         alloc: OpaqueAlloc,
         element_layout: Layout,
@@ -66,7 +66,7 @@ impl OpaqueVecInner {
     }
 
     #[inline]
-    pub(crate) unsafe fn from_raw_parts_in(
+    pub unsafe fn from_raw_parts_in(
         ptr: *mut u8,
         length: usize,
         capacity: usize,
@@ -108,46 +108,46 @@ impl OpaqueVecInner {
     }
 
     #[inline]
-    pub(crate) const fn allocator(&self) -> &OpaqueAlloc {
+   pub const fn allocator(&self) -> &OpaqueAlloc {
         self.data.allocator()
     }
 }
 
-impl OpaqueVecInner {
+impl OpaqueBlobVec {
     #[inline]
-    pub(crate) const fn element_layout(&self) -> Layout {
+   pub const fn element_layout(&self) -> Layout {
         self.element_layout
     }
 
     #[inline]
-    pub(crate) const fn capacity(&self) -> usize {
+   pub const fn capacity(&self) -> usize {
         self.data.capacity(self.element_layout.size())
     }
 
     #[inline]
-    pub(crate) const fn len(&self) -> usize {
+   pub const fn len(&self) -> usize {
         self.length
     }
 
     #[inline]
-    pub(crate) const fn is_empty(&self) -> bool {
+   pub const fn is_empty(&self) -> bool {
         self.length == 0
     }
 
     #[inline]
-    pub(crate) fn set_len(&mut self, new_len: usize) {
+   pub fn set_len(&mut self, new_len: usize) {
         debug_assert!(new_len <= self.capacity());
 
         self.length = new_len;
     }
 
     #[inline]
-    pub(crate) const fn as_ptr(&self) -> *const u8 {
+   pub const fn as_ptr(&self) -> *const u8 {
         self.data.ptr() as *const u8
     }
 
     #[inline]
-    pub(crate) const fn as_mut_ptr(&mut self) -> *mut u8 {
+   pub const fn as_mut_ptr(&mut self) -> *mut u8 {
         self.data.ptr()
     }
 
@@ -160,11 +160,11 @@ impl OpaqueVecInner {
     }
 
     #[inline]
-    pub(crate) fn grow_one(&mut self) {
+   pub fn grow_one(&mut self) {
         self.data.grow_one(self.element_layout);
     }
 
-    pub(crate) fn get_unchecked(&self, index: usize) -> NonNull<u8> {
+   pub fn get_unchecked(&self, index: usize) -> NonNull<u8> {
         let base_ptr = self.as_ptr();
         let element = unsafe {
             let ptr = base_ptr.add(index * self.element_layout.size());
@@ -174,7 +174,7 @@ impl OpaqueVecInner {
         element
     }
 
-    pub(crate) fn get_mut_unchecked(&mut self, index: usize) -> NonNull<u8> {
+   pub fn get_mut_unchecked(&mut self, index: usize) -> NonNull<u8> {
         let base_ptr = self.as_mut_ptr();
         let element = unsafe {
             let ptr = base_ptr.add(index * self.element_layout.size());
@@ -184,7 +184,7 @@ impl OpaqueVecInner {
         element
     }
 
-    pub(crate) fn push(&mut self, value: NonNull<u8>) {
+   pub fn push(&mut self, value: NonNull<u8>) {
         let length = self.len();
 
         if length == self.capacity() {
@@ -201,7 +201,7 @@ impl OpaqueVecInner {
         self.length = length + 1;
     }
 
-    pub(crate) fn as_byte_slice(&self) -> &[u8] {
+   pub fn as_byte_slice(&self) -> &[u8] {
         if self.is_empty() {
             return &[];
         }
@@ -217,7 +217,7 @@ impl OpaqueVecInner {
     }
 
     #[must_use]
-    pub(crate) fn swap_remove_forget_unchecked(&mut self, index: usize) -> NonNull<u8> {
+   pub fn swap_remove_forget_unchecked(&mut self, index: usize) -> NonNull<u8> {
         debug_assert!(index < self.len());
 
         let new_length = self.length - 1;
@@ -242,7 +242,7 @@ impl OpaqueVecInner {
     }
 
     #[must_use]
-    pub(crate) fn shift_remove_forget_unchecked(&mut self, index: usize) -> NonNull<u8> {
+   pub fn shift_remove_forget_unchecked(&mut self, index: usize) -> NonNull<u8> {
         debug_assert!(index < self.len());
 
         let new_length = self.length - 1;
@@ -266,7 +266,7 @@ impl OpaqueVecInner {
         }
     }
 
-    pub(crate) fn replace_insert(&mut self, index: usize, value: NonNull<u8>) {
+   pub fn replace_insert(&mut self, index: usize, value: NonNull<u8>) {
         struct DropGuard<F: FnOnce()> {
             callback: ManuallyDrop<F>,
         }
@@ -331,7 +331,7 @@ impl OpaqueVecInner {
         }
     }
 
-    pub(crate) fn shift_insert(&mut self, index: usize, value: NonNull<u8>) {
+   pub fn shift_insert(&mut self, index: usize, value: NonNull<u8>) {
         debug_assert!(index <= self.len());
 
         let length = self.len();
@@ -357,30 +357,30 @@ impl OpaqueVecInner {
     }
 
     #[inline]
-    pub(crate) fn try_reserve(&mut self, additional: usize) -> Result<(), opaque_error::TryReserveError> {
+   pub fn try_reserve(&mut self, additional: usize) -> Result<(), opaque_error::TryReserveError> {
         self.data.try_reserve(self.length, additional, self.element_layout)
     }
 
     #[inline]
-    pub(crate) fn try_reserve_exact(&mut self, additional: usize) -> Result<(), opaque_error::TryReserveError> {
+   pub fn try_reserve_exact(&mut self, additional: usize) -> Result<(), opaque_error::TryReserveError> {
         self.data.try_reserve_exact(self.length, additional, self.element_layout)
     }
 
     #[cfg(not(no_global_oom_handling))]
     #[track_caller]
-    pub(crate) fn reserve(&mut self, additional: usize) {
+   pub fn reserve(&mut self, additional: usize) {
         self.data.reserve(self.length, additional, self.element_layout);
     }
 
     #[cfg(not(no_global_oom_handling))]
     #[track_caller]
-    pub(crate) fn reserve_exact(&mut self, additional: usize) {
+   pub fn reserve_exact(&mut self, additional: usize) {
         self.data.reserve_exact(self.length, additional, self.element_layout);
     }
 
     #[track_caller]
     #[inline]
-    pub(crate) fn shrink_to_fit(&mut self) {
+   pub fn shrink_to_fit(&mut self) {
         if self.capacity() > self.length {
             self.data.shrink_to_fit(self.length, self.element_layout);
         }
@@ -388,13 +388,13 @@ impl OpaqueVecInner {
 
     #[cfg(not(no_global_oom_handling))]
     #[track_caller]
-    pub(crate) fn shrink_to(&mut self, min_capacity: usize) {
+   pub fn shrink_to(&mut self, min_capacity: usize) {
         if self.capacity() > min_capacity {
             self.data.shrink_to_fit(std::cmp::max(self.length, min_capacity), self.element_layout);
         }
     }
 
-    pub(crate) fn clear(&mut self) {
+   pub fn clear(&mut self) {
         let len = self.length;
         self.length = 0;
 
@@ -410,7 +410,7 @@ impl OpaqueVecInner {
         }
     }
 
-    pub(crate) fn truncate(&mut self, len: usize) {
+   pub fn truncate(&mut self, len: usize) {
         unsafe {
             if len > self.len() {
                 return;
@@ -429,7 +429,7 @@ impl OpaqueVecInner {
 
     #[cfg(not(no_global_oom_handling))]
     #[track_caller]
-    pub(crate) fn extend_with(&mut self, count: usize, value: NonNull<u8>) {
+   pub fn extend_with(&mut self, count: usize, value: NonNull<u8>) {
         struct SetLenOnDrop<'a> {
             len: &'a mut usize,
             local_len: usize,
@@ -490,7 +490,7 @@ impl OpaqueVecInner {
     }
 
     /*
-    pub(crate) fn extend_from_iter<I>(&mut self, mut iterator: I)
+   pub fn extend_from_iter<I>(&mut self, mut iterator: I)
     where
         I: Iterator<Item = NonNull<u8>>,
     {
@@ -515,7 +515,7 @@ impl OpaqueVecInner {
      */
 }
 
-impl Clone for OpaqueVecInner {
+impl Clone for OpaqueBlobVec {
     fn clone(&self) -> Self {
         let new_element_layout = self.element_layout;
         let new_length = self.length;
@@ -542,7 +542,7 @@ impl Clone for OpaqueVecInner {
     }
 }
 
-impl Drop for OpaqueVecInner {
+impl Drop for OpaqueBlobVec {
     fn drop(&mut self) {
         self.clear();
 
@@ -555,7 +555,7 @@ impl Drop for OpaqueVecInner {
 #[cfg(test)]
 mod opaque_vec_inner_replace_insert_drop_tests {
     use std::alloc::Layout;
-    use super::{OpaqueAlloc, OpaqueVecInner};
+    use super::{OpaqueAlloc, OpaqueBlobVec};
     use std::panic::{self, AssertUnwindSafe};
     use std::mem::ManuallyDrop;
 
@@ -639,7 +639,7 @@ mod opaque_vec_inner_replace_insert_drop_tests {
         }
     }
 
-    fn new_vec<T>() -> OpaqueVecInner
+    fn new_vec<T>() -> OpaqueBlobVec
     where
         T: 'static,
     {
@@ -662,7 +662,7 @@ mod opaque_vec_inner_replace_insert_drop_tests {
         let element_layout = Layout::new::<PanicCell<()>>();
         let drop_fn = Some(drop_fn::<PanicCell<()>> as unsafe fn(NonNull<u8>));
 
-        OpaqueVecInner::new_in(alloc, element_layout, drop_fn)
+        OpaqueBlobVec::new_in(alloc, element_layout, drop_fn)
     }
 
     #[test]

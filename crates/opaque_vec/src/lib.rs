@@ -13,12 +13,7 @@ use std::fmt;
 use core::slice;
 use core::ops;
 
-mod range_types;
-mod unique;
-mod opaque_vec_memory;
-mod opaque_vec_inner;
-
-use crate::opaque_vec_inner::OpaqueVecInner;
+use opaque_blob_vec::OpaqueBlobVec;
 
 use std::alloc;
 use std::any::TypeId;
@@ -352,7 +347,7 @@ where
 }
 
 pub struct OpaqueVec {
-    data: OpaqueVecInner,
+    data: OpaqueBlobVec,
     type_id: TypeId,
 }
 
@@ -374,7 +369,7 @@ impl OpaqueVec {
         let opaque_alloc = OpaqueAlloc::new(alloc);
         let element_layout = Layout::new::<T>();
         let drop_fn = Some(drop_fn::<T> as unsafe fn(NonNull<u8>));
-        let data = OpaqueVecInner::new_in(opaque_alloc, element_layout, drop_fn);
+        let data = OpaqueBlobVec::new_in(opaque_alloc, element_layout, drop_fn);
         let type_id = TypeId::of::<T>();
 
         Self { data, type_id, }
@@ -397,7 +392,7 @@ impl OpaqueVec {
         let opaque_alloc = OpaqueAlloc::new::<A>(alloc);
         let element_layout = Layout::new::<T>();
         let drop_fn = Some(drop_fn::<T> as unsafe fn(NonNull<u8>));
-        let data = OpaqueVecInner::with_capacity_in(capacity, opaque_alloc, element_layout, drop_fn);
+        let data = OpaqueBlobVec::with_capacity_in(capacity, opaque_alloc, element_layout, drop_fn);
         let type_id = TypeId::of::<T>();
 
         Self { data, type_id, }
@@ -418,7 +413,7 @@ impl OpaqueVec {
         let opaque_alloc = OpaqueAlloc::new::<A>(alloc);
         let element_layout = Layout::new::<T>();
         let drop_fn = Some(drop_fn::<T> as unsafe fn(NonNull<u8>));
-        let data = OpaqueVecInner::try_with_capacity_in(capacity, opaque_alloc, element_layout, drop_fn)?;
+        let data = OpaqueBlobVec::try_with_capacity_in(capacity, opaque_alloc, element_layout, drop_fn)?;
         let type_id = TypeId::of::<T>();
 
         Ok(Self { data, type_id, })
@@ -440,7 +435,7 @@ impl OpaqueVec {
         let element_layout = Layout::new::<T>();
         let drop_fn = Some(drop_fn::<T> as unsafe fn(NonNull<u8>));
         let ptr_bytes = ptr.cast::<u8>();
-        let data = OpaqueVecInner::from_raw_parts_in(ptr_bytes, length, capacity, opaque_alloc, element_layout, drop_fn);
+        let data = OpaqueBlobVec::from_raw_parts_in(ptr_bytes, length, capacity, opaque_alloc, element_layout, drop_fn);
         let type_id = TypeId::of::<T>();
 
         Self { data, type_id, }
@@ -462,7 +457,7 @@ impl OpaqueVec {
         let element_layout = Layout::new::<T>();
         let drop_fn = Some(drop_fn::<T> as unsafe fn(NonNull<u8>));
         let ptr_bytes = ptr.cast::<u8>();
-        let data = OpaqueVecInner::from_parts_in(ptr_bytes, length, capacity, opaque_alloc, element_layout, drop_fn);
+        let data = OpaqueBlobVec::from_parts_in(ptr_bytes, length, capacity, opaque_alloc, element_layout, drop_fn);
         let type_id = TypeId::of::<T>();
 
         Self { data, type_id, }
