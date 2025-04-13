@@ -4,7 +4,7 @@ use core::ptr::NonNull;
 use opaque_alloc::OpaqueAlloc;
 use opaque_blob_vec::OpaqueBlobVec;
 
-pub fn new_vec<T>() -> OpaqueBlobVec
+pub fn new_opaque_blob_vec<T>() -> OpaqueBlobVec
 where
     T: fmt::Debug + 'static,
 {
@@ -34,7 +34,7 @@ pub fn from_typed_slice<T>(values: &[T]) -> OpaqueBlobVec
 where
     T: PartialEq + Clone + fmt::Debug + 'static,
 {
-    let mut vec = new_vec::<T>();
+    let mut vec = new_opaque_blob_vec::<T>();
     for value in values.iter() {
         let value_ptr: NonNull<u8> = NonNull::from(value).cast::<u8>();
         vec.push(value_ptr);

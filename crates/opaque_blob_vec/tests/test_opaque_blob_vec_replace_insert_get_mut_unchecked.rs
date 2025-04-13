@@ -6,13 +6,13 @@ use common::opaque_blob_vec_utils as utils;
 use core::fmt;
 use std::ptr::NonNull;
 use opaque_blob_vec::OpaqueBlobVec;
-use crate::common::opaque_blob_vec_utils::new_vec;
+use crate::common::opaque_blob_vec_utils::new_opaque_blob_vec;
 
 pub fn from_slice<T>(values: &[T]) -> OpaqueBlobVec
 where
     T: PartialEq + Clone + fmt::Debug + 'static,
 {
-    let mut vec = new_vec::<T>();
+    let mut vec = new_opaque_blob_vec::<T>();
     for i in 0..values.len() {
         let value: T = values[i].clone();
         let value_ptr: NonNull<u8> = NonNull::from(&value).cast::<u8>();

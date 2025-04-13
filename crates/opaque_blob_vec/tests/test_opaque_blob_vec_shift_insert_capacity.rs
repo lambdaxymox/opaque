@@ -11,7 +11,7 @@ pub fn from_slice<T>(values: &[T]) -> OpaqueBlobVec
 where
     T: PartialEq + Clone + fmt::Debug + 'static,
 {
-    let mut vec = utils::new_vec::<T>();
+    let mut vec = utils::new_opaque_blob_vec::<T>();
     for i in 0..values.len() {
         let value: T = values[i].clone();
         let value_ptr: NonNull<u8> = NonNull::from(&value).cast::<u8>();
