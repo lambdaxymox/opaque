@@ -6,45 +6,37 @@ use common::opaque_blob_vec_utils as utils;
 use core::fmt;
 use std::ptr::NonNull;
 use opaque_blob_vec::OpaqueBlobVec;
-use crate::common::opaque_blob_vec_utils::new_vec;
 
 pub fn from_slice<T>(values: &[T]) -> OpaqueBlobVec
 where
     T: PartialEq + Clone + fmt::Debug + 'static,
 {
-    let mut vec = new_vec::<T>();
+    let mut vec = utils::new_vec::<T>();
     for i in 0..values.len() {
         let value: T = values[i].clone();
         let value_ptr: NonNull<u8> = NonNull::from(&value).cast::<u8>();
-        vec.replace_insert(i, value_ptr);
+        vec.shift_insert(i, value_ptr);
     }
 
     vec
 }
 
-fn run_test_opaque_blob_vec_replace_insert_get_mut_unchecked<T>(values: &[T])
+fn run_test_opaque_blob_vec_shift_insert_capacity<T>(values: &[T])
 where
     T: PartialEq + Clone + fmt::Debug + 'static,
 {
-    let mut opaque_blob_vec = from_slice(values);
-    for i in 0..opaque_blob_vec.len() {
-        let expected = values[i].clone();
-        let result = unsafe {
-            let ptr = opaque_blob_vec.get_mut_unchecked(i).cast::<T>();
-            ptr.read()
-        };
+    let opaque_blob_vec = utils::from_typed_slice(values);
 
-        assert_eq!(result, expected);
-    }
+    assert!(opaque_blob_vec.len() <= opaque_blob_vec.capacity());
 }
 
-fn run_test_opaque_blob_vec_replace_insert_get_mut_unchecked_values<T>(values: &[T])
+fn run_test_opaque_blob_vec_shift_insert_capacity_values<T>(values: &[T])
 where
     T: PartialEq + Clone + fmt::Debug + 'static,
 {
     for len in 0..values.len() {
         let prefix_values = &values[0..len];
-        run_test_opaque_blob_vec_replace_insert_get_mut_unchecked(prefix_values);
+        run_test_opaque_blob_vec_shift_insert_capacity(prefix_values);
     }
 }
 
@@ -54,9 +46,9 @@ macro_rules! generate_tests {
             use super::*;
 
             #[test]
-            fn test_opaque_blob_vec_replace_insert_get_mut_unchecked_alternating_values() {
+            fn test_opaque_blob_vec_shift_insert_capacity_alternating_values() {
                 let values = ag::alternating_values::<$typ, $max_array_size>($alt_spec);
-                run_test_opaque_blob_vec_replace_insert_get_mut_unchecked_values(&values);
+                run_test_opaque_blob_vec_shift_insert_capacity_values(&values);
             }
         }
     };
