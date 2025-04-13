@@ -1,12 +1,12 @@
 #![feature(allocator_api)]
 mod common;
 
+use crate::common::opaque_blob_vec_utils::new_opaque_blob_vec;
 use common::array_generators as ag;
 use common::opaque_blob_vec_utils as utils;
 use core::fmt;
-use std::ptr::NonNull;
 use opaque_blob_vec::OpaqueBlobVec;
-use crate::common::opaque_blob_vec_utils::new_opaque_blob_vec;
+use std::ptr::NonNull;
 
 pub fn from_slice<T>(values: &[T]) -> OpaqueBlobVec
 where
@@ -22,7 +22,7 @@ where
     vec
 }
 
-fn run_test_opaque_blob_vec_shift_insert_slice<T>(values: &[T])
+fn run_test_opaque_blob_vec_shift_insert_slice_end<T>(values: &[T])
 where
     T: PartialEq + Clone + fmt::Debug + 'static,
 {
@@ -33,13 +33,13 @@ where
     assert_eq!(result, expected);
 }
 
-fn run_test_opaque_blob_vec_shift_insert_slice_values<T>(values: &[T])
+fn run_test_opaque_blob_vec_shift_insert_slice_end_values<T>(values: &[T])
 where
     T: PartialEq + Clone + fmt::Debug + 'static,
 {
     for len in 0..values.len() {
         let prefix_values = &values[0..len];
-        run_test_opaque_blob_vec_shift_insert_slice(prefix_values);
+        run_test_opaque_blob_vec_shift_insert_slice_end(prefix_values);
     }
 }
 
@@ -49,9 +49,9 @@ macro_rules! generate_tests {
             use super::*;
 
             #[test]
-            fn test_opaque_blob_vec_shift_insert_slice_alternating_values() {
+            fn test_opaque_blob_vec_shift_insert_slice_end_alternating_values() {
                 let values = ag::alternating_values::<$typ, $max_array_size>($alt_spec);
-                run_test_opaque_blob_vec_shift_insert_slice_values(&values);
+                run_test_opaque_blob_vec_shift_insert_slice_end_values(&values);
             }
         }
     };

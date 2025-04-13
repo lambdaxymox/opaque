@@ -1,11 +1,11 @@
 #![feature(allocator_api)]
 mod common;
 
+use crate::common::opaque_blob_vec_utils::new_opaque_blob_vec;
 use common::array_generators as ag;
 use core::fmt;
-use std::ptr::NonNull;
 use opaque_blob_vec::OpaqueBlobVec;
-use crate::common::opaque_blob_vec_utils::new_opaque_blob_vec;
+use std::ptr::NonNull;
 
 pub fn from_slice<T>(values: &[T]) -> OpaqueBlobVec
 where

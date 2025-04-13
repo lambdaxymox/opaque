@@ -1,5 +1,5 @@
-use core::fmt;
 use core::alloc::Layout;
+use core::fmt;
 use core::ptr::NonNull;
 use opaque_alloc::OpaqueAlloc;
 use opaque_blob_vec::OpaqueBlobVec;

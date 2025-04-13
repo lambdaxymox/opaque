@@ -71,9 +71,9 @@ macro_rules! generate_tests {
     };
 }
 
-generate_tests!(u8,    u8::MIN,    u8::MAX);
-generate_tests!(u16,   u16::MIN,   u16::MAX);
-generate_tests!(u32,   u32::MIN,   u32::MAX);
-generate_tests!(u64,   u64::MIN,   u64::MAX);
-generate_tests!(u128,  u128::MIN,  u128::MAX);
+generate_tests!(u8, u8::MIN, u8::MAX);
+generate_tests!(u16, u16::MIN, u16::MAX);
+generate_tests!(u32, u32::MIN, u32::MAX);
+generate_tests!(u64, u64::MIN, u64::MAX);
+generate_tests!(u128, u128::MIN, u128::MAX);
 generate_tests!(usize, usize::MIN, usize::MAX);

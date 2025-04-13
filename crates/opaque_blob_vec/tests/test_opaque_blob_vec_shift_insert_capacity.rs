@@ -4,8 +4,8 @@ mod common;
 use common::array_generators as ag;
 use common::opaque_blob_vec_utils as utils;
 use core::fmt;
-use std::ptr::NonNull;
 use opaque_blob_vec::OpaqueBlobVec;
+use std::ptr::NonNull;
 
 pub fn from_slice<T>(values: &[T]) -> OpaqueBlobVec
 where

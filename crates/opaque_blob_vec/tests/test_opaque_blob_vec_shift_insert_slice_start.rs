@@ -8,43 +8,52 @@ use core::fmt;
 use opaque_blob_vec::OpaqueBlobVec;
 use std::ptr::NonNull;
 
-pub fn from_slice<T>(values: &[T]) -> OpaqueBlobVec
+fn expected<T>(values: &[T]) -> OpaqueBlobVec
 where
     T: PartialEq + Clone + fmt::Debug + 'static,
 {
-    let mut vec = new_opaque_blob_vec::<T>();
-    for i in 0..values.len() {
-        let value: T = values[i].clone();
-        let value_ptr: NonNull<u8> = NonNull::from(&value).cast::<u8>();
-        vec.replace_insert(i, value_ptr);
+    let mut opaque_blob_vec = utils::new_opaque_blob_vec::<T>();
+    for value in values.iter().rev() {
+        let value_ptr = NonNull::from(value).cast::<u8>();
+        opaque_blob_vec.push(value_ptr);
     }
 
-    vec
+    opaque_blob_vec
 }
 
-fn run_test_opaque_blob_vec_replace_insert_get_mut_unchecked<T>(values: &[T])
+fn result<T>(values: &[T]) -> OpaqueBlobVec
 where
     T: PartialEq + Clone + fmt::Debug + 'static,
 {
-    let mut opaque_blob_vec = from_slice(values);
-    for i in 0..opaque_blob_vec.len() {
-        let expected = values[i].clone();
-        let result = unsafe {
-            let ptr = opaque_blob_vec.get_mut_unchecked(i).cast::<T>();
-            ptr.read()
-        };
-
-        assert_eq!(result, expected);
+    let mut opaque_blob_vec = utils::new_opaque_blob_vec::<T>();
+    for value in values.iter() {
+        let value_ptr = NonNull::from(value).cast::<u8>();
+        opaque_blob_vec.shift_insert(0, value_ptr);
     }
+
+    opaque_blob_vec
 }
 
-fn run_test_opaque_blob_vec_replace_insert_get_mut_unchecked_values<T>(values: &[T])
+fn run_test_opaque_blob_vec_shift_insert_slice_start<T>(values: &[T])
+where
+    T: PartialEq + Clone + fmt::Debug + 'static,
+{
+    let expected_vec = expected(values);
+    let result_vec = result(values);
+
+    let expected = utils::as_slice::<T>(&expected_vec);
+    let result = utils::as_slice::<T>(&result_vec);
+
+    assert_eq!(result, expected);
+}
+
+fn run_test_opaque_blob_vec_shift_insert_slice_start_values<T>(values: &[T])
 where
     T: PartialEq + Clone + fmt::Debug + 'static,
 {
     for len in 0..values.len() {
         let prefix_values = &values[0..len];
-        run_test_opaque_blob_vec_replace_insert_get_mut_unchecked(prefix_values);
+        run_test_opaque_blob_vec_shift_insert_slice_start(prefix_values);
     }
 }
 
@@ -54,9 +63,9 @@ macro_rules! generate_tests {
             use super::*;
 
             #[test]
-            fn test_opaque_blob_vec_replace_insert_get_mut_unchecked_alternating_values() {
+            fn test_opaque_blob_vec_shift_insert_slice_start_alternating_values() {
                 let values = ag::alternating_values::<$typ, $max_array_size>($alt_spec);
-                run_test_opaque_blob_vec_replace_insert_get_mut_unchecked_values(&values);
+                run_test_opaque_blob_vec_shift_insert_slice_start_values(&values);
             }
         }
     };
