@@ -51,16 +51,16 @@ macro_rules! generate_tests {
     };
 }
 
-generate_tests!(i8,    i8::MIN,    i8::MAX);
-generate_tests!(i16,   i16::MIN,   i16::MAX);
-generate_tests!(i32,   i32::MIN,   i32::MAX);
-generate_tests!(i64,   i64::MIN,   i64::MAX);
-generate_tests!(i128,  i128::MIN,  i128::MAX);
+generate_tests!(i8, i8::MIN, i8::MAX);
+generate_tests!(i16, i16::MIN, i16::MAX);
+generate_tests!(i32, i32::MIN, i32::MAX);
+generate_tests!(i64, i64::MIN, i64::MAX);
+generate_tests!(i128, i128::MIN, i128::MAX);
 generate_tests!(isize, isize::MIN, isize::MAX);
 
-generate_tests!(u8,    u8::MIN,    u8::MAX);
-generate_tests!(u16,   u16::MIN,   u16::MAX);
-generate_tests!(u32,   u32::MIN,   u32::MAX);
-generate_tests!(u64,   u64::MIN,   u64::MAX);
-generate_tests!(u128,  u128::MIN,  u128::MAX);
+generate_tests!(u8, u8::MIN, u8::MAX);
+generate_tests!(u16, u16::MIN, u16::MAX);
+generate_tests!(u32, u32::MIN, u32::MAX);
+generate_tests!(u64, u64::MIN, u64::MAX);
+generate_tests!(u128, u128::MIN, u128::MAX);
 generate_tests!(usize, usize::MIN, usize::MAX);

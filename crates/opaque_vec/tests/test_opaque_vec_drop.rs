@@ -1,7 +1,7 @@
 use opaque_vec::OpaqueVec;
-use std::rc::Rc;
 use std::cell::RefCell;
 use std::mem::MaybeUninit;
+use std::rc::Rc;
 
 #[derive(Clone)]
 struct DropCounter {

@@ -73,16 +73,88 @@ macro_rules! generate_tests {
     };
 }
 
-generate_tests!(i8,    128,  ag::RangeValuesSpec::new(0), ag::AlternatingValuesSpec::new(i8::MIN,    0), ag::ConstantValuesSpec::new(i8::MAX));
-generate_tests!(i16,   1024, ag::RangeValuesSpec::new(0), ag::AlternatingValuesSpec::new(i16::MIN,   0), ag::ConstantValuesSpec::new(i16::MAX));
-generate_tests!(i32,   1024, ag::RangeValuesSpec::new(0), ag::AlternatingValuesSpec::new(i32::MIN,   0), ag::ConstantValuesSpec::new(i32::MAX));
-generate_tests!(i64,   1024, ag::RangeValuesSpec::new(0), ag::AlternatingValuesSpec::new(i64::MIN,   0), ag::ConstantValuesSpec::new(i64::MAX));
-generate_tests!(i128,  1024, ag::RangeValuesSpec::new(0), ag::AlternatingValuesSpec::new(i128::MIN,  0), ag::ConstantValuesSpec::new(i128::MAX));
-generate_tests!(isize, 1024, ag::RangeValuesSpec::new(0), ag::AlternatingValuesSpec::new(isize::MIN, 0), ag::ConstantValuesSpec::new(isize::MAX));
+generate_tests!(
+    i8,
+    128,
+    ag::RangeValuesSpec::new(0),
+    ag::AlternatingValuesSpec::new(i8::MIN, 0),
+    ag::ConstantValuesSpec::new(i8::MAX)
+);
+generate_tests!(
+    i16,
+    1024,
+    ag::RangeValuesSpec::new(0),
+    ag::AlternatingValuesSpec::new(i16::MIN, 0),
+    ag::ConstantValuesSpec::new(i16::MAX)
+);
+generate_tests!(
+    i32,
+    1024,
+    ag::RangeValuesSpec::new(0),
+    ag::AlternatingValuesSpec::new(i32::MIN, 0),
+    ag::ConstantValuesSpec::new(i32::MAX)
+);
+generate_tests!(
+    i64,
+    1024,
+    ag::RangeValuesSpec::new(0),
+    ag::AlternatingValuesSpec::new(i64::MIN, 0),
+    ag::ConstantValuesSpec::new(i64::MAX)
+);
+generate_tests!(
+    i128,
+    1024,
+    ag::RangeValuesSpec::new(0),
+    ag::AlternatingValuesSpec::new(i128::MIN, 0),
+    ag::ConstantValuesSpec::new(i128::MAX)
+);
+generate_tests!(
+    isize,
+    1024,
+    ag::RangeValuesSpec::new(0),
+    ag::AlternatingValuesSpec::new(isize::MIN, 0),
+    ag::ConstantValuesSpec::new(isize::MAX)
+);
 
-generate_tests!(u8,    128,  ag::RangeValuesSpec::new(0), ag::AlternatingValuesSpec::new(u8::MIN,    u8::MAX),    ag::ConstantValuesSpec::new(u8::MAX));
-generate_tests!(u16,   1024, ag::RangeValuesSpec::new(0), ag::AlternatingValuesSpec::new(u16::MIN,   u16::MAX),   ag::ConstantValuesSpec::new(u16::MAX));
-generate_tests!(u32,   1024, ag::RangeValuesSpec::new(0), ag::AlternatingValuesSpec::new(u32::MIN,   u32::MAX),   ag::ConstantValuesSpec::new(u32::MAX));
-generate_tests!(u64,   1024, ag::RangeValuesSpec::new(0), ag::AlternatingValuesSpec::new(u64::MIN,   u64::MAX),   ag::ConstantValuesSpec::new(u64::MAX));
-generate_tests!(u128,  1024, ag::RangeValuesSpec::new(0), ag::AlternatingValuesSpec::new(u128::MIN,  u128::MAX),  ag::ConstantValuesSpec::new(u128::MAX));
-generate_tests!(usize, 1024, ag::RangeValuesSpec::new(0), ag::AlternatingValuesSpec::new(usize::MIN, usize::MAX), ag::ConstantValuesSpec::new(usize::MAX));
+generate_tests!(
+    u8,
+    128,
+    ag::RangeValuesSpec::new(0),
+    ag::AlternatingValuesSpec::new(u8::MIN, u8::MAX),
+    ag::ConstantValuesSpec::new(u8::MAX)
+);
+generate_tests!(
+    u16,
+    1024,
+    ag::RangeValuesSpec::new(0),
+    ag::AlternatingValuesSpec::new(u16::MIN, u16::MAX),
+    ag::ConstantValuesSpec::new(u16::MAX)
+);
+generate_tests!(
+    u32,
+    1024,
+    ag::RangeValuesSpec::new(0),
+    ag::AlternatingValuesSpec::new(u32::MIN, u32::MAX),
+    ag::ConstantValuesSpec::new(u32::MAX)
+);
+generate_tests!(
+    u64,
+    1024,
+    ag::RangeValuesSpec::new(0),
+    ag::AlternatingValuesSpec::new(u64::MIN, u64::MAX),
+    ag::ConstantValuesSpec::new(u64::MAX)
+);
+generate_tests!(
+    u128,
+    1024,
+    ag::RangeValuesSpec::new(0),
+    ag::AlternatingValuesSpec::new(u128::MIN, u128::MAX),
+    ag::ConstantValuesSpec::new(u128::MAX)
+);
+generate_tests!(
+    usize,
+    1024,
+    ag::RangeValuesSpec::new(0),
+    ag::AlternatingValuesSpec::new(usize::MIN, usize::MAX),
+    ag::ConstantValuesSpec::new(usize::MAX)
+);

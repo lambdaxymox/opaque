@@ -1,4 +1,8 @@
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{
+    Criterion,
+    criterion_group,
+    criterion_main,
+};
 use opaque_vec::OpaqueVec;
 
 fn bench_vec_shift_insert_last(c: &mut Criterion) {

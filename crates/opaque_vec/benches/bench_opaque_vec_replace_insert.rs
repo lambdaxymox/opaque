@@ -1,4 +1,8 @@
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{
+    Criterion,
+    criterion_group,
+    criterion_main,
+};
 use opaque_vec::OpaqueVec;
 
 fn bench_vec_replace_insert_last(c: &mut Criterion) {
@@ -32,5 +36,9 @@ fn bench_opaque_vec_replace_insert_last(c: &mut Criterion) {
     });
 }
 
-criterion_group!(opaque_vec_benches, bench_opaque_vec_replace_insert_last, bench_vec_replace_insert_last);
+criterion_group!(
+    opaque_vec_benches,
+    bench_opaque_vec_replace_insert_last,
+    bench_vec_replace_insert_last
+);
 criterion_main!(opaque_vec_benches);

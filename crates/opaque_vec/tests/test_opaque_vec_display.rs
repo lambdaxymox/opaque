@@ -28,9 +28,7 @@ where
 
 #[test]
 fn test_opaque_vec_display1() {
-    let values = [
-        i32::from_ne_bytes([0x00, 0x00, 0x00, 0x00]),
-    ];
+    let values = [i32::from_ne_bytes([0x00, 0x00, 0x00, 0x00])];
     let expected = "[[0, 0, 0, 0]]";
 
     run_test_opaque_vec_display(&values, expected);
@@ -38,9 +36,7 @@ fn test_opaque_vec_display1() {
 
 #[test]
 fn test_opaque_vec_display2() {
-    let values = [
-        i32::from_ne_bytes([0x01, 0x02, 0x03, 0x04]),
-    ];
+    let values = [i32::from_ne_bytes([0x01, 0x02, 0x03, 0x04])];
     let expected = "[[1, 2, 3, 4]]";
 
     run_test_opaque_vec_display(&values, expected);
@@ -48,10 +44,7 @@ fn test_opaque_vec_display2() {
 
 #[test]
 fn test_opaque_vec_display3() {
-    let values = [
-        i32::from_ne_bytes([0x00, 0x00, 0x00, 0x00]),
-        i32::from_ne_bytes([0x00, 0x00, 0x00, 0x01]),
-    ];
+    let values = [i32::from_ne_bytes([0x00, 0x00, 0x00, 0x00]), i32::from_ne_bytes([0x00, 0x00, 0x00, 0x01])];
     let expected = "[[0, 0, 0, 0], [0, 0, 0, 1]]";
 
     run_test_opaque_vec_display(&values, expected);
@@ -59,10 +52,7 @@ fn test_opaque_vec_display3() {
 
 #[test]
 fn test_opaque_vec_display4() {
-    let values = [
-        i32::from_ne_bytes([0x00, 0x00, 0x00, 0x04]),
-        i32::from_ne_bytes([0x00, 0x00, 0x00, 0x05]),
-    ];
+    let values = [i32::from_ne_bytes([0x00, 0x00, 0x00, 0x04]), i32::from_ne_bytes([0x00, 0x00, 0x00, 0x05])];
     let expected = "[[0, 0, 0, 4], [0, 0, 0, 5]]";
 
     run_test_opaque_vec_display(&values, expected);

@@ -9,7 +9,7 @@ pub struct RangeValuesSpec<T> {
 impl<T> RangeValuesSpec<T> {
     #[inline]
     pub const fn new(start: T) -> Self {
-        Self { start, }
+        Self { start }
     }
 }
 
@@ -35,10 +35,7 @@ pub struct AlternatingValuesSpec<T> {
 impl<T> AlternatingValuesSpec<T> {
     #[inline]
     pub const fn new(this: T, that: T) -> Self {
-        Self {
-            this,
-            that,
-        }
+        Self { this, that }
     }
 }
 
@@ -64,7 +61,7 @@ pub struct ConstantValuesSpec<T> {
 impl<T> ConstantValuesSpec<T> {
     #[inline]
     pub const fn new(constant: T) -> Self {
-        Self { constant, }
+        Self { constant }
     }
 }
 

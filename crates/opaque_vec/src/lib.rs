@@ -6,12 +6,19 @@
 #![feature(slice_range)]
 extern crate core;
 
-use std::alloc::{Allocator, Layout, Global};
-use std::mem::{ManuallyDrop, MaybeUninit};
-use std::ptr::NonNull;
-use std::fmt;
-use core::slice;
 use core::ops;
+use core::slice;
+use std::alloc::{
+    Allocator,
+    Global,
+    Layout,
+};
+use std::fmt;
+use std::mem::{
+    ManuallyDrop,
+    MaybeUninit,
+};
+use std::ptr::NonNull;
 
 use opaque_blob_vec::OpaqueBlobVec;
 
@@ -188,22 +195,22 @@ where
 
             // ZSTs have no identity, so we don't need to move them around.
             // if !T::IS_ZST {
-                let start_ptr = source_vec.as_mut_ptr::<T>().add(start);
+            let start_ptr = source_vec.as_mut_ptr::<T>().add(start);
 
-                // memmove back unyielded elements
-                if unyielded_ptr != start_ptr {
-                    let src = unyielded_ptr;
-                    let dst = start_ptr;
+            // memmove back unyielded elements
+            if unyielded_ptr != start_ptr {
+                let src = unyielded_ptr;
+                let dst = start_ptr;
 
-                    core::ptr::copy(src, dst, unyielded_len);
-                }
+                core::ptr::copy(src, dst, unyielded_len);
+            }
 
-                // memmove back untouched tail
-                if tail != (start + unyielded_len) {
-                    let src = source_vec.as_ptr::<T>().add(tail);
-                    let dst = start_ptr.add(unyielded_len);
-                    core::ptr::copy(src, dst, this.tail_len);
-                }
+            // memmove back untouched tail
+            if tail != (start + unyielded_len) {
+                let src = source_vec.as_ptr::<T>().add(tail);
+                let dst = start_ptr.add(unyielded_len);
+                core::ptr::copy(src, dst, this.tail_len);
+            }
             // }
 
 
@@ -372,7 +379,7 @@ impl OpaqueVec {
         let data = OpaqueBlobVec::new_in(opaque_alloc, element_layout, drop_fn);
         let type_id = TypeId::of::<T>();
 
-        Self { data, type_id, }
+        Self { data, type_id }
     }
 
     #[inline]
@@ -395,7 +402,7 @@ impl OpaqueVec {
         let data = OpaqueBlobVec::with_capacity_in(capacity, opaque_alloc, element_layout, drop_fn);
         let type_id = TypeId::of::<T>();
 
-        Self { data, type_id, }
+        Self { data, type_id }
     }
 
     #[inline]
@@ -416,7 +423,7 @@ impl OpaqueVec {
         let data = OpaqueBlobVec::try_with_capacity_in(capacity, opaque_alloc, element_layout, drop_fn)?;
         let type_id = TypeId::of::<T>();
 
-        Ok(Self { data, type_id, })
+        Ok(Self { data, type_id })
     }
 
     #[inline]
@@ -438,7 +445,7 @@ impl OpaqueVec {
         let data = OpaqueBlobVec::from_raw_parts_in(ptr_bytes, length, capacity, opaque_alloc, element_layout, drop_fn);
         let type_id = TypeId::of::<T>();
 
-        Self { data, type_id, }
+        Self { data, type_id }
     }
 
     #[inline]
@@ -460,7 +467,7 @@ impl OpaqueVec {
         let data = OpaqueBlobVec::from_parts_in(ptr_bytes, length, capacity, opaque_alloc, element_layout, drop_fn);
         let type_id = TypeId::of::<T>();
 
-        Self { data, type_id, }
+        Self { data, type_id }
     }
 
     #[inline]
@@ -574,9 +581,7 @@ impl OpaqueVec {
         // SAFETY:
         // (1) The size of T matches the expected element size.
         // (2) We assume that the caller has ensured that `index` is within bounds.
-        unsafe {
-            &*ptr.as_ptr().cast::<T>()
-        }
+        unsafe { &*ptr.as_ptr().cast::<T>() }
     }
 
     #[inline]
@@ -590,9 +595,7 @@ impl OpaqueVec {
         // SAFETY:
         // (1) The size of T matches the expected element size.
         // (2) We assume that the caller has ensured that `index` is within bounds.
-        unsafe {
-            &mut *ptr.as_ptr().cast::<T>()
-        }
+        unsafe { &mut *ptr.as_ptr().cast::<T>() }
     }
 
     #[inline]
@@ -602,9 +605,7 @@ impl OpaqueVec {
         T: 'static,
     {
         let mut me = ManuallyDrop::new(value);
-        let value_ptr = unsafe {
-            NonNull::new_unchecked(&mut *me as *mut T as *mut u8)
-        };
+        let value_ptr = unsafe { NonNull::new_unchecked(&mut *me as *mut T as *mut u8) };
 
         self.data.push(value_ptr);
     }
@@ -647,9 +648,7 @@ impl OpaqueVec {
         }
 
         let mut me = ManuallyDrop::new(value);
-        let value_ptr = unsafe {
-            NonNull::new_unchecked(&mut *me as *mut T as *mut u8)
-        };
+        let value_ptr = unsafe { NonNull::new_unchecked(&mut *me as *mut T as *mut u8) };
 
         self.data.replace_insert(index, value_ptr);
     }
@@ -672,9 +671,7 @@ impl OpaqueVec {
         }
 
         let mut me = ManuallyDrop::new(value);
-        let value_ptr = unsafe {
-            NonNull::new_unchecked(&mut *me as *mut T as *mut u8)
-        };
+        let value_ptr = unsafe { NonNull::new_unchecked(&mut *me as *mut T as *mut u8) };
 
         self.data.shift_insert(index, value_ptr);
     }
@@ -1250,9 +1247,7 @@ impl OpaqueVec {
     where
         T: Clone + 'static,
     {
-        let value_ptr = unsafe {
-            NonNull::new_unchecked(&value as *const T as *mut T as *mut u8)
-        };
+        let value_ptr = unsafe { NonNull::new_unchecked(&value as *const T as *mut T as *mut u8) };
 
         self.data.extend_with(count, value_ptr);
     }
@@ -1370,11 +1365,8 @@ impl OpaqueVec {
             _marker: PhantomData,
         };
 
-        fn process_loop<F, T, A, const DELETED: bool>(
-            original_len: usize,
-            f: &mut F,
-            g: &mut BackshiftOnDrop<'_, T, A>,
-        ) where
+        fn process_loop<F, T, A, const DELETED: bool>(original_len: usize, f: &mut F, g: &mut BackshiftOnDrop<'_, T, A>)
+        where
             T: 'static,
             A: Allocator,
             F: FnMut(&mut T) -> bool,
@@ -1674,9 +1666,7 @@ struct DebugDisplayDataFormatter<'a> {
 impl<'a> DebugDisplayDataFormatter<'a> {
     #[inline]
     const fn new(inner: &'a OpaqueVec) -> Self {
-        Self {
-            inner,
-        }
+        Self { inner }
     }
 
     fn fmt_data(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -1707,7 +1697,8 @@ impl fmt::Debug for OpaqueVec {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         let data_display = DebugDisplayDataFormatter::new(&self);
 
-        formatter.debug_struct("OpaqueVec")
+        formatter
+            .debug_struct("OpaqueVec")
             .field("element_layout", &self.element_layout())
             .field("capacity", &self.capacity())
             .field("length", &self.len())
@@ -1795,7 +1786,7 @@ mod private {
                 vec: &'a mut OpaqueVec,
                 num_init: usize,
             }
-            
+
             impl<'a> Drop for DropGuard<'a> {
                 #[inline]
                 fn drop(&mut self) {
@@ -1806,9 +1797,12 @@ mod private {
                     }
                 }
             }
-            
+
             let mut vec = OpaqueVec::with_capacity_in::<Self, A>(slice.len(), alloc);
-            let mut guard = DropGuard { vec: &mut vec, num_init: 0 };
+            let mut guard = DropGuard {
+                vec: &mut vec,
+                num_init: 0,
+            };
             let slots = guard.vec.spare_capacity_mut();
             // .take(slots.len()) is necessary for LLVM to remove bounds checks
             // and has better codegen than zip.
@@ -1816,15 +1810,15 @@ mod private {
                 guard.num_init = i;
                 slots[i].write(b.clone());
             }
-            
+
             core::mem::forget(guard);
-            
+
             // SAFETY:
             // the vec was allocated and initialized above to at least this length.
             unsafe {
                 vec.set_len(slice.len());
             }
-            
+
             vec
         }
     }
