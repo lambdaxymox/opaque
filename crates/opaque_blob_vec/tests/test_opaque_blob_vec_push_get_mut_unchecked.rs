@@ -37,7 +37,7 @@ macro_rules! generate_tests {
             use super::*;
 
             #[test]
-            fn test_opaque_vec_push_get_alternating_values() {
+            fn test_opaque_blob_vec_push_get_alternating_values() {
                 let values = ag::alternating_values::<$typ, $max_array_size>($alt_spec);
                 run_test_opaque_blob_vec_push_get_mut_values(&values);
             }
