@@ -3,7 +3,6 @@ mod common;
 use opaque_vec::OpaqueVec;
 
 use core::fmt;
-
 use common::array_generators as ag;
 
 fn run_test_opaque_vec_push_get<T>(values: &[T])

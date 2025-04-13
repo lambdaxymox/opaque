@@ -1,9 +1,9 @@
+use crate::opaque_vec_memory;
+use crate::opaque_vec_memory::OpaqueVecMemory;
+use opaque_alloc::OpaqueAlloc;
 use std::alloc::Layout;
 use std::mem::ManuallyDrop;
 use std::ptr::NonNull;
-use opaque_alloc::OpaqueAlloc;
-use crate::opaque_vec_memory;
-use crate::opaque_vec_memory::OpaqueVecMemory;
 
 use opaque_error;
 
@@ -50,9 +50,8 @@ impl OpaqueBlobVec {
         capacity: usize,
         alloc: OpaqueAlloc,
         element_layout: Layout,
-        drop_fn: Option<unsafe fn(NonNull<u8>)>
-    ) -> Result<Self, opaque_error::TryReserveError>
-    {
+        drop_fn: Option<unsafe fn(NonNull<u8>)>,
+    ) -> Result<Self, opaque_error::TryReserveError> {
         let length = 0;
         let data = OpaqueVecMemory::try_with_capacity_in(capacity, alloc, element_layout)?;
         let vec = Self {
@@ -72,9 +71,8 @@ impl OpaqueBlobVec {
         capacity: usize,
         alloc: OpaqueAlloc,
         element_layout: Layout,
-        drop_fn: Option<unsafe fn(NonNull<u8>)>
-    ) -> Self
-    {
+        drop_fn: Option<unsafe fn(NonNull<u8>)>,
+    ) -> Self {
         let capacity_bytes = opaque_vec_memory::new_capacity(capacity, element_layout);
         let data = OpaqueVecMemory::from_raw_parts_in(ptr, capacity_bytes, alloc);
 
@@ -93,9 +91,8 @@ impl OpaqueBlobVec {
         capacity: usize,
         alloc: OpaqueAlloc,
         element_layout: Layout,
-        drop_fn: Option<unsafe fn(NonNull<u8>)>
-    ) -> Self
-    {
+        drop_fn: Option<unsafe fn(NonNull<u8>)>,
+    ) -> Self {
         let capacity_bytes = opaque_vec_memory::new_capacity(capacity, element_layout);
         let data = OpaqueVecMemory::from_nonnull_in(ptr, capacity_bytes, alloc);
 
@@ -108,63 +105,61 @@ impl OpaqueBlobVec {
     }
 
     #[inline]
-   pub const fn allocator(&self) -> &OpaqueAlloc {
+    pub const fn allocator(&self) -> &OpaqueAlloc {
         self.data.allocator()
     }
 }
 
 impl OpaqueBlobVec {
     #[inline]
-   pub const fn element_layout(&self) -> Layout {
+    pub const fn element_layout(&self) -> Layout {
         self.element_layout
     }
 
     #[inline]
-   pub const fn capacity(&self) -> usize {
+    pub const fn capacity(&self) -> usize {
         self.data.capacity(self.element_layout.size())
     }
 
     #[inline]
-   pub const fn len(&self) -> usize {
+    pub const fn len(&self) -> usize {
         self.length
     }
 
     #[inline]
-   pub const fn is_empty(&self) -> bool {
+    pub const fn is_empty(&self) -> bool {
         self.length == 0
     }
 
     #[inline]
-   pub fn set_len(&mut self, new_len: usize) {
+    pub fn set_len(&mut self, new_len: usize) {
         debug_assert!(new_len <= self.capacity());
 
         self.length = new_len;
     }
 
     #[inline]
-   pub const fn as_ptr(&self) -> *const u8 {
+    pub const fn as_ptr(&self) -> *const u8 {
         self.data.ptr() as *const u8
     }
 
     #[inline]
-   pub const fn as_mut_ptr(&mut self) -> *mut u8 {
+    pub const fn as_mut_ptr(&mut self) -> *mut u8 {
         self.data.ptr()
     }
 
     #[inline]
     pub const fn as_non_null(&mut self) -> NonNull<u8> {
         // SAFETY: A `Vec` always holds a non-null pointer.
-        unsafe {
-            NonNull::new_unchecked(self.as_mut_ptr())
-        }
+        unsafe { NonNull::new_unchecked(self.as_mut_ptr()) }
     }
 
     #[inline]
-   pub fn grow_one(&mut self) {
+    pub fn grow_one(&mut self) {
         self.data.grow_one(self.element_layout);
     }
 
-   pub fn get_unchecked(&self, index: usize) -> NonNull<u8> {
+    pub fn get_unchecked(&self, index: usize) -> NonNull<u8> {
         let base_ptr = self.as_ptr();
         let element = unsafe {
             let ptr = base_ptr.add(index * self.element_layout.size());
@@ -174,7 +169,7 @@ impl OpaqueBlobVec {
         element
     }
 
-   pub fn get_mut_unchecked(&mut self, index: usize) -> NonNull<u8> {
+    pub fn get_mut_unchecked(&mut self, index: usize) -> NonNull<u8> {
         let base_ptr = self.as_mut_ptr();
         let element = unsafe {
             let ptr = base_ptr.add(index * self.element_layout.size());
@@ -184,7 +179,7 @@ impl OpaqueBlobVec {
         element
     }
 
-   pub fn push(&mut self, value: NonNull<u8>) {
+    pub fn push(&mut self, value: NonNull<u8>) {
         let length = self.len();
 
         if length == self.capacity() {
@@ -201,7 +196,7 @@ impl OpaqueBlobVec {
         self.length = length + 1;
     }
 
-   pub fn as_byte_slice(&self) -> &[u8] {
+    pub fn as_byte_slice(&self) -> &[u8] {
         if self.is_empty() {
             return &[];
         }
@@ -217,7 +212,7 @@ impl OpaqueBlobVec {
     }
 
     #[must_use]
-   pub fn swap_remove_forget_unchecked(&mut self, index: usize) -> NonNull<u8> {
+    pub fn swap_remove_forget_unchecked(&mut self, index: usize) -> NonNull<u8> {
         debug_assert!(index < self.len());
 
         let new_length = self.length - 1;
@@ -236,13 +231,11 @@ impl OpaqueBlobVec {
 
         let ptr = unsafe { self.as_mut_ptr().byte_add(element_size * new_length) };
 
-        unsafe {
-            NonNull::new_unchecked(ptr)
-        }
+        unsafe { NonNull::new_unchecked(ptr) }
     }
 
     #[must_use]
-   pub fn shift_remove_forget_unchecked(&mut self, index: usize) -> NonNull<u8> {
+    pub fn shift_remove_forget_unchecked(&mut self, index: usize) -> NonNull<u8> {
         debug_assert!(index < self.len());
 
         let new_length = self.length - 1;
@@ -261,12 +254,10 @@ impl OpaqueBlobVec {
 
         let ptr = unsafe { self.as_mut_ptr().byte_add(element_size * new_length) };
 
-        unsafe {
-            NonNull::new_unchecked(ptr)
-        }
+        unsafe { NonNull::new_unchecked(ptr) }
     }
 
-   pub fn replace_insert(&mut self, index: usize, value: NonNull<u8>) {
+    pub fn replace_insert(&mut self, index: usize, value: NonNull<u8>) {
         struct DropGuard<F: FnOnce()> {
             callback: ManuallyDrop<F>,
         }
@@ -304,7 +295,7 @@ impl OpaqueBlobVec {
                     let old_length = self.length;
                     self.length = 0;
 
-                    let guard = DropGuard::new(|| { drop_fn(value) });
+                    let guard = DropGuard::new(|| drop_fn(value));
 
                     drop_fn(replaced_ptr);
 
@@ -331,7 +322,7 @@ impl OpaqueBlobVec {
         }
     }
 
-   pub fn shift_insert(&mut self, index: usize, value: NonNull<u8>) {
+    pub fn shift_insert(&mut self, index: usize, value: NonNull<u8>) {
         debug_assert!(index <= self.len());
 
         let length = self.len();
@@ -357,30 +348,30 @@ impl OpaqueBlobVec {
     }
 
     #[inline]
-   pub fn try_reserve(&mut self, additional: usize) -> Result<(), opaque_error::TryReserveError> {
+    pub fn try_reserve(&mut self, additional: usize) -> Result<(), opaque_error::TryReserveError> {
         self.data.try_reserve(self.length, additional, self.element_layout)
     }
 
     #[inline]
-   pub fn try_reserve_exact(&mut self, additional: usize) -> Result<(), opaque_error::TryReserveError> {
+    pub fn try_reserve_exact(&mut self, additional: usize) -> Result<(), opaque_error::TryReserveError> {
         self.data.try_reserve_exact(self.length, additional, self.element_layout)
     }
 
     #[cfg(not(no_global_oom_handling))]
     #[track_caller]
-   pub fn reserve(&mut self, additional: usize) {
+    pub fn reserve(&mut self, additional: usize) {
         self.data.reserve(self.length, additional, self.element_layout);
     }
 
     #[cfg(not(no_global_oom_handling))]
     #[track_caller]
-   pub fn reserve_exact(&mut self, additional: usize) {
+    pub fn reserve_exact(&mut self, additional: usize) {
         self.data.reserve_exact(self.length, additional, self.element_layout);
     }
 
     #[track_caller]
     #[inline]
-   pub fn shrink_to_fit(&mut self) {
+    pub fn shrink_to_fit(&mut self) {
         if self.capacity() > self.length {
             self.data.shrink_to_fit(self.length, self.element_layout);
         }
@@ -388,13 +379,14 @@ impl OpaqueBlobVec {
 
     #[cfg(not(no_global_oom_handling))]
     #[track_caller]
-   pub fn shrink_to(&mut self, min_capacity: usize) {
+    pub fn shrink_to(&mut self, min_capacity: usize) {
         if self.capacity() > min_capacity {
-            self.data.shrink_to_fit(std::cmp::max(self.length, min_capacity), self.element_layout);
+            self.data
+                .shrink_to_fit(std::cmp::max(self.length, min_capacity), self.element_layout);
         }
     }
 
-   pub fn clear(&mut self) {
+    pub fn clear(&mut self) {
         let len = self.length;
         self.length = 0;
 
@@ -410,7 +402,7 @@ impl OpaqueBlobVec {
         }
     }
 
-   pub fn truncate(&mut self, len: usize) {
+    pub fn truncate(&mut self, len: usize) {
         unsafe {
             if len > self.len() {
                 return;
@@ -429,7 +421,7 @@ impl OpaqueBlobVec {
 
     #[cfg(not(no_global_oom_handling))]
     #[track_caller]
-   pub fn extend_with(&mut self, count: usize, value: NonNull<u8>) {
+    pub fn extend_with(&mut self, count: usize, value: NonNull<u8>) {
         struct SetLenOnDrop<'a> {
             len: &'a mut usize,
             local_len: usize,
@@ -490,29 +482,29 @@ impl OpaqueBlobVec {
     }
 
     /*
-   pub fn extend_from_iter<I>(&mut self, mut iterator: I)
-    where
-        I: Iterator<Item = NonNull<u8>>,
-    {
-        while let Some(element) = iterator.next() {
-            let len = self.len();
-            if len == self.capacity() {
-                let (lower, _) = iterator.size_hint();
-                self.reserve(lower.saturating_add(1));
-            }
+    pub fn extend_from_iter<I>(&mut self, mut iterator: I)
+     where
+         I: Iterator<Item = NonNull<u8>>,
+     {
+         while let Some(element) = iterator.next() {
+             let len = self.len();
+             if len == self.capacity() {
+                 let (lower, _) = iterator.size_hint();
+                 self.reserve(lower.saturating_add(1));
+             }
 
-            unsafe {
-                let element_size = self.element_layout.size();
-                let ptr = self.as_mut_ptr().add(element_size * len);
-                core::ptr::copy_nonoverlapping::<u8>(element.as_ptr(), ptr, element_size);
-                // Since next() executes user code which can panic we have to bump the length
-                // after each step.
-                // NB can't overflow since we would have had to alloc the address space
-                self.set_len(len + 1);
-            }
-        }
-    }
-     */
+             unsafe {
+                 let element_size = self.element_layout.size();
+                 let ptr = self.as_mut_ptr().add(element_size * len);
+                 core::ptr::copy_nonoverlapping::<u8>(element.as_ptr(), ptr, element_size);
+                 // Since next() executes user code which can panic we have to bump the length
+                 // after each step.
+                 // NB can't overflow since we would have had to alloc the address space
+                 self.set_len(len + 1);
+             }
+         }
+     }
+      */
 }
 
 impl Clone for OpaqueBlobVec {
@@ -524,11 +516,7 @@ impl Clone for OpaqueBlobVec {
         let new_drop_fn = self.drop_fn.clone();
 
         unsafe {
-            core::ptr::copy_nonoverlapping::<u8>(
-                self.data.ptr::<u8>(),
-                new_data.ptr::<u8>(),
-                new_length * new_element_layout.size(),
-            );
+            core::ptr::copy_nonoverlapping::<u8>(self.data.ptr::<u8>(), new_data.ptr::<u8>(), new_length * new_element_layout.size());
         }
 
         let new_vec = Self {
@@ -550,9 +538,4 @@ impl Drop for OpaqueBlobVec {
             self.data.deallocate(self.element_layout);
         }
     }
-}
-
-#[cfg(test)]
-mod opaque_vec_inner_replace_insert_drop_tests {
-
 }

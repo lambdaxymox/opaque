@@ -80,7 +80,10 @@ impl<T: Sized> Unique<T> {
     #[inline]
     pub const fn dangling() -> Self {
         // FIXME(const-hack) replace with `From`
-        Unique { pointer: NonNull::dangling(), _marker: std::marker::PhantomData }
+        Unique {
+            pointer: NonNull::dangling(),
+            _marker: std::marker::PhantomData,
+        }
     }
 }
 
@@ -96,14 +99,22 @@ impl<T: ?Sized> Unique<T> {
     #[inline]
     pub const unsafe fn new_unchecked(ptr: *mut T) -> Self {
         // SAFETY: the caller must guarantee that `ptr` is non-null.
-        unsafe { Unique { pointer: NonNull::new_unchecked(ptr), _marker: std::marker::PhantomData } }
+        unsafe {
+            Unique {
+                pointer: NonNull::new_unchecked(ptr),
+                _marker: std::marker::PhantomData,
+            }
+        }
     }
 
     /// Creates a new `Unique` if `ptr` is non-null.
     #[inline]
     pub const fn new(ptr: *mut T) -> Option<Self> {
         if let Some(pointer) = NonNull::new(ptr) {
-            Some(Unique { pointer, _marker: std::marker::PhantomData })
+            Some(Unique {
+                pointer,
+                _marker: std::marker::PhantomData,
+            })
         } else {
             None
         }
@@ -155,7 +166,10 @@ impl<T: ?Sized> Unique<T> {
     pub const fn cast<U>(self) -> Unique<U> {
         // FIXME(const-hack): replace with `From`
         // SAFETY: is `NonNull`
-        Unique { pointer: self.pointer.cast(), _marker: std::marker::PhantomData }
+        Unique {
+            pointer: self.pointer.cast(),
+            _marker: std::marker::PhantomData,
+        }
     }
 }
 
@@ -236,7 +250,10 @@ impl<T: ?Sized> From<NonNull<T>> for Unique<T> {
     /// This conversion is infallible since `NonNull` cannot be null.
     #[inline]
     fn from(pointer: NonNull<T>) -> Self {
-        Unique { pointer, _marker: std::marker::PhantomData }
+        Unique {
+            pointer,
+            _marker: std::marker::PhantomData,
+        }
     }
 }
 

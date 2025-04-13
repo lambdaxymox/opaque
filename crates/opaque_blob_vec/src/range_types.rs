@@ -7,7 +7,10 @@
 */
 use core::cmp::Ordering;
 use core::fmt;
-use core::hash::{Hash, Hasher};
+use core::hash::{
+    Hash,
+    Hasher,
+};
 use core::marker::StructuralPartialEq;
 
 macro_rules! define_valid_range_type {

@@ -1,13 +1,17 @@
 #![feature(allocator_api)]
 use std::alloc::Layout;
-use std::panic::{self, AssertUnwindSafe};
 use std::mem::ManuallyDrop;
+use std::panic::{
+    self,
+    AssertUnwindSafe,
+};
 
-use std::rc::Rc;
-use std::cell::RefCell;
-use std::ptr::NonNull;
+use core::fmt;
 use opaque_alloc::OpaqueAlloc;
 use opaque_blob_vec::OpaqueBlobVec;
+use std::cell::RefCell;
+use std::ptr::NonNull;
+use std::rc::Rc;
 
 #[derive(Clone, Debug)]
 struct DropCounter {
@@ -87,7 +91,7 @@ impl<T> Drop for PanicCell<T> {
 
 fn new_vec<T>() -> OpaqueBlobVec
 where
-    T: 'static,
+    T: fmt::Debug + 'static,
 {
     unsafe fn drop_fn<T>(value: NonNull<u8>)
     where
@@ -105,8 +109,8 @@ where
     }
 
     let alloc = OpaqueAlloc::new(std::alloc::Global);
-    let element_layout = Layout::new::<PanicCell<()>>();
-    let drop_fn = Some(drop_fn::<PanicCell<()>> as unsafe fn(NonNull<u8>));
+    let element_layout = Layout::new::<T>();
+    let drop_fn = Some(drop_fn::<T> as unsafe fn(NonNull<u8>));
 
     OpaqueBlobVec::new_in(alloc, element_layout, drop_fn)
 }
