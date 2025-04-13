@@ -929,10 +929,11 @@ impl OpaqueVec {
 
     #[inline]
     #[track_caller]
-    fn ensure_element_type<T>(&self)
+    fn assert_element_type<T>(&self)
     where
         T: 'static,
     {
+        #[cold]
         #[optimize(size)]
         #[track_caller]
         fn type_check_failed(type_id_self: TypeId, type_id_other: TypeId) -> ! {
@@ -950,7 +951,7 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        self.ensure_element_type::<T>();
+        self.assert_element_type::<T>();
 
         if index >= self.data.len() {
             return None;
@@ -967,7 +968,7 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        self.ensure_element_type::<T>();
+        self.assert_element_type::<T>();
 
         if index >= self.data.len() {
             return None;
@@ -984,7 +985,7 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        self.ensure_element_type::<T>();
+        self.assert_element_type::<T>();
 
         self.push_unchecked::<T>(value);
     }
@@ -994,7 +995,7 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        self.ensure_element_type::<T>();
+        self.assert_element_type::<T>();
 
         self.pop_unchecked::<T>()
     }
@@ -1004,7 +1005,7 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        self.ensure_element_type::<T>();
+        self.assert_element_type::<T>();
 
         if self.data.len() == self.data.capacity() {
             return Err(value);
@@ -1021,7 +1022,7 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        self.ensure_element_type::<T>();
+        self.assert_element_type::<T>();
 
         self.replace_insert_unchecked::<T>(index, value);
     }
@@ -1032,7 +1033,7 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        self.ensure_element_type::<T>();
+        self.assert_element_type::<T>();
 
         self.shift_insert_unchecked::<T>(index, value);
     }
@@ -1043,7 +1044,7 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        self.ensure_element_type::<T>();
+        self.assert_element_type::<T>();
 
         self.swap_remove_unchecked::<T>(index)
     }
@@ -1054,7 +1055,7 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        self.ensure_element_type::<T>();
+        self.assert_element_type::<T>();
 
         self.shift_remove_unchecked::<T>(index)
     }
@@ -1063,7 +1064,7 @@ impl OpaqueVec {
     where
         T: PartialEq + 'static,
     {
-        self.ensure_element_type::<T>();
+        self.assert_element_type::<T>();
 
         self.contains_unchecked::<T>(value)
     }
@@ -1072,7 +1073,7 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        self.ensure_element_type::<T>();
+        self.assert_element_type::<T>();
 
         self.iter_unchecked::<T>()
     }
@@ -1081,7 +1082,7 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        self.ensure_element_type::<T>();
+        self.assert_element_type::<T>();
 
         self.iter_mut_unchecked::<T>()
     }
@@ -1090,7 +1091,7 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        self.ensure_element_type::<T>();
+        self.assert_element_type::<T>();
 
         IntoIter {
             opaque_vec: self,
@@ -1103,7 +1104,7 @@ impl OpaqueVec {
         T: 'static,
         R: ops::RangeBounds<usize>,
     {
-        self.ensure_element_type::<T>();
+        self.assert_element_type::<T>();
 
         self.drain_unchecked::<R, T>(range)
     }
@@ -1113,7 +1114,7 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        self.ensure_element_type::<T>();
+        self.assert_element_type::<T>();
 
         self.as_ptr_unchecked::<T>()
     }
@@ -1123,7 +1124,7 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        self.ensure_element_type::<T>();
+        self.assert_element_type::<T>();
 
         self.as_mut_ptr_unchecked::<T>()
     }
@@ -1133,7 +1134,7 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        self.ensure_element_type::<T>();
+        self.assert_element_type::<T>();
 
         self.as_non_null_unchecked::<T>()
     }
@@ -1142,7 +1143,7 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        self.ensure_element_type::<T>();
+        self.assert_element_type::<T>();
 
         self.as_slice_unchecked::<T>()
     }
@@ -1151,7 +1152,7 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        self.ensure_element_type::<T>();
+        self.assert_element_type::<T>();
 
         self.as_mut_slice_unchecked::<T>()
     }
@@ -1165,7 +1166,7 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        self.ensure_element_type::<T>();
+        self.assert_element_type::<T>();
 
         self.into_raw_parts_unchecked::<T>()
     }
@@ -1175,7 +1176,7 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        self.ensure_element_type::<T>();
+        self.assert_element_type::<T>();
 
         self.into_parts_unchecked::<T>()
     }
@@ -1185,7 +1186,7 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        self.ensure_element_type::<T>();
+        self.assert_element_type::<T>();
 
         self.into_raw_parts_with_alloc_unchecked::<T>()
     }
@@ -1194,7 +1195,7 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        self.ensure_element_type::<T>();
+        self.assert_element_type::<T>();
 
         self.into_parts_with_alloc_unchecked::<T>()
     }
@@ -1204,7 +1205,7 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        self.ensure_element_type::<T>();
+        self.assert_element_type::<T>();
 
         self.spare_capacity_mut_unchecked::<T>()
     }
@@ -1582,7 +1583,7 @@ impl OpaqueVec {
     where
         T: Clone + 'static,
     {
-        self.ensure_element_type::<T>();
+        self.assert_element_type::<T>();
 
         self.extend_with_unchecked::<T>(count, value);
     }
@@ -1594,7 +1595,7 @@ impl OpaqueVec {
         T: Clone + 'static,
         I: Iterator<Item = T>,
     {
-        self.ensure_element_type::<T>();
+        self.assert_element_type::<T>();
 
         self.extend_from_iter_unchecked::<T, _>(iterator)
     }
@@ -1605,7 +1606,7 @@ impl OpaqueVec {
     where
         T: Clone + 'static,
     {
-        self.ensure_element_type::<T>();
+        self.assert_element_type::<T>();
 
         self.extend_from_slice_unchecked::<T>(other);
     }
@@ -1616,7 +1617,7 @@ impl OpaqueVec {
     where
         T: Clone + 'static,
     {
-        self.ensure_element_type::<T>();
+        self.assert_element_type::<T>();
 
         self.resize_unchecked::<T>(new_len, value);
     }
@@ -1633,7 +1634,7 @@ impl OpaqueVec {
         T: 'static,
         F: FnMut(&T) -> bool,
     {
-        self.ensure_element_type::<T>();
+        self.assert_element_type::<T>();
 
         self.retain_unchecked(|elem| f(elem));
     }
@@ -1643,7 +1644,7 @@ impl OpaqueVec {
         T: 'static,
         F: FnMut(&mut T) -> bool,
     {
-        self.ensure_element_type::<T>();
+        self.assert_element_type::<T>();
 
         self.retain_mut_unchecked::<F, T>(f)
     }
@@ -1655,7 +1656,7 @@ impl OpaqueVec {
         F: FnMut(&mut T) -> K,
         K: PartialEq,
     {
-        self.ensure_element_type::<T>();
+        self.assert_element_type::<T>();
 
         self.dedup_by_key_unchecked::<F, K, T>(key)
     }
@@ -1665,7 +1666,7 @@ impl OpaqueVec {
         T: 'static,
         F: FnMut(&mut T, &mut T) -> bool,
     {
-        self.ensure_element_type::<T>();
+        self.assert_element_type::<T>();
 
         self.dedup_by_unchecked::<F, T>(same_bucket)
     }
@@ -2130,7 +2131,7 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        self.ensure_element_type::<T>();
+        self.assert_element_type::<T>();
         self.as_mut_slice::<T>().reverse();
     }
 }
@@ -2180,7 +2181,7 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        self.ensure_element_type::<T>();
+        self.assert_element_type::<T>();
 
         Map::new(self)
     }
@@ -2189,7 +2190,7 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        self.ensure_element_type::<T>();
+        self.assert_element_type::<T>();
 
         MapMut::new(self)
     }
