@@ -16,6 +16,7 @@ use opaque_error::{TryReserveError, TryReserveErrorKind};
 
 pub use equivalent::Equivalent;
 
+
 pub struct Drain<'a, K, V>
 where
     K: 'static,
@@ -29,11 +30,11 @@ where
     K: 'static,
     V: 'static,
 {
-    fn new(iter: opaque_vec::Drain<'a, Bucket<K, V>, opaque_alloc::OpaqueAlloc>) -> Self {
+    const fn new(iter: opaque_vec::Drain<'a, Bucket<K, V>, opaque_alloc::OpaqueAlloc>) -> Self {
         Self { iter }
     }
 
-    pub fn as_slice(&self) -> Slice<'_, K, V> {
+    pub fn as_slice(&self) -> &Slice<K, V> {
         Slice::from_slice(self.iter.as_slice())
     }
 }
@@ -266,7 +267,6 @@ impl<K, V> Clone for Values<'_, K, V> {
     }
 }
 
-
 impl<K, V: fmt::Debug> fmt::Debug for Values<'_, K, V> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_list().entries(self.clone()).finish()
@@ -398,23 +398,35 @@ where
 }
 
 #[repr(transparent)]
-pub struct Slice<'a, K, V> {
-    entries: &'a [Bucket<K, V>],
+pub struct Slice<K, V> {
+    entries: [Bucket<K, V>],
 }
 
-impl<'a, K, V> Slice<'a, K, V> {
-    const fn from_slice(entries: &'a [Bucket<K, V>]) -> Self {
-        Self {
-            entries,
+impl<K, V> Slice<K, V> {
+    const fn from_slice(entries: &[Bucket<K, V>]) -> &Self {
+        unsafe {
+            &*(entries as *const [Bucket<K, V>] as *const Self)
         }
     }
 
-    pub fn iter(&'a self) -> Iter<'a, K, V> {
+    const fn from_slice_mut(entries: &mut [Bucket<K, V>]) -> &mut Self {
+        unsafe { &mut *(entries as *mut [Bucket<K, V>] as *mut Self) }
+    }
+
+    pub fn iter(&self) -> Iter<'_, K, V> {
         Iter::new(&self.entries)
     }
 
-    pub fn values(&'a self) -> Values<'a, K, V> {
+    pub fn iter_mut(&mut self) -> IterMut<'_, K, V> {
+        IterMut::new(&mut self.entries)
+    }
+
+    pub fn values(&self) -> Values<'_, K, V> {
         Values::new(&self.entries)
+    }
+
+    pub fn values_mut(&mut self) -> ValuesMut<'_, K, V> {
+        ValuesMut::new(&mut self.entries)
     }
 
     pub fn binary_search_keys(&self, x: &K) -> Result<usize, usize>
@@ -425,7 +437,7 @@ impl<'a, K, V> Slice<'a, K, V> {
     }
 
     #[inline]
-    pub fn binary_search_by<F>(&'a self, mut f: F) -> Result<usize, usize>
+    pub fn binary_search_by<'a, F>(&'a self, mut f: F) -> Result<usize, usize>
     where
         F: FnMut(&'a K, &'a V) -> Ordering,
     {
@@ -433,7 +445,7 @@ impl<'a, K, V> Slice<'a, K, V> {
     }
 
     #[inline]
-    pub fn binary_search_by_key<B, F>(&'a self, b: &B, mut f: F) -> Result<usize, usize>
+    pub fn binary_search_by_key<'a, B, F>(&'a self, b: &B, mut f: F) -> Result<usize, usize>
     where
         F: FnMut(&'a K, &'a V) -> B,
         B: Ord,
@@ -451,6 +463,7 @@ impl<'a, K, V> Slice<'a, K, V> {
     }
 }
 
+/*
 #[repr(transparent)]
 pub struct SliceMut<'a, K, V> {
     entries: &'a mut [Bucket<K, V>],
@@ -471,7 +484,7 @@ impl<'a, K, V> SliceMut<'a, K, V> {
         Values::new(&self.entries)
     }
 }
-
+*/
 pub struct Iter<'a, K, V> {
     iter: std::slice::Iter<'a, Bucket<K, V>>,
 }
@@ -484,7 +497,7 @@ impl<'a, K, V> Iter<'a, K, V> {
         }
     }
 
-    fn as_slice(&self) -> Slice<'a, K, V> {
+    fn as_slice(&self) -> &Slice<K, V> {
         Slice::from_slice(self.iter.as_slice())
     }
 }
@@ -511,12 +524,12 @@ impl<'a, K, V> IterMut<'a, K, V> {
         }
     }
 
-    fn as_slice_mut(&'a mut self) -> SliceMut<'a, K, V> {
-        SliceMut::from_slice_mut(self.iter.as_mut_slice())
+    fn as_slice_mut(&'a mut self) -> &'a mut Slice<K, V> {
+        Slice::from_slice_mut(self.iter.as_mut_slice())
     }
 
-    pub fn into_slice_mut(self) -> SliceMut<'a, K, V> {
-        SliceMut::from_slice_mut(self.iter.into_slice())
+    pub fn into_slice_mut(self) -> &'a mut Slice<K, V> {
+        Slice::from_slice_mut(self.iter.into_slice())
     }
 }
 
@@ -2244,7 +2257,7 @@ impl OpaqueIndexMap {
         }
     }
 
-    pub fn as_slice<K, V>(&self) -> Slice<'_, K, V>
+    pub fn as_slice<K, V>(&self) -> &'_ Slice<K, V>
     where
         K: 'static,
         V: 'static,
@@ -2252,12 +2265,12 @@ impl OpaqueIndexMap {
         Slice::from_slice(self.as_entries::<K, V>())
     }
 
-    pub fn as_mut_slice<K, V>(&mut self) -> SliceMut<'_, K, V>
+    pub fn as_mut_slice<K, V>(&mut self) -> &mut Slice<K, V>
     where
         K: 'static,
         V: 'static,
     {
-        SliceMut::from_slice_mut(self.as_entries_mut::<K, V>())
+        Slice::from_slice_mut(self.as_entries_mut::<K, V>())
     }
 }
 
@@ -2655,7 +2668,7 @@ where
         self.opaque_map.keys::<K, V>()
     }
 
-    pub fn as_slice(&self) -> Slice<'a, K, V> {
+    pub fn as_slice(&self) -> &Slice<K, V> {
         self.opaque_map.as_slice::<K, V>()
     }
 }
@@ -2711,7 +2724,7 @@ where
         self.opaque_map.keys::<K, V>()
     }
 
-    pub fn as_slice(&'a self) -> Slice<'a, K, V> {
+    pub fn as_slice(&'a self) -> &'a Slice<K, V> {
         self.opaque_map.as_slice::<K, V>()
     }
 }
