@@ -1128,45 +1128,79 @@ impl OpaqueIndexMapInner {
         self.entries.append(&mut other.entries);
         other.indices.clear();
     }
-
-    pub(crate) fn reserve(&mut self, additional: usize) {
-        self.indices.reserve(additional, get_hash(&self.entries));
+     */
+    pub(crate) fn reserve<K, V>(&mut self, additional: usize)
+    where
+        K: 'static,
+        V: 'static,
+    {
+        self.indices.reserve(additional, get_hash(self.entries.as_slice::<Bucket<K, V>>()));
         // Only grow entries if necessary, since we also round up capacity.
         if additional > self.entries.capacity() - self.entries.len() {
-            self.borrow_mut().reserve_entries(additional);
+            self.borrow_mut::<K, V>().reserve_entries(additional);
         }
     }
 
-    pub(crate) fn reserve_exact(&mut self, additional: usize) {
-        self.indices.reserve(additional, get_hash(&self.entries));
+    pub(crate) fn reserve_exact<K, V>(&mut self, additional: usize)
+    where
+        K: 'static,
+        V: 'static,
+    {
+        self.indices.reserve(additional, get_hash(self.entries.as_slice::<Bucket<K, V>>()));
         self.entries.reserve_exact(additional);
     }
 
-    pub(crate) fn try_reserve(&mut self, additional: usize) -> Result<(), TryReserveError> {
+    pub(crate) fn try_reserve<K, V>(&mut self, additional: usize) -> Result<(), TryReserveError>
+    where
+        K: 'static,
+        V: 'static,
+    {
+        fn from_hashbrown(error: hashbrown::TryReserveError) -> TryReserveError {
+            let kind = match error {
+                hashbrown::TryReserveError::CapacityOverflow => {
+                    TryReserveErrorKind::CapacityOverflow
+                }
+                hashbrown::TryReserveError::AllocError { layout } => {
+                    TryReserveErrorKind::AllocError { layout }
+                }
+            };
+
+            TryReserveError::from(kind)
+        }
+
         self.indices
-            .try_reserve(additional, get_hash(&self.entries))
-            .map_err(TryReserveError::from_hashbrown)?;
+            .try_reserve(additional, get_hash::<K, V>(self.entries.as_slice::<Bucket<K, V>>()))
+            .map_err(from_hashbrown)?;
         // Only grow entries if necessary, since we also round up capacity.
         if additional > self.entries.capacity() - self.entries.len() {
-            self.try_reserve_entries(additional)
+            self.try_reserve_entries::<K, V>(additional)
         } else {
             Ok(())
         }
     }
 
-    fn try_reserve_entries(&mut self, additional: usize) -> Result<(), TryReserveError> {
+    /// The maximum capacity before the `entries` allocation would exceed `isize::MAX`.
+    /// TODO: Use the stored Layout information to calculate `core::mem::size_of::<Bucket<K, V>>()`.
+    #[inline]
+    const fn max_entries_capacity<K, V>() -> usize {
+        (isize::MAX as usize) / core::mem::size_of::<Bucket<K, V>>()
+    }
+
+    fn try_reserve_entries<K, V>(&mut self, additional: usize) -> Result<(), TryReserveError>
+    where
+        K: 'static,
+        V: 'static,
+    {
         // Use a soft-limit on the maximum capacity, but if the caller explicitly
         // requested more, do it and let them have the resulting error.
-        let new_capacity = Ord::min(self.indices.capacity(), Self::MAX_ENTRIES_CAPACITY);
+        let new_capacity = Ord::min(self.indices.capacity(), Self::max_entries_capacity::<K, V>());
         let try_add = new_capacity - self.entries.len();
         if try_add > additional && self.entries.try_reserve_exact(try_add).is_ok() {
             return Ok(());
         }
-        self.entries
-            .try_reserve_exact(additional)
-            .map_err(TryReserveError::from_alloc)
+
+        self.entries.try_reserve_exact(additional)
     }
-    */
 
     pub(crate) fn try_reserve_exact<K, V>(&mut self, additional: usize) -> Result<(), TryReserveError>
     where
@@ -2019,6 +2053,11 @@ impl OpaqueIndexMap {
     }
 
     #[inline]
+    pub const fn hasher(&self) -> &opaque_hash::OpaqueBuildHasher {
+        &self.hash_builder
+    }
+
+    #[inline]
     pub fn len(&self) -> usize {
         self.inner.len()
     }
@@ -2026,11 +2065,6 @@ impl OpaqueIndexMap {
     #[inline]
     pub fn is_empty(&self) -> bool {
         self.len() == 0
-    }
-
-    #[inline]
-    pub const fn hasher(&self) -> &opaque_hash::OpaqueBuildHasher {
-        &self.hash_builder
     }
 
     pub(crate) fn hash<Q: ?Sized + hash::Hash>(&self, key: &Q) -> HashValue {
