@@ -463,28 +463,6 @@ impl<K, V> Slice<K, V> {
     }
 }
 
-/*
-#[repr(transparent)]
-pub struct SliceMut<'a, K, V> {
-    entries: &'a mut [Bucket<K, V>],
-}
-
-impl<'a, K, V> SliceMut<'a, K, V> {
-    const fn from_slice_mut(entries: &'a mut [Bucket<K, V>]) -> Self {
-        Self {
-            entries,
-        }
-    }
-
-    pub fn iter(&'a self) -> Iter<'a, K, V> {
-        Iter::new(&self.entries)
-    }
-
-    pub fn values(&'a self) -> Values<'a, K, V> {
-        Values::new(&self.entries)
-    }
-}
-*/
 pub struct Iter<'a, K, V> {
     iter: std::slice::Iter<'a, Bucket<K, V>>,
 }
