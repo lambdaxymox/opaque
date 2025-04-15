@@ -484,9 +484,46 @@ impl<'a, K, V> Iterator for Iter<'a, K, V> {
     type Item = (&'a K, &'a V);
 
     fn next(&mut self) -> Option<Self::Item> {
-        let bucket = self.iter.next()?;
+        self.iter.next().map(Bucket::refs)
+    }
+}
 
-        Some((&bucket.key, &bucket.value))
+impl<K, V> DoubleEndedIterator for Iter<'_, K, V> {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        self.iter.next_back().map(Bucket::refs)
+    }
+
+    fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
+        self.iter.nth_back(n).map(Bucket::refs)
+    }
+}
+
+impl<K, V> ExactSizeIterator for Iter<'_, K, V> {
+    fn len(&self) -> usize {
+        self.iter.len()
+    }
+}
+
+impl<K, V> FusedIterator for Iter<'_, K, V> {}
+
+// FIXME(#26925) Remove in favor of `#[derive(Clone)]`
+impl<K, V> Clone for Iter<'_, K, V> {
+    fn clone(&self) -> Self {
+        Iter {
+            iter: self.iter.clone(),
+        }
+    }
+}
+
+impl<K: fmt::Debug, V: fmt::Debug> fmt::Debug for Iter<'_, K, V> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_list().entries(self.clone()).finish()
+    }
+}
+
+impl<K, V> Default for Iter<'_, K, V> {
+    fn default() -> Self {
+        Self { iter: [].iter() }
     }
 }
 
@@ -515,9 +552,40 @@ impl<'a, K, V> Iterator for IterMut<'a, K, V> {
     type Item = (&'a K, &'a mut V);
 
     fn next(&mut self) -> Option<Self::Item> {
-        let bucket = self.iter.next()?;
+        self.iter.next().map(Bucket::ref_mut)
+    }
+}
 
-        Some((&bucket.key, &mut bucket.value))
+impl<K, V> DoubleEndedIterator for IterMut<'_, K, V> {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        self.iter.next_back().map(Bucket::ref_mut)
+    }
+
+    fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
+        self.iter.nth_back(n).map(Bucket::ref_mut)
+    }
+}
+
+impl<K, V> ExactSizeIterator for IterMut<'_, K, V> {
+    fn len(&self) -> usize {
+        self.iter.len()
+    }
+}
+
+impl<K, V> FusedIterator for IterMut<'_, K, V> {}
+
+impl<K: fmt::Debug, V: fmt::Debug> fmt::Debug for IterMut<'_, K, V> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let iter = self.iter.as_slice().iter().map(Bucket::refs);
+        f.debug_list().entries(iter).finish()
+    }
+}
+
+impl<K, V> Default for IterMut<'_, K, V> {
+    fn default() -> Self {
+        Self {
+            iter: [].iter_mut(),
+        }
     }
 }
 
