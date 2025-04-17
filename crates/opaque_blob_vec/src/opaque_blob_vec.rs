@@ -505,6 +505,21 @@ impl OpaqueBlobVec {
          }
      }
       */
+    #[cfg(not(no_global_oom_handling))]
+    #[inline]
+    #[track_caller]
+    pub unsafe fn append(&mut self, other: NonNull<u8>, count: usize) {
+        self.reserve(count);
+        let length = self.len();
+
+        unsafe {
+            let element_size = self.element_layout.size();
+            let ptr = self.as_mut_ptr().add(element_size * length);
+            core::ptr::copy_nonoverlapping(other.as_ptr(), ptr, element_size * count);
+        }
+
+        self.length += count;
+    }
 }
 
 impl Clone for OpaqueBlobVec {

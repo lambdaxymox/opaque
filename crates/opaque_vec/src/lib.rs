@@ -1091,6 +1091,34 @@ impl OpaqueVec {
         }
     }
 
+    #[cfg(not(no_global_oom_handling))]
+    #[inline]
+    #[track_caller]
+    pub fn append_unchecked<T>(&mut self, other: &mut Self)
+    where
+        T: 'static,
+    {
+        unsafe {
+            let ptr = NonNull::new_unchecked(other.as_mut_slice::<T>().as_mut_ptr().cast::<u8>());
+            let count = other.len();
+
+            self.data.append(ptr, count);
+            other.set_len(0);
+        }
+    }
+
+    #[cfg(not(no_global_oom_handling))]
+    #[inline]
+    #[track_caller]
+    pub fn append<T>(&mut self, other: &mut Self)
+    where
+        T: 'static,
+    {
+        self.assert_element_type::<T>();
+        other.assert_element_type::<T>();
+        self.append_unchecked::<T>(other);
+    }
+
     pub fn drain<R, T>(&mut self, range: R) -> Drain<'_, T, OpaqueAlloc>
     where
         T: 'static,
@@ -1190,6 +1218,85 @@ impl OpaqueVec {
         self.assert_element_type::<T>();
 
         self.into_parts_with_alloc_unchecked::<T>()
+    }
+
+    #[cfg(not(no_global_oom_handling))]
+    #[track_caller]
+    pub fn into_boxed_slice<T>(mut self) -> Box<[T], OpaqueAlloc> {
+        todo!()
+    }
+
+    #[cfg(not(no_global_oom_handling))]
+    #[inline]
+    pub fn split_off_unchecked<T>(&mut self, at: usize) -> Self
+    where
+        T: 'static,
+    {
+        #[cold]
+        #[track_caller]
+        #[optimize(size)]
+        fn index_out_of_bounds(at: usize, len: usize) -> ! {
+            panic!("`at` split index (is {at}) should be <= len (is {len})");
+        }
+
+        if at > self.len() {
+            index_out_of_bounds(at, self.len());
+        }
+
+        let other_len = self.len() - at;
+        let mut other = OpaqueVec::with_capacity_in::<T, OpaqueAlloc>(other_len, self.allocator().clone());
+
+        // Unsafely `set_len` and copy items to `other`.
+        unsafe {
+            self.set_len(at);
+            other.set_len(other_len);
+
+            core::ptr::copy_nonoverlapping(self.as_ptr::<T>().add(at), other.as_mut_ptr(), other.len());
+        }
+
+        other
+    }
+
+    #[cfg(not(no_global_oom_handling))]
+    #[inline]
+    #[must_use = "use `.truncate()` if you don't need the other half"]
+    #[track_caller]
+    pub fn split_off<T>(&mut self, at: usize) -> Self
+    where
+        T: 'static,
+    {
+        self.assert_element_type::<T>();
+
+        self.split_off_unchecked::<T>(at)
+    }
+
+    #[inline]
+    pub fn resize_with_unchecked<F, T>(&mut self, new_len: usize, f: F)
+    where
+        T: 'static,
+        F: FnMut() -> T,
+    {
+        /*
+        let len = self.len();
+        if new_len > len {
+            self.extend_trusted(core::iter::repeat_with(f).take(new_len - len));
+        } else {
+            self.truncate(new_len);
+        }
+         */
+        todo!()
+    }
+
+    #[cfg(not(no_global_oom_handling))]
+    #[track_caller]
+    pub fn resize_with<F, T>(&mut self, new_len: usize, f: F)
+    where
+        T: 'static,
+        F: FnMut() -> T,
+    {
+        self.assert_element_type::<T>();
+
+        self.resize_with_unchecked::<F, T>(new_len, f)
     }
 
     #[inline]
@@ -1883,6 +1990,15 @@ where
     T: Clone + 'static,
 {
     fn from(slice: Box<[T]>) -> Self {
+        Self::from(slice.as_ref())
+    }
+}
+
+impl<T> From<Box<[T], opaque_alloc::OpaqueAlloc>> for OpaqueVec
+where
+    T: Clone + 'static,
+{
+    fn from(slice: Box<[T], opaque_alloc::OpaqueAlloc>) -> Self {
         Self::from(slice.as_ref())
     }
 }

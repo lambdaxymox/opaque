@@ -1,4 +1,5 @@
 #![feature(allocator_api)]
+#![feature(slice_range)]
 #![feature(slice_iter_mut_as_mut_slice)]
 use std::any::TypeId;
 use std::iter::FusedIterator;
@@ -15,7 +16,7 @@ use opaque_vec::OpaqueVec;
 use opaque_error::{TryReserveError, TryReserveErrorKind};
 
 pub use equivalent::Equivalent;
-
+use opaque_alloc::OpaqueAlloc;
 
 pub struct Drain<'a, K, V>
 where
@@ -397,6 +398,63 @@ where
     }
 }
 
+fn try_simplify_range<R>(range: R, len: usize) -> Option<ops::Range<usize>>
+where
+    R: ops::RangeBounds<usize>,
+{
+    let start = match range.start_bound() {
+        ops::Bound::Unbounded => 0,
+        ops::Bound::Included(&i) if i <= len => i,
+        ops::Bound::Excluded(&i) if i < len => i + 1,
+        _ => return None,
+    };
+    let end = match range.end_bound() {
+        ops::Bound::Unbounded => len,
+        ops::Bound::Excluded(&i) if i <= len => i,
+        ops::Bound::Included(&i) if i < len => i + 1,
+        _ => return None,
+    };
+
+    if start > end {
+        return None;
+    }
+
+    Some(start..end)
+}
+
+#[track_caller]
+fn simplify_range<R>(range: R, len: usize) -> ops::Range<usize>
+where
+    R: ops::RangeBounds<usize>,
+{
+    let start = match range.start_bound() {
+        ops::Bound::Unbounded => 0,
+        ops::Bound::Included(&i) if i <= len => i,
+        ops::Bound::Excluded(&i) if i < len => i + 1,
+        ops::Bound::Included(i) | ops::Bound::Excluded(i) => {
+            panic!("range start index {i} out of range for slice of length {len}")
+        }
+    };
+    let end = match range.end_bound() {
+        ops::Bound::Unbounded => len,
+        ops::Bound::Excluded(&i) if i <= len => i,
+        ops::Bound::Included(&i) if i < len => i + 1,
+        ops::Bound::Included(i) | ops::Bound::Excluded(i) => {
+            panic!("range end index {i} out of range for slice of length {len}")
+        }
+    };
+
+    if start > end {
+        panic!(
+            "range start index {:?} should be <= range end index {:?}",
+            range.start_bound(),
+            range.end_bound()
+        );
+    }
+
+    start..end
+}
+
 #[repr(transparent)]
 pub struct Slice<K, V> {
     entries: [Bucket<K, V>],
@@ -413,6 +471,128 @@ impl<K, V> Slice<K, V> {
         unsafe { &mut *(entries as *mut [Bucket<K, V>] as *mut Self) }
     }
 
+    fn from_boxed(entries: Box<[Bucket<K, V>], opaque_alloc::OpaqueAlloc>) -> Box<Self, opaque_alloc::OpaqueAlloc> {
+        unsafe {
+            let (ptr, alloc) = Box::into_raw_with_allocator(entries);
+
+            Box::from_raw_in(ptr as *mut Self, alloc)
+        }
+    }
+
+    fn into_boxed(self: Box<Self, opaque_alloc::OpaqueAlloc>) -> Box<[Bucket<K, V>], opaque_alloc::OpaqueAlloc> {
+        let (ptr, alloc) = Box::into_raw_with_allocator(self);
+
+        unsafe { Box::from_raw_in(ptr as *mut [Bucket<K, V>], alloc) }
+    }
+
+    pub(crate) fn into_entries(self: Box<Self, opaque_alloc::OpaqueAlloc>) -> OpaqueVec {
+        // OpaqueVec::from(self.into_boxed())
+        todo!()
+    }
+
+    pub const fn new<'a>() -> &'a Self {
+        Self::from_slice(&[])
+    }
+
+    pub fn new_mut<'a>() -> &'a mut Self {
+        Self::from_slice_mut(&mut [])
+    }
+
+    #[inline]
+    pub const fn len(&self) -> usize {
+        self.entries.len()
+    }
+
+    #[inline]
+    pub const fn is_empty(&self) -> bool {
+        self.entries.is_empty()
+    }
+
+    pub fn get_index(&self, index: usize) -> Option<(&K, &V)> {
+        self.entries.get(index).map(Bucket::refs)
+    }
+
+    pub fn get_index_mut(&mut self, index: usize) -> Option<(&K, &mut V)> {
+        self.entries.get_mut(index).map(Bucket::ref_mut)
+    }
+
+    pub fn get_range<R>(&self, range: R) -> Option<&Self>
+    where
+        R: ops::RangeBounds<usize>,
+    {
+        let range = try_simplify_range(range, self.entries.len())?;
+
+        self.entries.get(range).map(Slice::from_slice)
+    }
+
+    pub fn get_range_mut<R>(&mut self, range: R) -> Option<&mut Self>
+    where
+        R: ops::RangeBounds<usize>,
+    {
+        let range = try_simplify_range(range, self.entries.len())?;
+
+        self.entries.get_mut(range).map(Slice::from_slice_mut)
+    }
+
+    pub fn first(&self) -> Option<(&K, &V)> {
+        self.entries.first().map(Bucket::refs)
+    }
+
+    pub fn first_mut(&mut self) -> Option<(&K, &mut V)> {
+        self.entries.first_mut().map(Bucket::ref_mut)
+    }
+
+    pub fn last(&self) -> Option<(&K, &V)> {
+        self.entries.last().map(Bucket::refs)
+    }
+
+    pub fn last_mut(&mut self) -> Option<(&K, &mut V)> {
+        self.entries.last_mut().map(Bucket::ref_mut)
+    }
+
+    pub fn split_at(&self, index: usize) -> (&Self, &Self) {
+        let (first, second) = self.entries.split_at(index);
+        (Self::from_slice(first), Self::from_slice(second))
+    }
+
+    pub fn split_at_mut(&mut self, index: usize) -> (&mut Self, &mut Self) {
+        let (first, second) = self.entries.split_at_mut(index);
+
+        (Self::from_slice_mut(first), Self::from_slice_mut(second))
+    }
+
+    pub fn split_first(&self) -> Option<((&K, &V), &Self)> {
+        if let [first, rest @ ..] = &self.entries {
+            Some((first.refs(), Self::from_slice(rest)))
+        } else {
+            None
+        }
+    }
+
+    pub fn split_first_mut(&mut self) -> Option<((&K, &mut V), &mut Self)> {
+        if let [first, rest @ ..] = &mut self.entries {
+            Some((first.ref_mut(), Self::from_slice_mut(rest)))
+        } else {
+            None
+        }
+    }
+
+    pub fn split_last(&self) -> Option<((&K, &V), &Self)> {
+        if let [rest @ .., last] = &self.entries {
+            Some((last.refs(), Self::from_slice(rest)))
+        } else {
+            None
+        }
+    }
+
+    pub fn split_last_mut(&mut self) -> Option<((&K, &mut V), &mut Self)> {
+        if let [rest @ .., last] = &mut self.entries {
+            Some((last.ref_mut(), Self::from_slice_mut(rest)))
+        } else {
+            None
+        }
+    }
+
     pub fn iter(&self) -> Iter<'_, K, V> {
         Iter::new(&self.entries)
     }
@@ -421,12 +601,32 @@ impl<K, V> Slice<K, V> {
         IterMut::new(&mut self.entries)
     }
 
+    pub fn keys(&self) -> Keys<'_, K, V> {
+        Keys::new(&self.entries)
+    }
+
+    pub fn into_keys(self: Box<Self, opaque_alloc::OpaqueAlloc>) -> IntoKeys<K, V>
+    where
+        K: 'static,
+        V: 'static,
+    {
+        IntoKeys::new(self.into_entries())
+    }
+
     pub fn values(&self) -> Values<'_, K, V> {
         Values::new(&self.entries)
     }
 
     pub fn values_mut(&mut self) -> ValuesMut<'_, K, V> {
         ValuesMut::new(&mut self.entries)
+    }
+
+    pub fn into_values(self: Box<Self, opaque_alloc::OpaqueAlloc>) -> IntoValues<K, V>
+    where
+        K: 'static,
+        V: 'static,
+    {
+        IntoValues::new(self.into_entries())
     }
 
     pub fn binary_search_keys(&self, x: &K) -> Result<usize, usize>
@@ -462,6 +662,249 @@ impl<K, V> Slice<K, V> {
             .partition_point(move |a| pred(&a.key, &a.value))
     }
 }
+
+
+impl<'a, K, V> IntoIterator for &'a Slice<K, V> {
+    type IntoIter = Iter<'a, K, V>;
+    type Item = (&'a K, &'a V);
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+
+impl<'a, K, V> IntoIterator for &'a mut Slice<K, V> {
+    type IntoIter = IterMut<'a, K, V>;
+    type Item = (&'a K, &'a mut V);
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter_mut()
+    }
+}
+
+impl<K, V> IntoIterator for Box<Slice<K, V>, opaque_alloc::OpaqueAlloc>
+where
+    K: 'static,
+    V: 'static,
+{
+    type IntoIter = IntoIter<K, V>;
+    type Item = (K, V);
+
+    fn into_iter(self) -> Self::IntoIter {
+        IntoIter::new(self.into_entries())
+    }
+}
+
+impl<K, V> Default for &'_ Slice<K, V> {
+    fn default() -> Self {
+        Slice::from_slice(&[])
+    }
+}
+
+/*
+impl<K, V> Default for &'_ mut Slice<K, V> {
+    fn default() -> Self {
+        Slice::from_slice_mut(&mut [])
+    }
+}
+
+impl<K, V> Default for Box<Slice<K, V>, opaque_alloc::OpaqueAlloc> {
+    fn default() -> Self {
+        Slice::from_boxed(Box::default())
+    }
+}
+*/
+
+impl<K, V> Clone for Box<Slice<K, V>, opaque_alloc::OpaqueAlloc>
+where
+    K: Clone,
+    V: Clone,
+{
+    fn clone(&self) -> Self {
+        let alloc = Box::<Slice<K, V>, OpaqueAlloc>::allocator(&self).clone();
+        Slice::from_boxed(self.entries.to_vec_in(alloc).into_boxed_slice())
+    }
+}
+/*
+impl<K, V> From<&Slice<K, V>> for Box<Slice<K, V>, opaque_alloc::OpaqueAlloc>
+where
+    K: Copy,
+    V: Copy,
+{
+    fn from(slice: &Slice<K, V>) -> Self {
+        Slice::from_boxed(Box::from(&slice.entries))
+    }
+}
+*/
+impl<K, V> fmt::Debug for Slice<K, V>
+where
+    K: fmt::Debug,
+    V: fmt::Debug,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_list().entries(self).finish()
+    }
+}
+
+// Generic slice equality -- copied from the standard library but adding a custom comparator,
+// allowing for our `Bucket` wrapper on either or both sides.
+pub(crate) fn slice_eq<T, U>(left: &[T], right: &[U], eq: impl Fn(&T, &U) -> bool) -> bool {
+    if left.len() != right.len() {
+        return false;
+    }
+
+    // Implemented as explicit indexing rather
+    // than zipped iterators for performance reasons.
+    // See PR https://github.com/rust-lang/rust/pull/116846
+    for i in 0..left.len() {
+        // bound checks are optimized away
+        if !eq(&left[i], &right[i]) {
+            return false;
+        }
+    }
+
+    true
+}
+
+
+impl<K, V, K2, V2> PartialEq<Slice<K2, V2>> for Slice<K, V>
+where
+    K: PartialEq<K2>,
+    V: PartialEq<V2>,
+{
+    fn eq(&self, other: &Slice<K2, V2>) -> bool {
+        slice_eq(&self.entries, &other.entries, |b1, b2| {
+            b1.key == b2.key && b1.value == b2.value
+        })
+    }
+}
+
+impl<K, V, K2, V2> PartialEq<[(K2, V2)]> for Slice<K, V>
+where
+    K: PartialEq<K2>,
+    V: PartialEq<V2>,
+{
+    fn eq(&self, other: &[(K2, V2)]) -> bool {
+        slice_eq(&self.entries, other, |b, t| b.key == t.0 && b.value == t.1)
+    }
+}
+
+impl<K, V, K2, V2> PartialEq<Slice<K2, V2>> for [(K, V)]
+where
+    K: PartialEq<K2>,
+    V: PartialEq<V2>,
+{
+    fn eq(&self, other: &Slice<K2, V2>) -> bool {
+        slice_eq(self, &other.entries, |t, b| t.0 == b.key && t.1 == b.value)
+    }
+}
+
+impl<K, V, K2, V2, const N: usize> PartialEq<[(K2, V2); N]> for Slice<K, V>
+where
+    K: PartialEq<K2>,
+    V: PartialEq<V2>,
+{
+    fn eq(&self, other: &[(K2, V2); N]) -> bool {
+        <Self as PartialEq<[_]>>::eq(self, other)
+    }
+}
+
+impl<K, V, const N: usize, K2, V2> PartialEq<Slice<K2, V2>> for [(K, V); N]
+where
+    K: PartialEq<K2>,
+    V: PartialEq<V2>,
+{
+    fn eq(&self, other: &Slice<K2, V2>) -> bool {
+        <[_] as PartialEq<_>>::eq(self, other)
+    }
+}
+
+impl<K: Eq, V: Eq> Eq for Slice<K, V> {}
+
+impl<K: PartialOrd, V: PartialOrd> PartialOrd for Slice<K, V> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        self.iter().partial_cmp(other)
+    }
+}
+
+impl<K, V> Ord for Slice<K, V>
+where
+    K: Ord,
+    V: Ord,
+{
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.iter().cmp(other)
+    }
+}
+
+impl<K: Hash, V: Hash> Hash for Slice<K, V> {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.len().hash(state);
+        for (key, value) in self {
+            key.hash(state);
+            value.hash(state);
+        }
+    }
+}
+/*
+impl<K, V> Index<usize> for Slice<K, V> {
+    type Output = V;
+
+    fn index(&self, index: usize) -> &V {
+        &self.entries[index].value
+    }
+}
+
+impl<K, V> IndexMut<usize> for Slice<K, V> {
+    fn index_mut(&mut self, index: usize) -> &mut V {
+        &mut self.entries[index].value
+    }
+}
+
+// We can't have `impl<I: RangeBounds<usize>> Index<I>` because that conflicts
+// both upstream with `Index<usize>` and downstream with `Index<&Q>`.
+// Instead, we repeat the implementations for all the core range types.
+macro_rules! impl_index {
+    ($($range:ty),*) => {$(
+        impl<K, V, S> Index<$range> for IndexMap<K, V, S> {
+            type Output = Slice<K, V>;
+
+            fn index(&self, range: $range) -> &Self::Output {
+                Slice::from_slice(&self.as_entries()[range])
+            }
+        }
+
+        impl<K, V, S> IndexMut<$range> for IndexMap<K, V, S> {
+            fn index_mut(&mut self, range: $range) -> &mut Self::Output {
+                Slice::from_mut_slice(&mut self.as_entries_mut()[range])
+            }
+        }
+
+        impl<K, V> Index<$range> for Slice<K, V> {
+            type Output = Slice<K, V>;
+
+            fn index(&self, range: $range) -> &Self {
+                Self::from_slice(&self.entries[range])
+            }
+        }
+
+        impl<K, V> IndexMut<$range> for Slice<K, V> {
+            fn index_mut(&mut self, range: $range) -> &mut Self {
+                Self::from_mut_slice(&mut self.entries[range])
+            }
+        }
+    )*}
+}
+impl_index!(
+    ops::Range<usize>,
+    ops::RangeFrom<usize>,
+    ops::RangeFull,
+    ops::RangeInclusive<usize>,
+    ops::RangeTo<usize>,
+    ops::RangeToInclusive<usize>,
+    (Bound<usize>, Bound<usize>)
+);
+*/
 
 pub struct Iter<'a, K, V> {
     iter: std::slice::Iter<'a, Bucket<K, V>>,
@@ -506,7 +949,6 @@ impl<K, V> ExactSizeIterator for Iter<'_, K, V> {
 
 impl<K, V> FusedIterator for Iter<'_, K, V> {}
 
-// FIXME(#26925) Remove in favor of `#[derive(Clone)]`
 impl<K, V> Clone for Iter<'_, K, V> {
     fn clone(&self) -> Self {
         Iter {
@@ -589,6 +1031,84 @@ impl<K, V> Default for IterMut<'_, K, V> {
     }
 }
 
+#[derive(Clone)]
+pub struct IntoIter<K, V>
+where
+    K: 'static,
+    V: 'static,
+{
+    iter: opaque_vec::IntoIter<Bucket<K, V>, opaque_alloc::OpaqueAlloc>,
+}
+
+impl<K, V> IntoIter<K, V>
+where
+    K: 'static,
+    V: 'static,
+{
+    fn new(entries: OpaqueVec) -> Self {
+        Self {
+            iter: entries.into_iter::<Bucket<K, V>>(),
+        }
+    }
+
+    pub fn as_slice(&self) -> &Slice<K, V> {
+        Slice::from_slice(self.iter.as_slice())
+    }
+
+    pub fn as_mut_slice(&mut self) -> &mut Slice<K, V> {
+        Slice::from_slice_mut(self.iter.as_mut_slice())
+    }
+}
+
+impl<K, V> Iterator for IntoIter<K, V> {
+    type Item = (K, V);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next().map(Bucket::key_value)
+    }
+}
+
+impl<K, V> DoubleEndedIterator for IntoIter<K, V> {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        self.iter.next_back().map(Bucket::key_value)
+    }
+
+    fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
+        self.iter.nth_back(n).map(Bucket::key_value)
+    }
+}
+
+impl<K, V> ExactSizeIterator for IntoIter<K, V> {
+    fn len(&self) -> usize {
+        self.iter.len()
+    }
+}
+
+impl<K, V> FusedIterator for IntoIter<K, V> {}
+
+impl<K, V> fmt::Debug for IntoIter<K, V>
+where
+    K: fmt::Debug + 'static,
+    V: fmt::Debug + 'static,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let iter = self.iter.as_slice().iter().map(Bucket::refs);
+        f.debug_list().entries(iter).finish()
+    }
+}
+
+impl<K, V> Default for IntoIter<K, V>
+where
+    K: 'static,
+    V: 'static,
+{
+    fn default() -> Self {
+        Self {
+            iter: OpaqueVec::new::<Bucket<K, V>>().into_iter::<Bucket<K, V>>(),
+        }
+    }
+}
+
 #[derive(Copy, Clone, Debug, PartialEq)]
 struct HashValue {
     value: usize,
@@ -608,11 +1128,31 @@ impl HashValue {
     }
 }
 
-#[derive(Debug)]
+#[derive(Copy, Debug)]
 struct Bucket<K, V> {
     hash: HashValue,
     key: K,
     value: V,
+}
+
+impl<K, V> Clone for Bucket<K, V>
+where
+    K: Clone,
+    V: Clone,
+{
+    fn clone(&self) -> Self {
+        Bucket {
+            hash: self.hash,
+            key: self.key.clone(),
+            value: self.value.clone(),
+        }
+    }
+
+    fn clone_from(&mut self, other: &Self) {
+        self.hash = other.hash;
+        self.key.clone_from(&other.key);
+        self.value.clone_from(&other.value);
+    }
 }
 
 impl<K, V> Bucket<K, V> {
@@ -1038,39 +1578,6 @@ impl OpaqueIndexMapInner {
         V: 'static,
         R: ops::RangeBounds<usize>,
     {
-        #[track_caller]
-        fn simplify_range<R>(range: R, len: usize) -> ops::Range<usize>
-        where
-            R: ops::RangeBounds<usize>,
-        {
-            let start = match range.start_bound() {
-                ops::Bound::Unbounded => 0,
-                ops::Bound::Included(&i) if i <= len => i,
-                ops::Bound::Excluded(&i) if i < len => i + 1,
-                ops::Bound::Included(i) | ops::Bound::Excluded(i) => {
-                    panic!("range start index {i} out of range for slice of length {len}")
-                }
-            };
-            let end = match range.end_bound() {
-                ops::Bound::Unbounded => len,
-                ops::Bound::Excluded(&i) if i <= len => i,
-                ops::Bound::Included(&i) if i < len => i + 1,
-                ops::Bound::Included(i) | ops::Bound::Excluded(i) => {
-                    panic!("range end index {i} out of range for slice of length {len}")
-                }
-            };
-
-            if start > end {
-                panic!(
-                    "range start index {:?} should be <= range end index {:?}",
-                    range.start_bound(),
-                    range.end_bound()
-                );
-            }
-
-            start..end
-        }
-
         let range = simplify_range(range, self.entries.len());
         self.erase_indices::<K, V>(range.start, range.end);
 
@@ -1090,45 +1597,64 @@ impl OpaqueIndexMapInner {
         self.erase_indices(range.start, range.end);
         self.entries.par_drain(range)
     }
+    */
 
     #[track_caller]
-    pub(crate) fn split_off(&mut self, at: usize) -> Self {
+    pub(crate) fn split_off<K, V>(&mut self, at: usize) -> Self
+    where
+        K: 'static,
+        V: 'static,
+    {
         let len = self.entries.len();
         assert!(
             at <= len,
             "index out of bounds: the len is {len} but the index is {at}. Expected index <= len"
         );
 
-        self.erase_indices(at, self.entries.len());
-        let entries = self.entries.split_off(at);
+        self.erase_indices::<K, V>(at, self.entries.len());
+        let entries = self.entries.split_off::<Bucket<K, V>>(at);
 
-        let mut indices = Indices::with_capacity(entries.len());
-        insert_bulk_no_grow(&mut indices, &entries);
-        Self { indices, entries }
+        // let mut indices = Indices::with_capacity(entries.len());
+        let mut indices = hashbrown::HashTable::with_capacity(entries.len());
+        insert_bulk_no_grow(&mut indices, entries.as_slice::<Bucket<K, V>>());
+
+        let bucket_size = OpaqueBucketSize::new::<K, V>();
+
+        Self { indices, entries, bucket_size, }
     }
 
     #[track_caller]
-    pub(crate) fn split_splice<R>(&mut self, range: R) -> (Self, vec::IntoIter<Bucket<K, V>>)
+    pub(crate) fn split_splice<R, K, V>(&mut self, range: R) -> (Self, opaque_vec::IntoIter<Bucket<K, V>, OpaqueAlloc>)
     where
-        R: RangeBounds<usize>,
+        K: 'static,
+        V: 'static,
+        R: ops::RangeBounds<usize>,
     {
         let range = simplify_range(range, self.len());
-        self.erase_indices(range.start, self.entries.len());
-        let entries = self.entries.split_off(range.end);
-        let drained = self.entries.split_off(range.start);
+        self.erase_indices::<K, V>(range.start, self.entries.len());
+        let entries = self.entries.split_off::<Bucket<K, V>>(range.end);
+        let drained = self.entries.split_off::<Bucket<K, V>>(range.start);
 
-        let mut indices = Indices::with_capacity(entries.len());
-        insert_bulk_no_grow(&mut indices, &entries);
-        (Self { indices, entries }, drained.into_iter())
+        // let mut indices = Indices::with_capacity(entries.len());
+        let mut indices = hashbrown::HashTable::with_capacity(entries.len());
+        insert_bulk_no_grow(&mut indices, entries.as_slice::<Bucket<K, V>>());
+
+        let bucket_size = OpaqueBucketSize::new::<K, V>();
+
+        (Self { indices, entries, bucket_size, }, drained.into_iter())
     }
 
-    pub(crate) fn append_unchecked(&mut self, other: &mut Self) {
-        self.reserve(other.len());
-        insert_bulk_no_grow(&mut self.indices, &other.entries);
-        self.entries.append(&mut other.entries);
+    pub(crate) fn append_unchecked<K, V>(&mut self, other: &mut Self)
+    where
+        K: 'static,
+        V: 'static,
+    {
+        self.reserve::<K, V>(other.len());
+        insert_bulk_no_grow(&mut self.indices, other.entries.as_slice::<Bucket<K, V>>());
+        self.entries.append::<Bucket<K, V>>(&mut other.entries);
         other.indices.clear();
     }
-     */
+
     pub(crate) fn reserve<K, V>(&mut self, additional: usize)
     where
         K: 'static,
@@ -1851,13 +2377,13 @@ where
     K: 'static,
     V: 'static,
 {
-    pub(crate) fn new(map: &'a mut OpaqueIndexMap, index: usize) -> Self
+    pub(crate) fn new(map: &'a mut OpaqueIndexMapInner, index: usize) -> Self
     where
         K: Ord + 'static,
         V: 'static,
     {
         Self {
-            map: map.inner.borrow_mut::<K, V>(),
+            map: map.borrow_mut::<K, V>(),
             index,
         }
     }
@@ -2482,76 +3008,93 @@ impl OpaqueIndexMap {
 }
 
 impl OpaqueIndexMap {
-    /*
     #[doc(alias = "pop_last")] // like `BTreeMap`
-    pub fn pop(&mut self) -> Option<(K, V)> {
-        self.core.pop()
+    pub fn pop<K, V>(&mut self) -> Option<(K, V)>
+    where
+        K: 'static,
+        V: 'static,
+    {
+        self.inner.pop::<K, V>()
     }
 
-    pub fn retain<F>(&mut self, mut keep: F)
+    pub fn retain<F, K, V>(&mut self, mut keep: F)
     where
+        K: 'static,
+        V: 'static,
         F: FnMut(&K, &mut V) -> bool,
     {
-        self.core.retain_in_order(move |k, v| keep(k, v));
+        self.inner.retain_in_order(move |k, v| keep(k, v));
     }
 
-    pub fn sort_keys(&mut self)
+    pub fn sort_keys<K, V>(&mut self)
     where
-        K: Ord,
+        K: Ord + 'static,
+        V: 'static,
     {
-        self.with_entries(move |entries| {
+        self.with_entries::<_, K, V>(move |entries| {
             entries.sort_by(move |a, b| K::cmp(&a.key, &b.key));
         });
     }
 
-    pub fn sort_by<F>(&mut self, mut cmp: F)
+    pub fn sort_by<F, K, V>(&mut self, mut cmp: F)
     where
+        K: 'static,
+        V: 'static,
         F: FnMut(&K, &V, &K, &V) -> Ordering,
     {
-        self.with_entries(move |entries| {
+        self.with_entries::<_, K, V>(move |entries| {
             entries.sort_by(move |a, b| cmp(&a.key, &a.value, &b.key, &b.value));
         });
     }
 
-    pub fn sorted_by<F>(self, mut cmp: F) -> IntoIter<K, V>
+    pub fn sorted_by<F, K, V>(self, mut cmp: F) -> IntoIter<K, V>
     where
+        K: 'static,
+        V: 'static,
         F: FnMut(&K, &V, &K, &V) -> Ordering,
     {
         let mut entries = self.into_entries();
-        entries.sort_by(move |a, b| cmp(&a.key, &a.value, &b.key, &b.value));
+        entries.as_mut_slice::<Bucket<K, V>>().sort_by(move |a, b| cmp(&a.key, &a.value, &b.key, &b.value));
         IntoIter::new(entries)
     }
 
-    pub fn sort_unstable_keys(&mut self)
+    pub fn sort_unstable_keys<K, V>(&mut self)
     where
-        K: Ord,
+        K: Ord + 'static,
+        V: 'static,
     {
-        self.with_entries(move |entries| {
+        self.with_entries::<_, K, V>(move |entries| {
             entries.sort_unstable_by(move |a, b| K::cmp(&a.key, &b.key));
         });
     }
 
-    pub fn sort_unstable_by<F>(&mut self, mut cmp: F)
+    pub fn sort_unstable_by<F, K, V>(&mut self, mut cmp: F)
     where
+        K: 'static,
+        V: 'static,
         F: FnMut(&K, &V, &K, &V) -> Ordering,
     {
-        self.with_entries(move |entries| {
+        self.with_entries::<_, K, V>(move |entries| {
             entries.sort_unstable_by(move |a, b| cmp(&a.key, &a.value, &b.key, &b.value));
         });
     }
 
     #[inline]
-    pub fn sorted_unstable_by<F>(self, mut cmp: F) -> IntoIter<K, V>
+    pub fn sorted_unstable_by<F, K, V>(self, mut cmp: F) -> IntoIter<K, V>
     where
+        K: 'static,
+        V: 'static,
         F: FnMut(&K, &V, &K, &V) -> Ordering,
     {
         let mut entries = self.into_entries();
-        entries.sort_unstable_by(move |a, b| cmp(&a.key, &a.value, &b.key, &b.value));
+        entries.as_mut_slice::<Bucket<K, V>>().sort_unstable_by(move |a, b| cmp(&a.key, &a.value, &b.key, &b.value));
         IntoIter::new(entries)
     }
 
-    pub fn sort_by_cached_key<T, F>(&mut self, mut sort_key: F)
+    pub fn sort_by_cached_key<T, F, K, V>(&mut self, mut sort_key: F)
     where
+        K: 'static,
+        V: 'static,
         T: Ord,
         F: FnMut(&K, &V) -> T,
     {
@@ -2559,7 +3102,6 @@ impl OpaqueIndexMap {
             entries.sort_by_cached_key(move |a| sort_key(&a.key, &a.value));
         });
     }
-     */
 
     pub fn binary_search_keys<K, V>(&self, key: &K) -> Result<usize, usize>
     where
@@ -2607,24 +3149,10 @@ impl OpaqueIndexMap {
         self.inner.reverse::<V>();
     }
 
-    /*
-    pub fn as_slice<K, V>(&self) -> Slice<K, V>
-    where
-        K: 'static,
-        V: 'static,
-    {
-        Slice::from_slice(self.as_entries())
-    }
-    */
-    /*
-    pub fn as_mut_slice(&mut self) -> &mut Slice<K, V> {
-        Slice::from_mut_slice(self.as_entries_mut())
-    }
-
-    pub fn into_boxed_slice(self) -> Box<Slice<K, V>> {
+    pub fn into_boxed_slice<K, V>(self) -> Box<Slice<K, V>, opaque_alloc::OpaqueAlloc> {
         Slice::from_boxed(self.into_entries().into_boxed_slice())
     }
-    */
+
 
     pub fn get_index<K, V>(&self, index: usize) -> Option<(&K, &V)>
     where
@@ -2642,65 +3170,114 @@ impl OpaqueIndexMap {
         self.as_entries_mut::<K, V>().get_mut(index).map(Bucket::ref_mut)
     }
 
-    /*
-    pub fn get_index_entry(&mut self, index: usize) -> Option<IndexedEntry<'_, K, V>> {
+    pub fn get_index_entry<K, V>(&mut self, index: usize) -> Option<IndexedEntry<'_, K, V>>
+    where
+        K: Ord + 'static,
+        V: 'static,
+    {
         if index >= self.len() {
             return None;
         }
-        Some(IndexedEntry::new(&mut self.core, index))
+        Some(IndexedEntry::new(&mut self.inner, index))
     }
 
-    pub fn get_range<R: RangeBounds<usize>>(&self, range: R) -> Option<&Slice<K, V>> {
+    pub fn get_range<R, K, V>(&self, range: R) -> Option<&Slice<K, V>>
+    where
+        K: 'static,
+        V: 'static,
+        R: ops::RangeBounds<usize>,
+    {
         let entries = self.as_entries();
         let range = try_simplify_range(range, entries.len())?;
         entries.get(range).map(Slice::from_slice)
     }
 
-    pub fn get_range_mut<R: RangeBounds<usize>>(&mut self, range: R) -> Option<&mut Slice<K, V>> {
+    pub fn get_range_mut<R, K, V>(&mut self, range: R) -> Option<&mut Slice<K, V>>
+    where
+        K: 'static,
+        V: 'static,
+        R: ops::RangeBounds<usize>,
+    {
         let entries = self.as_entries_mut();
         let range = try_simplify_range(range, entries.len())?;
-        entries.get_mut(range).map(Slice::from_mut_slice)
+        entries.get_mut(range).map(Slice::from_slice_mut)
     }
 
-    #[doc(alias = "first_key_value")] // like `BTreeMap`
-    pub fn first(&self) -> Option<(&K, &V)> {
-        self.as_entries().first().map(Bucket::refs)
+    // #[doc(alias = "first_key_value")] // like `BTreeMap`
+    pub fn first<K, V>(&self) -> Option<(&K, &V)>
+    where
+        K: 'static,
+        V: 'static,
+    {
+        self.as_entries::<K, V>().first().map(Bucket::refs)
     }
 
-    pub fn first_mut(&mut self) -> Option<(&K, &mut V)> {
-        self.as_entries_mut().first_mut().map(Bucket::ref_mut)
+    pub fn first_mut<K, V>(&mut self) -> Option<(&K, &mut V)>
+    where
+        K: 'static,
+        V: 'static,
+    {
+        self.as_entries_mut::<K, V>().first_mut().map(Bucket::ref_mut)
     }
 
-    pub fn first_entry(&mut self) -> Option<IndexedEntry<'_, K, V>> {
-        self.get_index_entry(0)
+    pub fn first_entry<K, V>(&mut self) -> Option<IndexedEntry<'_, K, V>>
+    where
+        K: Ord + 'static,
+        V: 'static,
+    {
+        self.get_index_entry::<K, V>(0)
     }
 
-    #[doc(alias = "last_key_value")] // like `BTreeMap`
-    pub fn last(&self) -> Option<(&K, &V)> {
-        self.as_entries().last().map(Bucket::refs)
+    // #[doc(alias = "last_key_value")] // like `BTreeMap`
+    pub fn last<K, V>(&self) -> Option<(&K, &V)>
+    where
+        K: 'static,
+        V: 'static,
+    {
+        self.as_entries::<K, V>().last().map(Bucket::refs)
     }
 
-    pub fn last_mut(&mut self) -> Option<(&K, &mut V)> {
-        self.as_entries_mut().last_mut().map(Bucket::ref_mut)
+    pub fn last_mut<K, V>(&mut self) -> Option<(&K, &mut V)>
+    where
+        K: 'static,
+        V: 'static,
+    {
+        self.as_entries_mut::<K, V>().last_mut().map(Bucket::ref_mut)
     }
 
-    pub fn last_entry(&mut self) -> Option<IndexedEntry<'_, K, V>> {
-        self.get_index_entry(self.len().checked_sub(1)?)
+    pub fn last_entry<K, V>(&mut self) -> Option<IndexedEntry<'_, K, V>>
+    where
+        K: Ord + 'static,
+        V: 'static,
+    {
+        self.get_index_entry::<K, V>(self.len().checked_sub(1)?)
     }
 
-    pub fn swap_remove_index(&mut self, index: usize) -> Option<(K, V)> {
-        self.core.swap_remove_index(index)
+    pub fn swap_remove_index<K, V>(&mut self, index: usize) -> Option<(K, V)>
+    where
+        K: 'static,
+        V: 'static,
+    {
+        self.inner.swap_remove_index::<K, V>(index)
     }
 
-    pub fn shift_remove_index(&mut self, index: usize) -> Option<(K, V)> {
-        self.core.shift_remove_index(index)
+    pub fn shift_remove_index<K, V>(&mut self, index: usize) -> Option<(K, V)>
+    where
+        K: 'static,
+        V: 'static,
+    {
+        self.inner.shift_remove_index::<K, V>(index)
     }
 
     #[track_caller]
-    pub fn move_index(&mut self, from: usize, to: usize) {
-        self.core.move_index(from, to)
+    pub fn move_index<K, V>(&mut self, from: usize, to: usize)
+    where
+        K: 'static,
+        V: 'static,
+    {
+        self.inner.move_index::<K, V>(from, to)
     }
-     */
+
     #[track_caller]
     pub fn swap_indices<K, V>(&mut self, a: usize, b: usize)
     where
