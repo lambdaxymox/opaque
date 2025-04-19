@@ -22,12 +22,10 @@ use std::ptr::NonNull;
 
 use opaque_blob_vec::OpaqueBlobVec;
 
-use std::alloc;
 use std::any::TypeId;
 use std::marker::PhantomData;
 
 use core::iter::FusedIterator;
-
 use opaque_alloc::OpaqueAlloc;
 use opaque_error;
 
@@ -352,6 +350,237 @@ where
     A: Allocator,
 {
 }
+
+#[derive(Debug)]
+pub struct Splice<'a, I, A>
+where
+    I: Iterator + 'a,
+    A: Allocator + 'a,
+    <I as Iterator>::Item: 'static,
+{
+    drain: Drain<'a, I::Item, A>,
+    replace_with: I,
+}
+
+impl<I, A> Iterator for Splice<'_, I, A>
+where
+    I: Iterator,
+    A: Allocator,
+{
+    type Item = I::Item;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.drain.next()
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.drain.size_hint()
+    }
+}
+
+impl<I: Iterator, A: Allocator> DoubleEndedIterator for Splice<'_, I, A> {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        self.drain.next_back()
+    }
+}
+
+impl<I: Iterator, A: Allocator> ExactSizeIterator for Splice<'_, I, A> {}
+
+impl<I: Iterator, A: Allocator> Drop for Splice<'_, I, A> {
+    #[track_caller]
+    fn drop(&mut self) {
+        self.drain.by_ref().for_each(drop);
+        // At this point draining is done and the only remaining tasks are splicing
+        // and moving things into the final place.
+        // Which means we can replace the slice::Iter with pointers that won't point to deallocated
+        // memory, so that Drain::drop is still allowed to call iter.len(), otherwise it would break
+        // the ptr.sub_ptr contract.
+        self.drain.iter = (&[]).iter();
+
+        unsafe {
+            if self.drain.tail_len == 0 {
+                self.drain.vec.as_mut().extend(self.replace_with.by_ref());
+                return;
+            }
+
+            // First fill the range left by drain().
+            if !self.drain.fill(&mut self.replace_with) {
+                return;
+            }
+
+            // There may be more elements. Use the lower bound as an estimate.
+            // FIXME: Is the upper bound a better guess? Or something else?
+            let (lower_bound, _upper_bound) = self.replace_with.size_hint();
+            if lower_bound > 0 {
+                self.drain.move_tail(lower_bound);
+                if !self.drain.fill(&mut self.replace_with) {
+                    return;
+                }
+            }
+
+            // Collect any remaining elements.
+            // This is a zero-length vector which does not allocate if `lower_bound` was exact.
+            let mut collected = self.replace_with.by_ref().collect::<Vec<I::Item>>().into_iter();
+            // Now we have an exact count.
+            if collected.len() > 0 {
+                self.drain.move_tail(collected.len());
+                let filled = self.drain.fill(&mut collected);
+                debug_assert!(filled);
+                debug_assert_eq!(collected.len(), 0);
+            }
+        }
+        // Let `Drain::drop` move the tail back if necessary and restore `vec.len`.
+    }
+}
+
+/// Private helper methods for `Splice::drop`
+impl<T, A: Allocator> Drain<'_, T, A> {
+    /// The range from `self.vec.len` to `self.tail_start` contains elements
+    /// that have been moved out.
+    /// Fill that range as much as possible with new elements from the `replace_with` iterator.
+    /// Returns `true` if we filled the entire range. (`replace_with.next()` didn’t return `None`.)
+    unsafe fn fill<I: Iterator<Item = T>>(&mut self, replace_with: &mut I) -> bool {
+        let vec = unsafe { self.vec.as_mut() };
+        let range_start = vec.len();
+        let range_end = self.tail_start;
+        let range_slice = unsafe {
+            slice::from_raw_parts_mut(vec.as_mut_ptr::<T>().add(range_start), range_end - range_start)
+        };
+
+        for place in range_slice {
+            if let Some(new_item) = replace_with.next() {
+                unsafe {
+                    core::ptr::write(place, new_item);
+                    vec.set_len(vec.len() + 1);
+                }
+            } else {
+                return false;
+            }
+        }
+        true
+    }
+
+    /// Makes room for inserting more elements before the tail.
+    #[track_caller]
+    unsafe fn move_tail(&mut self, additional: usize) {
+        let vec = unsafe { self.vec.as_mut() };
+        let len = self.tail_start + self.tail_len;
+        vec.reserve(additional);
+
+        let new_tail_start = self.tail_start + additional;
+        unsafe {
+            let src = vec.as_ptr::<T>().add(self.tail_start);
+            let dst = vec.as_mut_ptr::<T>().add(new_tail_start);
+            core::ptr::copy(src, dst, self.tail_len);
+        }
+        self.tail_start = new_tail_start;
+    }
+}
+
+#[derive(Debug)]
+#[must_use = "iterators are lazy and do nothing unless consumed"]
+pub struct ExtractIf<'a, T, F, A>
+where
+    T: 'static,
+    A: Allocator,
+{
+    vec: &'a mut OpaqueVec,
+    /// The index of the item that will be inspected by the next call to `next`.
+    idx: usize,
+    /// Elements at and beyond this point will be retained. Must be equal or smaller than `old_len`.
+    end: usize,
+    /// The number of items that have been drained (removed) thus far.
+    del: usize,
+    /// The original length of `vec` prior to draining.
+    old_len: usize,
+    /// The filter test predicate.
+    pred: F,
+    _marker: core::marker::PhantomData<(T, A)>,
+}
+
+impl<'a, T, F, A: Allocator> ExtractIf<'a, T, F, A> {
+    fn new<R: ops::RangeBounds<usize>>(vec: &'a mut OpaqueVec, pred: F, range: R) -> Self {
+        let old_len = vec.len();
+        let ops::Range { start, end } = slice::range(range, ..old_len);
+
+        // Guard against the vec getting leaked (leak amplification)
+        unsafe {
+            vec.set_len(0);
+        }
+
+        ExtractIf {
+            vec,
+            idx:
+            start,
+            del: 0,
+            end,
+            old_len, pred,
+            _marker: core::marker::PhantomData,
+        }
+    }
+
+    #[inline]
+    pub fn allocator(&self) -> &OpaqueAlloc {
+        self.vec.allocator()
+    }
+}
+
+impl<T, F, A> Iterator for ExtractIf<'_, T, F, A>
+where
+    T: 'static,
+    F: FnMut(&mut T) -> bool,
+    A: Allocator,
+{
+    type Item = T;
+
+    fn next(&mut self) -> Option<T> {
+        unsafe {
+            while self.idx < self.end {
+                let i = self.idx;
+                let v = slice::from_raw_parts_mut(self.vec.as_mut_ptr(), self.old_len);
+                let drained = (self.pred)(&mut v[i]);
+                // Update the index *after* the predicate is called. If the index
+                // is updated prior and the predicate panics, the element at this
+                // index would be leaked.
+                self.idx += 1;
+                if drained {
+                    self.del += 1;
+                    return Some(core::ptr::read(&v[i]));
+                } else if self.del > 0 {
+                    let del = self.del;
+                    let src: *const T = &v[i];
+                    let dst: *mut T = &mut v[i - del];
+                    core::ptr::copy_nonoverlapping(src, dst, 1);
+                }
+            }
+            None
+        }
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (0, Some(self.end - self.idx))
+    }
+}
+
+impl<T, F, A> Drop for ExtractIf<'_, T, F, A>
+where
+    T: 'static,
+    A: Allocator,
+{
+    fn drop(&mut self) {
+        unsafe {
+            if self.idx < self.old_len && self.del > 0 {
+                let ptr = self.vec.as_mut_ptr::<T>();
+                let src = ptr.add(self.idx);
+                let dst = src.sub(self.del);
+                let tail_len = self.old_len - self.idx;
+                src.copy_to(dst, tail_len);
+            }
+            self.vec.set_len(self.old_len - self.del);
+        }
+    }
+}
+
 
 pub struct OpaqueVec {
     data: OpaqueBlobVec,
@@ -1672,6 +1901,26 @@ impl OpaqueVec {
 
 impl OpaqueVec {
     #[cfg(not(no_global_oom_handling))]
+    #[inline]
+    pub fn splice<R, I, T>(&mut self, range: R, replace_with: I) -> Splice<'_, I::IntoIter, OpaqueAlloc>
+    where
+        T: 'static,
+        R: ops::RangeBounds<usize>,
+        I: IntoIterator<Item = T>,
+    {
+        Splice { drain: self.drain(range), replace_with: replace_with.into_iter() }
+    }
+
+    pub fn extract_if<F, R, T>(&mut self, range: R, filter: F) -> ExtractIf<'_, T, F, OpaqueAlloc>
+    where
+        T: 'static,
+        F: FnMut(&mut T) -> bool,
+        R: ops::RangeBounds<usize>,
+    {
+        ExtractIf::new(self, filter, range)
+    }
+
+    #[cfg(not(no_global_oom_handling))]
     #[track_caller]
     fn extend_with<T>(&mut self, count: usize, value: T)
     where
@@ -1763,6 +2012,16 @@ impl OpaqueVec {
         self.assert_element_type::<T>();
 
         self.dedup_by_unchecked::<F, T>(same_bucket)
+    }
+}
+
+impl OpaqueVec {
+    pub fn extend<T, I>(&mut self, iter: I)
+    where
+        T: 'static,
+        I: IntoIterator<Item = T>,
+    {
+        todo!()
     }
 }
 

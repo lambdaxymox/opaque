@@ -17,6 +17,7 @@ use opaque_error::{TryReserveError, TryReserveErrorKind};
 
 pub use equivalent::Equivalent;
 use opaque_alloc::OpaqueAlloc;
+use opaque_hash::OpaqueBuildHasher;
 
 pub struct Drain<'a, K, V>
 where
@@ -1109,6 +1110,137 @@ where
     }
 }
 
+pub struct Splice<'a, I, K, V, S>
+where
+    I: Iterator<Item = (K, V)>,
+    K: Hash + Eq + 'static,
+    V: 'static,
+    S: BuildHasher,
+{
+    map: &'a mut OpaqueIndexMap,
+    tail: OpaqueIndexMapInner,
+    drain: opaque_vec::IntoIter<Bucket<K, V>, opaque_alloc::OpaqueAlloc>,
+    replace_with: I,
+    _marker: PhantomData<S>,
+}
+
+impl<'a, I, K, V, S> Splice<'a, I, K, V, S>
+where
+    I: Iterator<Item = (K, V)>,
+    K: Hash + Eq + 'static,
+    V: 'static,
+    S: BuildHasher,
+{
+    #[track_caller]
+    fn new<R>(map: &'a mut OpaqueIndexMap, range: R, replace_with: I) -> Self
+    where
+        R: ops::RangeBounds<usize>,
+    {
+        let (tail, drain) = map.inner.split_splice::<R, K, V>(range);
+        Self {
+            map,
+            tail,
+            drain,
+            replace_with,
+            _marker: PhantomData,
+        }
+    }
+}
+
+impl<I, K, V, S> Drop for Splice<'_, I, K, V, S>
+where
+    I: Iterator<Item = (K, V)>,
+    K: Hash + Eq + 'static,
+    V: 'static,
+    S: BuildHasher,
+{
+    fn drop(&mut self) {
+        // Finish draining unconsumed items. We don't strictly *have* to do this
+        // manually, since we already split it into separate memory, but it will
+        // match the drop order of `vec::Splice` items this way.
+        let _ = self.drain.nth(usize::MAX);
+
+        // Now insert all the new items. If a key matches an existing entry, it
+        // keeps the original position and only replaces the value, like `insert`.
+        while let Some((key, value)) = self.replace_with.next() {
+            // Since the tail is disjoint, we can try to update it first,
+            // or else insert (update or append) the primary map.
+            let hash = self.map.hash(&key);
+            if let Some(i) = self.tail.get_index_of::<K, K, V>(hash, &key) {
+                self.tail.as_entries_mut::<K, V>()[i].value = value;
+            } else {
+                self.map.inner.insert_full::<K, V>(hash, key, value);
+            }
+        }
+
+        // Finally, re-append the tail
+        self.map.inner.append_unchecked::<K, V>(&mut self.tail);
+    }
+}
+
+impl<I, K, V, S> Iterator for Splice<'_, I, K, V, S>
+where
+    I: Iterator<Item = (K, V)>,
+    K: Hash + Eq,
+    S: BuildHasher,
+{
+    type Item = (K, V);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.drain.next().map(Bucket::key_value)
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.drain.size_hint()
+    }
+}
+
+impl<I, K, V, S> DoubleEndedIterator for Splice<'_, I, K, V, S>
+where
+    I: Iterator<Item = (K, V)>,
+    K: Hash + Eq,
+    S: BuildHasher,
+{
+    fn next_back(&mut self) -> Option<Self::Item> {
+        self.drain.next_back().map(Bucket::key_value)
+    }
+}
+
+impl<I, K, V, S> ExactSizeIterator for Splice<'_, I, K, V, S>
+where
+    I: Iterator<Item = (K, V)>,
+    K: Hash + Eq,
+    S: BuildHasher,
+{
+    fn len(&self) -> usize {
+        self.drain.len()
+    }
+}
+
+impl<I, K, V, S> FusedIterator for Splice<'_, I, K, V, S>
+where
+    I: Iterator<Item = (K, V)>,
+    K: Hash + Eq,
+    S: BuildHasher,
+{
+}
+
+impl<I, K, V, S> fmt::Debug for Splice<'_, I, K, V, S>
+where
+    I: fmt::Debug + Iterator<Item = (K, V)>,
+    K: fmt::Debug + Hash + Eq,
+    V: fmt::Debug,
+    S: BuildHasher,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        // Follow `vec::Splice` in only printing the drain and replacement
+        f.debug_struct("Splice")
+            .field("drain", &self.drain)
+            .field("replace_with", &self.replace_with)
+            .finish()
+    }
+}
+
 #[derive(Copy, Clone, Debug, PartialEq)]
 struct HashValue {
     value: usize,
@@ -1753,6 +1885,14 @@ impl OpaqueIndexMapInner {
             .try_reserve_exact(additional)
     }
 
+    pub(crate) fn shrink_to_fit<K, V>(&mut self)
+    where
+        K: 'static,
+        V: 'static
+    {
+        self.shrink_to::<K, V>(0)
+    }
+
     pub(crate) fn shrink_to<K, V>(&mut self, min_capacity: usize)
     where
         K: 'static,
@@ -1970,11 +2110,12 @@ impl OpaqueIndexMapInner {
         insert_bulk_no_grow(&mut self.indices, self.entries.as_slice::<Bucket<K, V>>());
     }
 
-    pub(crate) fn reverse<V>(&mut self)
+    pub(crate) fn reverse<K, V>(&mut self)
     where
+        K: 'static,
         V: 'static,
     {
-        self.entries.reverse::<V>();
+        self.entries.reverse::<Bucket<K, V>>();
 
         // No need to save hash indices, can easily calculate what they should
         // be, given that this is an in-place reversal.
@@ -2991,22 +3132,66 @@ impl OpaqueIndexMap {
         self.inner.entry(hash, key)
     }
 
-    /*
     #[track_caller]
-    pub fn splice<R, I>(&mut self, range: R, replace_with: I) -> Splice<'_, I::IntoIter, K, V, S>
+    pub fn splice<R, I, K, V>(&mut self, range: R, replace_with: I) -> Splice<'_, I::IntoIter, K, V, OpaqueBuildHasher>
     where
-        R: RangeBounds<usize>,
+        K: Eq + Hash + 'static,
+        V: 'static,
+        R: ops::RangeBounds<usize>,
         I: IntoIterator<Item = (K, V)>,
     {
         Splice::new(self, range, replace_with.into_iter())
     }
 
-    pub fn append<S2>(&mut self, other: &mut IndexMap<K, V, S2>) {
-        self.extend(other.drain(..));
+    pub fn append<K, V>(&mut self, other: &mut OpaqueIndexMap)
+    where
+        K: Eq + Hash + 'static,
+        V: 'static,
+    {
+        self.extend(other.drain::<_, K, V>(..));
     }
-     */
 }
 
+impl<K, V> Extend<(K, V)> for OpaqueIndexMap
+where
+    K: Hash + Eq + 'static,
+    V: 'static,
+{
+    fn extend<I>(&mut self, iterable: I)
+    where
+        I: IntoIterator<Item = (K, V)>,
+    {
+        // (Note: this is a copy of `std`/`hashbrown`'s reservation logic.)
+        // Keys may be already present or show multiple times in the iterator.
+        // Reserve the entire hint lower bound if the map is empty.
+        // Otherwise reserve half the hint (rounded up), so the map
+        // will only resize twice in the worst case.
+        let iter = iterable.into_iter();
+        let reserve_count = if self.is_empty() {
+            iter.size_hint().0
+        } else {
+            (iter.size_hint().0 + 1) / 2
+        };
+        self.reserve::<K, V>(reserve_count);
+        iter.for_each(move |(k, v)| {
+            self.insert(k, v);
+        });
+    }
+}
+/*
+impl<'a, K, V> Extend<(&'a K, &'a V)> for OpaqueIndexMap
+where
+    K: Hash + Eq + Copy + 'static,
+    V: Copy + 'static,
+{
+    fn extend<I>(&mut self, iterable: I)
+    where
+        I: IntoIterator<Item = (&'a K, &'a V)>
+    {
+        self.extend(iterable.into_iter().map(|(&key, &value)| (key, value)));
+    }
+}
+*/
 impl OpaqueIndexMap {
     #[doc(alias = "pop_last")] // like `BTreeMap`
     pub fn pop<K, V>(&mut self) -> Option<(K, V)>
@@ -3142,11 +3327,60 @@ impl OpaqueIndexMap {
         self.as_slice().partition_point(pred)
     }
 
-    pub fn reverse<V>(&mut self)
+    pub fn reverse<K, V>(&mut self)
     where
+        K: 'static,
         V: 'static,
     {
-        self.inner.reverse::<V>();
+        self.inner.reverse::<K, V>();
+    }
+
+    pub fn reserve<K, V>(&mut self, additional: usize)
+    where
+        K: 'static,
+        V: 'static,
+    {
+        self.inner.reserve::<K, V>(additional);
+    }
+
+    pub fn reserve_exact<K, V>(&mut self, additional: usize)
+    where
+        K: 'static,
+        V: 'static,
+    {
+        self.inner.reserve_exact::<K, V>(additional);
+    }
+
+    pub fn try_reserve<K, V>(&mut self, additional: usize) -> Result<(), TryReserveError>
+    where
+        K: 'static,
+        V: 'static,
+    {
+        self.inner.try_reserve::<K, V>(additional)
+    }
+
+    pub fn try_reserve_exact<K, V>(&mut self, additional: usize) -> Result<(), TryReserveError>
+    where
+        K: 'static,
+        V: 'static,
+    {
+        self.inner.try_reserve_exact::<K, V>(additional)
+    }
+
+    pub fn shrink_to_fit<K, V>(&mut self)
+    where
+        K: 'static,
+        V: 'static,
+    {
+        self.inner.shrink_to_fit::<K, V>();
+    }
+
+    pub fn shrink_to<K, V>(&mut self, min_capacity: usize)
+    where
+        K: 'static,
+        V: 'static,
+    {
+        self.inner.shrink_to::<K, V>(min_capacity);
     }
 
     pub fn into_boxed_slice<K, V>(self) -> Box<Slice<K, V>, opaque_alloc::OpaqueAlloc> {
