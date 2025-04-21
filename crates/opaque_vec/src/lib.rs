@@ -2015,13 +2015,57 @@ impl OpaqueVec {
     }
 }
 
+struct Extender<'a, T> {
+    opaque_vec: &'a mut OpaqueVec,
+    _marker: core::marker::PhantomData<T>,
+}
+
+impl<'a, T> Extender<'a, T> {
+    #[inline]
+    const fn new(opaque_vec: &'a mut OpaqueVec) -> Self {
+        Self {
+            opaque_vec,
+            _marker: core::marker::PhantomData,
+        }
+    }
+}
+
+impl<'a, T> Extend<T> for Extender<'a, T>
+where
+    T: 'static,
+{
+    fn extend<I>(&mut self, iter: I)
+    where
+        I: IntoIterator<Item = T>,
+    {
+        for item in iter.into_iter() {
+            self.opaque_vec.push_unchecked::<T>(item);
+        }
+    }
+}
+
+impl<'a, 'b, T> Extend<&'b T> for Extender<'a, T>
+where
+    T: Copy + 'static,
+{
+    fn extend<I>(&mut self, iter: I)
+    where
+        I: IntoIterator<Item = &'b T>,
+    {
+        for item in iter.into_iter() {
+            self.opaque_vec.push_unchecked::<T>(*item);
+        }
+    }
+}
+
 impl OpaqueVec {
     pub fn extend<T, I>(&mut self, iter: I)
     where
         T: 'static,
         I: IntoIterator<Item = T>,
     {
-        todo!()
+        let mut extender = Extender::new(self);
+        extender.extend(iter)
     }
 }
 

@@ -3150,9 +3150,33 @@ impl OpaqueIndexMap {
     {
         self.extend(other.drain::<_, K, V>(..));
     }
+
+    pub fn extend<I, K, V>(&mut self, iterable: I)
+    where
+        K: Eq + Hash + 'static,
+        V: 'static,
+        I: IntoIterator<Item = (K, V)>,
+    {
+        let mut extender = Extender::new(self);
+        extender.extend(iterable)
+    }
 }
 
-impl<K, V> Extend<(K, V)> for OpaqueIndexMap
+struct Extender<'a, K, V> {
+    opaque_index_map: &'a mut OpaqueIndexMap,
+    _marker: core::marker::PhantomData<(K, V)>,
+}
+
+impl<'a, K, V> Extender<'a, K, V> {
+    const fn new(opaque_index_map: &'a mut OpaqueIndexMap) -> Self {
+        Self {
+            opaque_index_map,
+            _marker: core::marker::PhantomData,
+        }
+    }
+}
+
+impl<'a, K, V> Extend<(K, V)> for Extender<'a, K, V>
 where
     K: Hash + Eq + 'static,
     V: 'static,
@@ -3167,19 +3191,19 @@ where
         // Otherwise reserve half the hint (rounded up), so the map
         // will only resize twice in the worst case.
         let iter = iterable.into_iter();
-        let reserve_count = if self.is_empty() {
+        let reserve_count = if self.opaque_index_map.is_empty() {
             iter.size_hint().0
         } else {
             (iter.size_hint().0 + 1) / 2
         };
-        self.reserve::<K, V>(reserve_count);
+        self.opaque_index_map.reserve::<K, V>(reserve_count);
         iter.for_each(move |(k, v)| {
-            self.insert(k, v);
+            self.opaque_index_map.insert(k, v);
         });
     }
 }
-/*
-impl<'a, K, V> Extend<(&'a K, &'a V)> for OpaqueIndexMap
+
+impl<'a, K, V> Extend<(&'a K, &'a V)> for Extender<'a, K, V>
 where
     K: Hash + Eq + Copy + 'static,
     V: Copy + 'static,
@@ -3191,7 +3215,7 @@ where
         self.extend(iterable.into_iter().map(|(&key, &value)| (key, value)));
     }
 }
-*/
+
 impl OpaqueIndexMap {
     #[doc(alias = "pop_last")] // like `BTreeMap`
     pub fn pop<K, V>(&mut self) -> Option<(K, V)>
