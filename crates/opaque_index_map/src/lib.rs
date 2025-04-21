@@ -664,7 +664,6 @@ impl<K, V> Slice<K, V> {
     }
 }
 
-
 impl<'a, K, V> IntoIterator for &'a Slice<K, V> {
     type IntoIter = Iter<'a, K, V>;
     type Item = (&'a K, &'a V);
@@ -702,20 +701,19 @@ impl<K, V> Default for &'_ Slice<K, V> {
     }
 }
 
-/*
+
 impl<K, V> Default for &'_ mut Slice<K, V> {
     fn default() -> Self {
         Slice::from_slice_mut(&mut [])
     }
 }
-
+/*
 impl<K, V> Default for Box<Slice<K, V>, opaque_alloc::OpaqueAlloc> {
     fn default() -> Self {
         Slice::from_boxed(Box::default())
     }
 }
 */
-
 impl<K, V> Clone for Box<Slice<K, V>, opaque_alloc::OpaqueAlloc>
 where
     K: Clone,
@@ -847,8 +845,8 @@ impl<K: Hash, V: Hash> Hash for Slice<K, V> {
         }
     }
 }
-/*
-impl<K, V> Index<usize> for Slice<K, V> {
+
+impl<K, V> ops::Index<usize> for Slice<K, V> {
     type Output = V;
 
     fn index(&self, index: usize) -> &V {
@@ -856,12 +854,12 @@ impl<K, V> Index<usize> for Slice<K, V> {
     }
 }
 
-impl<K, V> IndexMut<usize> for Slice<K, V> {
+impl<K, V> ops::IndexMut<usize> for Slice<K, V> {
     fn index_mut(&mut self, index: usize) -> &mut V {
         &mut self.entries[index].value
     }
 }
-
+/*
 // We can't have `impl<I: RangeBounds<usize>> Index<I>` because that conflicts
 // both upstream with `Index<usize>` and downstream with `Index<&Q>`.
 // Instead, we repeat the implementations for all the core range types.
