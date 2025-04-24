@@ -1518,15 +1518,12 @@ impl OpaqueVec {
         T: 'static,
         F: FnMut() -> T,
     {
-        /*
         let len = self.len();
         if new_len > len {
-            self.extend_trusted(core::iter::repeat_with(f).take(new_len - len));
+            self.extend::<T, _>(core::iter::repeat_with(f).take(new_len - len));
         } else {
             self.truncate(new_len);
         }
-         */
-        todo!()
     }
 
     #[cfg(not(no_global_oom_handling))]
