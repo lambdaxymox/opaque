@@ -481,14 +481,25 @@ impl<K, V> Slice<K, V> {
     }
 
     fn into_boxed(self: Box<Self, opaque_alloc::OpaqueAlloc>) -> Box<[Bucket<K, V>], opaque_alloc::OpaqueAlloc> {
-        let (ptr, alloc) = Box::into_raw_with_allocator(self);
+        unsafe {
+            let (ptr, alloc) = Box::into_raw_with_allocator(self);
 
-        unsafe { Box::from_raw_in(ptr as *mut [Bucket<K, V>], alloc) }
+            Box::from_raw_in(ptr as *mut [Bucket<K, V>], alloc)
+        }
     }
 
-    pub(crate) fn into_entries(self: Box<Self, opaque_alloc::OpaqueAlloc>) -> OpaqueVec {
-        // OpaqueVec::from(self.into_boxed())
-        todo!()
+    pub(crate) fn into_entries(self: Box<Self, opaque_alloc::OpaqueAlloc>) -> OpaqueVec
+    where
+        K: 'static,
+        V: 'static,
+    {
+        unsafe {
+            let len = self.entries.len();
+            let capacity = len;
+            let (ptr, alloc) = Box::into_raw_with_allocator(self.into_boxed());
+
+            OpaqueVec::from_raw_parts_in(ptr as *mut Bucket<K, V>, len, capacity, alloc)
+        }
     }
 
     pub const fn new<'a>() -> &'a Self {
@@ -3405,7 +3416,11 @@ impl OpaqueIndexMap {
         self.inner.shrink_to::<K, V>(min_capacity);
     }
 
-    pub fn into_boxed_slice<K, V>(self) -> Box<Slice<K, V>, opaque_alloc::OpaqueAlloc> {
+    pub fn into_boxed_slice<K, V>(self) -> Box<Slice<K, V>, opaque_alloc::OpaqueAlloc>
+    where
+        K: 'static,
+        V: 'static,
+    {
         Slice::from_boxed(self.into_entries().into_boxed_slice())
     }
 

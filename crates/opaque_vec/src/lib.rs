@@ -1451,8 +1451,21 @@ impl OpaqueVec {
 
     #[cfg(not(no_global_oom_handling))]
     #[track_caller]
-    pub fn into_boxed_slice<T>(mut self) -> Box<[T], OpaqueAlloc> {
-        todo!()
+    pub fn into_boxed_slice<T>(mut self) -> Box<[T], OpaqueAlloc>
+    where
+        T: 'static,
+    {
+        self.assert_element_type::<T>();
+        unsafe {
+            self.shrink_to_fit();
+            let mut me = ManuallyDrop::new(self);
+            let len = me.len();
+            let ptr = me.as_mut_ptr_unchecked::<T>();
+            let slice_ptr = std::ptr::slice_from_raw_parts_mut(ptr, len);
+            let alloc = core::ptr::read(me.allocator());
+
+            Box::from_raw_in(slice_ptr, alloc)
+        }
     }
 
     #[cfg(not(no_global_oom_handling))]
