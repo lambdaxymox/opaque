@@ -776,7 +776,6 @@ pub(crate) fn slice_eq<T, U>(left: &[T], right: &[U], eq: impl Fn(&T, &U) -> boo
     true
 }
 
-
 impl<K, V, K2, V2> PartialEq<Slice<K2, V2>> for Slice<K, V>
 where
     K: PartialEq<K2>,
