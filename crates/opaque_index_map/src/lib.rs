@@ -870,6 +870,105 @@ impl<K, V> ops::IndexMut<usize> for Slice<K, V> {
         &mut self.entries[index].value
     }
 }
+
+impl<K, V> ops::Index<ops::Range<usize>> for Slice<K, V> {
+    type Output = Slice<K, V>;
+
+    fn index(&self, range: ops::Range<usize>) -> &Self {
+        Self::from_slice(&self.entries[range])
+    }
+}
+
+impl<K, V> ops::IndexMut<ops::Range<usize>> for Slice<K, V> {
+    fn index_mut(&mut self, range: ops::Range<usize>) -> &mut Self {
+        Self::from_slice_mut(&mut self.entries[range])
+    }
+}
+
+impl<K, V> ops::Index<ops::RangeFrom<usize>> for Slice<K, V> {
+    type Output = Slice<K, V>;
+
+    fn index(&self, range: ops::RangeFrom<usize>) -> &Self {
+        Self::from_slice(&self.entries[range])
+    }
+}
+
+impl<K, V> ops::IndexMut<ops::RangeFrom<usize>> for Slice<K, V> {
+    fn index_mut(&mut self, range: ops::RangeFrom<usize>) -> &mut Self {
+        Self::from_slice_mut(&mut self.entries[range])
+    }
+}
+
+impl<K, V> ops::Index<ops::RangeFull> for Slice<K, V> {
+    type Output = Slice<K, V>;
+
+    fn index(&self, range: ops::RangeFull) -> &Self {
+        Self::from_slice(&self.entries[range])
+    }
+}
+
+impl<K, V> ops::IndexMut<ops::RangeFull> for Slice<K, V> {
+    fn index_mut(&mut self, range: ops::RangeFull) -> &mut Self {
+        Self::from_slice_mut(&mut self.entries[range])
+    }
+}
+
+impl<K, V> ops::Index<ops::RangeInclusive<usize>> for Slice<K, V> {
+    type Output = Slice<K, V>;
+
+    fn index(&self, range: ops::RangeInclusive<usize>) -> &Self {
+        Self::from_slice(&self.entries[range])
+    }
+}
+
+impl<K, V> ops::IndexMut<ops::RangeInclusive<usize>> for Slice<K, V> {
+    fn index_mut(&mut self, range: ops::RangeInclusive<usize>) -> &mut Self {
+        Self::from_slice_mut(&mut self.entries[range])
+    }
+}
+
+impl<K, V> ops::Index<ops::RangeTo<usize>> for Slice<K, V> {
+    type Output = Slice<K, V>;
+
+    fn index(&self, range: ops::RangeTo<usize>) -> &Self {
+        Self::from_slice(&self.entries[range])
+    }
+}
+
+impl<K, V> ops::IndexMut<ops::RangeTo<usize>> for Slice<K, V> {
+    fn index_mut(&mut self, range: ops::RangeTo<usize>) -> &mut Self {
+        Self::from_slice_mut(&mut self.entries[range])
+    }
+}
+
+impl<K, V> ops::Index<ops::RangeToInclusive<usize>> for Slice<K, V> {
+    type Output = Slice<K, V>;
+
+    fn index(&self, range: ops::RangeToInclusive<usize>) -> &Self {
+        Self::from_slice(&self.entries[range])
+    }
+}
+
+impl<K, V> ops::IndexMut<ops::RangeToInclusive<usize>> for Slice<K, V> {
+    fn index_mut(&mut self, range: ops::RangeToInclusive<usize>) -> &mut Self {
+        Self::from_slice_mut(&mut self.entries[range])
+    }
+}
+
+impl<K, V> ops::Index<(ops::Bound<usize>, ops::Bound<usize>)> for Slice<K, V> {
+    type Output = Slice<K, V>;
+
+    fn index(&self, range: (ops::Bound<usize>, ops::Bound<usize>)) -> &Self {
+        Self::from_slice(&self.entries[range])
+    }
+}
+
+impl<K, V> ops::IndexMut<(ops::Bound<usize>, ops::Bound<usize>)> for Slice<K, V> {
+    fn index_mut(&mut self, range: (ops::Bound<usize>, ops::Bound<usize>)) -> &mut Self {
+        Self::from_slice_mut(&mut self.entries[range])
+    }
+}
+
 /*
 // We can't have `impl<I: RangeBounds<usize>> Index<I>` because that conflicts
 // both upstream with `Index<usize>` and downstream with `Index<&Q>`.
@@ -887,20 +986,6 @@ macro_rules! impl_index {
         impl<K, V, S> IndexMut<$range> for IndexMap<K, V, S> {
             fn index_mut(&mut self, range: $range) -> &mut Self::Output {
                 Slice::from_mut_slice(&mut self.as_entries_mut()[range])
-            }
-        }
-
-        impl<K, V> Index<$range> for Slice<K, V> {
-            type Output = Slice<K, V>;
-
-            fn index(&self, range: $range) -> &Self {
-                Self::from_slice(&self.entries[range])
-            }
-        }
-
-        impl<K, V> IndexMut<$range> for Slice<K, V> {
-            fn index_mut(&mut self, range: $range) -> &mut Self {
-                Self::from_mut_slice(&mut self.entries[range])
             }
         }
     )*}
