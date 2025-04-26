@@ -1,10 +1,8 @@
 mod common;
 
-use core::hash;
-use core::fmt;
 use opaque_vec::OpaqueVec;
 use opaque_index_map::OpaqueIndexMap;
-
+use core::{fmt, hash};
 use crate::common::key_value_generators as kvg;
 use crate::common::key_value_generators::PrefixGenerator;
 
@@ -21,52 +19,40 @@ where
     map
 }
 
-fn expected<K, V>(entries: &[(K, V)]) -> OpaqueVec
+fn expected<K, V>(entries: &[(K, V)]) -> usize
 where
-    K: Clone + Eq + hash::Hash + 'static,
+    K: Clone + Eq + hash::Hash + fmt::Debug + Ord + 'static,
     V: Clone + Eq + 'static,
 {
-    let expected: OpaqueVec = entries
-        .iter()
-        .map(|tuple| tuple.1.clone())
-        .collect();
+    let unique_keys = {
+        let mut keys = Vec::from_iter(entries.iter().map(|(k, _)| k.clone()));
+        keys.sort();
+        keys.dedup();
+        keys
+    };
 
-    expected
+    unique_keys.len()
 }
 
-fn result<K, V>(map: &mut OpaqueIndexMap) -> OpaqueVec
+fn run_test_opaque_index_map_insert_len<K, V>(entries: &[(K, V)])
 where
-    K: Clone + Eq + hash::Hash + 'static,
-    V: Clone + Eq + 'static,
-{
-    let result: OpaqueVec = map
-        .as_mut_slice::<K, V>()
-        .values()
-        .cloned()
-        .collect();
-
-    result
-}
-
-fn run_test_opaque_index_map_insert_as_mut_slice<K, V>(entries: &mut [(K, V)])
-where
-    K: Clone + Eq + hash::Hash + fmt::Debug + 'static,
+    K: Clone + Eq + hash::Hash + fmt::Debug + Ord + 'static,
     V: Clone + Eq + fmt::Debug + 'static,
 {
-    let mut map = from_entries::<K, V>(entries);
-    let mut expected = expected::<K, V>(&entries);
-    let mut result = result::<K, V>(&mut map);
+    let map = from_entries(entries);
+    let expected = expected(entries);
+    let result = map.len();
 
-    assert_eq!(result.as_mut_slice::<V>(), expected.as_mut_slice::<V>());
+    assert_eq!(result, expected);
 }
 
-fn run_test_opaque_index_map_insert_as_mut_slice_values<K, V>(generator: PrefixGenerator<K, V>)
+fn run_test_opaque_index_map_insert_len_values<K, V>(generator: PrefixGenerator<K, V>)
 where
-    K: Clone + Eq + hash::Hash + fmt::Debug + 'static,
+    K: Clone + Eq + hash::Hash + fmt::Debug + Ord + 'static,
     V: Clone + Eq + fmt::Debug + 'static,
 {
-    for mut entries in generator {
-        run_test_opaque_index_map_insert_as_mut_slice(entries.as_mut_slice());
+    for entries in generator {
+        run_test_opaque_index_map_insert_len(entries.as_slice());
     }
 }
 
@@ -76,25 +62,25 @@ macro_rules! generate_tests {
             use super::*;
 
             #[test]
-            fn test_opaque_index_map_as_mut_slice_empty() {
+            fn test_opaque_index_map_insert_len_empty() {
                 let keys: [$key_typ; 0] = [];
                 let values: [$value_typ; 0] = [];
                 let keys_vec = OpaqueVec::from(&keys);
                 let values_vec = OpaqueVec::from(&values);
-                let mut generator = kvg::key_value_pairs(keys_vec.iter::<$key_typ>().cloned(), values_vec.iter::<$value_typ>().cloned());
-                run_test_opaque_index_map_insert_as_mut_slice_values(generator);
+                let generator = kvg::key_value_pairs(keys_vec.iter::<$key_typ>().cloned(), values_vec.iter::<$value_typ>().cloned());
+                run_test_opaque_index_map_insert_len_values(generator);
             }
 
             #[test]
-            fn test_opaque_index_map_as_mut_slice_range_values() {
-                let mut generator = $range_gen;
-                run_test_opaque_index_map_insert_as_mut_slice_values(generator);
+            fn test_opaque_index_map_insert_len_range_values() {
+                let generator = $range_gen;
+                run_test_opaque_index_map_insert_len_values(generator);
             }
 
             #[test]
-            fn test_opaque_index_map_as_mut_slice_constant_values() {
-                let mut generator = $const_gen;
-                run_test_opaque_index_map_insert_as_mut_slice_values(generator);
+            fn test_opaque_index_map_insert_len_constant_values() {
+                let generator = $const_gen;
+                run_test_opaque_index_map_insert_len_values(generator);
             }
         }
     };

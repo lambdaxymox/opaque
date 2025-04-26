@@ -3508,7 +3508,6 @@ impl OpaqueIndexMap {
         Slice::from_boxed(self.into_entries().into_boxed_slice())
     }
 
-
     pub fn get_index<K, V>(&self, index: usize) -> Option<(&K, &V)>
     where
         K: 'static,
@@ -3558,7 +3557,7 @@ impl OpaqueIndexMap {
         entries.get_mut(range).map(Slice::from_slice_mut)
     }
 
-    // #[doc(alias = "first_key_value")] // like `BTreeMap`
+    #[doc(alias = "first_key_value")] // like `BTreeMap`
     pub fn first<K, V>(&self) -> Option<(&K, &V)>
     where
         K: 'static,
@@ -3583,7 +3582,7 @@ impl OpaqueIndexMap {
         self.get_index_entry::<K, V>(0)
     }
 
-    // #[doc(alias = "last_key_value")] // like `BTreeMap`
+    #[doc(alias = "last_key_value")] // like `BTreeMap`
     pub fn last<K, V>(&self) -> Option<(&K, &V)>
     where
         K: 'static,
