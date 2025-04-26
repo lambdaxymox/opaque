@@ -23,3 +23,9 @@ path = "../opaque_hash"
 
 [dependencies.opaque_vec]
 path = "../opaque_vec"
+
+[dev-dependencies]
+
+[dev-dependencies.opaque_testing]
+version = "0.1.0"
+path = "../opaque_testing"

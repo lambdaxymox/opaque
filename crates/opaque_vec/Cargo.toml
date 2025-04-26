@@ -19,6 +19,10 @@ path = "../opaque_error"
 
 [dev-dependencies]
 
+[dev-dependencies.opaque_testing]
+version = "0.1.0"
+path = "../opaque_testing"
+
 [dev-dependencies.criterion]
 version = "0.5.1"
 

@@ -1,10 +1,6 @@
-mod common;
-
 use opaque_vec::OpaqueVec;
 
 use core::fmt;
-
-use common::array_generators as ag;
 
 fn run_test_opaque_vec_from_array<const N: usize, T>(expected: [T; N])
 where
@@ -25,7 +21,7 @@ macro_rules! generate_tests {
             fn test_opaque_vec_from_array_range_values() {
                 $(
                     {
-                        let values = ag::range_values::<$typ, $len>($range_spec);
+                        let values = opaque_testing::range_values::<$typ, $len>($range_spec);
                         run_test_opaque_vec_from_array(values);
                     }
                 )+
@@ -35,7 +31,7 @@ macro_rules! generate_tests {
             fn test_opaque_vec_from_array_alternating_values() {
                 $(
                     {
-                        let values = ag::alternating_values::<$typ, $len>($alt_spec);
+                        let values = opaque_testing::alternating_values::<$typ, $len>($alt_spec);
                         run_test_opaque_vec_from_array(values);
                     }
                 )+
@@ -47,73 +43,73 @@ macro_rules! generate_tests {
 generate_tests!(
     i8,
     lengths = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 32, 64, 128 },
-    ag::RangeValuesSpec::new(0),
-    ag::AlternatingValuesSpec::new(i8::MIN, 0)
+    opaque_testing::RangeValuesSpec::new(0),
+    opaque_testing::AlternatingValuesSpec::new(i8::MIN, 0)
 );
 generate_tests!(
     i16,
     lengths = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 32, 64, 128, 256, 512, 1024 },
-    ag::RangeValuesSpec::new(0),
-    ag::AlternatingValuesSpec::new(i16::MIN, 0)
+    opaque_testing::RangeValuesSpec::new(0),
+    opaque_testing::AlternatingValuesSpec::new(i16::MIN, 0)
 );
 generate_tests!(
     i32,
     lengths = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 32, 64, 128, 256, 512, 1024 },
-    ag::RangeValuesSpec::new(0),
-    ag::AlternatingValuesSpec::new(i32::MIN, 0)
+    opaque_testing::RangeValuesSpec::new(0),
+    opaque_testing::AlternatingValuesSpec::new(i32::MIN, 0)
 );
 generate_tests!(
     i64,
     lengths = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 32, 64, 128, 256, 512, 1024 },
-    ag::RangeValuesSpec::new(0),
-    ag::AlternatingValuesSpec::new(i64::MIN, 0)
+    opaque_testing::RangeValuesSpec::new(0),
+    opaque_testing::AlternatingValuesSpec::new(i64::MIN, 0)
 );
 generate_tests!(
     i128,
     lengths = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 32, 64, 128, 256, 512, 1024 },
-    ag::RangeValuesSpec::new(0),
-    ag::AlternatingValuesSpec::new(i128::MIN, 0)
+    opaque_testing::RangeValuesSpec::new(0),
+    opaque_testing::AlternatingValuesSpec::new(i128::MIN, 0)
 );
 generate_tests!(
     isize,
     lengths = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 32, 64, 128, 256, 512, 1024 },
-    ag::RangeValuesSpec::new(0),
-    ag::AlternatingValuesSpec::new(isize::MIN, 0)
+    opaque_testing::RangeValuesSpec::new(0),
+    opaque_testing::AlternatingValuesSpec::new(isize::MIN, 0)
 );
 
 generate_tests!(
     u8,
     lengths = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 32, 64, 128 },
-    ag::RangeValuesSpec::new(0),
-    ag::AlternatingValuesSpec::new(u8::MIN, 0)
+    opaque_testing::RangeValuesSpec::new(0),
+    opaque_testing::AlternatingValuesSpec::new(u8::MIN, 0)
 );
 generate_tests!(
     u16,
     lengths = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 32, 64, 128, 256, 512, 1024 },
-    ag::RangeValuesSpec::new(0),
-    ag::AlternatingValuesSpec::new(u16::MIN, 0)
+    opaque_testing::RangeValuesSpec::new(0),
+    opaque_testing::AlternatingValuesSpec::new(u16::MIN, 0)
 );
 generate_tests!(
     u32,
     lengths = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 32, 64, 128, 256, 512, 1024 },
-    ag::RangeValuesSpec::new(0),
-    ag::AlternatingValuesSpec::new(u32::MIN, 0)
+    opaque_testing::RangeValuesSpec::new(0),
+    opaque_testing::AlternatingValuesSpec::new(u32::MIN, 0)
 );
 generate_tests!(
     u64,
     lengths = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 32, 64, 128, 256, 512, 1024 },
-    ag::RangeValuesSpec::new(0),
-    ag::AlternatingValuesSpec::new(u64::MIN, 0)
+    opaque_testing::RangeValuesSpec::new(0),
+    opaque_testing::AlternatingValuesSpec::new(u64::MIN, 0)
 );
 generate_tests!(
     u128,
     lengths = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 32, 64, 128, 256, 512, 1024 },
-    ag::RangeValuesSpec::new(0),
-    ag::AlternatingValuesSpec::new(u128::MIN, 0)
+    opaque_testing::RangeValuesSpec::new(0),
+    opaque_testing::AlternatingValuesSpec::new(u128::MIN, 0)
 );
 generate_tests!(
     usize,
     lengths = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 32, 64, 128, 256, 512, 1024 },
-    ag::RangeValuesSpec::new(0),
-    ag::AlternatingValuesSpec::new(usize::MIN, 0)
+    opaque_testing::RangeValuesSpec::new(0),
+    opaque_testing::AlternatingValuesSpec::new(usize::MIN, 0)
 );

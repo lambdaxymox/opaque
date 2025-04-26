@@ -1,21 +1,17 @@
 #![feature(allocator_api)]
 mod common;
 
-use common::opaque_blob_vec_utils as utils;
-
 use core::fmt;
-
-use common::array_generators as ag;
 
 fn run_test_opaque_blob_vec_clone<T>(values: &[T])
 where
     T: PartialEq + Clone + fmt::Debug + 'static,
 {
-    let opaque_blob_vec = utils::from_typed_slice(values);
+    let opaque_blob_vec = common::from_typed_slice(values);
     let cloned_opaque_blob_vec = opaque_blob_vec.clone();
 
-    let expected = utils::as_slice::<T>(&opaque_blob_vec);
-    let result = utils::as_slice::<T>(&cloned_opaque_blob_vec);
+    let expected = common::as_slice::<T>(&opaque_blob_vec);
+    let result = common::as_slice::<T>(&cloned_opaque_blob_vec);
 
     assert_eq!(result, expected);
 }
@@ -24,7 +20,7 @@ fn run_test_opaque_blob_vec_clone_occupy_disjoint_memory_locations<T>(values: &[
 where
     T: PartialEq + Clone + fmt::Debug + 'static,
 {
-    let vec1 = utils::from_typed_slice(values);
+    let vec1 = common::from_typed_slice(values);
     let vec2 = vec1.clone();
 
     assert_ne!(vec1.as_ptr(), vec2.as_ptr());
@@ -34,7 +30,7 @@ fn run_test_opaque_blob_vec_clone_occupy_disjoint_memory_regions<T>(values: &[T]
 where
     T: PartialEq + Clone + fmt::Debug + 'static,
 {
-    let vec1 = utils::from_typed_slice(values);
+    let vec1 = common::from_typed_slice(values);
     let vec2 = vec1.clone();
 
     let ptr_start1 = vec1.as_ptr() as usize;
@@ -95,28 +91,28 @@ macro_rules! generate_tests {
 
             #[test]
             fn test_opaque_blob_vec_clone_alternating_values() {
-                let values = ag::alternating_values::<$typ, $max_array_size>($alt_spec);
+                let values = opaque_testing::alternating_values::<$typ, $max_array_size>($alt_spec);
                 run_test_opaque_blob_vec_clone_values(&values);
             }
 
             #[test]
             fn test_opaque_blob_vec_clone_occupy_disjoint_memory_locations() {
-                let values = ag::alternating_values::<$typ, $max_array_size>($alt_spec);
+                let values = opaque_testing::alternating_values::<$typ, $max_array_size>($alt_spec);
                 run_test_opaque_blob_vec_clone_occupy_disjoint_memory_locations(&values);
             }
 
             #[test]
             fn test_opaque_blob_vec_clone_occupy_disjoint_memory_regions() {
-                let values = ag::alternating_values::<$typ, $max_array_size>($alt_spec);
+                let values = opaque_testing::alternating_values::<$typ, $max_array_size>($alt_spec);
                 run_test_opaque_blob_vec_clone_occupy_disjoint_memory_regions(&values);
             }
         }
     };
 }
 
-generate_tests!(u8, 128, ag::AlternatingValuesSpec::new(u8::MIN, u8::MAX));
-generate_tests!(u16, 1024, ag::AlternatingValuesSpec::new(u16::MIN, u16::MAX));
-generate_tests!(u32, 1024, ag::AlternatingValuesSpec::new(u32::MIN, u32::MAX));
-generate_tests!(u64, 1024, ag::AlternatingValuesSpec::new(u64::MIN, u64::MAX));
-generate_tests!(u128, 1024, ag::AlternatingValuesSpec::new(u128::MIN, u128::MAX));
-generate_tests!(usize, 1024, ag::AlternatingValuesSpec::new(usize::MIN, usize::MAX));
+generate_tests!(u8, 128, opaque_testing::AlternatingValuesSpec::new(u8::MIN, u8::MAX));
+generate_tests!(u16, 1024, opaque_testing::AlternatingValuesSpec::new(u16::MIN, u16::MAX));
+generate_tests!(u32, 1024, opaque_testing::AlternatingValuesSpec::new(u32::MIN, u32::MAX));
+generate_tests!(u64, 1024, opaque_testing::AlternatingValuesSpec::new(u64::MIN, u64::MAX));
+generate_tests!(u128, 1024, opaque_testing::AlternatingValuesSpec::new(u128::MIN, u128::MAX));
+generate_tests!(usize, 1024, opaque_testing::AlternatingValuesSpec::new(usize::MIN, usize::MAX));

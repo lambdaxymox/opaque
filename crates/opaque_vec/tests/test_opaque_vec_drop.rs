@@ -1,6 +1,5 @@
 use opaque_vec::OpaqueVec;
 use std::cell::RefCell;
-use std::mem::MaybeUninit;
 use std::rc::Rc;
 
 #[derive(Clone)]

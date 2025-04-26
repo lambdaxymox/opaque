@@ -1,5 +1,3 @@
-mod common;
-
 use opaque_vec::OpaqueVec;
 
 fn run_test_opaque_vec_replace_insert_len_same_index<T>(value: T)

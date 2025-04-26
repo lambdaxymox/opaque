@@ -3,18 +3,14 @@ mod common;
 
 use opaque_blob_vec::OpaqueBlobVec;
 
-use common::opaque_blob_vec_utils as utils;
-
 use core::fmt;
 use core::ptr::NonNull;
-
-use common::array_generators as ag;
 
 fn expected<T>(values: &[T]) -> OpaqueBlobVec
 where
     T: PartialEq + Clone + fmt::Debug + 'static,
 {
-    let mut opaque_blob_vec = utils::new_opaque_blob_vec::<T>();
+    let mut opaque_blob_vec = common::new_opaque_blob_vec::<T>();
     for value in values.iter().skip(1) {
         let value_cloned = value.clone();
         let value_ptr = NonNull::from(&value_cloned).cast::<u8>();
@@ -28,7 +24,7 @@ fn run_test_opaque_blob_vec_shift_remove_forget_unchecked_start<T>(values: &[T])
 where
     T: PartialEq + Clone + fmt::Debug + 'static,
 {
-    let mut opaque_blob_vec = utils::from_typed_slice(values);
+    let mut opaque_blob_vec = common::from_typed_slice(values);
 
     for i in 0..values.len() {
         let expected_opaque_blob_vec = expected(&values[i..]);
@@ -36,8 +32,8 @@ where
             let ptr = opaque_blob_vec.shift_remove_forget_unchecked(0).cast::<T>();
             ptr.read()
         };
-        let expected = utils::as_slice::<T>(&expected_opaque_blob_vec);
-        let result = utils::as_slice::<T>(&opaque_blob_vec);
+        let expected = common::as_slice::<T>(&expected_opaque_blob_vec);
+        let result = common::as_slice::<T>(&opaque_blob_vec);
 
         assert_eq!(result, expected);
     }
@@ -60,16 +56,16 @@ macro_rules! generate_tests {
 
             #[test]
             fn test_opaque_blob_vec_shift_remove_forget_unchecked_start_alternating_values() {
-                let values = ag::alternating_values::<$typ, $max_array_size>($alt_spec);
+                let values = opaque_testing::alternating_values::<$typ, $max_array_size>($alt_spec);
                 run_test_opaque_blob_vec_shift_remove_forget_unchecked_start_values(&values);
             }
         }
     };
 }
 
-generate_tests!(u8, 128, ag::AlternatingValuesSpec::new(u8::MIN, u8::MAX));
-generate_tests!(u16, 128, ag::AlternatingValuesSpec::new(u16::MIN, u16::MAX));
-generate_tests!(u32, 128, ag::AlternatingValuesSpec::new(u32::MIN, u32::MAX));
-generate_tests!(u64, 128, ag::AlternatingValuesSpec::new(u64::MIN, u64::MAX));
-generate_tests!(u128, 128, ag::AlternatingValuesSpec::new(u128::MIN, u128::MAX));
-generate_tests!(usize, 128, ag::AlternatingValuesSpec::new(usize::MIN, usize::MAX));
+generate_tests!(u8, 128, opaque_testing::AlternatingValuesSpec::new(u8::MIN, u8::MAX));
+generate_tests!(u16, 128, opaque_testing::AlternatingValuesSpec::new(u16::MIN, u16::MAX));
+generate_tests!(u32, 128, opaque_testing::AlternatingValuesSpec::new(u32::MIN, u32::MAX));
+generate_tests!(u64, 128, opaque_testing::AlternatingValuesSpec::new(u64::MIN, u64::MAX));
+generate_tests!(u128, 128, opaque_testing::AlternatingValuesSpec::new(u128::MIN, u128::MAX));
+generate_tests!(usize, 128, opaque_testing::AlternatingValuesSpec::new(usize::MIN, usize::MAX));

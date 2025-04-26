@@ -1,8 +1,6 @@
 #![feature(allocator_api)]
 mod common;
 
-use crate::common::opaque_blob_vec_utils as utils;
-
 use core::fmt;
 use core::ptr::NonNull;
 
@@ -10,7 +8,7 @@ fn run_test_opaque_blob_vec_shift_insert_get_same_index1<T>(value: T)
 where
     T: PartialEq + Clone + fmt::Debug + 'static,
 {
-    let mut opaque_blob_vec = utils::new_opaque_blob_vec::<T>();
+    let mut opaque_blob_vec = common::new_opaque_blob_vec::<T>();
     let value_ptr = NonNull::from(&value).cast::<u8>();
     opaque_blob_vec.shift_insert(0, value_ptr);
 
@@ -27,7 +25,7 @@ fn run_test_opaque_blob_vec_shift_insert_get_same_index2<T>(initial_value: T, va
 where
     T: PartialEq + Clone + fmt::Debug + 'static,
 {
-    let mut opaque_blob_vec = utils::new_opaque_blob_vec::<T>();
+    let mut opaque_blob_vec = common::new_opaque_blob_vec::<T>();
     let initial_value_ptr = NonNull::from(&initial_value).cast::<u8>();
     opaque_blob_vec.shift_insert(0, initial_value_ptr);
 
