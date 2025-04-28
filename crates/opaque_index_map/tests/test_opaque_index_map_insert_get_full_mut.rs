@@ -19,11 +19,12 @@ where
 
 fn run_test_opaque_index_map_insert_get_full_mut<K, V>(entries: &[(K, V)])
 where
-    K: Clone + Eq + hash::Hash + fmt::Debug + 'static,
+    K: Clone + Eq + Ord + hash::Hash + fmt::Debug + 'static,
     V: Clone + Eq + fmt::Debug + 'static,
 {
     let mut map = from_entries(entries);
-    for (index, (key, value)) in entries.iter().enumerate() {
+    let expected_entries = oimt::last_entry_per_key(entries);
+    for (index, (key, value)) in expected_entries.iter().enumerate() {
         let mut cloned_value = value.clone();
         let expected = Some((index, key, &mut cloned_value));
         let result = map.get_full_mut::<K, K, V>(key);
@@ -34,7 +35,7 @@ where
 
 fn run_test_opaque_index_map_insert_get_full_mut_values<K, V>(generator: oimt::PrefixGenerator<K, V>)
 where
-    K: Clone + Eq + hash::Hash + fmt::Debug + 'static,
+    K: Clone + Eq + Ord + hash::Hash + fmt::Debug + 'static,
     V: Clone + Eq + fmt::Debug + 'static,
 {
     for entries in generator {

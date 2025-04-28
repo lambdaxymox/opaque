@@ -23,12 +23,11 @@ where
     K: Clone + Eq + Ord + hash::Hash + 'static,
     V: Clone + Eq + 'static,
 {
-    let indices = oimt::last_index_per_key(entries);
-    let mut expected = Vec::new();
-    for (key, index) in indices.iter() {
-        let value = entries[*index].1.clone();
-        expected.push(value);
-    }
+    let expected: Vec<V> = oimt::last_entry_per_key(entries)
+        .iter()
+        .map(|(k, v)| v)
+        .cloned()
+        .collect();
 
     expected
 }

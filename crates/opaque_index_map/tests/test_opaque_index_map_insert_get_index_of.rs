@@ -19,11 +19,12 @@ where
 
 fn run_test_opaque_index_map_insert_get_index_of<K, V>(entries: &[(K, V)])
 where
-    K: Clone + Eq + hash::Hash + fmt::Debug + 'static,
+    K: Clone + Eq + Ord + hash::Hash + fmt::Debug + 'static,
     V: Clone + Eq + fmt::Debug + 'static,
 {
     let map = from_entries(entries);
-    for (index, (key, value)) in entries.iter().enumerate() {
+    let expected_entries = oimt::last_entry_per_key(entries);
+    for (index, (key, value)) in expected_entries.iter().enumerate() {
         let expected = Some(index);
         let result = map.get_index_of::<K, K, V>(key);
 
@@ -33,7 +34,7 @@ where
 
 fn run_test_opaque_index_map_insert_get_index_of_values<K, V>(generator: oimt::PrefixGenerator<K, V>)
 where
-    K: Clone + Eq + hash::Hash + fmt::Debug + 'static,
+    K: Clone + Eq + Ord + hash::Hash + fmt::Debug + 'static,
     V: Clone + Eq + fmt::Debug + 'static,
 {
     for entries in generator {
