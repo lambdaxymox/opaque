@@ -1,9 +1,11 @@
+mod common;
+
 use opaque_vec::OpaqueVec;
 use opaque_index_map::OpaqueIndexMap;
 use core::{fmt, hash};
 
 use opaque_index_map_testing as oimt;
-
+/*
 fn from_entries<K, V>(entries: &[(K, V)]) -> OpaqueIndexMap
 where
     K: Clone + Eq + hash::Hash + 'static,
@@ -16,13 +18,13 @@ where
 
     map
 }
-
+*/
 fn run_test_opaque_index_map_insert_get_mut<K, V>(entries: &[(K, V)])
 where
     K: Clone + Eq + Ord + hash::Hash + fmt::Debug + 'static,
     V: Clone + Eq + fmt::Debug + 'static,
 {
-    let mut map = from_entries(entries);
+    let mut map = common::from_entries(entries);
     let expected_entries = oimt::last_entry_per_key(entries);
     for (key, value) in expected_entries.iter() {
         let mut cloned_value = value.clone();

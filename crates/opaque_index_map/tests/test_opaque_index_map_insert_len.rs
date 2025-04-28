@@ -1,9 +1,11 @@
+mod common;
+
 use opaque_vec::OpaqueVec;
 use opaque_index_map::OpaqueIndexMap;
 use core::{fmt, hash};
 
 use opaque_index_map_testing as oimt;
-
+/*
 fn from_entries<K, V>(entries: &[(K, V)]) -> OpaqueIndexMap
 where
     K: Clone + Eq + hash::Hash + 'static,
@@ -16,7 +18,7 @@ where
 
     map
 }
-
+*/
 fn expected<K, V>(entries: &[(K, V)]) -> usize
 where
     K: Clone + Eq + hash::Hash + fmt::Debug + Ord + 'static,
@@ -37,7 +39,7 @@ where
     K: Clone + Eq + hash::Hash + fmt::Debug + Ord + 'static,
     V: Clone + Eq + fmt::Debug + 'static,
 {
-    let map = from_entries(entries);
+    let map = common::from_entries(entries);
     let expected = expected(entries);
     let result = map.len();
 
