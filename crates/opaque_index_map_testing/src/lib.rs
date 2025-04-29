@@ -1,14 +1,14 @@
 use core::{fmt, hash};
 use std::ops;
 
-pub struct PrefixGenerator<K, V> {
+pub struct PrefixGenerator<'a, K, V> {
     current_index: usize,
-    values: Vec<(K, V)>,
+    values: &'a [(K, V)],
 }
 
-impl<K, V> PrefixGenerator<K, V> {
+impl<'a, K, V> PrefixGenerator<'a, K, V> {
     #[inline]
-    const fn new(values: Vec<(K, V)>) -> Self {
+    pub const fn new(values: &'a [(K, V)]) -> Self {
         Self {
             current_index: 0,
             values,
@@ -16,54 +16,85 @@ impl<K, V> PrefixGenerator<K, V> {
     }
 }
 
-impl<K, V> Iterator for PrefixGenerator<K, V>
+impl<'a, K, V> Iterator for PrefixGenerator<'a, K, V>
 where
     K: Clone + Eq + hash::Hash + 'static,
     V: Clone + Eq + 'static,
 {
-    type Item = Vec<(K, V)>;
+    type Item = &'a [(K, V)];
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.current_index >= self.values.len() {
             return None;
         }
 
-        let prefix = Vec::from(&self.values[..self.current_index]);
+        let prefix = &self.values[..self.current_index];
         self.current_index += 1;
 
         Some(prefix)
     }
 }
 
-pub fn key_value_pairs<K, V, I, J>(keys: I, values: J) -> PrefixGenerator<K, V>
+pub fn key_value_pairs<K, V, I, J>(keys: I, values: J) -> Vec<(K, V)>
 where
     K: Clone + Eq + hash::Hash + 'static,
     V: Clone + Eq + 'static,
     I: Iterator<Item = K>,
     J: Iterator<Item = V>,
 {
-    let values = Vec::from_iter(keys.zip(values));
-    PrefixGenerator::new(values)
+    Vec::from_iter(keys.zip(values))
 }
 
-pub fn range_entries<K, V>(keys: ops::RangeInclusive<K>, values: ops::RangeInclusive<V>) -> PrefixGenerator<K, V>
+#[derive(Clone)]
+pub struct RangeEntriesSpec<K, V> {
+    keys: ops::RangeInclusive<K>,
+    values: ops::RangeInclusive<V>,
+}
+
+impl<K, V> RangeEntriesSpec<K, V> {
+    #[inline]
+    pub const fn new(keys: ops::RangeInclusive<K>, values: ops::RangeInclusive<V>) -> Self {
+        Self {
+            keys,
+            values,
+        }
+    }
+}
+
+pub fn range_entries<K, V>(spec: RangeEntriesSpec<K, V>) -> Vec<(K, V)>
 where
     K: Clone + Eq + hash::Hash + fmt::Debug  + 'static,
     V: Clone + Eq + fmt::Debug + 'static,
     ops::RangeInclusive<K>: DoubleEndedIterator<Item = K>,
     ops::RangeInclusive<V>: DoubleEndedIterator<Item = V>,
 {
-    key_value_pairs(keys, values)
+    key_value_pairs(spec.keys, spec.values)
 }
 
-pub fn constant_key_entries<K, V>(key: K, values: ops::RangeInclusive<V>) -> PrefixGenerator<K, V>
+#[derive(Clone)]
+pub struct ConstantKeyEntriesSpec<K, V> {
+    key: K,
+    values: ops::RangeInclusive<V>,
+}
+
+impl<K, V> ConstantKeyEntriesSpec<K, V> {
+    #[inline]
+    pub const fn new(key: K, values: ops::RangeInclusive<V>) -> Self {
+        Self {
+            key,
+            values,
+        }
+    }
+}
+
+pub fn constant_key_entries<K, V>(spec: ConstantKeyEntriesSpec<K, V>) -> Vec<(K, V)>
 where
     K: Clone + Eq + hash::Hash + fmt::Debug  + 'static,
     V: Clone + Eq + fmt::Debug + 'static,
     ops::RangeInclusive<V>: DoubleEndedIterator<Item = V>,
 {
-    let keys = core::iter::repeat(key).take(values.clone().count());
-    key_value_pairs(keys, values)
+    let keys = core::iter::repeat(spec.key).take(spec.values.clone().count());
+    key_value_pairs(keys, spec.values)
 }
 
 fn dedup_by_largest_index_per_key<K>(sorted_entries: &[(K, usize)]) -> Vec<(K, (usize, usize))>
