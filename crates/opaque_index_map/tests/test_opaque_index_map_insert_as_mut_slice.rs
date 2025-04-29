@@ -6,26 +6,13 @@ use opaque_vec::OpaqueVec;
 use opaque_index_map::OpaqueIndexMap;
 
 use opaque_index_map_testing as oimt;
-/*
-fn from_entries<K, V>(entries: &[(K, V)]) -> OpaqueIndexMap
-where
-    K: Clone + Eq + hash::Hash + 'static,
-    V: Clone + Eq + 'static,
-{
-    let mut map = OpaqueIndexMap::new::<K, V>();
-    for (key, value) in entries.iter().cloned() {
-        map.insert(key, value);
-    }
 
-    map
-}
-*/
 fn expected<K, V>(entries: &[(K, V)]) -> Vec<V>
 where
     K: Clone + Eq + Ord + hash::Hash + 'static,
     V: Clone + Eq + 'static,
 {
-    let expected: Vec<V> = oimt::last_entry_per_key(entries)
+    let expected: Vec<V> = oimt::last_entry_per_key_ordered(entries)
         .iter()
         .map(|(k, v)| v)
         .cloned()

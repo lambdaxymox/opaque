@@ -5,20 +5,7 @@ use opaque_index_map::OpaqueIndexMap;
 use core::{fmt, hash};
 
 use opaque_index_map_testing as oimt;
-/*
-fn from_entries<K, V>(entries: &[(K, V)]) -> OpaqueIndexMap
-where
-    K: Clone + Eq + hash::Hash + 'static,
-    V: Clone + Eq + 'static,
-{
-    let mut map = OpaqueIndexMap::new::<K, V>();
-    for (key, value) in entries.iter().cloned() {
-        map.insert(key, value);
-    }
 
-    map
-}
-*/
 fn run_test_opaque_index_map_keys_get<K, V>(entries: &[(K, V)])
 where
     K: Clone + Eq + hash::Hash + fmt::Debug + 'static,
