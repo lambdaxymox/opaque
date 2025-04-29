@@ -66,29 +66,31 @@ where
     key_value_pairs(keys, values)
 }
 
-fn dedup_by_largest_index_per_key<K>(sorted_entries: &[(K, usize)]) -> Vec<(K, usize)>
+fn dedup_by_largest_index_per_key<K>(sorted_entries: &[(K, usize)]) -> Vec<(K, (usize, usize))>
 where
     K: Clone + Eq + hash::Hash + 'static,
 {
     let mut deduped_sorted_entries = Vec::new();
     let mut iter = sorted_entries.iter().peekable();
-    while let Some((key, index)) = iter.next() {
-        let mut largest_idx = *index;
+    while let Some((key, index)) = iter.next().cloned() {
+        let smallest_index = index;
+        let mut largest_index = index;
         while let Some((next_key, next_index)) = iter.peek() {
-            if *next_key == *key {
-                largest_idx = *next_index;
+            if *next_key == key {
+                largest_index = *next_index;
                 iter.next();
             } else {
                 break;
             }
         }
-        deduped_sorted_entries.push((key.clone(), largest_idx));
+
+        deduped_sorted_entries.push((key.clone(), (smallest_index, largest_index)));
     }
 
     deduped_sorted_entries
 }
 
-fn last_index_per_key<K, V>(entries: &[(K, V)]) -> Vec<(K, usize)>
+fn first_and_last_index_per_key<K, V>(entries: &[(K, V)]) -> Vec<(K, (usize, usize))>
 where
     K: Clone + Eq + Ord + hash::Hash + 'static,
     V: Clone + Eq + 'static,
@@ -107,16 +109,33 @@ where
     dedup_by_largest_index_per_key(&sorted_entries)
 }
 
-pub fn last_entry_per_key<K, V>(entries: &[(K, V)]) -> Vec<(K, V)>
+pub fn last_entry_per_key<K, V>(entries: &[(K, V)]) -> Vec<((K, V), (usize, usize))>
 where
     K: Clone + Eq + Ord + hash::Hash + 'static,
     V: Clone + Eq + 'static,
 {
-    let indices = crate::last_index_per_key(entries);
+    let indices = first_and_last_index_per_key(entries);
     let mut result = Vec::new();
-    for (key, index) in indices.iter() {
-        result.push(entries[*index].clone());
+    for (key, index_tuple) in indices.iter() {
+        let key_value_tuple = entries[index_tuple.1].clone();
+        result.push((key_value_tuple, *index_tuple));
     }
+
+    result
+}
+
+pub fn last_entry_per_key_ordered<K, V>(entries: &[(K, V)]) -> Vec<(K, V)>
+where
+    K: Clone + Eq + Ord + hash::Hash + 'static,
+    V: Clone + Eq + 'static,
+{
+    let mut filtered_entries = last_entry_per_key(entries);
+    filtered_entries.sort_by(|a, b| a.1.0.cmp(&b.1.0));
+    let result = filtered_entries
+        .iter()
+        .cloned()
+        .map(|entry| entry.0)
+        .collect();
 
     result
 }
