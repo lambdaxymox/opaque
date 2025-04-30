@@ -27,7 +27,7 @@ fn bench_opaque_vec_shift_insert_last(c: &mut Criterion) {
         b.iter(|| {
             let mut opaque_vec = OpaqueVec::new::<i32>();
             for i in 0..1024 {
-                opaque_vec.replace_insert::<i32>(i, criterion::black_box(dummy_data));
+                opaque_vec.shift_insert::<i32>(i, criterion::black_box(dummy_data));
             }
 
             opaque_vec

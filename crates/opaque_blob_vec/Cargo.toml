@@ -18,3 +18,30 @@ path = "../opaque_error"
 [dev-dependencies.opaque_vec_testing]
 version = "0.1.0"
 path = "../opaque_vec_testing"
+
+[dev-dependencies.criterion]
+version = "0.5.1"
+
+[[bench]]
+name = "bench_opaque_blob_vec_get_unchecked"
+harness = false
+
+[[bench]]
+name = "bench_opaque_blob_vec_push"
+harness = false
+
+[[bench]]
+name = "bench_opaque_blob_vec_replace_insert"
+harness = false
+
+[[bench]]
+name = "bench_opaque_blob_vec_shift_insert"
+harness = false
+
+[[bench]]
+name = "bench_opaque_blob_vec_shift_remove_forget_unchecked"
+harness = false
+
+[[bench]]
+name = "bench_opaque_blob_vec_swap_remove_forget_unchecked"
+harness = false
