@@ -1,6 +1,5 @@
 use core::fmt;
 use core::ops;
-use core::hash;
 
 #[derive(Clone)]
 pub struct RangeValuesSpec<T> {
