@@ -3,6 +3,8 @@ mod common;
 
 use core::fmt;
 
+use opaque_vec_testing as ovt;
+
 fn run_test_opaque_blob_vec_push_slice<T>(values: &[T])
 where
     T: PartialEq + Clone + fmt::Debug + 'static,
@@ -18,9 +20,9 @@ fn run_test_opaque_blob_vec_push_slice_values<T>(values: &[T])
 where
     T: PartialEq + Clone + fmt::Debug + 'static,
 {
-    for len in 0..values.len() {
-        let prefix_values = &values[0..len];
-        run_test_opaque_blob_vec_push_slice(prefix_values);
+    let iter = ovt::PrefixGenerator::new(values);
+    for slice in iter {
+        run_test_opaque_blob_vec_push_slice(slice);
     }
 }
 

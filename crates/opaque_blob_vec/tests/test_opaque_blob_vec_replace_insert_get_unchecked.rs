@@ -5,6 +5,8 @@ use core::fmt;
 use core::ptr::NonNull;
 use opaque_blob_vec::OpaqueBlobVec;
 
+use opaque_vec_testing as ovt;
+
 pub fn from_slice<T>(values: &[T]) -> OpaqueBlobVec
 where
     T: PartialEq + Clone + fmt::Debug + 'static,
@@ -39,9 +41,9 @@ fn run_test_opaque_blob_vec_replace_insert_get_unchecked_values<T>(values: &[T])
 where
     T: PartialEq + Clone + fmt::Debug + 'static,
 {
-    for len in 0..values.len() {
-        let prefix_values = &values[0..len];
-        run_test_opaque_blob_vec_replace_insert_get_unchecked(prefix_values);
+    let iter = ovt::PrefixGenerator::new(values);
+    for slice in iter {
+        run_test_opaque_blob_vec_replace_insert_get_unchecked(slice);
     }
 }
 

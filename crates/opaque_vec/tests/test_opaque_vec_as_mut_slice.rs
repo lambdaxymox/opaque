@@ -2,6 +2,8 @@ use opaque_vec::OpaqueVec;
 
 use core::fmt;
 
+use opaque_vec_testing as ovt;
+
 fn run_test_opaque_vec_as_mut_slice<T>(values: &mut [T])
 where
     T: PartialEq + Clone + fmt::Debug + TryFrom<usize> + 'static,
@@ -20,8 +22,10 @@ where
     T: PartialEq + Clone + fmt::Debug + TryFrom<usize> + 'static,
     <T as TryFrom<usize>>::Error: fmt::Debug,
 {
-    for len in 0..values.len() {
-        run_test_opaque_vec_as_mut_slice(&mut values[0..len]);
+    let iter = ovt::PrefixGenerator::new(values);
+    for slice in iter {
+        let mut cloned_slice = Vec::from(slice);
+        run_test_opaque_vec_as_mut_slice(&mut cloned_slice);
     }
 }
 

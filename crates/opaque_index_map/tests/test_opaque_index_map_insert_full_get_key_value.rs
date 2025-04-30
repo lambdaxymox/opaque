@@ -28,8 +28,8 @@ where
     K: Clone + Eq + Ord + hash::Hash + fmt::Debug + 'static,
     V: Clone + Eq + fmt::Debug + 'static,
 {
-    let generator = oimt::PrefixGenerator::new(entries);
-    for entries in generator {
+    let iter = oimt::PrefixGenerator::new(entries);
+    for entries in iter {
         run_test_opaque_index_map_insert_full_get_key_value(entries);
     }
 }

@@ -3,6 +3,8 @@ mod common;
 
 use core::fmt;
 
+use opaque_vec_testing as ovt;
+
 fn run_test_opaque_blob_vec_swap_remove_forget_unchecked_get_from_end<T>(values: &[T])
 where
     T: PartialEq + Clone + fmt::Debug + 'static,
@@ -28,9 +30,9 @@ fn run_test_opaque_blob_vec_swap_remove_forget_unchecked_get_from_end_values<T>(
 where
     T: PartialEq + Clone + fmt::Debug + 'static,
 {
-    for len in 0..values.len() {
-        let prefix_values = &values[0..len];
-        run_test_opaque_blob_vec_swap_remove_forget_unchecked_get_from_end(prefix_values);
+    let iter = ovt::PrefixGenerator::new(values);
+    for slice in iter {
+        run_test_opaque_blob_vec_swap_remove_forget_unchecked_get_from_end(slice);
     }
 }
 

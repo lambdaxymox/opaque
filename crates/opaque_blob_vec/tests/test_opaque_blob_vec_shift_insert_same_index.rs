@@ -4,6 +4,8 @@ mod common;
 use core::fmt;
 use core::ptr::NonNull;
 
+use opaque_vec_testing as ovt;
+
 fn run_test_opaque_blob_vec_shift_insert_get_same_index1<T>(value: T)
 where
     T: PartialEq + Clone + fmt::Debug + 'static,

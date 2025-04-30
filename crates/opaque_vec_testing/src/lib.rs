@@ -1,5 +1,50 @@
-use core::fmt;
+extern crate core;
+
+use core::{fmt, hash};
 use core::ops;
+
+pub struct PrefixGenerator<'a, T> {
+    current_index: usize,
+    values: &'a [T],
+}
+
+impl<'a, T> PrefixGenerator<'a, T> {
+    #[inline]
+    pub const fn new_with_start(values: &'a [T], start_len: usize) -> Self {
+        Self {
+            current_index: start_len,
+            values,
+        }
+    }
+
+    #[inline]
+    pub const fn new(values: &'a [T]) -> Self {
+        Self::new_with_start(values, 0)
+    }
+
+    #[inline]
+    pub const fn new_only_nonempty(values: &'a [T]) -> Self {
+        Self::new_with_start(values, 1)
+    }
+}
+
+impl<'a, T> Iterator for PrefixGenerator<'a, T>
+where
+    T: Clone + PartialEq + 'static,
+{
+    type Item = &'a [T];
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.current_index >= self.values.len() {
+            return None;
+        }
+
+        let prefix = &self.values[..self.current_index];
+        self.current_index += 1;
+
+        Some(prefix)
+    }
+}
 
 #[derive(Clone)]
 pub struct RangeValuesSpec<T> {

@@ -2,6 +2,8 @@ use opaque_vec::OpaqueVec;
 
 use core::fmt;
 
+use opaque_vec_testing as ovt;
+
 fn expected<T>(values: &[T], extension_values: &[T]) -> OpaqueVec
 where
     T: PartialEq + Clone + fmt::Debug + 'static,
@@ -38,12 +40,10 @@ fn run_test_opaque_vec_extend_from_slice_values<T>(values: &[T], extension_value
 where
     T: PartialEq + Clone + fmt::Debug + 'static,
 {
-    let expected = expected(values, extension_values);
-    let result = result(values, extension_values);
-    for len in 0..values.len() {
-        let prefix_values = &values[0..len];
-        let prefix_extension_values = &extension_values[0..len];
-        run_test_opaque_vec_extend_from_slice(prefix_values, prefix_extension_values);
+    let iter = ovt::PrefixGenerator::new(values);
+    for slice in iter {
+        let extension_slice = &extension_values[0..slice.len()];
+        run_test_opaque_vec_extend_from_slice(slice, extension_slice);
     }
 }
 

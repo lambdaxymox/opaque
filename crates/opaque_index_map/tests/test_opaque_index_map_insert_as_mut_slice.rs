@@ -47,8 +47,8 @@ where
     K: Clone + Eq + Ord + hash::Hash + fmt::Debug + 'static,
     V: Clone + Eq + fmt::Debug + 'static,
 {
-    let generator = oimt::PrefixGenerator::new(entries);
-    for entries in generator {
+    let iter = oimt::PrefixGenerator::new(entries);
+    for entries in iter {
         let mut cloned_entries = Vec::from(entries);
         run_test_opaque_index_map_insert_as_mut_slice(cloned_entries.as_mut());
     }

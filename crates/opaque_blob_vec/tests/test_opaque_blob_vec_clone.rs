@@ -3,6 +3,8 @@ mod common;
 
 use core::fmt;
 
+use opaque_vec_testing as ovt;
+
 fn run_test_opaque_blob_vec_clone<T>(values: &[T])
 where
     T: PartialEq + Clone + fmt::Debug + 'static,
@@ -52,8 +54,9 @@ where
     T: PartialEq + Clone + fmt::Debug + TryFrom<usize> + 'static,
     <T as TryFrom<usize>>::Error: fmt::Debug,
 {
-    for len in 0..values.len() {
-        run_test_opaque_blob_vec_clone(&values[0..len]);
+    let iter = ovt::PrefixGenerator::new(values);
+    for slice in iter {
+        run_test_opaque_blob_vec_clone(slice);
     }
 }
 
@@ -62,8 +65,9 @@ where
     T: PartialEq + Clone + fmt::Debug + TryFrom<usize> + 'static,
     <T as TryFrom<usize>>::Error: fmt::Debug,
 {
-    for len in 0..values.len() {
-        run_test_opaque_blob_vec_clone_occupy_disjoint_memory_locations(&values[0..len]);
+    let iter = ovt::PrefixGenerator::new(values);
+    for slice in iter {
+        run_test_opaque_blob_vec_clone_occupy_disjoint_memory_locations(slice);
     }
 }
 
@@ -72,8 +76,9 @@ where
     T: PartialEq + Clone + fmt::Debug + TryFrom<usize> + 'static,
     <T as TryFrom<usize>>::Error: fmt::Debug,
 {
-    for len in 0..values.len() {
-        run_test_opaque_blob_vec_clone_occupy_disjoint_memory_regions(&values[0..len]);
+    let iter = ovt::PrefixGenerator::new(values);
+    for slice in iter {
+        run_test_opaque_blob_vec_clone_occupy_disjoint_memory_regions(slice);
     }
 }
 
