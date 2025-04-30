@@ -95,36 +95,36 @@ generate_tests!(
     u16_i16,
     key_type = u16,
     value_type = i16,
-    range_spec = oimt::RangeEntriesSpec::new(0..=1023, 1..=1024),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(1023, 1..=1024)
+    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 generate_tests!(
     u16_i32,
     key_type = u16,
     value_type = i32,
-    range_spec = oimt::RangeEntriesSpec::new(0..=1023, 1..=1024),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(1023, 1..=1024)
+    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 generate_tests!(
     u16_i64,
     key_type = u16,
     value_type = i64,
-    range_spec = oimt::RangeEntriesSpec::new(0..=1023, 1..=1024),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(1023, 1..=1024)
+    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 generate_tests!(
     u16_i128,
     key_type = u16,
     value_type = i128,
-    range_spec = oimt::RangeEntriesSpec::new(0..=1023, 1..=1024),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(1023, 1..=1024)
+    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 generate_tests!(
     u16_isize,
     key_type = u16,
     value_type = isize,
-    range_spec = oimt::RangeEntriesSpec::new(0..=1023, 1..=1024),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(1023, 1..=1024)
+    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 
 generate_tests!(
@@ -138,36 +138,36 @@ generate_tests!(
     u32_i16,
     key_type = u32,
     value_type = i16,
-    range_spec = oimt::RangeEntriesSpec::new(0..=1023, 1..=1024),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(1023, 1..=1024)
+    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 generate_tests!(
     u32_i32,
     key_type = u32,
     value_type = i32,
-    range_spec = oimt::RangeEntriesSpec::new(0..=1023, 1..=1024),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(1023, 1..=1024)
+    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 generate_tests!(
     u32_i64,
     key_type = u32,
     value_type = i64,
-    range_spec = oimt::RangeEntriesSpec::new(0..=1023, 1..=1024),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(1023, 1..=1024)
+    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 generate_tests!(
     u32_i128,
     key_type = u32,
     value_type = i128,
-    range_spec = oimt::RangeEntriesSpec::new(0..=1023, 1..=1024),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(1023, 1..=1024)
+    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 generate_tests!(
     u32_isize,
     key_type = u32,
     value_type = isize,
-    range_spec = oimt::RangeEntriesSpec::new(0..=1023, 1..=1024),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(1023, 1..=1024)
+    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 
 generate_tests!(
@@ -181,36 +181,36 @@ generate_tests!(
     u64_i16,
     key_type = u64,
     value_type = i16,
-    range_spec = oimt::RangeEntriesSpec::new(0..=1023, 1..=1024),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(1023, 1..=1024)
+    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 generate_tests!(
     u64_i32,
     key_type = u64,
     value_type = i32,
-    range_spec = oimt::RangeEntriesSpec::new(0..=1023, 1..=1024),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(1023, 1..=1024)
+    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 generate_tests!(
     u64_i64,
     key_type = u64,
     value_type = i64,
-    range_spec = oimt::RangeEntriesSpec::new(0..=1023, 1..=1024),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(1023, 1..=1024)
+    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 generate_tests!(
     u64_i128,
     key_type = u64,
     value_type = i128,
-    range_spec = oimt::RangeEntriesSpec::new(0..=1023, 1..=1024),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(1023, 1..=1024)
+    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 generate_tests!(
     u64_isize,
     key_type = u64,
     value_type = isize,
-    range_spec = oimt::RangeEntriesSpec::new(0..=1023, 1..=1024),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(1023, 1..=1024)
+    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 
 generate_tests!(
@@ -224,36 +224,36 @@ generate_tests!(
     u128_i16,
     key_type = u128,
     value_type = i16,
-    range_spec = oimt::RangeEntriesSpec::new(0..=1023, 1..=1024),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(1023, 1..=1024)
+    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 generate_tests!(
     u128_i32,
     key_type = u128,
     value_type = i32,
-    range_spec = oimt::RangeEntriesSpec::new(0..=1023, 1..=1024),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(1023, 1..=1024)
+    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 generate_tests!(
     u128_i64,
     key_type = u128,
     value_type = i64,
-    range_spec = oimt::RangeEntriesSpec::new(0..=1023, 1..=1024),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(1023, 1..=1024)
+    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 generate_tests!(
     u128_i128,
     key_type = u128,
     value_type = i128,
-    range_spec = oimt::RangeEntriesSpec::new(0..=1023, 1..=1024),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(1023, 1..=1024)
+    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 generate_tests!(
     u128_isize,
     key_type = u128,
     value_type = isize,
-    range_spec = oimt::RangeEntriesSpec::new(0..=1023, 1..=1024),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(1023, 1..=1024)
+    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 
 generate_tests!(
@@ -267,36 +267,36 @@ generate_tests!(
     usize_i16,
     key_type = usize,
     value_type = i16,
-    range_spec = oimt::RangeEntriesSpec::new(0..=1023, 1..=1024),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(1023, 1..=1024)
+    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 generate_tests!(
     usize_i32,
     key_type = usize,
     value_type = i32,
-    range_spec = oimt::RangeEntriesSpec::new(0..=1023, 1..=1024),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(1023, 1..=1024)
+    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 generate_tests!(
     usize_i64,
     key_type = usize,
     value_type = i64,
-    range_spec = oimt::RangeEntriesSpec::new(0..=1023, 1..=1024),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(1023, 1..=1024)
+    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 generate_tests!(
     usize_i128,
     key_type = usize,
     value_type = i128,
-    range_spec = oimt::RangeEntriesSpec::new(0..=1023, 1..=1024),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(1023, 1..=1024)
+    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 generate_tests!(
     usize_isize,
     key_type = usize,
     value_type = isize,
-    range_spec = oimt::RangeEntriesSpec::new(0..=1023, 1..=1024),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(1023, 1..=1024)
+    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 
 generate_tests!(
@@ -310,36 +310,36 @@ generate_tests!(
     i16_i16,
     key_type = i16,
     value_type = i16,
-    range_spec = oimt::RangeEntriesSpec::new(0..=1023, 1..=1024),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(1023, 1..=1024)
+    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 generate_tests!(
     i16_i32,
     key_type = i16,
     value_type = i32,
-    range_spec = oimt::RangeEntriesSpec::new(0..=1023, 1..=1024),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(1023, 1..=1024)
+    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 generate_tests!(
     i16_i64,
     key_type = i16,
     value_type = i64,
-    range_spec = oimt::RangeEntriesSpec::new(0..=1023, 1..=1024),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(1023, 1..=1024)
+    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 generate_tests!(
     i16_i128,
     key_type = i16,
     value_type = i128,
-    range_spec = oimt::RangeEntriesSpec::new(0..=1023, 1..=1024),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(1023, 1..=1024)
+    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 generate_tests!(
     i16_isize,
     key_type = i16,
     value_type = isize,
-    range_spec = oimt::RangeEntriesSpec::new(0..=1023, 1..=1024),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(1023, 1..=1024)
+    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 
 generate_tests!(
@@ -353,36 +353,36 @@ generate_tests!(
     i32_i16,
     key_type = i32,
     value_type = i16,
-    range_spec = oimt::RangeEntriesSpec::new(0..=1023, 1..=1024),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(1023, 1..=1024)
+    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 generate_tests!(
     i32_i32,
     key_type = i32,
     value_type = i32,
-    range_spec = oimt::RangeEntriesSpec::new(0..=1023, 1..=1024),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(1023, 1..=1024)
+    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 generate_tests!(
     i32_i64,
     key_type = i32,
     value_type = i64,
-    range_spec = oimt::RangeEntriesSpec::new(0..=1023, 1..=1024),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(1023, 1..=1024)
+    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 generate_tests!(
     i32_i128,
     key_type = i32,
     value_type = i128,
-    range_spec = oimt::RangeEntriesSpec::new(0..=1023, 1..=1024),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(1023, 1..=1024)
+    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 generate_tests!(
     i32_isize,
     key_type = i32,
     value_type = isize,
-    range_spec = oimt::RangeEntriesSpec::new(0..=1023, 1..=1024),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(1023, 1..=1024)
+    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 
 generate_tests!(
@@ -396,36 +396,36 @@ generate_tests!(
     i64_i16,
     key_type = i64,
     value_type = i16,
-    range_spec = oimt::RangeEntriesSpec::new(0..=1023, 1..=1024),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(1023, 1..=1024)
+    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 generate_tests!(
     i64_i32,
     key_type = i64,
     value_type = i32,
-    range_spec = oimt::RangeEntriesSpec::new(0..=1023, 1..=1024),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(1023, 1..=1024)
+    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 generate_tests!(
     i64_i64,
     key_type = i64,
     value_type = i64,
-    range_spec = oimt::RangeEntriesSpec::new(0..=1023, 1..=1024),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(1023, 1..=1024)
+    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 generate_tests!(
     i64_i128,
     key_type = i64,
     value_type = i128,
-    range_spec = oimt::RangeEntriesSpec::new(0..=1023, 1..=1024),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(1023, 1..=1024)
+    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 generate_tests!(
     i64_isize,
     key_type = i64,
     value_type = isize,
-    range_spec = oimt::RangeEntriesSpec::new(0..=1023, 1..=1024),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(1023, 1..=1024)
+    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 
 generate_tests!(
@@ -439,36 +439,36 @@ generate_tests!(
     i128_i16,
     key_type = i128,
     value_type = i16,
-    range_spec = oimt::RangeEntriesSpec::new(0..=1023, 1..=1024),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(1023, 1..=1024)
+    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 generate_tests!(
     i128_i32,
     key_type = i128,
     value_type = i32,
-    range_spec = oimt::RangeEntriesSpec::new(0..=1023, 1..=1024),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(1023, 1..=1024)
+    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 generate_tests!(
     i128_i64,
     key_type = i128,
     value_type = i64,
-    range_spec = oimt::RangeEntriesSpec::new(0..=1023, 1..=1024),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(1023, 1..=1024)
+    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 generate_tests!(
     i128_i128,
     key_type = i128,
     value_type = i128,
-    range_spec = oimt::RangeEntriesSpec::new(0..=1023, 1..=1024),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(1023, 1..=1024)
+    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 generate_tests!(
     i128_isize,
     key_type = i128,
     value_type = isize,
-    range_spec = oimt::RangeEntriesSpec::new(0..=1023, 1..=1024),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(1023, 1..=1024)
+    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 
 generate_tests!(
@@ -482,34 +482,34 @@ generate_tests!(
     isize_i16,
     key_type = isize,
     value_type = i16,
-    range_spec = oimt::RangeEntriesSpec::new(0..=1023, 1..=1024),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(1023, 1..=1024)
+    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 generate_tests!(
     isize_i32,
     key_type = isize,
     value_type = i32,
-    range_spec = oimt::RangeEntriesSpec::new(0..=1023, 1..=1024),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(1023, 1..=1024)
+    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 generate_tests!(
     isize_i64,
     key_type = isize,
     value_type = i64,
-    range_spec = oimt::RangeEntriesSpec::new(0..=1023, 1..=1024),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(1023, 1..=1024)
+    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 generate_tests!(
     isize_i128,
     key_type = isize,
     value_type = i128,
-    range_spec = oimt::RangeEntriesSpec::new(0..=1023, 1..=1024),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(1023, 1..=1024)
+    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 generate_tests!(
     isize_isize,
     key_type = isize,
     value_type = isize,
-    range_spec = oimt::RangeEntriesSpec::new(0..=1023, 1..=1024),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(1023, 1..=1024)
+    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
