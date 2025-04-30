@@ -1,19 +1,26 @@
 #![feature(allocator_api)]
 #![feature(slice_range)]
 #![feature(slice_iter_mut_as_mut_slice)]
+use core::cmp::Ordering;
+use core::ops;
 use std::any::TypeId;
-use std::iter::FusedIterator;
 use std::fmt;
 use std::hash;
-use std::hash::{BuildHasher, Hash, Hasher};
+use std::hash::{
+    BuildHasher,
+    Hash,
+    Hasher,
+};
+use std::iter::FusedIterator;
 use std::marker::PhantomData;
-use core::ops;
-use core::cmp::Ordering;
 
 use opaque_alloc;
+use opaque_error::{
+    TryReserveError,
+    TryReserveErrorKind,
+};
 use opaque_hash;
 use opaque_vec::OpaqueVec;
-use opaque_error::{TryReserveError, TryReserveErrorKind};
 
 pub use equivalent::Equivalent;
 use opaque_alloc::OpaqueAlloc;
@@ -101,17 +108,13 @@ pub struct Keys<'a, K, V> {
 
 impl<'a, K, V> Keys<'a, K, V> {
     fn new(entries: &'a [Bucket<K, V>]) -> Self {
-        Self {
-            iter: entries.iter(),
-        }
+        Self { iter: entries.iter() }
     }
 }
 
 impl<'a, K, V> Clone for Keys<'a, K, V> {
     fn clone(&self) -> Self {
-        Keys {
-            iter: self.iter.clone(),
-        }
+        Keys { iter: self.iter.clone() }
     }
 }
 
@@ -168,9 +171,7 @@ where
     V: 'static,
 {
     fn new(entries: OpaqueVec) -> Self {
-        Self {
-            iter: entries.into_iter(),
-        }
+        Self { iter: entries.into_iter() }
     }
 }
 
@@ -229,9 +230,7 @@ pub struct Values<'a, K, V> {
 
 impl<'a, K, V> Values<'a, K, V> {
     fn new(entries: &'a [Bucket<K, V>]) -> Self {
-        Self {
-            iter: entries.iter(),
-        }
+        Self { iter: entries.iter() }
     }
 }
 
@@ -263,9 +262,7 @@ impl<'a, K, V> FusedIterator for Values<'a, K, V> {}
 
 impl<K, V> Clone for Values<'_, K, V> {
     fn clone(&self) -> Self {
-        Values {
-            iter: self.iter.clone(),
-        }
+        Values { iter: self.iter.clone() }
     }
 }
 
@@ -287,9 +284,7 @@ pub struct ValuesMut<'a, K, V> {
 
 impl<'a, K, V> ValuesMut<'a, K, V> {
     fn new(entries: &'a mut [Bucket<K, V>]) -> Self {
-        Self {
-            iter: entries.iter_mut(),
-        }
+        Self { iter: entries.iter_mut() }
     }
 }
 
@@ -328,9 +323,7 @@ impl<K, V: fmt::Debug> fmt::Debug for ValuesMut<'_, K, V> {
 
 impl<K, V> Default for ValuesMut<'_, K, V> {
     fn default() -> Self {
-        Self {
-            iter: [].iter_mut(),
-        }
+        Self { iter: [].iter_mut() }
     }
 }
 
@@ -344,9 +337,7 @@ where
     V: 'static,
 {
     fn new(entries: OpaqueVec) -> Self {
-        Self {
-            iter: entries.into_iter(),
-        }
+        Self { iter: entries.into_iter() }
     }
 }
 
@@ -463,9 +454,7 @@ pub struct Slice<K, V> {
 
 impl<K, V> Slice<K, V> {
     const fn from_slice(entries: &[Bucket<K, V>]) -> &Self {
-        unsafe {
-            &*(entries as *const [Bucket<K, V>] as *const Self)
-        }
+        unsafe { &*(entries as *const [Bucket<K, V>] as *const Self) }
     }
 
     const fn from_slice_mut(entries: &mut [Bucket<K, V>]) -> &mut Self {
@@ -643,7 +632,7 @@ impl<K, V> Slice<K, V> {
 
     pub fn binary_search_keys(&self, x: &K) -> Result<usize, usize>
     where
-        K: Ord
+        K: Ord,
     {
         self.binary_search_by(|p, _| p.cmp(x))
     }
@@ -670,8 +659,7 @@ impl<K, V> Slice<K, V> {
     where
         P: FnMut(&K, &V) -> bool,
     {
-        self.entries
-            .partition_point(move |a| pred(&a.key, &a.value))
+        self.entries.partition_point(move |a| pred(&a.key, &a.value))
     }
 }
 
@@ -782,9 +770,7 @@ where
     V: PartialEq<V2>,
 {
     fn eq(&self, other: &Slice<K2, V2>) -> bool {
-        slice_eq(&self.entries, &other.entries, |b1, b2| {
-            b1.key == b2.key && b1.value == b2.value
-        })
+        slice_eq(&self.entries, &other.entries, |b1, b2| b1.key == b2.key && b1.value == b2.value)
     }
 }
 
@@ -1007,9 +993,7 @@ pub struct Iter<'a, K, V> {
 impl<'a, K, V> Iter<'a, K, V> {
     #[inline]
     fn new(entries: &'a [Bucket<K, V>]) -> Self {
-        Self {
-            iter: entries.iter(),
-        }
+        Self { iter: entries.iter() }
     }
 
     fn as_slice(&self) -> &Slice<K, V> {
@@ -1045,9 +1029,7 @@ impl<K, V> FusedIterator for Iter<'_, K, V> {}
 
 impl<K, V> Clone for Iter<'_, K, V> {
     fn clone(&self) -> Self {
-        Iter {
-            iter: self.iter.clone(),
-        }
+        Iter { iter: self.iter.clone() }
     }
 }
 
@@ -1070,9 +1052,7 @@ pub struct IterMut<'a, K, V> {
 impl<'a, K, V> IterMut<'a, K, V> {
     #[inline]
     fn new(entries: &'a mut [Bucket<K, V>]) -> Self {
-        Self {
-            iter: entries.iter_mut(),
-        }
+        Self { iter: entries.iter_mut() }
     }
 
     fn as_slice_mut(&'a mut self) -> &'a mut Slice<K, V> {
@@ -1119,9 +1099,7 @@ impl<K: fmt::Debug, V: fmt::Debug> fmt::Debug for IterMut<'_, K, V> {
 
 impl<K, V> Default for IterMut<'_, K, V> {
     fn default() -> Self {
-        Self {
-            iter: [].iter_mut(),
-        }
+        Self { iter: [].iter_mut() }
     }
 }
 
@@ -1342,9 +1320,7 @@ struct HashValue {
 impl HashValue {
     #[inline]
     const fn new(value: usize) -> Self {
-        Self {
-            value,
-        }
+        Self { value }
     }
 
     #[inline(always)]
@@ -1383,15 +1359,11 @@ where
 impl<K, V> Bucket<K, V> {
     #[inline]
     const fn new(hash: HashValue, key: K, value: V) -> Self {
-        Self {
-            hash,
-            key,
-            value,
-        }
+        Self { hash, key, value }
     }
 
     fn key_ref(&self) -> &K {
-            &self.key
+        &self.key
     }
 
     fn value_ref(&self) -> &V {
@@ -1491,10 +1463,7 @@ fn get_hash<K, V>(entries: &[Bucket<K, V>]) -> impl Fn(&usize) -> u64 + '_ {
 }
 
 #[inline]
-fn equivalent<'a, K, V, Q: ?Sized + Equivalent<K>>(
-    key: &'a Q,
-    entries: &'a [Bucket<K, V>],
-) -> impl Fn(&usize) -> bool + 'a {
+fn equivalent<'a, K, V, Q: ?Sized + Equivalent<K>>(key: &'a Q, entries: &'a [Bucket<K, V>]) -> impl Fn(&usize) -> bool + 'a {
     move |&i| Q::equivalent(key, &entries[i].key)
 }
 
@@ -1509,9 +1478,7 @@ fn erase_index(table: &mut hashbrown::HashTable<usize>, hash: HashValue, index: 
 
 #[inline]
 fn update_index(table: &mut hashbrown::HashTable<usize>, hash: HashValue, old: usize, new: usize) {
-    let index = table
-        .find_mut(hash.get(), move |&i| i == old)
-        .expect("index not found");
+    let index = table.find_mut(hash.get(), move |&i| i == old).expect("index not found");
     *index = new;
 }
 
@@ -1714,7 +1681,10 @@ where
         // We'll get a "nice" bounds-check from indexing `entries`,
         // and then we expect to find it in the table as well.
         match self.indices.get_many_mut(
-            [self.entries.as_slice::<Bucket<K, V>>()[a].hash.get(), self.entries.as_slice::<Bucket<K, V>>()[b].hash.get()],
+            [
+                self.entries.as_slice::<Bucket<K, V>>()[a].hash.get(),
+                self.entries.as_slice::<Bucket<K, V>>()[b].hash.get(),
+            ],
             move |i, &x| if i == 0 { x == a } else { x == b },
         ) {
             [Some(ref_a), Some(ref_b)] => {
@@ -1845,7 +1815,11 @@ impl OpaqueIndexMapInner {
 
         let bucket_size = OpaqueBucketSize::new::<K, V>();
 
-        Self { indices, entries, bucket_size, }
+        Self {
+            indices,
+            entries,
+            bucket_size,
+        }
     }
 
     #[track_caller]
@@ -1866,7 +1840,14 @@ impl OpaqueIndexMapInner {
 
         let bucket_size = OpaqueBucketSize::new::<K, V>();
 
-        (Self { indices, entries, bucket_size, }, drained.into_iter())
+        (
+            Self {
+                indices,
+                entries,
+                bucket_size,
+            },
+            drained.into_iter(),
+        )
     }
 
     pub(crate) fn append_unchecked<K, V>(&mut self, other: &mut Self)
@@ -1908,12 +1889,8 @@ impl OpaqueIndexMapInner {
     {
         fn from_hashbrown(error: hashbrown::TryReserveError) -> TryReserveError {
             let kind = match error {
-                hashbrown::TryReserveError::CapacityOverflow => {
-                    TryReserveErrorKind::CapacityOverflow
-                }
-                hashbrown::TryReserveError::AllocError { layout } => {
-                    TryReserveErrorKind::AllocError { layout }
-                }
+                hashbrown::TryReserveError::CapacityOverflow => TryReserveErrorKind::CapacityOverflow,
+                hashbrown::TryReserveError::AllocError { layout } => TryReserveErrorKind::AllocError { layout },
             };
 
             TryReserveError::from(kind)
@@ -1960,12 +1937,8 @@ impl OpaqueIndexMapInner {
     {
         fn from_hashbrown(error: hashbrown::TryReserveError) -> TryReserveError {
             let kind = match error {
-                    hashbrown::TryReserveError::CapacityOverflow => {
-                        TryReserveErrorKind::CapacityOverflow
-                    }
-                    hashbrown::TryReserveError::AllocError { layout } => {
-                        TryReserveErrorKind::AllocError { layout }
-                    }
+                hashbrown::TryReserveError::CapacityOverflow => TryReserveErrorKind::CapacityOverflow,
+                hashbrown::TryReserveError::AllocError { layout } => TryReserveErrorKind::AllocError { layout },
             };
 
             TryReserveError::from(kind)
@@ -1974,14 +1947,13 @@ impl OpaqueIndexMapInner {
         self.indices
             .try_reserve(additional, get_hash(self.entries.as_slice::<Bucket<K, V>>()))
             .map_err(from_hashbrown)?;
-        self.entries
-            .try_reserve_exact(additional)
+        self.entries.try_reserve_exact(additional)
     }
 
     pub(crate) fn shrink_to_fit<K, V>(&mut self)
     where
         K: 'static,
-        V: 'static
+        V: 'static,
     {
         self.shrink_to::<K, V>(0)
     }
@@ -1991,7 +1963,8 @@ impl OpaqueIndexMapInner {
         K: 'static,
         V: 'static,
     {
-        self.indices.shrink_to(min_capacity, get_hash(self.entries.as_slice::<Bucket<K, V>>()));
+        self.indices
+            .shrink_to(min_capacity, get_hash(self.entries.as_slice::<Bucket<K, V>>()));
         self.entries.shrink_to(min_capacity);
     }
 
@@ -2264,7 +2237,11 @@ impl OpaqueIndexMapInner {
         let entries = &mut self.entries;
         let eq = equivalent(&key, entries.as_slice::<Bucket<K, V>>());
         match self.indices.find_entry(hash.get(), eq) {
-            Ok(index) => Entry::Occupied(OccupiedEntry { entries, index, _marker: PhantomData, }),
+            Ok(index) => Entry::Occupied(OccupiedEntry {
+                entries,
+                index,
+                _marker: PhantomData,
+            }),
             Err(absent) => Entry::Vacant(VacantEntry {
                 map: RefMut::new(absent.into_table(), entries),
                 hash,
@@ -2385,10 +2362,7 @@ where
     K: 'static,
     V: 'static,
 {
-    pub(crate) fn new(
-        entries: &'a mut OpaqueVec,
-        index: hashbrown::hash_table::OccupiedEntry<'a, usize>,
-    ) -> Self {
+    pub(crate) fn new(entries: &'a mut OpaqueVec, index: hashbrown::hash_table::OccupiedEntry<'a, usize>) -> Self {
         Self {
             entries,
             index,
@@ -2524,9 +2498,7 @@ where
             index,
         } = other;
         let hash = entries.as_slice::<Bucket<K, V>>()[index].hash;
-        let index = indices
-            .find_entry(hash.get(), move |&i| i == index)
-            .expect("index not found");
+        let index = indices.find_entry(hash.get(), move |&i| i == index).expect("index not found");
 
         Self {
             entries,
@@ -2584,8 +2556,7 @@ where
     }
 
     pub fn shift_insert(mut self, index: usize, value: V) -> &'a mut V {
-        self.map
-            .shift_insert_unique(index, self.hash, self.key, value);
+        self.map.shift_insert_unique(index, self.hash, self.key, value);
 
         &mut self.map.entries.as_mut_slice::<Bucket<K, V>>()[index].value
     }
@@ -3144,7 +3115,7 @@ impl OpaqueIndexMap {
                 let old_value = core::mem::replace(destination, value);
 
                 (i, Some(old_value))
-            },
+            }
             Err(i) => self.insert_before::<K, V>(i, key, value),
         }
     }
@@ -3192,10 +3163,7 @@ impl OpaqueIndexMap {
         let len = self.len();
         match self.entry(key) {
             Entry::Occupied(mut entry) => {
-                assert!(
-                    index < len,
-                    "index out of bounds: the len is {len} but the index is {index}"
-                );
+                assert!(index < len, "index out of bounds: the len is {len} but the index is {index}");
 
                 let old = core::mem::replace(entry.get_mut(), value);
                 entry.move_index(index);
@@ -3303,7 +3271,7 @@ where
 {
     fn extend<I>(&mut self, iterable: I)
     where
-        I: IntoIterator<Item = (&'a K, &'a V)>
+        I: IntoIterator<Item = (&'a K, &'a V)>,
     {
         self.extend(iterable.into_iter().map(|(&key, &value)| (key, value)));
     }
@@ -3356,7 +3324,9 @@ impl OpaqueIndexMap {
         F: FnMut(&K, &V, &K, &V) -> Ordering,
     {
         let mut entries = self.into_entries();
-        entries.as_mut_slice::<Bucket<K, V>>().sort_by(move |a, b| cmp(&a.key, &a.value, &b.key, &b.value));
+        entries
+            .as_mut_slice::<Bucket<K, V>>()
+            .sort_by(move |a, b| cmp(&a.key, &a.value, &b.key, &b.value));
         IntoIter::new(entries)
     }
 
@@ -3389,7 +3359,9 @@ impl OpaqueIndexMap {
         F: FnMut(&K, &V, &K, &V) -> Ordering,
     {
         let mut entries = self.into_entries();
-        entries.as_mut_slice::<Bucket<K, V>>().sort_unstable_by(move |a, b| cmp(&a.key, &a.value, &b.key, &b.value));
+        entries
+            .as_mut_slice::<Bucket<K, V>>()
+            .sort_unstable_by(move |a, b| cmp(&a.key, &a.value, &b.key, &b.value));
         IntoIter::new(entries)
     }
 

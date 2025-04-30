@@ -2,8 +2,8 @@
 mod common;
 
 use core::fmt;
-use opaque_blob_vec::OpaqueBlobVec;
 use core::ptr::NonNull;
+use opaque_blob_vec::OpaqueBlobVec;
 
 pub fn from_slice<T>(values: &[T]) -> OpaqueBlobVec
 where

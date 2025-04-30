@@ -28,10 +28,7 @@ pub struct OpaqueHasher {
 impl OpaqueHasher {
     #[inline]
     const fn new(hasher: Box<dyn hash::Hasher>, type_id: TypeId) -> Self {
-        Self {
-            hasher,
-            type_id,
-        }
+        Self { hasher, type_id }
     }
 
     pub fn is_hasher_type<H>(&self) -> bool
@@ -105,7 +102,7 @@ impl hash::BuildHasher for OpaqueBuildHasher {
     type Hasher = OpaqueHasher;
 
     fn build_hasher(&self) -> Self::Hasher {
-        let hasher= self.build_hasher.build_hasher_boxed();
+        let hasher = self.build_hasher.build_hasher_boxed();
         let type_id = self.hasher_type_id;
 
         OpaqueHasher::new(hasher, type_id)

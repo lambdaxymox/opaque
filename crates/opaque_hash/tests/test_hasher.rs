@@ -1,5 +1,10 @@
-use std::hash::{BuildHasher, Hash, Hasher, RandomState};
 use opaque_hash::OpaqueBuildHasher;
+use std::hash::{
+    BuildHasher,
+    Hash,
+    Hasher,
+    RandomState,
+};
 
 fn run_hashers<T>(value: T) -> (u64, u64)
 where

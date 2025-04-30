@@ -53,10 +53,30 @@ macro_rules! generate_tests {
     };
 }
 
-generate_tests!(i8, 128, opaque_vec_testing::RangeValuesSpec::new(0), opaque_vec_testing::AlternatingValuesSpec::new(i8::MIN, 0));
-generate_tests!(i16, 1024, opaque_vec_testing::RangeValuesSpec::new(0), opaque_vec_testing::AlternatingValuesSpec::new(i16::MIN, 0));
-generate_tests!(i32, 1024, opaque_vec_testing::RangeValuesSpec::new(0), opaque_vec_testing::AlternatingValuesSpec::new(i32::MIN, 0));
-generate_tests!(i64, 1024, opaque_vec_testing::RangeValuesSpec::new(0), opaque_vec_testing::AlternatingValuesSpec::new(i64::MIN, 0));
+generate_tests!(
+    i8,
+    128,
+    opaque_vec_testing::RangeValuesSpec::new(0),
+    opaque_vec_testing::AlternatingValuesSpec::new(i8::MIN, 0)
+);
+generate_tests!(
+    i16,
+    1024,
+    opaque_vec_testing::RangeValuesSpec::new(0),
+    opaque_vec_testing::AlternatingValuesSpec::new(i16::MIN, 0)
+);
+generate_tests!(
+    i32,
+    1024,
+    opaque_vec_testing::RangeValuesSpec::new(0),
+    opaque_vec_testing::AlternatingValuesSpec::new(i32::MIN, 0)
+);
+generate_tests!(
+    i64,
+    1024,
+    opaque_vec_testing::RangeValuesSpec::new(0),
+    opaque_vec_testing::AlternatingValuesSpec::new(i64::MIN, 0)
+);
 generate_tests!(
     i128,
     1024,

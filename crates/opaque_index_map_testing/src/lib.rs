@@ -1,4 +1,7 @@
-use core::{fmt, hash};
+use core::{
+    fmt,
+    hash,
+};
 use std::ops;
 
 pub struct PrefixGenerator<'a, K, V> {
@@ -9,10 +12,7 @@ pub struct PrefixGenerator<'a, K, V> {
 impl<'a, K, V> PrefixGenerator<'a, K, V> {
     #[inline]
     pub const fn new(values: &'a [(K, V)]) -> Self {
-        Self {
-            current_index: 0,
-            values,
-        }
+        Self { current_index: 0, values }
     }
 }
 
@@ -54,16 +54,13 @@ pub struct RangeEntriesSpec<K, V> {
 impl<K, V> RangeEntriesSpec<K, V> {
     #[inline]
     pub const fn new(keys: ops::RangeInclusive<K>, values: ops::RangeInclusive<V>) -> Self {
-        Self {
-            keys,
-            values,
-        }
+        Self { keys, values }
     }
 }
 
 pub fn range_entries<K, V>(spec: RangeEntriesSpec<K, V>) -> Vec<(K, V)>
 where
-    K: Clone + Eq + hash::Hash + fmt::Debug  + 'static,
+    K: Clone + Eq + hash::Hash + fmt::Debug + 'static,
     V: Clone + Eq + fmt::Debug + 'static,
     ops::RangeInclusive<K>: DoubleEndedIterator<Item = K>,
     ops::RangeInclusive<V>: DoubleEndedIterator<Item = V>,
@@ -80,16 +77,13 @@ pub struct ConstantKeyEntriesSpec<K, V> {
 impl<K, V> ConstantKeyEntriesSpec<K, V> {
     #[inline]
     pub const fn new(key: K, values: ops::RangeInclusive<V>) -> Self {
-        Self {
-            key,
-            values,
-        }
+        Self { key, values }
     }
 }
 
 pub fn constant_key_entries<K, V>(spec: ConstantKeyEntriesSpec<K, V>) -> Vec<(K, V)>
 where
-    K: Clone + Eq + hash::Hash + fmt::Debug  + 'static,
+    K: Clone + Eq + hash::Hash + fmt::Debug + 'static,
     V: Clone + Eq + fmt::Debug + 'static,
     ops::RangeInclusive<V>: DoubleEndedIterator<Item = V>,
 {
@@ -127,12 +121,7 @@ where
     V: Clone + Eq + 'static,
 {
     let sorted_entries = {
-        let mut _sorted_entries: Vec<(K, usize)> = entries
-            .iter()
-            .cloned()
-            .enumerate()
-            .map(|(index, (key, _))| (key, index))
-            .collect();
+        let mut _sorted_entries: Vec<(K, usize)> = entries.iter().cloned().enumerate().map(|(index, (key, _))| (key, index)).collect();
         _sorted_entries.sort();
         _sorted_entries
     };
@@ -162,11 +151,7 @@ where
 {
     let mut filtered_entries = last_entry_per_key(entries);
     filtered_entries.sort_by(|a, b| a.1.0.cmp(&b.1.0));
-    let result = filtered_entries
-        .iter()
-        .cloned()
-        .map(|entry| entry.0)
-        .collect();
+    let result = filtered_entries.iter().cloned().map(|entry| entry.0).collect();
 
     result
 }

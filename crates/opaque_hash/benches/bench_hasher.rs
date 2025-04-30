@@ -1,7 +1,15 @@
-use std::hash::{Hasher, Hash, BuildHasher, RandomState};
 use criterion;
-use criterion::{criterion_group, criterion_main};
+use criterion::{
+    criterion_group,
+    criterion_main,
+};
 use opaque_hash::OpaqueBuildHasher;
+use std::hash::{
+    BuildHasher,
+    Hash,
+    Hasher,
+    RandomState,
+};
 
 macro_rules! bench_hasher {
     ($bench_name:ident, $bench_opaque_name:ident, $typ:ty, $value:expr) => {
@@ -31,7 +39,7 @@ macro_rules! bench_hasher {
                 });
             });
         }
-    }
+    };
 }
 
 bench_hasher!(bench_default_hasher_i8, bench_opaque_default_hasher_i8, i8, i8::MAX);
@@ -41,17 +49,29 @@ bench_hasher!(bench_default_hasher_i64, bench_opaque_default_hasher_i64, i64, i6
 bench_hasher!(bench_default_hasher_i128, bench_opaque_default_hasher_i128, i128, i128::MAX);
 bench_hasher!(bench_default_hasher_isize, bench_opaque_default_hasher_isize, isize, isize::MAX);
 
-bench_hasher!(bench_default_hasher_str1, bench_opaque_default_hasher_str1, &str, "RA4Q8lJVNwU8G8En3LO2rR5xBAPur1uSGcLiO1IK");
+bench_hasher!(
+    bench_default_hasher_str1,
+    bench_opaque_default_hasher_str1,
+    &str,
+    "RA4Q8lJVNwU8G8En3LO2rR5xBAPur1uSGcLiO1IK"
+);
 
 
-criterion_group!(opaque_hash_benches,
-    bench_default_hasher_i8, bench_opaque_default_hasher_i8,
-    bench_default_hasher_i16, bench_opaque_default_hasher_i16,
-    bench_default_hasher_i32, bench_opaque_default_hasher_i32,
-    bench_default_hasher_i64, bench_opaque_default_hasher_i64,
-    bench_default_hasher_i128, bench_opaque_default_hasher_i128,
-    bench_default_hasher_isize, bench_opaque_default_hasher_isize,
-
-    bench_default_hasher_str1, bench_opaque_default_hasher_str1,
+criterion_group!(
+    opaque_hash_benches,
+    bench_default_hasher_i8,
+    bench_opaque_default_hasher_i8,
+    bench_default_hasher_i16,
+    bench_opaque_default_hasher_i16,
+    bench_default_hasher_i32,
+    bench_opaque_default_hasher_i32,
+    bench_default_hasher_i64,
+    bench_opaque_default_hasher_i64,
+    bench_default_hasher_i128,
+    bench_opaque_default_hasher_i128,
+    bench_default_hasher_isize,
+    bench_opaque_default_hasher_isize,
+    bench_default_hasher_str1,
+    bench_opaque_default_hasher_str1,
 );
 criterion_main!(opaque_hash_benches);

@@ -1,9 +1,16 @@
 #![feature(allocator_api)]
 #![feature(slice_ptr_get)]
-use std::alloc::{Allocator, Global, Layout};
 use criterion;
-use criterion::{criterion_group, criterion_main};
+use criterion::{
+    criterion_group,
+    criterion_main,
+};
 use opaque_alloc::OpaqueAlloc;
+use std::alloc::{
+    Allocator,
+    Global,
+    Layout,
+};
 
 
 macro_rules! bench_alloc {
@@ -31,7 +38,7 @@ macro_rules! bench_alloc {
                 });
             });
         }
-    }
+    };
 }
 
 bench_alloc!(bench_alloc_size_1_align_1,     bench_opaque_alloc_size_1_align_1,     size => 1,   align => 1);
@@ -44,15 +51,25 @@ bench_alloc!(bench_alloc_size_64_align_64,   bench_opaque_alloc_size_64_align_64
 bench_alloc!(bench_alloc_size_128_align_128, bench_opaque_alloc_size_128_align_128, size => 128, align => 128);
 bench_alloc!(bench_alloc_size_256_align_256, bench_opaque_alloc_size_256_align_256, size => 256, align => 256);
 
-criterion_group!(opaque_alloc_benches,
-    bench_alloc_size_1_align_1,     bench_opaque_alloc_size_1_align_1,
-    bench_alloc_size_2_align_2,     bench_opaque_alloc_size_2_align_2,
-    bench_alloc_size_4_align_4,     bench_opaque_alloc_size_4_align_4,
-    bench_alloc_size_8_align_8,     bench_opaque_alloc_size_8_align_8,
-    bench_alloc_size_16_align_16,   bench_opaque_alloc_size_16_align_16,
-    bench_alloc_size_32_align_32,   bench_opaque_alloc_size_32_align_32,
-    bench_alloc_size_64_align_64,   bench_opaque_alloc_size_64_align_64,
-    bench_alloc_size_128_align_128, bench_opaque_alloc_size_128_align_128,
-    bench_alloc_size_256_align_256, bench_opaque_alloc_size_256_align_256,
+criterion_group!(
+    opaque_alloc_benches,
+    bench_alloc_size_1_align_1,
+    bench_opaque_alloc_size_1_align_1,
+    bench_alloc_size_2_align_2,
+    bench_opaque_alloc_size_2_align_2,
+    bench_alloc_size_4_align_4,
+    bench_opaque_alloc_size_4_align_4,
+    bench_alloc_size_8_align_8,
+    bench_opaque_alloc_size_8_align_8,
+    bench_alloc_size_16_align_16,
+    bench_opaque_alloc_size_16_align_16,
+    bench_alloc_size_32_align_32,
+    bench_opaque_alloc_size_32_align_32,
+    bench_alloc_size_64_align_64,
+    bench_opaque_alloc_size_64_align_64,
+    bench_alloc_size_128_align_128,
+    bench_opaque_alloc_size_128_align_128,
+    bench_alloc_size_256_align_256,
+    bench_opaque_alloc_size_256_align_256,
 );
 criterion_main!(opaque_alloc_benches);

@@ -1,6 +1,9 @@
 #![feature(allocator_api)]
-use std::alloc::{Global, System};
 use opaque_alloc::OpaqueAlloc;
+use std::alloc::{
+    Global,
+    System,
+};
 
 #[test]
 fn test_opaque_alloc_is_type_global() {

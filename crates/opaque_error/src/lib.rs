@@ -1,4 +1,7 @@
-use core::alloc::{Layout, LayoutError};
+use core::alloc::{
+    Layout,
+    LayoutError,
+};
 use core::fmt;
 
 /// The error type for `try_reserve` methods.
@@ -46,18 +49,11 @@ impl From<LayoutError> for TryReserveErrorKind {
 }
 
 impl fmt::Display for TryReserveError {
-    fn fmt(
-        &self,
-        formatter: &mut core::fmt::Formatter<'_>,
-    ) -> core::result::Result<(), core::fmt::Error> {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::result::Result<(), core::fmt::Error> {
         formatter.write_str("memory allocation failed")?;
         let reason = match self.kind {
-            TryReserveErrorKind::CapacityOverflow => {
-                " because the computed capacity exceeded the collection's maximum"
-            }
-            TryReserveErrorKind::AllocError { .. } => {
-                " because the memory allocator returned an error"
-            }
+            TryReserveErrorKind::CapacityOverflow => " because the computed capacity exceeded the collection's maximum",
+            TryReserveErrorKind::AllocError { .. } => " because the memory allocator returned an error",
         };
         formatter.write_str(reason)
     }

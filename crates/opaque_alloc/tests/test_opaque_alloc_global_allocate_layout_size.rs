@@ -1,7 +1,11 @@
 #![feature(allocator_api)]
 #![feature(slice_ptr_get)]
-use std::alloc::{Allocator, Global, Layout};
 use opaque_alloc::OpaqueAlloc;
+use std::alloc::{
+    Allocator,
+    Global,
+    Layout,
+};
 
 fn run_test_opaque_alloc_allocate_size_with_layout(opaque_alloc: OpaqueAlloc, layout: Layout) {
     let expected = layout.size();
@@ -22,8 +26,10 @@ fn run_test_opaque_alloc_allocate_size_with_layout(opaque_alloc: OpaqueAlloc, la
 
 fn run_test_opaque_alloc_allocate_size_with_size_align(size: usize, align: usize) {
     let opaque_alloc = OpaqueAlloc::new::<Global>(Global);
-    let layout = Layout::from_size_align(size, align)
-        .expect(&format!("Failed to construct layout with size `{:?}` and alignment `{:?}`", size, align));
+    let layout = Layout::from_size_align(size, align).expect(&format!(
+        "Failed to construct layout with size `{:?}` and alignment `{:?}`",
+        size, align
+    ));
 
     run_test_opaque_alloc_allocate_size_with_layout(opaque_alloc, layout);
 }

@@ -443,9 +443,7 @@ impl<T, A: Allocator> Drain<'_, T, A> {
         let vec = unsafe { self.vec.as_mut() };
         let range_start = vec.len();
         let range_end = self.tail_start;
-        let range_slice = unsafe {
-            slice::from_raw_parts_mut(vec.as_mut_ptr::<T>().add(range_start), range_end - range_start)
-        };
+        let range_slice = unsafe { slice::from_raw_parts_mut(vec.as_mut_ptr::<T>().add(range_start), range_end - range_start) };
 
         for place in range_slice {
             if let Some(new_item) = replace_with.next() {
@@ -510,11 +508,11 @@ impl<'a, T, F, A: Allocator> ExtractIf<'a, T, F, A> {
 
         ExtractIf {
             vec,
-            idx:
-            start,
+            idx: start,
             del: 0,
             end,
-            old_len, pred,
+            old_len,
+            pred,
             _marker: core::marker::PhantomData,
         }
     }
@@ -1918,7 +1916,10 @@ impl OpaqueVec {
         R: ops::RangeBounds<usize>,
         I: IntoIterator<Item = T>,
     {
-        Splice { drain: self.drain(range), replace_with: replace_with.into_iter() }
+        Splice {
+            drain: self.drain(range),
+            replace_with: replace_with.into_iter(),
+        }
     }
 
     pub fn extract_if<F, R, T>(&mut self, range: R, filter: F) -> ExtractIf<'_, T, F, OpaqueAlloc>

@@ -1,10 +1,13 @@
 #![feature(allocator_api)]
 use std::alloc;
-use std::alloc::{Allocator, Layout};
-use std::any::TypeId;
-use std::ptr::NonNull;
-use std::fmt;
+use std::alloc::{
+    Allocator,
+    Layout,
+};
 use std::any;
+use std::any::TypeId;
+use std::fmt;
+use std::ptr::NonNull;
 
 pub trait BoxedAllocator: Allocator {
     fn clone_boxed(&self) -> Box<dyn BoxedAllocator>;
@@ -33,10 +36,7 @@ impl OpaqueAlloc {
         let new_alloc = Box::new(alloc);
         let type_id: TypeId = TypeId::of::<A>();
 
-        Self {
-            alloc: new_alloc,
-            type_id,
-        }
+        Self { alloc: new_alloc, type_id }
     }
 
     #[inline]
