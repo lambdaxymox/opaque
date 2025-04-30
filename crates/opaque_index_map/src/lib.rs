@@ -2798,7 +2798,7 @@ impl OpaqueIndexMap {
         self.len() == 0
     }
 
-    pub(crate) fn hash<Q: ?Sized + hash::Hash>(&self, key: &Q) -> HashValue {
+    fn hash<Q: ?Sized + hash::Hash>(&self, key: &Q) -> HashValue {
         let mut hasher = self.hash_builder.build_hasher();
         key.hash(&mut hasher);
 
