@@ -9,11 +9,11 @@ fn run_test_opaque_blob_vec_clone_len<T>(values: &[T])
 where
     T: PartialEq + Clone + fmt::Debug + 'static,
 {
-    let vec = common::from_typed_slice(values);
-    let cloned_vec = vec.clone();
+    let blob_vec = common::from_typed_slice(values);
+    let cloned_blob_vec = blob_vec.clone();
 
-    let expected = vec.len();
-    let result = cloned_vec.len();
+    let expected = blob_vec.len();
+    let result = cloned_blob_vec.len();
 
     assert_eq!(result, expected);
 }
