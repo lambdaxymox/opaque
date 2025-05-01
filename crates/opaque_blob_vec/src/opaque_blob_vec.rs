@@ -409,7 +409,7 @@ impl OpaqueBlobVec {
             }
 
             let remaining_len = self.len() - len;
-            let element_size = len * self.element_layout.size();
+            let element_size = self.element_layout.size();
             let len_bytes = element_size * len;
             let remaining_len_bytes = element_size * remaining_len;
             let slice = core::ptr::slice_from_raw_parts_mut(self.as_mut_ptr().add(len_bytes), remaining_len_bytes);

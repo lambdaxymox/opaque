@@ -36,7 +36,7 @@ macro_rules! generate_tests {
             use super::*;
 
             #[test]
-            fn test_opaque_index_map_iter_contains_empty() {
+            fn test_opaque_index_map_iter_contains_key_empty() {
                 let keys: Vec<$key_typ> = Vec::from(&[]);
                 let values: Vec<$value_typ> = Vec::from(&[]);
                 let entries = oimt::key_value_pairs(keys.iter().cloned(), values.iter().cloned());
@@ -44,14 +44,14 @@ macro_rules! generate_tests {
             }
 
             #[test]
-            fn test_opaque_index_map_iter_contains_range_values() {
+            fn test_opaque_index_map_iter_contains_key_range_values() {
                 let spec = $range_spec;
                 let entries = oimt::range_entries::<$key_typ, $value_typ>(spec);
                 run_test_opaque_index_map_iter_contains_values(&entries);
             }
 
             #[test]
-            fn test_opaque_index_map_iter_contains_constant_values() {
+            fn test_opaque_index_map_iter_contains_key_constant_values() {
                 let spec = $const_spec;
                 let entries = oimt::constant_key_entries::<$key_typ, $value_typ>(spec);
                 run_test_opaque_index_map_iter_contains_values(&entries);
