@@ -7,6 +7,7 @@
 extern crate core;
 
 use core::cmp;
+use core::hash;
 use core::ops;
 use core::slice;
 use std::alloc::{
@@ -2509,6 +2510,133 @@ where
         T: 'static,
     {
         self.inner.reverse::<T>()
+    }
+}
+
+impl<T, /* A */> hash::Hash for TypedProjVec<T, /* A */>
+where
+    T: hash::Hash + 'static,
+    /*
+    A: Allocator,
+     */
+{
+    #[inline]
+    fn hash<H>(&self, state: &mut H)
+    where
+        H: hash::Hasher,
+    {
+        hash::Hash::hash(self.as_slice(), state)
+    }
+}
+
+impl<T, I, /* A */> ops::Index<I> for TypedProjVec<T, /* A */>
+where
+    T: 'static,
+    I: slice::SliceIndex<[T]>,
+    /*
+    A: Allocator,
+    */
+{
+    type Output = I::Output;
+
+    #[inline]
+    fn index(&self, index: I) -> &Self::Output {
+        ops::Index::index(self.as_slice(), index)
+    }
+}
+
+impl<T, I, /* A */> ops::IndexMut<I> for TypedProjVec<T, /* A */>
+where
+    T: 'static,
+    I: slice::SliceIndex<[T]>,
+    /*
+    A: Allocator,
+    */
+{
+    #[inline]
+    fn index_mut(&mut self, index: I) -> &mut Self::Output {
+        ops::IndexMut::index_mut(self.as_mut_slice(), index)
+    }
+}
+
+#[cfg(not(no_global_oom_handling))]
+impl<T> FromIterator<T> for TypedProjVec<T>
+where
+    T: 'static,
+{
+    #[inline]
+    #[track_caller]
+    fn from_iter<I>(iter: I) -> TypedProjVec<T>
+    where
+        I: IntoIterator<Item = T>,
+    {
+        let inner = OpaqueVecInner::from_iter(iter);
+
+        Self {
+            inner,
+            _marker: core::marker::PhantomData,
+        }
+    }
+}
+
+impl<T, /*A */> IntoIterator for TypedProjVec<T, /* A */>
+where
+    T: 'static,
+    /*
+    A: Allocator,
+    */
+{
+    type Item = T;
+    type IntoIter = IntoIter<T, /* A */ OpaqueAlloc>;
+
+    #[inline]
+    fn into_iter(self) -> Self::IntoIter {
+        /*
+        unsafe {
+            let me = ManuallyDrop::new(self);
+            let alloc = ManuallyDrop::new(ptr::read(me.allocator()));
+            let inner = me.non_null();
+            let begin = inner.as_ptr();
+            let end = if T::IS_ZST {
+                begin.wrapping_byte_add(me.len())
+            } else {
+                begin.add(me.len()) as *const T
+            };
+            let cap = me.buf.capacity();
+            IntoIter { buf, phantom: PhantomData, cap, alloc, ptr: buf, end }
+        }
+        */
+        todo!()
+    }
+}
+
+impl<'a, T, /* A */> IntoIterator for &'a TypedProjVec<T, /* A */>
+where
+    T: 'static,
+    /*
+    A: Allocator,
+    */
+{
+    type Item = &'a T;
+    type IntoIter = slice::Iter<'a, T>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+
+impl<'a, T, /* A */> IntoIterator for &'a mut TypedProjVec<T, /* A */>
+where
+    T: 'static,
+    /*
+    A: Allocator,
+    */
+{
+    type Item = &'a mut T;
+    type IntoIter = slice::IterMut<'a, T>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter_mut()
     }
 }
 
