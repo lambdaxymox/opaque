@@ -2512,25 +2512,6 @@ where
     }
 }
 
-
-
-impl<T> TypedProjVec<T>
-where
-    T: 'static,
-{
-    /*
-    #[inline]
-    pub fn extend<I>(&mut self, iter: I)
-    where
-        T: 'static,
-        I: IntoIterator<Item=T>,
-    {
-        self.inner.extend::<T, I>(iter)
-    }
-
-     */
-}
-
 #[cfg(not(no_global_oom_handling))]
 impl<T, /* A */> Extend<T> for TypedProjVec<T, /* A */>
 where
