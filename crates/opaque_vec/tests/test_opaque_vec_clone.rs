@@ -9,7 +9,7 @@ where
     T: PartialEq + Clone + fmt::Debug + 'static,
 {
     let vec = OpaqueVec::from(values);
-    let cloned_vec = vec.clone();
+    let cloned_vec = vec.clone::<T>();
 
     let expected = vec.as_slice::<T>();
     let result = cloned_vec.as_slice::<T>();
@@ -22,7 +22,7 @@ where
     T: PartialEq + Clone + fmt::Debug + 'static,
 {
     let vec1 = OpaqueVec::from(values);
-    let vec2 = vec1.clone();
+    let vec2 = vec1.clone::<T>();
 
     assert_ne!(vec1.as_ptr::<T>(), vec2.as_ptr::<T>());
 }
@@ -32,7 +32,7 @@ where
     T: PartialEq + Clone + fmt::Debug + 'static,
 {
     let vec1 = OpaqueVec::from(values);
-    let vec2 = vec1.clone();
+    let vec2 = vec1.clone::<T>();
 
     let ptr_start1 = vec1.as_ptr::<T>() as usize;
     let ptr_start2 = vec2.as_ptr::<T>() as usize;

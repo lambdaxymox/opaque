@@ -12,7 +12,7 @@ where
 
     for i in 0..values.len() {
         let result_vec = {
-            let mut vec = values_vec.clone();
+            let mut vec = values_vec.clone::<T>();
             vec.shift_remove::<T>(i);
             vec
         };

@@ -107,7 +107,7 @@ where
 {
     fn clone(&self) -> Self {
         Self {
-            opaque_vec: self.opaque_vec.clone(),
+            opaque_vec: self.opaque_vec.clone::<T>(),
             _marker: self._marker,
         }
     }
@@ -1745,6 +1745,20 @@ impl OpaqueVecInner {
     {
         self.as_mut_slice::<T>().reverse();
     }
+
+    #[inline]
+    pub(crate) fn clone<T>(&self) -> Self
+    where
+        T: Clone + 'static,
+    {
+        let new_inner = self.data.clone();
+        let new_type_id = self.type_id;
+
+        Self {
+            data: new_inner,
+            type_id: new_type_id,
+        }
+    }
 }
 
 struct DebugDisplayDataFormatter<'a> {
@@ -1802,13 +1816,15 @@ impl fmt::Display for OpaqueVecInner {
         data_display.fmt_data(formatter)
     }
 }
-
+/*
 impl PartialEq<OpaqueVecInner> for OpaqueVecInner {
     fn eq(&self, other: &OpaqueVecInner) -> bool {
         (self.element_layout() == other.element_layout()) && (self.as_byte_slice() == other.as_byte_slice())
     }
 }
 
+ */
+/*
 impl Clone for OpaqueVecInner {
     fn clone(&self) -> Self {
         let new_inner = self.data.clone();
@@ -1820,7 +1836,7 @@ impl Clone for OpaqueVecInner {
         }
     }
 }
-
+*/
 mod private {
     use super::OpaqueVecInner;
     use std::alloc::Allocator;
@@ -2015,9 +2031,9 @@ where
         vec
     }
 }
-/*
+
 #[repr(transparent)]
-struct TypedProjVec<T> {
+pub struct TypedProjVec<T> {
     inner: OpaqueVecInner,
     _marker: core::marker::PhantomData<T>,
 }
@@ -2026,11 +2042,388 @@ impl<T> TypedProjVec<T>
 where
     T: 'static,
 {
-    fn get(&self, index: usize) -> Option<&T> {
+    #[inline]
+    #[must_use]
+    pub fn get(&self, index: usize) -> Option<&T> {
         self.inner.get::<T>(index)
     }
+
+    #[inline]
+    #[must_use]
+    pub fn get_mut(&mut self, index: usize) -> Option<&mut T> {
+        self.inner.get_mut::<T>(index)
+    }
+
+    #[inline]
+    #[track_caller]
+    pub fn push(&mut self, value: T) {
+        self.inner.push::<T>(value);
+    }
+
+    #[inline]
+    pub fn pop(&mut self) -> Option<T> {
+        self.inner.pop::<T>()
+    }
+
+    #[inline]
+    pub fn push_within_capacity(&mut self, value: T) -> Result<(), T> {
+        self.inner.push_within_capacity::<T>(value)
+    }
+
+    #[cfg(not(no_global_oom_handling))]
+    #[track_caller]
+    pub fn replace_insert(&mut self, index: usize, value: T) {
+        self.inner.replace_insert::<T>(index, value);
+    }
+
+    #[cfg(not(no_global_oom_handling))]
+    #[track_caller]
+    pub fn shift_insert(&mut self, index: usize, value: T) {
+        self.inner.shift_insert::<T>(index, value);
+    }
+
+    #[cfg(not(no_global_oom_handling))]
+    #[track_caller]
+    pub fn swap_remove(&mut self, index: usize) -> T {
+        self.inner.swap_remove::<T>(index)
+    }
+
+    #[cfg(not(no_global_oom_handling))]
+    #[track_caller]
+    pub fn shift_remove(&mut self, index: usize) -> T {
+        self.inner.shift_remove::<T>(index)
+    }
+
+    pub fn contains(&self, value: &T) -> bool
+    where
+        T: PartialEq,
+    {
+        self.inner.contains::<T>(value)
+    }
+
+    pub fn iter(&self) -> slice::Iter<'_, T> {
+        self.inner.iter::<T>()
+    }
+
+    pub fn iter_mut(&mut self) -> slice::IterMut<'_, T> {
+        self.inner.iter_mut::<T>()
+    }
+
+    pub fn into_iter(self) -> IntoIter<T, OpaqueAlloc> {
+        self.inner.into_iter::<T>()
+    }
+
+    #[cfg(not(no_global_oom_handling))]
+    #[inline]
+    #[track_caller]
+    pub fn append(&mut self, other: &mut Self) {
+        self.inner.append::<T>(&mut other.inner)
+    }
+
+    pub fn drain<R>(&mut self, range: R) -> Drain<'_, T, OpaqueAlloc>
+    where
+        R: ops::RangeBounds<usize>,
+    {
+        self.inner.drain::<R, T>(range)
+    }
+
+    #[inline]
+    pub fn as_ptr(&self) -> *const T {
+        self.inner.as_ptr::<T>()
+    }
+
+    #[inline]
+    pub fn as_mut_ptr(&mut self) -> *mut T {
+        self.inner.as_mut_ptr::<T>()
+    }
+
+    #[inline]
+    pub fn as_non_null(&mut self) -> NonNull<T> {
+        self.inner.as_non_null::<T>()
+    }
+
+    pub fn as_slice(&self) -> &[T] {
+        self.inner.as_slice::<T>()
+    }
+
+    pub fn as_mut_slice(&mut self) -> &mut [T] {
+        self.inner.as_mut_slice::<T>()
+    }
+
+    pub fn as_byte_slice(&self) -> &[u8] {
+        self.inner.as_byte_slice()
+    }
+
+    #[must_use]
+    pub fn into_raw_parts(self) -> (*mut T, usize, usize) {
+        self.inner.into_raw_parts::<T>()
+    }
+
+    #[must_use]
+    pub fn into_parts(self) -> (NonNull<T>, usize, usize) {
+        self.inner.into_parts::<T>()
+    }
+
+    #[must_use]
+    pub fn into_raw_parts_with_alloc(self) -> (*mut T, usize, usize, OpaqueAlloc) {
+        self.inner.into_raw_parts_with_alloc::<T>()
+    }
+
+    pub fn into_parts_with_alloc(self) -> (NonNull<T>, usize, usize, OpaqueAlloc) {
+        self.inner.into_parts_with_alloc::<T>()
+    }
+
+    #[cfg(not(no_global_oom_handling))]
+    #[track_caller]
+    pub fn into_boxed_slice(self) -> Box<[T], OpaqueAlloc> {
+        self.inner.into_boxed_slice::<T>()
+    }
+
+    #[cfg(not(no_global_oom_handling))]
+    #[inline]
+    #[must_use = "use `.truncate()` if you don't need the other half"]
+    #[track_caller]
+    pub fn split_off(&mut self, at: usize) -> Self {
+        let inner = self.inner.split_off::<T>(at);
+
+        Self {
+            inner,
+            _marker: PhantomData,
+        }
+    }
+
+    #[cfg(not(no_global_oom_handling))]
+    #[track_caller]
+    pub fn resize_with<F>(&mut self, new_len: usize, f: F)
+    where
+        F: FnMut() -> T,
+    {
+        self.inner.resize_with::<F, T>(new_len, f)
+    }
+
+    #[inline]
+    pub fn spare_capacity_mut(&mut self) -> &mut [MaybeUninit<T>] {
+        self.inner.spare_capacity_mut::<T>()
+    }
 }
-*/
+
+impl<T> TypedProjVec<T>
+where
+    T: 'static,
+{
+    #[inline]
+    pub const fn element_layout(&self) -> Layout {
+        self.inner.element_layout()
+    }
+
+    #[inline]
+    pub const fn capacity(&self) -> usize {
+        self.inner.capacity()
+    }
+
+    #[inline]
+    pub const fn is_empty(&self) -> bool {
+        self.inner.is_empty()
+    }
+
+    #[inline]
+    pub const fn len(&self) -> usize {
+        self.inner.len()
+    }
+
+    #[inline]
+    unsafe fn set_len(&mut self, new_len: usize) {
+        self.inner.set_len(new_len);
+    }
+}
+
+impl<T> TypedProjVec<T>
+where
+    T: 'static,
+{
+    pub fn try_reserve(&mut self, additional: usize) -> Result<(), opaque_error::TryReserveError> {
+        self.inner.try_reserve(additional)
+    }
+
+    pub fn try_reserve_exact(&mut self, additional: usize) -> Result<(), opaque_error::TryReserveError> {
+        self.inner.try_reserve_exact(additional)
+    }
+
+    #[cfg(not(no_global_oom_handling))]
+    #[track_caller]
+    pub fn reserve(&mut self, additional: usize) {
+        self.inner.reserve(additional);
+    }
+
+    #[cfg(not(no_global_oom_handling))]
+    #[track_caller]
+    pub fn reserve_exact(&mut self, additional: usize) {
+        self.inner.reserve_exact(additional);
+    }
+
+    #[track_caller]
+    #[inline]
+    pub fn shrink_to_fit(&mut self) {
+        self.inner.shrink_to_fit();
+    }
+
+    #[cfg(not(no_global_oom_handling))]
+    #[track_caller]
+    pub fn shrink_to(&mut self, min_capacity: usize) {
+        self.inner.shrink_to(min_capacity);
+    }
+
+    pub fn clear(&mut self) {
+        self.inner.clear();
+    }
+}
+
+impl<T> TypedProjVec<T>
+where
+    T: 'static,
+{
+    #[cfg(not(no_global_oom_handling))]
+    #[inline]
+    pub fn splice<R, I>(&mut self, range: R, replace_with: I) -> Splice<'_, I::IntoIter, OpaqueAlloc>
+    where
+        R: ops::RangeBounds<usize>,
+        I: IntoIterator<Item = T>,
+    {
+        self.inner.splice::<R, I, T>(range, replace_with)
+    }
+
+    pub fn extract_if<F, R>(&mut self, range: R, filter: F) -> ExtractIf<'_, T, F, OpaqueAlloc>
+    where
+        T: 'static,
+        F: FnMut(&mut T) -> bool,
+        R: ops::RangeBounds<usize>,
+    {
+        self.inner.extract_if::<F, R, T>(range, filter)
+    }
+
+    #[cfg(not(no_global_oom_handling))]
+    #[track_caller]
+    fn extend_with(&mut self, count: usize, value: T)
+    where
+        T: Clone,
+    {
+        self.inner.extend_with::<T>(count, value);
+    }
+
+    #[cfg(not(no_global_oom_handling))]
+    #[track_caller]
+    fn extend_from_iter<I>(&mut self, iterator: I)
+    where
+        T: Clone,
+        I: Iterator<Item = T>,
+    {
+        self.inner.extend_from_iter::<T, _>(iterator)
+    }
+
+    #[cfg(not(no_global_oom_handling))]
+    #[track_caller]
+    pub fn extend_from_slice(&mut self, other: &[T])
+    where
+        T: Clone,
+    {
+        self.inner.extend_from_slice::<T>(other);
+    }
+
+    #[cfg(not(no_global_oom_handling))]
+    #[track_caller]
+    pub fn resize(&mut self, new_len: usize, value: T)
+    where
+        T: Clone,
+    {
+        self.inner.resize::<T>(new_len, value);
+    }
+
+    #[inline]
+    pub fn truncate(&mut self, len: usize) {
+        self.inner.truncate(len);
+    }
+}
+
+impl<T> TypedProjVec<T>
+where
+    T: 'static,
+{
+    pub fn retain<F>(&mut self, mut f: F)
+    where
+        F: FnMut(&T) -> bool,
+    {
+        self.inner.retain(|elem| f(elem));
+    }
+
+    pub fn retain_mut<F>(&mut self, mut f: F)
+    where
+        F: FnMut(&mut T) -> bool,
+    {
+        self.inner.retain_mut::<F, T>(f)
+    }
+
+    #[inline]
+    pub fn dedup_by_key<F, K>(&mut self, mut key: F)
+    where
+        F: FnMut(&mut T) -> K,
+        K: PartialEq,
+    {
+        self.inner.dedup_by_key::<F, K, T>(key)
+    }
+
+    pub fn dedup_by<F>(&mut self, mut same_bucket: F)
+    where
+        F: FnMut(&mut T, &mut T) -> bool,
+    {
+        self.inner.dedup_by::<F, T>(same_bucket)
+    }
+}
+
+impl<T> TypedProjVec<T>
+where
+    T: 'static,
+{
+    #[inline]
+    pub fn extend<I>(&mut self, iter: I)
+    where
+        T: 'static,
+        I: IntoIterator<Item=T>,
+    {
+        self.inner.extend::<T, I>(iter)
+    }
+
+    #[inline]
+    pub fn reverse(&mut self)
+    where
+        T: 'static,
+    {
+        self.inner.reverse::<T>()
+    }
+}
+
+impl<T> PartialEq<TypedProjVec<T>> for TypedProjVec<T>
+where
+    T: PartialEq + 'static,
+{
+    fn eq(&self, other: &TypedProjVec<T>) -> bool {
+        self.as_slice() == other.as_slice()
+    }
+}
+
+impl<T> Clone for TypedProjVec<T>
+where
+    T: Clone + 'static,
+{
+    fn clone(&self) -> Self {
+        let cloned_inner = self.inner.clone::<T>();
+
+        Self {
+            inner: cloned_inner,
+            _marker: PhantomData,
+        }
+    }
+}
+
 pub struct OpaqueVec {
     inner: OpaqueVecInner,
 }
@@ -2159,6 +2552,81 @@ impl OpaqueVec {
 
 impl OpaqueVec {
     #[inline]
+    pub fn has_element_type<T>(&self) -> bool
+    where
+        T: 'static,
+    {
+        self.inner.has_element_type::<T>()
+    }
+
+    #[inline]
+    pub fn has_allocator_type<A>(&self) -> bool
+    where
+        A: Allocator + Clone + 'static,
+    {
+        self.inner.has_allocator_type::<A>()
+    }
+
+    #[inline]
+    #[track_caller]
+    fn assert_type_safety<T>(&self)
+    where
+        T: 'static,
+    {
+        #[cold]
+        #[optimize(size)]
+        #[track_caller]
+        fn type_check_failed(type_id_self: TypeId, type_id_other: TypeId) -> ! {
+            panic!("Type mismatch. Need `{:?}`, got `{:?}`", type_id_self, type_id_other);
+        }
+
+        if !self.has_element_type::<T>() {
+            type_check_failed(self.inner.type_id, TypeId::of::<T>());
+        }
+    }
+}
+
+impl OpaqueVec {
+    pub fn as_proj<T>(&self) -> &TypedProjVec<T>
+    where
+        T: 'static,
+    {
+        self.assert_type_safety::<T>();
+
+        unsafe { &*(self as *const OpaqueVec as *const TypedProjVec<T>) }
+    }
+
+    pub fn as_proj_mut<T>(&mut self) -> &mut TypedProjVec<T>
+    where
+        T: 'static,
+    {
+        self.assert_type_safety::<T>();
+
+        unsafe { &mut *(self as *mut OpaqueVec as *mut TypedProjVec<T>) }
+    }
+
+    pub fn into_proj<T>(self) -> TypedProjVec<T>
+    where
+        T: 'static,
+    {
+        self.assert_type_safety::<T>();
+
+        TypedProjVec {
+            inner: self.inner,
+            _marker: std::marker::PhantomData,
+        }
+    }
+
+    #[inline]
+    pub fn from_proj<T>(proj_self: TypedProjVec<T>) -> Self {
+        Self {
+            inner: proj_self.inner,
+        }
+    }
+}
+
+impl OpaqueVec {
+    #[inline]
     pub const fn element_layout(&self) -> Layout {
         self.inner.element_layout()
     }
@@ -2186,74 +2654,13 @@ impl OpaqueVec {
 
 impl OpaqueVec {
     #[inline]
-    pub fn has_element_type<T>(&self) -> bool
-    where
-        T: 'static,
-    {
-        self.inner.has_element_type::<T>()
-    }
-
-    #[inline]
-    pub fn has_allocator_type<A>(&self) -> bool
-    where
-        A: Allocator + Clone + 'static,
-    {
-        self.inner.has_allocator_type::<A>()
-    }
-
-    #[inline]
-    #[track_caller]
-    fn assert_element_type<T>(&self)
-    where
-        T: 'static,
-    {
-        #[cold]
-        #[optimize(size)]
-        #[track_caller]
-        fn type_check_failed(type_id_self: TypeId, type_id_other: TypeId) -> ! {
-            panic!("Type mismatch. Need `{:?}`, got `{:?}`", type_id_self, type_id_other);
-        }
-
-        if !self.has_element_type::<T>() {
-            type_check_failed(self.inner.type_id, TypeId::of::<T>());
-        }
-    }
-}
-/*
-impl OpaqueVec {
-    fn as_proj<T>(&self) -> &TypedProjVec<T>
-    where
-        T: 'static,
-    {
-        self.assert_element_type::<T>();
-
-        // SAFETY: TypedVecProjection<T> is #[repr(transparent)] over OpaqueVec,
-        // and we only add PhantomData<T> (which is zero-sized).
-        unsafe { &*(self as *const OpaqueVec as *const TypedProjVec<T>) }
-    }
-
-    fn as_proj_mut<T>(&mut self) -> &mut TypedProjVec<T>
-    where
-        T: 'static,
-    {
-        self.assert_element_type::<T>();
-
-        // SAFETY: TypedVecProjection<T> is #[repr(transparent)] over OpaqueVec,
-        // and we only add PhantomData<T> (which is zero-sized).
-        unsafe { &mut *(self as *mut OpaqueVec as *mut TypedProjVec<T>) }
-    }
-}
-*/
-impl OpaqueVec {
-    #[inline]
     #[must_use]
     pub fn get<T>(&self, index: usize) -> Option<&T>
     where
         T: 'static,
     {
-        self.assert_element_type::<T>();
-
-        self.inner.get::<T>(index)
+        let proj_self = self.as_proj::<T>();
+        proj_self.get(index)
     }
 
     #[inline]
@@ -2262,9 +2669,8 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        self.assert_element_type::<T>();
-
-        self.inner.get_mut::<T>(index)
+        let proj_self = self.as_proj_mut::<T>();
+        proj_self.get_mut(index)
     }
 
     #[inline]
@@ -2273,9 +2679,8 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        self.assert_element_type::<T>();
-
-        self.inner.push::<T>(value);
+        let proj_self = self.as_proj_mut::<T>();
+        proj_self.push(value);
     }
 
     #[inline]
@@ -2283,9 +2688,8 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        self.assert_element_type::<T>();
-
-        self.inner.pop::<T>()
+        let proj_self = self.as_proj_mut::<T>();
+        proj_self.pop()
     }
 
     #[inline]
@@ -2293,9 +2697,8 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        self.assert_element_type::<T>();
-
-        self.inner.push_within_capacity::<T>(value)
+        let proj_self = self.as_proj_mut::<T>();
+        proj_self.push_within_capacity(value)
     }
 
     #[cfg(not(no_global_oom_handling))]
@@ -2304,9 +2707,8 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        self.assert_element_type::<T>();
-
-        self.inner.replace_insert::<T>(index, value);
+        let proj_self = self.as_proj_mut::<T>();
+        proj_self.replace_insert(index, value);
     }
 
     #[cfg(not(no_global_oom_handling))]
@@ -2315,9 +2717,8 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        self.assert_element_type::<T>();
-
-        self.inner.shift_insert::<T>(index, value);
+        let proj_self = self.as_proj_mut::<T>();
+        proj_self.shift_insert(index, value);
     }
 
     #[cfg(not(no_global_oom_handling))]
@@ -2326,9 +2727,8 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        self.assert_element_type::<T>();
-
-        self.inner.swap_remove::<T>(index)
+        let proj_self = self.as_proj_mut::<T>();
+        proj_self.swap_remove(index)
     }
 
     #[cfg(not(no_global_oom_handling))]
@@ -2337,45 +2737,40 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        self.assert_element_type::<T>();
-
-        self.inner.shift_remove::<T>(index)
+        let proj_self = self.as_proj_mut::<T>();
+        proj_self.shift_remove(index)
     }
 
     pub fn contains<T>(&self, value: &T) -> bool
     where
         T: PartialEq + 'static,
     {
-        self.assert_element_type::<T>();
-
-        self.inner.contains::<T>(value)
+        let proj_self = self.as_proj::<T>();
+        proj_self.contains(value)
     }
 
     pub fn iter<T>(&self) -> slice::Iter<'_, T>
     where
         T: 'static,
     {
-        self.assert_element_type::<T>();
-
-        self.inner.iter::<T>()
+        let proj_self = self.as_proj::<T>();
+        proj_self.iter()
     }
 
     pub fn iter_mut<T>(&mut self) -> slice::IterMut<'_, T>
     where
         T: 'static,
     {
-        self.assert_element_type::<T>();
-
-        self.inner.iter_mut::<T>()
+        let proj_self = self.as_proj_mut::<T>();
+        proj_self.iter_mut()
     }
 
     pub fn into_iter<T>(self) -> IntoIter<T, OpaqueAlloc>
     where
         T: 'static,
     {
-        self.assert_element_type::<T>();
-
-        self.inner.into_iter::<T>()
+        let proj_self = self.into_proj::<T>();
+        proj_self.into_iter()
     }
 
     #[cfg(not(no_global_oom_handling))]
@@ -2385,10 +2780,9 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        self.assert_element_type::<T>();
-        other.assert_element_type::<T>();
-
-        self.inner.append::<T>(&mut other.inner);
+        let proj_self = self.as_proj_mut::<T>();
+        let proj_other = other.as_proj_mut::<T>();
+        proj_self.append(proj_other)
     }
 
     pub fn drain<R, T>(&mut self, range: R) -> Drain<'_, T, OpaqueAlloc>
@@ -2396,9 +2790,8 @@ impl OpaqueVec {
         T: 'static,
         R: ops::RangeBounds<usize>,
     {
-        self.assert_element_type::<T>();
-
-        self.inner.drain::<R, T>(range)
+        let proj_self = self.as_proj_mut::<T>();
+        proj_self.drain(range)
     }
 
     #[inline]
@@ -2406,9 +2799,8 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        self.assert_element_type::<T>();
-
-        self.inner.as_ptr::<T>()
+        let proj_self = self.as_proj::<T>();
+        proj_self.as_ptr()
     }
 
     #[inline]
@@ -2416,9 +2808,8 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        self.assert_element_type::<T>();
-
-        self.inner.as_mut_ptr::<T>()
+        let proj_self = self.as_proj_mut::<T>();
+        proj_self.as_mut_ptr()
     }
 
     #[inline]
@@ -2426,31 +2817,32 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        self.assert_element_type::<T>();
-
-        self.inner.as_non_null::<T>()
+        let proj_self = self.as_proj_mut::<T>();
+        proj_self.as_non_null()
     }
 
     pub fn as_slice<T>(&self) -> &[T]
     where
         T: 'static,
     {
-        self.assert_element_type::<T>();
-
-        self.inner.as_slice::<T>()
+        let proj_self = self.as_proj::<T>();
+        proj_self.as_slice()
     }
 
     pub fn as_mut_slice<T>(&mut self) -> &mut [T]
     where
         T: 'static,
     {
-        self.assert_element_type::<T>();
-
-        self.inner.as_mut_slice::<T>()
+        let proj_self = self.as_proj_mut::<T>();
+        proj_self.as_mut_slice()
     }
 
-    pub fn as_byte_slice(&self) -> &[u8] {
-        self.inner.as_byte_slice()
+    pub fn as_byte_slice<T>(&self) -> &[u8]
+    where
+        T: 'static,
+    {
+        let proj_self = self.as_proj::<T>();
+        proj_self.as_byte_slice()
     }
 
     #[must_use]
@@ -2458,9 +2850,8 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        self.assert_element_type::<T>();
-
-        self.inner.into_raw_parts::<T>()
+        let proj_self = self.into_proj::<T>();
+        proj_self.into_raw_parts()
     }
 
     #[must_use]
@@ -2468,9 +2859,8 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        self.assert_element_type::<T>();
-
-        self.inner.into_parts::<T>()
+        let proj_self = self.into_proj::<T>();
+        proj_self.into_parts()
     }
 
     #[must_use]
@@ -2478,29 +2868,26 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        self.assert_element_type::<T>();
-
-        self.inner.into_raw_parts_with_alloc::<T>()
+        let proj_self = self.into_proj::<T>();
+        proj_self.into_raw_parts_with_alloc()
     }
 
     pub fn into_parts_with_alloc<T>(self) -> (NonNull<T>, usize, usize, OpaqueAlloc)
     where
         T: 'static,
     {
-        self.assert_element_type::<T>();
-
-        self.inner.into_parts_with_alloc::<T>()
+        let proj_self = self.into_proj::<T>();
+        proj_self.into_parts_with_alloc()
     }
 
     #[cfg(not(no_global_oom_handling))]
     #[track_caller]
-    pub fn into_boxed_slice<T>(mut self) -> Box<[T], OpaqueAlloc>
+    pub fn into_boxed_slice<T>(self) -> Box<[T], OpaqueAlloc>
     where
         T: 'static,
     {
-        self.assert_element_type::<T>();
-
-        self.inner.into_boxed_slice::<T>()
+        let proj_self = self.into_proj::<T>();
+        proj_self.into_boxed_slice()
     }
 
     #[cfg(not(no_global_oom_handling))]
@@ -2511,11 +2898,10 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        self.assert_element_type::<T>();
+        let proj_self = self.as_proj_mut::<T>();
+        let proj_split_off = proj_self.split_off(at);
 
-        let inner = self.inner.split_off::<T>(at);
-
-        Self { inner, }
+        Self::from_proj(proj_split_off)
     }
 
     #[cfg(not(no_global_oom_handling))]
@@ -2525,9 +2911,8 @@ impl OpaqueVec {
         T: 'static,
         F: FnMut() -> T,
     {
-        self.assert_element_type::<T>();
-
-        self.inner.resize_with::<F, T>(new_len, f)
+        let proj_self = self.as_proj_mut::<T>();
+        proj_self.resize_with(new_len, f)
     }
 
     #[inline]
@@ -2535,9 +2920,8 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        self.assert_element_type::<T>();
-
-        self.inner.spare_capacity_mut::<T>()
+        let proj_self = self.as_proj_mut::<T>();
+        proj_self.spare_capacity_mut()
     }
 }
 
@@ -2588,9 +2972,8 @@ impl OpaqueVec {
         R: ops::RangeBounds<usize>,
         I: IntoIterator<Item = T>,
     {
-        self.assert_element_type::<T>();
-
-        self.inner.splice::<R, I, T>(range, replace_with)
+        let proj_self = self.as_proj_mut::<T>();
+        proj_self.splice(range, replace_with)
     }
 
     pub fn extract_if<F, R, T>(&mut self, range: R, filter: F) -> ExtractIf<'_, T, F, OpaqueAlloc>
@@ -2599,9 +2982,8 @@ impl OpaqueVec {
         F: FnMut(&mut T) -> bool,
         R: ops::RangeBounds<usize>,
     {
-        self.assert_element_type::<T>();
-
-        self.inner.extract_if::<F, R, T>(range, filter)
+        let proj_self = self.as_proj_mut::<T>();
+        proj_self.extract_if(range, filter)
     }
 
     #[cfg(not(no_global_oom_handling))]
@@ -2610,9 +2992,8 @@ impl OpaqueVec {
     where
         T: Clone + 'static,
     {
-        self.assert_element_type::<T>();
-
-        self.inner.extend_with::<T>(count, value);
+        let proj_self = self.as_proj_mut::<T>();
+        proj_self.extend_with(count, value);
     }
 
     #[cfg(not(no_global_oom_handling))]
@@ -2622,9 +3003,8 @@ impl OpaqueVec {
         T: Clone + 'static,
         I: Iterator<Item = T>,
     {
-        self.assert_element_type::<T>();
-
-        self.inner.extend_from_iter::<T, _>(iterator)
+        let proj_self = self.as_proj_mut::<T>();
+        proj_self.extend_from_iter(iterator);
     }
 
     #[cfg(not(no_global_oom_handling))]
@@ -2633,9 +3013,8 @@ impl OpaqueVec {
     where
         T: Clone + 'static,
     {
-        self.assert_element_type::<T>();
-
-        self.inner.extend_from_slice::<T>(other);
+        let proj_self = self.as_proj_mut::<T>();
+        proj_self.extend_from_slice(other);
     }
 
     #[cfg(not(no_global_oom_handling))]
@@ -2644,9 +3023,8 @@ impl OpaqueVec {
     where
         T: Clone + 'static,
     {
-        self.assert_element_type::<T>();
-
-        self.inner.resize::<T>(new_len, value);
+        let proj_self = self.as_proj_mut::<T>();
+        proj_self.resize(new_len, value);
     }
 
     #[inline]
@@ -2661,9 +3039,8 @@ impl OpaqueVec {
         T: 'static,
         F: FnMut(&T) -> bool,
     {
-        self.assert_element_type::<T>();
-
-        self.inner.retain(|elem| f(elem));
+        let proj_self = self.as_proj_mut::<T>();
+        proj_self.retain(f);
     }
 
     pub fn retain_mut<F, T>(&mut self, mut f: F)
@@ -2671,9 +3048,8 @@ impl OpaqueVec {
         T: 'static,
         F: FnMut(&mut T) -> bool,
     {
-        self.assert_element_type::<T>();
-
-        self.inner.retain_mut::<F, T>(f)
+        let proj_self = self.as_proj_mut::<T>();
+        proj_self.retain_mut(f);
     }
 
     #[inline]
@@ -2683,9 +3059,8 @@ impl OpaqueVec {
         F: FnMut(&mut T) -> K,
         K: PartialEq,
     {
-        self.assert_element_type::<T>();
-
-        self.inner.dedup_by_key::<F, K, T>(key)
+        let proj_self = self.as_proj_mut::<T>();
+        proj_self.dedup_by_key(&mut key);
     }
 
     pub fn dedup_by<F, T>(&mut self, mut same_bucket: F)
@@ -2693,9 +3068,8 @@ impl OpaqueVec {
         T: 'static,
         F: FnMut(&mut T, &mut T) -> bool,
     {
-        self.assert_element_type::<T>();
-
-        self.inner.dedup_by::<F, T>(same_bucket)
+        let proj_self = self.as_proj_mut::<T>();
+        proj_self.dedup_by(same_bucket);
     }
 }
 
@@ -2704,11 +3078,10 @@ impl OpaqueVec {
     pub fn extend<T, I>(&mut self, iter: I)
     where
         T: 'static,
-        I: IntoIterator<Item = T>,
+        I: IntoIterator<Item=T>,
     {
-        self.assert_element_type::<T>();
-
-        self.inner.extend::<T, I>(iter)
+        let proj_self = self.as_proj_mut::<T>();
+        proj_self.extend(iter);
     }
 
     #[inline]
@@ -2716,9 +3089,22 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        self.assert_element_type::<T>();
+        let proj_self = self.as_proj_mut::<T>();
+        proj_self.reverse();
+    }
+}
 
-        self.inner.reverse::<T>()
+impl OpaqueVec {
+    #[inline]
+    pub fn clone<T>(&self) -> Self
+    where
+        T: Clone + 'static,
+    {
+        let proj_self = self.as_proj::<T>();
+        let proj_cloned_self = proj_self.clone();
+        let cloned_self = OpaqueVec::from_proj(proj_cloned_self);
+
+        cloned_self
     }
 }
 /*
@@ -2771,7 +3157,7 @@ impl fmt::Display for OpaqueVec {
         self.inner.fmt(formatter)
     }
 }
-
+/*
 impl PartialEq<OpaqueVec> for OpaqueVec {
     fn eq(&self, other: &OpaqueVec) -> bool {
         (self.element_layout() == other.element_layout()) && (self.as_byte_slice() == other.as_byte_slice())
@@ -2787,6 +3173,7 @@ impl Clone for OpaqueVec {
         }
     }
 }
+*/
 /*
 mod private {
     use super::OpaqueVec;

@@ -33,7 +33,7 @@ where
     let expected = expected(values);
     let result = result(values);
 
-    assert_eq!(result, expected);
+    assert_eq!(result.as_slice::<T>(), expected.as_slice::<T>());
 }
 
 fn run_test_opaque_vec_reverse_values<T>(values: &[T])

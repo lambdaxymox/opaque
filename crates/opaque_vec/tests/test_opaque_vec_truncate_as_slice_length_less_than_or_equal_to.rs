@@ -11,7 +11,7 @@ where
 {
     let base_opaque_vec = OpaqueVec::from(values);
     for len in 0..values.len() {
-        let mut opaque_vec = base_opaque_vec.clone();
+        let mut opaque_vec = base_opaque_vec.clone::<T>();
 
         opaque_vec.truncate(len);
 

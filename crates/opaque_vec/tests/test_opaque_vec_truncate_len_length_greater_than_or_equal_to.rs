@@ -13,7 +13,7 @@ where
     let min_len = values.len();
     let max_len = 10 * values.len();
     for len in min_len..max_len {
-        let mut opaque_vec = base_opaque_vec.clone();
+        let mut opaque_vec = base_opaque_vec.clone::<T>();
 
         opaque_vec.truncate(len);
 

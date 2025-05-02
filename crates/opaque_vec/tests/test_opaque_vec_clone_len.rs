@@ -9,7 +9,7 @@ where
     T: PartialEq + Clone + fmt::Debug + 'static,
 {
     let vec = OpaqueVec::from(values);
-    let cloned_vec = vec.clone();
+    let cloned_vec = vec.clone::<T>();
 
     let expected = vec.len();
     let result = cloned_vec.len();
