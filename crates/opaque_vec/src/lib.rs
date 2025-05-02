@@ -6,6 +6,7 @@
 #![feature(slice_range)]
 extern crate core;
 
+use core::cmp;
 use core::ops;
 use core::slice;
 use std::alloc::{
@@ -18,6 +19,7 @@ use std::mem::{
     ManuallyDrop,
     MaybeUninit,
 };
+use std::borrow;
 use std::ptr::NonNull;
 
 use opaque_blob_vec::OpaqueBlobVec;
@@ -2524,7 +2526,263 @@ where
     T: PartialEq + 'static,
 {
     fn eq(&self, other: &TypedProjVec<T>) -> bool {
-        self.as_slice() == other.as_slice()
+        PartialEq::eq(self.as_slice(), other.as_slice())
+    }
+}
+
+impl<T, /* A1, A2 */> PartialOrd<TypedProjVec<T, /* A2 */>> for TypedProjVec<T, /* A1 */>
+where
+    T: PartialOrd + 'static,
+    /*
+    A1: Allocator,
+    A2: Allocator,
+     */
+{
+    #[inline]
+    fn partial_cmp(&self, other: &TypedProjVec<T, /* A2 */>) -> Option<cmp::Ordering> {
+        PartialOrd::partial_cmp(self.as_slice(), other.as_slice())
+    }
+}
+
+impl<T, /* A */> Eq for TypedProjVec<T, /* A */>
+where
+    T: Eq + 'static,
+    /*
+    A: Allocator,
+     */
+{
+}
+
+impl<T, /* A */> Ord for TypedProjVec<T, /* A */>
+where
+    T: Ord + 'static,
+    /*
+    A: Allocator,
+     */
+{
+    #[inline]
+    fn cmp(&self, other: &Self) -> cmp::Ordering {
+        Ord::cmp(self.as_slice(), other.as_slice())
+    }
+}
+/*
+impl<T, /* A */> Drop for TypedProjVec<T>
+where
+    /*
+    A: Allocator,
+     */
+{
+    fn drop(&mut self) {
+
+    }
+}
+*/
+impl<T> Default for TypedProjVec<T>
+where
+    T: 'static,
+{
+    fn default() -> TypedProjVec<T> {
+        TypedProjVec::new()
+    }
+}
+
+impl<T, /* A */> fmt::Debug for TypedProjVec<T>
+where
+    T: fmt::Debug + 'static,
+    /*
+    A: Allocator,
+     */
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Debug::fmt(self.as_slice(), f)
+    }
+}
+
+impl<T, /* A */> AsRef<TypedProjVec<T, /* A */>> for TypedProjVec<T, /* A */>
+where
+    T: 'static,
+    /*
+    A: Allocator,
+     */
+{
+    fn as_ref(&self) -> &TypedProjVec<T, /* A */> {
+        self
+    }
+}
+
+impl<T, /* A */> AsMut<TypedProjVec<T, /* A */>> for TypedProjVec<T, /* A */>
+where
+    T: 'static,
+    /*
+    A: Allocator,
+    */
+{
+    fn as_mut(&mut self) -> &mut TypedProjVec<T, /* A */> {
+        self
+    }
+}
+
+impl<T, /* A */> AsRef<[T]> for TypedProjVec<T, /* A */>
+where
+    T: 'static,
+    /*
+    A: Allocator,
+    */
+{
+    fn as_ref(&self) -> &[T] {
+        self.as_slice()
+    }
+}
+
+impl<T, /* A */> AsMut<[T]> for TypedProjVec<T, /* A */>
+where
+    T: 'static,
+    /*
+    A: Allocator,
+    */
+{
+    fn as_mut(&mut self) -> &mut [T] {
+        self.as_mut_slice()
+    }
+}
+
+#[cfg(not(no_global_oom_handling))]
+impl<T> From<&[T]> for TypedProjVec<T>
+where
+    T: Clone + 'static,
+{
+    #[track_caller]
+    fn from(slice: &[T]) -> TypedProjVec<T> {
+        let inner = OpaqueVecInner::from(slice);
+
+        Self {
+            inner,
+            _marker: core::marker::PhantomData,
+        }
+    }
+}
+
+#[cfg(not(no_global_oom_handling))]
+impl<T> From<&mut [T]> for TypedProjVec<T>
+where
+    T: Clone + 'static,
+{
+    #[track_caller]
+    fn from(slice: &mut [T]) -> TypedProjVec<T> {
+        let inner = OpaqueVecInner::from(slice);
+
+        Self {
+            inner,
+            _marker: core::marker::PhantomData,
+        }
+    }
+}
+
+#[cfg(not(no_global_oom_handling))]
+impl<T, const N: usize> From<&[T; N]> for TypedProjVec<T>
+where
+    T: Clone + 'static,
+{
+    #[track_caller]
+    fn from(slice: &[T; N]) -> TypedProjVec<T> {
+        Self::from(slice.as_slice())
+    }
+}
+
+#[cfg(not(no_global_oom_handling))]
+impl<T, const N: usize> From<&mut [T; N]> for TypedProjVec<T>
+where
+    T: Clone + 'static,
+{
+    #[track_caller]
+    fn from(slice: &mut [T; N]) -> TypedProjVec<T> {
+        Self::from(slice.as_mut_slice())
+    }
+}
+
+#[cfg(not(no_global_oom_handling))]
+impl<T, const N: usize> From<[T; N]> for TypedProjVec<T>
+where
+    T: 'static,
+{
+    #[track_caller]
+    fn from(s: [T; N]) -> TypedProjVec<T> {
+        /*
+        <[T]>::into_vec(Box::new(s))
+         */
+        todo!()
+    }
+}
+
+impl<'a, T> From<borrow::Cow<'a, [T]>> for TypedProjVec<T>
+where
+    T: 'static,
+    [T]: ToOwned<Owned = TypedProjVec<T>>,
+{
+    #[track_caller]
+    fn from(s: borrow::Cow<'a, [T]>) -> TypedProjVec<T> {
+        s.into_owned()
+    }
+}
+
+impl<T /*A */> From<Box<[T], /* A */>> for TypedProjVec<T, /* A */>
+where
+    T: 'static,
+{
+    fn from(slice: Box<[T], /* A */>) -> Self {
+        /*
+        slice.into_vec()
+         */
+        todo!()
+    }
+}
+
+#[cfg(not(no_global_oom_handling))]
+impl<T, /* A */> From<TypedProjVec<T, /* A */>> for Box<[T], /* A */ OpaqueAlloc>
+where
+    T: 'static,
+    /*
+    A: Allocator,
+     */
+{
+    #[track_caller]
+    fn from(vec: TypedProjVec<T, /* A */>) -> Self {
+        vec.into_boxed_slice()
+    }
+}
+
+#[cfg(not(no_global_oom_handling))]
+impl From<&str> for TypedProjVec<u8> {
+    #[track_caller]
+    fn from(st: &str) -> TypedProjVec<u8> {
+        From::from(st.as_bytes())
+    }
+}
+
+impl<T, /* A, */ const N: usize> TryFrom<TypedProjVec<T, /* A */>> for [T; N]
+where
+    T: 'static,
+    /*
+    A: Allocator,
+     */
+{
+    type Error = TypedProjVec<T, /* A */>;
+
+    fn try_from(mut vec: TypedProjVec<T, /* A */>) -> Result<[T; N], TypedProjVec<T, /* A */>> {
+        if vec.len() != N {
+            return Err(vec);
+        }
+
+        // SAFETY: `.set_len(0)` is always sound.
+        unsafe { vec.set_len(0) };
+
+        // SAFETY: A `Vec`'s pointer is always aligned properly, and
+        // the alignment the array needs is the same as the items.
+        // We checked earlier that we have sufficient items.
+        // The items will not double-drop as the `set_len`
+        // tells the `Vec` not to also drop them.
+        let array = unsafe { core::ptr::read(vec.as_ptr() as *const [T; N]) };
+        Ok(array)
     }
 }
 
