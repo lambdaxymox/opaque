@@ -2513,6 +2513,55 @@ where
     }
 }
 
+impl<T, /* A */> ops::Deref for TypedProjVec<T, /* A */>
+where
+    T: 'static,
+    /*
+    A: Allocator,
+    */
+{
+    type Target = [T];
+
+    #[inline]
+    fn deref(&self) -> &[T] {
+        self.as_slice()
+    }
+}
+
+impl<T, /* A */> ops::DerefMut for TypedProjVec<T, /* A */>
+where
+    T: 'static,
+    /*
+    A: Allocator,
+     */
+{
+    #[inline]
+    fn deref_mut(&mut self) -> &mut [T] {
+        self.as_mut_slice()
+    }
+}
+
+/*
+unsafe impl<T, A: Allocator> ops::DerefPure for Vec<T, A> {}
+*/
+
+impl<T, /* A */> Clone for TypedProjVec<T, /* A */>
+where
+    T: Clone + 'static,
+    /*
+    A: Allocator,
+    */
+{
+    fn clone(&self) -> Self {
+        let cloned_inner = self.inner.clone::<T>();
+
+        Self {
+            inner: cloned_inner,
+            _marker: PhantomData,
+        }
+    }
+}
+
 impl<T, /* A */> hash::Hash for TypedProjVec<T, /* A */>
 where
     T: hash::Hash + 'static,
@@ -3047,23 +3096,6 @@ where
         // tells the `Vec` not to also drop them.
         let array = unsafe { core::ptr::read(vec.as_ptr() as *const [T; N]) };
         Ok(array)
-    }
-}
-
-impl<T, /* A */> Clone for TypedProjVec<T, /* A */>
-where
-    T: Clone + 'static,
-    /*
-    A: Allocator,
-     */
-{
-    fn clone(&self) -> Self {
-        let cloned_inner = self.inner.clone::<T>();
-
-        Self {
-            inner: cloned_inner,
-            _marker: PhantomData,
-        }
     }
 }
 
