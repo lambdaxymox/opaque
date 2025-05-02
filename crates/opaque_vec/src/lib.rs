@@ -2024,6 +2024,174 @@ where
 {
     #[inline]
     #[must_use]
+    #[track_caller]
+    pub fn new_in<A>(alloc: A) -> Self
+    where
+        A: Allocator + Clone + 'static,
+    {
+        let inner = OpaqueVecInner::new_in::<T, A>(alloc);
+
+        Self {
+            inner,
+            _marker: core::marker::PhantomData,
+        }
+    }
+
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn with_capacity_in<A>(capacity: usize, alloc: A) -> Self
+    where
+        A: Allocator + Clone + 'static,
+    {
+        let inner = OpaqueVecInner::with_capacity_in::<T, A>(capacity, alloc);
+
+        Self {
+            inner,
+            _marker: core::marker::PhantomData,
+        }
+    }
+
+    #[inline]
+    pub fn try_with_capacity_in<A>(capacity: usize, alloc: A) -> Result<Self, opaque_error::TryReserveError>
+    where
+        A: Allocator + Clone + 'static,
+    {
+        let inner = OpaqueVecInner::try_with_capacity_in::<T, A>(capacity, alloc)?;
+
+        Ok(Self {
+            inner,
+            _marker: core::marker::PhantomData,
+        })
+    }
+
+    #[inline]
+    pub unsafe fn from_raw_parts_in<A>(ptr: *mut T, length: usize, capacity: usize, alloc: A) -> Self
+    where
+        A: Allocator + Clone + 'static,
+    {
+        let inner = OpaqueVecInner::from_raw_parts_in::<T, A>(ptr, length, capacity, alloc);
+
+        Self {
+            inner,
+            _marker: core::marker::PhantomData,
+        }
+    }
+
+    #[inline]
+    pub unsafe fn from_parts_in<A>(ptr: NonNull<T>, length: usize, capacity: usize, alloc: A) -> Self
+    where
+        A: Allocator + Clone + 'static,
+    {
+        let inner = OpaqueVecInner::from_parts_in::<T, A>(ptr, length, capacity, alloc);
+
+        Self {
+            inner,
+            _marker: core::marker::PhantomData,
+        }
+    }
+
+    #[inline]
+    pub const fn allocator(&self) -> &OpaqueAlloc {
+        self.inner.allocator()
+    }
+}
+
+impl<T> TypedProjVec<T>
+where
+    T: 'static,
+{
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn new() -> Self {
+        let inner = OpaqueVecInner::new::<T>();
+
+        Self {
+            inner,
+            _marker: core::marker::PhantomData,
+        }
+    }
+
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn with_capacity(capacity: usize) -> Self {
+        let inner = OpaqueVecInner::with_capacity::<T>(capacity);
+
+        Self {
+            inner,
+            _marker: core::marker::PhantomData,
+        }
+    }
+
+    #[inline]
+    pub fn try_with_capacity(capacity: usize) -> Result<Self, opaque_error::TryReserveError> {
+        let inner = OpaqueVecInner::try_with_capacity::<T>(capacity)?;
+
+        Ok(Self {
+            inner,
+            _marker: core::marker::PhantomData,
+        })
+    }
+
+    #[inline]
+    pub unsafe fn from_raw_parts(ptr: *mut T, length: usize, capacity: usize) -> Self {
+        let inner = OpaqueVecInner::from_raw_parts::<T>(ptr, length, capacity);
+
+        Self {
+            inner,
+            _marker: core::marker::PhantomData,
+        }
+    }
+
+    #[inline]
+    pub unsafe fn from_parts(ptr: NonNull<T>, length: usize, capacity: usize) -> Self {
+        let inner = OpaqueVecInner::from_parts::<T>(ptr, length, capacity);
+
+        Self {
+            inner,
+            _marker: core::marker::PhantomData,
+        }
+    }
+}
+
+impl<T> TypedProjVec<T>
+where
+    T: 'static,
+{
+    #[inline]
+    pub const fn element_layout(&self) -> Layout {
+        self.inner.element_layout()
+    }
+
+    #[inline]
+    pub const fn capacity(&self) -> usize {
+        self.inner.capacity()
+    }
+
+    #[inline]
+    pub const fn is_empty(&self) -> bool {
+        self.inner.is_empty()
+    }
+
+    #[inline]
+    pub const fn len(&self) -> usize {
+        self.inner.len()
+    }
+
+    #[inline]
+    unsafe fn set_len(&mut self, new_len: usize) {
+        self.inner.set_len(new_len);
+    }
+}
+
+impl<T> TypedProjVec<T>
+where
+    T: 'static,
+{
+    #[inline]
+    #[must_use]
     pub fn get(&self, index: usize) -> Option<&T> {
         self.inner.get::<T>(index)
     }
@@ -2184,36 +2352,6 @@ where
     #[inline]
     pub fn spare_capacity_mut(&mut self) -> &mut [MaybeUninit<T>] {
         self.inner.spare_capacity_mut::<T>()
-    }
-}
-
-impl<T> TypedProjVec<T>
-where
-    T: 'static,
-{
-    #[inline]
-    pub const fn element_layout(&self) -> Layout {
-        self.inner.element_layout()
-    }
-
-    #[inline]
-    pub const fn capacity(&self) -> usize {
-        self.inner.capacity()
-    }
-
-    #[inline]
-    pub const fn is_empty(&self) -> bool {
-        self.inner.is_empty()
-    }
-
-    #[inline]
-    pub const fn len(&self) -> usize {
-        self.inner.len()
-    }
-
-    #[inline]
-    unsafe fn set_len(&mut self, new_len: usize) {
-        self.inner.set_len(new_len);
     }
 }
 
@@ -2404,6 +2542,7 @@ where
     }
 }
 
+#[repr(transparent)]
 pub struct OpaqueVec {
     inner: OpaqueVecInner,
 }
@@ -2482,9 +2621,9 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        let inner = OpaqueVecInner::new::<T>();
+        let proj_vec = TypedProjVec::<T>::new();
 
-        Self { inner, }
+        Self::from_proj(proj_vec)
     }
 
     #[inline]
@@ -2494,9 +2633,9 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        let inner = OpaqueVecInner::with_capacity::<T>(capacity);
+        let proj_vec = TypedProjVec::<T>::with_capacity(capacity);
 
-        Self { inner, }
+        Self::from_proj(proj_vec)
     }
 
     #[inline]
@@ -2504,9 +2643,9 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        let inner = OpaqueVecInner::try_with_capacity::<T>(capacity)?;
+        let proj_vec = TypedProjVec::<T>::try_with_capacity(capacity)?;
 
-        Ok(Self { inner, })
+        Ok(Self::from_proj(proj_vec))
     }
 
     #[inline]
@@ -2514,9 +2653,9 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        let inner = OpaqueVecInner::from_raw_parts::<T>(ptr, length, capacity);
+        let proj_vec = TypedProjVec::<T>::from_raw_parts(ptr, length, capacity);
 
-        Self { inner, }
+        Self::from_proj(proj_vec)
     }
 
     #[inline]
@@ -2524,9 +2663,9 @@ impl OpaqueVec {
     where
         T: 'static,
     {
-        let inner = OpaqueVecInner::from_parts::<T>(ptr, length, capacity);
+        let proj_vec = TypedProjVec::<T>::from_parts(ptr, length, capacity);
 
-        Self { inner, }
+        Self::from_proj(proj_vec)
     }
 }
 
