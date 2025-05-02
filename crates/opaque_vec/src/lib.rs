@@ -2504,6 +2504,22 @@ where
     T: 'static,
 {
     #[inline]
+    pub fn reverse(&mut self)
+    where
+        T: 'static,
+    {
+        self.inner.reverse::<T>()
+    }
+}
+
+
+
+impl<T> TypedProjVec<T>
+where
+    T: 'static,
+{
+    /*
+    #[inline]
     pub fn extend<I>(&mut self, iter: I)
     where
         T: 'static,
@@ -2512,13 +2528,94 @@ where
         self.inner.extend::<T, I>(iter)
     }
 
+     */
+}
+
+#[cfg(not(no_global_oom_handling))]
+impl<T, /* A */> Extend<T> for TypedProjVec<T, /* A */>
+where
+    T: 'static,
+    /*
+    A: Allocator,
+    */
+{
     #[inline]
-    pub fn reverse(&mut self)
+    #[track_caller]
+    fn extend<I>(&mut self, iter: I)
     where
-        T: 'static,
+        I: IntoIterator<Item = T>,
     {
-        self.inner.reverse::<T>()
+        self.inner.extend::<T, I>(iter)
     }
+
+    /*
+    #[inline]
+    #[track_caller]
+    fn extend_one(&mut self, item: T) {
+        self.inner.push::<T>(item);
+    }
+     */
+    /*
+    #[inline]
+    #[track_caller]
+    fn extend_reserve(&mut self, additional: usize) {
+        self.inner.reserve(additional);
+    }
+    */
+    /*
+    #[inline]
+    unsafe fn extend_one_unchecked(&mut self, item: T) {
+        // SAFETY: Our preconditions ensure the space has been reserved, and `extend_reserve` is implemented correctly.
+        unsafe {
+            let len = self.len();
+            core::ptr::write(self.as_mut_ptr().add(len), item);
+            self.set_len(len + 1);
+        }
+    }
+    */
+}
+
+#[cfg(not(no_global_oom_handling))]
+impl<'a, T, /* A */> Extend<&'a T> for TypedProjVec<T, /* A */>
+where
+    T: Copy + 'a + 'static,
+    /*
+    A: Allocator,
+     */
+{
+    #[track_caller]
+    fn extend<I>(&mut self, iter: I)
+    where
+        I: IntoIterator<Item = &'a T>,
+    {
+        self.inner.extend::<T, _>(iter.into_iter().copied())
+    }
+
+    /*
+    #[inline]
+    #[track_caller]
+    fn extend_one(&mut self, &item: &'a T) {
+        self.push(item);
+    }
+    */
+    /*
+    #[inline]
+    #[track_caller]
+    fn extend_reserve(&mut self, additional: usize) {
+        self.reserve(additional);
+    }
+    */
+    /*
+    #[inline]
+    unsafe fn extend_one_unchecked(&mut self, &item: &'a T) {
+        // SAFETY: Our preconditions ensure the space has been reserved, and `extend_reserve` is implemented correctly.
+        unsafe {
+            let len = self.len();
+            core::ptr::write(self.as_mut_ptr().add(len), item);
+            self.set_len(len + 1);
+        }
+    }
+    */
 }
 
 impl<T> PartialEq<TypedProjVec<T>> for TypedProjVec<T>
@@ -2706,9 +2803,9 @@ where
     T: 'static,
 {
     #[track_caller]
-    fn from(s: [T; N]) -> TypedProjVec<T> {
+    fn from(slice: [T; N]) -> TypedProjVec<T> {
         /*
-        <[T]>::into_vec(Box::new(s))
+        <[T]>::into_vec(Box::new(slice))
          */
         todo!()
     }
@@ -2720,8 +2817,8 @@ where
     [T]: ToOwned<Owned = TypedProjVec<T>>,
 {
     #[track_caller]
-    fn from(s: borrow::Cow<'a, [T]>) -> TypedProjVec<T> {
-        s.into_owned()
+    fn from(slice: borrow::Cow<'a, [T]>) -> TypedProjVec<T> {
+        slice.into_owned()
     }
 }
 
@@ -2734,6 +2831,64 @@ where
         slice.into_vec()
          */
         todo!()
+    }
+}
+/*
+#[cfg(not(no_global_oom_handling))]
+impl<T, /* A */> From<Vec<T, /* A */>> for TypedProjVec<T, /* A */>
+where
+    T: Clone + 'static,
+    /*
+    A: Allocator,
+     */
+{
+    #[track_caller]
+    fn from(vec: Vec<T, /* A */>) -> Self {
+        let inner = OpaqueVecInner::from(vec);
+
+        Self {
+            inner,
+            _marker: core::marker::PhantomData,
+        }
+    }
+}
+*/
+
+#[cfg(not(no_global_oom_handling))]
+impl<T, /* A */> From<&Vec<T, /* A */>> for TypedProjVec<T, /* A */>
+where
+    T: Clone + 'static,
+/*
+A: Allocator,
+ */
+{
+    #[track_caller]
+    fn from(vec: &Vec<T, /* A */>) -> Self {
+        let inner = OpaqueVecInner::from(vec);
+
+        Self {
+            inner,
+            _marker: core::marker::PhantomData,
+        }
+    }
+}
+
+#[cfg(not(no_global_oom_handling))]
+impl<T, /* A */> From<&mut Vec<T, /* A */>> for TypedProjVec<T, /* A */>
+where
+    T: Clone + 'static,
+/*
+A: Allocator,
+ */
+{
+    #[track_caller]
+    fn from(vec: &mut Vec<T, /* A */>) -> Self {
+        let inner = OpaqueVecInner::from(vec);
+
+        Self {
+            inner,
+            _marker: core::marker::PhantomData,
+        }
     }
 }
 
@@ -2786,9 +2941,12 @@ where
     }
 }
 
-impl<T> Clone for TypedProjVec<T>
+impl<T, /* A */> Clone for TypedProjVec<T, /* A */>
 where
     T: Clone + 'static,
+    /*
+    A: Allocator,
+     */
 {
     fn clone(&self) -> Self {
         let cloned_inner = self.inner.clone::<T>();
