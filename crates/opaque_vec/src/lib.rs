@@ -15,7 +15,7 @@ use std::alloc::{
     Global,
     Layout,
 };
-use std::fmt;
+use std::{fmt, mem};
 use std::mem::{
     ManuallyDrop,
     MaybeUninit,
@@ -32,6 +32,10 @@ use core::iter::FusedIterator;
 use opaque_alloc::OpaqueAlloc;
 use opaque_error;
 
+#[inline(always)]
+const fn is_zst<T>() -> bool {
+    core::mem::size_of::<T>() == 0
+}
 
 pub struct IntoIter<T, A> {
     inner: OpaqueVecInner,
@@ -81,6 +85,9 @@ where
         self.as_slice()
     }
 }
+
+unsafe impl<T: Send, A: Allocator + Send> Send for IntoIter<T, A> {}
+unsafe impl<T: Sync, A: Allocator + Sync> Sync for IntoIter<T, A> {}
 
 impl<T, A: Allocator> Iterator for IntoIter<T, A> {
     type Item = T;
@@ -196,25 +203,24 @@ where
             let unyielded_ptr = this.iter.as_slice().as_ptr();
 
             // ZSTs have no identity, so we don't need to move them around.
-            // if !T::IS_ZST {
-            let start_ptr = source_vec.as_mut_ptr::<T>().add(start);
+            if !is_zst::<T>() {
+                let start_ptr = source_vec.as_mut_ptr::<T>().add(start);
 
-            // memmove back unyielded elements
-            if unyielded_ptr != start_ptr {
-                let src = unyielded_ptr;
-                let dst = start_ptr;
+                // memmove back unyielded elements
+                if unyielded_ptr != start_ptr {
+                    let src = unyielded_ptr;
+                    let dst = start_ptr;
 
-                core::ptr::copy(src, dst, unyielded_len);
+                    core::ptr::copy(src, dst, unyielded_len);
+                }
+
+                // memmove back untouched tail
+                if tail != (start + unyielded_len) {
+                    let src = source_vec.as_ptr::<T>().add(tail);
+                    let dst = start_ptr.add(unyielded_len);
+                    core::ptr::copy(src, dst, this.tail_len);
+                }
             }
-
-            // memmove back untouched tail
-            if tail != (start + unyielded_len) {
-                let src = source_vec.as_ptr::<T>().add(tail);
-                let dst = start_ptr.add(unyielded_len);
-                core::ptr::copy(src, dst, this.tail_len);
-            }
-            // }
-
 
             source_vec.set_len(start + unyielded_len + this.tail_len);
         }
@@ -299,8 +305,7 @@ where
 
         let mut vec = self.vec;
 
-        /*
-        if T::IS_ZST {
+        if is_zst::<T>() {
             // ZSTs have no identity, so we don't need to move them around, we only need to drop the correct amount.
             // this can be achieved by manipulating the Vec length instead of moving values out from `iter`.
             unsafe {
@@ -312,7 +317,6 @@ where
 
             return;
         }
-         */
 
         // ensure elements are moved back into their appropriate places, even when drop_in_place panics
         let _guard = DropGuard(self);
