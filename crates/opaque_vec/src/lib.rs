@@ -34,7 +34,7 @@ use opaque_error;
 
 
 pub struct IntoIter<T, A> {
-    opaque_vec: OpaqueVecInner,
+    inner: OpaqueVecInner,
     _marker: core::marker::PhantomData<(T, A)>,
 }
 
@@ -54,11 +54,11 @@ where
     A: Allocator,
 {
     pub fn as_slice(&self) -> &[T] {
-        self.opaque_vec.as_slice::<T>()
+        self.inner.as_slice::<T>()
     }
 
     pub fn as_mut_slice(&mut self) -> &mut [T] {
-        self.opaque_vec.as_mut_slice::<T>()
+        self.inner.as_mut_slice::<T>()
     }
 }
 
@@ -68,7 +68,7 @@ where
 {
     #[inline]
     pub fn allocator(&self) -> &OpaqueAlloc {
-        self.opaque_vec.allocator()
+        self.inner.allocator()
     }
 }
 
@@ -110,7 +110,7 @@ where
 {
     fn clone(&self) -> Self {
         Self {
-            opaque_vec: self.opaque_vec.clone::<T>(),
+            inner: self.inner.clone::<T>(),
             _marker: self._marker,
         }
     }
@@ -162,7 +162,8 @@ where
     pub fn allocator(&self) -> &A {
         unsafe { self.vec.as_ref().allocator() }
     }
-     */
+    */
+
     #[must_use]
     #[inline]
     pub fn allocator(&self) -> &OpaqueAlloc {
@@ -583,15 +584,15 @@ where
 }
 
 struct Extender<'a, T> {
-    opaque_vec: &'a mut OpaqueVecInner,
+    inner: &'a mut OpaqueVecInner,
     _marker: core::marker::PhantomData<T>,
 }
 
 impl<'a, T> Extender<'a, T> {
     #[inline]
-    const fn new(opaque_vec: &'a mut OpaqueVecInner) -> Self {
+    const fn new(inner: &'a mut OpaqueVecInner) -> Self {
         Self {
-            opaque_vec,
+            inner,
             _marker: core::marker::PhantomData,
         }
     }
@@ -606,7 +607,7 @@ where
         I: IntoIterator<Item = T>,
     {
         for item in iter.into_iter() {
-            self.opaque_vec.push::<T>(item);
+            self.inner.push::<T>(item);
         }
     }
 }
@@ -620,7 +621,7 @@ where
         I: IntoIterator<Item = &'b T>,
     {
         for item in iter.into_iter() {
-            self.opaque_vec.push::<T>(*item);
+            self.inner.push::<T>(*item);
         }
     }
 }
@@ -1244,7 +1245,7 @@ impl OpaqueVecInner {
         T: 'static,
     {
         IntoIter {
-            opaque_vec: self,
+            inner: self,
             _marker: PhantomData,
         }
     }
@@ -1708,7 +1709,7 @@ impl OpaqueVecInner {
     where
         T: 'static,
         R: ops::RangeBounds<usize>,
-        I: IntoIterator<Item = T>,
+        I: IntoIterator<Item=T>,
     {
         Splice {
             drain: self.drain(range),
@@ -1735,12 +1736,13 @@ impl OpaqueVecInner {
     pub(crate) fn extend<T, I>(&mut self, iter: I)
     where
         T: 'static,
-        I: IntoIterator<Item = T>,
+        I: IntoIterator<Item=T>,
     {
         let mut extender = Extender::new(self);
         extender.extend(iter)
     }
 
+    /*
     #[inline]
     pub(crate) fn reverse<T>(&mut self)
     where
@@ -1748,7 +1750,10 @@ impl OpaqueVecInner {
     {
         self.as_mut_slice::<T>().reverse();
     }
+    */
+}
 
+impl OpaqueVecInner {
     #[inline]
     pub(crate) fn clone<T>(&self) -> Self
     where
@@ -2499,7 +2504,7 @@ where
         self.inner.dedup_by::<F, T>(same_bucket)
     }
 }
-
+/*
 impl<T> TypedProjVec<T>
 where
     T: 'static,
@@ -2512,7 +2517,7 @@ where
         self.inner.reverse::<T>()
     }
 }
-
+*/
 impl<T, /* A */> ops::Deref for TypedProjVec<T, /* A */>
 where
     T: 'static,
