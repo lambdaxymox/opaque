@@ -33,8 +33,9 @@ macro_rules! bench_alloc {
 
             c.bench_function(stringify!($bench_opaque_name), |b| {
                 b.iter(|| unsafe {
-                    let allocation_ptr = criterion::black_box(opaque_alloc.allocate(layout.clone()).unwrap());
-                    opaque_alloc.deallocate(allocation_ptr.as_non_null_ptr(), layout);
+                    let proj_alloc = opaque_alloc.as_proj::<Global>();
+                    let allocation_ptr = criterion::black_box(proj_alloc.allocate(layout.clone()).unwrap());
+                    proj_alloc.deallocate(allocation_ptr.as_non_null_ptr(), layout);
                 });
             });
         }
