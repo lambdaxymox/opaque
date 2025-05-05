@@ -770,6 +770,7 @@ where
                 return false;
             }
         }
+
         true
     }
 
