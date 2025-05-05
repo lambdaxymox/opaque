@@ -443,14 +443,6 @@ where
         self.iter.as_slice()
     }
 
-    /*
-    #[must_use]
-    #[inline]
-    pub fn allocator(&self) -> &A {
-        unsafe { self.vec.as_ref().allocator() }
-    }
-    */
-
     #[must_use]
     #[inline]
     pub fn allocator(&self) -> &TypedProjAlloc<A> {
@@ -1634,19 +1626,6 @@ impl OpaqueVecInner {
         Ok(())
     }
 
-    /*
-    #[inline]
-    pub(crate) fn into_iter<T>(self) -> IntoIter<T, OpaqueAlloc>
-    where
-        T: any::Any,
-    {
-        IntoIter {
-            inner: self,
-            _marker: PhantomData,
-        }
-    }
-    */
-
     #[cfg(not(no_global_oom_handling))]
     #[inline]
     #[track_caller]
@@ -2152,16 +2131,6 @@ impl OpaqueVecInner {
         let mut extender = Extender::new(self);
         extender.extend(iter)
     }
-
-    /*
-    #[inline]
-    pub(crate) fn reverse<T>(&mut self)
-    where
-        T: any::Any,
-    {
-        self.as_mut_slice::<T>().reverse();
-    }
-    */
 }
 
 impl OpaqueVecInner {
@@ -2412,16 +2381,6 @@ where
         Self::from(vec.as_mut_slice())
     }
 }
-/*
-impl<T> From<Box<[T]>> for OpaqueVecInner
-where
-    T: any::Any + Clone,
-{
-    fn from(slice: Box<[T]>) -> Self {
-        Self::from(slice.as_ref())
-    }
-}
-*/
 
 impl<T, A> From<Box<[T], A>> for OpaqueVecInner
 where
@@ -2761,12 +2720,6 @@ where
         self.inner.iter_mut::<T>()
     }
 
-    /*
-    pub fn into_iter(self) -> IntoIter<T, OpaqueAlloc> {
-        self.inner.into_iter::<T>()
-    }
-    */
-
     #[cfg(not(no_global_oom_handling))]
     #[inline]
     #[track_caller]
@@ -3008,20 +2961,7 @@ where
         self.inner.dedup_by::<F, T, A>(same_bucket)
     }
 }
-/*
-impl<T> TypedProjVec<T>
-where
-    T: any::Any,
-{
-    #[inline]
-    pub fn reverse(&mut self)
-    where
-        T: any::Any,
-    {
-        self.inner.reverse::<T>()
-    }
-}
-*/
+
 impl<T, A> ops::Deref for TypedProjVec<T, A>
 where
     T: any::Any,
@@ -4441,18 +4381,7 @@ where
         Self { inner, }
     }
 }
-/*
-impl<T> From<Box<[T]>> for OpaqueVec
-where
-    T: any::Any + Clone,
-{
-    fn from(slice: Box<[T]>) -> Self {
-        let inner = OpaqueVecInner::from(slice);
 
-        Self { inner, }
-    }
-}
-*/
 impl<T, A> From<Box<[T], A>> for OpaqueVec
 where
     T: any::Any,
