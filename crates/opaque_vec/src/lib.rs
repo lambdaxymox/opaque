@@ -11,22 +11,22 @@ use core::cmp;
 use core::hash;
 use core::ops;
 use core::slice;
+use core::fmt;
+use core::mem;
+use core::ptr::NonNull;
+use core::any::TypeId;
+use core::marker::PhantomData;
+use core::iter::FusedIterator;
+use std::mem::{
+    ManuallyDrop,
+    MaybeUninit,
+};
 use std::alloc::{
     Allocator,
     Global,
     Layout,
 };
-use std::{fmt, mem};
-use std::mem::{
-    ManuallyDrop,
-    MaybeUninit,
-};
 use std::borrow;
-use std::ptr::NonNull;
-
-use core::any::TypeId;
-use core::marker::PhantomData;
-use core::iter::FusedIterator;
 
 use opaque_blob_vec::OpaqueBlobVec;
 use opaque_alloc::{OpaqueAlloc, TypedProjAlloc};
@@ -1734,7 +1734,7 @@ impl OpaqueVecInner {
     {
         let len = self.len();
         if new_len > len {
-            self.extend::<T, _>(core::iter::repeat_with(f).take(new_len - len));
+            self.extend::<_, T>(core::iter::repeat_with(f).take(new_len - len));
         } else {
             self.truncate(new_len);
         }
@@ -1797,7 +1797,7 @@ impl OpaqueVecInner {
     }
 
     #[inline]
-    pub(crate) fn extend_from_iter<T, I>(&mut self, mut iterator: I)
+    pub(crate) fn extend_from_iter<I, T>(&mut self, mut iterator: I)
     where
         T: any::Any + Clone,
         I: Iterator<Item = T>,
@@ -1812,7 +1812,7 @@ impl OpaqueVecInner {
     where
         T: any::Any + Clone,
     {
-        self.extend_from_iter::<T, _>(other.iter().cloned())
+        self.extend_from_iter::<_, T>(other.iter().cloned())
     }
 
     #[inline]
@@ -2144,7 +2144,7 @@ impl OpaqueVecInner {
     }
 
     #[inline]
-    pub(crate) fn extend<T, I>(&mut self, iter: I)
+    pub(crate) fn extend<I, T>(&mut self, iter: I)
     where
         T: any::Any,
         I: IntoIterator<Item=T>,
@@ -2255,14 +2255,6 @@ impl fmt::Debug for OpaqueVecInner {
     }
 }
 
-impl fmt::Display for OpaqueVecInner {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let data_display = DebugDisplayDataFormatter::new(&self);
-
-        data_display.fmt_data(formatter)
-    }
-}
-
 mod private {
     use super::OpaqueVecInner;
     use std::alloc::Allocator;
@@ -2275,7 +2267,7 @@ mod private {
     pub fn into_opaque_vec<T, A>(b: Box<[T], A>) -> OpaqueVecInner
     where
         T: any::Any,
-        A: Allocator + any::Any + Clone,
+        A: Allocator + any::Any,
     {
         unsafe {
             let len = b.len();
@@ -2391,6 +2383,16 @@ where
     }
 }
 
+impl<T, A> From<Vec<T, A>> for OpaqueVecInner
+where
+    T: any::Any,
+    A: Allocator + any::Any,
+{
+    fn from(vec: Vec<T, A>) -> Self {
+        todo!()
+    }
+}
+
 impl<T, A> From<&Vec<T, A>> for OpaqueVecInner
 where
     T: any::Any + Clone,
@@ -2423,11 +2425,14 @@ where
 
 impl<T, A> From<Box<[T], A>> for OpaqueVecInner
 where
-    T: any::Any + Clone,
-    A: Allocator + any::Any + Clone,
+    T: any::Any,
+    A: Allocator + any::Any,
 {
     fn from(slice: Box<[T], A>) -> Self {
+        /*
         Self::from(slice.as_ref())
+        */
+        todo!()
     }
 }
 
@@ -2941,7 +2946,7 @@ where
         T: Clone,
         I: Iterator<Item = T>,
     {
-        self.inner.extend_from_iter::<T, _>(iterator)
+        self.inner.extend_from_iter::<I, T>(iterator)
     }
 
     #[cfg(not(no_global_oom_handling))]
@@ -3185,7 +3190,7 @@ where
     where
         I: IntoIterator<Item = T>,
     {
-        self.inner.extend::<T, I>(iter)
+        self.inner.extend::<I, T>(iter)
     }
 
     /*
@@ -3226,7 +3231,7 @@ where
     where
         I: IntoIterator<Item = &'a T>,
     {
-        self.inner.extend::<T, _>(iter.into_iter().copied())
+        self.inner.extend::<_, T>(iter.into_iter().copied())
     }
 
     /*
@@ -3457,11 +3462,11 @@ where
         todo!()
     }
 }
-/*
+
 #[cfg(not(no_global_oom_handling))]
 impl<T, A> From<Vec<T, A>> for TypedProjVec<T, A>
 where
-    T: any::Any + Clone,
+    T: any::Any,
     A: Allocator + any::Any,
 {
     #[track_caller]
@@ -3474,7 +3479,7 @@ where
         }
     }
 }
-*/
+
 #[cfg(not(no_global_oom_handling))]
 impl<T, A> From<&Vec<T, A>> for TypedProjVec<T, A>
 where
@@ -3758,7 +3763,7 @@ impl OpaqueVec {
     #[inline]
     pub fn has_allocator_type<A>(&self) -> bool
     where
-        A: Allocator + any::Any + Clone,
+        A: Allocator + any::Any,
     {
         self.inner.has_allocator_type::<A>()
     }
@@ -4231,7 +4236,7 @@ impl OpaqueVec {
 
     #[cfg(not(no_global_oom_handling))]
     #[track_caller]
-    fn extend_from_iter<T, I, A>(&mut self, iterator: I)
+    fn extend_from_iter<I, T, A>(&mut self, iterator: I)
     where
         T: any::Any + Clone,
         A: Allocator + any::Any,
@@ -4359,12 +4364,6 @@ impl fmt::Debug for OpaqueVec {
     }
 }
 
-impl fmt::Display for OpaqueVec {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.inner.fmt(formatter)
-    }
-}
-
 impl<T> From<&[T]> for OpaqueVec
 where
     T: any::Any + Clone,
@@ -4409,6 +4408,18 @@ where
     }
 }
 
+impl<T, A> From<Vec<T, A>> for OpaqueVec
+where
+    T: any::Any,
+    A: Allocator + any::Any,
+{
+    fn from(vec: Vec<T, A>) -> Self {
+        let inner = OpaqueVecInner::from(vec);
+
+        Self { inner, }
+    }
+}
+
 impl<T> From<&Vec<T>> for OpaqueVec
 where
     T: any::Any + Clone,
@@ -4444,8 +4455,8 @@ where
 */
 impl<T, A> From<Box<[T], A>> for OpaqueVec
 where
-    T: any::Any + Clone,
-    A: Allocator + any::Any + Clone,
+    T: any::Any,
+    A: Allocator + any::Any,
 {
     fn from(slice: Box<[T], A>) -> Self {
         let inner = OpaqueVecInner::from(slice);
@@ -4462,6 +4473,14 @@ where
         let inner = OpaqueVecInner::from(array);
 
         Self { inner, }
+    }
+}
+
+#[cfg(not(no_global_oom_handling))]
+impl From<&str> for OpaqueVec {
+    #[track_caller]
+    fn from(st: &str) -> Self {
+        From::from(st.as_bytes())
     }
 }
 

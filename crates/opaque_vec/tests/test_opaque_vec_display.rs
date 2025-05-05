@@ -4,7 +4,7 @@ use opaque_vec::OpaqueVec;
 use core::any;
 use core::fmt;
 use std::alloc;
-
+/*
 #[test]
 fn test_opaque_vec_display_empty() {
     let vec = OpaqueVec::new::<i32>();
@@ -147,3 +147,4 @@ fn test_opaque_vec_display10() {
 
     run_test_opaque_vec_display(&values, expected);
 }
+*/
