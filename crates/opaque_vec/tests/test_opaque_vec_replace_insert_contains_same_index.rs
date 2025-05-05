@@ -1,33 +1,36 @@
+#![feature(allocator_api)]
 use opaque_vec::OpaqueVec;
 
+use core::any;
 use core::fmt;
+use std::alloc;
 
 fn run_test_opaque_vec_replace_insert_contains_same_index1<T>(value: T)
 where
-    T: PartialEq + Clone + fmt::Debug + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug
 {
     let mut vec = OpaqueVec::new::<T>();
 
-    assert!(!vec.contains::<T>(&value));
+    assert!(!vec.contains::<T, alloc::Global>(&value));
 
-    vec.replace_insert::<T>(0, value.clone());
+    vec.replace_insert::<T, alloc::Global>(0, value.clone());
 
-    assert!(vec.contains::<T>(&value));
+    assert!(vec.contains::<T, alloc::Global>(&value));
 }
 
 fn run_test_opaque_vec_replace_insert_contains_same_index2<T>(initial_value: T, value: T)
 where
-    T: PartialEq + Clone + fmt::Debug + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug
 {
     let mut vec = OpaqueVec::new::<T>();
-    vec.replace_insert::<T>(0, initial_value.clone());
+    vec.replace_insert::<T, alloc::Global>(0, initial_value.clone());
 
-    assert!(vec.contains::<T>(&initial_value));
+    assert!(vec.contains::<T, alloc::Global>(&initial_value));
 
     for _ in 0..65536 {
-        vec.replace_insert::<T>(0, value.clone());
+        vec.replace_insert::<T, alloc::Global>(0, value.clone());
 
-        assert!(vec.contains::<T>(&value));
+        assert!(vec.contains::<T, alloc::Global>(&value));
     }
 }
 

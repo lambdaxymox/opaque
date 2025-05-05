@@ -1,28 +1,31 @@
+#![feature(allocator_api)]
 use opaque_vec::OpaqueVec;
 
+use core::any;
 use core::fmt;
+use std::alloc;
 
 use opaque_vec_testing as ovt;
 
 fn run_test_opaque_vec_shift_insert_end<T>(values: &[T])
 where
-    T: PartialEq + Clone + fmt::Debug + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug
 {
     let mut vec = OpaqueVec::new::<T>();
 
     for (i, value) in values.iter().cloned().enumerate() {
-        vec.shift_insert::<T>(i, value);
+        vec.shift_insert::<T, alloc::Global>(i, value);
     }
 
     let expected = values;
-    let result = vec.as_slice::<T>();
+    let result = vec.as_slice::<T, alloc::Global>();
 
     assert_eq!(result, expected);
 }
 
 fn run_test_opaque_vec_shift_insert_end_values<T>(values: &[T])
 where
-    T: PartialEq + Clone + fmt::Debug + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {

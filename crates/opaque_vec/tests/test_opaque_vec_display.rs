@@ -1,6 +1,9 @@
+#![feature(allocator_api)]
 use opaque_vec::OpaqueVec;
 
+use core::any;
 use core::fmt;
+use std::alloc;
 
 #[test]
 fn test_opaque_vec_display_empty() {
@@ -14,11 +17,11 @@ fn test_opaque_vec_display_empty() {
 
 fn run_test_opaque_vec_display<T>(values: &[T], expected: &str)
 where
-    T: Clone + fmt::Display + 'static,
+    T: any::Any + Clone + fmt::Display,
 {
     let mut vec = OpaqueVec::new::<T>();
     for value in values.iter().cloned() {
-        vec.push::<T>(value);
+        vec.push::<T, alloc::Global>(value);
     }
 
     let result = format!("{}", vec);

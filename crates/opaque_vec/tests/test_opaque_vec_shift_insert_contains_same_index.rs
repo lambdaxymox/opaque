@@ -1,43 +1,46 @@
+#![feature(allocator_api)]
 use opaque_vec::OpaqueVec;
 
+use core::any;
 use core::fmt;
+use std::alloc;
 
 use opaque_vec_testing as ovt;
 
 fn run_test_opaque_vec_shift_insert_contains_same_index1<T>(value: T)
 where
-    T: PartialEq + Clone + fmt::Debug + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug
 {
     let mut vec = OpaqueVec::new::<T>();
 
-    assert!(!vec.contains::<T>(&value));
+    assert!(!vec.contains::<T, alloc::Global>(&value));
 
-    vec.shift_insert::<T>(0, value.clone());
+    vec.shift_insert::<T, alloc::Global>(0, value.clone());
 
-    assert!(vec.contains::<T>(&value));
+    assert!(vec.contains::<T, alloc::Global>(&value));
 }
 
 fn run_test_opaque_vec_shift_insert_contains_same_index2<T>(values: &[T])
 where
-    T: PartialEq + Clone + fmt::Debug + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug
 {
     let mut vec = OpaqueVec::new::<T>();
     for value in values.iter() {
-        assert!(!vec.contains::<T>(&value));
+        assert!(!vec.contains::<T, alloc::Global>(&value));
     }
 
     for value in values.iter().cloned() {
-        vec.shift_insert::<T>(0, value);
+        vec.shift_insert::<T, alloc::Global>(0, value);
     }
 
     for value in values.iter() {
-        assert!(vec.contains::<T>(&value));
+        assert!(vec.contains::<T, alloc::Global>(&value));
     }
 }
 
 fn run_test_opaque_vec_shift_insert_contains_same_index2_values<T>(values: &[T])
 where
-    T: PartialEq + Clone + fmt::Debug + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {

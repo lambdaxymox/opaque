@@ -1,9 +1,12 @@
+#![feature(allocator_api)]
 use criterion::{
     Criterion,
     criterion_group,
     criterion_main,
 };
 use opaque_vec::OpaqueVec;
+
+use std::alloc;
 
 fn bench_vec_push(c: &mut Criterion) {
     let dummy_data = 0_i32;
@@ -27,7 +30,7 @@ fn bench_opaque_vec_push(c: &mut Criterion) {
         b.iter(|| {
             let mut opaque_vec = OpaqueVec::new::<i32>();
             for _ in 0..1024 {
-                opaque_vec.push::<i32>(criterion::black_box(dummy_data));
+                opaque_vec.push::<i32, alloc::Global>(criterion::black_box(dummy_data));
             }
 
             opaque_vec

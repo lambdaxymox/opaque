@@ -1,13 +1,16 @@
+#![feature(allocator_api)]
 use opaque_vec::OpaqueVec;
 
+use core::any;
 use core::fmt;
+use std::alloc;
 
 fn run_test_opaque_vec_from_iter_array<const N: usize, T>(expected: [T; N])
 where
-    T: PartialEq + Clone + fmt::Debug + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug,
 {
     let vec = OpaqueVec::from_iter(expected.iter().cloned());
-    let result = vec.as_slice::<T>();
+    let result = vec.as_slice::<T, alloc::Global>();
 
     assert_eq!(result, expected);
 }
@@ -18,7 +21,7 @@ fn test_opaque_vec_from_iter_array_empty() {
     let mut vec = OpaqueVec::from_iter(values);
 
     let expected = values.as_slice();
-    let result = vec.as_slice::<i32>();
+    let result = vec.as_slice::<i32, alloc::Global>();
 
     assert_eq!(result, expected);
 }

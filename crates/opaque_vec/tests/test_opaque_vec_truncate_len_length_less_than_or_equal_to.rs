@@ -1,17 +1,20 @@
+#![feature(allocator_api)]
 use opaque_vec::OpaqueVec;
 
+use core::any;
 use core::fmt;
+use std::alloc;
 
 use opaque_vec_testing as ovt;
 
 fn run_test_opaque_vec_truncate_len_length_less_than_or_equal_to<T>(values: &[T])
 where
-    T: PartialEq + Clone + fmt::Debug + TryFrom<usize> + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug + TryFrom<usize>,
     <T as TryFrom<usize>>::Error: fmt::Debug,
 {
     let base_opaque_vec = OpaqueVec::from(values);
     for len in 0..values.len() {
-        let mut opaque_vec = base_opaque_vec.clone::<T>();
+        let mut opaque_vec = base_opaque_vec.clone::<T, alloc::Global>();
 
         opaque_vec.truncate(len);
 
@@ -24,7 +27,7 @@ where
 
 fn run_test_opaque_vec_truncate_len_length_less_than_or_equal_to_values<T>(values: &[T])
 where
-    T: PartialEq + Clone + fmt::Debug + TryFrom<usize> + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug + TryFrom<usize>,
     <T as TryFrom<usize>>::Error: fmt::Debug,
 {
     let iter = ovt::PrefixGenerator::new(values);

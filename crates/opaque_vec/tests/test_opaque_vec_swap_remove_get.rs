@@ -1,19 +1,22 @@
+#![feature(allocator_api)]
 use opaque_vec::OpaqueVec;
 
+use core::any;
 use core::fmt;
+use std::alloc;
 
 use opaque_vec_testing as ovt;
 
 fn run_test_opaque_vec_swap_remove_get_from_end<T>(values: &[T])
 where
-    T: PartialEq + Clone + fmt::Debug + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug
 {
     let mut vec = OpaqueVec::from(values);
 
     for _ in 0..vec.len() {
         let last_index = vec.len() - 1;
-        let expected = vec.get::<T>(last_index).cloned().unwrap();
-        let result = vec.swap_remove::<T>(last_index);
+        let expected = vec.get::<T, alloc::Global>(last_index).cloned().unwrap();
+        let result = vec.swap_remove::<T, alloc::Global>(last_index);
 
         assert_eq!(result, expected);
     }
@@ -21,7 +24,7 @@ where
 
 fn run_test_opaque_vec_swap_remove_get_from_end_values<T>(values: &[T])
 where
-    T: PartialEq + Clone + fmt::Debug + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {

@@ -1,35 +1,38 @@
+#![feature(allocator_api)]
 use opaque_vec::OpaqueVec;
 
+use core::any;
 use core::fmt;
+use std::alloc;
 
 fn run_test_opaque_vec_replace_insert_get_same_index1<T>(value: T)
 where
-    T: PartialEq + Clone + fmt::Debug + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug
 {
     let mut vec = OpaqueVec::new::<T>();
-    vec.replace_insert::<T>(0, value.clone());
+    vec.replace_insert::<T, alloc::Global>(0, value.clone());
 
     let expected = Some(value.clone());
-    let result = vec.get::<T>(0).cloned();
+    let result = vec.get::<T, alloc::Global>(0).cloned();
 
     assert_eq!(result, expected);
 }
 
 fn run_test_opaque_vec_replace_insert_get_same_index2<T>(initial_value: T, value: T)
 where
-    T: PartialEq + Clone + fmt::Debug + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug
 {
     let mut vec = OpaqueVec::new::<T>();
-    vec.replace_insert::<T>(0, initial_value.clone());
+    vec.replace_insert::<T, alloc::Global>(0, initial_value.clone());
 
     let expected_initial = Some(initial_value.clone());
-    let result_initial = vec.get::<T>(0).cloned();
+    let result_initial = vec.get::<T, alloc::Global>(0).cloned();
     assert_eq!(result_initial, expected_initial);
 
     for _ in 0..65536 {
-        vec.replace_insert::<T>(0, value.clone());
+        vec.replace_insert::<T, alloc::Global>(0, value.clone());
         let expected = Some(value.clone());
-        let result = vec.get::<T>(0).cloned();
+        let result = vec.get::<T, alloc::Global>(0).cloned();
 
         assert_eq!(result, expected);
     }

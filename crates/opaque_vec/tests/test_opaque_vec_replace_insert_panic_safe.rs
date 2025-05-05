@@ -1,10 +1,10 @@
-use std::panic::{
-    self,
-    AssertUnwindSafe,
-};
-
+#![feature(allocator_api)]
 use opaque_vec::OpaqueVec;
+
+use std::alloc;
 use std::cell::RefCell;
+use std::panic;
+use std::panic::AssertUnwindSafe;
 use std::rc::Rc;
 
 #[derive(Clone, Debug)]
@@ -90,13 +90,13 @@ fn test_replace_insert_on_panic_drop_count() {
     let mut replacement_panic_cell = PanicCell::new((), 2);
     let mut vec = OpaqueVec::new::<PanicCell<()>>();
 
-    vec.replace_insert::<PanicCell<()>>(0, triggering_panic_cell.clone());
+    vec.replace_insert::<PanicCell<()>, alloc::Global>(0, triggering_panic_cell.clone());
 
     assert_eq!(triggering_panic_cell.drop_count(), 0);
     assert_eq!(replacement_panic_cell.drop_count(), 0);
 
     let result = panic::catch_unwind(AssertUnwindSafe(|| {
-        vec.replace_insert::<PanicCell<()>>(0, replacement_panic_cell.clone());
+        vec.replace_insert::<PanicCell<()>, alloc::Global>(0, replacement_panic_cell.clone());
     }));
 
     assert!(result.is_err());
@@ -115,7 +115,7 @@ fn test_replace_insert_on_success_drop_count() {
     let mut panic_cell = PanicCell::new((), 1);
     let mut vec = OpaqueVec::new::<PanicCell<()>>();
 
-    vec.replace_insert::<PanicCell<()>>(0, panic_cell.clone());
+    vec.replace_insert::<PanicCell<()>, alloc::Global>(0, panic_cell.clone());
 
     panic_cell.disable_panics();
 

@@ -1,12 +1,15 @@
+#![feature(allocator_api)]
 use opaque_vec::OpaqueVec;
 
+use core::any;
 use core::fmt;
+use std::alloc;
 
 use opaque_vec_testing as ovt;
 
 fn run_test_opaque_vec_clear_as_slice<T>(values: &[T])
 where
-    T: PartialEq + Clone + fmt::Debug + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug,
 {
     let expected = OpaqueVec::new::<T>();
     let result = {
@@ -15,12 +18,12 @@ where
         vec
     };
 
-    assert_eq!(result.as_slice::<T>(), expected.as_slice::<T>());
+    assert_eq!(result.as_slice::<T, alloc::Global>(), expected.as_slice::<T, alloc::Global>());
 }
 
 fn run_test_opaque_vec_clear_as_slice_values<T>(values: &[T])
 where
-    T: PartialEq + Clone + fmt::Debug + TryFrom<usize> + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug + TryFrom<usize>,
     <T as TryFrom<usize>>::Error: fmt::Debug,
 {
     let iter = ovt::PrefixGenerator::new(values);

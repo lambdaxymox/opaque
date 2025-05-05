@@ -1,9 +1,12 @@
+#![feature(allocator_api)]
 use criterion::{
     Criterion,
     criterion_group,
     criterion_main,
 };
 use opaque_vec::OpaqueVec;
+
+use std::alloc;
 
 fn bench_vec_pop(c: &mut Criterion) {
     let dummy_data = 0_i32;
@@ -31,7 +34,7 @@ fn bench_opaque_vec_pop(c: &mut Criterion) {
             || OpaqueVec::from_iter((0..1000).map(|_| dummy_data)),
             |mut opaque_vec| {
                 for _ in 0..opaque_vec.len() {
-                    let _ = criterion::black_box(opaque_vec.pop::<i32>());
+                    let _ = criterion::black_box(opaque_vec.pop::<i32, alloc::Global>());
                 }
             },
             criterion::BatchSize::NumIterations(1000),

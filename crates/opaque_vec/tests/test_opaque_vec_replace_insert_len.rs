@@ -1,14 +1,18 @@
+#![feature(allocator_api)]
 use opaque_vec::OpaqueVec;
+
+use core::any;
+use std::alloc;
 
 use opaque_vec_testing as ovt;
 
 fn run_test_opaque_vec_replace_insert_len<T>(values: &[T])
 where
-    T: PartialEq + Clone + 'static,
+    T: any::Any + PartialEq + Clone,
 {
     let mut vec = OpaqueVec::new::<T>();
     for (i, value) in values.iter().cloned().enumerate() {
-        vec.replace_insert::<T>(i, value);
+        vec.replace_insert::<T, alloc::Global>(i, value);
     }
 
     let expected = values.len();
@@ -19,7 +23,7 @@ where
 
 fn run_test_opaque_vec_replace_insert_len_values<T>(values: &[T])
 where
-    T: PartialEq + Clone + 'static,
+    T: any::Any + PartialEq + Clone,
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {

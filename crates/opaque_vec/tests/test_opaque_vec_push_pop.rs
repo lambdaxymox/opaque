@@ -1,16 +1,19 @@
+#![feature(allocator_api)]
 use opaque_vec::OpaqueVec;
 
+use core::any;
 use core::fmt;
+use std::alloc;
 
 use opaque_vec_testing as ovt;
 
 fn expected<T>(values: &[T]) -> OpaqueVec
 where
-    T: PartialEq + Clone + fmt::Debug + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug,
 {
     let mut expected_vec = OpaqueVec::new::<T>();
     for value in values.iter().rev().cloned() {
-        expected_vec.push::<T>(value);
+        expected_vec.push::<T, alloc::Global>(value);
     }
 
     expected_vec
@@ -18,14 +21,14 @@ where
 
 fn result<T>(values: &[T]) -> OpaqueVec
 where
-    T: PartialEq + Clone + fmt::Debug + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug
 {
     let mut vec = OpaqueVec::from(values);
     let mut result_vec = OpaqueVec::new::<T>();
     for _ in 0..vec.len() {
-        let popped = vec.pop::<T>();
+        let popped = vec.pop::<T, alloc::Global>();
 
-        result_vec.push::<T>(popped.unwrap());
+        result_vec.push::<T, alloc::Global>(popped.unwrap());
     }
 
     result_vec
@@ -33,17 +36,17 @@ where
 
 fn run_test_opaque_vec_push_pop<T>(values: &[T])
 where
-    T: PartialEq + Clone + fmt::Debug + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug
 {
     let expected = expected(values);
     let result = result(values);
 
-    assert_eq!(result.as_slice::<T>(), expected.as_slice::<T>());
+    assert_eq!(result.as_slice::<T, alloc::Global>(), expected.as_slice::<T, alloc::Global>());
 }
 
 fn run_test_opaque_vec_push_pop_values<T>(values: &[T])
 where
-    T: PartialEq + Clone + fmt::Debug + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {

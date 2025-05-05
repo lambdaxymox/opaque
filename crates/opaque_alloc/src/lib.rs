@@ -38,14 +38,24 @@ struct OpaqueAllocInner {
 
 impl OpaqueAllocInner {
     #[inline]
-    pub fn new<A>(alloc: A) -> Self
+    fn new<A>(alloc: A) -> Self
     where
         A: Allocator + any::Any,
     {
-        let new_alloc = Box::new(alloc);
+        let boxed_alloc = Box::new(alloc);
         let type_id: TypeId = TypeId::of::<A>();
 
-        Self { alloc: new_alloc, type_id }
+        Self { alloc: boxed_alloc, type_id, }
+    }
+
+    #[inline]
+    fn from_boxed_alloc<A>(alloc: Box<A>) -> Self
+    where
+        A: Allocator + any::Any,
+    {
+        let type_id = TypeId::of::<A>();
+
+        Self { alloc, type_id, }
     }
 
     #[inline]
@@ -57,7 +67,7 @@ impl OpaqueAllocInner {
     }
 
     #[inline]
-    pub fn allocator_assuming_type<A>(&self) -> &A
+    fn allocator_assuming_type<A>(&self) -> &A
     where
         A: Allocator + any::Any,
     {
@@ -116,11 +126,15 @@ where
     A: Allocator + any::Any,
 {
     #[inline]
-    pub fn new(alloc: A) -> Self
-    where
-        A: Allocator + any::Any,
-    {
+    pub fn new(alloc: A) -> Self {
         let inner = OpaqueAllocInner::new::<A>(alloc);
+
+        Self { inner, _marker: PhantomData }
+    }
+
+    #[inline]
+    pub fn from_boxed_alloc(alloc: Box<A>) -> Self {
+        let inner = OpaqueAllocInner::from_boxed_alloc(alloc);
 
         Self { inner, _marker: PhantomData }
     }
@@ -181,6 +195,15 @@ where
     }
 }
 
+impl<A> From<A> for TypedProjAlloc<A>
+where
+    A: Allocator + any::Any,
+{
+    fn from(alloc: A) -> Self {
+        Self::new(alloc)
+    }
+}
+
 #[repr(transparent)]
 pub struct OpaqueAlloc {
     inner: OpaqueAllocInner,
@@ -192,9 +215,19 @@ impl OpaqueAlloc {
     where
         A: Allocator + any::Any,
     {
-        let inner = OpaqueAllocInner::new::<A>(alloc);
+        let proj_alloc = TypedProjAlloc::<A>::new(alloc);
 
-        Self { inner, }
+        Self::from_proj(proj_alloc)
+    }
+
+    #[inline]
+    pub fn from_boxed_alloc<A>(alloc: Box<A>) -> Self
+    where
+        A: Allocator + any::Any,
+    {
+        let proj_alloc = TypedProjAlloc::<A>::from_boxed_alloc(alloc);
+
+        Self::from_proj(proj_alloc)
     }
 
     #[inline]
@@ -263,19 +296,18 @@ impl OpaqueAlloc {
         }
     }
 }
-/*
+
 unsafe impl alloc::Allocator for OpaqueAlloc {
     fn allocate(&self, layout: Layout) -> Result<NonNull<[u8]>, std::alloc::AllocError> {
-        self.alloc.allocate(layout)
+        self.inner.allocate(layout)
     }
 
     unsafe fn deallocate(&self, ptr: NonNull<u8>, layout: Layout) {
         unsafe {
-            self.alloc.deallocate(ptr, layout);
+            self.inner.deallocate(ptr, layout);
         }
     }
 }
-*/
 /*
 impl Clone for OpaqueAlloc {
     fn clone(&self) -> Self {

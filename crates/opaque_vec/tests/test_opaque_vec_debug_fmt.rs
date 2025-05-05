@@ -1,13 +1,16 @@
+#![feature(allocator_api)]
 use opaque_vec::OpaqueVec;
 
 use core::fmt;
+use core::any;
+use std::alloc;
 
 fn run_test_opaque_vec_debug_fmt<T>(values: &[T], expected: &str)
 where
-    T: Clone + fmt::Debug + 'static,
+    T: any::Any + Clone + fmt::Debug,
 {
     let vec = OpaqueVec::from(values);
-    let result = format!("{:?}", vec.as_slice::<T>());
+    let result = format!("{:?}", vec.as_slice::<T, alloc::Global>());
 
     assert_eq!(result, expected);
 }

@@ -1,15 +1,19 @@
+#![feature(allocator_api)]
 use opaque_vec::OpaqueVec;
+
+use core::any;
+use std::alloc;
 
 fn run_test_opaque_vec_replace_insert_len_same_index<T>(value: T)
 where
-    T: PartialEq + Clone + 'static,
+    T: any::Any + PartialEq + Clone,
 {
     let mut vec = OpaqueVec::new::<T>();
 
     assert!(vec.is_empty());
 
     for _ in 0..65536 {
-        vec.replace_insert::<T>(0, value.clone());
+        vec.replace_insert::<T, alloc::Global>(0, value.clone());
     }
 
     assert_eq!(vec.len(), 1);

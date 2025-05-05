@@ -6,6 +6,7 @@
 #![feature(slice_range)]
 extern crate core;
 
+use core::any;
 use core::cmp;
 use core::hash;
 use core::ops;
@@ -23,13 +24,12 @@ use std::mem::{
 use std::borrow;
 use std::ptr::NonNull;
 
-use opaque_blob_vec::OpaqueBlobVec;
-
-use std::any::TypeId;
-use std::marker::PhantomData;
-
+use core::any::TypeId;
+use core::marker::PhantomData;
 use core::iter::FusedIterator;
-use opaque_alloc::OpaqueAlloc;
+
+use opaque_blob_vec::OpaqueBlobVec;
+use opaque_alloc::{OpaqueAlloc, TypedProjAlloc};
 use opaque_error;
 
 #[inline(always)]
@@ -52,7 +52,7 @@ pub struct IntoIter<T, A> {
     cap: usize,
     // the drop impl reconstructs a RawVec from buf, cap and alloc
     // to avoid dropping the allocator twice we need to wrap it into ManuallyDrop
-    alloc: ManuallyDrop<A>,
+    alloc: ManuallyDrop<TypedProjAlloc<A>>,
     ptr: NonNull<T>,
     /// If T is a ZST, this is actually ptr+len. This encoding is picked so that
     /// ptr == end is a quick test for the Iterator being empty, that works
@@ -64,8 +64,8 @@ pub struct IntoIter<T, A> {
 
 impl<T, A> fmt::Debug for IntoIter<T, A>
 where
-    T: fmt::Debug + 'static,
-    A: Allocator,
+    T: any::Any + fmt::Debug,
+    A: Allocator + any::Any,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_tuple("IntoIter").field(&self.as_slice()).finish()
@@ -74,8 +74,8 @@ where
 
 impl<T, A> IntoIter<T, A>
 where
-    T: 'static,
-    A: Allocator,
+    T: any::Any,
+    A: Allocator + any::Any,
 {
     pub fn as_slice(&self) -> &[T] {
         unsafe { slice::from_raw_parts(self.ptr.as_ptr(), self.len()) }
@@ -90,25 +90,39 @@ where
     }
 
     #[inline]
-    pub fn allocator(&self) -> &A {
+    pub fn allocator(&self) -> &TypedProjAlloc<A> {
         &self.alloc
     }
 }
 
 impl<T, A> AsRef<[T]> for IntoIter<T, A>
 where
-    T: 'static,
-    A: Allocator,
+    T: any::Any,
+    A: Allocator + any::Any,
 {
     fn as_ref(&self) -> &[T] {
         self.as_slice()
     }
 }
 
-unsafe impl<T: Send, A: Allocator + Send> Send for IntoIter<T, A> {}
-unsafe impl<T: Sync, A: Allocator + Sync> Sync for IntoIter<T, A> {}
+unsafe impl<T, A> Send for IntoIter<T, A>
+where
+    T: any::Any + Send,
+    A: Allocator + any::Any + Send,
+{
+}
+unsafe impl<T, A> Sync for IntoIter<T, A>
+where
+    T: any::Any + Sync,
+    A: Allocator + any::Any + Sync,
+{
+}
 
-impl<T, A: Allocator> Iterator for IntoIter<T, A> {
+impl<T, A> Iterator for IntoIter<T, A>
+where
+    T: any::Any,
+    A: Allocator + any::Any,
+{
     type Item = T;
 
     #[inline]
@@ -263,7 +277,11 @@ impl<T, A: Allocator> Iterator for IntoIter<T, A> {
      */
 }
 
-impl<T, A: Allocator> DoubleEndedIterator for IntoIter<T, A> {
+impl<T, A> DoubleEndedIterator for IntoIter<T, A>
+where
+    T: any::Any,
+    A: Allocator + any::Any,
+{
     #[inline]
     fn next_back(&mut self) -> Option<T> {
         if is_zst::<T>() {
@@ -311,7 +329,8 @@ impl<T, A: Allocator> DoubleEndedIterator for IntoIter<T, A> {
 
 impl<T, A> ExactSizeIterator for IntoIter<T, A>
 where
-    A: Allocator,
+    T: any::Any,
+    A: Allocator + any::Any,
 {
     /*
     fn is_empty(&self) -> bool {
@@ -325,15 +344,16 @@ where
 }
 impl<T, A> FusedIterator for IntoIter<T, A>
 where
-    A: Allocator,
+    T: any::Any,
+    A: Allocator + any::Any,
 {
 }
 
 #[cfg(not(no_global_oom_handling))]
 impl<T, A> Clone for IntoIter<T, A>
 where
-    T: Clone + 'static,
-    A: Allocator + Clone + 'static,
+    T: any::Any + Clone,
+    A: Allocator + any::Any + Clone,
 {
     fn clone(&self) -> Self {
         let alloc = Clone::clone(ops::Deref::deref(&self.alloc));
@@ -358,8 +378,8 @@ where
 /*
 unsafe impl<T, A> Drop for IntoIter<T, A>
 where
-    T: 'static,
-    A: Allocator + 'static,
+    T: any::Any,
+    A: Allocator + any::Any,
 {
     fn drop(&mut self) {
         struct DropGuard<'a, T, A: Allocator>(&'a mut IntoIter<T, A>);
@@ -390,18 +410,9 @@ where
 
 pub struct Drain<'a, T, A>
 where
-    T: 'static,
-    A: Allocator,
+    T: any::Any,
+    A: Allocator + any::Any,
 {
-    /*
-    /// Index of tail to preserve
-    pub(crate) tail_start: usize,
-    /// Length of tail
-    pub(crate) tail_len: usize,
-    /// Current remaining range to remove
-    pub(crate) iter: slice::Iter<'a, T>,
-    pub(crate) vec: NonNull<Vec<T, A>>,
-     */
     /// Index of tail to preserve
     pub(crate) tail_start: usize,
     /// Length of tail
@@ -412,7 +423,11 @@ where
     _marker: core::marker::PhantomData<A>,
 }
 
-impl<T: fmt::Debug, A: Allocator> fmt::Debug for Drain<'_, T, A> {
+impl<T, A> fmt::Debug for Drain<'_, T, A>
+where
+    T: any::Any + fmt::Debug,
+    A: Allocator + any::Any,
+{
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_tuple("Drain").field(&self.iter.as_slice()).finish()
     }
@@ -420,8 +435,8 @@ impl<T: fmt::Debug, A: Allocator> fmt::Debug for Drain<'_, T, A> {
 
 impl<'a, T, A> Drain<'a, T, A>
 where
-    T: 'static,
-    A: Allocator,
+    T: any::Any,
+    A: Allocator + any::Any,
 {
     #[must_use]
     pub fn as_slice(&self) -> &[T] {
@@ -438,8 +453,8 @@ where
 
     #[must_use]
     #[inline]
-    pub fn allocator(&self) -> &OpaqueAlloc {
-        unsafe { self.vec.as_ref().allocator() }
+    pub fn allocator(&self) -> &TypedProjAlloc<A> {
+        unsafe { self.vec.as_ref().allocator::<T, A>() }
     }
 
     pub fn keep_rest(self) {
@@ -494,21 +509,32 @@ where
 
 impl<'a, T, A: Allocator> AsRef<[T]> for Drain<'a, T, A>
 where
-    T: 'static,
-    A: Allocator,
+    T: any::Any,
+    A: Allocator + any::Any,
 {
     fn as_ref(&self) -> &[T] {
         self.as_slice()
     }
 }
 
-unsafe impl<T: Sync, A: Sync + Allocator> Sync for Drain<'_, T, A> {}
-unsafe impl<T: Send, A: Send + Allocator> Send for Drain<'_, T, A> {}
+unsafe impl<T, A> Sync for Drain<'_, T, A>
+where
+    T: any::Any + Sync,
+    A: Allocator + any::Any + Sync,
+{
+}
+
+unsafe impl<T: Send, A: Send + Allocator> Send for Drain<'_, T, A>
+where
+    T: any::Any + Send,
+    A: Allocator + any::Any + Send,
+{
+}
 
 impl<T, A> Iterator for Drain<'_, T, A>
 where
-    T: 'static,
-    A: Allocator,
+    T: any::Any,
+    A: Allocator + any::Any,
 {
     type Item = T;
 
@@ -524,8 +550,8 @@ where
 
 impl<T, A> DoubleEndedIterator for Drain<'_, T, A>
 where
-    T: 'static,
-    A: Allocator,
+    T: any::Any,
+    A: Allocator + any::Any,
 {
     #[inline]
     fn next_back(&mut self) -> Option<T> {
@@ -535,17 +561,17 @@ where
 
 impl<T, A> Drop for Drain<'_, T, A>
 where
-    T: 'static,
-    A: Allocator,
+    T: any::Any,
+    A: Allocator + any::Any,
 {
     fn drop(&mut self) {
         /// Moves back the un-`Drain`ed elements to restore the original `Vec`.
-        struct DropGuard<'r, 'a, T: 'static, A: Allocator>(&'r mut Drain<'a, T, A>);
+        struct DropGuard<'r, 'a, T: any::Any, A: Allocator + any::Any>(&'r mut Drain<'a, T, A>);
 
         impl<'r, 'a, T, A> Drop for DropGuard<'r, 'a, T, A>
         where
-            T: 'static,
-            A: Allocator,
+            T: any::Any,
+            A: Allocator + any::Any,
         {
             fn drop(&mut self) {
                 if self.0.tail_len > 0 {
@@ -609,7 +635,11 @@ where
     }
 }
 
-impl<T, A: Allocator> ExactSizeIterator for Drain<'_, T, A> {
+impl<T, A> ExactSizeIterator for Drain<'_, T, A>
+where
+    T: any::Any,
+    A: Allocator + any::Any,
+{
     /*
     fn is_empty(&self) -> bool {
         self.iter.is_empty()
@@ -619,8 +649,8 @@ impl<T, A: Allocator> ExactSizeIterator for Drain<'_, T, A> {
 
 impl<T, A> FusedIterator for Drain<'_, T, A>
 where
-    T: 'static,
-    A: Allocator,
+    T: any::Any,
+    A: Allocator + any::Any,
 {
 }
 
@@ -628,8 +658,8 @@ where
 pub struct Splice<'a, I, A>
 where
     I: Iterator + 'a,
-    A: Allocator + 'a,
-    <I as Iterator>::Item: 'static,
+    A: Allocator + any::Any + 'a,
+    <I as Iterator>::Item: any::Any,
 {
     drain: Drain<'a, I::Item, A>,
     replace_with: I,
@@ -638,7 +668,8 @@ where
 impl<I, A> Iterator for Splice<'_, I, A>
 where
     I: Iterator,
-    A: Allocator,
+    I::Item: any::Any,
+    A: Allocator + any::Any,
 {
     type Item = I::Item;
 
@@ -651,15 +682,31 @@ where
     }
 }
 
-impl<I: Iterator, A: Allocator> DoubleEndedIterator for Splice<'_, I, A> {
+impl<I, A> DoubleEndedIterator for Splice<'_, I, A>
+where
+    I: Iterator,
+    I::Item: any::Any,
+    A: Allocator + any::Any,
+{
     fn next_back(&mut self) -> Option<Self::Item> {
         self.drain.next_back()
     }
 }
 
-impl<I: Iterator, A: Allocator> ExactSizeIterator for Splice<'_, I, A> {}
+impl<I, A> ExactSizeIterator for Splice<'_, I, A>
+where
+    I: Iterator,
+    I::Item: any::Any,
+    A: Allocator + any::Any,
+{
+}
 
-impl<I: Iterator, A: Allocator> Drop for Splice<'_, I, A> {
+impl<I, A> Drop for Splice<'_, I, A>
+where
+    I: Iterator,
+    I::Item: any::Any,
+    A: Allocator + any::Any,
+{
     #[track_caller]
     fn drop(&mut self) {
         self.drain.by_ref().for_each(drop);
@@ -707,7 +754,11 @@ impl<I: Iterator, A: Allocator> Drop for Splice<'_, I, A> {
 }
 
 /// Private helper methods for `Splice::drop`
-impl<T, A: Allocator> Drain<'_, T, A> {
+impl<T, A> Drain<'_, T, A>
+where
+    T: any::Any,
+    A: Allocator + any::Any,
+{
     /// The range from `self.vec.len` to `self.tail_start` contains elements
     /// that have been moved out.
     /// Fill that range as much as possible with new elements from the `replace_with` iterator.
@@ -752,8 +803,8 @@ impl<T, A: Allocator> Drain<'_, T, A> {
 #[must_use = "iterators are lazy and do nothing unless consumed"]
 pub struct ExtractIf<'a, T, F, A>
 where
-    T: 'static,
-    A: Allocator,
+    T: any::Any,
+    A: Allocator + any::Any,
 {
     vec: &'a mut OpaqueVecInner,
     /// The index of the item that will be inspected by the next call to `next`.
@@ -769,8 +820,15 @@ where
     _marker: core::marker::PhantomData<(T, A)>,
 }
 
-impl<'a, T, F, A: Allocator> ExtractIf<'a, T, F, A> {
-    fn new<R: ops::RangeBounds<usize>>(vec: &'a mut OpaqueVecInner, pred: F, range: R) -> Self {
+impl<'a, T, F, A> ExtractIf<'a, T, F, A>
+where
+    T: any::Any,
+    A: Allocator + any::Any,
+{
+    fn new<R>(vec: &'a mut OpaqueVecInner, pred: F, range: R) -> Self
+    where
+        R: ops::RangeBounds<usize>,
+    {
         let old_len = vec.len();
         let ops::Range { start, end } = slice::range(range, ..old_len);
 
@@ -791,16 +849,16 @@ impl<'a, T, F, A: Allocator> ExtractIf<'a, T, F, A> {
     }
 
     #[inline]
-    pub fn allocator(&self) -> &OpaqueAlloc {
-        self.vec.allocator()
+    pub fn allocator(&self) -> &TypedProjAlloc<A> {
+        self.vec.allocator::<T, A>()
     }
 }
 
 impl<T, F, A> Iterator for ExtractIf<'_, T, F, A>
 where
-    T: 'static,
+    T: any::Any,
     F: FnMut(&mut T) -> bool,
-    A: Allocator,
+    A: Allocator + any::Any,
 {
     type Item = T;
 
@@ -835,8 +893,8 @@ where
 
 impl<T, F, A> Drop for ExtractIf<'_, T, F, A>
 where
-    T: 'static,
-    A: Allocator,
+    T: any::Any,
+    A: Allocator + any::Any,
 {
     fn drop(&mut self) {
         unsafe {
@@ -869,7 +927,7 @@ impl<'a, T> Extender<'a, T> {
 
 impl<'a, T> Extend<T> for Extender<'a, T>
 where
-    T: 'static,
+    T: any::Any,
 {
     fn extend<I>(&mut self, iter: I)
     where
@@ -883,7 +941,7 @@ where
 
 impl<'a, 'b, T> Extend<&'b T> for Extender<'a, T>
 where
-    T: Copy + 'static,
+    T: any::Any + Copy,
 {
     fn extend<I>(&mut self, iter: I)
     where
@@ -898,16 +956,17 @@ where
 pub struct OpaqueVecInner {
     data: OpaqueBlobVec,
     type_id: TypeId,
+    alloc_type_id: TypeId,
 }
 
 impl OpaqueVecInner {
     #[inline]
     #[must_use]
     #[track_caller]
-    pub(crate) fn new_in<T, A>(alloc: A) -> Self
+    pub(crate) fn new_proj_in<T, A>(proj_alloc: TypedProjAlloc<A>) -> Self
     where
-        T: 'static,
-        A: Allocator + Clone + 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
     {
         unsafe fn drop_fn<T>(value: NonNull<u8>) {
             let to_drop = value.as_ptr() as *mut T;
@@ -915,13 +974,119 @@ impl OpaqueVecInner {
             core::ptr::drop_in_place(to_drop)
         }
 
-        let opaque_alloc = OpaqueAlloc::new(alloc);
+        let opaque_alloc = OpaqueAlloc::from_proj::<A>(proj_alloc);
         let element_layout = Layout::new::<T>();
         let drop_fn = Some(drop_fn::<T> as unsafe fn(NonNull<u8>));
         let data = OpaqueBlobVec::new_in(opaque_alloc, element_layout, drop_fn);
         let type_id = TypeId::of::<T>();
+        let alloc_type_id = TypeId::of::<A>();
 
-        Self { data, type_id }
+        Self { data, type_id, alloc_type_id }
+    }
+
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub(crate) fn with_capacity_proj_in<T, A>(capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self
+    where
+        T: any::Any,
+        A: Allocator + any::Any,
+    {
+        unsafe fn drop_fn<T>(value: NonNull<u8>) {
+            let to_drop = value.as_ptr() as *mut T;
+
+            core::ptr::drop_in_place(to_drop)
+        }
+
+        let opaque_alloc = OpaqueAlloc::from_proj::<A>(proj_alloc);
+        let element_layout = Layout::new::<T>();
+        let drop_fn = Some(drop_fn::<T> as unsafe fn(NonNull<u8>));
+        let data = OpaqueBlobVec::with_capacity_in(capacity, opaque_alloc, element_layout, drop_fn);
+        let type_id = TypeId::of::<T>();
+        let alloc_type_id = TypeId::of::<A>();
+
+        Self { data, type_id, alloc_type_id }
+    }
+
+    #[inline]
+    pub(crate) fn try_with_capacity_proj_in<T, A>(capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Result<Self, opaque_error::TryReserveError>
+    where
+        T: any::Any,
+        A: Allocator + any::Any,
+    {
+        unsafe fn drop_fn<T>(value: NonNull<u8>) {
+            let to_drop = value.as_ptr() as *mut T;
+
+            core::ptr::drop_in_place(to_drop)
+        }
+
+        let opaque_alloc = OpaqueAlloc::from_proj::<A>(proj_alloc);
+        let element_layout = Layout::new::<T>();
+        let drop_fn = Some(drop_fn::<T> as unsafe fn(NonNull<u8>));
+        let data = OpaqueBlobVec::try_with_capacity_in(capacity, opaque_alloc, element_layout, drop_fn)?;
+        let type_id = TypeId::of::<T>();
+        let alloc_type_id = TypeId::of::<A>();
+
+        Ok(Self { data, type_id, alloc_type_id })
+    }
+
+    #[inline]
+    pub(crate) unsafe fn from_raw_parts_proj_in<T, A>(ptr: *mut T, length: usize, capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self
+    where
+        T: any::Any,
+        A: Allocator + any::Any,
+    {
+        unsafe fn drop_fn<T>(value: NonNull<u8>) {
+            let to_drop = value.as_ptr() as *mut T;
+
+            core::ptr::drop_in_place(to_drop)
+        }
+
+        let opaque_alloc = OpaqueAlloc::from_proj(proj_alloc);
+        let element_layout = Layout::new::<T>();
+        let drop_fn = Some(drop_fn::<T> as unsafe fn(NonNull<u8>));
+        let ptr_bytes = ptr.cast::<u8>();
+        let data = OpaqueBlobVec::from_raw_parts_in(ptr_bytes, length, capacity, opaque_alloc, element_layout, drop_fn);
+        let type_id = TypeId::of::<T>();
+        let alloc_type_id = TypeId::of::<A>();
+
+        Self { data, type_id, alloc_type_id }
+    }
+
+    #[inline]
+    pub(crate) unsafe fn from_parts_proj_in<T, A>(ptr: NonNull<T>, length: usize, capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self
+    where
+        T: any::Any,
+        A: Allocator + any::Any,
+    {
+        unsafe fn drop_fn<T>(value: NonNull<u8>) {
+            let to_drop = value.as_ptr() as *mut T;
+
+            core::ptr::drop_in_place(to_drop)
+        }
+
+        let opaque_alloc = OpaqueAlloc::from_proj::<A>(proj_alloc);
+        let element_layout = Layout::new::<T>();
+        let drop_fn = Some(drop_fn::<T> as unsafe fn(NonNull<u8>));
+        let ptr_bytes = ptr.cast::<u8>();
+        let data = OpaqueBlobVec::from_parts_in(ptr_bytes, length, capacity, opaque_alloc, element_layout, drop_fn);
+        let type_id = TypeId::of::<T>();
+        let alloc_type_id = TypeId::of::<A>();
+
+        Self { data, type_id, alloc_type_id }
+    }
+
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub(crate) fn new_in<T, A>(alloc: A) -> Self
+    where
+        T: any::Any,
+        A: Allocator + any::Any,
+    {
+        let proj_alloc = TypedProjAlloc::new(alloc);
+
+        Self::new_proj_in::<T, A>(proj_alloc)
     }
 
     #[inline]
@@ -929,92 +1094,54 @@ impl OpaqueVecInner {
     #[track_caller]
     pub(crate) fn with_capacity_in<T, A>(capacity: usize, alloc: A) -> Self
     where
-        T: 'static,
-        A: Allocator + Clone + 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
     {
-        unsafe fn drop_fn<T>(value: NonNull<u8>) {
-            let to_drop = value.as_ptr() as *mut T;
+        let proj_alloc = TypedProjAlloc::new(alloc);
 
-            core::ptr::drop_in_place(to_drop)
-        }
-
-        let opaque_alloc = OpaqueAlloc::new::<A>(alloc);
-        let element_layout = Layout::new::<T>();
-        let drop_fn = Some(drop_fn::<T> as unsafe fn(NonNull<u8>));
-        let data = OpaqueBlobVec::with_capacity_in(capacity, opaque_alloc, element_layout, drop_fn);
-        let type_id = TypeId::of::<T>();
-
-        Self { data, type_id }
+        Self::with_capacity_proj_in::<T, A>(capacity, proj_alloc)
     }
 
     #[inline]
     pub(crate) fn try_with_capacity_in<T, A>(capacity: usize, alloc: A) -> Result<Self, opaque_error::TryReserveError>
     where
-        T: 'static,
-        A: Allocator + Clone + 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
     {
-        unsafe fn drop_fn<T>(value: NonNull<u8>) {
-            let to_drop = value.as_ptr() as *mut T;
+        let proj_alloc = TypedProjAlloc::new(alloc);
 
-            core::ptr::drop_in_place(to_drop)
-        }
-
-        let opaque_alloc = OpaqueAlloc::new::<A>(alloc);
-        let element_layout = Layout::new::<T>();
-        let drop_fn = Some(drop_fn::<T> as unsafe fn(NonNull<u8>));
-        let data = OpaqueBlobVec::try_with_capacity_in(capacity, opaque_alloc, element_layout, drop_fn)?;
-        let type_id = TypeId::of::<T>();
-
-        Ok(Self { data, type_id })
+        Self::try_with_capacity_proj_in::<T, A>(capacity, proj_alloc)
     }
 
     #[inline]
     pub(crate) unsafe fn from_raw_parts_in<T, A>(ptr: *mut T, length: usize, capacity: usize, alloc: A) -> Self
     where
-        T: 'static,
-        A: Allocator + Clone + 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
     {
-        unsafe fn drop_fn<T>(value: NonNull<u8>) {
-            let to_drop = value.as_ptr() as *mut T;
+        let proj_alloc = TypedProjAlloc::new(alloc);
 
-            core::ptr::drop_in_place(to_drop)
-        }
-
-        let opaque_alloc = OpaqueAlloc::new(alloc);
-        let element_layout = Layout::new::<T>();
-        let drop_fn = Some(drop_fn::<T> as unsafe fn(NonNull<u8>));
-        let ptr_bytes = ptr.cast::<u8>();
-        let data = OpaqueBlobVec::from_raw_parts_in(ptr_bytes, length, capacity, opaque_alloc, element_layout, drop_fn);
-        let type_id = TypeId::of::<T>();
-
-        Self { data, type_id }
+        Self::from_raw_parts_proj_in(ptr, length, capacity, proj_alloc)
     }
 
     #[inline]
     pub(crate) unsafe fn from_parts_in<T, A>(ptr: NonNull<T>, length: usize, capacity: usize, alloc: A) -> Self
     where
-        T: 'static,
-        A: Allocator + Clone + 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
     {
-        unsafe fn drop_fn<T>(value: NonNull<u8>) {
-            let to_drop = value.as_ptr() as *mut T;
+        let proj_alloc = TypedProjAlloc::new(alloc);
 
-            core::ptr::drop_in_place(to_drop)
-        }
-
-        let opaque_alloc = OpaqueAlloc::new::<A>(alloc);
-        let element_layout = Layout::new::<T>();
-        let drop_fn = Some(drop_fn::<T> as unsafe fn(NonNull<u8>));
-        let ptr_bytes = ptr.cast::<u8>();
-        let data = OpaqueBlobVec::from_parts_in(ptr_bytes, length, capacity, opaque_alloc, element_layout, drop_fn);
-        let type_id = TypeId::of::<T>();
-
-        Self { data, type_id }
+        Self::from_parts_proj_in(ptr, length, capacity, proj_alloc)
     }
 
     #[inline]
-    pub(crate) const fn allocator(&self) -> &OpaqueAlloc {
-        self.data.allocator()
+    pub(crate) fn allocator<T, A>(&self) -> &TypedProjAlloc<A>
+    where
+        T: any::Any,
+        A: Allocator + any::Any,
+    {
+        self.data.allocator().as_proj::<A>()
     }
 }
 
@@ -1024,7 +1151,7 @@ impl OpaqueVecInner {
     #[track_caller]
     pub(crate) fn new<T>() -> Self
     where
-        T: 'static,
+        T: any::Any,
     {
         Self::new_in::<T, Global>(Global)
     }
@@ -1034,7 +1161,7 @@ impl OpaqueVecInner {
     #[track_caller]
     pub(crate) fn with_capacity<T>(capacity: usize) -> Self
     where
-        T: 'static,
+        T: any::Any,
     {
         Self::with_capacity_in::<T, Global>(capacity, Global)
     }
@@ -1042,7 +1169,7 @@ impl OpaqueVecInner {
     #[inline]
     pub(crate) fn try_with_capacity<T>(capacity: usize) -> Result<Self, opaque_error::TryReserveError>
     where
-        T: 'static,
+        T: any::Any,
     {
         Self::try_with_capacity_in::<T, Global>(capacity, Global)
     }
@@ -1050,21 +1177,17 @@ impl OpaqueVecInner {
     #[inline]
     pub(crate) unsafe fn from_raw_parts<T>(ptr: *mut T, length: usize, capacity: usize) -> Self
     where
-        T: 'static,
+        T: any::Any,
     {
-        let opaque_alloc = OpaqueAlloc::new::<Global>(Global);
-
-        Self::from_raw_parts_in(ptr, length, capacity, opaque_alloc)
+        Self::from_raw_parts_in(ptr, length, capacity, Global)
     }
 
     #[inline]
     pub(crate) unsafe fn from_parts<T>(ptr: NonNull<T>, length: usize, capacity: usize) -> Self
     where
-        T: 'static,
+        T: any::Any,
     {
-        let opaque_alloc = OpaqueAlloc::new::<Global>(Global);
-
-        Self::from_parts_in(ptr, length, capacity, opaque_alloc)
+        Self::from_parts_in(ptr, length, capacity, Global)
     }
 }
 
@@ -1072,7 +1195,7 @@ impl OpaqueVecInner {
     #[inline]
     pub fn has_element_type<T>(&self) -> bool
     where
-        T: 'static,
+        T: any::Any,
     {
         TypeId::of::<T>() == self.type_id
     }
@@ -1080,9 +1203,9 @@ impl OpaqueVecInner {
     #[inline]
     pub fn has_allocator_type<A>(&self) -> bool
     where
-        A: Allocator + Clone + 'static,
+        A: Allocator + any::Any,
     {
-        self.allocator().is_type::<A>()
+        TypeId::of::<A>() == self.alloc_type_id
     }
 }
 
@@ -1118,7 +1241,7 @@ impl OpaqueVecInner {
     #[inline]
     pub(crate) fn iter<T>(&self) -> slice::Iter<'_, T>
     where
-        T: 'static,
+        T: any::Any,
     {
         self.as_slice::<T>().iter()
     }
@@ -1126,7 +1249,7 @@ impl OpaqueVecInner {
     #[inline]
     pub(crate) fn iter_mut<T>(&mut self) -> slice::IterMut<'_, T>
     where
-        T: 'static,
+        T: any::Any,
     {
         self.as_mut_slice::<T>().iter_mut()
     }
@@ -1135,7 +1258,7 @@ impl OpaqueVecInner {
     #[must_use]
     pub(crate) fn get_unchecked<T>(&self, index: usize) -> &T
     where
-        T: 'static,
+        T: any::Any,
     {
         let ptr = self.data.get_unchecked(index);
 
@@ -1149,7 +1272,7 @@ impl OpaqueVecInner {
     #[must_use]
     pub(crate) fn get_mut_unchecked<T>(&mut self, index: usize) -> &mut T
     where
-        T: 'static,
+        T: any::Any,
     {
         let ptr = self.data.get_mut_unchecked(index);
 
@@ -1163,7 +1286,7 @@ impl OpaqueVecInner {
     #[track_caller]
     pub(crate) fn push<T>(&mut self, value: T)
     where
-        T: 'static,
+        T: any::Any,
     {
         let mut me = ManuallyDrop::new(value);
         let value_ptr = unsafe { NonNull::new_unchecked(&mut *me as *mut T as *mut u8) };
@@ -1174,7 +1297,7 @@ impl OpaqueVecInner {
     #[inline]
     pub(crate) fn pop<T>(&mut self) -> Option<T>
     where
-        T: 'static,
+        T: any::Any,
     {
         if self.data.len() == 0 {
             None
@@ -1194,7 +1317,7 @@ impl OpaqueVecInner {
     #[inline]
     pub(crate) fn replace_insert<T>(&mut self, index: usize, value: T)
     where
-        T: 'static,
+        T: any::Any,
     {
         #[cold]
         #[track_caller]
@@ -1217,7 +1340,7 @@ impl OpaqueVecInner {
     #[inline]
     pub(crate) fn shift_insert<T>(&mut self, index: usize, value: T)
     where
-        T: 'static,
+        T: any::Any,
     {
         #[cold]
         #[track_caller]
@@ -1240,7 +1363,7 @@ impl OpaqueVecInner {
     #[inline]
     pub(crate) fn swap_remove<T>(&mut self, index: usize) -> T
     where
-        T: 'static,
+        T: any::Any,
     {
         #[cold]
         #[track_caller]
@@ -1269,7 +1392,7 @@ impl OpaqueVecInner {
     #[inline]
     pub(crate) fn shift_remove<T>(&mut self, index: usize) -> T
     where
-        T: 'static,
+        T: any::Any,
     {
         #[cold]
         #[track_caller]
@@ -1299,7 +1422,7 @@ impl OpaqueVecInner {
     #[inline]
     pub(crate) fn contains<T>(&self, value: &T) -> bool
     where
-        T: PartialEq + 'static,
+        T: any::Any + PartialEq,
     {
         self.as_slice::<T>().contains(value)
     }
@@ -1307,7 +1430,7 @@ impl OpaqueVecInner {
     #[inline]
     pub const fn as_ptr<T>(&self) -> *const T
     where
-        T: 'static,
+        T: any::Any,
     {
         self.data.as_ptr() as *const T
     }
@@ -1315,7 +1438,7 @@ impl OpaqueVecInner {
     #[inline]
     pub(crate) const fn as_mut_ptr<T>(&mut self) -> *mut T
     where
-        T: 'static,
+        T: any::Any,
     {
         self.data.as_mut_ptr() as *mut T
     }
@@ -1323,7 +1446,7 @@ impl OpaqueVecInner {
     #[inline]
     pub(crate) const fn as_non_null<T>(&mut self) -> NonNull<T>
     where
-        T: 'static,
+        T: any::Any,
     {
         // SAFETY: An [`OpaqueVec`] always holds a non-null pointer.
         self.data.as_non_null().cast::<T>()
@@ -1332,7 +1455,7 @@ impl OpaqueVecInner {
     #[inline]
     pub(crate) fn as_slice<T>(&self) -> &[T]
     where
-        T: 'static,
+        T: any::Any,
     {
         unsafe {
             let data_ptr = self.data.as_ptr() as *const T;
@@ -1345,7 +1468,7 @@ impl OpaqueVecInner {
     #[inline]
     pub(crate) fn as_mut_slice<T>(&mut self) -> &mut [T]
     where
-        T: 'static,
+        T: any::Any,
     {
         unsafe {
             let data_ptr = self.data.as_mut_ptr() as *mut T;
@@ -1359,7 +1482,7 @@ impl OpaqueVecInner {
     #[must_use]
     pub(crate) fn into_raw_parts<T>(self) -> (*mut T, usize, usize)
     where
-        T: 'static,
+        T: any::Any,
     {
         let mut me = ManuallyDrop::new(self);
         let ptr = me.as_mut_ptr();
@@ -1373,7 +1496,7 @@ impl OpaqueVecInner {
     #[must_use]
     pub(crate) fn into_parts<T>(self) -> (NonNull<T>, usize, usize)
     where
-        T: 'static,
+        T: any::Any,
     {
         let mut me = ManuallyDrop::new(self);
 
@@ -1387,24 +1510,26 @@ impl OpaqueVecInner {
 
     #[inline]
     #[must_use]
-    pub(crate) fn into_raw_parts_with_alloc<T>(self) -> (*mut T, usize, usize, OpaqueAlloc)
+    pub(crate) fn into_raw_parts_with_alloc<T, A>(self) -> (*mut T, usize, usize, TypedProjAlloc<A>)
     where
-        T: 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
     {
         let mut me = ManuallyDrop::new(self);
         let ptr = me.as_mut_ptr();
         let len = me.len();
         let capacity = me.capacity();
-        let alloc = unsafe { core::ptr::read(me.allocator()) };
+        let alloc = unsafe { core::ptr::read(me.allocator::<T, A>()) };
 
         (ptr, len, capacity, alloc)
     }
 
     #[inline]
     #[must_use]
-    pub(crate) fn into_parts_with_alloc<T>(self) -> (NonNull<T>, usize, usize, OpaqueAlloc)
+    pub(crate) fn into_parts_with_alloc<T, A>(self) -> (NonNull<T>, usize, usize, TypedProjAlloc<A>)
     where
-        T: 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
     {
         let mut me = ManuallyDrop::new(self);
 
@@ -1412,7 +1537,7 @@ impl OpaqueVecInner {
         let ptr = unsafe { NonNull::new_unchecked(me.as_mut_ptr()) };
         let len = me.len();
         let capacity = me.capacity();
-        let alloc = unsafe { core::ptr::read(me.allocator()) };
+        let alloc = unsafe { core::ptr::read(me.allocator::<T, A>()) };
 
         (ptr, len, capacity, alloc)
     }
@@ -1420,7 +1545,7 @@ impl OpaqueVecInner {
     #[inline]
     pub(crate) fn spare_capacity_mut<T>(&mut self) -> &mut [MaybeUninit<T>]
     where
-        T: 'static,
+        T: any::Any,
     {
         unsafe {
             let ptr = self.as_mut_ptr::<T>().add(self.len()) as *mut MaybeUninit<T>;
@@ -1430,9 +1555,10 @@ impl OpaqueVecInner {
         }
     }
 
-    pub(crate) fn drain<R, T>(&mut self, range: R) -> Drain<'_, T, OpaqueAlloc>
+    pub(crate) fn drain<R, T, A>(&mut self, range: R) -> Drain<'_, T, A>
     where
-        T: 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
         R: ops::RangeBounds<usize>,
     {
         // Memory safety
@@ -1468,7 +1594,7 @@ impl OpaqueVecInner {
     #[must_use]
     pub(crate) fn get<T>(&self, index: usize) -> Option<&T>
     where
-        T: 'static,
+        T: any::Any,
     {
         if index >= self.data.len() {
             return None;
@@ -1483,7 +1609,7 @@ impl OpaqueVecInner {
     #[must_use]
     pub(crate) fn get_mut<T>(&mut self, index: usize) -> Option<&mut T>
     where
-        T: 'static,
+        T: any::Any,
     {
         if index >= self.data.len() {
             return None;
@@ -1497,7 +1623,7 @@ impl OpaqueVecInner {
     #[inline]
     pub(crate) fn push_within_capacity<T>(&mut self, value: T) -> Result<(), T>
     where
-        T: 'static,
+        T: any::Any,
     {
         if self.data.len() == self.data.capacity() {
             return Err(value);
@@ -1512,7 +1638,7 @@ impl OpaqueVecInner {
     #[inline]
     pub(crate) fn into_iter<T>(self) -> IntoIter<T, OpaqueAlloc>
     where
-        T: 'static,
+        T: any::Any,
     {
         IntoIter {
             inner: self,
@@ -1526,7 +1652,7 @@ impl OpaqueVecInner {
     #[track_caller]
     pub(crate) fn append<T>(&mut self, other: &mut Self)
     where
-        T: 'static,
+        T: any::Any,
     {
         unsafe {
             let ptr = NonNull::new_unchecked(other.as_mut_slice::<T>().as_mut_ptr().cast::<u8>());
@@ -1545,9 +1671,10 @@ impl OpaqueVecInner {
     #[cfg(not(no_global_oom_handling))]
     #[inline]
     #[track_caller]
-    pub(crate) fn into_boxed_slice<T>(mut self) -> Box<[T], OpaqueAlloc>
+    pub(crate) fn into_boxed_slice<T, A>(mut self) -> Box<[T], TypedProjAlloc<A>>
     where
-        T: 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
     {
         unsafe {
             self.shrink_to_fit();
@@ -1555,7 +1682,7 @@ impl OpaqueVecInner {
             let len = me.len();
             let ptr = me.as_mut_ptr::<T>();
             let slice_ptr = std::ptr::slice_from_raw_parts_mut(ptr, len);
-            let alloc = core::ptr::read(me.allocator());
+            let alloc = core::ptr::read(me.allocator::<T, A>());
 
             Box::from_raw_in(slice_ptr, alloc)
         }
@@ -1563,9 +1690,10 @@ impl OpaqueVecInner {
 
     #[cfg(not(no_global_oom_handling))]
     #[inline]
-    pub(crate) fn split_off<T>(&mut self, at: usize) -> Self
+    pub(crate) fn split_off<T, A>(&mut self, at: usize) -> Self
     where
-        T: 'static,
+        T: any::Any,
+        A: Allocator + any::Any + Clone,
     {
         #[cold]
         #[track_caller]
@@ -1579,14 +1707,20 @@ impl OpaqueVecInner {
         }
 
         let other_len = self.len() - at;
-        let mut other = OpaqueVecInner::with_capacity_in::<T, OpaqueAlloc>(other_len, self.allocator().clone());
+        let mut other = {
+            let cloned_alloc = self.allocator::<T, A>().clone();
+            let box_alloc = cloned_alloc.into_box_alloc();
+            let split_alloc = TypedProjAlloc::from_boxed_alloc(box_alloc);
+
+            OpaqueVecInner::with_capacity_proj_in::<T, A>(other_len, split_alloc)
+        };
 
         // Unsafely `set_len` and copy items to `other`.
         unsafe {
             self.set_len(at);
             other.set_len(other_len);
 
-            core::ptr::copy_nonoverlapping(self.as_ptr::<T>().add(at), other.as_mut_ptr(), other.len());
+            core::ptr::copy_nonoverlapping(self.as_ptr::<T>().add(at), other.as_mut_ptr::<T>(), other.len());
         }
 
         other
@@ -1595,7 +1729,7 @@ impl OpaqueVecInner {
     #[inline]
     pub(crate) fn resize_with<F, T>(&mut self, new_len: usize, f: F)
     where
-        T: 'static,
+        T: any::Any,
         F: FnMut() -> T,
     {
         let len = self.len();
@@ -1655,7 +1789,7 @@ impl OpaqueVecInner {
     #[inline]
     pub(crate) fn extend_with<T>(&mut self, count: usize, value: T)
     where
-        T: Clone + 'static,
+        T: any::Any + Clone,
     {
         let value_ptr = unsafe { NonNull::new_unchecked(&value as *const T as *mut T as *mut u8) };
 
@@ -1665,7 +1799,7 @@ impl OpaqueVecInner {
     #[inline]
     pub(crate) fn extend_from_iter<T, I>(&mut self, mut iterator: I)
     where
-        T: Clone + 'static,
+        T: any::Any + Clone,
         I: Iterator<Item = T>,
     {
         for item in iterator {
@@ -1676,7 +1810,7 @@ impl OpaqueVecInner {
     #[inline]
     pub(crate) fn extend_from_slice<T>(&mut self, other: &[T])
     where
-        T: Clone + 'static,
+        T: any::Any + Clone,
     {
         self.extend_from_iter::<T, _>(other.iter().cloned())
     }
@@ -1684,7 +1818,7 @@ impl OpaqueVecInner {
     #[inline]
     pub(crate) fn resize<T>(&mut self, new_len: usize, value: T)
     where
-        T: Clone + 'static,
+        T: any::Any + Clone,
     {
         let len = self.len();
 
@@ -1697,17 +1831,19 @@ impl OpaqueVecInner {
 }
 
 impl OpaqueVecInner {
-    pub(crate) fn retain<F, T>(&mut self, mut f: F)
+    pub(crate) fn retain<F, T, A>(&mut self, mut f: F)
     where
-        T: 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
         F: FnMut(&T) -> bool,
     {
-        self.retain_mut(|elem| f(elem));
+        self.retain_mut::<_, T, A>(|elem| f(elem));
     }
 
-    pub(crate) fn retain_mut<F, T>(&mut self, mut f: F)
+    pub(crate) fn retain_mut<F, T, A>(&mut self, mut f: F)
     where
-        T: 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
         F: FnMut(&mut T) -> bool,
     {
         let original_len = self.len();
@@ -1734,7 +1870,7 @@ impl OpaqueVecInner {
         // In cases when predicate and `drop` never panic, it will be optimized out.
         struct BackshiftOnDrop<'a, T, A>
         where
-            T: 'static,
+            T: any::Any,
             A: Allocator,
         {
             v: &'a mut OpaqueVecInner,
@@ -1746,7 +1882,7 @@ impl OpaqueVecInner {
 
         impl<T, A> Drop for BackshiftOnDrop<'_, T, A>
         where
-            T: 'static,
+            T: any::Any,
             A: Allocator,
         {
             fn drop(&mut self) {
@@ -1777,7 +1913,7 @@ impl OpaqueVecInner {
 
         fn process_loop<F, T, A, const DELETED: bool>(original_len: usize, f: &mut F, g: &mut BackshiftOnDrop<'_, T, A>)
         where
-            T: 'static,
+            T: any::Any,
             A: Allocator,
             F: FnMut(&mut T) -> bool,
         {
@@ -1810,18 +1946,19 @@ impl OpaqueVecInner {
         }
 
         // Stage 1: Nothing was deleted.
-        process_loop::<F, T, OpaqueAlloc, false>(original_len, &mut f, &mut g);
+        process_loop::<F, T, A, false>(original_len, &mut f, &mut g);
 
         // Stage 2: Some elements were deleted.
-        process_loop::<F, T, OpaqueAlloc, true>(original_len, &mut f, &mut g);
+        process_loop::<F, T, A, true>(original_len, &mut f, &mut g);
 
         // All item are processed. This can be optimized to `set_len` by LLVM.
         drop(g);
     }
 
-    pub(crate) fn dedup_by<F, T>(&mut self, mut same_bucket: F)
+    pub(crate) fn dedup_by<F, T, A>(&mut self, mut same_bucket: F)
     where
-        T: 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
         F: FnMut(&mut T, &mut T) -> bool,
     {
         let len = self.len();
@@ -1857,7 +1994,7 @@ impl OpaqueVecInner {
         /* INVARIANT: vec.len() > read > write > write-1 >= 0 */
         struct FillGapOnDrop<'a, T, A>
         where
-            T: 'static,
+            T: any::Any,
             A: core::alloc::Allocator,
         {
             /* Offset of the element we want to check if it is duplicate */
@@ -1874,7 +2011,7 @@ impl OpaqueVecInner {
 
         impl<'a, T, A> Drop for FillGapOnDrop<'a, T, A>
         where
-            T: 'static,
+            T: any::Any,
             A: core::alloc::Allocator,
         {
             fn drop(&mut self) {
@@ -1913,7 +2050,7 @@ impl OpaqueVecInner {
          * doing slice partition_dedup + truncate */
 
         // Construct gap first and then drop item to avoid memory corruption if `T::drop` panics.
-        let mut gap: FillGapOnDrop<'_, T, OpaqueAlloc> = FillGapOnDrop {
+        let mut gap: FillGapOnDrop<'_, T, A> = FillGapOnDrop {
             read: first_duplicate_idx + 1,
             write: first_duplicate_idx,
             vec: self,
@@ -1963,22 +2100,24 @@ impl OpaqueVecInner {
     }
 
     #[inline]
-    pub(crate) fn dedup_by_key<F, K, T>(&mut self, mut key: F)
+    pub(crate) fn dedup_by_key<F, K, T, A>(&mut self, mut key: F)
     where
-        T: 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
         F: FnMut(&mut T) -> K,
         K: PartialEq,
     {
-        self.dedup_by::<_, T>(|a, b| key(a) == key(b))
+        self.dedup_by::<_, T, A>(|a, b| key(a) == key(b))
     }
 }
 
 impl OpaqueVecInner {
     #[cfg(not(no_global_oom_handling))]
     #[inline]
-    pub(crate) fn splice<R, I, T>(&mut self, range: R, replace_with: I) -> Splice<'_, I::IntoIter, OpaqueAlloc>
+    pub(crate) fn splice<R, I, T, A>(&mut self, range: R, replace_with: I) -> Splice<'_, I::IntoIter, A>
     where
-        T: 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
         R: ops::RangeBounds<usize>,
         I: IntoIterator<Item=T>,
     {
@@ -1989,9 +2128,10 @@ impl OpaqueVecInner {
     }
 
     #[inline]
-    pub(crate) fn extract_if<F, R, T>(&mut self, range: R, filter: F) -> ExtractIf<'_, T, F, OpaqueAlloc>
+    pub(crate) fn extract_if<F, R, T, A>(&mut self, range: R, filter: F) -> ExtractIf<'_, T, F, A>
     where
-        T: 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
         F: FnMut(&mut T) -> bool,
         R: ops::RangeBounds<usize>,
     {
@@ -2006,7 +2146,7 @@ impl OpaqueVecInner {
     #[inline]
     pub(crate) fn extend<T, I>(&mut self, iter: I)
     where
-        T: 'static,
+        T: any::Any,
         I: IntoIterator<Item=T>,
     {
         let mut extender = Extender::new(self);
@@ -2017,7 +2157,7 @@ impl OpaqueVecInner {
     #[inline]
     pub(crate) fn reverse<T>(&mut self)
     where
-        T: 'static,
+        T: any::Any,
     {
         self.as_mut_slice::<T>().reverse();
     }
@@ -2026,16 +2166,43 @@ impl OpaqueVecInner {
 
 impl OpaqueVecInner {
     #[inline]
-    pub(crate) fn clone<T>(&self) -> Self
+    pub(crate) fn clone<T, A>(&self) -> Self
     where
-        T: Clone + 'static,
+        T: any::Any + Clone,
+        A: Allocator + any::Any + Clone,
     {
-        let new_inner = self.data.clone();
+        unsafe fn drop_fn<T>(value: NonNull<u8>) {
+            let to_drop = value.as_ptr() as *mut T;
+
+            core::ptr::drop_in_place(to_drop)
+        }
+
+        let new_data = {
+            let new_alloc = {
+                let proj_old_alloc = self.data.allocator().as_proj::<A>();
+                let proj_new_alloc = Clone::clone(proj_old_alloc);
+                OpaqueAlloc::from_proj(proj_new_alloc)
+            };
+            let new_element_layout = self.data.element_layout();
+            let new_capacity = self.data.capacity();
+            let new_drop_fn = Some(drop_fn::<T> as unsafe fn(NonNull<u8>));
+            let new_data = unsafe {
+                let mut _new_data = OpaqueBlobVec::with_capacity_in(new_capacity, new_alloc, new_element_layout, new_drop_fn);
+                let length = self.data.len();
+                let old_data_ptr = NonNull::new_unchecked(self.data.as_ptr() as *mut u8);
+                _new_data.append(old_data_ptr, length);
+                _new_data
+            };
+
+            new_data
+        };
         let new_type_id = self.type_id;
+        let new_alloc_type_id = self.alloc_type_id;
 
         Self {
-            data: new_inner,
+            data: new_data,
             type_id: new_type_id,
+            alloc_type_id: new_alloc_type_id,
         }
     }
 }
@@ -2099,6 +2266,7 @@ impl fmt::Display for OpaqueVecInner {
 mod private {
     use super::OpaqueVecInner;
     use std::alloc::Allocator;
+    use core::any;
 
     // We shouldn't add inline attribute to this since this is used in
     // `vec!` macro mostly and causes perf regression. See #71204 for
@@ -2106,8 +2274,8 @@ mod private {
     #[allow(missing_docs)]
     pub fn into_opaque_vec<T, A>(b: Box<[T], A>) -> OpaqueVecInner
     where
-        T: 'static,
-        A: Allocator + Clone + 'static,
+        T: any::Any,
+        A: Allocator + any::Any + Clone,
     {
         unsafe {
             let len = b.len();
@@ -2122,7 +2290,7 @@ mod private {
     pub fn to_opaque_vec<T, A>(slice: &[T], alloc: A) -> OpaqueVecInner
     where
         T: ConvertOpaqueVec,
-        A: Allocator + Clone + 'static,
+        A: Allocator + any::Any + Clone,
     {
         T::to_opaque_vec(slice, alloc)
     }
@@ -2131,19 +2299,19 @@ mod private {
     pub trait ConvertOpaqueVec {
         fn to_opaque_vec<A>(slice: &[Self], alloc: A) -> OpaqueVecInner
         where
-            A: Allocator + Clone + 'static,
+            A: Allocator + any::Any + Clone,
             Self: Sized;
     }
 
     #[cfg(not(no_global_oom_handling))]
     impl<T> ConvertOpaqueVec for T
     where
-        T: Clone + 'static,
+        T: any::Any + Clone,
     {
         #[inline]
         fn to_opaque_vec<A>(slice: &[Self], alloc: A) -> OpaqueVecInner
         where
-            A: Allocator + Clone + 'static,
+            A: Allocator + any::Any + Clone,
         {
             struct DropGuard<'a> {
                 vec: &'a mut OpaqueVecInner,
@@ -2189,7 +2357,7 @@ mod private {
 
 impl<T> From<&[T]> for OpaqueVecInner
 where
-    T: Clone + 'static,
+    T: any::Any + Clone,
 {
     fn from(slice: &[T]) -> Self {
         private::to_opaque_vec::<T, Global>(slice, Global)
@@ -2198,7 +2366,7 @@ where
 
 impl<T> From<&mut [T]> for OpaqueVecInner
 where
-    T: Clone + 'static,
+    T: any::Any + Clone,
 {
     fn from(slice: &mut [T]) -> Self {
         private::to_opaque_vec::<T, Global>(slice, Global)
@@ -2207,7 +2375,7 @@ where
 
 impl<const N: usize, T> From<&[T; N]> for OpaqueVecInner
 where
-    T: Clone + 'static,
+    T: any::Any + Clone,
 {
     fn from(array: &[T; N]) -> Self {
         Self::from(array.as_slice())
@@ -2216,52 +2384,56 @@ where
 
 impl<const N: usize, T> From<&mut [T; N]> for OpaqueVecInner
 where
-    T: Clone + 'static,
+    T: any::Any + Clone,
 {
     fn from(array: &mut [T; N]) -> Self {
         Self::from(array.as_mut_slice())
     }
 }
 
-impl<T> From<&Vec<T>> for OpaqueVecInner
+impl<T, A> From<&Vec<T, A>> for OpaqueVecInner
 where
-    T: Clone + 'static,
+    T: any::Any + Clone,
+    A: Allocator + any::Any + Clone,
 {
-    fn from(vec: &Vec<T>) -> Self {
+    fn from(vec: &Vec<T, A>) -> Self {
         Self::from(vec.as_slice())
     }
 }
 
-impl<T> From<&mut Vec<T>> for OpaqueVecInner
+impl<T, A> From<&mut Vec<T, A>> for OpaqueVecInner
 where
-    T: Clone + 'static,
+    T: any::Any + Clone,
+    A: Allocator + any::Any + Clone,
 {
-    fn from(vec: &mut Vec<T>) -> Self {
+    fn from(vec: &mut Vec<T, A>) -> Self {
         Self::from(vec.as_mut_slice())
     }
 }
-
+/*
 impl<T> From<Box<[T]>> for OpaqueVecInner
 where
-    T: Clone + 'static,
+    T: any::Any + Clone,
 {
     fn from(slice: Box<[T]>) -> Self {
         Self::from(slice.as_ref())
     }
 }
+*/
 
-impl<T> From<Box<[T], opaque_alloc::OpaqueAlloc>> for OpaqueVecInner
+impl<T, A> From<Box<[T], A>> for OpaqueVecInner
 where
-    T: Clone + 'static,
+    T: any::Any + Clone,
+    A: Allocator + any::Any + Clone,
 {
-    fn from(slice: Box<[T], opaque_alloc::OpaqueAlloc>) -> Self {
+    fn from(slice: Box<[T], A>) -> Self {
         Self::from(slice.as_ref())
     }
 }
 
 impl<const N: usize, T> From<[T; N]> for OpaqueVecInner
 where
-    T: 'static,
+    T: any::Any,
 {
     fn from(array: [T; N]) -> Self {
         private::into_opaque_vec::<T, Global>(Box::new(array))
@@ -2270,7 +2442,7 @@ where
 
 impl<T> FromIterator<T> for OpaqueVecInner
 where
-    T: 'static,
+    T: any::Any,
 {
     #[inline]
     #[track_caller]
@@ -2292,22 +2464,74 @@ where
 }
 
 #[repr(transparent)]
-pub struct TypedProjVec<T> {
+pub struct TypedProjVec<T, A: Allocator> {
     inner: OpaqueVecInner,
-    _marker: core::marker::PhantomData<T>,
+    _marker: core::marker::PhantomData<(T, A)>,
 }
 
-impl<T> TypedProjVec<T>
+impl<T, A> TypedProjVec<T, A>
 where
-    T: 'static,
+    T: any::Any,
+    A: Allocator + any::Any,
 {
     #[inline]
     #[must_use]
     #[track_caller]
-    pub fn new_in<A>(alloc: A) -> Self
-    where
-        A: Allocator + Clone + 'static,
-    {
+    pub fn new_proj_in(proj_alloc: TypedProjAlloc<A>) -> Self {
+        let inner = OpaqueVecInner::new_proj_in::<T, A>(proj_alloc);
+
+        Self {
+            inner,
+            _marker: core::marker::PhantomData,
+        }
+    }
+
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn with_capacity_proj_in(capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self {
+        let inner = OpaqueVecInner::with_capacity_proj_in::<T, A>(capacity, proj_alloc);
+
+        Self {
+            inner,
+            _marker: core::marker::PhantomData,
+        }
+    }
+
+    #[inline]
+    pub fn try_with_capacity_proj_in(capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Result<Self, opaque_error::TryReserveError> {
+        let inner = OpaqueVecInner::try_with_capacity_proj_in::<T, A>(capacity, proj_alloc)?;
+
+        Ok(Self {
+            inner,
+            _marker: core::marker::PhantomData,
+        })
+    }
+
+    #[inline]
+    pub unsafe fn from_raw_parts_proj_in(ptr: *mut T, length: usize, capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self {
+        let inner = OpaqueVecInner::from_raw_parts_proj_in::<T, A>(ptr, length, capacity, proj_alloc);
+
+        Self {
+            inner,
+            _marker: core::marker::PhantomData,
+        }
+    }
+
+    #[inline]
+    pub unsafe fn from_parts_proj_in(ptr: NonNull<T>, length: usize, capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self {
+        let inner = OpaqueVecInner::from_parts_proj_in::<T, A>(ptr, length, capacity, proj_alloc);
+
+        Self {
+            inner,
+            _marker: core::marker::PhantomData,
+        }
+    }
+
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn new_in(alloc: A) -> Self {
         let inner = OpaqueVecInner::new_in::<T, A>(alloc);
 
         Self {
@@ -2319,10 +2543,7 @@ where
     #[inline]
     #[must_use]
     #[track_caller]
-    pub fn with_capacity_in<A>(capacity: usize, alloc: A) -> Self
-    where
-        A: Allocator + Clone + 'static,
-    {
+    pub fn with_capacity_in(capacity: usize, alloc: A) -> Self {
         let inner = OpaqueVecInner::with_capacity_in::<T, A>(capacity, alloc);
 
         Self {
@@ -2332,10 +2553,7 @@ where
     }
 
     #[inline]
-    pub fn try_with_capacity_in<A>(capacity: usize, alloc: A) -> Result<Self, opaque_error::TryReserveError>
-    where
-        A: Allocator + Clone + 'static,
-    {
+    pub fn try_with_capacity_in(capacity: usize, alloc: A) -> Result<Self, opaque_error::TryReserveError> {
         let inner = OpaqueVecInner::try_with_capacity_in::<T, A>(capacity, alloc)?;
 
         Ok(Self {
@@ -2345,10 +2563,7 @@ where
     }
 
     #[inline]
-    pub unsafe fn from_raw_parts_in<A>(ptr: *mut T, length: usize, capacity: usize, alloc: A) -> Self
-    where
-        A: Allocator + Clone + 'static,
-    {
+    pub unsafe fn from_raw_parts_in(ptr: *mut T, length: usize, capacity: usize, alloc: A) -> Self {
         let inner = OpaqueVecInner::from_raw_parts_in::<T, A>(ptr, length, capacity, alloc);
 
         Self {
@@ -2358,10 +2573,7 @@ where
     }
 
     #[inline]
-    pub unsafe fn from_parts_in<A>(ptr: NonNull<T>, length: usize, capacity: usize, alloc: A) -> Self
-    where
-        A: Allocator + Clone + 'static,
-    {
+    pub unsafe fn from_parts_in(ptr: NonNull<T>, length: usize, capacity: usize, alloc: A) -> Self {
         let inner = OpaqueVecInner::from_parts_in::<T, A>(ptr, length, capacity, alloc);
 
         Self {
@@ -2369,16 +2581,22 @@ where
             _marker: core::marker::PhantomData,
         }
     }
+}
 
+impl<T, A> TypedProjVec<T, A>
+where
+    T: any::Any,
+    A: Allocator + any::Any,
+{
     #[inline]
-    pub const fn allocator(&self) -> &OpaqueAlloc {
-        self.inner.allocator()
+    pub fn allocator(&self) -> &TypedProjAlloc<A> {
+        self.inner.allocator::<T, A>()
     }
 }
 
-impl<T> TypedProjVec<T>
+impl<T> TypedProjVec<T, Global>
 where
-    T: 'static,
+    T: any::Any,
 {
     #[inline]
     #[must_use]
@@ -2435,9 +2653,10 @@ where
     }
 }
 
-impl<T> TypedProjVec<T>
+impl<T, A> TypedProjVec<T, A>
 where
-    T: 'static,
+    T: any::Any,
+    A: Allocator + any::Any,
 {
     #[inline]
     pub const fn element_layout(&self) -> Layout {
@@ -2465,9 +2684,10 @@ where
     }
 }
 
-impl<T> TypedProjVec<T>
+impl<T, A> TypedProjVec<T, A>
 where
-    T: 'static,
+    T: any::Any,
+    A: Allocator + any::Any,
 {
     #[inline]
     #[must_use]
@@ -2549,11 +2769,11 @@ where
         self.inner.append::<T>(&mut other.inner)
     }
 
-    pub fn drain<R>(&mut self, range: R) -> Drain<'_, T, OpaqueAlloc>
+    pub fn drain<R>(&mut self, range: R) -> Drain<'_, T, A>
     where
         R: ops::RangeBounds<usize>,
     {
-        self.inner.drain::<R, T>(range)
+        self.inner.drain::<R, T, A>(range)
     }
 
     #[inline]
@@ -2594,26 +2814,29 @@ where
     }
 
     #[must_use]
-    pub fn into_raw_parts_with_alloc(self) -> (*mut T, usize, usize, OpaqueAlloc) {
-        self.inner.into_raw_parts_with_alloc::<T>()
+    pub fn into_raw_parts_with_alloc(self) -> (*mut T, usize, usize, TypedProjAlloc<A>) {
+        self.inner.into_raw_parts_with_alloc::<T, A>()
     }
 
-    pub fn into_parts_with_alloc(self) -> (NonNull<T>, usize, usize, OpaqueAlloc) {
-        self.inner.into_parts_with_alloc::<T>()
+    pub fn into_parts_with_alloc(self) -> (NonNull<T>, usize, usize, TypedProjAlloc<A>) {
+        self.inner.into_parts_with_alloc::<T, A>()
     }
 
     #[cfg(not(no_global_oom_handling))]
     #[track_caller]
-    pub fn into_boxed_slice(self) -> Box<[T], OpaqueAlloc> {
-        self.inner.into_boxed_slice::<T>()
+    pub fn into_boxed_slice(self) -> Box<[T], TypedProjAlloc<A>> {
+        self.inner.into_boxed_slice::<T, A>()
     }
 
     #[cfg(not(no_global_oom_handling))]
     #[inline]
     #[must_use = "use `.truncate()` if you don't need the other half"]
     #[track_caller]
-    pub fn split_off(&mut self, at: usize) -> Self {
-        let inner = self.inner.split_off::<T>(at);
+    pub fn split_off(&mut self, at: usize) -> Self
+    where
+        A: Clone,
+    {
+        let inner = self.inner.split_off::<T, A>(at);
 
         Self {
             inner,
@@ -2636,9 +2859,10 @@ where
     }
 }
 
-impl<T> TypedProjVec<T>
+impl<T, A> TypedProjVec<T, A>
 where
-    T: 'static,
+    T: any::Any,
+    A: Allocator + any::Any,
 {
     pub fn try_reserve(&mut self, additional: usize) -> Result<(), opaque_error::TryReserveError> {
         self.inner.try_reserve(additional)
@@ -2677,27 +2901,28 @@ where
     }
 }
 
-impl<T> TypedProjVec<T>
+impl<T, A> TypedProjVec<T, A>
 where
-    T: 'static,
+    T: any::Any,
+    A: Allocator + any::Any,
 {
     #[cfg(not(no_global_oom_handling))]
     #[inline]
-    pub fn splice<R, I>(&mut self, range: R, replace_with: I) -> Splice<'_, I::IntoIter, OpaqueAlloc>
+    pub fn splice<R, I>(&mut self, range: R, replace_with: I) -> Splice<'_, I::IntoIter, A>
     where
         R: ops::RangeBounds<usize>,
         I: IntoIterator<Item = T>,
     {
-        self.inner.splice::<R, I, T>(range, replace_with)
+        self.inner.splice::<R, I, T, A>(range, replace_with)
     }
 
-    pub fn extract_if<F, R>(&mut self, range: R, filter: F) -> ExtractIf<'_, T, F, OpaqueAlloc>
+    pub fn extract_if<F, R>(&mut self, range: R, filter: F) -> ExtractIf<'_, T, F, A>
     where
-        T: 'static,
+        T: any::Any,
         F: FnMut(&mut T) -> bool,
         R: ops::RangeBounds<usize>,
     {
-        self.inner.extract_if::<F, R, T>(range, filter)
+        self.inner.extract_if::<F, R, T, A>(range, filter)
     }
 
     #[cfg(not(no_global_oom_handling))]
@@ -2743,22 +2968,23 @@ where
     }
 }
 
-impl<T> TypedProjVec<T>
+impl<T, A> TypedProjVec<T, A>
 where
-    T: 'static,
+    T: any::Any,
+    A: Allocator + any::Any,
 {
     pub fn retain<F>(&mut self, mut f: F)
     where
         F: FnMut(&T) -> bool,
     {
-        self.inner.retain(|elem| f(elem));
+        self.inner.retain::<_, T, A>(|elem| f(elem));
     }
 
     pub fn retain_mut<F>(&mut self, mut f: F)
     where
         F: FnMut(&mut T) -> bool,
     {
-        self.inner.retain_mut::<F, T>(f)
+        self.inner.retain_mut::<F, T, A>(f)
     }
 
     #[inline]
@@ -2767,36 +2993,34 @@ where
         F: FnMut(&mut T) -> K,
         K: PartialEq,
     {
-        self.inner.dedup_by_key::<F, K, T>(key)
+        self.inner.dedup_by_key::<F, K, T, A>(key)
     }
 
     pub fn dedup_by<F>(&mut self, mut same_bucket: F)
     where
         F: FnMut(&mut T, &mut T) -> bool,
     {
-        self.inner.dedup_by::<F, T>(same_bucket)
+        self.inner.dedup_by::<F, T, A>(same_bucket)
     }
 }
 /*
 impl<T> TypedProjVec<T>
 where
-    T: 'static,
+    T: any::Any,
 {
     #[inline]
     pub fn reverse(&mut self)
     where
-        T: 'static,
+        T: any::Any,
     {
         self.inner.reverse::<T>()
     }
 }
 */
-impl<T, /* A */> ops::Deref for TypedProjVec<T, /* A */>
+impl<T, A> ops::Deref for TypedProjVec<T, A>
 where
-    T: 'static,
-    /*
-    A: Allocator,
-    */
+    T: any::Any,
+    A: Allocator + any::Any,
 {
     type Target = [T];
 
@@ -2806,12 +3030,10 @@ where
     }
 }
 
-impl<T, /* A */> ops::DerefMut for TypedProjVec<T, /* A */>
+impl<T, A> ops::DerefMut for TypedProjVec<T, A>
 where
-    T: 'static,
-    /*
-    A: Allocator,
-     */
+    T: any::Any,
+    A: Allocator + any::Any,
 {
     #[inline]
     fn deref_mut(&mut self) -> &mut [T] {
@@ -2823,15 +3045,13 @@ where
 unsafe impl<T, A: Allocator> ops::DerefPure for Vec<T, A> {}
 */
 
-impl<T, /* A */> Clone for TypedProjVec<T, /* A */>
+impl<T, A> Clone for TypedProjVec<T, A>
 where
-    T: Clone + 'static,
-    /*
-    A: Allocator,
-    */
+    T: any::Any + Clone,
+    A: Allocator + any::Any + Clone,
 {
     fn clone(&self) -> Self {
-        let cloned_inner = self.inner.clone::<T>();
+        let cloned_inner = self.inner.clone::<T, A>();
 
         Self {
             inner: cloned_inner,
@@ -2840,12 +3060,10 @@ where
     }
 }
 
-impl<T, /* A */> hash::Hash for TypedProjVec<T, /* A */>
+impl<T, A> hash::Hash for TypedProjVec<T, A>
 where
-    T: hash::Hash + 'static,
-    /*
-    A: Allocator,
-     */
+    T: any::Any + hash::Hash,
+    A: Allocator + any::Any,
 {
     #[inline]
     fn hash<H>(&self, state: &mut H)
@@ -2856,13 +3074,11 @@ where
     }
 }
 
-impl<T, I, /* A */> ops::Index<I> for TypedProjVec<T, /* A */>
+impl<T, I, A> ops::Index<I> for TypedProjVec<T, A>
 where
-    T: 'static,
+    T: any::Any,
     I: slice::SliceIndex<[T]>,
-    /*
-    A: Allocator,
-    */
+    A: Allocator + any::Any,
 {
     type Output = I::Output;
 
@@ -2872,13 +3088,11 @@ where
     }
 }
 
-impl<T, I, /* A */> ops::IndexMut<I> for TypedProjVec<T, /* A */>
+impl<T, I, A> ops::IndexMut<I> for TypedProjVec<T, A>
 where
-    T: 'static,
+    T: any::Any,
     I: slice::SliceIndex<[T]>,
-    /*
-    A: Allocator,
-    */
+    A: Allocator + any::Any,
 {
     #[inline]
     fn index_mut(&mut self, index: I) -> &mut Self::Output {
@@ -2887,13 +3101,13 @@ where
 }
 
 #[cfg(not(no_global_oom_handling))]
-impl<T> FromIterator<T> for TypedProjVec<T>
+impl<T> FromIterator<T> for TypedProjVec<T, Global>
 where
-    T: 'static,
+    T: any::Any,
 {
     #[inline]
     #[track_caller]
-    fn from_iter<I>(iter: I) -> TypedProjVec<T>
+    fn from_iter<I>(iter: I) -> TypedProjVec<T, Global>
     where
         I: IntoIterator<Item = T>,
     {
@@ -2906,15 +3120,13 @@ where
     }
 }
 
-impl<T, /*A */> IntoIterator for TypedProjVec<T, /* A */>
+impl<T, A> IntoIterator for TypedProjVec<T, A>
 where
-    T: 'static,
-    /*
-    A: Allocator,
-    */
+    T: any::Any,
+    A: Allocator + any::Any,
 {
     type Item = T;
-    type IntoIter = IntoIter<T, /* A */ OpaqueAlloc>;
+    type IntoIter = IntoIter<T, A>;
 
     #[inline]
     fn into_iter(self) -> Self::IntoIter {
@@ -2935,12 +3147,10 @@ where
     }
 }
 
-impl<'a, T, /* A */> IntoIterator for &'a TypedProjVec<T, /* A */>
+impl<'a, T, A> IntoIterator for &'a TypedProjVec<T, A>
 where
-    T: 'static,
-    /*
-    A: Allocator,
-    */
+    T: any::Any,
+    A: Allocator + any::Any,
 {
     type Item = &'a T;
     type IntoIter = slice::Iter<'a, T>;
@@ -2950,12 +3160,10 @@ where
     }
 }
 
-impl<'a, T, /* A */> IntoIterator for &'a mut TypedProjVec<T, /* A */>
+impl<'a, T, A> IntoIterator for &'a mut TypedProjVec<T, A>
 where
-    T: 'static,
-    /*
-    A: Allocator,
-    */
+    T: any::Any,
+    A: Allocator + any::Any,
 {
     type Item = &'a mut T;
     type IntoIter = slice::IterMut<'a, T>;
@@ -2966,12 +3174,10 @@ where
 }
 
 #[cfg(not(no_global_oom_handling))]
-impl<T, /* A */> Extend<T> for TypedProjVec<T, /* A */>
+impl<T, A> Extend<T> for TypedProjVec<T, A>
 where
-    T: 'static,
-    /*
-    A: Allocator,
-    */
+    T: any::Any,
+    A: Allocator + any::Any,
 {
     #[inline]
     #[track_caller]
@@ -3010,12 +3216,10 @@ where
 }
 
 #[cfg(not(no_global_oom_handling))]
-impl<'a, T, /* A */> Extend<&'a T> for TypedProjVec<T, /* A */>
+impl<'a, T, A> Extend<&'a T> for TypedProjVec<T, A>
 where
-    T: Copy + 'a + 'static,
-    /*
-    A: Allocator,
-     */
+    T: any::Any + Copy + 'a,
+    A: Allocator + any::Any,
 {
     #[track_caller]
     fn extend<I>(&mut self, iter: I)
@@ -3052,44 +3256,40 @@ where
     */
 }
 
-impl<T> PartialEq<TypedProjVec<T>> for TypedProjVec<T>
+impl<T, A1, A2> PartialEq<TypedProjVec<T, A2>> for TypedProjVec<T, A1>
 where
-    T: PartialEq + 'static,
+    T: any::Any + PartialEq,
+    A1: Allocator + any::Any,
+    A2: Allocator + any::Any,
 {
-    fn eq(&self, other: &TypedProjVec<T>) -> bool {
+    fn eq(&self, other: &TypedProjVec<T, A2>) -> bool {
         PartialEq::eq(self.as_slice(), other.as_slice())
     }
 }
 
-impl<T, /* A1, A2 */> PartialOrd<TypedProjVec<T, /* A2 */>> for TypedProjVec<T, /* A1 */>
+impl<T, A1, A2> PartialOrd<TypedProjVec<T, A2>> for TypedProjVec<T, A1>
 where
-    T: PartialOrd + 'static,
-    /*
-    A1: Allocator,
-    A2: Allocator,
-     */
+    T: any::Any + PartialOrd,
+    A1: Allocator + any::Any,
+    A2: Allocator + any::Any,
 {
     #[inline]
-    fn partial_cmp(&self, other: &TypedProjVec<T, /* A2 */>) -> Option<cmp::Ordering> {
+    fn partial_cmp(&self, other: &TypedProjVec<T, A2>) -> Option<cmp::Ordering> {
         PartialOrd::partial_cmp(self.as_slice(), other.as_slice())
     }
 }
 
-impl<T, /* A */> Eq for TypedProjVec<T, /* A */>
+impl<T, A> Eq for TypedProjVec<T, A>
 where
-    T: Eq + 'static,
-    /*
-    A: Allocator,
-     */
+    T: any::Any + Eq,
+    A: Allocator + any::Any,
 {
 }
 
-impl<T, /* A */> Ord for TypedProjVec<T, /* A */>
+impl<T, A> Ord for TypedProjVec<T, A>
 where
-    T: Ord + 'static,
-    /*
-    A: Allocator,
-     */
+    T: any::Any + Ord,
+    A: Allocator + any::Any,
 {
     #[inline]
     fn cmp(&self, other: &Self) -> cmp::Ordering {
@@ -3097,80 +3297,69 @@ where
     }
 }
 /*
-impl<T, /* A */> Drop for TypedProjVec<T>
+impl<T, A> Drop for TypedProjVec<T, A>
 where
-    /*
-    A: Allocator,
-     */
+    T: any::Any,
+    A: Allocator + any::Any,
 {
     fn drop(&mut self) {
 
     }
 }
 */
-impl<T> Default for TypedProjVec<T>
+impl<T> Default for TypedProjVec<T, Global>
 where
-    T: 'static,
+    T: any::Any,
 {
-    fn default() -> TypedProjVec<T> {
+    fn default() -> TypedProjVec<T, Global> {
         TypedProjVec::new()
     }
 }
 
-impl<T, /* A */> fmt::Debug for TypedProjVec<T>
+impl<T, A> fmt::Debug for TypedProjVec<T, A>
 where
-    T: fmt::Debug + 'static,
-    /*
-    A: Allocator,
-     */
+    T: any::Any + fmt::Debug,
+    A: Allocator + any::Any,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt::Debug::fmt(self.as_slice(), f)
     }
 }
 
-impl<T, /* A */> AsRef<TypedProjVec<T, /* A */>> for TypedProjVec<T, /* A */>
+impl<T, A> AsRef<TypedProjVec<T, A>> for TypedProjVec<T, A>
 where
-    T: 'static,
-    /*
-    A: Allocator,
-     */
+    T: any::Any,
+    A: Allocator + any::Any,
 {
-    fn as_ref(&self) -> &TypedProjVec<T, /* A */> {
+    fn as_ref(&self) -> &TypedProjVec<T, A> {
         self
     }
 }
 
-impl<T, /* A */> AsMut<TypedProjVec<T, /* A */>> for TypedProjVec<T, /* A */>
+impl<T, A> AsMut<TypedProjVec<T, A>> for TypedProjVec<T, A>
 where
-    T: 'static,
-    /*
-    A: Allocator,
-    */
+    T: any::Any,
+    A: Allocator + any::Any,
 {
-    fn as_mut(&mut self) -> &mut TypedProjVec<T, /* A */> {
+    fn as_mut(&mut self) -> &mut TypedProjVec<T, A> {
         self
     }
 }
 
-impl<T, /* A */> AsRef<[T]> for TypedProjVec<T, /* A */>
+impl<T, A> AsRef<[T]> for TypedProjVec<T, A>
 where
-    T: 'static,
-    /*
-    A: Allocator,
-    */
+    T: any::Any,
+    A: Allocator + any::Any,
 {
     fn as_ref(&self) -> &[T] {
         self.as_slice()
     }
 }
 
-impl<T, /* A */> AsMut<[T]> for TypedProjVec<T, /* A */>
+impl<T, A> AsMut<[T]> for TypedProjVec<T, A>
 where
-    T: 'static,
-    /*
-    A: Allocator,
-    */
+    T: any::Any,
+    A: Allocator + any::Any,
 {
     fn as_mut(&mut self) -> &mut [T] {
         self.as_mut_slice()
@@ -3178,12 +3367,12 @@ where
 }
 
 #[cfg(not(no_global_oom_handling))]
-impl<T> From<&[T]> for TypedProjVec<T>
+impl<T> From<&[T]> for TypedProjVec<T, Global>
 where
-    T: Clone + 'static,
+    T: any::Any + Clone,
 {
     #[track_caller]
-    fn from(slice: &[T]) -> TypedProjVec<T> {
+    fn from(slice: &[T]) -> TypedProjVec<T, Global> {
         let inner = OpaqueVecInner::from(slice);
 
         Self {
@@ -3194,12 +3383,12 @@ where
 }
 
 #[cfg(not(no_global_oom_handling))]
-impl<T> From<&mut [T]> for TypedProjVec<T>
+impl<T> From<&mut [T]> for TypedProjVec<T, Global>
 where
-    T: Clone + 'static,
+    T: any::Any + Clone,
 {
     #[track_caller]
-    fn from(slice: &mut [T]) -> TypedProjVec<T> {
+    fn from(slice: &mut [T]) -> TypedProjVec<T, Global> {
         let inner = OpaqueVecInner::from(slice);
 
         Self {
@@ -3210,34 +3399,34 @@ where
 }
 
 #[cfg(not(no_global_oom_handling))]
-impl<T, const N: usize> From<&[T; N]> for TypedProjVec<T>
+impl<T, const N: usize> From<&[T; N]> for TypedProjVec<T, Global>
 where
-    T: Clone + 'static,
+    T: any::Any + Clone,
 {
     #[track_caller]
-    fn from(slice: &[T; N]) -> TypedProjVec<T> {
+    fn from(slice: &[T; N]) -> TypedProjVec<T, Global> {
         Self::from(slice.as_slice())
     }
 }
 
 #[cfg(not(no_global_oom_handling))]
-impl<T, const N: usize> From<&mut [T; N]> for TypedProjVec<T>
+impl<T, const N: usize> From<&mut [T; N]> for TypedProjVec<T, Global>
 where
-    T: Clone + 'static,
+    T: any::Any + Clone,
 {
     #[track_caller]
-    fn from(slice: &mut [T; N]) -> TypedProjVec<T> {
+    fn from(slice: &mut [T; N]) -> TypedProjVec<T, Global> {
         Self::from(slice.as_mut_slice())
     }
 }
 
 #[cfg(not(no_global_oom_handling))]
-impl<T, const N: usize> From<[T; N]> for TypedProjVec<T>
+impl<T, const N: usize> From<[T; N]> for TypedProjVec<T, Global>
 where
-    T: 'static,
+    T: any::Any,
 {
     #[track_caller]
-    fn from(slice: [T; N]) -> TypedProjVec<T> {
+    fn from(slice: [T; N]) -> TypedProjVec<T, Global> {
         /*
         <[T]>::into_vec(Box::new(slice))
          */
@@ -3245,22 +3434,23 @@ where
     }
 }
 
-impl<'a, T> From<borrow::Cow<'a, [T]>> for TypedProjVec<T>
+impl<'a, T> From<borrow::Cow<'a, [T]>> for TypedProjVec<T, Global>
 where
-    T: 'static,
-    [T]: ToOwned<Owned = TypedProjVec<T>>,
+    T: any::Any,
+    [T]: ToOwned<Owned = TypedProjVec<T, Global>>,
 {
     #[track_caller]
-    fn from(slice: borrow::Cow<'a, [T]>) -> TypedProjVec<T> {
+    fn from(slice: borrow::Cow<'a, [T]>) -> TypedProjVec<T, Global> {
         slice.into_owned()
     }
 }
 
-impl<T /*A */> From<Box<[T], /* A */>> for TypedProjVec<T, /* A */>
+impl<T, A> From<Box<[T], A>> for TypedProjVec<T, A>
 where
-    T: 'static,
+    T: any::Any,
+    A: Allocator + any::Any,
 {
-    fn from(slice: Box<[T], /* A */>) -> Self {
+    fn from(slice: Box<[T], A>) -> Self {
         /*
         slice.into_vec()
          */
@@ -3269,15 +3459,13 @@ where
 }
 /*
 #[cfg(not(no_global_oom_handling))]
-impl<T, /* A */> From<Vec<T, /* A */>> for TypedProjVec<T, /* A */>
+impl<T, A> From<Vec<T, A>> for TypedProjVec<T, A>
 where
-    T: Clone + 'static,
-    /*
-    A: Allocator,
-     */
+    T: any::Any + Clone,
+    A: Allocator + any::Any,
 {
     #[track_caller]
-    fn from(vec: Vec<T, /* A */>) -> Self {
+    fn from(vec: Vec<T, A>) -> Self {
         let inner = OpaqueVecInner::from(vec);
 
         Self {
@@ -3287,17 +3475,14 @@ where
     }
 }
 */
-
 #[cfg(not(no_global_oom_handling))]
-impl<T, /* A */> From<&Vec<T, /* A */>> for TypedProjVec<T, /* A */>
+impl<T, A> From<&Vec<T, A>> for TypedProjVec<T, A>
 where
-    T: Clone + 'static,
-/*
-A: Allocator,
- */
+    T: any::Any + Clone,
+    A: Allocator + any::Any + Clone,
 {
     #[track_caller]
-    fn from(vec: &Vec<T, /* A */>) -> Self {
+    fn from(vec: &Vec<T, A>) -> Self {
         let inner = OpaqueVecInner::from(vec);
 
         Self {
@@ -3308,15 +3493,13 @@ A: Allocator,
 }
 
 #[cfg(not(no_global_oom_handling))]
-impl<T, /* A */> From<&mut Vec<T, /* A */>> for TypedProjVec<T, /* A */>
+impl<T, A> From<&mut Vec<T, A>> for TypedProjVec<T, A>
 where
-    T: Clone + 'static,
-/*
-A: Allocator,
- */
+    T: any::Any + Clone,
+    A: Allocator + any::Any + Clone,
 {
     #[track_caller]
-    fn from(vec: &mut Vec<T, /* A */>) -> Self {
+    fn from(vec: &mut Vec<T, A>) -> Self {
         let inner = OpaqueVecInner::from(vec);
 
         Self {
@@ -3327,37 +3510,33 @@ A: Allocator,
 }
 
 #[cfg(not(no_global_oom_handling))]
-impl<T, /* A */> From<TypedProjVec<T, /* A */>> for Box<[T], /* A */ OpaqueAlloc>
+impl<T, A> From<TypedProjVec<T, A>> for Box<[T], TypedProjAlloc<A>>
 where
-    T: 'static,
-    /*
-    A: Allocator,
-     */
+    T: any::Any,
+    A: Allocator + any::Any,
 {
     #[track_caller]
-    fn from(vec: TypedProjVec<T, /* A */>) -> Self {
+    fn from(vec: TypedProjVec<T, A>) -> Self {
         vec.into_boxed_slice()
     }
 }
 
 #[cfg(not(no_global_oom_handling))]
-impl From<&str> for TypedProjVec<u8> {
+impl From<&str> for TypedProjVec<u8, Global> {
     #[track_caller]
-    fn from(st: &str) -> TypedProjVec<u8> {
+    fn from(st: &str) -> TypedProjVec<u8, Global> {
         From::from(st.as_bytes())
     }
 }
 
-impl<T, /* A, */ const N: usize> TryFrom<TypedProjVec<T, /* A */>> for [T; N]
+impl<T, A, const N: usize> TryFrom<TypedProjVec<T, A>> for [T; N]
 where
-    T: 'static,
-    /*
-    A: Allocator,
-     */
+    T: any::Any,
+    A: Allocator + any::Any,
 {
-    type Error = TypedProjVec<T, /* A */>;
+    type Error = TypedProjVec<T, A>;
 
-    fn try_from(mut vec: TypedProjVec<T, /* A */>) -> Result<[T; N], TypedProjVec<T, /* A */>> {
+    fn try_from(mut vec: TypedProjVec<T, A>) -> Result<[T; N], TypedProjVec<T, A>> {
         if vec.len() != N {
             return Err(vec);
         }
@@ -3384,14 +3563,73 @@ impl OpaqueVec {
     #[inline]
     #[must_use]
     #[track_caller]
+    pub fn new_proj_in<T, A>(proj_alloc: TypedProjAlloc<A>) -> Self
+    where
+        T: any::Any,
+        A: Allocator + any::Any,
+    {
+        let proj_vec = TypedProjVec::<T, A>::new_proj_in(proj_alloc);
+
+        Self::from_proj(proj_vec)
+    }
+
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn with_capacity_proj_in<T, A>(capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self
+    where
+        T: any::Any,
+        A: Allocator + any::Any,
+    {
+        let proj_vec = TypedProjVec::<T, A>::with_capacity_proj_in(capacity, proj_alloc);
+
+        Self::from_proj(proj_vec)
+    }
+
+    #[inline]
+    pub fn try_with_capacity_proj_in<T, A>(capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Result<Self, opaque_error::TryReserveError>
+    where
+        T: any::Any,
+        A: Allocator + any::Any,
+    {
+        let proj_vec = TypedProjVec::<T, A>::try_with_capacity_proj_in(capacity, proj_alloc)?;
+
+        Ok(Self::from_proj(proj_vec))
+    }
+
+    #[inline]
+    pub unsafe fn from_raw_parts_proj_in<T, A>(ptr: *mut T, length: usize, capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self
+    where
+        T: any::Any,
+        A: Allocator + any::Any,
+    {
+        let proj_vec = TypedProjVec::<T, A>::from_raw_parts_proj_in(ptr, length, capacity, proj_alloc);
+
+        Self::from_proj(proj_vec)
+    }
+
+    #[inline]
+    pub unsafe fn from_parts_proj_in<T, A>(ptr: NonNull<T>, length: usize, capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self
+    where
+        T: any::Any,
+        A: Allocator + any::Any,
+    {
+        let proj_vec = TypedProjVec::<T, A>::from_parts_proj_in(ptr, length, capacity, proj_alloc);
+
+        Self::from_proj(proj_vec)
+    }
+
+    #[inline]
+    #[must_use]
+    #[track_caller]
     pub fn new_in<T, A>(alloc: A) -> Self
     where
-        T: 'static,
-        A: Allocator + Clone + 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
     {
-        let inner = OpaqueVecInner::new_in::<T, A>(alloc);
+        let proj_vec = TypedProjVec::<T, A>::new_in(alloc);
 
-        Self { inner }
+        Self::from_proj(proj_vec)
     }
 
     #[inline]
@@ -3399,50 +3637,56 @@ impl OpaqueVec {
     #[track_caller]
     pub fn with_capacity_in<T, A>(capacity: usize, alloc: A) -> Self
     where
-        T: 'static,
-        A: Allocator + Clone + 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
     {
-        let inner = OpaqueVecInner::with_capacity_in::<T, A>(capacity, alloc);
+        let proj_vec = TypedProjVec::<T, A>::with_capacity_in(capacity, alloc);
 
-        Self { inner, }
+        Self::from_proj(proj_vec)
     }
 
     #[inline]
     pub fn try_with_capacity_in<T, A>(capacity: usize, alloc: A) -> Result<Self, opaque_error::TryReserveError>
     where
-        T: 'static,
-        A: Allocator + Clone + 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
     {
-        let inner = OpaqueVecInner::try_with_capacity_in::<T, A>(capacity, alloc)?;
+        let proj_vec = TypedProjVec::<T, A>::try_with_capacity_in(capacity, alloc)?;
 
-        Ok(Self { inner, })
+        Ok(Self::from_proj(proj_vec))
     }
 
     #[inline]
     pub unsafe fn from_raw_parts_in<T, A>(ptr: *mut T, length: usize, capacity: usize, alloc: A) -> Self
     where
-        T: 'static,
-        A: Allocator + Clone + 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
     {
-        let inner = OpaqueVecInner::from_raw_parts_in::<T, A>(ptr, length, capacity, alloc);
+        let proj_vec = TypedProjVec::<T, A>::from_raw_parts_in(ptr, length, capacity, alloc);
 
-        Self { inner, }
+        Self::from_proj(proj_vec)
     }
 
     #[inline]
     pub unsafe fn from_parts_in<T, A>(ptr: NonNull<T>, length: usize, capacity: usize, alloc: A) -> Self
     where
-        T: 'static,
-        A: Allocator + Clone + 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
     {
-        let inner = OpaqueVecInner::from_parts_in::<T, A>(ptr, length, capacity, alloc);
+        let proj_vec = TypedProjVec::<T, A>::from_parts_in(ptr, length, capacity, alloc);
 
-        Self { inner, }
+        Self::from_proj(proj_vec)
     }
 
     #[inline]
-    pub const fn allocator(&self) -> &OpaqueAlloc {
-        self.inner.allocator()
+    pub fn allocator<T, A>(&self) -> &TypedProjAlloc<A>
+    where
+        T: any::Any,
+        A: Allocator + any::Any,
+    {
+        let proj_self = self.as_proj::<T, A>();
+
+        proj_self.allocator()
     }
 }
 
@@ -3452,9 +3696,9 @@ impl OpaqueVec {
     #[track_caller]
     pub fn new<T>() -> Self
     where
-        T: 'static,
+        T: any::Any,
     {
-        let proj_vec = TypedProjVec::<T>::new();
+        let proj_vec = TypedProjVec::<T, Global>::new();
 
         Self::from_proj(proj_vec)
     }
@@ -3464,9 +3708,9 @@ impl OpaqueVec {
     #[track_caller]
     pub fn with_capacity<T>(capacity: usize) -> Self
     where
-        T: 'static,
+        T: any::Any,
     {
-        let proj_vec = TypedProjVec::<T>::with_capacity(capacity);
+        let proj_vec = TypedProjVec::<T, Global>::with_capacity(capacity);
 
         Self::from_proj(proj_vec)
     }
@@ -3474,9 +3718,9 @@ impl OpaqueVec {
     #[inline]
     pub fn try_with_capacity<T>(capacity: usize) -> Result<Self, opaque_error::TryReserveError>
     where
-        T: 'static,
+        T: any::Any,
     {
-        let proj_vec = TypedProjVec::<T>::try_with_capacity(capacity)?;
+        let proj_vec = TypedProjVec::<T, Global>::try_with_capacity(capacity)?;
 
         Ok(Self::from_proj(proj_vec))
     }
@@ -3484,9 +3728,9 @@ impl OpaqueVec {
     #[inline]
     pub unsafe fn from_raw_parts<T>(ptr: *mut T, length: usize, capacity: usize) -> Self
     where
-        T: 'static,
+        T: any::Any,
     {
-        let proj_vec = TypedProjVec::<T>::from_raw_parts(ptr, length, capacity);
+        let proj_vec = TypedProjVec::<T, Global>::from_raw_parts(ptr, length, capacity);
 
         Self::from_proj(proj_vec)
     }
@@ -3494,9 +3738,9 @@ impl OpaqueVec {
     #[inline]
     pub unsafe fn from_parts<T>(ptr: NonNull<T>, length: usize, capacity: usize) -> Self
     where
-        T: 'static,
+        T: any::Any,
     {
-        let proj_vec = TypedProjVec::<T>::from_parts(ptr, length, capacity);
+        let proj_vec = TypedProjVec::<T, Global>::from_parts(ptr, length, capacity);
 
         Self::from_proj(proj_vec)
     }
@@ -3506,7 +3750,7 @@ impl OpaqueVec {
     #[inline]
     pub fn has_element_type<T>(&self) -> bool
     where
-        T: 'static,
+        T: any::Any,
     {
         self.inner.has_element_type::<T>()
     }
@@ -3514,7 +3758,7 @@ impl OpaqueVec {
     #[inline]
     pub fn has_allocator_type<A>(&self) -> bool
     where
-        A: Allocator + Clone + 'static,
+        A: Allocator + any::Any + Clone,
     {
         self.inner.has_allocator_type::<A>()
     }
@@ -3523,7 +3767,7 @@ impl OpaqueVec {
     #[track_caller]
     fn assert_type_safety<T>(&self)
     where
-        T: 'static,
+        T: any::Any,
     {
         #[cold]
         #[optimize(size)]
@@ -3539,27 +3783,30 @@ impl OpaqueVec {
 }
 
 impl OpaqueVec {
-    pub fn as_proj<T>(&self) -> &TypedProjVec<T>
+    pub fn as_proj<T, A>(&self) -> &TypedProjVec<T, A>
     where
-        T: 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
     {
         self.assert_type_safety::<T>();
 
-        unsafe { &*(self as *const OpaqueVec as *const TypedProjVec<T>) }
+        unsafe { &*(self as *const OpaqueVec as *const TypedProjVec<T, A>) }
     }
 
-    pub fn as_proj_mut<T>(&mut self) -> &mut TypedProjVec<T>
+    pub fn as_proj_mut<T, A>(&mut self) -> &mut TypedProjVec<T, A>
     where
-        T: 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
     {
         self.assert_type_safety::<T>();
 
-        unsafe { &mut *(self as *mut OpaqueVec as *mut TypedProjVec<T>) }
+        unsafe { &mut *(self as *mut OpaqueVec as *mut TypedProjVec<T, A>) }
     }
 
-    pub fn into_proj<T>(self) -> TypedProjVec<T>
+    pub fn into_proj<T, A>(self) -> TypedProjVec<T, A>
     where
-        T: 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
     {
         self.assert_type_safety::<T>();
 
@@ -3570,7 +3817,11 @@ impl OpaqueVec {
     }
 
     #[inline]
-    pub fn from_proj<T>(proj_self: TypedProjVec<T>) -> Self {
+    pub fn from_proj<T, A>(proj_self: TypedProjVec<T, A>) -> Self
+    where
+        T: any::Any,
+        A: Allocator + any::Any,
+    {
         Self {
             inner: proj_self.inner,
         }
@@ -3607,238 +3858,262 @@ impl OpaqueVec {
 impl OpaqueVec {
     #[inline]
     #[must_use]
-    pub fn get<T>(&self, index: usize) -> Option<&T>
+    pub fn get<T, A>(&self, index: usize) -> Option<&T>
     where
-        T: 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
     {
-        let proj_self = self.as_proj::<T>();
+        let proj_self = self.as_proj::<T, A>();
         proj_self.get(index)
     }
 
     #[inline]
     #[must_use]
-    pub fn get_mut<T>(&mut self, index: usize) -> Option<&mut T>
+    pub fn get_mut<T, A>(&mut self, index: usize) -> Option<&mut T>
     where
-        T: 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
     {
-        let proj_self = self.as_proj_mut::<T>();
+        let proj_self = self.as_proj_mut::<T, A>();
         proj_self.get_mut(index)
     }
 
     #[inline]
     #[track_caller]
-    pub fn push<T>(&mut self, value: T)
+    pub fn push<T, A>(&mut self, value: T)
     where
-        T: 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
     {
-        let proj_self = self.as_proj_mut::<T>();
+        let proj_self = self.as_proj_mut::<T, A>();
         proj_self.push(value);
     }
 
     #[inline]
-    pub fn pop<T>(&mut self) -> Option<T>
+    pub fn pop<T, A>(&mut self) -> Option<T>
     where
-        T: 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
     {
-        let proj_self = self.as_proj_mut::<T>();
+        let proj_self = self.as_proj_mut::<T, A>();
         proj_self.pop()
     }
 
     #[inline]
-    pub fn push_within_capacity<T>(&mut self, value: T) -> Result<(), T>
+    pub fn push_within_capacity<T, A>(&mut self, value: T) -> Result<(), T>
     where
-        T: 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
     {
-        let proj_self = self.as_proj_mut::<T>();
+        let proj_self = self.as_proj_mut::<T, A>();
         proj_self.push_within_capacity(value)
     }
 
     #[cfg(not(no_global_oom_handling))]
     #[track_caller]
-    pub fn replace_insert<T>(&mut self, index: usize, value: T)
+    pub fn replace_insert<T, A>(&mut self, index: usize, value: T)
     where
-        T: 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
     {
-        let proj_self = self.as_proj_mut::<T>();
+        let proj_self = self.as_proj_mut::<T, A>();
         proj_self.replace_insert(index, value);
     }
 
     #[cfg(not(no_global_oom_handling))]
     #[track_caller]
-    pub fn shift_insert<T>(&mut self, index: usize, value: T)
+    pub fn shift_insert<T, A>(&mut self, index: usize, value: T)
     where
-        T: 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
     {
-        let proj_self = self.as_proj_mut::<T>();
+        let proj_self = self.as_proj_mut::<T, A>();
         proj_self.shift_insert(index, value);
     }
 
     #[cfg(not(no_global_oom_handling))]
     #[track_caller]
-    pub fn swap_remove<T>(&mut self, index: usize) -> T
+    pub fn swap_remove<T, A>(&mut self, index: usize) -> T
     where
-        T: 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
     {
-        let proj_self = self.as_proj_mut::<T>();
+        let proj_self = self.as_proj_mut::<T, A>();
         proj_self.swap_remove(index)
     }
 
     #[cfg(not(no_global_oom_handling))]
     #[track_caller]
-    pub fn shift_remove<T>(&mut self, index: usize) -> T
+    pub fn shift_remove<T, A>(&mut self, index: usize) -> T
     where
-        T: 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
     {
-        let proj_self = self.as_proj_mut::<T>();
+        let proj_self = self.as_proj_mut::<T, A>();
         proj_self.shift_remove(index)
     }
 
-    pub fn contains<T>(&self, value: &T) -> bool
+    pub fn contains<T, A>(&self, value: &T) -> bool
     where
-        T: PartialEq + 'static,
+        T: any::Any + PartialEq,
+        A: Allocator + any::Any,
     {
-        let proj_self = self.as_proj::<T>();
+        let proj_self = self.as_proj::<T, A>();
         proj_self.contains(value)
     }
 
-    pub fn iter<T>(&self) -> slice::Iter<'_, T>
+    pub fn iter<T, A>(&self) -> slice::Iter<'_, T>
     where
-        T: 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
     {
-        let proj_self = self.as_proj::<T>();
+        let proj_self = self.as_proj::<T, A>();
         proj_self.iter()
     }
 
-    pub fn iter_mut<T>(&mut self) -> slice::IterMut<'_, T>
+    pub fn iter_mut<T, A>(&mut self) -> slice::IterMut<'_, T>
     where
-        T: 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
     {
-        let proj_self = self.as_proj_mut::<T>();
+        let proj_self = self.as_proj_mut::<T, A>();
         proj_self.iter_mut()
     }
 
-    pub fn into_iter<T>(self) -> IntoIter<T, OpaqueAlloc>
+    pub fn into_iter<T, A>(self) -> IntoIter<T, A>
     where
-        T: 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
     {
-        let proj_self = self.into_proj::<T>();
+        let proj_self = self.into_proj::<T, A>();
         proj_self.into_iter()
     }
 
     #[cfg(not(no_global_oom_handling))]
     #[inline]
     #[track_caller]
-    pub fn append<T>(&mut self, other: &mut Self)
+    pub fn append<T, A>(&mut self, other: &mut Self)
     where
-        T: 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
     {
-        let proj_self = self.as_proj_mut::<T>();
-        let proj_other = other.as_proj_mut::<T>();
+        let proj_self = self.as_proj_mut::<T, A>();
+        let proj_other = other.as_proj_mut::<T, A>();
         proj_self.append(proj_other)
     }
 
-    pub fn drain<R, T>(&mut self, range: R) -> Drain<'_, T, OpaqueAlloc>
+    pub fn drain<R, T, A>(&mut self, range: R) -> Drain<'_, T, A>
     where
-        T: 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
         R: ops::RangeBounds<usize>,
     {
-        let proj_self = self.as_proj_mut::<T>();
+        let proj_self = self.as_proj_mut::<T, A>();
         proj_self.drain(range)
     }
 
     #[inline]
-    pub fn as_ptr<T>(&self) -> *const T
+    pub fn as_ptr<T, A>(&self) -> *const T
     where
-        T: 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
     {
-        let proj_self = self.as_proj::<T>();
+        let proj_self = self.as_proj::<T, A>();
         proj_self.as_ptr()
     }
 
     #[inline]
-    pub fn as_mut_ptr<T>(&mut self) -> *mut T
+    pub fn as_mut_ptr<T, A>(&mut self) -> *mut T
     where
-        T: 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
     {
-        let proj_self = self.as_proj_mut::<T>();
+        let proj_self = self.as_proj_mut::<T, A>();
         proj_self.as_mut_ptr()
     }
 
     #[inline]
-    pub fn as_non_null<T>(&mut self) -> NonNull<T>
+    pub fn as_non_null<T, A>(&mut self) -> NonNull<T>
     where
-        T: 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
     {
-        let proj_self = self.as_proj_mut::<T>();
+        let proj_self = self.as_proj_mut::<T, A>();
         proj_self.as_non_null()
     }
 
-    pub fn as_slice<T>(&self) -> &[T]
+    pub fn as_slice<T, A>(&self) -> &[T]
     where
-        T: 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
     {
-        let proj_self = self.as_proj::<T>();
+        let proj_self = self.as_proj::<T, A>();
         proj_self.as_slice()
     }
 
-    pub fn as_mut_slice<T>(&mut self) -> &mut [T]
+    pub fn as_mut_slice<T, A>(&mut self) -> &mut [T]
     where
-        T: 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
     {
-        let proj_self = self.as_proj_mut::<T>();
+        let proj_self = self.as_proj_mut::<T, A>();
         proj_self.as_mut_slice()
     }
 
-    pub fn as_byte_slice<T>(&self) -> &[u8]
+    pub fn as_byte_slice<T, A>(&self) -> &[u8]
     where
-        T: 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
     {
-        let proj_self = self.as_proj::<T>();
+        let proj_self = self.as_proj::<T, A>();
         proj_self.as_byte_slice()
     }
 
     #[must_use]
     pub fn into_raw_parts<T>(self) -> (*mut T, usize, usize)
     where
-        T: 'static,
+        T: any::Any,
     {
-        let proj_self = self.into_proj::<T>();
+        let proj_self = self.into_proj::<T, Global>();
         proj_self.into_raw_parts()
     }
 
     #[must_use]
     pub fn into_parts<T>(self) -> (NonNull<T>, usize, usize)
     where
-        T: 'static,
+        T: any::Any,
     {
-        let proj_self = self.into_proj::<T>();
+        let proj_self = self.into_proj::<T, Global>();
         proj_self.into_parts()
     }
 
     #[must_use]
-    pub fn into_raw_parts_with_alloc<T>(self) -> (*mut T, usize, usize, OpaqueAlloc)
+    pub fn into_raw_parts_with_alloc<T, A>(self) -> (*mut T, usize, usize, TypedProjAlloc<A>)
     where
-        T: 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
     {
-        let proj_self = self.into_proj::<T>();
+        let proj_self = self.into_proj::<T, A>();
         proj_self.into_raw_parts_with_alloc()
     }
 
-    pub fn into_parts_with_alloc<T>(self) -> (NonNull<T>, usize, usize, OpaqueAlloc)
+    pub fn into_parts_with_alloc<T, A>(self) -> (NonNull<T>, usize, usize, TypedProjAlloc<A>)
     where
-        T: 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
     {
-        let proj_self = self.into_proj::<T>();
+        let proj_self = self.into_proj::<T, A>();
         proj_self.into_parts_with_alloc()
     }
 
     #[cfg(not(no_global_oom_handling))]
     #[track_caller]
-    pub fn into_boxed_slice<T>(self) -> Box<[T], OpaqueAlloc>
+    pub fn into_boxed_slice<T, A>(self) -> Box<[T], TypedProjAlloc<A>>
     where
-        T: 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
     {
-        let proj_self = self.into_proj::<T>();
+        let proj_self = self.into_proj::<T, A>();
         proj_self.into_boxed_slice()
     }
 
@@ -3846,11 +4121,12 @@ impl OpaqueVec {
     #[inline]
     #[must_use = "use `.truncate()` if you don't need the other half"]
     #[track_caller]
-    pub fn split_off<T>(&mut self, at: usize) -> Self
+    pub fn split_off<T, A>(&mut self, at: usize) -> Self
     where
-        T: 'static,
+        T: any::Any,
+        A: Allocator + any::Any + Clone,
     {
-        let proj_self = self.as_proj_mut::<T>();
+        let proj_self = self.as_proj_mut::<T, A>();
         let proj_split_off = proj_self.split_off(at);
 
         Self::from_proj(proj_split_off)
@@ -3858,21 +4134,23 @@ impl OpaqueVec {
 
     #[cfg(not(no_global_oom_handling))]
     #[track_caller]
-    pub fn resize_with<F, T>(&mut self, new_len: usize, f: F)
+    pub fn resize_with<F, T, A>(&mut self, new_len: usize, f: F)
     where
-        T: 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
         F: FnMut() -> T,
     {
-        let proj_self = self.as_proj_mut::<T>();
+        let proj_self = self.as_proj_mut::<T, A>();
         proj_self.resize_with(new_len, f)
     }
 
     #[inline]
-    pub fn spare_capacity_mut<T>(&mut self) -> &mut [MaybeUninit<T>]
+    pub fn spare_capacity_mut<T, A>(&mut self) -> &mut [MaybeUninit<T>]
     where
-        T: 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
     {
-        let proj_self = self.as_proj_mut::<T>();
+        let proj_self = self.as_proj_mut::<T, A>();
         proj_self.spare_capacity_mut()
     }
 }
@@ -3918,64 +4196,70 @@ impl OpaqueVec {
 impl OpaqueVec {
     #[cfg(not(no_global_oom_handling))]
     #[inline]
-    pub fn splice<R, I, T>(&mut self, range: R, replace_with: I) -> Splice<'_, I::IntoIter, OpaqueAlloc>
+    pub fn splice<R, I, T, A>(&mut self, range: R, replace_with: I) -> Splice<'_, I::IntoIter, A>
     where
-        T: 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
         R: ops::RangeBounds<usize>,
         I: IntoIterator<Item = T>,
     {
-        let proj_self = self.as_proj_mut::<T>();
+        let proj_self = self.as_proj_mut::<T, A>();
         proj_self.splice(range, replace_with)
     }
 
-    pub fn extract_if<F, R, T>(&mut self, range: R, filter: F) -> ExtractIf<'_, T, F, OpaqueAlloc>
+    pub fn extract_if<F, R, T, A>(&mut self, range: R, filter: F) -> ExtractIf<'_, T, F, A>
     where
-        T: 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
         F: FnMut(&mut T) -> bool,
         R: ops::RangeBounds<usize>,
     {
-        let proj_self = self.as_proj_mut::<T>();
+        let proj_self = self.as_proj_mut::<T, A>();
         proj_self.extract_if(range, filter)
     }
 
     #[cfg(not(no_global_oom_handling))]
     #[track_caller]
-    fn extend_with<T>(&mut self, count: usize, value: T)
+    fn extend_with<T, A>(&mut self, count: usize, value: T)
     where
-        T: Clone + 'static,
+        T: any::Any + Clone,
+        A: Allocator + any::Any,
     {
-        let proj_self = self.as_proj_mut::<T>();
+        let proj_self = self.as_proj_mut::<T, A>();
         proj_self.extend_with(count, value);
     }
 
     #[cfg(not(no_global_oom_handling))]
     #[track_caller]
-    fn extend_from_iter<T, I>(&mut self, iterator: I)
+    fn extend_from_iter<T, I, A>(&mut self, iterator: I)
     where
-        T: Clone + 'static,
+        T: any::Any + Clone,
+        A: Allocator + any::Any,
         I: Iterator<Item = T>,
     {
-        let proj_self = self.as_proj_mut::<T>();
+        let proj_self = self.as_proj_mut::<T, A>();
         proj_self.extend_from_iter(iterator);
     }
 
     #[cfg(not(no_global_oom_handling))]
     #[track_caller]
-    pub fn extend_from_slice<T>(&mut self, other: &[T])
+    pub fn extend_from_slice<T, A>(&mut self, other: &[T])
     where
-        T: Clone + 'static,
+        T: any::Any + Clone,
+        A: Allocator + any::Any,
     {
-        let proj_self = self.as_proj_mut::<T>();
+        let proj_self = self.as_proj_mut::<T, A>();
         proj_self.extend_from_slice(other);
     }
 
     #[cfg(not(no_global_oom_handling))]
     #[track_caller]
-    pub fn resize<T>(&mut self, new_len: usize, value: T)
+    pub fn resize<T, A>(&mut self, new_len: usize, value: T)
     where
-        T: Clone + 'static,
+        T: any::Any + Clone,
+        A: Allocator + any::Any,
     {
-        let proj_self = self.as_proj_mut::<T>();
+        let proj_self = self.as_proj_mut::<T, A>();
         proj_self.resize(new_len, value);
     }
 
@@ -3986,74 +4270,81 @@ impl OpaqueVec {
 }
 
 impl OpaqueVec {
-    pub fn retain<F, T>(&mut self, mut f: F)
+    pub fn retain<F, T, A>(&mut self, mut f: F)
     where
-        T: 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
         F: FnMut(&T) -> bool,
     {
-        let proj_self = self.as_proj_mut::<T>();
+        let proj_self = self.as_proj_mut::<T, A>();
         proj_self.retain(f);
     }
 
-    pub fn retain_mut<F, T>(&mut self, mut f: F)
+    pub fn retain_mut<F, T, A>(&mut self, mut f: F)
     where
-        T: 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
         F: FnMut(&mut T) -> bool,
     {
-        let proj_self = self.as_proj_mut::<T>();
+        let proj_self = self.as_proj_mut::<T, A>();
         proj_self.retain_mut(f);
     }
 
     #[inline]
-    pub fn dedup_by_key<F, K, T>(&mut self, mut key: F)
+    pub fn dedup_by_key<F, K, T, A>(&mut self, mut key: F)
     where
-        T: 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
         F: FnMut(&mut T) -> K,
         K: PartialEq,
     {
-        let proj_self = self.as_proj_mut::<T>();
+        let proj_self = self.as_proj_mut::<T, A>();
         proj_self.dedup_by_key(&mut key);
     }
 
-    pub fn dedup_by<F, T>(&mut self, mut same_bucket: F)
+    pub fn dedup_by<F, T, A>(&mut self, mut same_bucket: F)
     where
-        T: 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
         F: FnMut(&mut T, &mut T) -> bool,
     {
-        let proj_self = self.as_proj_mut::<T>();
+        let proj_self = self.as_proj_mut::<T, A>();
         proj_self.dedup_by(same_bucket);
     }
 }
 
 impl OpaqueVec {
     #[inline]
-    pub fn extend<T, I>(&mut self, iter: I)
+    pub fn extend<I, T, A>(&mut self, iter: I)
     where
-        T: 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
         I: IntoIterator<Item=T>,
     {
-        let proj_self = self.as_proj_mut::<T>();
+        let proj_self = self.as_proj_mut::<T, A>();
         proj_self.extend(iter);
     }
 
     #[inline]
-    pub fn reverse<T>(&mut self)
+    pub fn reverse<T, A>(&mut self)
     where
-        T: 'static,
+        T: any::Any,
+        A: Allocator + any::Any,
     {
-        let proj_self = self.as_proj_mut::<T>();
+        let proj_self = self.as_proj_mut::<T, A>();
         proj_self.reverse();
     }
 }
 
 impl OpaqueVec {
     #[inline]
-    pub fn clone<T>(&self) -> Self
+    pub fn clone<T, A>(&self) -> Self
     where
-        T: Clone + 'static,
+        T: any::Any + Clone,
+        A: Allocator + any::Any + Clone,
     {
-        let proj_self = self.as_proj::<T>();
-        let proj_cloned_self = proj_self.clone();
+        let proj_self = self.as_proj::<T, A>();
+        let proj_cloned_self = Clone::clone(proj_self);
         let cloned_self = OpaqueVec::from_proj(proj_cloned_self);
 
         cloned_self
@@ -4064,7 +4355,6 @@ impl fmt::Debug for OpaqueVec {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter
             .debug_struct("OpaqueVec")
-            .field("inner", &self.inner)
             .finish()
     }
 }
@@ -4077,7 +4367,7 @@ impl fmt::Display for OpaqueVec {
 
 impl<T> From<&[T]> for OpaqueVec
 where
-    T: Clone + 'static,
+    T: any::Any + Clone,
 {
     fn from(slice: &[T]) -> Self {
         let inner = OpaqueVecInner::from(slice);
@@ -4088,7 +4378,7 @@ where
 
 impl<T> From<&mut [T]> for OpaqueVec
 where
-    T: Clone + 'static,
+    T: any::Any + Clone,
 {
     fn from(slice: &mut [T]) -> Self {
         let inner = OpaqueVecInner::from(slice);
@@ -4099,7 +4389,7 @@ where
 
 impl<const N: usize, T> From<&[T; N]> for OpaqueVec
 where
-    T: Clone + 'static,
+    T: any::Any + Clone,
 {
     fn from(array: &[T; N]) -> Self {
         let inner = OpaqueVecInner::from(array);
@@ -4110,7 +4400,7 @@ where
 
 impl<const N: usize, T> From<&mut [T; N]> for OpaqueVec
 where
-    T: Clone + 'static,
+    T: any::Any + Clone,
 {
     fn from(array: &mut [T; N]) -> Self {
         let inner = OpaqueVecInner::from(array);
@@ -4121,7 +4411,7 @@ where
 
 impl<T> From<&Vec<T>> for OpaqueVec
 where
-    T: Clone + 'static,
+    T: any::Any + Clone,
 {
     fn from(vec: &Vec<T>) -> Self {
         let inner = OpaqueVecInner::from(vec);
@@ -4132,7 +4422,7 @@ where
 
 impl<T> From<&mut Vec<T>> for OpaqueVec
 where
-    T: Clone + 'static,
+    T: any::Any + Clone,
 {
     fn from(vec: &mut Vec<T>) -> Self {
         let inner = OpaqueVecInner::from(vec);
@@ -4140,10 +4430,10 @@ where
         Self { inner, }
     }
 }
-
+/*
 impl<T> From<Box<[T]>> for OpaqueVec
 where
-    T: Clone + 'static,
+    T: any::Any + Clone,
 {
     fn from(slice: Box<[T]>) -> Self {
         let inner = OpaqueVecInner::from(slice);
@@ -4151,12 +4441,13 @@ where
         Self { inner, }
     }
 }
-
-impl<T> From<Box<[T], opaque_alloc::OpaqueAlloc>> for OpaqueVec
+*/
+impl<T, A> From<Box<[T], A>> for OpaqueVec
 where
-    T: Clone + 'static,
+    T: any::Any + Clone,
+    A: Allocator + any::Any + Clone,
 {
-    fn from(slice: Box<[T], opaque_alloc::OpaqueAlloc>) -> Self {
+    fn from(slice: Box<[T], A>) -> Self {
         let inner = OpaqueVecInner::from(slice);
 
         Self { inner, }
@@ -4165,7 +4456,7 @@ where
 
 impl<const N: usize, T> From<[T; N]> for OpaqueVec
 where
-    T: 'static,
+    T: any::Any,
 {
     fn from(array: [T; N]) -> Self {
         let inner = OpaqueVecInner::from(array);
@@ -4176,7 +4467,7 @@ where
 
 impl<T> FromIterator<T> for OpaqueVec
 where
-    T: 'static,
+    T: any::Any,
 {
     #[inline]
     #[track_caller]

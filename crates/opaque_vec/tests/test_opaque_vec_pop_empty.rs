@@ -1,48 +1,52 @@
+#![feature(allocator_api)]
 use opaque_vec::OpaqueVec;
+
+use core::any;
+use std::alloc;
 
 fn run_test_opaque_vec_pop_empty1<T>()
 where
-    T: 'static,
+    T: any::Any,
 {
     let mut vec = OpaqueVec::new::<T>();
 
-    assert!(vec.pop::<T>().is_none());
+    assert!(vec.pop::<T, alloc::Global>().is_none());
 }
 
 fn run_test_opaque_vec_pop_empty2<T>()
 where
-    T: 'static,
+    T: any::Any,
 {
     let mut vec = OpaqueVec::new::<T>();
 
     for _ in 0..65536 {
-        assert!(vec.pop::<T>().is_none());
+        assert!(vec.pop::<T, alloc::Global>().is_none());
     }
 }
 
 fn run_test_opaque_vec_pop_empty_is_empty1<T>()
 where
-    T: 'static,
+    T: any::Any,
 {
     let mut vec = OpaqueVec::new::<T>();
 
     assert!(vec.is_empty());
 
-    vec.pop::<T>();
+    vec.pop::<T, alloc::Global>();
 
     assert!(vec.is_empty());
 }
 
 fn run_test_opaque_vec_pop_empty_is_empty2<T>()
 where
-    T: 'static,
+    T: any::Any,
 {
     let mut vec = OpaqueVec::new::<T>();
 
     assert!(vec.is_empty());
 
     for _ in 0..65536 {
-        vec.pop::<T>();
+        vec.pop::<T, alloc::Global>();
     }
 
     assert!(vec.is_empty());

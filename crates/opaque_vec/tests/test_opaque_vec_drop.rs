@@ -1,4 +1,7 @@
+#![feature(allocator_api)]
 use opaque_vec::OpaqueVec;
+
+use std::alloc;
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -34,8 +37,8 @@ fn test_opaque_vec_double_drop() {
             y: OpaqueVec::new::<DropCounter>(),
         };
 
-        tv.x.push(DropCounter::new(ref_count_x.clone()));
-        tv.y.push(DropCounter::new(ref_count_y.clone()));
+        tv.x.push::<DropCounter, alloc::Global>(DropCounter::new(ref_count_x.clone()));
+        tv.y.push::<DropCounter, alloc::Global>(DropCounter::new(ref_count_y.clone()));
 
         drop(tv.x);
     }
@@ -55,7 +58,7 @@ fn test_opaque_vec_drop_all_items1() {
     {
         let mut vec = OpaqueVec::new::<DropCounter>();
         for i in 0..count {
-            vec.push::<DropCounter>(counter.clone());
+            vec.push::<DropCounter, alloc::Global>(counter.clone());
         }
     }
 
@@ -72,7 +75,7 @@ fn test_opaque_vec_push_should_not_drop_value() {
     let ref_count = Rc::new(RefCell::new(0));
     let counter = DropCounter::new(ref_count.clone());
 
-    vec.push::<DropCounter>(counter);
+    vec.push::<DropCounter, alloc::Global>(counter);
 
     let count = *ref_count.borrow();
 
@@ -86,7 +89,7 @@ fn test_opaque_vec_replace_insert_should_not_drop_value() {
     let ref_count = Rc::new(RefCell::new(0));
     let counter = DropCounter::new(ref_count.clone());
 
-    vec.replace_insert::<DropCounter>(0, counter);
+    vec.replace_insert::<DropCounter, alloc::Global>(0, counter);
 
     let count = *ref_count.borrow();
 
@@ -100,9 +103,9 @@ fn test_opaque_vec_swap_remove_should_not_drop_return_value() {
     let ref_count = Rc::new(RefCell::new(0));
     let counter = DropCounter::new(ref_count.clone());
 
-    vec.push::<DropCounter>(counter);
+    vec.push::<DropCounter, alloc::Global>(counter);
 
-    let _counter = vec.swap_remove::<DropCounter>(0);
+    let _counter = vec.swap_remove::<DropCounter, alloc::Global>(0);
 
     let count = *ref_count.borrow();
 
@@ -116,9 +119,9 @@ fn test_opaque_vec_shift_remove_should_not_drop_return_value() {
     let ref_count = Rc::new(RefCell::new(0));
     let counter = DropCounter::new(ref_count.clone());
 
-    vec.push::<DropCounter>(counter);
+    vec.push::<DropCounter, alloc::Global>(counter);
 
-    let _counter = vec.shift_remove::<DropCounter>(0);
+    let _counter = vec.shift_remove::<DropCounter, alloc::Global>(0);
 
     let count = *ref_count.borrow();
 
@@ -132,9 +135,9 @@ fn test_opaque_vec_pop_should_not_drop_return_value() {
     let ref_count = Rc::new(RefCell::new(0));
     let counter = DropCounter::new(ref_count.clone());
 
-    vec.push::<DropCounter>(counter);
+    vec.push::<DropCounter, alloc::Global>(counter);
 
-    let _counter = vec.pop::<DropCounter>();
+    let _counter = vec.pop::<DropCounter, alloc::Global>();
 
     let count = *ref_count.borrow();
 
@@ -148,7 +151,7 @@ fn test_opaque_vec_clear_should_drop() {
     let ref_count = Rc::new(RefCell::new(0));
     let counter = DropCounter::new(ref_count.clone());
 
-    vec.push::<DropCounter>(counter);
+    vec.push::<DropCounter, alloc::Global>(counter);
 
     vec.clear();
 
@@ -165,7 +168,7 @@ fn test_opaque_vec_drop_should_drop_elements() {
 
         let counter = DropCounter::new(ref_count.clone());
 
-        vec.push::<DropCounter>(counter);
+        vec.push::<DropCounter, alloc::Global>(counter);
         // `vec` drops here.
     }
 
@@ -180,9 +183,9 @@ fn test_opaque_vec_drop_should_not_drop_swap_removed_elements() {
     let _counter = {
         let mut vec = OpaqueVec::new::<DropCounter>();
 
-        vec.push::<DropCounter>(DropCounter::new(ref_count.clone()));
+        vec.push::<DropCounter, alloc::Global>(DropCounter::new(ref_count.clone()));
 
-        let counter = vec.swap_remove::<DropCounter>(0);
+        let counter = vec.swap_remove::<DropCounter, alloc::Global>(0);
 
         counter
         // `vec` drops here.
@@ -199,9 +202,9 @@ fn test_opaque_vec_drop_should_not_drop_shift_removed_elements() {
     let _counter = {
         let mut vec = OpaqueVec::new::<DropCounter>();
 
-        vec.push::<DropCounter>(DropCounter::new(ref_count.clone()));
+        vec.push::<DropCounter, alloc::Global>(DropCounter::new(ref_count.clone()));
 
-        let counter = vec.shift_remove::<DropCounter>(0);
+        let counter = vec.shift_remove::<DropCounter, alloc::Global>(0);
 
         counter
         // `vec` drops here.
@@ -218,9 +221,9 @@ fn test_opaque_vec_drop_should_not_drop_popped_elements() {
     let _counter = {
         let mut vec = OpaqueVec::new::<DropCounter>();
 
-        vec.push::<DropCounter>(DropCounter::new(ref_count.clone()));
+        vec.push::<DropCounter, alloc::Global>(DropCounter::new(ref_count.clone()));
 
-        let counter = vec.pop::<DropCounter>();
+        let counter = vec.pop::<DropCounter, alloc::Global>();
 
         counter
         // `vec` drops here.

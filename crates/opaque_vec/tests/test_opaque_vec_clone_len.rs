@@ -1,15 +1,18 @@
+#![feature(allocator_api)]
 use opaque_vec::OpaqueVec;
 
+use core::any;
 use core::fmt;
+use std::alloc;
 
 use opaque_vec_testing as ovt;
 
 fn run_test_opaque_vec_clone_len<T>(values: &[T])
 where
-    T: PartialEq + Clone + fmt::Debug + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug,
 {
     let vec = OpaqueVec::from(values);
-    let cloned_vec = vec.clone::<T>();
+    let cloned_vec = vec.clone::<T, alloc::Global>();
 
     let expected = vec.len();
     let result = cloned_vec.len();
@@ -19,7 +22,7 @@ where
 
 fn run_test_opaque_vec_clone_len_values<T>(values: &[T])
 where
-    T: PartialEq + Clone + fmt::Debug + TryFrom<usize> + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug + TryFrom<usize>,
     <T as TryFrom<usize>>::Error: fmt::Debug,
 {
     let iter = ovt::PrefixGenerator::new(values);

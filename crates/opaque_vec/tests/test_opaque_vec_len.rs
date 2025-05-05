@@ -1,10 +1,12 @@
 use opaque_vec::OpaqueVec;
 
+use core::any;
+
 use opaque_vec_testing as ovt;
 
 fn run_test_opaque_vec_len<T>(values: &[T])
 where
-    T: PartialEq + Clone + 'static,
+    T: any::Any + PartialEq + Clone,
 {
     let vec = OpaqueVec::from(values);
 
@@ -16,7 +18,7 @@ where
 
 fn run_test_opaque_vec_len_values<T>(values: &[T])
 where
-    T: PartialEq + Clone + 'static,
+    T: any::Any + PartialEq + Clone,
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {

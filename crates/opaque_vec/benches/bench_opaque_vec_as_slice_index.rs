@@ -1,9 +1,12 @@
+#![feature(allocator_api)]
 use criterion::{
     Criterion,
     criterion_group,
     criterion_main,
 };
 use opaque_vec::OpaqueVec;
+
+use std::alloc;
 
 fn bench_vec_as_slice_index(c: &mut Criterion) {
     let dummy_data = 0_i32;
@@ -25,7 +28,7 @@ fn bench_opaque_vec_as_slice_index(c: &mut Criterion) {
 
     c.bench_function("opaque_vec_as_slice_index", |b| {
         b.iter(|| {
-            let slice = opaque_vec.as_slice::<i32>();
+            let slice = opaque_vec.as_slice::<i32, alloc::Global>();
             for i in 0..slice.len() {
                 let _ = criterion::black_box(slice[i]);
             }

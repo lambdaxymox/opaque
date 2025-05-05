@@ -521,7 +521,7 @@ impl OpaqueBlobVec {
         self.length += count;
     }
 }
-
+/*
 impl Clone for OpaqueBlobVec {
     fn clone(&self) -> Self {
         let new_element_layout = self.element_layout;
@@ -544,7 +544,7 @@ impl Clone for OpaqueBlobVec {
         new_vec
     }
 }
-
+*/
 impl Drop for OpaqueBlobVec {
     fn drop(&mut self) {
         self.clear();

@@ -1,29 +1,33 @@
+#![feature(allocator_api)]
 use opaque_vec::OpaqueVec;
+
+use core::any;
+use std::alloc;
 
 use opaque_vec_testing as ovt;
 
 fn run_test_opaque_vec_push_contains<T>(values: &[T])
 where
-    T: PartialEq + Clone + 'static,
+    T: any::Any + PartialEq + Clone,
 {
     let mut vec = OpaqueVec::new::<T>();
 
     for value in values.iter() {
-        assert!(!vec.contains::<T>(value));
+        assert!(!vec.contains::<T, alloc::Global>(value));
     }
 
     for value in values.iter().cloned() {
-        vec.push::<T>(value);
+        vec.push::<T, alloc::Global>(value);
     }
 
     for value in values.iter() {
-        assert!(vec.contains::<T>(value));
+        assert!(vec.contains::<T, alloc::Global>(value));
     }
 }
 
 fn run_test_opaque_vec_push_contains_values<T>(values: &[T])
 where
-    T: PartialEq + Clone + 'static,
+    T: any::Any + PartialEq + Clone,
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {
@@ -39,13 +43,13 @@ macro_rules! generate_tests {
             #[test]
             fn test_opaque_vec_push_contains_range_values() {
                 let values = opaque_vec_testing::range_values::<$typ, $max_array_size>($range_spec);
-                run_test_opaque_vec_push_contains(&values);
+                run_test_opaque_vec_push_contains_values(&values);
             }
 
             #[test]
             fn test_opaque_vec_push_contains_alternating_values() {
                 let values = opaque_vec_testing::alternating_values::<$typ, $max_array_size>($alt_spec);
-                run_test_opaque_vec_push_contains(&values);
+                run_test_opaque_vec_push_contains_values(&values);
             }
         }
     };

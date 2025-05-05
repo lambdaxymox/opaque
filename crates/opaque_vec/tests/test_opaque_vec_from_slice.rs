@@ -1,22 +1,25 @@
+#![feature(allocator_api)]
 use opaque_vec::OpaqueVec;
 
+use core::any;
 use core::fmt;
+use std::alloc;
 
 use opaque_vec_testing as ovt;
 
 fn run_test_opaque_vec_from_slice<T>(expected: &[T])
 where
-    T: PartialEq + Clone + fmt::Debug + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug
 {
     let vec = OpaqueVec::from(expected);
-    let result = vec.as_slice::<T>();
+    let result = vec.as_slice::<T, alloc::Global>();
 
     assert_eq!(result, expected);
 }
 
 fn run_test_opaque_vec_from_slice_values<T>(values: &[T])
 where
-    T: PartialEq + Clone + fmt::Debug + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {
@@ -35,7 +38,7 @@ macro_rules! generate_tests {
                 let vec = OpaqueVec::from(values);
 
                 let expected = values.as_slice();
-                let result = vec.as_slice::<$typ>();
+                let result = vec.as_slice::<$typ, alloc::Global>();
 
                 assert_eq!(result, expected);
             }

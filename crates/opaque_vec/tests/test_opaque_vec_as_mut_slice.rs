@@ -1,25 +1,28 @@
+#![feature(allocator_api)]
 use opaque_vec::OpaqueVec;
 
+use core::any;
 use core::fmt;
+use std::alloc;
 
 use opaque_vec_testing as ovt;
 
 fn run_test_opaque_vec_as_mut_slice<T>(values: &mut [T])
 where
-    T: PartialEq + Clone + fmt::Debug + TryFrom<usize> + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug + TryFrom<usize>,
     <T as TryFrom<usize>>::Error: fmt::Debug,
 {
     let mut vec = OpaqueVec::from(&*values);
 
     let expected = values;
-    let result = vec.as_mut_slice::<T>();
+    let result = vec.as_mut_slice::<T, alloc::Global>();
 
     assert_eq!(result, expected);
 }
 
 fn run_test_opaque_vec_as_mut_slice_values<T>(values: &mut [T])
 where
-    T: PartialEq + Clone + fmt::Debug + TryFrom<usize> + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug + TryFrom<usize>,
     <T as TryFrom<usize>>::Error: fmt::Debug,
 {
     let iter = ovt::PrefixGenerator::new(values);

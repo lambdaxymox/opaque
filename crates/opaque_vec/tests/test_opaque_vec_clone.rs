@@ -1,41 +1,44 @@
+#![feature(allocator_api)]
 use opaque_vec::OpaqueVec;
 
+use core::any;
 use core::fmt;
+use std::alloc;
 
 use opaque_vec_testing as ovt;
 
 fn run_test_opaque_vec_clone<T>(values: &[T])
 where
-    T: PartialEq + Clone + fmt::Debug + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug,
 {
     let vec = OpaqueVec::from(values);
-    let cloned_vec = vec.clone::<T>();
+    let cloned_vec = vec.clone::<T, alloc::Global>();
 
-    let expected = vec.as_slice::<T>();
-    let result = cloned_vec.as_slice::<T>();
+    let expected = vec.as_slice::<T, alloc::Global>();
+    let result = cloned_vec.as_slice::<T, alloc::Global>();
 
     assert_eq!(result, expected);
 }
 
 fn run_test_opaque_vec_clone_occupy_disjoint_memory_locations<T>(values: &[T])
 where
-    T: PartialEq + Clone + fmt::Debug + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug,
 {
     let vec1 = OpaqueVec::from(values);
-    let vec2 = vec1.clone::<T>();
+    let vec2 = vec1.clone::<T, alloc::Global>();
 
-    assert_ne!(vec1.as_ptr::<T>(), vec2.as_ptr::<T>());
+    assert_ne!(vec1.as_ptr::<T, alloc::Global>(), vec2.as_ptr::<T, alloc::Global>());
 }
 
 fn run_test_opaque_vec_clone_occupy_disjoint_memory_regions<T>(values: &[T])
 where
-    T: PartialEq + Clone + fmt::Debug + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug,
 {
     let vec1 = OpaqueVec::from(values);
-    let vec2 = vec1.clone::<T>();
+    let vec2 = vec1.clone::<T, alloc::Global>();
 
-    let ptr_start1 = vec1.as_ptr::<T>() as usize;
-    let ptr_start2 = vec2.as_ptr::<T>() as usize;
+    let ptr_start1 = vec1.as_ptr::<T, alloc::Global>() as usize;
+    let ptr_start2 = vec2.as_ptr::<T, alloc::Global>() as usize;
     let ptr_end1 = {
         let len1 = vec1.len() * std::mem::size_of::<T>();
         ptr_start1 + len1
@@ -50,7 +53,7 @@ where
 
 fn run_test_opaque_vec_clone_values<T>(values: &[T])
 where
-    T: PartialEq + Clone + fmt::Debug + TryFrom<usize> + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug + TryFrom<usize>,
     <T as TryFrom<usize>>::Error: fmt::Debug,
 {
     let iter = ovt::PrefixGenerator::new(values);
@@ -61,7 +64,7 @@ where
 
 fn run_test_opaque_vec_clone_occupy_disjoint_memory_locations_values<T>(values: &[T])
 where
-    T: PartialEq + Clone + fmt::Debug + TryFrom<usize> + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug + TryFrom<usize>,
     <T as TryFrom<usize>>::Error: fmt::Debug,
 {
     let iter = ovt::PrefixGenerator::new(values);
@@ -72,7 +75,7 @@ where
 
 fn run_test_opaque_vec_clone_occupy_disjoint_memory_regions_values<T>(values: &[T])
 where
-    T: PartialEq + Clone + fmt::Debug + TryFrom<usize> + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug + TryFrom<usize>,
     <T as TryFrom<usize>>::Error: fmt::Debug,
 {
     let iter = ovt::PrefixGenerator::new(values);
