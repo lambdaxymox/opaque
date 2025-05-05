@@ -12,7 +12,6 @@ use core::hash;
 use core::ops;
 use core::slice;
 use core::fmt;
-use core::mem;
 use core::ptr::NonNull;
 use core::any::TypeId;
 use core::marker::PhantomData;
@@ -2358,7 +2357,12 @@ where
     A: Allocator + any::Any,
 {
     fn from(vec: Vec<T, A>) -> Self {
-        todo!()
+        let (ptr, length, capacity, alloc) = vec.into_parts_with_alloc();
+        let inner = unsafe {
+            OpaqueVecInner::from_parts_in(ptr, length, capacity, alloc)
+        };
+
+        inner
     }
 }
 
@@ -2388,10 +2392,18 @@ where
     A: Allocator + any::Any,
 {
     fn from(slice: Box<[T], A>) -> Self {
-        /*
-        Self::from(slice.as_ref())
-        */
-        todo!()
+        let length = slice.len();
+        let capacity = slice.len();
+        let (ptr, alloc) = {
+            let (slice_ptr, _alloc) = Box::into_non_null_with_allocator(slice);
+            let _ptr: NonNull<T> = unsafe { NonNull::new_unchecked(slice_ptr.as_ptr() as *mut T) };
+            (_ptr, _alloc)
+        };
+        let inner = unsafe {
+            OpaqueVecInner::from_parts_in(ptr, length, capacity, alloc)
+        };
+
+        inner
     }
 }
 
@@ -3372,10 +3384,12 @@ where
 {
     #[track_caller]
     fn from(slice: [T; N]) -> TypedProjVec<T, Global> {
-        /*
-        <[T]>::into_vec(Box::new(slice))
-         */
-        todo!()
+        let inner = OpaqueVecInner::from(slice);
+
+        Self {
+            inner,
+            _marker: core::marker::PhantomData,
+        }
     }
 }
 
@@ -3396,10 +3410,12 @@ where
     A: Allocator + any::Any,
 {
     fn from(slice: Box<[T], A>) -> Self {
-        /*
-        slice.into_vec()
-         */
-        todo!()
+        let inner = OpaqueVecInner::from(slice);
+
+        Self {
+            inner,
+            _marker: core::marker::PhantomData,
+        }
     }
 }
 
@@ -4309,9 +4325,9 @@ where
     T: any::Any + Clone,
 {
     fn from(slice: &[T]) -> Self {
-        let inner = OpaqueVecInner::from(slice);
+        let proj_vec = TypedProjVec::from(slice);
 
-        Self { inner, }
+        Self::from_proj(proj_vec)
     }
 }
 
@@ -4320,9 +4336,9 @@ where
     T: any::Any + Clone,
 {
     fn from(slice: &mut [T]) -> Self {
-        let inner = OpaqueVecInner::from(slice);
+        let proj_vec = TypedProjVec::from(slice);
 
-        Self { inner,}
+        Self::from_proj(proj_vec)
     }
 }
 
@@ -4331,9 +4347,9 @@ where
     T: any::Any + Clone,
 {
     fn from(array: &[T; N]) -> Self {
-        let inner = OpaqueVecInner::from(array);
+        let proj_vec = TypedProjVec::from(array);
 
-        Self { inner, }
+        Self::from_proj(proj_vec)
     }
 }
 
@@ -4342,9 +4358,9 @@ where
     T: any::Any + Clone,
 {
     fn from(array: &mut [T; N]) -> Self {
-        let inner = OpaqueVecInner::from(array);
+        let proj_vec = TypedProjVec::from(array);
 
-        Self { inner,}
+        Self::from_proj(proj_vec)
     }
 }
 
@@ -4354,9 +4370,9 @@ where
     A: Allocator + any::Any,
 {
     fn from(vec: Vec<T, A>) -> Self {
-        let inner = OpaqueVecInner::from(vec);
+        let proj_vec = TypedProjVec::from(vec);
 
-        Self { inner, }
+        Self::from_proj(proj_vec)
     }
 }
 
@@ -4365,9 +4381,9 @@ where
     T: any::Any + Clone,
 {
     fn from(vec: &Vec<T>) -> Self {
-        let inner = OpaqueVecInner::from(vec);
+        let proj_vec = TypedProjVec::from(vec);
 
-        Self { inner, }
+        Self::from_proj(proj_vec)
     }
 }
 
@@ -4376,9 +4392,9 @@ where
     T: any::Any + Clone,
 {
     fn from(vec: &mut Vec<T>) -> Self {
-        let inner = OpaqueVecInner::from(vec);
+        let proj_vec = TypedProjVec::from(vec);
 
-        Self { inner, }
+        Self::from_proj(proj_vec)
     }
 }
 
@@ -4388,9 +4404,9 @@ where
     A: Allocator + any::Any,
 {
     fn from(slice: Box<[T], A>) -> Self {
-        let inner = OpaqueVecInner::from(slice);
+        let proj_vec = TypedProjVec::from(slice);
 
-        Self { inner, }
+        Self::from_proj(proj_vec)
     }
 }
 
@@ -4399,9 +4415,9 @@ where
     T: any::Any,
 {
     fn from(array: [T; N]) -> Self {
-        let inner = OpaqueVecInner::from(array);
+        let proj_vec = TypedProjVec::from(array);
 
-        Self { inner, }
+        Self::from_proj(proj_vec)
     }
 }
 
@@ -4423,8 +4439,8 @@ where
     where
         I: IntoIterator<Item = T>,
     {
-        let inner = OpaqueVecInner::from_iter(iter);
+        let proj_vec = TypedProjVec::from_iter(iter);
 
-        Self { inner, }
+        Self::from_proj(proj_vec)
     }
 }
