@@ -1,14 +1,17 @@
 #![feature(allocator_api)]
 mod common;
 
+use core::any;
 use core::fmt;
 use core::ptr::NonNull;
+use std::alloc;
 
-fn run_test_opaque_blob_vec_replace_insert_get_same_index1<T>(value: T)
+fn run_test_opaque_blob_vec_replace_insert_get_same_index1<T, A>(value: T, alloc: A)
 where
-    T: PartialEq + Clone + fmt::Debug + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
-    let mut opaque_blob_vec = common::new_opaque_blob_vec::<T>();
+    let mut opaque_blob_vec = common::new_opaque_blob_vec_in::<T, A>(alloc);
     let value_ptr = NonNull::from(&value).cast::<u8>();
     opaque_blob_vec.replace_insert(0, value_ptr);
 
@@ -21,11 +24,12 @@ where
     assert_eq!(result, expected);
 }
 
-fn run_test_opaque_blob_vec_replace_insert_get_same_index2<T>(initial_value: T, value: T)
+fn run_test_opaque_blob_vec_replace_insert_get_same_index2<T, A>(initial_value: T, value: T, alloc: A)
 where
-    T: PartialEq + Clone + fmt::Debug + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
-    let mut opaque_blob_vec = common::new_opaque_blob_vec::<T>();
+    let mut opaque_blob_vec = common::new_opaque_blob_vec_in::<T, A>(alloc);
     let initial_value_ptr = NonNull::from(&initial_value).cast::<u8>();
     opaque_blob_vec.replace_insert(0, initial_value_ptr);
 
@@ -58,12 +62,17 @@ macro_rules! generate_tests {
 
             #[test]
             fn test_opaque_blob_vec_replace_insert_get_same_index1() {
-                run_test_opaque_blob_vec_replace_insert_get_same_index1($value);
+                let value: $typ = $value;
+                let alloc = alloc::Global;
+                run_test_opaque_blob_vec_replace_insert_get_same_index1(value, alloc);
             }
 
             #[test]
             fn test_opaque_blob_vec_replace_insert_get_same_index2() {
-                run_test_opaque_blob_vec_replace_insert_get_same_index2($initial_value, $value);
+                let initial_value = $initial_value;
+                let value: $typ = $value;
+                let alloc = alloc::Global;
+                run_test_opaque_blob_vec_replace_insert_get_same_index2(initial_value, value, alloc);
             }
         }
     };

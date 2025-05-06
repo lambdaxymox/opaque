@@ -9,7 +9,6 @@ use opaque_alloc::OpaqueAlloc;
 
 use core::ptr::NonNull;
 
-
 fn create_opaque_blob_vec(len: usize, dummy_data: i32) -> OpaqueBlobVec {
     let alloc = OpaqueAlloc::new(std::alloc::Global);
     let layout = core::alloc::Layout::new::<i32>();

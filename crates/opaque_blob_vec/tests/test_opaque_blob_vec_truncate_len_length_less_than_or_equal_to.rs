@@ -1,18 +1,21 @@
 #![feature(allocator_api)]
 mod common;
 
+use core::any;
 use core::fmt;
+use std::alloc;
 
 use opaque_vec_testing as ovt;
 
-fn run_test_opaque_blob_vec_truncate_len_length_less_than_or_equal_to<T>(values: &[T])
+fn run_test_opaque_blob_vec_truncate_len_length_less_than_or_equal_to<T, A>(values: &[T], alloc: A)
 where
-    T: PartialEq + Clone + fmt::Debug + TryFrom<usize> + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug + TryFrom<usize>,
     <T as TryFrom<usize>>::Error: fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
-    let base_opaque_blob_vec = common::from_typed_slice(values);
+    let base_opaque_blob_vec = common::from_typed_slice_in(values, alloc);
     for len in 0..values.len() {
-        let mut opaque_blob_vec = base_opaque_blob_vec.clone();
+        let mut opaque_blob_vec = common::clone::<T, A>(&base_opaque_blob_vec);
 
         opaque_blob_vec.truncate(len);
 
@@ -23,14 +26,15 @@ where
     }
 }
 
-fn run_test_opaque_blob_vec_truncate_len_length_less_than_or_equal_to_values<T>(values: &[T])
+fn run_test_opaque_blob_vec_truncate_len_length_less_than_or_equal_to_values<T, A>(values: &[T], alloc: A)
 where
-    T: PartialEq + Clone + fmt::Debug + TryFrom<usize> + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug + TryFrom<usize>,
     <T as TryFrom<usize>>::Error: fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {
-        run_test_opaque_blob_vec_truncate_len_length_less_than_or_equal_to(slice);
+        run_test_opaque_blob_vec_truncate_len_length_less_than_or_equal_to(slice, alloc.clone());
     }
 }
 
@@ -42,20 +46,22 @@ macro_rules! generate_tests {
             #[test]
             fn test_opaque_blob_vec_truncate_len_length_less_than_or_equal_to_empty() {
                 let values: [$typ; 0] = [];
-
-                run_test_opaque_blob_vec_truncate_len_length_less_than_or_equal_to(&values);
+                let alloc = alloc::Global;
+                run_test_opaque_blob_vec_truncate_len_length_less_than_or_equal_to(&values, alloc);
             }
 
             #[test]
             fn test_opaque_blob_vec_truncate_len_length_less_than_or_equal_to_range_values() {
                 let values = opaque_vec_testing::range_values::<$typ, $max_array_size>($range_spec);
-                run_test_opaque_blob_vec_truncate_len_length_less_than_or_equal_to_values(&values);
+                let alloc = alloc::Global;
+                run_test_opaque_blob_vec_truncate_len_length_less_than_or_equal_to_values(&values, alloc);
             }
 
             #[test]
             fn test_opaque_blob_vec_truncate_len_length_less_than_or_equal_to_alternating_values() {
                 let values = opaque_vec_testing::alternating_values::<$typ, $max_array_size>($alt_spec);
-                run_test_opaque_blob_vec_truncate_len_length_less_than_or_equal_to_values(&values);
+                let alloc = alloc::Global;
+                run_test_opaque_blob_vec_truncate_len_length_less_than_or_equal_to_values(&values, alloc);
             }
         }
     };

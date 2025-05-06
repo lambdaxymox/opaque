@@ -1,15 +1,18 @@
 #![feature(allocator_api)]
 mod common;
 
+use core::any;
 use core::fmt;
+use std::alloc;
 
 use opaque_vec_testing as ovt;
 
-fn run_test_opaque_blob_vec_swap_remove_forget_unchecked_end<T>(values: &[T])
+fn run_test_opaque_blob_vec_swap_remove_forget_unchecked_end<T, A>(values: &[T], alloc: A)
 where
-    T: PartialEq + Clone + fmt::Debug + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
-    let mut opaque_blob_vec = common::from_typed_slice(values);
+    let mut opaque_blob_vec = common::from_typed_slice_in(values, alloc);
 
     let last_index = opaque_blob_vec.len() - 1;
     let expected = &values[0..last_index];
@@ -22,13 +25,14 @@ where
     assert_eq!(result, expected);
 }
 
-fn run_test_opaque_blob_vec_swap_remove_forget_unchecked_end_values<T>(values: &[T])
+fn run_test_opaque_blob_vec_swap_remove_forget_unchecked_end_values<T, A>(values: &[T], alloc: A)
 where
-    T: PartialEq + Clone + fmt::Debug + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
     let iter = ovt::PrefixGenerator::new_only_nonempty(values);
     for slice in iter {
-        run_test_opaque_blob_vec_swap_remove_forget_unchecked_end(slice);
+        run_test_opaque_blob_vec_swap_remove_forget_unchecked_end(slice, alloc.clone());
     }
 }
 
@@ -40,7 +44,8 @@ macro_rules! generate_tests {
             #[test]
             fn test_opaque_blob_vec_swap_remove_forget_unchecked_end_alternating_values() {
                 let values = opaque_vec_testing::alternating_values::<$typ, $max_array_size>($alt_spec);
-                run_test_opaque_blob_vec_swap_remove_forget_unchecked_end_values(&values);
+                let alloc = alloc::Global;
+                run_test_opaque_blob_vec_swap_remove_forget_unchecked_end_values(&values, alloc);
             }
         }
     };

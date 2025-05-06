@@ -1,17 +1,20 @@
 #![feature(allocator_api)]
 mod common;
 
+use core::any;
 use core::fmt;
+use std::alloc;
 
 use opaque_vec_testing as ovt;
 
-fn run_test_opaque_blob_vec_clear_as_slice<T>(values: &[T])
+fn run_test_opaque_blob_vec_clear_as_slice<T, A>(values: &[T], alloc: A)
 where
-    T: PartialEq + Clone + fmt::Debug + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
-    let expected_blob_vec = common::new_opaque_blob_vec::<T>();
+    let expected_blob_vec = common::new_opaque_blob_vec_in::<T, A>(alloc.clone());
     let result_blob_vec = {
-        let mut opaque_blob_vec = common::from_typed_slice(values);
+        let mut opaque_blob_vec = common::from_typed_slice_in(values, alloc.clone());
         opaque_blob_vec.clear();
         opaque_blob_vec
     };
@@ -22,13 +25,14 @@ where
     assert_eq!(result, expected);
 }
 
-fn run_test_opaque_blob_vec_clear_as_slice_values<T>(values: &[T])
+fn run_test_opaque_blob_vec_clear_as_slice_values<T, A>(values: &[T], alloc: A)
 where
-    T: PartialEq + Clone + fmt::Debug + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {
-        run_test_opaque_blob_vec_clear_as_slice(slice);
+        run_test_opaque_blob_vec_clear_as_slice(slice, alloc.clone());
     }
 }
 
@@ -40,14 +44,15 @@ macro_rules! generate_tests {
             #[test]
             fn test_opaque_blob_vec_clear_as_slice_empty() {
                 let values: [$typ; 0] = [];
-
-                run_test_opaque_blob_vec_clear_as_slice(&values);
+                let alloc = alloc::Global;
+                run_test_opaque_blob_vec_clear_as_slice(&values, alloc);
             }
 
             #[test]
             fn test_opaque_blob_vec_clear_as_slice_alternating_values() {
                 let values = opaque_vec_testing::alternating_values::<$typ, $max_array_size>($alt_spec);
-                run_test_opaque_blob_vec_clear_as_slice_values(&values);
+                let alloc = alloc::Global;
+                run_test_opaque_blob_vec_clear_as_slice_values(&values, alloc);
             }
         }
     };

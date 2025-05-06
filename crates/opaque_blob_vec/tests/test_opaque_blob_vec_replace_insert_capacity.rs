@@ -1,26 +1,30 @@
 #![feature(allocator_api)]
 mod common;
 
+use core::any;
 use core::fmt;
+use std::alloc;
 
 use opaque_vec_testing as ovt;
 
-fn run_test_opaque_blob_vec_replace_insert_capacity<T>(values: &[T])
+fn run_test_opaque_blob_vec_replace_insert_capacity<T, A>(values: &[T], alloc: A)
 where
-    T: PartialEq + Clone + fmt::Debug + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
-    let opaque_blob_vec = common::from_typed_slice(values);
+    let opaque_blob_vec = common::from_typed_slice_in(values, alloc);
 
     assert!(opaque_blob_vec.len() <= opaque_blob_vec.capacity());
 }
 
-fn run_test_opaque_blob_vec_replace_insert_capacity_values<T>(values: &[T])
+fn run_test_opaque_blob_vec_replace_insert_capacity_values<T, A>(values: &[T], alloc: A)
 where
-    T: PartialEq + Clone + fmt::Debug + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {
-        run_test_opaque_blob_vec_replace_insert_capacity(slice);
+        run_test_opaque_blob_vec_replace_insert_capacity(slice, alloc.clone());
     }
 }
 
@@ -32,7 +36,8 @@ macro_rules! generate_tests {
             #[test]
             fn test_opaque_blob_vec_replace_insert_capacity_alternating_values() {
                 let values = opaque_vec_testing::alternating_values::<$typ, $max_array_size>($alt_spec);
-                run_test_opaque_blob_vec_replace_insert_capacity_values(&values);
+                let alloc = alloc::Global;
+                run_test_opaque_blob_vec_replace_insert_capacity_values(&values, alloc);
             }
         }
     };

@@ -3,16 +3,19 @@ mod common;
 
 use opaque_blob_vec::OpaqueBlobVec;
 
+use core::any;
 use core::fmt;
 use core::ptr::NonNull;
+use std::alloc;
 
 use opaque_vec_testing as ovt;
 
-fn expected<T>(values: &[T]) -> OpaqueBlobVec
+fn expected<T, A>(values: &[T], alloc: A) -> OpaqueBlobVec
 where
-    T: PartialEq + Clone + fmt::Debug + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
-    let mut opaque_blob_vec = common::new_opaque_blob_vec::<T>();
+    let mut opaque_blob_vec = common::new_opaque_blob_vec_in::<T, A>(alloc);
     for value in values.iter().take(values.len() - 1) {
         let value_cloned = value.clone();
         let value_ptr = NonNull::from(&value_cloned).cast::<u8>();
@@ -28,15 +31,16 @@ where
     opaque_blob_vec
 }
 
-fn run_test_opaque_blob_vec_swap_remove_forget_unchecked_start<T>(values: &[T])
+fn run_test_opaque_blob_vec_swap_remove_forget_unchecked_start<T, A>(values: &[T], alloc: A)
 where
-    T: PartialEq + Clone + fmt::Debug + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
-    let mut opaque_blob_vec = common::from_typed_slice(values);
+    let mut opaque_blob_vec = common::from_typed_slice_in(values, alloc.clone());
 
     for i in 0..values.len() {
         let last_index = values.len() - i;
-        let expected_opaque_blob_vec = expected(&values[0..last_index]);
+        let expected_opaque_blob_vec = expected(&values[0..last_index], alloc.clone());
         let _ = unsafe {
             let ptr = opaque_blob_vec.swap_remove_forget_unchecked(0).cast::<T>();
             ptr.read()
@@ -48,13 +52,14 @@ where
     }
 }
 
-fn run_test_opaque_blob_vec_swap_remove_forget_unchecked_start_values<T>(values: &[T])
+fn run_test_opaque_blob_vec_swap_remove_forget_unchecked_start_values<T, A>(values: &[T], alloc: A)
 where
-    T: PartialEq + Clone + fmt::Debug + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {
-        run_test_opaque_blob_vec_swap_remove_forget_unchecked_start(slice);
+        run_test_opaque_blob_vec_swap_remove_forget_unchecked_start(slice, alloc.clone());
     }
 }
 
@@ -66,7 +71,8 @@ macro_rules! generate_tests {
             #[test]
             fn test_opaque_blob_vec_swap_remove_forget_unchecked_start_alternating_values() {
                 let values = opaque_vec_testing::alternating_values::<$typ, $max_array_size>($alt_spec);
-                run_test_opaque_blob_vec_swap_remove_forget_unchecked_start_values(&values);
+                let alloc = alloc::Global;
+                run_test_opaque_blob_vec_swap_remove_forget_unchecked_start_values(&values, alloc);
             }
         }
     };

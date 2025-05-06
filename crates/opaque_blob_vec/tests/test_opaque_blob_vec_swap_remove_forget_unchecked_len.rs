@@ -1,19 +1,22 @@
 #![feature(allocator_api)]
 mod common;
 
+use core::any;
 use core::fmt;
+use std::alloc;
 
 use opaque_vec_testing as ovt;
 
-fn run_test_opaque_blob_vec_swap_remove_forget_unchecked_len<T>(values: &[T])
+fn run_test_opaque_blob_vec_swap_remove_forget_unchecked_len<T, A>(values: &[T], alloc: A)
 where
-    T: PartialEq + Clone + fmt::Debug + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
-    let values_vec = common::from_typed_slice(values);
+    let values_vec = common::from_typed_slice_in(values, alloc);
 
     for i in 0..values.len() {
         let result_vec = {
-            let mut vec = values_vec.clone();
+            let mut vec = common::clone::<T, A>(&values_vec);
             let values = unsafe {
                 let ptr = vec.swap_remove_forget_unchecked(i).cast::<T>();
                 ptr.read()
@@ -29,13 +32,14 @@ where
     }
 }
 
-fn run_test_opaque_blob_vec_swap_remove_forget_unchecked_len_values<T>(values: &[T])
+fn run_test_opaque_blob_vec_swap_remove_forget_unchecked_len_values<T, A>(values: &[T], alloc: A)
 where
-    T: PartialEq + Clone + fmt::Debug + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {
-        run_test_opaque_blob_vec_swap_remove_forget_unchecked_len(slice);
+        run_test_opaque_blob_vec_swap_remove_forget_unchecked_len(slice, alloc.clone());
     }
 }
 
@@ -47,7 +51,8 @@ macro_rules! generate_tests {
             #[test]
             fn test_opaque_blob_vec_swap_remove_forget_unchecked_len_alternating_values() {
                 let values = opaque_vec_testing::alternating_values::<$typ, $max_array_size>($alt_spec);
-                run_test_opaque_blob_vec_swap_remove_forget_unchecked_len_values(&values);
+                let alloc = alloc::Global;
+                run_test_opaque_blob_vec_swap_remove_forget_unchecked_len_values(&values, alloc);
             }
         }
     };

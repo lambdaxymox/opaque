@@ -1,17 +1,21 @@
 #![feature(allocator_api)]
 mod common;
 
+use opaque_blob_vec::OpaqueBlobVec;
+
+use core::any;
 use core::fmt;
 use core::ptr::NonNull;
-use opaque_blob_vec::OpaqueBlobVec;
+use std::alloc;
 
 use opaque_vec_testing as ovt;
 
-fn expected<T>(values: &[T]) -> OpaqueBlobVec
+fn expected<T, A>(values: &[T], alloc: A) -> OpaqueBlobVec
 where
-    T: PartialEq + Clone + fmt::Debug + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
-    let mut opaque_blob_vec = common::new_opaque_blob_vec::<T>();
+    let mut opaque_blob_vec = common::new_opaque_blob_vec_in::<T, A>(alloc);
     if !values.is_empty() {
         let value = values.last().unwrap();
         let value_ptr = NonNull::from(value).cast::<u8>();
@@ -21,11 +25,12 @@ where
     opaque_blob_vec
 }
 
-fn result<T>(values: &[T]) -> OpaqueBlobVec
+fn result<T, A>(values: &[T], alloc: A) -> OpaqueBlobVec
 where
-    T: PartialEq + Clone + fmt::Debug + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
-    let mut opaque_blob_vec = common::new_opaque_blob_vec::<T>();
+    let mut opaque_blob_vec = common::new_opaque_blob_vec_in::<T, A>(alloc);
     for value in values.iter() {
         let value_ptr = NonNull::from(value).cast::<u8>();
         opaque_blob_vec.replace_insert(0, value_ptr);
@@ -34,12 +39,13 @@ where
     opaque_blob_vec
 }
 
-fn run_test_opaque_blob_vec_shift_insert_slice_start<T>(values: &[T])
+fn run_test_opaque_blob_vec_shift_insert_slice_start<T, A>(values: &[T], alloc: A)
 where
-    T: PartialEq + Clone + fmt::Debug + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
-    let expected_vec = expected(values);
-    let result_vec = result(values);
+    let expected_vec = expected(values, alloc.clone());
+    let result_vec = result(values, alloc.clone());
 
     let expected = common::as_slice::<T>(&expected_vec);
     let result = common::as_slice::<T>(&result_vec);
@@ -47,13 +53,14 @@ where
     assert_eq!(result, expected);
 }
 
-fn run_test_opaque_blob_vec_shift_insert_slice_start_values<T>(values: &[T])
+fn run_test_opaque_blob_vec_shift_insert_slice_start_values<T, A>(values: &[T], alloc: A)
 where
-    T: PartialEq + Clone + fmt::Debug + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {
-        run_test_opaque_blob_vec_shift_insert_slice_start(slice);
+        run_test_opaque_blob_vec_shift_insert_slice_start(slice, alloc.clone());
     }
 }
 
@@ -65,7 +72,8 @@ macro_rules! generate_tests {
             #[test]
             fn test_opaque_blob_vec_shift_insert_slice_start_alternating_values() {
                 let values = opaque_vec_testing::alternating_values::<$typ, $max_array_size>($alt_spec);
-                run_test_opaque_blob_vec_shift_insert_slice_start_values(&values);
+                let alloc = alloc::Global;
+                run_test_opaque_blob_vec_shift_insert_slice_start_values(&values, alloc);
             }
         }
     };

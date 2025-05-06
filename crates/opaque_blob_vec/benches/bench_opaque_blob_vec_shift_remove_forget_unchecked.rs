@@ -1,4 +1,7 @@
 #![feature(allocator_api)]
+extern crate core;
+
+use core::fmt;
 use criterion::{
     Criterion,
     criterion_group,
@@ -22,6 +25,27 @@ fn create_opaque_blob_vec(len: usize, dummy_data: i32) -> OpaqueBlobVec {
     opaque_blob_vec
 }
 
+fn clone(opaque_blob_vec: &OpaqueBlobVec) -> OpaqueBlobVec {
+    let new_alloc = {
+        let proj_old_alloc = opaque_blob_vec.allocator().as_proj::<std::alloc::Global>();
+        let proj_new_alloc = Clone::clone(proj_old_alloc);
+        OpaqueAlloc::from_proj(proj_new_alloc)
+    };
+    let new_element_layout = opaque_blob_vec.element_layout();
+    let new_capacity = opaque_blob_vec.capacity();
+    let new_drop_fn = None;
+
+    let new_opaque_blob_vec = unsafe {
+        let mut _new_opaque_blob_vec = OpaqueBlobVec::with_capacity_in(new_capacity, new_alloc, new_element_layout, new_drop_fn);
+        let length = opaque_blob_vec.len();
+        let data_ptr = NonNull::new_unchecked(opaque_blob_vec.as_ptr() as *mut u8);
+        _new_opaque_blob_vec.append(data_ptr, length);
+        _new_opaque_blob_vec
+    };
+
+    new_opaque_blob_vec
+}
+
 fn bench_vec_shift_remove_last(c: &mut Criterion) {
     let dummy_data = 0_i32;
     let mut vec = vec![dummy_data; 1000];
@@ -42,11 +66,11 @@ fn bench_vec_shift_remove_last(c: &mut Criterion) {
 
 fn bench_opaque_vec_shift_remove_last(c: &mut Criterion) {
     let dummy_data = 0_i32;
-    let mut opaque_blob_vec = create_opaque_blob_vec(1000, dummy_data);
+    let opaque_blob_vec = create_opaque_blob_vec(1000, dummy_data);
 
     c.bench_function("opaque_blob_vec_shift_remove_last", |b| {
         b.iter_batched(
-            || opaque_blob_vec.clone(),
+            || clone(&opaque_blob_vec),
             |mut opaque_blob_vec| {
                 for _ in 0..opaque_blob_vec.len() {
                     let last_index = opaque_blob_vec.len() - 1;

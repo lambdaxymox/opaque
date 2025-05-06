@@ -1,17 +1,21 @@
 #![feature(allocator_api)]
 mod common;
 
+use opaque_blob_vec::OpaqueBlobVec;
+
+use core::any;
 use core::fmt;
 use core::ptr::NonNull;
-use opaque_blob_vec::OpaqueBlobVec;
+use std::alloc;
 
 use opaque_vec_testing as ovt;
 
-pub fn from_slice<T>(values: &[T]) -> OpaqueBlobVec
+pub fn from_slice_in<T, A>(values: &[T], alloc: A) -> OpaqueBlobVec
 where
-    T: PartialEq + Clone + fmt::Debug + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
-    let mut vec = common::new_opaque_blob_vec::<T>();
+    let mut vec = common::new_opaque_blob_vec_in::<T, A>(alloc);
     for i in 0..values.len() {
         let value: T = values[i].clone();
         let value_ptr: NonNull<u8> = NonNull::from(&value).cast::<u8>();
@@ -21,22 +25,24 @@ where
     vec
 }
 
-fn run_test_opaque_blob_vec_shift_insert_capacity<T>(values: &[T])
+fn run_test_opaque_blob_vec_shift_insert_capacity<T, A>(values: &[T], alloc: A)
 where
-    T: PartialEq + Clone + fmt::Debug + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
-    let opaque_blob_vec = common::from_typed_slice(values);
+    let opaque_blob_vec = from_slice_in(values, alloc);
 
     assert!(opaque_blob_vec.len() <= opaque_blob_vec.capacity());
 }
 
-fn run_test_opaque_blob_vec_shift_insert_capacity_values<T>(values: &[T])
+fn run_test_opaque_blob_vec_shift_insert_capacity_values<T, A>(values: &[T], alloc: A)
 where
-    T: PartialEq + Clone + fmt::Debug + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {
-        run_test_opaque_blob_vec_shift_insert_capacity(slice);
+        run_test_opaque_blob_vec_shift_insert_capacity(slice, alloc.clone());
     }
 }
 
@@ -48,7 +54,8 @@ macro_rules! generate_tests {
             #[test]
             fn test_opaque_blob_vec_shift_insert_capacity_alternating_values() {
                 let values = opaque_vec_testing::alternating_values::<$typ, $max_array_size>($alt_spec);
-                run_test_opaque_blob_vec_shift_insert_capacity_values(&values);
+                let alloc = alloc::Global;
+                run_test_opaque_blob_vec_shift_insert_capacity_values(&values, alloc);
             }
         }
     };

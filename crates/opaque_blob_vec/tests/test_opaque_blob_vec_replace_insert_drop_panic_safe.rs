@@ -1,4 +1,7 @@
 #![feature(allocator_api)]
+use opaque_alloc::OpaqueAlloc;
+use opaque_blob_vec::OpaqueBlobVec;
+
 use std::alloc::Layout;
 use std::mem::ManuallyDrop;
 use std::panic::{
@@ -7,8 +10,7 @@ use std::panic::{
 };
 
 use core::fmt;
-use opaque_alloc::OpaqueAlloc;
-use opaque_blob_vec::OpaqueBlobVec;
+
 use std::cell::RefCell;
 use std::ptr::NonNull;
 use std::rc::Rc;
