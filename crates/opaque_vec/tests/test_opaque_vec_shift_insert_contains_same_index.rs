@@ -7,44 +7,47 @@ use std::alloc;
 
 use opaque_vec_testing as ovt;
 
-fn run_test_opaque_vec_shift_insert_contains_same_index1<T>(value: T)
+fn run_test_opaque_vec_shift_insert_contains_same_index1<T, A>(value: T, alloc: A)
 where
-    T: any::Any + PartialEq + Clone + fmt::Debug
+    T: any::Any + PartialEq + Clone + fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
-    let mut vec = OpaqueVec::new::<T>();
+    let mut vec = OpaqueVec::new_in::<T, A>(alloc);
 
-    assert!(!vec.contains::<T, alloc::Global>(&value));
+    assert!(!vec.contains::<T, A>(&value));
 
-    vec.shift_insert::<T, alloc::Global>(0, value.clone());
+    vec.shift_insert::<T, A>(0, value.clone());
 
-    assert!(vec.contains::<T, alloc::Global>(&value));
+    assert!(vec.contains::<T, A>(&value));
 }
 
-fn run_test_opaque_vec_shift_insert_contains_same_index2<T>(values: &[T])
+fn run_test_opaque_vec_shift_insert_contains_same_index2<T, A>(values: &[T], alloc: A)
 where
-    T: any::Any + PartialEq + Clone + fmt::Debug
+    T: any::Any + PartialEq + Clone + fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
-    let mut vec = OpaqueVec::new::<T>();
+    let mut vec = OpaqueVec::new_in::<T, A>(alloc);
     for value in values.iter() {
-        assert!(!vec.contains::<T, alloc::Global>(&value));
+        assert!(!vec.contains::<T, A>(&value));
     }
 
     for value in values.iter().cloned() {
-        vec.shift_insert::<T, alloc::Global>(0, value);
+        vec.shift_insert::<T, A>(0, value);
     }
 
     for value in values.iter() {
-        assert!(vec.contains::<T, alloc::Global>(&value));
+        assert!(vec.contains::<T, A>(&value));
     }
 }
 
-fn run_test_opaque_vec_shift_insert_contains_same_index2_values<T>(values: &[T])
+fn run_test_opaque_vec_shift_insert_contains_same_index2_values<T, A>(values: &[T], alloc: A)
 where
-    T: any::Any + PartialEq + Clone + fmt::Debug
+    T: any::Any + PartialEq + Clone + fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {
-        run_test_opaque_vec_shift_insert_contains_same_index2(slice);
+        run_test_opaque_vec_shift_insert_contains_same_index2(slice, alloc.clone());
     }
 }
 
@@ -55,19 +58,23 @@ macro_rules! generate_tests {
 
             #[test]
             fn test_opaque_vec_shift_insert_contains_same_index1() {
-                run_test_opaque_vec_shift_insert_contains_same_index1($single_value);
+                let single_value: $typ = $single_value;
+                let alloc = alloc::Global;
+                run_test_opaque_vec_shift_insert_contains_same_index1(single_value, alloc);
             }
 
             #[test]
             fn test_opaque_vec_shift_insert_contains_same_index2_range_values() {
                 let values = opaque_vec_testing::range_values::<$typ, $max_array_size>($range_spec);
-                run_test_opaque_vec_shift_insert_contains_same_index2_values(&values);
+                let alloc = alloc::Global;
+                run_test_opaque_vec_shift_insert_contains_same_index2_values(&values, alloc);
             }
 
             #[test]
             fn test_opaque_vec_shift_insert_contains_same_index2_alternating_values() {
                 let values = opaque_vec_testing::alternating_values::<$typ, $max_array_size>($alt_spec);
-                run_test_opaque_vec_shift_insert_contains_same_index2_values(&values);
+                let alloc = alloc::Global;
+                run_test_opaque_vec_shift_insert_contains_same_index2_values(&values, alloc);
             }
         }
     };

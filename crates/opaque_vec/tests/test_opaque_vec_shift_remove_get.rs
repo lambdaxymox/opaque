@@ -1,5 +1,5 @@
 #![feature(allocator_api)]
-use opaque_vec::OpaqueVec;
+mod common;
 
 use core::any;
 use core::fmt;
@@ -7,28 +7,30 @@ use std::alloc;
 
 use opaque_vec_testing as ovt;
 
-fn run_test_opaque_vec_shift_remove_get_from_end<T>(values: &[T])
+fn run_test_opaque_vec_shift_remove_get_from_end<T, A>(values: &[T], alloc: A)
 where
-    T: any::Any + PartialEq + Clone + fmt::Debug
+    T: any::Any + PartialEq + Clone + fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
-    let mut vec = OpaqueVec::from(values);
+    let mut vec = common::from_slice_in(values, alloc);
 
     for _ in 0..vec.len() {
         let last_index = vec.len() - 1;
-        let expected = vec.get::<T, alloc::Global>(last_index).cloned().unwrap();
-        let result = vec.shift_remove::<T, alloc::Global>(last_index);
+        let expected = vec.get::<T, A>(last_index).cloned().unwrap();
+        let result = vec.shift_remove::<T, A>(last_index);
 
         assert_eq!(result, expected);
     }
 }
 
-fn run_test_opaque_vec_shift_remove_get_from_end_values<T>(values: &[T])
+fn run_test_opaque_vec_shift_remove_get_from_end_values<T, A>(values: &[T], alloc: A)
 where
-    T: any::Any + PartialEq + Clone + fmt::Debug
+    T: any::Any + PartialEq + Clone + fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {
-        run_test_opaque_vec_shift_remove_get_from_end(slice);
+        run_test_opaque_vec_shift_remove_get_from_end(slice, alloc.clone());
     }
 }
 
@@ -40,13 +42,15 @@ macro_rules! generate_tests {
             #[test]
             fn test_opaque_vec_shift_remove_get_from_end_range_values() {
                 let values = opaque_vec_testing::range_values::<$typ, $max_array_size>($range_spec);
-                run_test_opaque_vec_shift_remove_get_from_end_values(&values);
+                let alloc = alloc::Global;
+                run_test_opaque_vec_shift_remove_get_from_end_values(&values, alloc);
             }
 
             #[test]
             fn test_opaque_vec_shift_remove_get_from_end_alternating_values() {
                 let values = opaque_vec_testing::alternating_values::<$typ, $max_array_size>($alt_spec);
-                run_test_opaque_vec_shift_remove_get_from_end_values(&values);
+                let alloc = alloc::Global;
+                run_test_opaque_vec_shift_remove_get_from_end_values(&values, alloc);
             }
         }
     };

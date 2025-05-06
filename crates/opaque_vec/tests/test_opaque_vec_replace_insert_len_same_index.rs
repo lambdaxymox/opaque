@@ -4,16 +4,17 @@ use opaque_vec::OpaqueVec;
 use core::any;
 use std::alloc;
 
-fn run_test_opaque_vec_replace_insert_len_same_index<T>(value: T)
+fn run_test_opaque_vec_replace_insert_len_same_index<T, A>(value: T, alloc: A)
 where
     T: any::Any + PartialEq + Clone,
+    A: alloc::Allocator + any::Any + Clone,
 {
-    let mut vec = OpaqueVec::new::<T>();
+    let mut vec = OpaqueVec::new_in::<T, A>(alloc);
 
     assert!(vec.is_empty());
 
     for _ in 0..65536 {
-        vec.replace_insert::<T, alloc::Global>(0, value.clone());
+        vec.replace_insert::<T, A>(0, value.clone());
     }
 
     assert_eq!(vec.len(), 1);
@@ -26,7 +27,9 @@ macro_rules! generate_tests {
 
             #[test]
             fn test_opaque_vec_replace_insert_len_same_index() {
-                run_test_opaque_vec_replace_insert_len_same_index($value);
+                let value: $typ = $value;
+                let alloc = alloc::Global;
+                run_test_opaque_vec_replace_insert_len_same_index(value, alloc);
             }
         }
     };

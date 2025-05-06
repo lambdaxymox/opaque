@@ -1,4 +1,6 @@
 #![feature(allocator_api)]
+mod common;
+
 use opaque_vec::OpaqueVec;
 
 use core::any;
@@ -7,46 +9,50 @@ use std::alloc;
 
 use opaque_vec_testing as ovt;
 
-fn expected<T>(values: &[T], extension_values: &[T]) -> OpaqueVec
+fn expected<T, A>(values: &[T], extension_values: &[T], alloc: A) -> OpaqueVec
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
-    let mut vec = OpaqueVec::from(values);
+    let mut vec = common::from_slice_in(values, alloc);
     for extension_value in extension_values.iter() {
-        vec.push::<T, alloc::Global>(extension_value.clone());
+        vec.push::<T, A>(extension_value.clone());
     }
 
     vec
 }
 
-fn result<T>(values: &[T], extension_values: &[T]) -> OpaqueVec
+fn result<T, A>(values: &[T], extension_values: &[T], alloc: A) -> OpaqueVec
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
-    let mut vec = OpaqueVec::from(values);
-    vec.extend_from_slice::<T, alloc::Global>(extension_values);
+    let mut vec = common::from_slice_in(values, alloc);
+    vec.extend_from_slice::<T, A>(extension_values);
 
     vec
 }
 
-fn run_test_opaque_vec_extend_from_slice<T>(values: &[T], extension_values: &[T])
+fn run_test_opaque_vec_extend_from_slice<T, A>(values: &[T], extension_values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
-    let expected = expected(values, extension_values);
-    let result = result(values, extension_values);
+    let expected = expected(values, extension_values, alloc.clone());
+    let result = result(values, extension_values, alloc.clone());
 
-    assert_eq!(result.as_slice::<T, alloc::Global>(), expected.as_slice::<T, alloc::Global>());
+    assert_eq!(result.as_slice::<T, A>(), expected.as_slice::<T, A>());
 }
 
-fn run_test_opaque_vec_extend_from_slice_values<T>(values: &[T], extension_values: &[T])
+fn run_test_opaque_vec_extend_from_slice_values<T, A>(values: &[T], extension_values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {
         let extension_slice = &extension_values[0..slice.len()];
-        run_test_opaque_vec_extend_from_slice(slice, extension_slice);
+        run_test_opaque_vec_extend_from_slice(slice, extension_slice, alloc.clone());
     }
 }
 
@@ -59,14 +65,16 @@ macro_rules! generate_tests {
             fn test_opaque_vec_clone_len_range_values() {
                 let values = opaque_vec_testing::range_values::<$typ, $max_array_size>($range_spec);
                 let extension_values = opaque_vec_testing::constant_values::<$typ, $max_array_size>($const_spec);
-                run_test_opaque_vec_extend_from_slice_values(&values, &extension_values);
+                let alloc = alloc::Global;
+                run_test_opaque_vec_extend_from_slice_values(&values, &extension_values, alloc);
             }
 
             #[test]
             fn test_opaque_vec_clone_len_alternating_values() {
                 let values = opaque_vec_testing::alternating_values::<$typ, $max_array_size>($alt_spec);
                 let extension_values = opaque_vec_testing::constant_values::<$typ, $max_array_size>($const_spec);
-                run_test_opaque_vec_extend_from_slice_values(&values, &extension_values);
+                let alloc = alloc::Global;
+                run_test_opaque_vec_extend_from_slice_values(&values, &extension_values, alloc);
             }
         }
     };

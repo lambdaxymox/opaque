@@ -1,5 +1,5 @@
 #![feature(allocator_api)]
-use opaque_vec::OpaqueVec;
+mod common;
 
 use core::any;
 use core::fmt;
@@ -7,24 +7,26 @@ use std::alloc;
 
 use opaque_vec_testing as ovt;
 
-fn run_test_opaque_vec_clear_is_empty<T>(values: &[T])
+fn run_test_opaque_vec_clear_is_empty<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
-    let mut vec = OpaqueVec::from(values);
+    let mut vec = common::from_slice_in(values, alloc);
     vec.clear();
 
     assert!(vec.is_empty());
 }
 
-fn run_test_opaque_vec_clear_is_empty_values<T>(values: &[T])
+fn run_test_opaque_vec_clear_is_empty_values<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug + TryFrom<usize>,
     <T as TryFrom<usize>>::Error: fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {
-        run_test_opaque_vec_clear_is_empty(slice);
+        run_test_opaque_vec_clear_is_empty(slice, alloc.clone());
     }
 }
 
@@ -36,20 +38,22 @@ macro_rules! generate_tests {
             #[test]
             fn test_opaque_vec_clear_is_empty_empty() {
                 let values: [$typ; 0] = [];
-
-                run_test_opaque_vec_clear_is_empty(&values);
+                let alloc = alloc::Global;
+                run_test_opaque_vec_clear_is_empty(&values, alloc);
             }
 
             #[test]
             fn test_opaque_vec_clear_is_empty_range_values() {
                 let values = opaque_vec_testing::range_values::<$typ, $max_array_size>($range_spec);
-                run_test_opaque_vec_clear_is_empty_values(&values);
+                let alloc = alloc::Global;
+                run_test_opaque_vec_clear_is_empty_values(&values, alloc);
             }
 
             #[test]
             fn test_opaque_vec_clear_is_empty_alternating_values() {
                 let values = opaque_vec_testing::alternating_values::<$typ, $max_array_size>($alt_spec);
-                run_test_opaque_vec_clear_is_empty_values(&values);
+                let alloc = alloc::Global;
+                run_test_opaque_vec_clear_is_empty_values(&values, alloc);
             }
         }
     };

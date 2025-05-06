@@ -1,22 +1,22 @@
 #![feature(allocator_api)]
-use opaque_vec::OpaqueVec;
-
+mod common;
 use core::any;
 use core::fmt;
 use std::alloc;
 
 use opaque_vec_testing as ovt;
 
-fn run_test_opaque_vec_swap_remove_len<T>(values: &[T])
+fn run_test_opaque_vec_swap_remove_len<T, A>(values: &[T], alloc: A)
 where
-    T: any::Any + PartialEq + Clone + fmt::Debug
+    T: any::Any + PartialEq + Clone + fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
-    let values_vec = OpaqueVec::from(values);
+    let values_vec = common::from_slice_in(values, alloc);
 
     for i in 0..values.len() {
         let result_vec = {
-            let mut vec = values_vec.clone::<T, alloc::Global>();
-            vec.swap_remove::<T, alloc::Global>(i);
+            let mut vec = values_vec.clone::<T, A>();
+            vec.swap_remove::<T, A>(i);
             vec
         };
 
@@ -27,13 +27,14 @@ where
     }
 }
 
-fn run_test_opaque_vec_swap_remove_len_values<T>(values: &[T])
+fn run_test_opaque_vec_swap_remove_len_values<T, A>(values: &[T], alloc: A)
 where
-    T: any::Any + PartialEq + Clone + fmt::Debug
+    T: any::Any + PartialEq + Clone + fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {
-        run_test_opaque_vec_swap_remove_len(slice);
+        run_test_opaque_vec_swap_remove_len(slice, alloc.clone());
     }
 }
 
@@ -45,13 +46,15 @@ macro_rules! generate_tests {
             #[test]
             fn test_opaque_vec_swap_remove_len_range_values() {
                 let values = opaque_vec_testing::range_values::<$typ, $max_array_size>($range_spec);
-                run_test_opaque_vec_swap_remove_len_values(&values);
+                let alloc = alloc::Global;
+                run_test_opaque_vec_swap_remove_len_values(&values, alloc);
             }
 
             #[test]
             fn test_opaque_vec_swap_remove_len_alternating_values() {
                 let values = opaque_vec_testing::alternating_values::<$typ, $max_array_size>($alt_spec);
-                run_test_opaque_vec_swap_remove_len_values(&values);
+                let alloc = alloc::Global;
+                run_test_opaque_vec_swap_remove_len_values(&values, alloc);
             }
         }
     };

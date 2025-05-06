@@ -7,33 +7,35 @@ use std::alloc;
 
 use opaque_vec_testing as ovt;
 
-fn run_test_opaque_vec_push_pop_exists<T>(values: &[T])
+fn run_test_opaque_vec_push_pop_exists<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
-    let mut vec = OpaqueVec::new::<T>();
+    let mut vec = OpaqueVec::new_in::<T, A>(alloc);
     for value in values.iter().cloned() {
-        vec.push::<T, alloc::Global>(value);
+        vec.push::<T, A>(value);
     }
 
     for _ in 0..vec.len() {
-        let result = vec.pop::<T, alloc::Global>();
+        let result = vec.pop::<T, A>();
 
         assert!(result.is_some());
     }
 
-    let result = vec.pop::<T, alloc::Global>();
+    let result = vec.pop::<T, A>();
 
     assert!(result.is_none());
 }
 
-fn run_test_opaque_vec_push_pop_exists_values<T>(values: &[T])
+fn run_test_opaque_vec_push_pop_exists_values<T, A>(values: &[T], alloc: A)
 where
-    T: PartialEq + Clone + fmt::Debug + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {
-        run_test_opaque_vec_push_pop_exists(slice);
+        run_test_opaque_vec_push_pop_exists(slice, alloc.clone());
     }
 }
 
@@ -45,13 +47,15 @@ macro_rules! generate_tests {
             #[test]
             fn test_opaque_vec_push_pop_exists_range_values() {
                 let values = opaque_vec_testing::range_values::<$typ, $max_array_size>($range_spec);
-                run_test_opaque_vec_push_pop_exists_values(&values);
+                let alloc = alloc::Global;
+                run_test_opaque_vec_push_pop_exists_values(&values, alloc);
             }
 
             #[test]
             fn test_opaque_vec_push_pop_exists_alternating_values() {
                 let values = opaque_vec_testing::alternating_values::<$typ, $max_array_size>($alt_spec);
-                run_test_opaque_vec_push_pop_exists_values(&values);
+                let alloc = alloc::Global;
+                run_test_opaque_vec_push_pop_exists_values(&values, alloc);
             }
         }
     };

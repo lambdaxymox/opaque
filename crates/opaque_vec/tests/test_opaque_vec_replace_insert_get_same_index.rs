@@ -5,34 +5,36 @@ use core::any;
 use core::fmt;
 use std::alloc;
 
-fn run_test_opaque_vec_replace_insert_get_same_index1<T>(value: T)
+fn run_test_opaque_vec_replace_insert_get_same_index1<T, A>(value: T, alloc: A)
 where
-    T: any::Any + PartialEq + Clone + fmt::Debug
+    T: any::Any + PartialEq + Clone + fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
-    let mut vec = OpaqueVec::new::<T>();
-    vec.replace_insert::<T, alloc::Global>(0, value.clone());
+    let mut vec = OpaqueVec::new_in::<T, A>(alloc);
+    vec.replace_insert::<T, A>(0, value.clone());
 
     let expected = Some(value.clone());
-    let result = vec.get::<T, alloc::Global>(0).cloned();
+    let result = vec.get::<T, A>(0).cloned();
 
     assert_eq!(result, expected);
 }
 
-fn run_test_opaque_vec_replace_insert_get_same_index2<T>(initial_value: T, value: T)
+fn run_test_opaque_vec_replace_insert_get_same_index2<T, A>(initial_value: T, value: T, alloc: A)
 where
-    T: any::Any + PartialEq + Clone + fmt::Debug
+    T: any::Any + PartialEq + Clone + fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
-    let mut vec = OpaqueVec::new::<T>();
-    vec.replace_insert::<T, alloc::Global>(0, initial_value.clone());
+    let mut vec = OpaqueVec::new_in::<T, A>(alloc);
+    vec.replace_insert::<T, A>(0, initial_value.clone());
 
     let expected_initial = Some(initial_value.clone());
-    let result_initial = vec.get::<T, alloc::Global>(0).cloned();
+    let result_initial = vec.get::<T, A>(0).cloned();
     assert_eq!(result_initial, expected_initial);
 
     for _ in 0..65536 {
-        vec.replace_insert::<T, alloc::Global>(0, value.clone());
+        vec.replace_insert::<T, A>(0, value.clone());
         let expected = Some(value.clone());
-        let result = vec.get::<T, alloc::Global>(0).cloned();
+        let result = vec.get::<T, A>(0).cloned();
 
         assert_eq!(result, expected);
     }
@@ -45,12 +47,17 @@ macro_rules! generate_tests {
 
             #[test]
             fn test_opaque_vec_replace_insert_get_same_index1() {
-                run_test_opaque_vec_replace_insert_get_same_index1($value);
+                let value: $typ = $value;
+                let alloc = alloc::Global;
+                run_test_opaque_vec_replace_insert_get_same_index1(value, alloc);
             }
 
             #[test]
             fn test_opaque_vec_replace_insert_get_same_index2() {
-                run_test_opaque_vec_replace_insert_get_same_index2($initial_value, $value);
+                let initial_value: $typ = $initial_value;
+                let value: $typ = $value;
+                let alloc = alloc::Global;
+                run_test_opaque_vec_replace_insert_get_same_index2(initial_value, value, alloc);
             }
         }
     };

@@ -1,14 +1,18 @@
+#![feature(allocator_api)]
+mod common;
+
 use opaque_vec::OpaqueVec;
 
 use core::any;
-
+use std::alloc;
 use opaque_vec_testing as ovt;
 
-fn run_test_opaque_vec_len<T>(values: &[T])
+fn run_test_opaque_vec_len<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone,
+    A: alloc::Allocator + any::Any + Clone,
 {
-    let vec = OpaqueVec::from(values);
+    let vec = common::from_slice_in(values, alloc);
 
     let expected = values.len();
     let result = vec.len();
@@ -16,13 +20,14 @@ where
     assert_eq!(result, expected);
 }
 
-fn run_test_opaque_vec_len_values<T>(values: &[T])
+fn run_test_opaque_vec_len_values<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone,
+    A: alloc::Allocator + any::Any + Clone,
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {
-        run_test_opaque_vec_len(slice);
+        run_test_opaque_vec_len(slice, alloc.clone());
     }
 }
 
@@ -34,13 +39,15 @@ macro_rules! generate_tests {
             #[test]
             fn test_opaque_vec_len_range_values() {
                 let values = opaque_vec_testing::range_values::<$typ, $max_array_size>($range_spec);
-                run_test_opaque_vec_len_values(&values);
+                let alloc = alloc::Global;
+                run_test_opaque_vec_len_values(&values, alloc);
             }
 
             #[test]
             fn test_opaque_vec_len_alternating_values() {
                 let values = opaque_vec_testing::alternating_values::<$typ, $max_array_size>($alt_spec);
-                run_test_opaque_vec_len_values(&values);
+                let alloc = alloc::Global;
+                run_test_opaque_vec_len_values(&values, alloc);
             }
         }
     };

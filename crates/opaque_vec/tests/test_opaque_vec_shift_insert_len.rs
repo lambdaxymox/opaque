@@ -7,13 +7,14 @@ use std::alloc;
 
 use opaque_vec_testing as ovt;
 
-fn run_test_opaque_vec_shift_insert_len<T>(values: &[T])
+fn run_test_opaque_vec_shift_insert_len<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
-    let mut vec = OpaqueVec::new::<T>();
+    let mut vec = OpaqueVec::new_in::<T, A>(alloc);
     for (i, value) in values.iter().cloned().enumerate() {
-        vec.shift_insert::<T, alloc::Global>(i, value);
+        vec.shift_insert::<T, A>(i, value);
     }
 
     let expected = values.len();
@@ -22,13 +23,14 @@ where
     assert_eq!(result, expected);
 }
 
-fn run_test_opaque_vec_shift_insert_len_values<T>(values: &[T])
+fn run_test_opaque_vec_shift_insert_len_values<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {
-        run_test_opaque_vec_shift_insert_len(slice);
+        run_test_opaque_vec_shift_insert_len(slice, alloc.clone());
     }
 }
 
@@ -40,13 +42,15 @@ macro_rules! generate_tests {
             #[test]
             fn test_opaque_vec_shift_insert_len_range_values() {
                 let values = opaque_vec_testing::range_values::<$typ, $max_array_size>($range_spec);
-                run_test_opaque_vec_shift_insert_len_values(&values);
+                let alloc = alloc::Global;
+                run_test_opaque_vec_shift_insert_len_values(&values, alloc);
             }
 
             #[test]
             fn test_opaque_vec_shift_insert_len_alternating_values() {
                 let values = opaque_vec_testing::alternating_values::<$typ, $max_array_size>($alt_spec);
-                run_test_opaque_vec_shift_insert_len_values(&values);
+                let alloc = alloc::Global;
+                run_test_opaque_vec_shift_insert_len_values(&values, alloc);
             }
         }
     };

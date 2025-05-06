@@ -7,45 +7,49 @@ use std::alloc;
 
 use opaque_vec_testing as ovt;
 
-fn expected<T>(values: &[T]) -> OpaqueVec
+fn expected<T, A>(values: &[T], alloc: A) -> OpaqueVec
 where
-    T: any::Any + PartialEq + Clone + fmt::Debug
+    T: any::Any + PartialEq + Clone + fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
     OpaqueVec::from_iter(values.iter().rev().cloned())
 }
 
-fn result<T>(values: &[T]) -> OpaqueVec
+fn result<T, A>(values: &[T], alloc: A) -> OpaqueVec
 where
-    T: any::Any + PartialEq + Clone + fmt::Debug
+    T: any::Any + PartialEq + Clone + fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
-    let mut vec = OpaqueVec::new::<T>();
+    let mut vec = OpaqueVec::new_in::<T, A>(alloc);
     for value in values.iter().cloned() {
-        vec.shift_insert::<T, alloc::Global>(0, value);
+        vec.shift_insert::<T, A>(0, value);
     }
 
     vec
 }
 
-fn run_test_opaque_vec_shift_insert_start<T>(values: &[T])
+fn run_test_opaque_vec_shift_insert_start<T, A>(values: &[T], alloc: A)
 where
-    T: any::Any + PartialEq + Clone + fmt::Debug
+    T: any::Any + PartialEq + Clone + fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
-    let expected_vec = expected(values);
-    let result_vec = result(values);
+    let expected_vec = expected(values, alloc.clone());
+    let result_vec = result(values, alloc.clone());
 
-    let expected = expected_vec.as_slice::<T, alloc::Global>();
-    let result = result_vec.as_slice::<T, alloc::Global>();
+    let expected = expected_vec.as_slice::<T, A>();
+    let result = result_vec.as_slice::<T, A>();
 
     assert_eq!(result, expected);
 }
 
-fn run_test_opaque_vec_shift_insert_start_values<T>(values: &[T])
+fn run_test_opaque_vec_shift_insert_start_values<T, A>(values: &[T], alloc: A)
 where
-    T: any::Any + PartialEq + Clone + fmt::Debug
+    T: any::Any + PartialEq + Clone + fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {
-        run_test_opaque_vec_shift_insert_start(slice);
+        run_test_opaque_vec_shift_insert_start(slice, alloc.clone());
     }
 }
 
@@ -57,13 +61,15 @@ macro_rules! generate_tests {
             #[test]
             fn test_opaque_vec_shift_insert_start_range_values() {
                 let values = opaque_vec_testing::range_values::<$typ, $max_array_size>($range_spec);
-                run_test_opaque_vec_shift_insert_start_values(&values);
+                let alloc = alloc::Global;
+                run_test_opaque_vec_shift_insert_start_values(&values, alloc);
             }
 
             #[test]
             fn test_opaque_vec_shift_insert_start_alternating_values() {
                 let values = opaque_vec_testing::alternating_values::<$typ, $max_array_size>($alt_spec);
-                run_test_opaque_vec_shift_insert_start_values(&values);
+                let alloc = alloc::Global;
+                run_test_opaque_vec_shift_insert_start_values(&values, alloc);
             }
         }
     };

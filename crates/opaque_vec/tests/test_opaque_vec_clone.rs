@@ -1,5 +1,5 @@
 #![feature(allocator_api)]
-use opaque_vec::OpaqueVec;
+mod common;
 
 use core::any;
 use core::fmt;
@@ -7,38 +7,41 @@ use std::alloc;
 
 use opaque_vec_testing as ovt;
 
-fn run_test_opaque_vec_clone<T>(values: &[T])
+fn run_test_opaque_vec_clone<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
-    let vec = OpaqueVec::from(values);
-    let cloned_vec = vec.clone::<T, alloc::Global>();
+    let vec = common::from_slice_in(values, alloc);
+    let cloned_vec = vec.clone::<T, A>();
 
-    let expected = vec.as_slice::<T, alloc::Global>();
-    let result = cloned_vec.as_slice::<T, alloc::Global>();
+    let expected = vec.as_slice::<T, A>();
+    let result = cloned_vec.as_slice::<T, A>();
 
     assert_eq!(result, expected);
 }
 
-fn run_test_opaque_vec_clone_occupy_disjoint_memory_locations<T>(values: &[T])
+fn run_test_opaque_vec_clone_occupy_disjoint_memory_locations<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
-    let vec1 = OpaqueVec::from(values);
-    let vec2 = vec1.clone::<T, alloc::Global>();
+    let vec1 = common::from_slice_in(values, alloc);
+    let vec2 = vec1.clone::<T, A>();
 
-    assert_ne!(vec1.as_ptr::<T, alloc::Global>(), vec2.as_ptr::<T, alloc::Global>());
+    assert_ne!(vec1.as_ptr::<T, A>(), vec2.as_ptr::<T, A>());
 }
 
-fn run_test_opaque_vec_clone_occupy_disjoint_memory_regions<T>(values: &[T])
+fn run_test_opaque_vec_clone_occupy_disjoint_memory_regions<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
-    let vec1 = OpaqueVec::from(values);
-    let vec2 = vec1.clone::<T, alloc::Global>();
+    let vec1 = common::from_slice_in(values, alloc);
+    let vec2 = vec1.clone::<T, A>();
 
-    let ptr_start1 = vec1.as_ptr::<T, alloc::Global>() as usize;
-    let ptr_start2 = vec2.as_ptr::<T, alloc::Global>() as usize;
+    let ptr_start1 = vec1.as_ptr::<T, A>() as usize;
+    let ptr_start2 = vec2.as_ptr::<T, A>() as usize;
     let ptr_end1 = {
         let len1 = vec1.len() * std::mem::size_of::<T>();
         ptr_start1 + len1
@@ -51,36 +54,39 @@ where
     assert!(ptr_end1 <= ptr_start2 || ptr_end2 <= ptr_start1);
 }
 
-fn run_test_opaque_vec_clone_values<T>(values: &[T])
+fn run_test_opaque_vec_clone_values<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug + TryFrom<usize>,
     <T as TryFrom<usize>>::Error: fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {
-        run_test_opaque_vec_clone(slice);
+        run_test_opaque_vec_clone(slice, alloc.clone());
     }
 }
 
-fn run_test_opaque_vec_clone_occupy_disjoint_memory_locations_values<T>(values: &[T])
+fn run_test_opaque_vec_clone_occupy_disjoint_memory_locations_values<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug + TryFrom<usize>,
     <T as TryFrom<usize>>::Error: fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {
-        run_test_opaque_vec_clone_occupy_disjoint_memory_locations(slice);
+        run_test_opaque_vec_clone_occupy_disjoint_memory_locations(slice, alloc.clone());
     }
 }
 
-fn run_test_opaque_vec_clone_occupy_disjoint_memory_regions_values<T>(values: &[T])
+fn run_test_opaque_vec_clone_occupy_disjoint_memory_regions_values<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug + TryFrom<usize>,
     <T as TryFrom<usize>>::Error: fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {
-        run_test_opaque_vec_clone_occupy_disjoint_memory_regions(slice);
+        run_test_opaque_vec_clone_occupy_disjoint_memory_regions(slice, alloc.clone());
     }
 }
 
@@ -92,32 +98,36 @@ macro_rules! generate_tests {
             #[test]
             fn test_opaque_vec_clone_empty() {
                 let values: [$typ; 0] = [];
-
-                run_test_opaque_vec_clone(&values);
+                let alloc = alloc::Global;
+                run_test_opaque_vec_clone(&values, alloc);
             }
 
             #[test]
             fn test_opaque_vec_clone_range_values() {
                 let values = opaque_vec_testing::range_values::<$typ, $max_array_size>($range_spec);
-                run_test_opaque_vec_clone_values(&values);
+                let alloc = alloc::Global;
+                run_test_opaque_vec_clone_values(&values, alloc);
             }
 
             #[test]
             fn test_opaque_vec_clone_alternating_values() {
                 let values = opaque_vec_testing::alternating_values::<$typ, $max_array_size>($alt_spec);
-                run_test_opaque_vec_clone_values(&values);
+                let alloc = alloc::Global;
+                run_test_opaque_vec_clone_values(&values, alloc);
             }
 
             #[test]
             fn test_opaque_vec_clone_occupy_disjoint_memory_locations() {
                 let values = opaque_vec_testing::range_values::<$typ, $max_array_size>($range_spec);
-                run_test_opaque_vec_clone_occupy_disjoint_memory_locations(&values);
+                let alloc = alloc::Global;
+                run_test_opaque_vec_clone_occupy_disjoint_memory_locations(&values, alloc);
             }
 
             #[test]
             fn test_opaque_vec_clone_occupy_disjoint_memory_regions() {
                 let values = opaque_vec_testing::range_values::<$typ, $max_array_size>($range_spec);
-                run_test_opaque_vec_clone_occupy_disjoint_memory_regions(&values);
+                let alloc = alloc::Global;
+                run_test_opaque_vec_clone_occupy_disjoint_memory_regions(&values, alloc);
             }
         }
     };

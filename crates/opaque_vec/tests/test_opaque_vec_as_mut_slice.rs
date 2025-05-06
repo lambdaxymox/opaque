@@ -1,5 +1,5 @@
 #![feature(allocator_api)]
-use opaque_vec::OpaqueVec;
+mod common;
 
 use core::any;
 use core::fmt;
@@ -7,28 +7,30 @@ use std::alloc;
 
 use opaque_vec_testing as ovt;
 
-fn run_test_opaque_vec_as_mut_slice<T>(values: &mut [T])
+fn run_test_opaque_vec_as_mut_slice<T, A>(values: &mut [T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug + TryFrom<usize>,
     <T as TryFrom<usize>>::Error: fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
-    let mut vec = OpaqueVec::from(&*values);
+    let mut vec = common::from_slice_in(values, alloc);
 
     let expected = values;
-    let result = vec.as_mut_slice::<T, alloc::Global>();
+    let result = vec.as_mut_slice::<T, A>();
 
     assert_eq!(result, expected);
 }
 
-fn run_test_opaque_vec_as_mut_slice_values<T>(values: &mut [T])
+fn run_test_opaque_vec_as_mut_slice_values<T, A>(values: &mut [T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug + TryFrom<usize>,
     <T as TryFrom<usize>>::Error: fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {
         let mut cloned_slice = Vec::from(slice);
-        run_test_opaque_vec_as_mut_slice(&mut cloned_slice);
+        run_test_opaque_vec_as_mut_slice::<T, A>(&mut cloned_slice, alloc.clone());
     }
 }
 
@@ -40,20 +42,22 @@ macro_rules! generate_tests {
             #[test]
             fn test_opaque_vec_as_mut_slice_empty() {
                 let mut values: [$typ; 0] = [];
-
-                run_test_opaque_vec_as_mut_slice(&mut values);
+                let alloc = alloc::Global;
+                run_test_opaque_vec_as_mut_slice(&mut values, alloc);
             }
 
             #[test]
             fn test_opaque_vec_as_mut_slice_range_values() {
                 let mut values = opaque_vec_testing::range_values::<$typ, $max_array_size>($range_spec);
-                run_test_opaque_vec_as_mut_slice_values(&mut values);
+                let alloc = alloc::Global;
+                run_test_opaque_vec_as_mut_slice_values(&mut values, alloc);
             }
 
             #[test]
             fn test_opaque_vec_as_mut_slice_alternating_values() {
                 let mut values = opaque_vec_testing::alternating_values::<$typ, $max_array_size>($alt_spec);
-                run_test_opaque_vec_as_mut_slice_values(&mut values);
+                let alloc = alloc::Global;
+                run_test_opaque_vec_as_mut_slice_values(&mut values, alloc);
             }
         }
     };

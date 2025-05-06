@@ -7,30 +7,32 @@ use std::alloc;
 
 use opaque_vec_testing as ovt;
 
-fn run_test_opaque_vec_replace_insert_get<T>(values: &[T])
+fn run_test_opaque_vec_replace_insert_get<T, A>(values: &[T], alloc: A)
 where
-    T: any::Any + PartialEq + Clone + fmt::Debug
+    T: any::Any + PartialEq + Clone + fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
-    let mut vec = OpaqueVec::new::<T>();
+    let mut vec = OpaqueVec::new_in::<T, A>(alloc);
     for (i, value) in values.iter().cloned().enumerate() {
-        vec.replace_insert::<T, alloc::Global>(i, value);
+        vec.replace_insert::<T, A>(i, value);
     }
 
     for i in 0..vec.len() {
         let expected = Some(values[i].clone());
-        let result = vec.get::<T, alloc::Global>(i).cloned();
+        let result = vec.get::<T, A>(i).cloned();
 
         assert_eq!(result, expected);
     }
 }
 
-fn run_test_opaque_vec_replace_insert_get_values<T>(values: &[T])
+fn run_test_opaque_vec_replace_insert_get_values<T, A>(values: &[T], alloc: A)
 where
-    T: any::Any + PartialEq + Clone + fmt::Debug
+    T: any::Any + PartialEq + Clone + fmt::Debug,
+    A: alloc::Allocator + any::Any + Clone,
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {
-        run_test_opaque_vec_replace_insert_get(slice);
+        run_test_opaque_vec_replace_insert_get(slice, alloc.clone());
     }
 }
 
@@ -42,13 +44,15 @@ macro_rules! generate_tests {
             #[test]
             fn test_opaque_vec_replace_insert_get_range_values() {
                 let values = opaque_vec_testing::range_values::<$typ, $max_array_size>($range_spec);
-                run_test_opaque_vec_replace_insert_get_values(&values);
+                let alloc = alloc::Global;
+                run_test_opaque_vec_replace_insert_get_values(&values, alloc);
             }
 
             #[test]
             fn test_opaque_vec_replace_insert_get_alternating_values() {
                 let values = opaque_vec_testing::alternating_values::<$typ, $max_array_size>($alt_spec);
-                run_test_opaque_vec_replace_insert_get_values(&values);
+                let alloc = alloc::Global;
+                run_test_opaque_vec_replace_insert_get_values(&values, alloc);
             }
         }
     };
