@@ -480,31 +480,7 @@ impl OpaqueBlobVec {
             // len set by scope guard
         }
     }
-
-    /*
-    pub fn extend_from_iter<I>(&mut self, mut iterator: I)
-     where
-         I: Iterator<Item = NonNull<u8>>,
-     {
-         while let Some(element) = iterator.next() {
-             let len = self.len();
-             if len == self.capacity() {
-                 let (lower, _) = iterator.size_hint();
-                 self.reserve(lower.saturating_add(1));
-             }
-
-             unsafe {
-                 let element_size = self.element_layout.size();
-                 let ptr = self.as_mut_ptr().add(element_size * len);
-                 core::ptr::copy_nonoverlapping::<u8>(element.as_ptr(), ptr, element_size);
-                 // Since next() executes user code which can panic we have to bump the length
-                 // after each step.
-                 // NB can't overflow since we would have had to alloc the address space
-                 self.set_len(len + 1);
-             }
-         }
-     }
-      */
+    
     #[cfg(not(no_global_oom_handling))]
     #[inline]
     #[track_caller]
@@ -521,30 +497,7 @@ impl OpaqueBlobVec {
         self.length += count;
     }
 }
-/*
-impl Clone for OpaqueBlobVec {
-    fn clone(&self) -> Self {
-        let new_element_layout = self.element_layout;
-        let new_length = self.length;
-        let new_alloc = self.data.allocator().clone();
-        let new_data = OpaqueVecMemory::with_capacity_in(self.capacity(), new_alloc, self.element_layout);
-        let new_drop_fn = self.drop_fn.clone();
 
-        unsafe {
-            core::ptr::copy_nonoverlapping::<u8>(self.data.ptr::<u8>(), new_data.ptr::<u8>(), new_length * new_element_layout.size());
-        }
-
-        let new_vec = Self {
-            element_layout: new_element_layout,
-            length: new_length,
-            data: new_data,
-            drop_fn: new_drop_fn,
-        };
-
-        new_vec
-    }
-}
-*/
 impl Drop for OpaqueBlobVec {
     fn drop(&mut self) {
         self.clear();
