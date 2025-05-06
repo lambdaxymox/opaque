@@ -12,21 +12,6 @@ use std::fmt;
 use std::marker::PhantomData;
 use std::ptr::NonNull;
 
-/*
-pub trait BoxedAllocator: Allocator {
-    fn clone_boxed(&self) -> Box<dyn BoxedAllocator>;
-}
-
-impl<A> BoxedAllocator for A
-where
-    A: Allocator + Clone + 'static,
-{
-    fn clone_boxed(&self) -> Box<dyn BoxedAllocator> {
-        Box::new(self.clone())
-    }
-}
-*/
-
 pub trait AnyAllocator: Allocator + any::Any {}
 
 impl<A> AnyAllocator for A where A: Allocator + any::Any {}
@@ -308,16 +293,7 @@ unsafe impl alloc::Allocator for OpaqueAlloc {
         }
     }
 }
-/*
-impl Clone for OpaqueAlloc {
-    fn clone(&self) -> Self {
-        Self {
-            alloc: self.alloc.clone_boxed(),
-            type_id: self.type_id,
-        }
-    }
-}
-*/
+
 impl fmt::Debug for OpaqueAlloc {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("OpaqueAlloc").finish()
