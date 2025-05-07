@@ -1,6 +1,8 @@
 use crate::opaque_vec_memory;
 use crate::opaque_vec_memory::OpaqueVecMemory;
 use opaque_alloc::OpaqueAlloc;
+
+use core::fmt;
 use std::alloc::Layout;
 use std::mem::ManuallyDrop;
 use std::ptr::NonNull;
@@ -505,5 +507,11 @@ impl Drop for OpaqueBlobVec {
         unsafe {
             self.data.deallocate(self.element_layout);
         }
+    }
+}
+
+impl fmt::Debug for OpaqueBlobVec {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.debug_struct("OpaqueBlobVec").finish()
     }
 }

@@ -72,7 +72,7 @@ impl OpaqueAllocInner {
         boxed_alloc
     }
 
-    fn clone_assuming_type<A>(&self) -> OpaqueAllocInner
+    fn clone_assuming_type<A>(&self) -> Self
     where
         A: Allocator + any::Any + Clone,
     {
@@ -82,7 +82,7 @@ impl OpaqueAllocInner {
             .unwrap();
         let cloned_alloc = alloc_ref.clone();
 
-        OpaqueAllocInner::new(cloned_alloc)
+        Self::new(cloned_alloc)
     }
 }
 
@@ -166,7 +166,7 @@ where
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("TypedProjAlloc")
-            .field("inner", &format_args!("{:?}", any::type_name::<Box<A>>()))
+            .field("inner", self.inner.allocator_assuming_type::<A>())
             .finish()
     }
 }
@@ -295,7 +295,7 @@ unsafe impl alloc::Allocator for OpaqueAlloc {
 }
 
 impl fmt::Debug for OpaqueAlloc {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("OpaqueAlloc").finish()
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.debug_struct("OpaqueAlloc").finish()
     }
 }

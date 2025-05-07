@@ -1,31 +1,29 @@
 use opaque_hash::OpaqueBuildHasher;
-use std::hash::{
-    BuildHasher,
-    Hash,
-    Hasher,
-    RandomState,
-};
+
+use core::any;
+use std::hash;
+use std::hash::{BuildHasher, Hasher};
 
 fn run_hashers<T>(value: T) -> (u64, u64)
 where
-    T: Hash + 'static,
+    T: any::Any + hash::Hash,
 {
-    let default_hash_builder = RandomState::new();
-    let mut hasher = default_hash_builder.build_hasher();
+    let default_build_hasher = hash::RandomState::new();
+    let mut hasher = default_build_hasher.build_hasher();
     value.hash(&mut hasher);
     let expected = hasher.finish();
 
-    let opaque_hash_builder = OpaqueBuildHasher::new(Box::new(default_hash_builder));
-    let mut opaque_hasher = opaque_hash_builder.build_hasher();
+    let opaque_build_hasher = OpaqueBuildHasher::new(default_build_hasher);
+    let mut opaque_hasher = opaque_build_hasher.build_hasher::<hash::RandomState>();
     value.hash(&mut opaque_hasher);
-    let result = hasher.finish();
+    let result = opaque_hasher.finish();
 
     (result, expected)
 }
 
 fn run_test_opaque_hasher<T, I>(values: I)
 where
-    T: Hash + 'static,
+    T: any::Any + hash::Hash,
     I: Iterator<Item = T>,
 {
     for value in values {

@@ -9,6 +9,7 @@ use std::hash::{
     Hash,
     Hasher,
     RandomState,
+    DefaultHasher,
 };
 
 macro_rules! bench_hasher {
@@ -28,12 +29,12 @@ macro_rules! bench_hasher {
 
         fn $bench_opaque_name(c: &mut criterion::Criterion) {
             let default_hash_builder = RandomState::new();
-            let opaque_hash_builder = OpaqueBuildHasher::new(Box::new(default_hash_builder));
+            let opaque_hash_builder = OpaqueBuildHasher::new(default_hash_builder);
             let value: $typ = $value;
 
             c.bench_function(stringify!($bench_opaque_name), |b| {
                 b.iter(|| {
-                    let mut opaque_hasher = opaque_hash_builder.build_hasher();
+                    let mut opaque_hasher = opaque_hash_builder.build_hasher::<RandomState>();
                     criterion::black_box(value).hash(&mut opaque_hasher);
                     criterion::black_box(opaque_hasher.finish());
                 });
