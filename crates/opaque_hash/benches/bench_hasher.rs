@@ -9,7 +9,6 @@ use std::hash::{
     Hash,
     Hasher,
     RandomState,
-    DefaultHasher,
 };
 
 macro_rules! bench_hasher {

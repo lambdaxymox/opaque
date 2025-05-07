@@ -25,7 +25,7 @@ where
 pub(crate) fn new_opaque_blob_vec_in<T, A>(alloc: A) -> OpaqueBlobVec
 where
     T: any::Any + fmt::Debug,
-    A: alloc::Allocator + any::Any,
+    A: any::Any + alloc::Allocator,
 {
     let alloc = OpaqueAlloc::new(alloc);
     let element_layout = Layout::new::<T>();
@@ -37,7 +37,7 @@ where
 pub(crate) fn from_typed_slice_in<T, A>(values: &[T], alloc: A) -> OpaqueBlobVec
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: alloc::Allocator + any::Any,
+    A: any::Any + alloc::Allocator,
 {
     let mut vec = new_opaque_blob_vec_in::<T, A>(alloc);
     for value in values.iter() {
@@ -72,7 +72,7 @@ where
 pub(crate) fn clone<T, A>(opaque_blob_vec: &OpaqueBlobVec) -> OpaqueBlobVec
 where
     T: any::Any + fmt::Debug + Clone,
-    A: alloc::Allocator + any::Any + Clone,
+    A: any::Any + alloc::Allocator + Clone,
 {
     let new_alloc = {
         let proj_old_alloc = opaque_blob_vec.allocator().as_proj::<A>();

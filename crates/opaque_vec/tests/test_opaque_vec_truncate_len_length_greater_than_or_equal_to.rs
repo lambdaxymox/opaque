@@ -13,7 +13,7 @@ fn run_test_opaque_vec_truncate_len_length_greater_than_or_equal_to<T, A>(values
 where
     T: any::Any + PartialEq + Clone + fmt::Debug + TryFrom<usize>,
     <T as TryFrom<usize>>::Error: fmt::Debug,
-    A: alloc::Allocator + any::Any + Clone,
+    A: any::Any + alloc::Allocator + Clone,
 {
     let base_opaque_vec = common::from_slice_in(values, alloc);
     let min_len = values.len();
@@ -34,7 +34,7 @@ fn run_test_opaque_vec_truncate_len_length_greater_than_or_equal_to_values<T, A>
 where
     T: any::Any + PartialEq + Clone + fmt::Debug + TryFrom<usize>,
     <T as TryFrom<usize>>::Error: fmt::Debug,
-    A: alloc::Allocator + any::Any + Clone,
+    A: any::Any + alloc::Allocator + Clone,
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {

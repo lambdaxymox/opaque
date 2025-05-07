@@ -13,7 +13,7 @@ use opaque_vec_testing as ovt;
 fn expected<T, A>(values: &[T], alloc: A) -> OpaqueBlobVec
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: alloc::Allocator + any::Any + Clone,
+    A: any::Any + alloc::Allocator + Clone,
 {
     let mut opaque_blob_vec = common::new_opaque_blob_vec_in::<T, A>(alloc);
     for value in values.iter().take(values.len() - 1) {
@@ -34,7 +34,7 @@ where
 fn run_test_opaque_blob_vec_swap_remove_forget_unchecked_start<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: alloc::Allocator + any::Any + Clone,
+    A: any::Any + alloc::Allocator + Clone,
 {
     let mut opaque_blob_vec = common::from_typed_slice_in(values, alloc.clone());
 
@@ -55,7 +55,7 @@ where
 fn run_test_opaque_blob_vec_swap_remove_forget_unchecked_start_values<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: alloc::Allocator + any::Any + Clone,
+    A: any::Any + alloc::Allocator + Clone,
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {

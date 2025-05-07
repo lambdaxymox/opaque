@@ -10,7 +10,7 @@ use opaque_vec_testing as ovt;
 fn run_test_opaque_vec_clone<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: alloc::Allocator + any::Any + Clone,
+    A: any::Any + alloc::Allocator + Clone,
 {
     let vec = common::from_slice_in(values, alloc);
     let cloned_vec = vec.clone::<T, A>();
@@ -24,7 +24,7 @@ where
 fn run_test_opaque_vec_clone_occupy_disjoint_memory_locations<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: alloc::Allocator + any::Any + Clone,
+    A: any::Any + alloc::Allocator + Clone,
 {
     let vec1 = common::from_slice_in(values, alloc);
     let vec2 = vec1.clone::<T, A>();
@@ -35,7 +35,7 @@ where
 fn run_test_opaque_vec_clone_occupy_disjoint_memory_regions<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: alloc::Allocator + any::Any + Clone,
+    A: any::Any + alloc::Allocator + Clone,
 {
     let vec1 = common::from_slice_in(values, alloc);
     let vec2 = vec1.clone::<T, A>();
@@ -58,7 +58,7 @@ fn run_test_opaque_vec_clone_values<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug + TryFrom<usize>,
     <T as TryFrom<usize>>::Error: fmt::Debug,
-    A: alloc::Allocator + any::Any + Clone,
+    A: any::Any + alloc::Allocator + Clone,
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {
@@ -70,7 +70,7 @@ fn run_test_opaque_vec_clone_occupy_disjoint_memory_locations_values<T, A>(value
 where
     T: any::Any + PartialEq + Clone + fmt::Debug + TryFrom<usize>,
     <T as TryFrom<usize>>::Error: fmt::Debug,
-    A: alloc::Allocator + any::Any + Clone,
+    A: any::Any + alloc::Allocator + Clone,
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {
@@ -82,7 +82,7 @@ fn run_test_opaque_vec_clone_occupy_disjoint_memory_regions_values<T, A>(values:
 where
     T: any::Any + PartialEq + Clone + fmt::Debug + TryFrom<usize>,
     <T as TryFrom<usize>>::Error: fmt::Debug,
-    A: alloc::Allocator + any::Any + Clone,
+    A: any::Any + alloc::Allocator + Clone,
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {

@@ -9,7 +9,7 @@ use opaque_vec_testing as ovt;
 fn run_test_opaque_vec_contains<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone,
-    A: alloc::Allocator + any::Any + Clone,
+    A: any::Any + alloc::Allocator + Clone,
 {
     let vec = common::from_slice_in(values, alloc);
     for value in values.iter() {
@@ -20,7 +20,7 @@ where
 fn run_test_opaque_vec_contains_values<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone,
-    A: alloc::Allocator + any::Any + Clone,
+    A: any::Any + alloc::Allocator + Clone,
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {

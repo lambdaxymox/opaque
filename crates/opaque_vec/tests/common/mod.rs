@@ -4,7 +4,7 @@ use std::{alloc, any};
 pub fn from_slice_in<T, A>(values: &[T], alloc: A) -> OpaqueVec
 where
     T: any::Any + Clone,
-    A: alloc::Allocator + any::Any,
+    A: any::Any + alloc::Allocator,
 {
     let mut vec = OpaqueVec::new_in::<T, A>(alloc);
     for value in values.iter() {
@@ -17,7 +17,7 @@ where
 pub fn new_in<T, A>(alloc: A) -> OpaqueVec
 where
     T: any::Any + Clone,
-    A: alloc::Allocator + any::Any,
+    A: any::Any + alloc::Allocator,
 {
     from_slice_in::<T, A>(&[], alloc)
 }

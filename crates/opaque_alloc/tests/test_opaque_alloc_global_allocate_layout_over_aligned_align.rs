@@ -1,16 +1,16 @@
 #![feature(allocator_api)]
 #![feature(slice_ptr_get)]
 use opaque_alloc::OpaqueAlloc;
+use std::alloc;
 use std::alloc::{
     Allocator,
-    Global,
     Layout,
 };
 use core::any;
 
 fn run_test_opaque_alloc_allocate_align_with_layout_over_aligned_allocation<A>(opaque_alloc: OpaqueAlloc, layout: Layout)
 where
-    A: Allocator + any::Any,
+    A: any::Any + alloc::Allocator,
 {
     let expected = 0;
     let result = unsafe {
@@ -32,7 +32,7 @@ where
 
 fn run_test_opaque_alloc_allocate_align_over_aligned_allocation_with_size_align<A>(alloc: A, size: usize, align: usize)
 where
-    A: Allocator + any::Any,
+    A: any::Any + alloc::Allocator,
 {
     let opaque_alloc = OpaqueAlloc::new::<A>(alloc);
     let layout = Layout::from_size_align(size, align).expect(&format!(
@@ -45,21 +45,21 @@ where
 
 #[test]
 fn test_opaque_alloc_allocate_align_over_aligned_allocation_with_size_1024_align_2048() {
-    let alloc = Global;
+    let alloc = alloc::Global;
 
     run_test_opaque_alloc_allocate_align_over_aligned_allocation_with_size_align(alloc, 1024, 2048);
 }
 
 #[test]
 fn test_opaque_alloc_allocate_align_over_aligned_allocation_with_size_1024_align_4096() {
-    let alloc = Global;
+    let alloc = alloc::Global;
 
     run_test_opaque_alloc_allocate_align_over_aligned_allocation_with_size_align(alloc, 1024, 4096);
 }
 
 #[test]
 fn test_opaque_alloc_allocate_align_over_aligned_allocation_with_size_1024_align_8192() {
-    let alloc = Global;
+    let alloc = alloc::Global;
 
     run_test_opaque_alloc_allocate_align_over_aligned_allocation_with_size_align(alloc, 1024, 8192);
 }

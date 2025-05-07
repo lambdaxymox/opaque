@@ -12,7 +12,7 @@ use opaque_vec_testing as ovt;
 fn expected<T, A>(values: &[T], extension_values: &[T], alloc: A) -> OpaqueVec
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: alloc::Allocator + any::Any + Clone,
+    A: any::Any + alloc::Allocator + Clone,
 {
     let mut vec = common::from_slice_in(values, alloc);
     for extension_value in extension_values.iter() {
@@ -25,7 +25,7 @@ where
 fn result<T, A>(values: &[T], extension_values: &[T], alloc: A) -> OpaqueVec
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: alloc::Allocator + any::Any + Clone,
+    A: any::Any + alloc::Allocator + Clone,
 {
     let mut vec = common::from_slice_in(values, alloc);
     vec.extend_from_slice::<T, A>(extension_values);
@@ -36,7 +36,7 @@ where
 fn run_test_opaque_vec_extend_from_slice<T, A>(values: &[T], extension_values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: alloc::Allocator + any::Any + Clone,
+    A: any::Any + alloc::Allocator + Clone,
 {
     let expected = expected(values, extension_values, alloc.clone());
     let result = result(values, extension_values, alloc.clone());
@@ -47,7 +47,7 @@ where
 fn run_test_opaque_vec_extend_from_slice_values<T, A>(values: &[T], extension_values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: alloc::Allocator + any::Any + Clone,
+    A: any::Any + alloc::Allocator + Clone,
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {

@@ -7,7 +7,7 @@ use std::alloc;
 fn run_test_opaque_vec_replace_insert_len_same_index<T, A>(value: T, alloc: A)
 where
     T: any::Any + PartialEq + Clone,
-    A: alloc::Allocator + any::Any + Clone,
+    A: any::Any + alloc::Allocator + Clone,
 {
     let mut vec = OpaqueVec::new_in::<T, A>(alloc);
 

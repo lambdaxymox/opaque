@@ -12,7 +12,7 @@ use opaque_vec_testing as ovt;
 fn expected<T, A>(values: &[T], alloc: A) -> OpaqueVec
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: alloc::Allocator + any::Any + Clone,
+    A: any::Any + alloc::Allocator + Clone,
 {
     let mut vec = OpaqueVec::new_in::<T, A>(alloc);
     for value in values.iter().skip(1).cloned() {
@@ -25,7 +25,7 @@ where
 fn run_test_opaque_vec_shift_remove_start<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: alloc::Allocator + any::Any + Clone,
+    A: any::Any + alloc::Allocator + Clone,
 {
     let mut vec = common::from_slice_in(values, alloc.clone());
 
@@ -42,7 +42,7 @@ where
 fn run_test_opaque_vec_shift_remove_start_values<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: alloc::Allocator + any::Any + Clone,
+    A: any::Any + alloc::Allocator + Clone,
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {

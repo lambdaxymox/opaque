@@ -10,7 +10,7 @@ use opaque_vec_testing as ovt;
 fn expected<T, A>(values: &[T], alloc: A) -> OpaqueVec
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: alloc::Allocator + any::Any + Clone,
+    A: any::Any + alloc::Allocator + Clone,
 {
     OpaqueVec::from_iter(values.iter().rev().cloned())
 }
@@ -18,7 +18,7 @@ where
 fn result<T, A>(values: &[T], alloc: A) -> OpaqueVec
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: alloc::Allocator + any::Any + Clone,
+    A: any::Any + alloc::Allocator + Clone,
 {
     let mut vec = OpaqueVec::new_in::<T, A>(alloc);
     for value in values.iter().cloned() {
@@ -31,7 +31,7 @@ where
 fn run_test_opaque_vec_shift_insert_start<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: alloc::Allocator + any::Any + Clone,
+    A: any::Any + alloc::Allocator + Clone,
 {
     let expected_vec = expected(values, alloc.clone());
     let result_vec = result(values, alloc.clone());
@@ -45,7 +45,7 @@ where
 fn run_test_opaque_vec_shift_insert_start_values<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: alloc::Allocator + any::Any + Clone,
+    A: any::Any + alloc::Allocator + Clone,
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {

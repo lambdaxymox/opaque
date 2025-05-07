@@ -13,7 +13,7 @@ use opaque_vec_testing as ovt;
 pub fn from_slice_in<T, A>(values: &[T], alloc: A) -> OpaqueBlobVec
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: alloc::Allocator + any::Any + Clone,
+    A: any::Any + alloc::Allocator + Clone,
 {
     let mut vec = common::new_opaque_blob_vec_in::<T, A>(alloc);
     for i in 0..values.len() {
@@ -28,7 +28,7 @@ where
 fn run_test_opaque_blob_vec_shift_insert_get_unchecked<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: alloc::Allocator + any::Any + Clone,
+    A: any::Any + alloc::Allocator + Clone,
 {
     let opaque_blob_vec = from_slice_in(values, alloc);
     for i in 0..opaque_blob_vec.len() {
@@ -45,7 +45,7 @@ where
 fn run_test_opaque_blob_vec_shift_insert_get_unchecked_values<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: alloc::Allocator + any::Any + Clone,
+    A: any::Any + alloc::Allocator + Clone,
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {

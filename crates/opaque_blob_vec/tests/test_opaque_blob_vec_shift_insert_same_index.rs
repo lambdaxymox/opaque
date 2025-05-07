@@ -11,7 +11,7 @@ use opaque_vec_testing as ovt;
 fn run_test_opaque_blob_vec_shift_insert_get_same_index1<T, A>(value: T, alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: alloc::Allocator + any::Any + Clone,
+    A: any::Any + alloc::Allocator + Clone,
 {
     let mut opaque_blob_vec = common::new_opaque_blob_vec_in::<T, A>(alloc);
     let value_ptr = NonNull::from(&value).cast::<u8>();
@@ -29,7 +29,7 @@ where
 fn run_test_opaque_blob_vec_shift_insert_get_same_index2<T, A>(initial_value: T, value: T, alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: alloc::Allocator + any::Any + Clone,
+    A: any::Any + alloc::Allocator + Clone,
 {
     let mut opaque_blob_vec = common::new_opaque_blob_vec_in::<T, A>(alloc);
     let initial_value_ptr = NonNull::from(&initial_value).cast::<u8>();

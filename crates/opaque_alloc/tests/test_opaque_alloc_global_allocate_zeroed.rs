@@ -1,16 +1,16 @@
 #![feature(allocator_api)]
 #![feature(slice_ptr_get)]
 use opaque_alloc::OpaqueAlloc;
+use std::alloc;
 use std::alloc::{
     Allocator,
-    Global,
     Layout,
 };
 use core::any;
 
 fn run_test_opaque_alloc_allocate_zeroed_with_layout<A>(opaque_alloc: OpaqueAlloc, layout: Layout)
 where
-    A: Allocator + any::Any,
+    A: any::Any + alloc::Allocator,
 {
     unsafe {
         let proj_alloc = opaque_alloc.as_proj::<A>();
@@ -31,9 +31,9 @@ where
 
 fn run_test_opaque_alloc_allocate_zeroed_with_size_align<A>(alloc: A, size: usize, align: usize)
 where
-    A: Allocator + any::Any,
+    A: any::Any + alloc::Allocator,
 {
-    let opaque_alloc = OpaqueAlloc::new::<Global>(Global);
+    let opaque_alloc = OpaqueAlloc::new::<A>(alloc);
     let layout = Layout::from_size_align(size, align).expect(&format!(
         "Failed to construct layout with size `{:?}` and alignment `{:?}`",
         size, align
@@ -44,7 +44,7 @@ where
 
 #[test]
 fn test_opaque_alloc_allocate_zeroed_large() {
-    let alloc = Global;
+    let alloc = alloc::Global;
     let alignments = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024];
     let sizes = [1024, 2048, 4096, 8192];
 
@@ -57,7 +57,7 @@ fn test_opaque_alloc_allocate_zeroed_large() {
 
 #[test]
 fn test_opaque_alloc_allocate_zeroed_small() {
-    let alloc = Global;
+    let alloc = alloc::Global;
     let alignments = [1, 2, 4, 8];
     let sizes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 32, 64, 128, 256, 512];
 
