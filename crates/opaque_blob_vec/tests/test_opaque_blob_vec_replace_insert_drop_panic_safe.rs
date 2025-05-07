@@ -9,6 +9,7 @@ use std::panic::{
     AssertUnwindSafe,
 };
 
+use core::any;
 use core::fmt;
 
 use std::cell::RefCell;
@@ -93,11 +94,11 @@ impl<T> Drop for PanicCell<T> {
 
 fn new_vec<T>() -> OpaqueBlobVec
 where
-    T: fmt::Debug + 'static,
+    T: any::Any + fmt::Debug,
 {
     unsafe fn drop_fn<T>(value: NonNull<u8>)
     where
-        T: core::fmt::Debug + 'static,
+        T: any::Any + fmt::Debug,
     {
         {
             let value_ref: &T = &*value.cast::<T>().as_ptr();

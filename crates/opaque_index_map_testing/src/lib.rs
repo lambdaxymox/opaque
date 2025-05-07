@@ -1,4 +1,5 @@
 use core::{
+    any,
     fmt,
     hash,
 };
@@ -18,8 +19,8 @@ impl<'a, K, V> PrefixGenerator<'a, K, V> {
 
 impl<'a, K, V> Iterator for PrefixGenerator<'a, K, V>
 where
-    K: Clone + Eq + hash::Hash + 'static,
-    V: Clone + Eq + 'static,
+    K: any::Any + Clone + Eq + hash::Hash,
+    V: any::Any + Clone + Eq,
 {
     type Item = &'a [(K, V)];
 
@@ -37,8 +38,8 @@ where
 
 pub fn key_value_pairs<K, V, I, J>(keys: I, values: J) -> Vec<(K, V)>
 where
-    K: Clone + Eq + hash::Hash + 'static,
-    V: Clone + Eq + 'static,
+    K: any::Any + Clone + Eq + hash::Hash,
+    V: any::Any + Clone + Eq,
     I: Iterator<Item = K>,
     J: Iterator<Item = V>,
 {
@@ -60,8 +61,8 @@ impl<K, V> RangeEntriesSpec<K, V> {
 
 pub fn range_entries<K, V>(spec: RangeEntriesSpec<K, V>) -> Vec<(K, V)>
 where
-    K: Clone + Eq + hash::Hash + fmt::Debug + 'static,
-    V: Clone + Eq + fmt::Debug + 'static,
+    K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
+    V: any::Any + Clone + Eq + fmt::Debug,
     ops::RangeInclusive<K>: DoubleEndedIterator<Item = K>,
     ops::RangeInclusive<V>: DoubleEndedIterator<Item = V>,
 {
@@ -83,8 +84,8 @@ impl<K, V> ConstantKeyEntriesSpec<K, V> {
 
 pub fn constant_key_entries<K, V>(spec: ConstantKeyEntriesSpec<K, V>) -> Vec<(K, V)>
 where
-    K: Clone + Eq + hash::Hash + fmt::Debug + 'static,
-    V: Clone + Eq + fmt::Debug + 'static,
+    K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
+    V: any::Any + Clone + Eq + fmt::Debug,
     ops::RangeInclusive<V>: DoubleEndedIterator<Item = V>,
 {
     let keys = core::iter::repeat(spec.key).take(spec.values.clone().count());
@@ -93,7 +94,7 @@ where
 
 fn dedup_by_largest_index_per_key<K>(sorted_entries: &[(K, usize)]) -> Vec<(K, (usize, usize))>
 where
-    K: Clone + Eq + hash::Hash + 'static,
+    K: any::Any + Clone + Eq + hash::Hash,
 {
     let mut deduped_sorted_entries = Vec::new();
     let mut iter = sorted_entries.iter().peekable();
@@ -117,8 +118,8 @@ where
 
 fn first_and_last_index_per_key<K, V>(entries: &[(K, V)]) -> Vec<(K, (usize, usize))>
 where
-    K: Clone + Eq + Ord + hash::Hash + 'static,
-    V: Clone + Eq + 'static,
+    K: any::Any + Clone + Eq + Ord + hash::Hash,
+    V: any::Any + Clone + Eq,
 {
     let sorted_entries = {
         let mut _sorted_entries: Vec<(K, usize)> = entries.iter().cloned().enumerate().map(|(index, (key, _))| (key, index)).collect();
@@ -131,8 +132,8 @@ where
 
 pub fn last_entry_per_key<K, V>(entries: &[(K, V)]) -> Vec<((K, V), (usize, usize))>
 where
-    K: Clone + Eq + Ord + hash::Hash + 'static,
-    V: Clone + Eq + 'static,
+    K: any::Any + Clone + Eq + Ord + hash::Hash,
+    V: any::Any + Clone + Eq,
 {
     let indices = first_and_last_index_per_key(entries);
     let mut result = Vec::new();
@@ -146,8 +147,8 @@ where
 
 pub fn last_entry_per_key_ordered<K, V>(entries: &[(K, V)]) -> Vec<(K, V)>
 where
-    K: Clone + Eq + Ord + hash::Hash + 'static,
-    V: Clone + Eq + 'static,
+    K: any::Any + Clone + Eq + Ord + hash::Hash,
+    V: any::Any + Clone + Eq,
 {
     let mut filtered_entries = last_entry_per_key(entries);
     filtered_entries.sort_by(|a, b| a.1.0.cmp(&b.1.0));

@@ -128,7 +128,7 @@ where
         self.inner.allocator_assuming_type::<A>()
     }
 
-    pub fn into_box_alloc(self) -> Box<A> {
+    pub fn into_boxed_alloc(self) -> Box<A> {
         self.inner.into_boxed_alloc_assuming_type::<A>()
     }
 }

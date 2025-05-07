@@ -58,7 +58,7 @@ impl OpaqueHasherInner {
         any_hasher.downcast_ref::<H>().unwrap()
     }
 
-    fn into_box_hasher_assuming_type<H>(self) -> Box<H>
+    fn into_boxed_hasher_assuming_type<H>(self) -> Box<H>
     where
         H: hash::Hasher + any::Any,
     {
@@ -122,8 +122,8 @@ where
         self.inner.hasher_assuming_type::<H>()
     }
 
-    pub fn into_box_hasher(self) -> Box<H> {
-        self.inner.into_box_hasher_assuming_type::<H>()
+    pub fn into_boxed_hasher(self) -> Box<H> {
+        self.inner.into_boxed_hasher_assuming_type::<H>()
     }
 }
 
@@ -353,7 +353,7 @@ impl OpaqueBuildHasherInner {
         any_build_hasher.downcast_ref::<S>().unwrap()
     }
 
-    fn into_box_build_hasher_assuming_type<S>(self) -> Box<S>
+    fn into_boxed_build_hasher_assuming_type<S>(self) -> Box<S>
     where
         S: hash::BuildHasher + any::Any,
     {
@@ -417,8 +417,8 @@ where
         self.inner.get_build_hasher_assuming_type::<S>()
     }
 
-    pub fn into_box_build_hasher(self) -> Box<S> {
-        self.inner.into_box_build_hasher_assuming_type::<S>()
+    pub fn into_boxed_build_hasher(self) -> Box<S> {
+        self.inner.into_boxed_build_hasher_assuming_type::<S>()
     }
 }
 
@@ -498,9 +498,9 @@ impl OpaqueBuildHasher {
     where
         S: hash::BuildHasher + any::Any,
     {
-        let proj_alloc = TypedProjBuildHasher::<S>::new(build_hasher);
+        let proj_build_hasher = TypedProjBuildHasher::<S>::new(build_hasher);
 
-        Self::from_proj(proj_alloc)
+        Self::from_proj(proj_build_hasher)
     }
 
     #[inline]
@@ -508,9 +508,9 @@ impl OpaqueBuildHasher {
     where
         S: hash::BuildHasher + any::Any,
     {
-        let proj_alloc = TypedProjBuildHasher::<S>::from_boxed_build_hasher(build_hasher);
+        let proj_build_hasher = TypedProjBuildHasher::<S>::from_boxed_build_hasher(build_hasher);
 
-        Self::from_proj(proj_alloc)
+        Self::from_proj(proj_build_hasher)
     }
 
     #[inline]

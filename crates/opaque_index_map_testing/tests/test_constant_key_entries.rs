@@ -1,4 +1,5 @@
 use core::{
+    any,
     fmt,
     hash,
     ops,
@@ -8,8 +9,8 @@ use opaque_index_map_testing as oimt;
 
 fn run_test_constant_entries<K, V>(spec: oimt::ConstantKeyEntriesSpec<K, V>, expected: Vec<(K, V)>)
 where
-    K: Clone + Eq + hash::Hash + fmt::Debug + 'static,
-    V: Clone + Eq + fmt::Debug + 'static,
+    K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
+    V: any::Any + Clone + Eq + fmt::Debug,
     ops::RangeInclusive<V>: DoubleEndedIterator<Item = V>,
 {
     let result = oimt::constant_key_entries(spec);

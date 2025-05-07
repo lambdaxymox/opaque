@@ -1,5 +1,4 @@
-extern crate core;
-
+use core::any;
 use core::{fmt, hash};
 use core::ops;
 
@@ -30,7 +29,7 @@ impl<'a, T> PrefixGenerator<'a, T> {
 
 impl<'a, T> Iterator for PrefixGenerator<'a, T>
 where
-    T: Clone + PartialEq + 'static,
+    T: any::Any + Clone + PartialEq,
 {
     type Item = &'a [T];
 
@@ -60,7 +59,7 @@ impl<T> RangeValuesSpec<T> {
 
 pub fn range_values<T, const N: usize>(spec: RangeValuesSpec<T>) -> [T; N]
 where
-    T: Copy + PartialEq + Clone + fmt::Debug + TryFrom<usize> + ops::Add<Output = T> + 'static,
+    T: any::Any + Copy + PartialEq + Clone + fmt::Debug + TryFrom<usize> + ops::Add<Output = T>,
     <T as TryFrom<usize>>::Error: fmt::Debug,
 {
     let mut array = [spec.start; N];
@@ -86,7 +85,7 @@ impl<T> AlternatingValuesSpec<T> {
 
 pub fn alternating_values<T, const N: usize>(spec: AlternatingValuesSpec<T>) -> [T; N]
 where
-    T: Copy + PartialEq + Clone + fmt::Debug + TryFrom<usize> + ops::Add<Output = T> + 'static,
+    T: any::Any + Copy + PartialEq + Clone + fmt::Debug + TryFrom<usize> + ops::Add<Output = T>,
     <T as TryFrom<usize>>::Error: fmt::Debug,
 {
     let mut array = [spec.this; N];
@@ -112,7 +111,7 @@ impl<T> ConstantValuesSpec<T> {
 
 pub fn constant_values<T, const N: usize>(spec: ConstantValuesSpec<T>) -> [T; N]
 where
-    T: Copy + PartialEq + Clone + fmt::Debug + TryFrom<usize> + ops::Add<Output = T> + 'static,
+    T: any::Any + Copy + PartialEq + Clone + fmt::Debug + TryFrom<usize> + ops::Add<Output = T>,
     <T as TryFrom<usize>>::Error: fmt::Debug,
 {
     [spec.constant; N]

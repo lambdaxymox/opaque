@@ -649,8 +649,8 @@ where
 pub struct Splice<'a, I, A>
 where
     I: Iterator + 'a,
-    A: Allocator + any::Any + 'a,
     <I as Iterator>::Item: any::Any,
+    A: Allocator + any::Any + 'a,
 {
     drain: Drain<'a, I::Item, A>,
     replace_with: I,
@@ -1688,7 +1688,7 @@ impl OpaqueVecInner {
         let other_len = self.len() - at;
         let mut other = {
             let cloned_alloc = self.allocator::<T, A>().clone();
-            let box_alloc = cloned_alloc.into_box_alloc();
+            let box_alloc = cloned_alloc.into_boxed_alloc();
             let split_alloc = TypedProjAlloc::from_boxed_alloc(box_alloc);
 
             OpaqueVecInner::with_capacity_proj_in::<T, A>(other_len, split_alloc)
@@ -3265,12 +3265,13 @@ where
     }
 }
 */
-impl<T> Default for TypedProjVec<T, Global>
+impl<T, A> Default for TypedProjVec<T, A>
 where
     T: any::Any,
+    A: any::Any + Allocator + Default,
 {
-    fn default() -> TypedProjVec<T, Global> {
-        TypedProjVec::new()
+    fn default() -> TypedProjVec<T, A> {
+        TypedProjVec::new_in(Default::default())
     }
 }
 

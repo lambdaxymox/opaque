@@ -1,3 +1,4 @@
+use core::any;
 use core::fmt;
 use core::ops;
 
@@ -5,7 +6,7 @@ use opaque_vec_testing as ovt;
 
 fn run_test_array_constant<T, const N: usize>(constant: T, expected: [T; N])
 where
-    T: Copy + PartialEq + Clone + fmt::Debug + TryFrom<usize> + ops::Add<Output = T> + 'static,
+    T: any::Any + Copy + PartialEq + Clone + fmt::Debug + TryFrom<usize> + ops::Add<Output = T>,
     <T as TryFrom<usize>>::Error: fmt::Debug,
 {
     let result = ovt::constant_values(ovt::ConstantValuesSpec::new(constant));

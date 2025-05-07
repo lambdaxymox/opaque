@@ -26,7 +26,7 @@ where
 
 fn run_test_opaque_blob_vec_clear_len_values<T, A>(values: &[T], alloc: A)
 where
-    T: PartialEq + Clone + fmt::Debug + TryFrom<usize> + 'static,
+    T: any::Any + PartialEq + Clone + fmt::Debug + TryFrom<usize>,
     <T as TryFrom<usize>>::Error: fmt::Debug,
     A: alloc::Allocator + any::Any + Clone,
 {
