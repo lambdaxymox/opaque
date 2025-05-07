@@ -3,25 +3,7 @@ use core::{any, fmt};
 use core::any::TypeId;
 use core::hash;
 use core::marker::PhantomData;
-/*
-pub trait BoxedBuildHasher {
-    fn clone_boxed(&self) -> Box<dyn BoxedBuildHasher>;
-    fn build_hasher_boxed(&self) -> Box<dyn Hasher>;
-}
 
-impl<S> BoxedBuildHasher for S
-where
-    S: any::Any + hash::BuildHasher + Clone,
-{
-    fn clone_boxed(&self) -> Box<dyn BoxedBuildHasher> {
-        Box::new(self.clone())
-    }
-
-    fn build_hasher_boxed(&self) -> Box<dyn Hasher> {
-        Box::new(self.build_hasher())
-    }
-}
-*/
 trait AnyHasher: hash::Hasher + any::Any {}
 
 impl<H> AnyHasher for H where H: hash::Hasher + any::Any {}
@@ -618,26 +600,6 @@ impl OpaqueBuildHasher {
     }
 }
 
-/*
-impl Clone for OpaqueBuildHasher {
-    fn clone(&self) -> Self {
-        Self {
-            build_hasher: self.build_hasher.clone_boxed(),
-            build_hasher_type_id: self.build_hasher_type_id,
-            hasher_type_id: self.hasher_type_id,
-        }
-    }
-}
-*/
-/*
-impl hash::BuildHasher for OpaqueBuildHasher {
-    type Hasher = OpaqueHasher;
-
-    fn build_hasher(&self) -> Self::Hasher {
-        self.inner.build_hasher()
-    }
-}
-*/
 impl fmt::Debug for OpaqueBuildHasher {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter.debug_struct("OpaqueBuildHasher").finish()
