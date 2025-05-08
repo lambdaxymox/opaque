@@ -1,17 +1,18 @@
+#![feature(allocator_api)]
 mod common;
 
-use core::{
-    fmt,
-    hash,
-};
+use core::any;
+use core::fmt;
+use std::alloc;
+use std::hash;
 use opaque_index_map::OpaqueIndexMap;
 
 use opaque_index_map_testing as oimt;
 
 fn expected<K, V>(entries: &[(K, V)], index: usize, key: &K) -> Vec<(K, V)>
 where
-    K: Clone + Eq + Ord + hash::Hash + fmt::Debug + 'static,
-    V: Clone + Eq + fmt::Debug + 'static,
+    K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
+    V: any::Any + Clone + Eq + fmt::Debug,
 {
     let mut map_entries = oimt::last_entry_per_key_ordered(entries);
 
@@ -24,14 +25,14 @@ where
 
 fn result<K, V>(map: &OpaqueIndexMap, key: &K) -> Vec<(K, V)>
 where
-    K: Clone + Eq + Ord + hash::Hash + fmt::Debug + 'static,
-    V: Clone + Eq + fmt::Debug + 'static,
+    K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
+    V: any::Any + Clone + Eq + fmt::Debug,
 {
-    let mut new_map = map.clone();
-    new_map.swap_remove::<K, K, V>(key);
+    let mut new_map = common::clone::<K, V, hash::RandomState, alloc::Global>(map);
+    new_map.swap_remove::<K, K, V, hash::RandomState, alloc::Global>(key);
 
     let ordered_entries: Vec<(K, V)> = new_map
-        .iter::<K, V>()
+        .iter::<K, V, hash::RandomState, alloc::Global>()
         .map(|(key, value)| (key.clone(), value.clone()))
         .collect();
 
@@ -40,11 +41,11 @@ where
 
 fn run_test_opaque_index_map_swap_remove_preserves_order<K, V>(entries: &[(K, V)])
 where
-    K: Clone + Eq + Ord + hash::Hash + fmt::Debug + 'static,
-    V: Clone + Eq + fmt::Debug + 'static,
+    K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
+    V: any::Any + Clone + Eq + fmt::Debug,
 {
     let base_map = common::from_entries(entries);
-    let base_keys: Vec<K> = base_map.keys::<K, V>().cloned().collect();
+    let base_keys: Vec<K> = base_map.keys::<K, V, hash::RandomState, alloc::Global>().cloned().collect();
     for (index, key) in base_keys.iter().enumerate() {
         let expected = expected(entries, index, &key);
         let result = result::<K, V>(&base_map, key);
@@ -55,8 +56,8 @@ where
 
 fn run_test_opaque_index_map_swap_remove_preserves_order_values<K, V>(entries: &[(K, V)])
 where
-    K: Clone + Eq + Ord + hash::Hash + fmt::Debug + 'static,
-    V: Clone + Eq + fmt::Debug + 'static,
+    K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
+    V: any::Any + Clone + Eq + fmt::Debug,
 {
     let iter = oimt::PrefixGenerator::new(entries);
     for entries in iter {

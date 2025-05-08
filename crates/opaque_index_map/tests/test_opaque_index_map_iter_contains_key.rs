@@ -1,28 +1,29 @@
+#![feature(allocator_api)]
 mod common;
 
-use core::{
-    fmt,
-    hash,
-};
+use core::any;
+use core::fmt;
+use std::alloc;
+use std::hash;
 use opaque_index_map::OpaqueIndexMap;
 
 use opaque_index_map_testing as oimt;
 
 fn run_test_opaque_index_map_iter_contains<K, V>(entries: &[(K, V)])
 where
-    K: Clone + Eq + hash::Hash + fmt::Debug + 'static,
-    V: Clone + Eq + fmt::Debug + 'static,
+    K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
+    V: any::Any + Clone + Eq + fmt::Debug,
 {
     let map = common::from_entries(&entries);
-    for (key, _) in map.iter::<K, V>() {
-        assert!(map.contains_key::<K, K, V>(key));
+    for (key, _) in map.iter::<K, V, hash::RandomState, alloc::Global>() {
+        assert!(map.contains_key::<K, K, V, hash::RandomState, alloc::Global>(key));
     }
 }
 
 fn run_test_opaque_index_map_iter_contains_values<K, V>(entries: &[(K, V)])
 where
-    K: Clone + Eq + hash::Hash + fmt::Debug + 'static,
-    V: Clone + Eq + fmt::Debug + 'static,
+    K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
+    V: any::Any + Clone + Eq + fmt::Debug,
 {
     let iter = oimt::PrefixGenerator::new(entries);
     for entries in iter {

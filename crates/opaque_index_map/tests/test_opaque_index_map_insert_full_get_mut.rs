@@ -1,24 +1,25 @@
+#![feature(allocator_api)]
 mod common;
 
-use core::{
-    fmt,
-    hash,
-};
+use core::any;
+use core::fmt;
+use std::alloc;
+use std::hash;
 use opaque_index_map::OpaqueIndexMap;
 
 use opaque_index_map_testing as oimt;
 
 fn run_test_opaque_index_map_insert_full_get_mut<K, V>(entries: &[(K, V)])
 where
-    K: Clone + Eq + Ord + hash::Hash + fmt::Debug + 'static,
-    V: Clone + Eq + fmt::Debug + 'static,
+    K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
+    V: any::Any + Clone + Eq + fmt::Debug,
 {
     let mut map = common::from_entries_full(entries);
     let expected_entries = oimt::last_entry_per_key_ordered(entries);
     for (key, value) in expected_entries.iter() {
         let mut cloned_value = value.clone();
         let expected = Some(&mut cloned_value);
-        let result = map.get_mut::<K, K, V>(key);
+        let result = map.get_mut::<K, K, V, hash::RandomState, alloc::Global>(key);
 
         assert_eq!(result, expected);
     }
@@ -26,8 +27,8 @@ where
 
 fn run_test_opaque_index_map_insert_full_get_mut_values<K, V>(entries: &[(K, V)])
 where
-    K: Clone + Eq + Ord + hash::Hash + fmt::Debug + 'static,
-    V: Clone + Eq + fmt::Debug + 'static,
+    K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
+    V: any::Any + Clone + Eq + fmt::Debug,
 {
     let iter = oimt::PrefixGenerator::new(entries);
     for entries in iter {

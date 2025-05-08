@@ -1,33 +1,34 @@
+#![feature(allocator_api)]
 mod common;
 
-use core::{
-    fmt,
-    hash,
-};
+use core::any;
+use core::fmt;
+use std::alloc;
+use std::hash;
 use opaque_index_map::OpaqueIndexMap;
 
 use opaque_index_map_testing as oimt;
 
 fn run_test_opaque_index_map_shift_remove_entry_contains_key<K, V>(entries: &[(K, V)])
 where
-    K: Clone + Eq + hash::Hash + fmt::Debug + 'static,
-    V: Clone + Eq + fmt::Debug + 'static,
+    K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
+    V: any::Any + Clone + Eq + fmt::Debug,
 {
     let mut map = common::from_entries(&entries);
-    let keys: Vec<K> = map.keys::<K, V>().cloned().collect();
+    let keys: Vec<K> = map.keys::<K, V, hash::RandomState, alloc::Global>().cloned().collect();
     for key in keys.iter() {
-        assert!(map.contains_key::<K, K, V>(key));
+        assert!(map.contains_key::<K, K, V, hash::RandomState, alloc::Global>(key));
 
-        map.shift_remove_entry::<K, K, V>(&key);
+        map.shift_remove_entry::<K, K, V, hash::RandomState, alloc::Global>(&key);
 
-        assert!(!map.contains_key::<K, K, V>(&key));
+        assert!(!map.contains_key::<K, K, V, hash::RandomState, alloc::Global>(&key));
     }
 }
 
 fn run_test_opaque_index_map_shift_remove_entry_contains_key_values<K, V>(entries: &[(K, V)])
 where
-    K: Clone + Eq + hash::Hash + fmt::Debug + 'static,
-    V: Clone + Eq + fmt::Debug + 'static,
+    K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
+    V: any::Any + Clone + Eq + fmt::Debug,
 {
     let iter = oimt::PrefixGenerator::new(entries);
     for entries in iter {

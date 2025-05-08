@@ -1,15 +1,18 @@
+#![feature(allocator_api)]
 mod common;
 
+use core::any;
 use core::fmt;
-use core::hash;
+use std::alloc;
+use std::hash;
 use opaque_index_map::OpaqueIndexMap;
 
 use opaque_index_map_testing as oimt;
 
 fn expected<K, V>(entries: &[(K, V)], len: usize) -> Vec<(K, V)>
 where
-    K: Clone + Eq + Ord + hash::Hash + 'static,
-    V: Clone + Eq + 'static,
+    K: any::Any + Clone + Eq + Ord + hash::Hash,
+    V: any::Any + Clone + Eq,
 {
     let vec: Vec<(K, V)> = oimt::last_entry_per_key_ordered(entries)
         .iter()
@@ -22,14 +25,14 @@ where
 
 fn result<K, V>(map: &OpaqueIndexMap, len: usize) -> Vec<(K, V)>
 where
-    K: Clone + Eq + hash::Hash + 'static,
-    V: Clone + Eq + 'static,
+    K: any::Any + Clone + Eq + hash::Hash,
+    V: any::Any + Clone + Eq,
 {
-    let mut cloned_map = map.clone();
-    cloned_map.truncate::<K, V>(len);
+    let mut cloned_map = common::clone::<K, V, hash::RandomState, alloc::Global>(map);
+    cloned_map.truncate::<K, V, hash::RandomState, alloc::Global>(len);
 
     let vec: Vec<(K, V)> = cloned_map
-        .iter::<K, V>()
+        .iter::<K, V, hash::RandomState, alloc::Global>()
         .map(|(k, v)| (k.clone(), v.clone()))
         .collect();
 
@@ -38,8 +41,8 @@ where
 
 fn run_test_opaque_index_map_truncate_len_length_less_than_or_equal_to<K, V>(entries: &[(K, V)])
 where
-    K: Clone + Eq + Ord + hash::Hash + fmt::Debug + 'static,
-    V: Clone + Eq + fmt::Debug + 'static,
+    K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
+    V: any::Any + Clone + Eq + fmt::Debug,
 {
     for len in 0..entries.len() {
         let map = common::from_entries(entries);
@@ -54,8 +57,8 @@ where
 
 fn run_test_opaque_index_map_truncate_len_length_less_than_or_equal_to_values<K, V>(entries: &[(K, V)])
 where
-    K: Clone + Eq + Ord + hash::Hash + fmt::Debug + 'static,
-    V: Clone + Eq + fmt::Debug + 'static,
+    K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
+    V: any::Any + Clone + Eq + fmt::Debug,
 {
     let iter = oimt::PrefixGenerator::new(entries);
     for entries in iter {

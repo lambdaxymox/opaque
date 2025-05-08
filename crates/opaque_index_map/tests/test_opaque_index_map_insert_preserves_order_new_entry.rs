@@ -1,9 +1,10 @@
+#![feature(allocator_api)]
 mod common;
 
-use core::{
-    fmt,
-    hash,
-};
+use core::any;
+use core::fmt;
+use std::alloc;
+use std::hash;
 use opaque_index_map::OpaqueIndexMap;
 use opaque_vec::OpaqueVec;
 
@@ -11,18 +12,18 @@ use opaque_index_map_testing as oimt;
 
 fn run_test_opaque_index_map_insert_preserves_order_new_entry<K, V>(entries: &[(K, V)], new_entry: &(K, V))
 where
-    K: Clone + Eq + Ord + hash::Hash + fmt::Debug + 'static,
-    V: Clone + Eq + fmt::Debug + 'static,
+    K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
+    V: any::Any + Clone + Eq + fmt::Debug,
 {
     let mut map = common::from_entries(entries);
     
-    assert!(!map.contains_key::<K, K, V>(&new_entry.0));
+    assert!(!map.contains_key::<K, K, V, hash::RandomState, alloc::Global>(&new_entry.0));
 
-    let keys_before: Vec<K> = map.keys::<K, V>().cloned().collect();
+    let keys_before: Vec<K> = map.keys::<K, V, hash::RandomState, alloc::Global>().cloned().collect();
 
-    map.insert::<K, V>(new_entry.0.clone(), new_entry.1.clone());
+    map.insert::<K, V, hash::RandomState, alloc::Global>(new_entry.0.clone(), new_entry.1.clone());
 
-    let keys_after: Vec<K> = map.keys::<K, V>().cloned().collect();
+    let keys_after: Vec<K> = map.keys::<K, V, hash::RandomState, alloc::Global>().cloned().collect();
 
     let expected = {
         let mut _vec = keys_before.clone();
@@ -36,8 +37,8 @@ where
 
 fn run_test_opaque_index_map_insert_preserves_order_new_entry_values<K, V>(entries: &[(K, V)], new_entry: &(K, V))
 where
-    K: Clone + Eq + Ord + hash::Hash + fmt::Debug + 'static,
-    V: Clone + Eq + fmt::Debug + 'static,
+    K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
+    V: any::Any + Clone + Eq + fmt::Debug,
 {
     let iter = oimt::PrefixGenerator::new(entries);
     for entries in iter {

@@ -1,15 +1,18 @@
+#![feature(allocator_api)]
 mod common;
 
+use core::any;
 use core::fmt;
-use core::hash;
+use std::alloc;
+use std::hash;
 use opaque_index_map::OpaqueIndexMap;
 
 use opaque_index_map_testing as oimt;
 
 fn expected<K, V>(entries: &[(K, V)]) -> Vec<V>
 where
-    K: Clone + Eq + Ord + hash::Hash + 'static,
-    V: Clone + Eq + 'static,
+    K: any::Any + Clone + Eq + Ord + hash::Hash,
+    V: any::Any + Clone + Eq,
 {
     let expected: Vec<V> = oimt::last_entry_per_key_ordered(entries).iter().map(|(k, v)| v).cloned().collect();
 
@@ -18,18 +21,18 @@ where
 
 fn result<K, V>(map: &OpaqueIndexMap) -> Vec<V>
 where
-    K: Clone + Eq + hash::Hash + 'static,
-    V: Clone + Eq + 'static,
+    K: any::Any + Clone + Eq + hash::Hash,
+    V: any::Any + Clone + Eq,
 {
-    let result: Vec<V> = map.as_slice::<K, V>().values().cloned().collect();
+    let result: Vec<V> = map.as_slice::<K, V, hash::RandomState, alloc::Global>().values().cloned().collect();
 
     result
 }
 
 fn run_test_opaque_index_map_insert_as_slice<K, V>(entries: &[(K, V)])
 where
-    K: Clone + Eq + Ord + hash::Hash + fmt::Debug + 'static,
-    V: Clone + Eq + fmt::Debug + 'static,
+    K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
+    V: any::Any + Clone + Eq + fmt::Debug,
 {
     let map = common::from_entries::<K, V>(entries);
     let expected = expected::<K, V>(&entries);
@@ -40,8 +43,8 @@ where
 
 fn run_test_opaque_index_map_insert_as_slice_values<K, V>(entries: &[(K, V)])
 where
-    K: Clone + Eq + Ord + hash::Hash + fmt::Debug + 'static,
-    V: Clone + Eq + fmt::Debug + 'static,
+    K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
+    V: any::Any + Clone + Eq + fmt::Debug,
 {
     let iter = oimt::PrefixGenerator::new(entries);
     for entries in iter {

@@ -1,22 +1,23 @@
+#![feature(allocator_api)]
 mod common;
 
-use core::{
-    fmt,
-    hash,
-};
+use core::any;
+use core::fmt;
+use std::alloc;
+use std::hash;
 use opaque_index_map::OpaqueIndexMap;
 
 use opaque_index_map_testing as oimt;
 
 fn run_test_opaque_index_map_iter_get_key_value<K, V>(entries: &[(K, V)])
 where
-    K: Clone + Eq + hash::Hash + fmt::Debug + 'static,
-    V: Clone + Eq + fmt::Debug + 'static,
+    K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
+    V: any::Any + Clone + Eq + fmt::Debug,
 {
     let map = common::from_entries(&entries);
-    for (key, value) in map.iter::<K, V>() {
+    for (key, value) in map.iter::<K, V, hash::RandomState, alloc::Global>() {
         let expected = Some((key.clone(), value.clone()));
-        let result = map.get_key_value::<K, K, V>(key).map(|(k, v)| (k.clone(), v.clone()));
+        let result = map.get_key_value::<K, K, V, hash::RandomState, alloc::Global>(key).map(|(k, v)| (k.clone(), v.clone()));
 
         assert_eq!(result, expected);
     }
@@ -24,8 +25,8 @@ where
 
 fn run_test_opaque_index_map_iter_get_key_value_values<K, V>(entries: &[(K, V)])
 where
-    K: Clone + Eq + hash::Hash + fmt::Debug + 'static,
-    V: Clone + Eq + fmt::Debug + 'static,
+    K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
+    V: any::Any + Clone + Eq + fmt::Debug,
 {
     let iter = oimt::PrefixGenerator::new(entries);
     for entries in iter {
