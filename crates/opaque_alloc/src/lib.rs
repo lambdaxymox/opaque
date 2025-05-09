@@ -23,6 +23,13 @@ struct OpaqueAllocInner {
 
 impl OpaqueAllocInner {
     #[inline]
+    const fn type_id(&self) -> TypeId {
+        self.type_id
+    }
+}
+
+impl OpaqueAllocInner {
+    #[inline]
     fn new<A>(alloc: A) -> Self
     where
         A: Allocator + any::Any,
@@ -41,14 +48,6 @@ impl OpaqueAllocInner {
         let type_id = TypeId::of::<A>();
 
         Self { alloc, type_id, }
-    }
-
-    #[inline]
-    fn is_type<A>(&self) -> bool
-    where
-        A: Allocator + any::Any,
-    {
-        self.type_id == TypeId::of::<A>()
     }
 
     #[inline]
@@ -196,23 +195,8 @@ pub struct OpaqueAlloc {
 
 impl OpaqueAlloc {
     #[inline]
-    pub fn new<A>(alloc: A) -> Self
-    where
-        A: Allocator + any::Any,
-    {
-        let proj_alloc = TypedProjAlloc::<A>::new(alloc);
-
-        Self::from_proj(proj_alloc)
-    }
-
-    #[inline]
-    pub fn from_boxed_alloc<A>(alloc: Box<A>) -> Self
-    where
-        A: Allocator + any::Any,
-    {
-        let proj_alloc = TypedProjAlloc::<A>::from_boxed_alloc(alloc);
-
-        Self::from_proj(proj_alloc)
+    pub const fn type_id(&self) -> TypeId {
+        self.inner.type_id()
     }
 
     #[inline]
@@ -220,7 +204,7 @@ impl OpaqueAlloc {
     where
         A: Allocator + any::Any,
     {
-        self.inner.is_type::<A>()
+        self.inner.type_id() == TypeId::of::<A>()
     }
 
     #[inline]
@@ -240,7 +224,31 @@ impl OpaqueAlloc {
             type_check_failed(self.inner.type_id, TypeId::of::<A>());
         }
     }
+}
 
+impl OpaqueAlloc {
+    #[inline]
+    pub fn new<A>(alloc: A) -> Self
+    where
+        A: Allocator + any::Any,
+    {
+        let proj_alloc = TypedProjAlloc::<A>::new(alloc);
+
+        Self::from_proj(proj_alloc)
+    }
+
+    #[inline]
+    pub fn from_boxed_alloc<A>(alloc: Box<A>) -> Self
+    where
+        A: Allocator + any::Any,
+    {
+        let proj_alloc = TypedProjAlloc::<A>::from_boxed_alloc(alloc);
+
+        Self::from_proj(proj_alloc)
+    }
+}
+
+impl OpaqueAlloc {
     pub fn as_proj<A>(&self) -> &TypedProjAlloc<A>
     where
         A: Allocator + any::Any,

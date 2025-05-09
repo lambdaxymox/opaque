@@ -1,8 +1,7 @@
 #![feature(allocator_api)]
 #![feature(slice_range)]
 #![feature(slice_iter_mut_as_mut_slice)]
-extern crate core;
-
+#![feature(optimize_attribute)]
 use core::cmp::Ordering;
 use core::ops;
 use core::any;
@@ -1558,6 +1557,9 @@ impl OpaqueBucketSize {
 pub(crate) struct OpaqueIndexMapCoreInner {
     indices: hashbrown::HashTable<usize>,
     entries: OpaqueVec,
+    key_type_id: TypeId,
+    value_type_id: TypeId,
+    allocator_type_id: TypeId,
     /*
     bucket_size: OpaqueBucketSize,
     */
@@ -1825,6 +1827,23 @@ where
 
 impl OpaqueIndexMapCoreInner {
     #[inline]
+    pub(crate) const fn key_type_id(&self) -> TypeId {
+        self.key_type_id
+    }
+
+    #[inline]
+    pub(crate) const fn value_type_id(&self) -> TypeId {
+        self.value_type_id
+    }
+
+    #[inline]
+    pub(crate) const fn allocator_type_id(&self) -> TypeId {
+        self.allocator_type_id
+    }
+}
+
+impl OpaqueIndexMapCoreInner {
+    #[inline]
     pub(crate) fn new_in<K, V, A>(alloc: A) -> Self
     where
         K: any::Any,
@@ -1833,6 +1852,9 @@ impl OpaqueIndexMapCoreInner {
     {
         let indices = hashbrown::HashTable::new();
         let entries = OpaqueVec::new_in::<Bucket<K, V>, A>(alloc);
+        let key_type_id = TypeId::of::<K>();
+        let value_type_id = TypeId::of::<V>();
+        let allocator_type_id = TypeId::of::<A>();
         /*
         let bucket_size = OpaqueBucketSize::new::<K, V>();
         */
@@ -1840,6 +1862,9 @@ impl OpaqueIndexMapCoreInner {
         Self {
             indices,
             entries,
+            key_type_id,
+            value_type_id,
+            allocator_type_id,
             /*
             bucket_size,
             */
@@ -1855,6 +1880,9 @@ impl OpaqueIndexMapCoreInner {
     {
         let indices = hashbrown::HashTable::with_capacity(capacity);
         let entries = OpaqueVec::with_capacity_in::<Bucket<K, V>, A>(capacity, alloc);
+        let key_type_id = TypeId::of::<K>();
+        let value_type_id = TypeId::of::<V>();
+        let allocator_type_id = TypeId::of::<A>();
         /*
         let bucket_size = OpaqueBucketSize::new::<K, V>();
         */
@@ -1862,6 +1890,9 @@ impl OpaqueIndexMapCoreInner {
         Self {
             indices,
             entries,
+            key_type_id,
+            value_type_id,
+            allocator_type_id,
             /*
             bucket_size,
             */
@@ -1878,6 +1909,9 @@ impl OpaqueIndexMapCoreInner {
     {
         let indices = hashbrown::HashTable::new();
         let entries = OpaqueVec::new::<Bucket<K, V>>();
+        let key_type_id = TypeId::of::<K>();
+        let value_type_id = TypeId::of::<V>();
+        let allocator_type_id = TypeId::of::<alloc::Global>();
         /*
         let bucket_size = OpaqueBucketSize::new::<K, V>();
         */
@@ -1885,6 +1919,9 @@ impl OpaqueIndexMapCoreInner {
         Self {
             indices,
             entries,
+            key_type_id,
+            value_type_id,
+            allocator_type_id,
             /*
             bucket_size,
             */
@@ -1899,6 +1936,9 @@ impl OpaqueIndexMapCoreInner {
     {
         let indices = hashbrown::HashTable::with_capacity(capacity);
         let entries = OpaqueVec::with_capacity::<Bucket<K, V>>(capacity);
+        let key_type_id = TypeId::of::<K>();
+        let value_type_id = TypeId::of::<V>();
+        let allocator_type_id = TypeId::of::<alloc::Global>();
         /*
         let bucket_size = OpaqueBucketSize::new::<K, V>();
         */
@@ -1906,6 +1946,9 @@ impl OpaqueIndexMapCoreInner {
         Self {
             indices,
             entries,
+            key_type_id,
+            value_type_id,
+            allocator_type_id,
             /*
             bucket_size,
             */
@@ -1999,6 +2042,10 @@ impl OpaqueIndexMapCoreInner {
         // let mut indices = Indices::with_capacity(entries.len());
         let mut indices = hashbrown::HashTable::with_capacity(entries.len());
         insert_bulk_no_grow(&mut indices, entries.as_slice::<Bucket<K, V>, A>());
+
+        let split_key_type_id = self.key_type_id;
+        let split_value_type_id = self.value_type_id;
+        let split_allocator_type_id = self.allocator_type_id;
         /*
         let bucket_size = OpaqueBucketSize::new::<K, V>();
         */
@@ -2006,6 +2053,9 @@ impl OpaqueIndexMapCoreInner {
         Self {
             indices,
             entries,
+            key_type_id: split_key_type_id,
+            value_type_id: split_value_type_id,
+            allocator_type_id: split_allocator_type_id,
             /*
             bucket_size,
             */
@@ -2028,6 +2078,10 @@ impl OpaqueIndexMapCoreInner {
         // let mut indices = Indices::with_capacity(entries.len());
         let mut indices = hashbrown::HashTable::with_capacity(entries.len());
         insert_bulk_no_grow(&mut indices, entries.as_slice::<Bucket<K, V>, A>());
+
+        let split_splice_key_type_id = self.key_type_id;
+        let split_splice_value_type_id = self.value_type_id;
+        let split_splice_allocator_type_id = self.allocator_type_id;
         /*
         let bucket_size = OpaqueBucketSize::new::<K, V>();
         */
@@ -2036,6 +2090,9 @@ impl OpaqueIndexMapCoreInner {
             Self {
                 indices,
                 entries,
+                key_type_id: split_splice_key_type_id,
+                value_type_id: split_splice_value_type_id,
+                allocator_type_id: split_splice_allocator_type_id,
                 /*
                 bucket_size,
                 */
@@ -2480,10 +2537,16 @@ impl OpaqueIndexMapCoreInner {
     {
         let cloned_indices = self.indices.clone();
         let cloned_entries = self.entries.clone::<Bucket<K, V>, A>();
+        let cloned_key_type_id = self.key_type_id;
+        let cloned_value_type_id = self.value_type_id;
+        let cloned_allocator_type_id = self.allocator_type_id;
 
         Self {
             indices: cloned_indices,
             entries: cloned_entries,
+            key_type_id: cloned_key_type_id,
+            value_type_id: cloned_value_type_id,
+            allocator_type_id: cloned_allocator_type_id,
         }
     }
 }
@@ -2889,6 +2952,23 @@ where
 #[repr(transparent)]
 struct OpaqueIndexMapCore {
     inner: OpaqueIndexMapCoreInner,
+}
+
+impl OpaqueIndexMapCore {
+    #[inline]
+    pub(crate) const fn key_type_id(&self) -> TypeId {
+        self.inner.key_type_id()
+    }
+
+    #[inline]
+    pub(crate) const fn value_type_id(&self) -> TypeId {
+        self.inner.value_type_id()
+    }
+
+    #[inline]
+    pub(crate) const fn allocator_type_id(&self) -> TypeId {
+        self.inner.allocator_type_id()
+    }
 }
 
 impl OpaqueIndexMapCore {
@@ -4294,6 +4374,28 @@ struct OpaqueIndexMapInner {
 
 impl OpaqueIndexMapInner {
     #[inline]
+    pub fn key_type_id(&self) -> TypeId {
+        self.inner.key_type_id()
+    }
+
+    #[inline]
+    pub fn value_type_id(&self) -> TypeId {
+        self.inner.value_type_id()
+    }
+
+    #[inline]
+    pub fn build_hasher_type_id(&self) -> TypeId {
+        self.build_hasher.build_hasher_type_id()
+    }
+
+    #[inline]
+    pub fn allocator_type_id(&self) -> TypeId {
+        self.inner.allocator_type_id()
+    }
+}
+
+impl OpaqueIndexMapInner {
+    #[inline]
     pub fn as_proj<K, V, S, A>(&self) -> &TypedProjIndexMapInner<K, V, S, A>
     where
         K: any::Any,
@@ -4349,1082 +4451,6 @@ impl OpaqueIndexMapInner {
         }
     }
 }
-/*
-impl<K, V, S, A> TypedProjIndexMapInner<K, V, S, A>
-where
-    K: any::Any,
-    V: any::Any,
-    S: any::Any + hash::BuildHasher,
-    A: any::Any + Allocator,
-{
-    #[inline]
-    fn into_entries(self) -> OpaqueVec {
-        self.inner.into_entries()
-    }
-
-    #[inline]
-    fn as_entries<K, V, A>(&self) -> &[Bucket<K, V>]
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
-        self.inner.as_entries::<K, V, A>()
-    }
-
-    #[inline]
-    fn as_entries_mut<K, V, A>(&mut self) -> &mut [Bucket<K, V>]
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
-        self.inner.as_entries_mut::<K, V, A>()
-    }
-
-    fn with_entries<F, K, V, A>(&mut self, f: F)
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-        F: FnOnce(&mut [Bucket<K, V>]),
-    {
-        self.inner.with_entries::<F, K, V, A>(f);
-    }
-}
-
-impl OpaqueIndexMapInner {
-    pub fn new_in<K, V, A>(alloc: A) -> Self
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
-        let proj_inner = TypedProjIndexMapCore::<K, V, A>::new_in(alloc);
-        let proj_build_hasher = TypedProjBuildHasher::<hash::RandomState>::new(hash::RandomState::default());
-        let opaque_inner = OpaqueIndexMapCore::from_proj_assuming_type(proj_inner);
-        let opaque_build_hasher = OpaqueBuildHasher::from_proj(proj_build_hasher);
-
-        Self {
-            inner : opaque_inner,
-            build_hasher: opaque_build_hasher,
-        }
-    }
-
-    pub fn with_hasher_in<K, V, S, A>(build_hasher: S, alloc: A) -> Self
-    where
-        K: any::Any,
-        V: any::Any,
-        S: any::Any + hash::BuildHasher + Clone,
-        A: any::Any + Allocator,
-    {
-        let proj_inner = TypedProjIndexMapCore::<K, V, A>::new_in(alloc);
-        let proj_build_hasher = TypedProjBuildHasher::new(build_hasher);
-        let opaque_inner = OpaqueIndexMapCore::from_proj_assuming_type(proj_inner);
-        let opaque_build_hasher = OpaqueBuildHasher::from_proj(proj_build_hasher);
-
-        Self {
-            inner : opaque_inner,
-            build_hasher: opaque_build_hasher,
-        }
-    }
-
-    #[inline]
-    pub fn with_capacity_and_hasher_in<K, V, S, A>(capacity: usize, hash_builder: S, alloc: A) -> Self
-    where
-        K: any::Any,
-        V: any::Any,
-        S: any::Any + hash::BuildHasher + Clone,
-        A: any::Any + Allocator,
-    {
-        if capacity == 0 {
-            Self::with_hasher_in::<K, V, S, A>(hash_builder, alloc)
-        } else {
-            let proj_inner = TypedProjIndexMapCore::<K, V, A>::with_capacity_in(capacity, alloc);
-            let proj_build_hasher = TypedProjBuildHasher::new(hash_builder);
-            let opaque_inner = OpaqueIndexMapCore::from_proj_assuming_type(proj_inner);
-            let opaque_build_hasher = OpaqueBuildHasher::from_proj(proj_build_hasher);
-
-            Self {
-                inner: opaque_inner,
-                build_hasher: opaque_build_hasher,
-            }
-        }
-    }
-
-    pub fn with_capacity_in<K, V, A>(capacity: usize, alloc: A) -> Self
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
-        let proj_inner = TypedProjIndexMapCore::<K, V, A>::with_capacity_in(capacity, alloc);
-        let proj_build_hasher = TypedProjBuildHasher::<hash::RandomState>::new(hash::RandomState::default());
-        let opaque_inner = OpaqueIndexMapCore::from_proj_assuming_type(proj_inner);
-        let opaque_build_hasher = OpaqueBuildHasher::from_proj(proj_build_hasher);
-
-        Self {
-            inner: opaque_inner,
-            build_hasher: opaque_build_hasher,
-        }
-    }
-}
-
-impl OpaqueIndexMapInner {
-    pub fn new<K, V>() -> Self
-    where
-        K: any::Any,
-        V: any::Any,
-    {
-        Self::new_in::<K, V, alloc::Global>(alloc::Global)
-    }
-
-    pub fn with_hasher<K, V, S>(build_hasher: S) -> Self
-    where
-        K: any::Any,
-        V: any::Any,
-        S: any::Any + hash::BuildHasher + Clone,
-    {
-        Self::with_hasher_in::<K, V, S, alloc::Global>(build_hasher, alloc::Global)
-    }
-
-    #[inline]
-    pub fn with_capacity_and_hasher<K, V, S>(capacity: usize, hash_builder: S) -> Self
-    where
-        K: any::Any,
-        V: any::Any,
-        S: any::Any + hash::BuildHasher + Clone,
-    {
-        Self::with_capacity_and_hasher_in::<K, V, S, alloc::Global>(capacity, hash_builder, alloc::Global)
-    }
-
-    pub fn with_capacity<K, V>(capacity: usize) -> Self
-    where
-        K: any::Any,
-        V: any::Any,
-    {
-        Self::with_capacity_in::<K, V, alloc::Global>(capacity, alloc::Global)
-    }
-}
-
-impl OpaqueIndexMapInner {
-    #[inline]
-    pub fn capacity(&self) -> usize {
-        self.inner.capacity()
-    }
-
-    #[inline]
-    pub const fn hasher(&self) -> &opaque_hash::OpaqueBuildHasher {
-        &self.build_hasher
-    }
-
-    #[inline]
-    pub fn len(&self) -> usize {
-        self.inner.len()
-    }
-
-    #[inline]
-    pub fn is_empty(&self) -> bool {
-        self.len() == 0
-    }
-
-    fn hash<Q>(&self, key: &Q) -> HashValue
-    where
-        Q: ?Sized + hash::Hash,
-    {
-        let mut hasher = self.build_hasher.build_hasher();
-        key.hash(&mut hasher);
-
-        HashValue::new(hasher.finish() as usize)
-    }
-
-    pub fn get_index_of<Q, K, V, A>(&self, key: &Q) -> Option<usize>
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-        Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
-    {
-        match self.as_entries::<K, V, A>() {
-            [] => None,
-            [x] => key.equivalent(&x.key).then_some(0),
-            _ => {
-                let hash = self.hash(key);
-                self.inner.get_index_of::<Q, K, V, A>(hash, key)
-            }
-        }
-    }
-
-    pub fn contains_key<Q, K, V, A>(&self, key: &Q) -> bool
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-        Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
-    {
-        self.get_index_of::<Q, K, V, A>(key).is_some()
-    }
-
-    pub fn get<Q, K, V, A>(&self, key: &Q) -> Option<&V>
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-        Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
-    {
-        if let Some(index) = self.get_index_of::<Q, K, V, A>(key) {
-            let entry = &self.as_entries::<K, V, A>()[index];
-            Some(&entry.value)
-        } else {
-            None
-        }
-    }
-
-    pub fn get_key_value<Q, K, V, A>(&self, key: &Q) -> Option<(&K, &V)>
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-        Q: any::Any + ?Sized + Hash + Equivalent<K>,
-    {
-        if let Some(i) = self.get_index_of::<Q, K, V, A>(key) {
-            let entry = &self.as_entries::<K, V, A>()[i];
-            Some((&entry.key, &entry.value))
-        } else {
-            None
-        }
-    }
-
-    pub fn get_full<Q, K, V, A>(&self, key: &Q) -> Option<(usize, &K, &V)>
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-        Q: any::Any + ?Sized + Hash + Equivalent<K>,
-    {
-        if let Some(i) = self.get_index_of::<Q, K, V, A>(key) {
-            let entry = &self.as_entries::<K, V, A>()[i];
-            Some((i, &entry.key, &entry.value))
-        } else {
-            None
-        }
-    }
-
-    pub fn get_mut<Q, K, V, A>(&mut self, key: &Q) -> Option<&mut V>
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-        Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
-    {
-        if let Some(i) = self.get_index_of::<Q, K, V, A>(key) {
-            let entry = &mut self.as_entries_mut::<K, V, A>()[i];
-            Some(&mut entry.value)
-        } else {
-            None
-        }
-    }
-
-    pub fn get_full_mut<Q, K, V, A>(&mut self, key: &Q) -> Option<(usize, &K, &mut V)>
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-        Q: any::Any + ?Sized + Hash + Equivalent<K>,
-    {
-        if let Some(i) = self.get_index_of::<Q, K, V, A>(key) {
-            let entry = &mut self.as_entries_mut::<K, V, A>()[i];
-
-            Some((i, &entry.key, &mut entry.value))
-        } else {
-            None
-        }
-    }
-
-    pub fn keys<K, V, A>(&self) -> Keys<'_, K, V>
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
-        Keys::new(self.as_entries::<K, V, A>())
-    }
-
-    pub fn into_keys<K, V, A>(self) -> IntoKeys<K, V, A>
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
-        IntoKeys::new(self.into_entries())
-    }
-
-    pub fn iter<K, V, A>(&self) -> Iter<'_, K, V>
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
-        Iter::new(self.as_entries::<K, V, A>())
-    }
-
-    pub fn iter_mut<K, V, A>(&mut self) -> IterMut<'_, K, V>
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
-        IterMut::new(self.as_entries_mut::<K, V, A>())
-    }
-
-    pub fn values<K, V, A>(&self) -> Values<'_, K, V>
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
-        Values::new(self.as_entries::<K, V, A>())
-    }
-
-    pub fn values_mut<K, V, A>(&mut self) -> ValuesMut<'_, K, V>
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
-        ValuesMut::new(self.as_entries_mut::<K, V, A>())
-    }
-
-    pub fn into_values<K, V, A>(self) -> IntoValues<K, V, A>
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
-        IntoValues::new(self.into_entries())
-    }
-
-    pub fn clear(&mut self) {
-        self.inner.clear();
-    }
-
-    pub fn truncate<K, V, A>(&mut self, len: usize)
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
-        self.inner.truncate::<K, V, A>(len);
-    }
-
-    #[track_caller]
-    pub fn drain<R, K, V, A>(&mut self, range: R) -> Drain<'_, K, V, A>
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-        R: ops::RangeBounds<usize>,
-    {
-        Drain::new(self.inner.drain::<R, K, V, A>(range))
-    }
-
-    pub fn swap_remove<Q, K, V, A>(&mut self, key: &Q) -> Option<V>
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-        Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
-    {
-        fn third<A, B, C>(triple: (A, B, C)) -> C {
-            triple.2
-        }
-
-        self.swap_remove_full::<Q, K, V, A>(key).map(third)
-    }
-
-    pub fn swap_remove_entry<Q, K, V, A>(&mut self, key: &Q) -> Option<(K, V)>
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-        Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
-    {
-        match self.swap_remove_full::<Q, K, V, A>(key) {
-            Some((_, key, value)) => Some((key, value)),
-            None => None,
-        }
-    }
-
-    pub fn swap_remove_full<Q, K, V, A>(&mut self, key: &Q) -> Option<(usize, K, V)>
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-        Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
-    {
-        match self.as_entries::<K, V, A>() {
-            [x] if key.equivalent(&x.key) => {
-                let (k, v) = self.inner.pop::<K, V, A>()?;
-                Some((0, k, v))
-            }
-            [_] | [] => None,
-            _ => {
-                let hash = self.hash(key);
-                self.inner.swap_remove_full::<Q, K, V, A>(hash, key)
-            }
-        }
-    }
-
-    pub fn shift_remove<Q, K, V, A>(&mut self, key: &Q) -> Option<V>
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-        Q: any::Any + ?Sized + Hash + Equivalent<K>,
-    {
-        fn third<A, B, C>(triple: (A, B, C)) -> C {
-            triple.2
-        }
-
-        self.shift_remove_full::<Q, K, V, A>(key).map(third)
-    }
-
-    pub fn shift_remove_entry<Q, K, V, A>(&mut self, key: &Q) -> Option<(K, V)>
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-        Q: any::Any + ?Sized + Hash + Equivalent<K>,
-    {
-        match self.shift_remove_full::<Q, K, V, A>(key) {
-            Some((_, key, value)) => Some((key, value)),
-            None => None,
-        }
-    }
-
-    pub fn shift_remove_full<Q, K, V, A>(&mut self, key: &Q) -> Option<(usize, K, V)>
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-        Q: any::Any + ?Sized + Hash + Equivalent<K>,
-    {
-        match self.as_entries::<K, V, A>() {
-            [x] if key.equivalent(&x.key) => {
-                let (k, v) = self.inner.pop::<K, V, A>()?;
-                Some((0, k, v))
-            }
-            [_] | [] => None,
-            _ => {
-                let hash = self.hash(key);
-
-                self.inner.shift_remove_full::<Q, K, V, A>(hash, key)
-            }
-        }
-    }
-
-    pub fn as_slice<K, V, A>(&self) -> &'_ Slice<K, V>
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
-        Slice::from_slice(self.as_entries::<K, V, A>())
-    }
-
-    pub fn as_mut_slice<K, V, A>(&mut self) -> &mut Slice<K, V>
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
-        Slice::from_slice_mut(self.as_entries_mut::<K, V, A>())
-    }
-}
-
-impl OpaqueIndexMapInner {
-    pub fn insert<K, V, A>(&mut self, key: K, value: V) -> Option<V>
-    where
-        K: any::Any + Eq + hash::Hash,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
-        self.insert_full::<K, V, A>(key, value).1
-    }
-
-    pub fn insert_full<K, V, A>(&mut self, key: K, value: V) -> (usize, Option<V>)
-    where
-        K: any::Any + Eq + hash::Hash,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
-        let hash = self.hash(&key);
-
-        self.inner.insert_full::<K, V, A>(hash, key, value)
-    }
-
-    pub fn insert_sorted<K, V, A>(&mut self, key: K, value: V) -> (usize, Option<V>)
-    where
-        K: any::Any + Eq + hash::Hash + Ord,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
-        match self.binary_search_keys::<K, V, A>(&key) {
-            Ok(i) => {
-                let destination = self.get_index_mut::<K, V, A>(i).unwrap().1;
-                let old_value = core::mem::replace(destination, value);
-
-                (i, Some(old_value))
-            }
-            Err(i) => self.insert_before::<K, V, A>(i, key, value),
-        }
-    }
-
-    #[track_caller]
-    pub fn insert_before<K, V, A>(&mut self, mut index: usize, key: K, value: V) -> (usize, Option<V>)
-    where
-        K: any::Any + Eq + hash::Hash,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
-        let len = self.len();
-
-        assert!(
-            index <= len,
-            "index out of bounds: the len is {len} but the index is {index}. Expected index <= len"
-        );
-
-        match self.entry::<K, V, A>(key) {
-            Entry::Occupied(mut entry) => {
-                if index > entry.index() {
-                    // Some entries will shift down when this one moves up,
-                    // so "insert before index" becomes "move to index - 1",
-                    // keeping the entry at the original index unmoved.
-                    index -= 1;
-                }
-                let old = core::mem::replace(entry.get_mut(), value);
-                entry.move_index(index);
-
-                (index, Some(old))
-            }
-            Entry::Vacant(entry) => {
-                entry.shift_insert(index, value);
-
-                (index, None)
-            }
-        }
-    }
-
-    #[track_caller]
-    pub fn shift_insert<K, V, A>(&mut self, index: usize, key: K, value: V) -> Option<V>
-    where
-        K: any::Any + Eq + hash::Hash,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
-        let len = self.len();
-        match self.entry::<K, V, A>(key) {
-            Entry::Occupied(mut entry) => {
-                assert!(index < len, "index out of bounds: the len is {len} but the index is {index}");
-
-                let old = core::mem::replace(entry.get_mut(), value);
-                entry.move_index(index);
-
-                Some(old)
-            }
-            Entry::Vacant(entry) => {
-                assert!(
-                    index <= len,
-                    "index out of bounds: the len is {len} but the index is {index}. Expected index <= len"
-                );
-
-                entry.shift_insert(index, value);
-
-                None
-            }
-        }
-    }
-
-    pub fn entry<K, V, A>(&mut self, key: K) -> Entry<'_, K, V, A>
-    where
-        K: any::Any + Eq + hash::Hash,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
-        let proj_self = self.inner.as_proj_mut_assuming_type::<K, V, A>();
-        let hash = self.hash(&key);
-
-        proj_self.entry(hash, key)
-    }
-
-    #[track_caller]
-    pub fn splice<R, I, K, V, S, A>(&mut self, range: R, replace_with: I) -> Splice<'_, I::IntoIter, K, V, S, A>
-    where
-        K: any::Any + Eq + Hash,
-        V: any::Any,
-        S: hash::BuildHasher,
-        A: any::Any + Allocator + Clone,
-        R: ops::RangeBounds<usize>,
-        I: IntoIterator<Item = (K, V)>,
-    {
-        Splice::new(self, range, replace_with.into_iter())
-    }
-
-    pub fn append<K, V, A>(&mut self, other: &mut OpaqueIndexMap)
-    where
-        K: any::Any + Eq + Hash,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
-        self.extend::<_, K, V, A>(other.drain::<_, K, V, A>(..));
-    }
-}
-
-/*
-impl OpaqueIndexMapInner {
-    pub fn extend<I, K, V, A>(&mut self, iterable: I)
-    where
-        K: any::Any + Eq + Hash,
-        V: any::Any,
-        A: any::Any + Allocator,
-        I: IntoIterator<Item = (K, V)>,
-    {
-        let mut extender = Extender::<'_, K, V, A>::new(self);
-        extender.extend(iterable)
-    }
-}
-
-struct Extender<'a, K, V, A> {
-    opaque_index_map: &'a mut OpaqueIndexMap,
-    _marker: core::marker::PhantomData<(K, V, A)>,
-}
-
-impl<'a, K, V, A> Extender<'a, K, V, A> {
-    const fn new(opaque_index_map: &'a mut OpaqueIndexMap) -> Self {
-        Self {
-            opaque_index_map,
-            _marker: core::marker::PhantomData,
-        }
-    }
-}
-
-impl<'a, K, V, A> Extend<(K, V)> for Extender<'a, K, V, A>
-where
-    K: any::Any + Hash + Eq,
-    V: any::Any,
-    A: any::Any + Allocator,
-{
-    fn extend<I>(&mut self, iterable: I)
-    where
-        I: IntoIterator<Item = (K, V)>,
-    {
-        // (Note: this is a copy of `std`/`hashbrown`'s reservation logic.)
-        // Keys may be already present or show multiple times in the iterator.
-        // Reserve the entire hint lower bound if the map is empty.
-        // Otherwise reserve half the hint (rounded up), so the map
-        // will only resize twice in the worst case.
-        let iter = iterable.into_iter();
-        let reserve_count = if self.opaque_index_map.is_empty() {
-            iter.size_hint().0
-        } else {
-            (iter.size_hint().0 + 1) / 2
-        };
-        self.opaque_index_map.reserve::<K, V, A>(reserve_count);
-        iter.for_each(move |(k, v)| {
-            self.opaque_index_map.insert::<K, V, A>(k, v);
-        });
-    }
-}
-
-impl<'a, K, V, A> Extend<(&'a K, &'a V)> for Extender<'a, K, V, A>
-where
-    K: any::Any + Hash + Eq + Copy,
-    V: any::Any + Copy,
-    A: any::Any + Allocator,
-{
-    fn extend<I>(&mut self, iterable: I)
-    where
-        I: IntoIterator<Item = (&'a K, &'a V)>,
-    {
-        self.extend(iterable.into_iter().map(|(&key, &value)| (key, value)));
-    }
-}
-*/
-
-impl OpaqueIndexMapInner {
-    #[doc(alias = "pop_last")] // like `BTreeMap`
-    pub fn pop<K, V, A>(&mut self) -> Option<(K, V)>
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
-        self.inner.pop::<K, V, A>()
-    }
-
-    pub fn retain<F, K, V, A>(&mut self, mut keep: F)
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-        F: FnMut(&K, &mut V) -> bool,
-    {
-        self.inner.retain_in_order::<_, K, V, A>(move |k, v| keep(k, v));
-    }
-
-    pub fn sort_keys<K, V, A>(&mut self)
-    where
-        K: any::Any + Ord,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
-        self.with_entries::<_, K, V, A>(move |entries| {
-            entries.sort_by(move |a, b| K::cmp(&a.key, &b.key));
-        });
-    }
-
-    pub fn sort_by<F, K, V, A>(&mut self, mut cmp: F)
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-        F: FnMut(&K, &V, &K, &V) -> Ordering,
-    {
-        self.with_entries::<_, K, V, A>(move |entries| {
-            entries.sort_by(move |a, b| cmp(&a.key, &a.value, &b.key, &b.value));
-        });
-    }
-
-    pub fn sorted_by<F, K, V, A>(self, mut cmp: F) -> IntoIter<K, V, A>
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-        F: FnMut(&K, &V, &K, &V) -> Ordering,
-    {
-        let mut entries = self.into_entries();
-        entries
-            .as_mut_slice::<Bucket<K, V>, A>()
-            .sort_by(move |a, b| cmp(&a.key, &a.value, &b.key, &b.value));
-        IntoIter::new(entries)
-    }
-
-    pub fn sort_unstable_keys<K, V, A>(&mut self)
-    where
-        K: any::Any + Ord,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
-        self.with_entries::<_, K, V, A>(move |entries| {
-            entries.sort_unstable_by(move |a, b| K::cmp(&a.key, &b.key));
-        });
-    }
-
-    pub fn sort_unstable_by<F, K, V, A>(&mut self, mut cmp: F)
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-        F: FnMut(&K, &V, &K, &V) -> Ordering,
-    {
-        self.with_entries::<_, K, V, A>(move |entries| {
-            entries.sort_unstable_by(move |a, b| cmp(&a.key, &a.value, &b.key, &b.value));
-        });
-    }
-
-    #[inline]
-    pub fn sorted_unstable_by<F, K, V, A>(self, mut cmp: F) -> IntoIter<K, V, A>
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-        F: FnMut(&K, &V, &K, &V) -> Ordering,
-    {
-        let mut entries = self.into_entries();
-        entries
-            .as_mut_slice::<Bucket<K, V>, A>()
-            .sort_unstable_by(move |a, b| cmp(&a.key, &a.value, &b.key, &b.value));
-
-        IntoIter::new(entries)
-    }
-
-    pub fn sort_by_cached_key<T, F, K, V, A>(&mut self, mut sort_key: F)
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-        T: Ord,
-        F: FnMut(&K, &V) -> T,
-    {
-        self.with_entries::<_, K, V, A>(move |entries| {
-            entries.sort_by_cached_key(move |a| sort_key(&a.key, &a.value));
-        });
-    }
-
-    pub fn binary_search_keys<K, V, A>(&self, key: &K) -> Result<usize, usize>
-    where
-        K: any::Any + Ord,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
-        self.as_slice::<K, V, A>().binary_search_keys(key)
-    }
-
-    #[inline]
-    pub fn binary_search_by<F, K, V, A>(&self, f: F) -> Result<usize, usize>
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-        F: FnMut(&K, &V) -> Ordering,
-    {
-        self.as_slice::<K, V, A>().binary_search_by(f)
-    }
-
-    #[inline]
-    pub fn binary_search_by_key<B, F, K, V, A>(&self, b: &B, f: F) -> Result<usize, usize>
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-        F: FnMut(&K, &V) -> B,
-        B: Ord,
-    {
-        self.as_slice::<K, V, A>().binary_search_by_key(b, f)
-    }
-
-    #[must_use]
-    pub fn partition_point<P, K, V, A>(&self, pred: P) -> usize
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-        P: FnMut(&K, &V) -> bool,
-    {
-        self.as_slice::<K, V, A>().partition_point(pred)
-    }
-
-    pub fn reverse<K, V, A>(&mut self)
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
-        self.inner.reverse::<K, V, A>();
-    }
-
-    pub fn reserve<K, V, A>(&mut self, additional: usize)
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
-        self.inner.reserve::<K, V, A>(additional);
-    }
-
-    pub fn reserve_exact<K, V, A>(&mut self, additional: usize)
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
-        self.inner.reserve_exact::<K, V, A>(additional);
-    }
-
-    pub fn try_reserve<K, V, A>(&mut self, additional: usize) -> Result<(), TryReserveError>
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
-        self.inner.try_reserve::<K, V, A>(additional)
-    }
-
-    pub fn try_reserve_exact<K, V, A>(&mut self, additional: usize) -> Result<(), TryReserveError>
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
-        self.inner.try_reserve_exact::<K, V, A>(additional)
-    }
-
-    pub fn shrink_to_fit<K, V, A>(&mut self)
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
-        self.inner.shrink_to_fit::<K, V, A>();
-    }
-
-    pub fn shrink_to<K, V, A>(&mut self, min_capacity: usize)
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
-        self.inner.shrink_to::<K, V, A>(min_capacity);
-    }
-
-    pub fn into_boxed_slice<K, V, A>(self) -> Box<Slice<K, V>, opaque_alloc::TypedProjAlloc<A>>
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator
-    {
-        Slice::from_boxed_slice(self.into_entries().into_boxed_slice())
-    }
-
-    pub fn get_index<K, V, A>(&self, index: usize) -> Option<(&K, &V)>
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
-        self.as_entries::<K, V, A>().get(index).map(Bucket::refs)
-    }
-
-    pub fn get_index_mut<K, V, A>(&mut self, index: usize) -> Option<(&K, &mut V)>
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
-        self.as_entries_mut::<K, V, A>().get_mut(index).map(Bucket::ref_mut)
-    }
-
-    pub fn get_index_entry<K, V, A>(&mut self, index: usize) -> Option<IndexedEntry<'_, K, V, A>>
-    where
-        K: any::Any + Ord,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
-        if index >= self.len() {
-            return None;
-        }
-        Some(IndexedEntry::new(&mut self.inner, index))
-    }
-
-    pub fn get_range<R, K, V, A>(&self, range: R) -> Option<&Slice<K, V>>
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-        R: ops::RangeBounds<usize>,
-    {
-        let entries = self.as_entries::<K, V, A>();
-        let range = try_simplify_range(range, entries.len())?;
-        entries.get(range).map(Slice::from_slice)
-    }
-
-    pub fn get_range_mut<R, K, V, A>(&mut self, range: R) -> Option<&mut Slice<K, V>>
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-        R: ops::RangeBounds<usize>,
-    {
-        let entries = self.as_entries_mut::<K, V, A>();
-        let range = try_simplify_range(range, entries.len())?;
-        entries.get_mut(range).map(Slice::from_slice_mut)
-    }
-
-    #[doc(alias = "first_key_value")] // like `BTreeMap`
-    pub fn first<K, V, A>(&self) -> Option<(&K, &V)>
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
-        self.as_entries::<K, V, A>().first().map(Bucket::refs)
-    }
-
-    pub fn first_mut<K, V, A>(&mut self) -> Option<(&K, &mut V)>
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
-        self.as_entries_mut::<K, V, A>().first_mut().map(Bucket::ref_mut)
-    }
-
-    pub fn first_entry<K, V, A>(&mut self) -> Option<IndexedEntry<'_, K, V, A>>
-    where
-        K: any::Any + Ord,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
-        self.get_index_entry::<K, V, A>(0)
-    }
-
-    #[doc(alias = "last_key_value")] // like `BTreeMap`
-    pub fn last<K, V, A>(&self) -> Option<(&K, &V)>
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
-        self.as_entries::<K, V, A>().last().map(Bucket::refs)
-    }
-
-    pub fn last_mut<K, V, A>(&mut self) -> Option<(&K, &mut V)>
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
-        self.as_entries_mut::<K, V, A>().last_mut().map(Bucket::ref_mut)
-    }
-
-    pub fn last_entry<K, V, A>(&mut self) -> Option<IndexedEntry<'_, K, V, A>>
-    where
-        K: any::Any + Ord,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
-        self.get_index_entry::<K, V, A>(self.len().checked_sub(1)?)
-    }
-
-    pub fn swap_remove_index<K, V, A>(&mut self, index: usize) -> Option<(K, V)>
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
-        self.inner.swap_remove_index::<K, V, A>(index)
-    }
-
-    pub fn shift_remove_index<K, V, A>(&mut self, index: usize) -> Option<(K, V)>
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
-        self.inner.shift_remove_index::<K, V, A>(index)
-    }
-
-    #[track_caller]
-    pub fn move_index<K, V, A>(&mut self, from: usize, to: usize)
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
-        self.inner.move_index::<K, V, A>(from, to)
-    }
-
-    #[track_caller]
-    pub fn swap_indices<K, V, A>(&mut self, a: usize, b: usize)
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
-        self.inner.swap_indices::<K, V, A>(a, b)
-    }
-}
-*/
 
 #[repr(transparent)]
 pub struct TypedProjIndexMap<K, V, S, A>
@@ -6242,12 +5268,76 @@ where
     }
 }
 
-/*
-#[derive(Clone)]
- */
 #[repr(transparent)]
 pub struct OpaqueIndexMap {
     inner: OpaqueIndexMapInner,
+}
+
+impl OpaqueIndexMap {
+    #[inline]
+    pub fn has_key_type<K>(&self) -> bool
+    where
+        K: any::Any + hash::Hash,
+    {
+        self.inner.key_type_id() == TypeId::of::<K>()
+    }
+
+    #[inline]
+    pub fn has_value_type<V>(&self) -> bool
+    where
+        V: any::Any,
+    {
+        self.inner.value_type_id() == TypeId::of::<V>()
+    }
+
+    #[inline]
+    pub fn has_build_hasher_type<S>(&self) -> bool
+    where
+        S: any::Any + hash::BuildHasher,
+    {
+        self.inner.build_hasher_type_id() == TypeId::of::<S>()
+    }
+
+    #[inline]
+    pub fn has_allocator_type<A>(&self) -> bool
+    where
+        A: any::Any + Allocator,
+    {
+        self.inner.allocator_type_id() == TypeId::of::<A>()
+    }
+
+    #[inline]
+    #[track_caller]
+    fn assert_type_safety<K, V, S, A>(&self)
+    where
+        K: any::Any + hash::Hash,
+        V: any::Any,
+        S: any::Any + hash::BuildHasher,
+        A: any::Any + Allocator,
+    {
+        #[cold]
+        #[optimize(size)]
+        #[track_caller]
+        fn type_check_failed(st: &str, type_id_self: TypeId, type_id_other: TypeId) -> ! {
+            panic!("{:?} type mismatch. Need `{:?}`, got `{:?}`", st, type_id_self, type_id_other);
+        }
+
+        if !self.has_key_type::<K>() {
+            type_check_failed("Key", self.inner.key_type_id(), TypeId::of::<K>());
+        }
+
+        if !self.has_value_type::<V>() {
+            type_check_failed("Value", self.inner.value_type_id(), TypeId::of::<V>());
+        }
+
+        if !self.has_build_hasher_type::<S>() {
+            type_check_failed("BuildHasher", self.inner.build_hasher_type_id(), TypeId::of::<S>());
+        }
+
+        if !self.has_allocator_type::<A>() {
+            type_check_failed("Allocator", self.inner.allocator_type_id(), TypeId::of::<A>());
+        }
+    }
 }
 
 impl OpaqueIndexMap {

@@ -945,10 +945,22 @@ where
     }
 }
 
-pub struct OpaqueVecInner {
+struct OpaqueVecInner {
     data: OpaqueBlobVec,
     type_id: TypeId,
     alloc_type_id: TypeId,
+}
+
+impl OpaqueVecInner {
+    #[inline]
+    pub(crate) const fn element_type_id(&self) -> TypeId {
+        self.type_id
+    }
+
+    #[inline]
+    pub(crate) const fn allocator_type_id(&self) -> TypeId {
+        self.alloc_type_id
+    }
 }
 
 impl OpaqueVecInner {
@@ -1126,15 +1138,6 @@ impl OpaqueVecInner {
 
         Self::from_parts_proj_in(ptr, length, capacity, proj_alloc)
     }
-
-    #[inline]
-    pub(crate) fn allocator<T, A>(&self) -> &TypedProjAlloc<A>
-    where
-        T: any::Any,
-        A: any::Any + Allocator,
-    {
-        self.data.allocator().as_proj::<A>()
-    }
 }
 
 impl OpaqueVecInner {
@@ -1185,24 +1188,6 @@ impl OpaqueVecInner {
 
 impl OpaqueVecInner {
     #[inline]
-    pub fn has_element_type<T>(&self) -> bool
-    where
-        T: any::Any,
-    {
-        TypeId::of::<T>() == self.type_id
-    }
-
-    #[inline]
-    pub fn has_allocator_type<A>(&self) -> bool
-    where
-        A: any::Any + Allocator,
-    {
-        TypeId::of::<A>() == self.alloc_type_id
-    }
-}
-
-impl OpaqueVecInner {
-    #[inline]
     pub(crate) const fn element_layout(&self) -> Layout {
         self.data.element_layout()
     }
@@ -1223,13 +1208,21 @@ impl OpaqueVecInner {
     }
 
     #[inline]
-    unsafe fn set_len(&mut self, new_len: usize) {
-        self.data.set_len(new_len);
+    pub(crate) fn allocator<T, A>(&self) -> &TypedProjAlloc<A>
+    where
+        T: any::Any,
+        A: any::Any + Allocator,
+    {
+        self.data.allocator().as_proj::<A>()
     }
 }
 
-
 impl OpaqueVecInner {
+    #[inline]
+    unsafe fn set_len(&mut self, new_len: usize) {
+        self.data.set_len(new_len);
+    }
+
     #[inline]
     pub(crate) fn iter<T>(&self) -> slice::Iter<'_, T>
     where
@@ -3524,6 +3517,52 @@ pub struct OpaqueVec {
 
 impl OpaqueVec {
     #[inline]
+    pub const fn element_type_id(&self) -> TypeId {
+        self.inner.element_type_id()
+    }
+
+    #[inline]
+    pub const fn allocator_type_id(&self) -> TypeId {
+        self.inner.allocator_type_id()
+    }
+
+    #[inline]
+    pub fn has_element_type<T>(&self) -> bool
+    where
+        T: any::Any,
+    {
+        self.inner.element_type_id() == TypeId::of::<T>()
+    }
+
+    #[inline]
+    pub fn has_allocator_type<A>(&self) -> bool
+    where
+        A: any::Any + Allocator,
+    {
+        self.inner.allocator_type_id() == TypeId::of::<A>()
+    }
+
+    #[inline]
+    #[track_caller]
+    fn assert_type_safety<T>(&self)
+    where
+        T: any::Any,
+    {
+        #[cold]
+        #[optimize(size)]
+        #[track_caller]
+        fn type_check_failed(type_id_self: TypeId, type_id_other: TypeId) -> ! {
+            panic!("Type mismatch. Need `{:?}`, got `{:?}`", type_id_self, type_id_other);
+        }
+
+        if !self.has_element_type::<T>() {
+            type_check_failed(self.inner.type_id, TypeId::of::<T>());
+        }
+    }
+}
+
+impl OpaqueVec {
+    #[inline]
     #[must_use]
     #[track_caller]
     pub fn new_proj_in<T, A>(proj_alloc: TypedProjAlloc<A>) -> Self
@@ -3640,17 +3679,6 @@ impl OpaqueVec {
 
         Self::from_proj(proj_vec)
     }
-
-    #[inline]
-    pub fn allocator<T, A>(&self) -> &TypedProjAlloc<A>
-    where
-        T: any::Any,
-        A: any::Any + Allocator,
-    {
-        let proj_self = self.as_proj::<T, A>();
-
-        proj_self.allocator()
-    }
 }
 
 impl OpaqueVec {
@@ -3706,42 +3734,6 @@ impl OpaqueVec {
         let proj_vec = TypedProjVec::<T, Global>::from_parts(ptr, length, capacity);
 
         Self::from_proj(proj_vec)
-    }
-}
-
-impl OpaqueVec {
-    #[inline]
-    pub fn has_element_type<T>(&self) -> bool
-    where
-        T: any::Any,
-    {
-        self.inner.has_element_type::<T>()
-    }
-
-    #[inline]
-    pub fn has_allocator_type<A>(&self) -> bool
-    where
-        A: any::Any + Allocator,
-    {
-        self.inner.has_allocator_type::<A>()
-    }
-
-    #[inline]
-    #[track_caller]
-    fn assert_type_safety<T>(&self)
-    where
-        T: any::Any,
-    {
-        #[cold]
-        #[optimize(size)]
-        #[track_caller]
-        fn type_check_failed(type_id_self: TypeId, type_id_other: TypeId) -> ! {
-            panic!("Type mismatch. Need `{:?}`, got `{:?}`", type_id_self, type_id_other);
-        }
-
-        if !self.has_element_type::<T>() {
-            type_check_failed(self.inner.type_id, TypeId::of::<T>());
-        }
     }
 }
 
@@ -3813,12 +3805,23 @@ impl OpaqueVec {
     }
 
     #[inline]
-    unsafe fn set_len(&mut self, new_len: usize) {
-        self.inner.set_len(new_len);
+    pub fn allocator<T, A>(&self) -> &TypedProjAlloc<A>
+    where
+        T: any::Any,
+        A: any::Any + Allocator,
+    {
+        let proj_self = self.as_proj::<T, A>();
+
+        proj_self.allocator()
     }
 }
 
 impl OpaqueVec {
+    #[inline]
+    unsafe fn set_len(&mut self, new_len: usize) {
+        self.inner.set_len(new_len);
+    }
+
     #[inline]
     #[must_use]
     pub fn get<T, A>(&self, index: usize) -> Option<&T>

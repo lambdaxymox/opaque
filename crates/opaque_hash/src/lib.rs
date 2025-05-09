@@ -15,6 +15,13 @@ pub struct OpaqueHasherInner {
 
 impl OpaqueHasherInner {
     #[inline]
+    pub const fn hasher_type_id(&self) -> TypeId {
+        self.type_id
+    }
+}
+
+impl OpaqueHasherInner {
+    #[inline]
     fn new<H>(hasher: H) -> Self
     where
         H: any::Any + hash::Hasher,
@@ -39,14 +46,6 @@ impl OpaqueHasherInner {
             hasher,
             type_id,
         }
-    }
-
-    #[inline]
-    fn is_type<H>(&self) -> bool
-    where
-        H: any::Any + hash::Hasher,
-    {
-        self.type_id == TypeId::of::<H>()
     }
 
     #[inline]
@@ -189,23 +188,8 @@ pub struct OpaqueHasher {
 
 impl OpaqueHasher {
     #[inline]
-    pub fn new<H>(hasher: H) -> Self
-    where
-        H: any::Any + hash::Hasher,
-    {
-        let proj_alloc = TypedProjHasher::<H>::new(hasher);
-
-        Self::from_proj(proj_alloc)
-    }
-
-    #[inline]
-    pub fn from_boxed_hasher<H>(hasher: Box<H>) -> Self
-    where
-        H: any::Any + hash::Hasher,
-    {
-        let proj_alloc = TypedProjHasher::<H>::from_boxed_hasher(hasher);
-
-        Self::from_proj(proj_alloc)
+    pub const fn hasher_type_id(&self) -> TypeId {
+        self.inner.hasher_type_id()
     }
 
     #[inline]
@@ -213,7 +197,7 @@ impl OpaqueHasher {
     where
         H: any::Any + hash::Hasher,
     {
-        self.inner.is_type::<H>()
+        self.inner.hasher_type_id() == TypeId::of::<H>()
     }
 
     #[inline]
@@ -233,7 +217,31 @@ impl OpaqueHasher {
             type_check_failed(self.inner.type_id, TypeId::of::<H>());
         }
     }
+}
 
+impl OpaqueHasher {
+    #[inline]
+    pub fn new<H>(hasher: H) -> Self
+    where
+        H: any::Any + hash::Hasher,
+    {
+        let proj_alloc = TypedProjHasher::<H>::new(hasher);
+
+        Self::from_proj(proj_alloc)
+    }
+
+    #[inline]
+    pub fn from_boxed_hasher<H>(hasher: Box<H>) -> Self
+    where
+        H: any::Any + hash::Hasher,
+    {
+        let proj_alloc = TypedProjHasher::<H>::from_boxed_hasher(hasher);
+
+        Self::from_proj(proj_alloc)
+    }
+}
+
+impl OpaqueHasher {
     pub fn as_proj<H>(&self) -> &TypedProjHasher<H>
     where
         H: any::Any + hash::Hasher,
@@ -299,6 +307,34 @@ pub struct OpaqueBuildHasherInner {
 
 impl OpaqueBuildHasherInner {
     #[inline]
+    pub const fn build_hasher_type_id(&self) -> TypeId {
+        self.build_hasher_type_id
+    }
+
+    #[inline]
+    pub const fn hasher_type_id(&self) -> TypeId {
+        self.hasher_type_id
+    }
+
+    #[inline]
+    fn is_build_hasher_type<S>(&self) -> bool
+    where
+        S: any::Any + hash::BuildHasher,
+    {
+        self.build_hasher_type_id == TypeId::of::<S>()
+    }
+
+    #[inline]
+    fn is_hasher_type<S>(&self) -> bool
+    where
+        S: hash::Hasher + any::Any,
+    {
+        self.hasher_type_id == TypeId::of::<S>()
+    }
+}
+
+impl OpaqueBuildHasherInner {
+    #[inline]
     fn new<S>(build_hasher: S) -> Self
     where
         S: any::Any + hash::BuildHasher,
@@ -327,22 +363,6 @@ impl OpaqueBuildHasherInner {
             build_hasher_type_id,
             hasher_type_id,
         }
-    }
-
-    #[inline]
-    fn is_build_hasher_type<S>(&self) -> bool
-    where
-        S: any::Any + hash::BuildHasher,
-    {
-        self.build_hasher_type_id == TypeId::of::<S>()
-    }
-
-    #[inline]
-    fn is_hasher_type<S>(&self) -> bool
-    where
-        S: hash::Hasher + any::Any,
-    {
-        self.hasher_type_id == TypeId::of::<S>()
     }
 
     fn get_build_hasher_assuming_type<S>(&self) -> &S
@@ -494,23 +514,13 @@ pub struct OpaqueBuildHasher {
 
 impl OpaqueBuildHasher {
     #[inline]
-    pub fn new<S>(build_hasher: S) -> Self
-    where
-        S: any::Any + hash::BuildHasher,
-    {
-        let proj_build_hasher = TypedProjBuildHasher::<S>::new(build_hasher);
-
-        Self::from_proj(proj_build_hasher)
+    pub const fn build_hasher_type_id(&self) -> TypeId {
+        self.inner.build_hasher_type_id()
     }
 
     #[inline]
-    pub fn from_boxed_build_hasher<S>(build_hasher: Box<S>) -> Self
-    where
-        S: any::Any + hash::BuildHasher,
-    {
-        let proj_build_hasher = TypedProjBuildHasher::<S>::from_boxed_build_hasher(build_hasher);
-
-        Self::from_proj(proj_build_hasher)
+    pub const fn hasher_type_id(&self) -> TypeId {
+        self.inner.hasher_type_id()
     }
 
     #[inline]
@@ -546,7 +556,31 @@ impl OpaqueBuildHasher {
             type_check_failed(self.inner.build_hasher_type_id, TypeId::of::<S>());
         }
     }
+}
 
+impl OpaqueBuildHasher {
+    #[inline]
+    pub fn new<S>(build_hasher: S) -> Self
+    where
+        S: any::Any + hash::BuildHasher,
+    {
+        let proj_build_hasher = TypedProjBuildHasher::<S>::new(build_hasher);
+
+        Self::from_proj(proj_build_hasher)
+    }
+
+    #[inline]
+    pub fn from_boxed_build_hasher<S>(build_hasher: Box<S>) -> Self
+    where
+        S: any::Any + hash::BuildHasher,
+    {
+        let proj_build_hasher = TypedProjBuildHasher::<S>::from_boxed_build_hasher(build_hasher);
+
+        Self::from_proj(proj_build_hasher)
+    }
+}
+
+impl OpaqueBuildHasher {
     pub fn as_proj<S>(&self) -> &TypedProjBuildHasher<S>
     where
         S: any::Any + hash::BuildHasher,
