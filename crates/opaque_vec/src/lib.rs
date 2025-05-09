@@ -947,19 +947,19 @@ where
 
 struct OpaqueVecInner {
     data: OpaqueBlobVec,
-    type_id: TypeId,
-    alloc_type_id: TypeId,
+    element_type_id: TypeId,
+    allocator_type_id: TypeId,
 }
 
 impl OpaqueVecInner {
     #[inline]
     pub(crate) const fn element_type_id(&self) -> TypeId {
-        self.type_id
+        self.element_type_id
     }
 
     #[inline]
     pub(crate) const fn allocator_type_id(&self) -> TypeId {
-        self.alloc_type_id
+        self.allocator_type_id
     }
 }
 
@@ -985,7 +985,7 @@ impl OpaqueVecInner {
         let type_id = TypeId::of::<T>();
         let alloc_type_id = TypeId::of::<A>();
 
-        Self { data, type_id, alloc_type_id }
+        Self { data, element_type_id: type_id, allocator_type_id: alloc_type_id }
     }
 
     #[inline]
@@ -1009,7 +1009,7 @@ impl OpaqueVecInner {
         let type_id = TypeId::of::<T>();
         let alloc_type_id = TypeId::of::<A>();
 
-        Self { data, type_id, alloc_type_id }
+        Self { data, element_type_id: type_id, allocator_type_id: alloc_type_id }
     }
 
     #[inline]
@@ -1031,7 +1031,7 @@ impl OpaqueVecInner {
         let type_id = TypeId::of::<T>();
         let alloc_type_id = TypeId::of::<A>();
 
-        Ok(Self { data, type_id, alloc_type_id })
+        Ok(Self { data, element_type_id: type_id, allocator_type_id: alloc_type_id })
     }
 
     #[inline]
@@ -1054,7 +1054,7 @@ impl OpaqueVecInner {
         let type_id = TypeId::of::<T>();
         let alloc_type_id = TypeId::of::<A>();
 
-        Self { data, type_id, alloc_type_id }
+        Self { data, element_type_id: type_id, allocator_type_id: alloc_type_id }
     }
 
     #[inline]
@@ -1077,7 +1077,7 @@ impl OpaqueVecInner {
         let type_id = TypeId::of::<T>();
         let alloc_type_id = TypeId::of::<A>();
 
-        Self { data, type_id, alloc_type_id }
+        Self { data, element_type_id: type_id, allocator_type_id: alloc_type_id }
     }
 
     #[inline]
@@ -2158,13 +2158,13 @@ impl OpaqueVecInner {
 
             new_data
         };
-        let new_type_id = self.type_id;
-        let new_alloc_type_id = self.alloc_type_id;
+        let new_type_id = self.element_type_id;
+        let new_alloc_type_id = self.allocator_type_id;
 
         Self {
             data: new_data,
-            type_id: new_type_id,
-            alloc_type_id: new_alloc_type_id,
+            element_type_id: new_type_id,
+            allocator_type_id: new_alloc_type_id,
         }
     }
 }
@@ -3556,7 +3556,7 @@ impl OpaqueVec {
         }
 
         if !self.has_element_type::<T>() {
-            type_check_failed(self.inner.type_id, TypeId::of::<T>());
+            type_check_failed(self.inner.element_type_id, TypeId::of::<T>());
         }
     }
 }
