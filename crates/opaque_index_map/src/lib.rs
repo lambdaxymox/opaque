@@ -1844,6 +1844,64 @@ impl OpaqueIndexMapCoreInner {
 
 impl OpaqueIndexMapCoreInner {
     #[inline]
+    pub(crate) fn new_proj_in<K, V, A>(alloc: TypedProjAlloc<A>) -> Self
+    where
+        K: any::Any,
+        V: any::Any,
+        A: any::Any + Allocator,
+    {
+        let indices = hashbrown::HashTable::new();
+        let entries = OpaqueVec::new_proj_in::<Bucket<K, V>, A>(alloc);
+        let key_type_id = TypeId::of::<K>();
+        let value_type_id = TypeId::of::<V>();
+        let allocator_type_id = TypeId::of::<A>();
+        /*
+        let bucket_size = OpaqueBucketSize::new::<K, V>();
+        */
+
+        Self {
+            indices,
+            entries,
+            key_type_id,
+            value_type_id,
+            allocator_type_id,
+            /*
+            bucket_size,
+            */
+        }
+    }
+
+    #[inline]
+    pub(crate) fn with_capacity_proj_in<K, V, A>(capacity: usize, alloc: TypedProjAlloc<A>) -> Self
+    where
+        K: any::Any,
+        V: any::Any,
+        A: any::Any + Allocator,
+    {
+        let indices = hashbrown::HashTable::with_capacity(capacity);
+        let entries = OpaqueVec::with_capacity_proj_in::<Bucket<K, V>, A>(capacity, alloc);
+        let key_type_id = TypeId::of::<K>();
+        let value_type_id = TypeId::of::<V>();
+        let allocator_type_id = TypeId::of::<A>();
+        /*
+        let bucket_size = OpaqueBucketSize::new::<K, V>();
+        */
+
+        Self {
+            indices,
+            entries,
+            key_type_id,
+            value_type_id,
+            allocator_type_id,
+            /*
+            bucket_size,
+            */
+        }
+    }
+}
+
+impl OpaqueIndexMapCoreInner {
+    #[inline]
     pub(crate) fn new_in<K, V, A>(alloc: A) -> Self
     where
         K: any::Any,
@@ -2555,6 +2613,31 @@ impl OpaqueIndexMapCoreInner {
 pub struct TypedProjIndexMapCore<K, V, A> {
     inner: OpaqueIndexMapCoreInner,
     _marker: PhantomData<(K, V, A)>,
+}
+
+impl<K, V, A> TypedProjIndexMapCore<K, V, A>
+where
+    K: any::Any,
+    V: any::Any,
+    A: any::Any + Allocator,
+{
+    pub(crate) fn new_proj_in(alloc: TypedProjAlloc<A>) -> Self {
+        let inner = OpaqueIndexMapCoreInner::new_proj_in::<K, V, A>(alloc);
+
+        Self {
+            inner,
+            _marker: PhantomData,
+        }
+    }
+
+    pub(crate) fn with_capacity_proj_in(capacity: usize, alloc: TypedProjAlloc<A>) -> Self {
+        let inner = OpaqueIndexMapCoreInner::with_capacity_proj_in::<K, V, A>(capacity, alloc);
+
+        Self {
+            inner,
+            _marker: PhantomData,
+        }
+    }
 }
 
 impl<K, V, A> TypedProjIndexMapCore<K, V, A>
@@ -3499,6 +3582,65 @@ where
         F: FnOnce(&mut [Bucket<K, V>]),
     {
         self.inner.with_entries(f);
+    }
+}
+
+impl<K, V, S, A> TypedProjIndexMapInner<K, V, S, A>
+where
+    K: any::Any,
+    V: any::Any,
+    S: any::Any + hash::BuildHasher,
+    A: any::Any + Allocator,
+{
+    #[inline]
+    pub fn with_hasher_proj_in(proj_build_hasher: TypedProjBuildHasher<S>, proj_alloc: TypedProjAlloc<A>) -> Self {
+        let proj_inner = TypedProjIndexMapCore::<K, V, A>::new_proj_in(proj_alloc);
+
+        Self {
+            inner: proj_inner,
+            build_hasher: proj_build_hasher,
+        }
+    }
+
+    #[inline]
+    pub fn with_capacity_and_hasher_proj_in(capacity: usize, proj_build_hasher: TypedProjBuildHasher<S>, proj_alloc: TypedProjAlloc<A>) -> Self {
+        if capacity == 0 {
+            Self::with_hasher_proj_in(proj_build_hasher, proj_alloc)
+        } else {
+            let proj_inner = TypedProjIndexMapCore::<K, V, A>::with_capacity_proj_in(capacity, proj_alloc);
+
+            Self {
+                inner: proj_inner,
+                build_hasher: proj_build_hasher,
+            }
+        }
+    }
+}
+
+impl<K, V, A> TypedProjIndexMapInner<K, V, hash::RandomState, A>
+where
+    K: any::Any,
+    V: any::Any,
+    A: any::Any + Allocator,
+{
+    pub fn new_proj_in(proj_alloc: TypedProjAlloc<A>) -> Self {
+        let proj_inner = TypedProjIndexMapCore::<K, V, A>::new_proj_in(proj_alloc);
+        let proj_build_hasher = TypedProjBuildHasher::new(hash::RandomState::new());
+
+        Self {
+            inner : proj_inner,
+            build_hasher: proj_build_hasher,
+        }
+    }
+
+    pub fn with_capacity_proj_in(capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self {
+        let proj_inner = TypedProjIndexMapCore::<K, V, A>::with_capacity_proj_in(capacity, proj_alloc);
+        let proj_build_hasher = TypedProjBuildHasher::new(hash::RandomState::new());
+
+        Self {
+            inner : proj_inner,
+            build_hasher: proj_build_hasher,
+        }
     }
 }
 
@@ -4469,6 +4611,67 @@ where
     A: any::Any + Allocator,
 {
     #[inline]
+    pub fn with_hasher_proj_in(proj_build_hasher: TypedProjBuildHasher<S>, proj_alloc: TypedProjAlloc<A>) -> Self {
+        let proj_inner = TypedProjIndexMapInner::<K, V, S, A>::with_hasher_proj_in(proj_build_hasher, proj_alloc);
+        let opaque_inner = OpaqueIndexMapInner::from_proj(proj_inner);
+
+        Self {
+            inner: opaque_inner,
+            _marker: core::marker::PhantomData,
+        }
+    }
+
+    #[inline]
+    pub fn with_capacity_and_hasher_proj_in(capacity: usize, proj_build_hasher: TypedProjBuildHasher<S>, proj_alloc: TypedProjAlloc<A>) -> Self {
+        if capacity == 0 {
+            Self::with_hasher_proj_in(proj_build_hasher, proj_alloc)
+        } else {
+            let proj_inner = TypedProjIndexMapInner::<K, V, S, A>::with_capacity_and_hasher_proj_in(capacity, proj_build_hasher, proj_alloc);
+            let opaque_inner = OpaqueIndexMapInner::from_proj(proj_inner);
+
+            Self {
+                inner: opaque_inner,
+                _marker: core::marker::PhantomData,
+            }
+        }
+    }
+}
+
+impl<K, V, A> TypedProjIndexMap<K, V, hash::RandomState, A>
+where
+    K: any::Any,
+    V: any::Any,
+    A: any::Any + Allocator,
+{
+    pub fn new_proj_in(proj_alloc: TypedProjAlloc<A>) -> Self {
+        let proj_inner = TypedProjIndexMapInner::<K, V, hash::RandomState, A>::new_proj_in(proj_alloc);
+        let opaque_inner = OpaqueIndexMapInner::from_proj(proj_inner);
+
+        Self {
+            inner : opaque_inner,
+            _marker: core::marker::PhantomData,
+        }
+    }
+
+    pub fn with_capacity_proj_in(capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self {
+        let proj_inner = TypedProjIndexMapInner::<K, V, hash::RandomState, A>::with_capacity_proj_in(capacity, proj_alloc);
+        let opaque_inner = OpaqueIndexMapInner::from_proj(proj_inner);
+
+        Self {
+            inner: opaque_inner,
+            _marker: core::marker::PhantomData,
+        }
+    }
+}
+
+impl<K, V, S, A> TypedProjIndexMap<K, V, S, A>
+where
+    K: any::Any,
+    V: any::Any,
+    S: any::Any + hash::BuildHasher,
+    A: any::Any + Allocator,
+{
+    #[inline]
     pub fn with_hasher_in(build_hasher: S, alloc: A) -> Self {
         let proj_inner = TypedProjIndexMapInner::<K, V, S, A>::with_hasher_in(build_hasher, alloc);
         let opaque_inner = OpaqueIndexMapInner::from_proj(proj_inner);
@@ -5388,6 +5591,58 @@ impl OpaqueIndexMap {
         Self {
             inner: proj_self.inner,
         }
+    }
+}
+
+impl OpaqueIndexMap {
+    #[inline]
+    pub fn with_hasher_proj_in<K, V, S, A>(proj_build_hasher: TypedProjBuildHasher<S>, proj_alloc: TypedProjAlloc<A>) -> Self
+    where
+        K: any::Any,
+        V: any::Any,
+        S: any::Any + hash::BuildHasher,
+        A: any::Any + Allocator,
+    {
+        let proj_index_map = TypedProjIndexMap::<K, V, S, A>::with_hasher_proj_in(proj_build_hasher, proj_alloc);
+
+        Self::from_proj(proj_index_map)
+    }
+
+    #[inline]
+    pub fn with_capacity_and_hasher_proj_in<K, V, S, A>(capacity: usize, proj_build_hasher: TypedProjBuildHasher<S>, proj_alloc: TypedProjAlloc<A>) -> Self
+    where
+        K: any::Any,
+        V: any::Any,
+        S: any::Any + hash::BuildHasher,
+        A: any::Any + Allocator,
+    {
+        let proj_index_map = TypedProjIndexMap::<K, V, S, A>::with_capacity_and_hasher_proj_in(capacity, proj_build_hasher, proj_alloc);
+
+        Self::from_proj(proj_index_map)
+    }
+}
+
+impl OpaqueIndexMap {
+    pub fn new_proj_in<K, V, A>(proj_alloc: TypedProjAlloc<A>) -> Self
+    where
+        K: any::Any,
+        V: any::Any,
+        A: any::Any + Allocator,
+    {
+        let proj_index_map = TypedProjIndexMap::<K, V, hash::RandomState, A>::new_proj_in(proj_alloc);
+
+        Self::from_proj(proj_index_map)
+    }
+
+    pub fn with_capacity_proj_in<K, V, A>(capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self
+    where
+        K: any::Any,
+        V: any::Any,
+        A: any::Any + Allocator,
+    {
+        let proj_index_map = TypedProjIndexMap::<K, V, hash::RandomState, A>::with_capacity_proj_in(capacity, proj_alloc);
+
+        Self::from_proj(proj_index_map)
     }
 }
 
