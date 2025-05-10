@@ -3543,19 +3543,70 @@ impl OpaqueVec {
 
     #[inline]
     #[track_caller]
-    fn assert_type_safety<T>(&self)
+    fn assert_type_safety<T, A>(&self)
     where
         T: any::Any,
+        A: any::Any + Allocator,
     {
         #[cold]
         #[optimize(size)]
         #[track_caller]
-        fn type_check_failed(type_id_self: TypeId, type_id_other: TypeId) -> ! {
-            panic!("Type mismatch. Need `{:?}`, got `{:?}`", type_id_self, type_id_other);
+        fn type_check_failed(st: &str, type_id_self: TypeId, type_id_other: TypeId) -> ! {
+            panic!("{:?} type mismatch. Need `{:?}`, got `{:?}`", st, type_id_self, type_id_other);
         }
 
         if !self.has_element_type::<T>() {
-            type_check_failed(self.inner.element_type_id, TypeId::of::<T>());
+            type_check_failed("Element", self.inner.element_type_id, TypeId::of::<T>());
+        }
+
+        if !self.has_allocator_type::<A>() {
+            type_check_failed("Allocator", self.inner.allocator_type_id(), TypeId::of::<A>());
+        }
+    }
+}
+
+impl OpaqueVec {
+    pub fn as_proj<T, A>(&self) -> &TypedProjVec<T, A>
+    where
+        T: any::Any,
+        A: any::Any + Allocator,
+    {
+        self.assert_type_safety::<T, A>();
+
+        unsafe { &*(self as *const OpaqueVec as *const TypedProjVec<T, A>) }
+    }
+
+    pub fn as_proj_mut<T, A>(&mut self) -> &mut TypedProjVec<T, A>
+    where
+        T: any::Any,
+        A: any::Any + Allocator,
+    {
+        self.assert_type_safety::<T, A>();
+
+        unsafe { &mut *(self as *mut OpaqueVec as *mut TypedProjVec<T, A>) }
+    }
+
+    pub fn into_proj<T, A>(self) -> TypedProjVec<T, A>
+    where
+        T: any::Any,
+        A: any::Any + Allocator,
+    {
+        self.assert_type_safety::<T, A>();
+
+        TypedProjVec {
+            inner: self.inner,
+            _marker: std::marker::PhantomData,
+        }
+    }
+
+    #[inline]
+    pub fn from_proj<T, A>(proj_self: TypedProjVec<T, A>) -> Self
+    where
+        T: any::Any,
+        A: any::Any + Allocator,
+    {
+        Self {
+            inner: proj_self.inner,
         }
     }
 }
@@ -3733,52 +3784,6 @@ impl OpaqueVec {
         let proj_vec = TypedProjVec::<T, Global>::from_parts(ptr, length, capacity);
 
         Self::from_proj(proj_vec)
-    }
-}
-
-impl OpaqueVec {
-    pub fn as_proj<T, A>(&self) -> &TypedProjVec<T, A>
-    where
-        T: any::Any,
-        A: any::Any + Allocator,
-    {
-        self.assert_type_safety::<T>();
-
-        unsafe { &*(self as *const OpaqueVec as *const TypedProjVec<T, A>) }
-    }
-
-    pub fn as_proj_mut<T, A>(&mut self) -> &mut TypedProjVec<T, A>
-    where
-        T: any::Any,
-        A: any::Any + Allocator,
-    {
-        self.assert_type_safety::<T>();
-
-        unsafe { &mut *(self as *mut OpaqueVec as *mut TypedProjVec<T, A>) }
-    }
-
-    pub fn into_proj<T, A>(self) -> TypedProjVec<T, A>
-    where
-        T: any::Any,
-        A: any::Any + Allocator,
-    {
-        self.assert_type_safety::<T>();
-
-        TypedProjVec {
-            inner: self.inner,
-            _marker: std::marker::PhantomData,
-        }
-    }
-
-    #[inline]
-    pub fn from_proj<T, A>(proj_self: TypedProjVec<T, A>) -> Self
-    where
-        T: any::Any,
-        A: any::Any + Allocator,
-    {
-        Self {
-            inner: proj_self.inner,
-        }
     }
 }
 
