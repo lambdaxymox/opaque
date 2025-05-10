@@ -790,7 +790,6 @@ where
     }
 }
 
-#[derive(Debug)]
 #[must_use = "iterators are lazy and do nothing unless consumed"]
 pub struct ExtractIf<'a, T, F, A>
 where
@@ -898,6 +897,16 @@ where
             }
             self.vec.set_len(self.old_len - self.del);
         }
+    }
+}
+
+impl<T, F, A> fmt::Debug for ExtractIf<'_, T, F, A>
+where
+    T: any::Any,
+    A: any::Any + Allocator,
+{
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(formatter, "ExtractIf {{ .. }}")
     }
 }
 
