@@ -12,9 +12,9 @@ use std::fmt;
 use std::marker::PhantomData;
 use std::ptr::NonNull;
 
-pub trait AnyAllocator: Allocator + any::Any {}
+pub trait AnyAllocator: any::Any + Allocator {}
 
-impl<A> AnyAllocator for A where A: Allocator + any::Any {}
+impl<A> AnyAllocator for A where A: any::Any + Allocator {}
 
 struct OpaqueAllocInner {
     alloc: Box<dyn AnyAllocator>,
@@ -32,7 +32,7 @@ impl OpaqueAllocInner {
     #[inline]
     fn new<A>(alloc: A) -> Self
     where
-        A: Allocator + any::Any,
+        A: any::Any + Allocator,
     {
         let boxed_alloc = Box::new(alloc);
         let type_id: TypeId = TypeId::of::<A>();
@@ -43,7 +43,7 @@ impl OpaqueAllocInner {
     #[inline]
     fn from_boxed_alloc<A>(alloc: Box<A>) -> Self
     where
-        A: Allocator + any::Any,
+        A: any::Any + Allocator,
     {
         let type_id = TypeId::of::<A>();
 
@@ -53,7 +53,7 @@ impl OpaqueAllocInner {
     #[inline]
     fn allocator_assuming_type<A>(&self) -> &A
     where
-        A: Allocator + any::Any,
+        A: any::Any + Allocator,
     {
         let any_alloc = self.alloc.as_ref() as &dyn any::Any;
         any_alloc.downcast_ref::<A>().unwrap()
@@ -61,7 +61,7 @@ impl OpaqueAllocInner {
 
     fn into_boxed_alloc_assuming_type<A>(self) -> Box<A>
     where
-        A: Allocator + any::Any,
+        A: any::Any + Allocator,
     {
         let boxed_alloc = unsafe {
             let unboxed_alloc = Box::into_raw(self.alloc);
@@ -107,7 +107,7 @@ pub struct TypedProjAlloc<A> {
 
 impl<A> TypedProjAlloc<A>
 where
-    A: Allocator + any::Any,
+    A: any::Any + Allocator,
 {
     #[inline]
     pub fn new(alloc: A) -> Self {
@@ -134,7 +134,7 @@ where
 
 unsafe impl<A> alloc::Allocator for TypedProjAlloc<A>
 where
-    A: Allocator + any::Any,
+    A: any::Any + Allocator,
 {
     fn allocate(&self, layout: Layout) -> Result<NonNull<[u8]>, std::alloc::AllocError> {
         self.inner.allocate(layout)
@@ -181,7 +181,7 @@ where
 
 impl<A> From<A> for TypedProjAlloc<A>
 where
-    A: Allocator + any::Any,
+    A: any::Any + Allocator,
 {
     fn from(alloc: A) -> Self {
         Self::new(alloc)
@@ -202,7 +202,7 @@ impl OpaqueAlloc {
     #[inline]
     pub fn is_type<A>(&self) -> bool
     where
-        A: Allocator + any::Any,
+        A: any::Any + Allocator,
     {
         self.inner.type_id() == TypeId::of::<A>()
     }
@@ -211,7 +211,7 @@ impl OpaqueAlloc {
     #[track_caller]
     fn assert_type_safety<A>(&self)
     where
-        A: Allocator + any::Any,
+        A: any::Any + Allocator,
     {
         #[cold]
         #[optimize(size)]
@@ -230,7 +230,7 @@ impl OpaqueAlloc {
     #[inline]
     pub fn new<A>(alloc: A) -> Self
     where
-        A: Allocator + any::Any,
+        A: any::Any + Allocator,
     {
         let proj_alloc = TypedProjAlloc::<A>::new(alloc);
 
@@ -240,7 +240,7 @@ impl OpaqueAlloc {
     #[inline]
     pub fn from_boxed_alloc<A>(alloc: Box<A>) -> Self
     where
-        A: Allocator + any::Any,
+        A: any::Any + Allocator,
     {
         let proj_alloc = TypedProjAlloc::<A>::from_boxed_alloc(alloc);
 
@@ -251,7 +251,7 @@ impl OpaqueAlloc {
 impl OpaqueAlloc {
     pub fn as_proj<A>(&self) -> &TypedProjAlloc<A>
     where
-        A: Allocator + any::Any,
+        A: any::Any + Allocator,
     {
         self.assert_type_safety::<A>();
 
@@ -260,7 +260,7 @@ impl OpaqueAlloc {
 
     pub fn as_proj_mut<A>(&mut self) -> &mut TypedProjAlloc<A>
     where
-        A: Allocator + any::Any,
+        A: any::Any + Allocator,
     {
         self.assert_type_safety::<A>();
 
@@ -269,7 +269,7 @@ impl OpaqueAlloc {
 
     pub fn into_proj<A>(self) -> TypedProjAlloc<A>
     where
-        A: Allocator + any::Any,
+        A: any::Any + Allocator,
     {
         self.assert_type_safety::<A>();
 
@@ -282,7 +282,7 @@ impl OpaqueAlloc {
     #[inline]
     pub fn from_proj<A>(proj_self: TypedProjAlloc<A>) -> Self
     where
-        A: Allocator + any::Any,
+        A: any::Any + Allocator,
     {
         Self {
             inner: proj_self.inner,
