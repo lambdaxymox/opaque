@@ -5314,7 +5314,7 @@ impl OpaqueIndexMap {
     #[inline]
     pub fn has_key_type<K>(&self) -> bool
     where
-        K: any::Any + hash::Hash,
+        K: any::Any,
     {
         self.inner.key_type_id() == TypeId::of::<K>()
     }
@@ -5330,7 +5330,7 @@ impl OpaqueIndexMap {
     #[inline]
     pub fn has_build_hasher_type<S>(&self) -> bool
     where
-        S: any::Any + hash::BuildHasher,
+        S: any::Any,
     {
         self.inner.build_hasher_type_id() == TypeId::of::<S>()
     }
@@ -5347,9 +5347,9 @@ impl OpaqueIndexMap {
     #[track_caller]
     fn assert_type_safety<K, V, S, A>(&self)
     where
-        K: any::Any + hash::Hash,
+        K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
+        S: any::Any,
         A: any::Any + Allocator,
     {
         #[cold]
@@ -5386,6 +5386,8 @@ impl OpaqueIndexMap {
         S: any::Any + hash::BuildHasher,
         A: any::Any + Allocator,
     {
+        self.assert_type_safety::<K, V, S, A>();
+
         unsafe { &*(self as *const OpaqueIndexMap as *const TypedProjIndexMap<K, V, S, A>) }
     }
 
@@ -5397,6 +5399,8 @@ impl OpaqueIndexMap {
         S: any::Any + hash::BuildHasher,
         A: any::Any + Allocator,
     {
+        self.assert_type_safety::<K, V, S, A>();
+
         unsafe { &mut *(self as *mut OpaqueIndexMap as *mut TypedProjIndexMap<K, V, S, A>) }
     }
 
@@ -5408,6 +5412,8 @@ impl OpaqueIndexMap {
         S: any::Any + hash::BuildHasher,
         A: any::Any + Allocator,
     {
+        self.assert_type_safety::<K, V, S, A>();
+
         TypedProjIndexMap {
             inner: self.inner,
             _marker: core::marker::PhantomData,
