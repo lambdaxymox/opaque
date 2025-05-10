@@ -1937,13 +1937,23 @@ impl OpaqueIndexMapCoreInner {
     }
 
     #[inline]
-    pub(crate) fn capacity(&self) -> usize {
-        Ord::min(self.indices.capacity(), self.entries.capacity())
+    pub(crate) fn capacity<K, V, A>(&self) -> usize
+    where
+        K: any::Any,
+        V: any::Any,
+        A: any::Any + Allocator,
+    {
+        Ord::min(self.indices.capacity(), self.entries.capacity::<Bucket<K, V>, A>())
     }
 
-    pub(crate) fn clear(&mut self) {
+    pub(crate) fn clear<K, V, A>(&mut self)
+    where
+        K: any::Any,
+        V: any::Any,
+        A: any::Any + Allocator,
+    {
         self.indices.clear();
-        self.entries.clear();
+        self.entries.clear::<Bucket<K, V>, A>();
     }
 
     pub(crate) fn truncate<K, V, A>(&mut self, len: usize)
@@ -1953,8 +1963,8 @@ impl OpaqueIndexMapCoreInner {
         A: any::Any + Allocator,
     {
         if len < self.len() {
-            self.erase_indices::<K, V, A>(len, self.entries.len());
-            self.entries.truncate(len);
+            self.erase_indices::<K, V, A>(len, self.entries.len::<Bucket<K, V>, A>());
+            self.entries.truncate::<Bucket<K, V>, A>(len);
         }
     }
 
@@ -1966,7 +1976,7 @@ impl OpaqueIndexMapCoreInner {
         A: any::Any + Allocator,
         R: ops::RangeBounds<usize>,
     {
-        let range = simplify_range(range, self.entries.len());
+        let range = simplify_range(range, self.entries.len::<Bucket<K, V>, A>());
         self.erase_indices::<K, V, A>(range.start, range.end);
 
         self.entries.drain::<_, Bucket<K, V>, A>(range)
@@ -1994,17 +2004,17 @@ impl OpaqueIndexMapCoreInner {
         V: any::Any,
         A: any::Any + Allocator + Clone,
     {
-        let len = self.entries.len();
+        let len = self.entries.len::<Bucket<K, V>, A>();
         assert!(
             at <= len,
             "index out of bounds: the len is {len} but the index is {at}. Expected index <= len"
         );
 
-        self.erase_indices::<K, V, A>(at, self.entries.len());
+        self.erase_indices::<K, V, A>(at, self.entries.len::<Bucket<K, V>, A>());
         let entries = self.entries.split_off::<Bucket<K, V>, A>(at);
 
         // let mut indices = Indices::with_capacity(entries.len());
-        let mut indices = hashbrown::HashTable::with_capacity(entries.len());
+        let mut indices = hashbrown::HashTable::with_capacity(entries.len::<Bucket<K, V>, A>());
         insert_bulk_no_grow(&mut indices, entries.as_slice::<Bucket<K, V>, A>());
 
         let split_key_type_id = self.key_type_id;
@@ -2029,12 +2039,12 @@ impl OpaqueIndexMapCoreInner {
         R: ops::RangeBounds<usize>,
     {
         let range = simplify_range(range, self.len());
-        self.erase_indices::<K, V, A>(range.start, self.entries.len());
+        self.erase_indices::<K, V, A>(range.start, self.entries.len::<Bucket<K, V>, A>());
         let entries = self.entries.split_off::<Bucket<K, V>, A>(range.end);
         let drained = self.entries.split_off::<Bucket<K, V>, A>(range.start);
 
         // let mut indices = Indices::with_capacity(entries.len());
-        let mut indices = hashbrown::HashTable::with_capacity(entries.len());
+        let mut indices = hashbrown::HashTable::with_capacity(entries.len::<Bucket<K, V>, A>());
         insert_bulk_no_grow(&mut indices, entries.as_slice::<Bucket<K, V>, A>());
 
         let split_splice_key_type_id = self.key_type_id;
@@ -2073,7 +2083,7 @@ impl OpaqueIndexMapCoreInner {
     {
         self.indices.reserve(additional, get_hash(self.entries.as_slice::<Bucket<K, V>, A>()));
         // Only grow entries if necessary, since we also round up capacity.
-        if additional > self.entries.capacity() - self.entries.len() {
+        if additional > self.entries.capacity::<Bucket<K, V>, A>() - self.entries.len::<Bucket<K, V>, A>() {
             self.borrow_mut::<K, V, A>().reserve_entries(additional);
         }
     }
@@ -2085,7 +2095,7 @@ impl OpaqueIndexMapCoreInner {
         A: any::Any + Allocator,
     {
         self.indices.reserve(additional, get_hash(self.entries.as_slice::<Bucket<K, V>, A>()));
-        self.entries.reserve_exact(additional);
+        self.entries.reserve_exact::<Bucket<K, V>, A>(additional);
     }
 
     pub(crate) fn try_reserve<K, V, A>(&mut self, additional: usize) -> Result<(), TryReserveError>
@@ -2107,8 +2117,8 @@ impl OpaqueIndexMapCoreInner {
             .try_reserve(additional, get_hash::<K, V>(self.entries.as_slice::<Bucket<K, V>, A>()))
             .map_err(from_hashbrown)?;
         // Only grow entries if necessary, since we also round up capacity.
-        if additional > self.entries.capacity() - self.entries.len() {
-            self.try_reserve_entries::<K, V>(additional)
+        if additional > self.entries.capacity::<Bucket<K, V>, A>() - self.entries.len::<Bucket<K, V>, A>() {
+            self.try_reserve_entries::<K, V, A>(additional)
         } else {
             Ok(())
         }
@@ -2121,20 +2131,21 @@ impl OpaqueIndexMapCoreInner {
         (isize::MAX as usize) / core::mem::size_of::<Bucket<K, V>>()
     }
 
-    fn try_reserve_entries<K, V>(&mut self, additional: usize) -> Result<(), TryReserveError>
+    fn try_reserve_entries<K, V, A>(&mut self, additional: usize) -> Result<(), TryReserveError>
     where
         K: any::Any,
         V: any::Any,
+        A: any::Any + Allocator,
     {
         // Use a soft-limit on the maximum capacity, but if the caller explicitly
         // requested more, do it and let them have the resulting error.
         let new_capacity = Ord::min(self.indices.capacity(), Self::max_entries_capacity::<K, V>());
-        let try_add = new_capacity - self.entries.len();
-        if try_add > additional && self.entries.try_reserve_exact(try_add).is_ok() {
+        let try_add = new_capacity - self.entries.len::<Bucket<K, V>, A>();
+        if try_add > additional && self.entries.try_reserve_exact::<Bucket<K, V>, A>(try_add).is_ok() {
             return Ok(());
         }
 
-        self.entries.try_reserve_exact(additional)
+        self.entries.try_reserve_exact::<Bucket<K, V>, A>(additional)
     }
 
     pub(crate) fn try_reserve_exact<K, V, A>(&mut self, additional: usize) -> Result<(), TryReserveError>
@@ -2155,7 +2166,7 @@ impl OpaqueIndexMapCoreInner {
         self.indices
             .try_reserve(additional, get_hash(self.entries.as_slice::<Bucket<K, V>, A>()))
             .map_err(from_hashbrown)?;
-        self.entries.try_reserve_exact(additional)
+        self.entries.try_reserve_exact::<Bucket<K, V>, A>(additional)
     }
 
     pub(crate) fn shrink_to_fit<K, V, A>(&mut self)
@@ -2175,7 +2186,7 @@ impl OpaqueIndexMapCoreInner {
     {
         self.indices
             .shrink_to(min_capacity, get_hash(self.entries.as_slice::<Bucket<K, V>, A>()));
-        self.entries.shrink_to(min_capacity);
+        self.entries.shrink_to::<Bucket<K, V>, A>(min_capacity);
     }
 
     pub(crate) fn pop<K, V, A>(&mut self) -> Option<(K, V)>
@@ -2185,7 +2196,7 @@ impl OpaqueIndexMapCoreInner {
         A: any::Any + Allocator,
     {
         if let Some(entry) = self.entries.pop::<Bucket<K, V>, A>() {
-            let last = self.entries.len();
+            let last = self.entries.len::<Bucket<K, V>, A>();
             erase_index(&mut self.indices, entry.hash, last);
             Some((entry.key, entry.value))
         } else {
@@ -2211,7 +2222,7 @@ impl OpaqueIndexMapCoreInner {
         V: any::Any,
         A: any::Any + Allocator,
     {
-        if self.entries.len() == self.entries.capacity() {
+        if self.entries.len::<Bucket<K, V>, A>() == self.entries.capacity::<Bucket<K, V>, A>() {
             // Reserve our own capacity synced to the indices,
             // rather than letting `Vec::push` just double it.
             self.borrow_mut::<K, V, A>().reserve_entries(1);
@@ -2235,11 +2246,11 @@ impl OpaqueIndexMapCoreInner {
                 (i, Some(core::mem::replace(&mut self.as_entries_mut::<K, V, A>()[i].value, value)))
             }
             hashbrown::hash_table::Entry::Vacant(entry) => {
-                let i = self.entries.len();
+                let i = self.entries.len::<Bucket<K, V>, A>();
                 entry.insert(i);
                 self.push_entry::<K, V, A>(hash, key, value);
 
-                debug_assert_eq!(self.indices.len(), self.entries.len());
+                debug_assert_eq!(self.indices.len(), self.entries.len::<Bucket<K, V>, A>());
 
                 (i, None)
             }
@@ -2384,7 +2395,7 @@ impl OpaqueIndexMapCoreInner {
     {
         self.entries
             .retain_mut::<_, Bucket<K, V>, A>(|entry: &mut Bucket<K, V>| keep(&mut entry.key, &mut entry.value));
-        if self.entries.len() < self.indices.len() {
+        if self.entries.len::<Bucket<K, V>, A>() < self.indices.len() {
             self.rebuild_hash_table::<K, V, A>();
         }
     }
@@ -2409,7 +2420,7 @@ impl OpaqueIndexMapCoreInner {
 
         // No need to save hash indices, can easily calculate what they should
         // be, given that this is an in-place reversal.
-        let len = self.entries.len();
+        let len = self.entries.len::<Bucket<K, V>, A>();
         for i in &mut self.indices {
             *i = len - *i - 1;
         }
@@ -2606,14 +2617,14 @@ where
     }
 }
 
-impl<K, V, A> TypedProjIndexMapCore<K, V, A> {
+impl<K, V, A> TypedProjIndexMapCore<K, V, A>
+where
+    K: any::Any,
+    V: any::Any,
+    A: any::Any + Allocator,
+{
     #[inline]
-    fn borrow_mut(&mut self) -> RefMut<'_, K, V, A>
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
+    fn borrow_mut(&mut self) -> RefMut<'_, K, V, A> {
         self.inner.borrow_mut()
     }
 
@@ -2624,28 +2635,20 @@ impl<K, V, A> TypedProjIndexMapCore<K, V, A> {
 
     #[inline]
     pub(crate) fn capacity(&self) -> usize {
-        self.inner.capacity()
+        self.inner.capacity::<K, V, A>()
     }
 
     pub(crate) fn clear(&mut self) {
-        self.inner.clear();
+        self.inner.clear::<K, V, A>();
     }
 
-    pub(crate) fn truncate(&mut self, len: usize)
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
+    pub(crate) fn truncate(&mut self, len: usize) {
         self.inner.truncate::<K, V, A>(len);
     }
 
     #[track_caller]
     pub(crate) fn drain<R>(&mut self, range: R) -> opaque_vec::Drain<'_, Bucket<K, V>, A>
     where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
         R: ops::RangeBounds<usize>,
     {
         self.inner.drain::<R, K, V, A>(range)
@@ -2667,9 +2670,7 @@ impl<K, V, A> TypedProjIndexMapCore<K, V, A> {
     #[track_caller]
     pub(crate) fn split_off(&mut self, at: usize) -> Self
     where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator + Clone,
+        A: Clone,
     {
         let inner = self.inner.split_off::<K, V, A>(at);
 
@@ -2682,9 +2683,7 @@ impl<K, V, A> TypedProjIndexMapCore<K, V, A> {
     #[track_caller]
     pub(crate) fn split_splice<R>(&mut self, range: R) -> (Self, opaque_vec::IntoIter<Bucket<K, V>, A>)
     where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator + Clone,
+        A: Clone,
         R: ops::RangeBounds<usize>,
     {
         let (split_inner, splice_iter) = self.inner.split_splice::<R, K, V, A>(range);
@@ -2696,201 +2695,108 @@ impl<K, V, A> TypedProjIndexMapCore<K, V, A> {
         (proj_split_inner, splice_iter)
     }
 
-    pub(crate) fn append_unchecked(&mut self, other: &mut Self)
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
+    pub(crate) fn append_unchecked(&mut self, other: &mut Self) {
         self.inner.append_unchecked::<K, V, A>(&mut other.inner);
     }
 
-    pub(crate) fn reserve(&mut self, additional: usize)
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
+    pub(crate) fn reserve(&mut self, additional: usize) {
         self.inner.reserve::<K, V, A>(additional);
     }
 
-    pub(crate) fn reserve_exact(&mut self, additional: usize)
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
+    pub(crate) fn reserve_exact(&mut self, additional: usize) {
         self.inner.reserve_exact::<K, V, A>(additional);
     }
 
-    pub(crate) fn try_reserve(&mut self, additional: usize) -> Result<(), TryReserveError>
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
+    pub(crate) fn try_reserve(&mut self, additional: usize) -> Result<(), TryReserveError> {
         self.inner.try_reserve::<K, V, A>(additional)
     }
 
-    fn try_reserve_entries(&mut self, additional: usize) -> Result<(), TryReserveError>
-    where
-        K: any::Any,
-        V: any::Any,
-    {
-        self.inner.try_reserve_entries::<K, V>(self.capacity())
+    fn try_reserve_entries(&mut self, additional: usize) -> Result<(), TryReserveError> {
+        self.inner.try_reserve_entries::<K, V, A>(self.capacity())
     }
 
-    pub(crate) fn try_reserve_exact(&mut self, additional: usize) -> Result<(), TryReserveError>
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
+    pub(crate) fn try_reserve_exact(&mut self, additional: usize) -> Result<(), TryReserveError> {
         self.inner.try_reserve_exact::<K, V, A>(self.capacity())
     }
 
-    pub(crate) fn shrink_to_fit(&mut self)
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
+    pub(crate) fn shrink_to_fit(&mut self) {
         self.inner.shrink_to_fit::<K, V, A>();
     }
 
-    pub(crate) fn shrink_to(&mut self, min_capacity: usize)
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
+    pub(crate) fn shrink_to(&mut self, min_capacity: usize) {
         self.inner.shrink_to::<K, V, A>(min_capacity);
     }
 
-    pub(crate) fn pop(&mut self) -> Option<(K, V)>
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
+    pub(crate) fn pop(&mut self) -> Option<(K, V)> {
         self.inner.pop::<K, V, A>()
     }
 
     pub(crate) fn get_index_of<Q>(&self, hash: HashValue, key: &Q) -> Option<usize>
     where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
         Q: ?Sized + Equivalent<K>,
     {
         self.inner.get_index_of::<Q, K, V, A>(hash, key)
     }
 
-    fn push_entry(&mut self, hash: HashValue, key: K, value: V)
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
+    fn push_entry(&mut self, hash: HashValue, key: K, value: V) {
         self.inner.push_entry::<K, V, A>(hash, key, value);
     }
 
     pub(crate) fn insert_full(&mut self, hash: HashValue, key: K, value: V) -> (usize, Option<V>)
     where
-        K: any::Any + Eq,
-        V: any::Any,
-        A: any::Any + Allocator,
+        K: Eq,
     {
         self.inner.insert_full::<K, V, A>(hash, key, value)
     }
 
     pub(crate) fn shift_remove_full<Q>(&mut self, hash: HashValue, key: &Q) -> Option<(usize, K, V)>
     where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
         Q: ?Sized + Equivalent<K>,
     {
         self.inner.shift_remove_full::<Q, K, V, A>(hash, key)
     }
 
     #[inline]
-    pub(crate) fn shift_remove_index(&mut self, index: usize) -> Option<(K, V)>
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
+    pub(crate) fn shift_remove_index(&mut self, index: usize) -> Option<(K, V)> {
         self.inner.shift_remove_index::<K, V, A>(index)
     }
 
     #[inline]
     #[track_caller]
-    pub(crate) fn move_index(&mut self, from: usize, to: usize)
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
+    pub(crate) fn move_index(&mut self, from: usize, to: usize) {
         self.inner.move_index::<K, V, A>(from, to);
     }
 
     #[inline]
     #[track_caller]
-    pub(crate) fn swap_indices(&mut self, a: usize, b: usize)
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
+    pub(crate) fn swap_indices(&mut self, a: usize, b: usize) {
         self.inner.swap_indices::<K, V, A>(a, b);
     }
 
     pub(crate) fn swap_remove_full<Q>(&mut self, hash: HashValue, key: &Q) -> Option<(usize, K, V)>
     where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
         Q: ?Sized + Equivalent<K>,
     {
         self.inner.swap_remove_full::<Q, K, V, A>(hash, key)
     }
 
     #[inline]
-    pub(crate) fn swap_remove_index(&mut self, index: usize) -> Option<(K, V)>
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
+    pub(crate) fn swap_remove_index(&mut self, index: usize) -> Option<(K, V)> {
         self.inner.swap_remove_index::<K, V, A>(index)
     }
 
-    fn erase_indices(&mut self, start: usize, end: usize)
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
+    fn erase_indices(&mut self, start: usize, end: usize) {
         self.inner.erase_indices::<K, V, A>(start, end);
     }
 
     pub(crate) fn retain_in_order<F>(&mut self, mut keep: F)
     where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
         F: FnMut(&mut K, &mut V) -> bool,
     {
         self.inner.retain_in_order::<F, K, V, A>(keep)
     }
 
-    pub(crate) fn reverse(&mut self)
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + Allocator,
-    {
+    pub(crate) fn reverse(&mut self) {
         self.inner.reverse::<K, V, A>();
     }
 }
