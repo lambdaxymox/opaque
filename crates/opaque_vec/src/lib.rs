@@ -107,13 +107,13 @@ where
 unsafe impl<T, A> Send for IntoIter<T, A>
 where
     T: any::Any + Send,
-    A: Allocator + any::Any + Send,
+    A: any::Any + Allocator + Send,
 {
 }
 unsafe impl<T, A> Sync for IntoIter<T, A>
 where
     T: any::Any + Sync,
-    A: Allocator + any::Any + Sync,
+    A: any::Any + Allocator + Sync,
 {
 }
 
@@ -352,7 +352,7 @@ where
 impl<T, A> Clone for IntoIter<T, A>
 where
     T: any::Any + Clone,
-    A: Allocator + any::Any + Clone,
+    A: any::Any + Allocator + Clone,
 {
     fn clone(&self) -> Self {
         let alloc = Clone::clone(ops::Deref::deref(&self.alloc));
@@ -511,14 +511,14 @@ where
 unsafe impl<T, A> Sync for Drain<'_, T, A>
 where
     T: any::Any + Sync,
-    A: Allocator + any::Any + Sync,
+    A: any::Any + Allocator + Sync,
 {
 }
 
 unsafe impl<T: Send, A: Send + Allocator> Send for Drain<'_, T, A>
 where
     T: any::Any + Send,
-    A: Allocator + any::Any + Send,
+    A: any::Any + Allocator + Send,
 {
 }
 
@@ -557,7 +557,7 @@ where
 {
     fn drop(&mut self) {
         /// Moves back the un-`Drain`ed elements to restore the original `Vec`.
-        struct DropGuard<'r, 'a, T: any::Any, A: Allocator + any::Any>(&'r mut Drain<'a, T, A>);
+        struct DropGuard<'r, 'a, T: any::Any, A: any::Any + Allocator>(&'r mut Drain<'a, T, A>);
 
         impl<'r, 'a, T, A> Drop for DropGuard<'r, 'a, T, A>
         where
@@ -650,7 +650,7 @@ pub struct Splice<'a, I, A>
 where
     I: Iterator + 'a,
     <I as Iterator>::Item: any::Any,
-    A: Allocator + any::Any + 'a,
+    A: any::Any + Allocator + 'a,
 {
     drain: Drain<'a, I::Item, A>,
     replace_with: I,
@@ -1665,7 +1665,7 @@ impl OpaqueVecInner {
     pub(crate) fn split_off<T, A>(&mut self, at: usize) -> Self
     where
         T: any::Any,
-        A: Allocator + any::Any + Clone,
+        A: any::Any + Allocator + Clone,
     {
         #[cold]
         #[track_caller]
@@ -2131,7 +2131,7 @@ impl OpaqueVecInner {
     pub(crate) fn clone<T, A>(&self) -> Self
     where
         T: any::Any + Clone,
-        A: Allocator + any::Any + Clone,
+        A: any::Any + Allocator + Clone,
     {
         unsafe fn drop_fn<T>(value: NonNull<u8>) {
             let to_drop = value.as_ptr() as *mut T;
@@ -2244,7 +2244,7 @@ mod private {
     pub fn to_opaque_vec<T, A>(slice: &[T], alloc: A) -> OpaqueVecInner
     where
         T: ConvertOpaqueVec,
-        A: Allocator + any::Any + Clone,
+        A: any::Any + Allocator + Clone,
     {
         T::to_opaque_vec(slice, alloc)
     }
@@ -2253,7 +2253,7 @@ mod private {
     pub trait ConvertOpaqueVec {
         fn to_opaque_vec<A>(slice: &[Self], alloc: A) -> OpaqueVecInner
         where
-            A: Allocator + any::Any + Clone,
+            A: any::Any + Allocator + Clone,
             Self: Sized;
     }
 
@@ -2265,7 +2265,7 @@ mod private {
         #[inline]
         fn to_opaque_vec<A>(slice: &[Self], alloc: A) -> OpaqueVecInner
         where
-            A: Allocator + any::Any + Clone,
+            A: any::Any + Allocator + Clone,
         {
             struct DropGuard<'a> {
                 vec: &'a mut OpaqueVecInner,
@@ -2363,7 +2363,7 @@ where
 impl<T, A> From<&Vec<T, A>> for OpaqueVecInner
 where
     T: any::Any + Clone,
-    A: Allocator + any::Any + Clone,
+    A: any::Any + Allocator + Clone,
 {
     fn from(vec: &Vec<T, A>) -> Self {
         Self::from(vec.as_slice())
@@ -2373,7 +2373,7 @@ where
 impl<T, A> From<&mut Vec<T, A>> for OpaqueVecInner
 where
     T: any::Any + Clone,
-    A: Allocator + any::Any + Clone,
+    A: any::Any + Allocator + Clone,
 {
     fn from(vec: &mut Vec<T, A>) -> Self {
         Self::from(vec.as_mut_slice())
@@ -2999,7 +2999,7 @@ unsafe impl<T, A: Allocator> ops::DerefPure for Vec<T, A> {}
 impl<T, A> Clone for TypedProjVec<T, A>
 where
     T: any::Any + Clone,
-    A: Allocator + any::Any + Clone,
+    A: any::Any + Allocator + Clone,
 {
     fn clone(&self) -> Self {
         let cloned_inner = self.inner.clone::<T, A>();
@@ -3210,8 +3210,8 @@ where
 impl<T, A1, A2> PartialEq<TypedProjVec<T, A2>> for TypedProjVec<T, A1>
 where
     T: any::Any + PartialEq,
-    A1: Allocator + any::Any,
-    A2: Allocator + any::Any,
+    A1: any::Any + Allocator,
+    A2: any::Any + Allocator,
 {
     fn eq(&self, other: &TypedProjVec<T, A2>) -> bool {
         PartialEq::eq(self.as_slice(), other.as_slice())
@@ -3221,8 +3221,8 @@ where
 impl<T, A1, A2> PartialOrd<TypedProjVec<T, A2>> for TypedProjVec<T, A1>
 where
     T: any::Any + PartialOrd,
-    A1: Allocator + any::Any,
-    A2: Allocator + any::Any,
+    A1: any::Any + Allocator,
+    A2: any::Any + Allocator,
 {
     #[inline]
     fn partial_cmp(&self, other: &TypedProjVec<T, A2>) -> Option<cmp::Ordering> {
@@ -3435,7 +3435,7 @@ where
 impl<T, A> From<&Vec<T, A>> for TypedProjVec<T, A>
 where
     T: any::Any + Clone,
-    A: Allocator + any::Any + Clone,
+    A: any::Any + Allocator + Clone,
 {
     #[track_caller]
     fn from(vec: &Vec<T, A>) -> Self {
@@ -3452,7 +3452,7 @@ where
 impl<T, A> From<&mut Vec<T, A>> for TypedProjVec<T, A>
 where
     T: any::Any + Clone,
-    A: Allocator + any::Any + Clone,
+    A: any::Any + Allocator + Clone,
 {
     #[track_caller]
     fn from(vec: &mut Vec<T, A>) -> Self {
@@ -4090,7 +4090,7 @@ impl OpaqueVec {
     pub fn split_off<T, A>(&mut self, at: usize) -> Self
     where
         T: any::Any,
-        A: Allocator + any::Any + Clone,
+        A: any::Any + Allocator + Clone,
     {
         let proj_self = self.as_proj_mut::<T, A>();
         let proj_split_off = proj_self.split_off(at);
@@ -4307,7 +4307,7 @@ impl OpaqueVec {
     pub fn clone<T, A>(&self) -> Self
     where
         T: any::Any + Clone,
-        A: Allocator + any::Any + Clone,
+        A: any::Any + Allocator + Clone,
     {
         let proj_self = self.as_proj::<T, A>();
         let proj_cloned_self = Clone::clone(proj_self);
