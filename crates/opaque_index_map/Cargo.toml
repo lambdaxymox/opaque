@@ -28,4 +28,4 @@ path = "../opaque_vec"
 
 [dev-dependencies.opaque_index_map_testing]
 version = "0.1.0"
-path = "../opaque_index_map_testing"
+path = "../opaque_index_map_testing_support"

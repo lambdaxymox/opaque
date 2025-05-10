@@ -21,7 +21,7 @@ path = "../opaque_error"
 
 [dev-dependencies.opaque_vec_testing]
 version = "0.1.0"
-path = "../opaque_vec_testing"
+path = "../opaque_vec_testing_support"
 
 [dev-dependencies.criterion]
 version = "0.5.1"
