@@ -5098,6 +5098,74 @@ where
     }
 }
 
+impl<Q, K, V, S, A> ops::Index<&Q> for TypedProjIndexMap<K, V, S, A>
+where
+    Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
+    K: any::Any,
+    V: any::Any,
+    S: any::Any + hash::BuildHasher,
+    A: any::Any + Allocator,
+{
+    type Output = V;
+
+    fn index(&self, key: &Q) -> &V {
+        self.get(key).expect("Entry not found for key")
+    }
+}
+
+
+impl<Q, K, V, S, A> ops::IndexMut<&Q> for TypedProjIndexMap<K, V, S, A>
+where
+    Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
+    K: any::Any,
+    V: any::Any,
+    S: any::Any + hash::BuildHasher,
+    A: any::Any + Allocator,
+{
+    fn index_mut(&mut self, key: &Q) -> &mut V {
+        self.get_mut(key).expect("Entry not found for key")
+    }
+}
+
+impl<K, V, S, A> ops::Index<usize> for TypedProjIndexMap<K, V, S, A>
+where
+    K: any::Any,
+    V: any::Any,
+    S: any::Any + hash::BuildHasher,
+    A: any::Any + Allocator,
+{
+    type Output = V;
+
+    fn index(&self, index: usize) -> &V {
+        self.get_index(index)
+            .unwrap_or_else(|| {
+                panic!(
+                    "index out of bounds: the len is `{len}` but the index is `{index}`",
+                    len = self.len()
+                );
+            })
+            .1
+    }
+}
+
+impl<K, V, S, A> ops::IndexMut<usize> for TypedProjIndexMap<K, V, S, A>
+where
+    K: any::Any,
+    V: any::Any,
+    S: any::Any + hash::BuildHasher,
+    A: any::Any + Allocator,
+{
+    fn index_mut(&mut self, index: usize) -> &mut V {
+        let len: usize = self.len();
+
+        self.get_index_mut(index)
+            .unwrap_or_else(|| {
+                panic!("index out of bounds: the len is `{len}` but the index is `{index}`");
+            })
+            .1
+    }
+}
+
 impl<K, V, S, A> Clone for TypedProjIndexMap<K, V, S, A>
 where
     K: any::Any + Clone,
@@ -5156,6 +5224,76 @@ where
 
         proj_self_inner.extend(iterable);
     }
+}
+
+impl<K, V, S, A> FromIterator<(K, V)> for TypedProjIndexMap<K, V, S, A>
+where
+    K: any::Any + hash::Hash + Eq,
+    S: any::Any + hash::BuildHasher + Default,
+    V: any::Any,
+    A: any::Any + Allocator + Default,
+{
+    fn from_iter<I: IntoIterator<Item = (K, V)>>(iterable: I) -> Self {
+        let iter = iterable.into_iter();
+        let (low, _) = iter.size_hint();
+        let mut map = Self::with_capacity_and_hasher_in(low, S::default(), A::default());
+        map.extend(iter);
+
+        map
+    }
+}
+
+impl<K, V, S, A, const N: usize> From<[(K, V); N]> for TypedProjIndexMap<K, V, S, A>
+where
+    K: any::Any + hash::Hash + Eq,
+    V: any::Any,
+    S: any::Any + hash::BuildHasher + Default,
+    A: any::Any + Allocator + Default,
+{
+    fn from(arr: [(K, V); N]) -> Self {
+        Self::from_iter(arr)
+    }
+}
+
+impl<K, V, S, A> Default for TypedProjIndexMap<K, V, S, A>
+where
+    K: any::Any,
+    V: any::Any,
+    S: any::Any + hash::BuildHasher + Default,
+    A: any::Any + Allocator + Default,
+{
+    fn default() -> Self {
+        Self::with_capacity_and_hasher_in(0, S::default(), A::default())
+    }
+}
+
+impl<K, V1, S1, V2, S2, A1, A2> PartialEq<TypedProjIndexMap<K, V2, S2, A2>> for TypedProjIndexMap<K, V1, S1, A1>
+where
+    K: any::Any + hash::Hash + Eq,
+    V1: any::Any + PartialEq<V2>,
+    V2: any::Any,
+    S1: any::Any + hash::BuildHasher,
+    S2: any::Any + BuildHasher,
+    A1: any::Any + Allocator,
+    A2: any::Any + Allocator,
+{
+    fn eq(&self, other: &TypedProjIndexMap<K, V2, S2, A2>) -> bool {
+        if self.len() != other.len() {
+            return false;
+        }
+
+        self.iter()
+            .all(|(key, value)| other.get(key).map_or(false, |v| *value == *v))
+    }
+}
+
+impl<K, V, S, A> Eq for TypedProjIndexMap<K, V, S, A>
+where
+    K: any::Any + Eq + Hash,
+    V: any::Any + Eq,
+    S: any::Any + hash::BuildHasher,
+    A: any::Any + Allocator,
+{
 }
 
 #[repr(transparent)]
