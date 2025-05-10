@@ -5271,6 +5271,40 @@ where
     }
 }
 
+impl<K, V, S, A> Extend<(K, V)> for TypedProjIndexMap<K, V, S, A>
+where
+    K: any::Any + Hash + Eq,
+    V: any::Any,
+    S: any::Any + hash::BuildHasher,
+    A: any::Any + Allocator,
+{
+    fn extend<I>(&mut self, iterable: I)
+    where
+        I: IntoIterator<Item = (K, V)>,
+    {
+        let proj_self_inner = self.inner.as_proj_mut::<K, V, S, A>();
+
+        proj_self_inner.extend(iterable);
+    }
+}
+
+impl<'a, K, V, S, A> Extend<(&'a K, &'a V)> for TypedProjIndexMap<K, V, S, A>
+where
+    K: any::Any + Hash + Eq + Copy,
+    V: any::Any + Copy,
+    S: any::Any + hash::BuildHasher,
+    A: any::Any + Allocator,
+{
+    fn extend<I>(&mut self, iterable: I)
+    where
+        I: IntoIterator<Item = (&'a K, &'a V)>,
+    {
+        let proj_self_inner = self.inner.as_proj_mut::<K, V, S, A>();
+
+        proj_self_inner.extend(iterable);
+    }
+}
+
 #[repr(transparent)]
 pub struct OpaqueIndexMap {
     inner: OpaqueIndexMapInner,

@@ -2781,6 +2781,7 @@ where
         self.inner.into_raw_parts_with_alloc::<T, A>()
     }
 
+    #[must_use]
     pub fn into_parts_with_alloc(self) -> (NonNull<T>, usize, usize, TypedProjAlloc<A>) {
         self.inner.into_parts_with_alloc::<T, A>()
     }
@@ -4099,6 +4100,7 @@ impl OpaqueVec {
         proj_self.into_raw_parts_with_alloc()
     }
 
+    #[must_use]
     pub fn into_parts_with_alloc<T, A>(self) -> (NonNull<T>, usize, usize, TypedProjAlloc<A>)
     where
         T: any::Any,
