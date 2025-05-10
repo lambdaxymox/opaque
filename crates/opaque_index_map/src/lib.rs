@@ -1510,49 +1510,6 @@ impl<K, V> Bucket<K, V> {
         (&mut self.key, &mut self.value)
     }
 }
-/*
-#[derive(Clone, Copy, Debug, PartialEq)]
-struct OpaqueBucketSize {
-    hash_size: usize,
-    key_size: usize,
-    value_size: usize,
-}
-
-impl OpaqueBucketSize {
-    #[inline]
-    const fn new<K, V>() -> Self
-    where
-        K: Sized,
-        V: Sized,
-    {
-        Self {
-            hash_size: std::mem::size_of::<HashValue>(),
-            key_size: std::mem::size_of::<K>(),
-            value_size: std::mem::size_of::<V>(),
-        }
-    }
-
-    #[inline]
-    const fn hash_size(&self) -> usize {
-        self.hash_size
-    }
-
-    #[inline]
-    const fn key_size(&self) -> usize {
-        self.key_size
-    }
-
-    #[inline]
-    const fn value_size(&self) -> usize {
-        self.value_size
-    }
-
-    #[inline]
-    const fn bucket_size(&self) -> usize {
-        self.hash_size + self.key_size + self.value_size
-    }
-}
-*/
 
 pub(crate) struct OpaqueIndexMapCoreInner {
     indices: hashbrown::HashTable<usize>,
@@ -1560,23 +1517,8 @@ pub(crate) struct OpaqueIndexMapCoreInner {
     key_type_id: TypeId,
     value_type_id: TypeId,
     allocator_type_id: TypeId,
-    /*
-    bucket_size: OpaqueBucketSize,
-    */
 }
-/*
-impl Clone for OpaqueIndexMapInner {
-    fn clone(&self) -> Self {
-        Self {
-            indices: self.indices.clone(),
-            entries: self.entries.clone(),
-            /*
-            bucket_size: self.bucket_size,
-            */
-        }
-    }
-}
-*/
+
 #[inline(always)]
 fn get_hash<K, V>(entries: &[Bucket<K, V>]) -> impl Fn(&usize) -> u64 + '_ {
     move |&i| entries[i].hash.get()
@@ -1855,9 +1797,6 @@ impl OpaqueIndexMapCoreInner {
         let key_type_id = TypeId::of::<K>();
         let value_type_id = TypeId::of::<V>();
         let allocator_type_id = TypeId::of::<A>();
-        /*
-        let bucket_size = OpaqueBucketSize::new::<K, V>();
-        */
 
         Self {
             indices,
@@ -1865,9 +1804,6 @@ impl OpaqueIndexMapCoreInner {
             key_type_id,
             value_type_id,
             allocator_type_id,
-            /*
-            bucket_size,
-            */
         }
     }
 
@@ -1883,9 +1819,6 @@ impl OpaqueIndexMapCoreInner {
         let key_type_id = TypeId::of::<K>();
         let value_type_id = TypeId::of::<V>();
         let allocator_type_id = TypeId::of::<A>();
-        /*
-        let bucket_size = OpaqueBucketSize::new::<K, V>();
-        */
 
         Self {
             indices,
@@ -1893,9 +1826,6 @@ impl OpaqueIndexMapCoreInner {
             key_type_id,
             value_type_id,
             allocator_type_id,
-            /*
-            bucket_size,
-            */
         }
     }
 }
@@ -1913,9 +1843,6 @@ impl OpaqueIndexMapCoreInner {
         let key_type_id = TypeId::of::<K>();
         let value_type_id = TypeId::of::<V>();
         let allocator_type_id = TypeId::of::<A>();
-        /*
-        let bucket_size = OpaqueBucketSize::new::<K, V>();
-        */
 
         Self {
             indices,
@@ -1923,9 +1850,6 @@ impl OpaqueIndexMapCoreInner {
             key_type_id,
             value_type_id,
             allocator_type_id,
-            /*
-            bucket_size,
-            */
         }
     }
 
@@ -1941,9 +1865,6 @@ impl OpaqueIndexMapCoreInner {
         let key_type_id = TypeId::of::<K>();
         let value_type_id = TypeId::of::<V>();
         let allocator_type_id = TypeId::of::<A>();
-        /*
-        let bucket_size = OpaqueBucketSize::new::<K, V>();
-        */
 
         Self {
             indices,
@@ -1951,9 +1872,6 @@ impl OpaqueIndexMapCoreInner {
             key_type_id,
             value_type_id,
             allocator_type_id,
-            /*
-            bucket_size,
-            */
         }
     }
 }
@@ -1970,9 +1888,6 @@ impl OpaqueIndexMapCoreInner {
         let key_type_id = TypeId::of::<K>();
         let value_type_id = TypeId::of::<V>();
         let allocator_type_id = TypeId::of::<alloc::Global>();
-        /*
-        let bucket_size = OpaqueBucketSize::new::<K, V>();
-        */
 
         Self {
             indices,
@@ -1980,9 +1895,6 @@ impl OpaqueIndexMapCoreInner {
             key_type_id,
             value_type_id,
             allocator_type_id,
-            /*
-            bucket_size,
-            */
         }
     }
 
@@ -1997,9 +1909,6 @@ impl OpaqueIndexMapCoreInner {
         let key_type_id = TypeId::of::<K>();
         let value_type_id = TypeId::of::<V>();
         let allocator_type_id = TypeId::of::<alloc::Global>();
-        /*
-        let bucket_size = OpaqueBucketSize::new::<K, V>();
-        */
 
         Self {
             indices,
@@ -2007,9 +1916,6 @@ impl OpaqueIndexMapCoreInner {
             key_type_id,
             value_type_id,
             allocator_type_id,
-            /*
-            bucket_size,
-            */
         }
     }
 }
@@ -2104,9 +2010,6 @@ impl OpaqueIndexMapCoreInner {
         let split_key_type_id = self.key_type_id;
         let split_value_type_id = self.value_type_id;
         let split_allocator_type_id = self.allocator_type_id;
-        /*
-        let bucket_size = OpaqueBucketSize::new::<K, V>();
-        */
 
         Self {
             indices,
@@ -2114,9 +2017,6 @@ impl OpaqueIndexMapCoreInner {
             key_type_id: split_key_type_id,
             value_type_id: split_value_type_id,
             allocator_type_id: split_allocator_type_id,
-            /*
-            bucket_size,
-            */
         }
     }
 
@@ -2140,9 +2040,6 @@ impl OpaqueIndexMapCoreInner {
         let split_splice_key_type_id = self.key_type_id;
         let split_splice_value_type_id = self.value_type_id;
         let split_splice_allocator_type_id = self.allocator_type_id;
-        /*
-        let bucket_size = OpaqueBucketSize::new::<K, V>();
-        */
 
         (
             Self {
@@ -2151,9 +2048,6 @@ impl OpaqueIndexMapCoreInner {
                 key_type_id: split_splice_key_type_id,
                 value_type_id: split_splice_value_type_id,
                 allocator_type_id: split_splice_allocator_type_id,
-                /*
-                bucket_size,
-                */
             },
             drained.into_iter(),
         )
