@@ -14,7 +14,7 @@ where
 {
     let mut vec = common::from_slice_in(values, alloc);
 
-    let last_index = vec.len() - 1;
+    let last_index = vec.len::<T, A>() - 1;
     let expected = &values[0..last_index];
     let _ = vec.swap_remove::<T, A>(last_index);
     let result = vec.as_slice::<T, A>();

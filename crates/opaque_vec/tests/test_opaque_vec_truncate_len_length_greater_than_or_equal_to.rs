@@ -21,10 +21,10 @@ where
     for len in min_len..max_len {
         let mut opaque_vec = base_opaque_vec.clone::<T, A>();
 
-        opaque_vec.truncate(len);
+        opaque_vec.truncate::<T, A>(len);
 
         let expected = values.len();
-        let result = opaque_vec.len();
+        let result = opaque_vec.len::<T, A>();
 
         assert_eq!(result, expected);
     }

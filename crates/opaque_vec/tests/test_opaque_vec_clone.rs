@@ -43,11 +43,11 @@ where
     let ptr_start1 = vec1.as_ptr::<T, A>() as usize;
     let ptr_start2 = vec2.as_ptr::<T, A>() as usize;
     let ptr_end1 = {
-        let len1 = vec1.len() * std::mem::size_of::<T>();
+        let len1 = vec1.len::<T, A>() * std::mem::size_of::<T>();
         ptr_start1 + len1
     };
     let ptr_end2 = {
-        let len2 = vec2.len() * std::mem::size_of::<T>();
+        let len2 = vec2.len::<T, A>() * std::mem::size_of::<T>();
         ptr_start2 + len2
     };
 

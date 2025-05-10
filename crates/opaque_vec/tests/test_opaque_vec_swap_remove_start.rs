@@ -19,7 +19,7 @@ where
         vec.push::<T, A>(value);
     }
 
-    if !vec.is_empty() {
+    if !vec.is_empty::<T, A>() {
         vec.replace_insert::<T, A>(0, values[values.len() - 1].clone());
     }
 

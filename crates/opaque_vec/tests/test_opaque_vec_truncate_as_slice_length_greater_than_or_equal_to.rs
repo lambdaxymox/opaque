@@ -19,7 +19,7 @@ where
     for len in min_len..max_len {
         let mut opaque_vec = base_opaque_vec.clone::<T, A>();
 
-        opaque_vec.truncate(len);
+        opaque_vec.truncate::<T, A>(len);
 
         let expected = &values[..];
         let result = opaque_vec.as_slice::<T, A>();

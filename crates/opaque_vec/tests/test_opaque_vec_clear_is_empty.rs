@@ -13,9 +13,9 @@ where
     A: any::Any + alloc::Allocator + Clone,
 {
     let mut vec = common::from_slice_in(values, alloc);
-    vec.clear();
+    vec.clear::<T, A>();
 
-    assert!(vec.is_empty());
+    assert!(vec.is_empty::<T, A>());
 }
 
 fn run_test_opaque_vec_clear_is_empty_values<T, A>(values: &[T], alloc: A)

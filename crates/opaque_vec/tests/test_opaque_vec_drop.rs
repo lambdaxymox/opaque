@@ -153,7 +153,7 @@ fn test_opaque_vec_clear_should_drop() {
 
     vec.push::<DropCounter, alloc::Global>(counter);
 
-    vec.clear();
+    vec.clear::<DropCounter, alloc::Global>();
 
     let count = *ref_count.borrow();
 

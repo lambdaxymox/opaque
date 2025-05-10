@@ -14,11 +14,11 @@ where
 {
     let mut vec = common::from_slice_in(values, alloc);
 
-    assert_eq!(vec.len(), values.len());
+    assert_eq!(vec.len::<T, A>(), values.len());
 
-    vec.clear();
+    vec.clear::<T, A>();
 
-    let result = vec.len();
+    let result = vec.len::<T, A>();
     let expected = 0;
 
     assert_eq!(result, expected);

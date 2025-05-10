@@ -406,7 +406,6 @@ where
 }
 */
 
-
 pub struct Drain<'a, T, A>
 where
     T: any::Any,
@@ -3784,24 +3783,44 @@ impl OpaqueVec {
 }
 
 impl OpaqueVec {
+    /*
     #[inline]
     pub const fn element_layout(&self) -> Layout {
         self.inner.element_layout()
     }
+    */
 
     #[inline]
-    pub const fn capacity(&self) -> usize {
-        self.inner.capacity()
+    pub fn capacity<T, A>(&self) -> usize
+    where
+        T: any::Any,
+        A: any::Any + Allocator,
+    {
+        let proj_self = self.as_proj::<T, A>();
+
+        proj_self.capacity()
     }
 
     #[inline]
-    pub const fn is_empty(&self) -> bool {
-        self.inner.is_empty()
+    pub fn is_empty<T, A>(&self) -> bool
+    where
+        T: any::Any,
+        A: any::Any + Allocator,
+    {
+        let proj_self = self.as_proj::<T, A>();
+
+        proj_self.is_empty()
     }
 
     #[inline]
-    pub const fn len(&self) -> usize {
-        self.inner.len()
+    pub fn len<T, A>(&self) -> usize
+    where
+        T: any::Any,
+        A: any::Any + Allocator,
+    {
+        let proj_self = self.as_proj::<T, A>();
+
+        proj_self.len()
     }
 
     #[inline]
@@ -3817,10 +3836,12 @@ impl OpaqueVec {
 }
 
 impl OpaqueVec {
+    /*
     #[inline]
     unsafe fn set_len(&mut self, new_len: usize) {
         self.inner.set_len(new_len);
     }
+    */
 
     #[inline]
     #[must_use]
@@ -3830,6 +3851,7 @@ impl OpaqueVec {
         A: any::Any + Allocator,
     {
         let proj_self = self.as_proj::<T, A>();
+        
         proj_self.get(index)
     }
 
@@ -3841,6 +3863,7 @@ impl OpaqueVec {
         A: any::Any + Allocator,
     {
         let proj_self = self.as_proj_mut::<T, A>();
+        
         proj_self.get_mut(index)
     }
 
@@ -3852,6 +3875,7 @@ impl OpaqueVec {
         A: any::Any + Allocator,
     {
         let proj_self = self.as_proj_mut::<T, A>();
+        
         proj_self.push(value);
     }
 
@@ -3862,6 +3886,7 @@ impl OpaqueVec {
         A: any::Any + Allocator,
     {
         let proj_self = self.as_proj_mut::<T, A>();
+        
         proj_self.pop()
     }
 
@@ -3872,6 +3897,7 @@ impl OpaqueVec {
         A: any::Any + Allocator,
     {
         let proj_self = self.as_proj_mut::<T, A>();
+        
         proj_self.push_within_capacity(value)
     }
 
@@ -3883,6 +3909,7 @@ impl OpaqueVec {
         A: any::Any + Allocator,
     {
         let proj_self = self.as_proj_mut::<T, A>();
+        
         proj_self.replace_insert(index, value);
     }
 
@@ -3894,6 +3921,7 @@ impl OpaqueVec {
         A: any::Any + Allocator,
     {
         let proj_self = self.as_proj_mut::<T, A>();
+        
         proj_self.shift_insert(index, value);
     }
 
@@ -3905,6 +3933,7 @@ impl OpaqueVec {
         A: any::Any + Allocator,
     {
         let proj_self = self.as_proj_mut::<T, A>();
+        
         proj_self.swap_remove(index)
     }
 
@@ -3916,6 +3945,7 @@ impl OpaqueVec {
         A: any::Any + Allocator,
     {
         let proj_self = self.as_proj_mut::<T, A>();
+        
         proj_self.shift_remove(index)
     }
 
@@ -3925,6 +3955,7 @@ impl OpaqueVec {
         A: any::Any + Allocator,
     {
         let proj_self = self.as_proj::<T, A>();
+        
         proj_self.contains(value)
     }
 
@@ -3934,6 +3965,7 @@ impl OpaqueVec {
         A: any::Any + Allocator,
     {
         let proj_self = self.as_proj::<T, A>();
+        
         proj_self.iter()
     }
 
@@ -3943,6 +3975,7 @@ impl OpaqueVec {
         A: any::Any + Allocator,
     {
         let proj_self = self.as_proj_mut::<T, A>();
+        
         proj_self.iter_mut()
     }
 
@@ -3952,6 +3985,7 @@ impl OpaqueVec {
         A: any::Any + Allocator,
     {
         let proj_self = self.into_proj::<T, A>();
+        
         proj_self.into_iter()
     }
 
@@ -3965,6 +3999,7 @@ impl OpaqueVec {
     {
         let proj_self = self.as_proj_mut::<T, A>();
         let proj_other = other.as_proj_mut::<T, A>();
+        
         proj_self.append(proj_other)
     }
 
@@ -3975,6 +4010,7 @@ impl OpaqueVec {
         R: ops::RangeBounds<usize>,
     {
         let proj_self = self.as_proj_mut::<T, A>();
+        
         proj_self.drain(range)
     }
 
@@ -3985,6 +4021,7 @@ impl OpaqueVec {
         A: any::Any + Allocator,
     {
         let proj_self = self.as_proj::<T, A>();
+        
         proj_self.as_ptr()
     }
 
@@ -3995,6 +4032,7 @@ impl OpaqueVec {
         A: any::Any + Allocator,
     {
         let proj_self = self.as_proj_mut::<T, A>();
+        
         proj_self.as_mut_ptr()
     }
 
@@ -4005,6 +4043,7 @@ impl OpaqueVec {
         A: any::Any + Allocator,
     {
         let proj_self = self.as_proj_mut::<T, A>();
+        
         proj_self.as_non_null()
     }
 
@@ -4014,6 +4053,7 @@ impl OpaqueVec {
         A: any::Any + Allocator,
     {
         let proj_self = self.as_proj::<T, A>();
+        
         proj_self.as_slice()
     }
 
@@ -4023,6 +4063,7 @@ impl OpaqueVec {
         A: any::Any + Allocator,
     {
         let proj_self = self.as_proj_mut::<T, A>();
+        
         proj_self.as_mut_slice()
     }
 
@@ -4032,6 +4073,7 @@ impl OpaqueVec {
         A: any::Any + Allocator,
     {
         let proj_self = self.as_proj::<T, A>();
+        
         proj_self.as_byte_slice()
     }
 
@@ -4041,6 +4083,7 @@ impl OpaqueVec {
         T: any::Any,
     {
         let proj_self = self.into_proj::<T, Global>();
+        
         proj_self.into_raw_parts()
     }
 
@@ -4050,6 +4093,7 @@ impl OpaqueVec {
         T: any::Any,
     {
         let proj_self = self.into_proj::<T, Global>();
+        
         proj_self.into_parts()
     }
 
@@ -4060,6 +4104,7 @@ impl OpaqueVec {
         A: any::Any + Allocator,
     {
         let proj_self = self.into_proj::<T, A>();
+        
         proj_self.into_raw_parts_with_alloc()
     }
 
@@ -4069,6 +4114,7 @@ impl OpaqueVec {
         A: any::Any + Allocator,
     {
         let proj_self = self.into_proj::<T, A>();
+        
         proj_self.into_parts_with_alloc()
     }
 
@@ -4080,6 +4126,7 @@ impl OpaqueVec {
         A: any::Any + Allocator,
     {
         let proj_self = self.into_proj::<T, A>();
+        
         proj_self.into_boxed_slice()
     }
 
@@ -4107,6 +4154,7 @@ impl OpaqueVec {
         F: FnMut() -> T,
     {
         let proj_self = self.as_proj_mut::<T, A>();
+        
         proj_self.resize_with(new_len, f)
     }
 
@@ -4117,45 +4165,88 @@ impl OpaqueVec {
         A: any::Any + Allocator,
     {
         let proj_self = self.as_proj_mut::<T, A>();
+        
         proj_self.spare_capacity_mut()
     }
 }
 
 impl OpaqueVec {
-    pub fn try_reserve(&mut self, additional: usize) -> Result<(), opaque_error::TryReserveError> {
-        self.inner.try_reserve(additional)
+    pub fn try_reserve<T, A>(&mut self, additional: usize) -> Result<(), opaque_error::TryReserveError>
+    where
+        T: any::Any,
+        A: any::Any + Allocator,
+    {
+        let proj_self = self.as_proj_mut::<T, A>();
+
+        proj_self.try_reserve(additional)
     }
 
-    pub fn try_reserve_exact(&mut self, additional: usize) -> Result<(), opaque_error::TryReserveError> {
-        self.inner.try_reserve_exact(additional)
+    pub fn try_reserve_exact<T, A>(&mut self, additional: usize) -> Result<(), opaque_error::TryReserveError>
+    where
+        T: any::Any,
+        A: any::Any + Allocator,
+    {
+        let proj_self = self.as_proj_mut::<T, A>();
+
+        proj_self.try_reserve_exact(additional)
     }
 
     #[cfg(not(no_global_oom_handling))]
     #[track_caller]
-    pub fn reserve(&mut self, additional: usize) {
-        self.inner.reserve(additional);
+    pub fn reserve<T, A>(&mut self, additional: usize)
+    where
+        T: any::Any,
+        A: any::Any + Allocator,
+    {
+        let proj_self = self.as_proj_mut::<T, A>();
+
+        proj_self.reserve(additional);
     }
 
     #[cfg(not(no_global_oom_handling))]
     #[track_caller]
-    pub fn reserve_exact(&mut self, additional: usize) {
-        self.inner.reserve_exact(additional);
+    pub fn reserve_exact<T, A>(&mut self, additional: usize)
+    where
+        T: any::Any,
+        A: any::Any + Allocator,
+    {
+        let proj_self = self.as_proj_mut::<T, A>();
+
+        proj_self.reserve_exact(additional);
     }
 
     #[track_caller]
     #[inline]
-    pub fn shrink_to_fit(&mut self) {
-        self.inner.shrink_to_fit();
+    pub fn shrink_to_fit<T, A>(&mut self)
+    where
+        T: any::Any,
+        A: any::Any + Allocator,
+    {
+        let proj_self = self.as_proj_mut::<T, A>();
+
+        proj_self.shrink_to_fit();
     }
 
     #[cfg(not(no_global_oom_handling))]
     #[track_caller]
-    pub fn shrink_to(&mut self, min_capacity: usize) {
-        self.inner.shrink_to(min_capacity);
+    pub fn shrink_to<T, A>(&mut self, min_capacity: usize)
+    where
+        T: any::Any,
+        A: any::Any + Allocator,
+    {
+        let proj_self = self.as_proj_mut::<T, A>();
+
+        proj_self.shrink_to(min_capacity);
     }
 
-    pub fn clear(&mut self) {
-        self.inner.clear();
+    pub fn clear<T, A>(&mut self)
+    where
+        T: any::Any,
+        A: any::Any + Allocator,
+    {
+        let proj_self = self.as_proj_mut::<T, A>();
+
+        proj_self.clear();
     }
 }
 
@@ -4170,6 +4261,7 @@ impl OpaqueVec {
         I: IntoIterator<Item = T>,
     {
         let proj_self = self.as_proj_mut::<T, A>();
+        
         proj_self.splice(range, replace_with)
     }
 
@@ -4181,6 +4273,7 @@ impl OpaqueVec {
         R: ops::RangeBounds<usize>,
     {
         let proj_self = self.as_proj_mut::<T, A>();
+        
         proj_self.extract_if(range, filter)
     }
 
@@ -4192,6 +4285,7 @@ impl OpaqueVec {
         A: any::Any + Allocator,
     {
         let proj_self = self.as_proj_mut::<T, A>();
+        
         proj_self.extend_with(count, value);
     }
 
@@ -4204,6 +4298,7 @@ impl OpaqueVec {
         I: Iterator<Item = T>,
     {
         let proj_self = self.as_proj_mut::<T, A>();
+        
         proj_self.extend_from_iter(iterator);
     }
 
@@ -4215,6 +4310,7 @@ impl OpaqueVec {
         A: any::Any + Allocator,
     {
         let proj_self = self.as_proj_mut::<T, A>();
+        
         proj_self.extend_from_slice(other);
     }
 
@@ -4226,12 +4322,19 @@ impl OpaqueVec {
         A: any::Any + Allocator,
     {
         let proj_self = self.as_proj_mut::<T, A>();
+        
         proj_self.resize(new_len, value);
     }
 
     #[inline]
-    pub fn truncate(&mut self, len: usize) {
-        self.inner.truncate(len);
+    pub fn truncate<T, A>(&mut self, len: usize)
+    where
+        T: any::Any,
+        A: any::Any + Allocator,
+    {
+        let proj_self = self.as_proj_mut::<T, A>();
+
+        proj_self.truncate(len);
     }
 }
 
@@ -4243,6 +4346,7 @@ impl OpaqueVec {
         F: FnMut(&T) -> bool,
     {
         let proj_self = self.as_proj_mut::<T, A>();
+        
         proj_self.retain(f);
     }
 
@@ -4253,6 +4357,7 @@ impl OpaqueVec {
         F: FnMut(&mut T) -> bool,
     {
         let proj_self = self.as_proj_mut::<T, A>();
+        
         proj_self.retain_mut(f);
     }
 
@@ -4265,6 +4370,7 @@ impl OpaqueVec {
         K: PartialEq,
     {
         let proj_self = self.as_proj_mut::<T, A>();
+        
         proj_self.dedup_by_key(&mut key);
     }
 
@@ -4275,6 +4381,7 @@ impl OpaqueVec {
         F: FnMut(&mut T, &mut T) -> bool,
     {
         let proj_self = self.as_proj_mut::<T, A>();
+        
         proj_self.dedup_by(same_bucket);
     }
 }
@@ -4288,6 +4395,7 @@ impl OpaqueVec {
         I: IntoIterator<Item=T>,
     {
         let proj_self = self.as_proj_mut::<T, A>();
+        
         proj_self.extend(iter);
     }
 
@@ -4298,6 +4406,7 @@ impl OpaqueVec {
         A: any::Any + Allocator,
     {
         let proj_self = self.as_proj_mut::<T, A>();
+        
         proj_self.reverse();
     }
 }

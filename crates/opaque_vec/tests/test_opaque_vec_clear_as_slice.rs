@@ -15,7 +15,7 @@ where
     let expected = common::new_in::<T, A>(alloc.clone());
     let result = {
         let mut vec = common::from_slice_in(values, alloc.clone());
-        vec.clear();
+        vec.clear::<T, A>();
         vec
     };
 

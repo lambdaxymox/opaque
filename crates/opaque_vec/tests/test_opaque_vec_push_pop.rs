@@ -29,7 +29,7 @@ where
 {
     let mut vec = common::from_slice_in(values, alloc.clone());
     let mut result_vec = OpaqueVec::new_in::<T, A>(alloc.clone());
-    for _ in 0..vec.len() {
+    for _ in 0..vec.len::<T, A>() {
         let popped = vec.pop::<T, A>();
 
         result_vec.push::<T, A>(popped.unwrap());

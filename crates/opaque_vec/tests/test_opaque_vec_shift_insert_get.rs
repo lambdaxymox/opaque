@@ -17,7 +17,7 @@ where
         vec.shift_insert::<T, A>(i, value);
     }
 
-    for i in 0..vec.len() {
+    for i in 0..vec.len::<T, A>() {
         let expected = Some(values[i].clone());
         let result = vec.get::<T, A>(i).cloned();
 

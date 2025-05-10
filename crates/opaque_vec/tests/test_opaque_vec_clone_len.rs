@@ -15,8 +15,8 @@ where
     let vec = common::from_slice_in(values, alloc);
     let cloned_vec = vec.clone::<T, A>();
 
-    let expected = vec.len();
-    let result = cloned_vec.len();
+    let expected = vec.len::<T, A>();
+    let result = cloned_vec.len::<T, A>();
 
     assert_eq!(result, expected);
 }
