@@ -11,5 +11,5 @@ edition = "2024"
 version = "0.5.1"
 
 [[bench]]
-name = "bench_alloc"
+name = "bench_opaque_alloc"
 harness = false

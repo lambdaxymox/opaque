@@ -36,33 +36,6 @@ check-cfg = [
 ]
 
 [[bench]]
-name = "bench_opaque_vec_as_slice_index"
+name = "bench_opaque_vec"
 harness = false
-
-[[bench]]
-name = "bench_opaque_vec_get"
-harness = false
-
-[[bench]]
-name = "bench_opaque_vec_pop"
-harness = false
-
-[[bench]]
-name = "bench_opaque_vec_push"
-harness = false
-
-[[bench]]
-name = "bench_opaque_vec_replace_insert"
-harness = false
-
-[[bench]]
-name = "bench_opaque_vec_shift_insert"
-harness = false
-
-[[bench]]
-name = "bench_opaque_vec_shift_remove"
-harness = false
-
-[[bench]]
-name = "bench_opaque_vec_swap_remove"
-harness = false
+path = "benches/lib.rs"
