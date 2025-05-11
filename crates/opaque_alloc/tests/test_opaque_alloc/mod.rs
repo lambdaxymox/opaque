@@ -1,7 +1,7 @@
-mod debug;
-mod global_allocate_layout_align;
-mod global_allocate_layout_over_aligned_align;
-mod global_allocate_layout_over_aligned_size;
-mod global_allocate_layout_size;
-mod global_allocate_zeroed;
-mod alloc_is_type;
+mod test_debug;
+mod test_global_allocate_layout_align;
+mod test_global_allocate_layout_over_aligned_align;
+mod test_global_allocate_layout_over_aligned_size;
+mod test_global_allocate_layout_size;
+mod test_global_allocate_zeroed;
+mod test_alloc_is_type;
