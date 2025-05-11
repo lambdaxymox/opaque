@@ -10,7 +10,7 @@ where
     T: any::Any + PartialEq + Clone,
     A: any::Any + alloc::Allocator + Clone,
 {
-    let vec = common::from_slice_in(values, alloc);
+    let vec = common::opaque_vec::from_slice_in(values, alloc);
     for value in values.iter() {
         assert!(vec.contains::<T, A>(value));
     }

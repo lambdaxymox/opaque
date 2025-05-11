@@ -14,7 +14,7 @@ where
     <T as TryFrom<usize>>::Error: fmt::Debug,
     A: any::Any + alloc::Allocator + Clone,
 {
-    let base_opaque_vec = common::from_slice_in(values, alloc);
+    let base_opaque_vec = common::opaque_vec::from_slice_in(values, alloc);
     for len in 0..values.len() {
         let mut opaque_vec = base_opaque_vec.clone::<T, A>();
 

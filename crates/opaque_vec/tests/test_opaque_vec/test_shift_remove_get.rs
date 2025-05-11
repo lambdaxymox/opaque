@@ -11,7 +11,7 @@ where
     T: any::Any + PartialEq + Clone + fmt::Debug,
     A: any::Any + alloc::Allocator + Clone,
 {
-    let mut vec = common::from_slice_in(values, alloc);
+    let mut vec = common::opaque_vec::from_slice_in(values, alloc);
 
     for _ in 0..vec.len::<T, A>() {
         let last_index = vec.len::<T, A>() - 1;

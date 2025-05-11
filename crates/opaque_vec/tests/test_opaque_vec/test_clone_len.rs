@@ -11,7 +11,7 @@ where
     T: any::Any + PartialEq + Clone + fmt::Debug,
     A: any::Any + alloc::Allocator + Clone,
 {
-    let vec = common::from_slice_in(values, alloc);
+    let vec = common::opaque_vec::from_slice_in(values, alloc);
     let cloned_vec = vec.clone::<T, A>();
 
     let expected = vec.len::<T, A>();

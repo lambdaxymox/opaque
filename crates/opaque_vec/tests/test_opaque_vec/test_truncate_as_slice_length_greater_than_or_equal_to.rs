@@ -12,7 +12,7 @@ where
     <T as TryFrom<usize>>::Error: fmt::Debug,
     A: any::Any + alloc::Allocator + Clone,
 {
-    let base_opaque_vec = common::from_slice_in(values, alloc);
+    let base_opaque_vec = common::opaque_vec::from_slice_in(values, alloc);
     let min_len = values.len();
     let max_len = 10 * values.len();
     for len in min_len..max_len {

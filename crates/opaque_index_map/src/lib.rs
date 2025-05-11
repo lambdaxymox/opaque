@@ -5226,29 +5226,27 @@ where
     }
 }
 
-impl<K, V, S, A> FromIterator<(K, V)> for TypedProjIndexMap<K, V, S, A>
+impl<K, V, S> FromIterator<(K, V)> for TypedProjIndexMap<K, V, S, alloc::Global>
 where
     K: any::Any + hash::Hash + Eq,
     S: any::Any + hash::BuildHasher + Default,
     V: any::Any,
-    A: any::Any + Allocator + Default,
 {
     fn from_iter<I: IntoIterator<Item = (K, V)>>(iterable: I) -> Self {
         let iter = iterable.into_iter();
         let (low, _) = iter.size_hint();
-        let mut map = Self::with_capacity_and_hasher_in(low, S::default(), A::default());
+        let mut map = Self::with_capacity_and_hasher_in(low, S::default(), alloc::Global::default());
         map.extend(iter);
 
         map
     }
 }
 
-impl<K, V, S, A, const N: usize> From<[(K, V); N]> for TypedProjIndexMap<K, V, S, A>
+impl<K, V, S, const N: usize> From<[(K, V); N]> for TypedProjIndexMap<K, V, S, alloc::Global>
 where
     K: any::Any + hash::Hash + Eq,
     V: any::Any,
     S: any::Any + hash::BuildHasher + Default,
-    A: any::Any + Allocator + Default,
 {
     fn from(arr: [(K, V); N]) -> Self {
         Self::from_iter(arr)

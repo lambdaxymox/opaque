@@ -12,7 +12,7 @@ where
     <T as TryFrom<usize>>::Error: fmt::Debug,
     A: any::Any + alloc::Allocator + Clone,
 {
-    let mut vec = common::from_slice_in(values, alloc);
+    let mut vec = common::opaque_vec::from_slice_in(values, alloc);
 
     let expected = values;
     let result = vec.as_mut_slice::<T, A>();

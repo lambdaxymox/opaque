@@ -11,7 +11,7 @@ where
     T: any::Any + PartialEq + Clone + fmt::Debug,
     A: any::Any + alloc::Allocator + Clone,
 {
-    let vec = common::from_slice_in(values, alloc);
+    let vec = common::opaque_vec::from_slice_in(values, alloc);
     let cloned_vec = vec.clone::<T, A>();
 
     let expected = vec.as_slice::<T, A>();
@@ -25,7 +25,7 @@ where
     T: any::Any + PartialEq + Clone + fmt::Debug,
     A: any::Any + alloc::Allocator + Clone,
 {
-    let vec1 = common::from_slice_in(values, alloc);
+    let vec1 = common::opaque_vec::from_slice_in(values, alloc);
     let vec2 = vec1.clone::<T, A>();
 
     assert_ne!(vec1.as_ptr::<T, A>(), vec2.as_ptr::<T, A>());
@@ -36,7 +36,7 @@ where
     T: any::Any + PartialEq + Clone + fmt::Debug,
     A: any::Any + alloc::Allocator + Clone,
 {
-    let vec1 = common::from_slice_in(values, alloc);
+    let vec1 = common::opaque_vec::from_slice_in(values, alloc);
     let vec2 = vec1.clone::<T, A>();
 
     let ptr_start1 = vec1.as_ptr::<T, A>() as usize;

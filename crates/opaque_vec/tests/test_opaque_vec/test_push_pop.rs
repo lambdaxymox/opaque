@@ -26,7 +26,7 @@ where
     T: any::Any + PartialEq + Clone + fmt::Debug,
     A: any::Any + alloc::Allocator + Clone,
 {
-    let mut vec = common::from_slice_in(values, alloc.clone());
+    let mut vec = common::opaque_vec::from_slice_in(values, alloc.clone());
     let mut result_vec = OpaqueVec::new_in::<T, A>(alloc.clone());
     for _ in 0..vec.len::<T, A>() {
         let popped = vec.pop::<T, A>();

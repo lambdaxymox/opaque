@@ -13,7 +13,7 @@ where
     T: any::Any + PartialEq + Clone + fmt::Debug,
     A: any::Any + alloc::Allocator + Clone,
 {
-    let mut vec = common::from_slice_in(values, alloc);
+    let mut vec = common::opaque_vec::from_slice_in(values, alloc);
     for extension_value in extension_values.iter() {
         vec.push::<T, A>(extension_value.clone());
     }
@@ -26,7 +26,7 @@ where
     T: any::Any + PartialEq + Clone + fmt::Debug,
     A: any::Any + alloc::Allocator + Clone,
 {
-    let mut vec = common::from_slice_in(values, alloc);
+    let mut vec = common::opaque_vec::from_slice_in(values, alloc);
     vec.extend_from_slice::<T, A>(extension_values);
 
     vec

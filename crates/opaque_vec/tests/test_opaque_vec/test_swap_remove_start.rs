@@ -30,7 +30,7 @@ where
     T: any::Any + PartialEq + Clone + fmt::Debug,
     A: any::Any + alloc::Allocator + Clone,
 {
-    let mut vec = common::from_slice_in(values, alloc.clone());
+    let mut vec = common::opaque_vec::from_slice_in(values, alloc.clone());
 
     for i in 0..values.len() {
         let last_index = values.len() - i;
