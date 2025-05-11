@@ -13,3 +13,4 @@ version = "0.5.1"
 [[bench]]
 name = "bench_hasher"
 harness = false
+path = "benches/lib.rs"

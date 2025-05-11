@@ -13,3 +13,4 @@ version = "0.5.1"
 [[bench]]
 name = "bench_opaque_alloc"
 harness = false
+path = "benches/lib.rs"

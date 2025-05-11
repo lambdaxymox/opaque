@@ -1,8 +1,5 @@
 use criterion;
-use criterion::{
-    criterion_group,
-    criterion_main,
-};
+use criterion::criterion_group;
 use opaque_hash::OpaqueBuildHasher;
 use std::hash::{
     BuildHasher,
@@ -14,12 +11,12 @@ use std::hash::{
 macro_rules! bench_hasher {
     ($bench_name:ident, $bench_opaque_name:ident, $typ:ty, $value:expr) => {
         fn $bench_name(c: &mut criterion::Criterion) {
-            let default_hash_builder = RandomState::new();
+            let default_build_hasher = RandomState::new();
             let value: $typ = $value;
 
             c.bench_function(stringify!($bench_name), |b| {
                 b.iter(|| {
-                    let mut hasher = default_hash_builder.build_hasher();
+                    let mut hasher = default_build_hasher.build_hasher();
                     criterion::black_box(value).hash(&mut hasher);
                     criterion::black_box(hasher.finish());
                 });
@@ -27,13 +24,13 @@ macro_rules! bench_hasher {
         }
 
         fn $bench_opaque_name(c: &mut criterion::Criterion) {
-            let default_hash_builder = RandomState::new();
-            let opaque_hash_builder = OpaqueBuildHasher::new(default_hash_builder);
+            let default_build_hasher = RandomState::new();
+            let opaque_build_hasher = OpaqueBuildHasher::new(default_build_hasher);
             let value: $typ = $value;
 
             c.bench_function(stringify!($bench_opaque_name), |b| {
                 b.iter(|| {
-                    let mut opaque_hasher = opaque_hash_builder.build_hasher::<RandomState>();
+                    let mut opaque_hasher = opaque_build_hasher.build_hasher::<RandomState>();
                     criterion::black_box(value).hash(&mut opaque_hasher);
                     criterion::black_box(opaque_hasher.finish());
                 });
@@ -58,7 +55,7 @@ bench_hasher!(
 
 
 criterion_group!(
-    opaque_hash_benches,
+    bench_opaque_hasher,
     bench_default_hasher_i8,
     bench_opaque_default_hasher_i8,
     bench_default_hasher_i16,
@@ -74,4 +71,3 @@ criterion_group!(
     bench_default_hasher_str1,
     bench_opaque_default_hasher_str1,
 );
-criterion_main!(opaque_hash_benches);

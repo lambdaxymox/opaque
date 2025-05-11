@@ -2,9 +2,7 @@ use criterion::{
     Criterion,
     criterion_group,
 };
-use opaque_vec::OpaqueVec;
-
-use std::alloc;
+use opaque_vec::TypedProjVec;
 
 fn bench_vec_swap_remove(c: &mut Criterion) {
     let dummy_data = 0_i32;
@@ -23,15 +21,15 @@ fn bench_vec_swap_remove(c: &mut Criterion) {
     });
 }
 
-fn bench_opaque_vec_swap_remove(c: &mut Criterion) {
+fn bench_typed_proj_vec_swap_remove(c: &mut Criterion) {
     let dummy_data = 0_i32;
 
-    c.bench_function("opaque_vec_swap_remove", |b| {
+    c.bench_function("typed_proj_vec_swap_remove", |b| {
         b.iter_batched(
-            || OpaqueVec::from_iter((0..1000).map(|_| dummy_data)),
-            |mut opaque_vec| {
-                for _ in 0..opaque_vec.len::<i32, alloc::Global>() {
-                    let _ = criterion::black_box(opaque_vec.swap_remove::<i32, alloc::Global>(0));
+            || TypedProjVec::from_iter((0..1000).map(|_| dummy_data)),
+            |mut proj_vec| {
+                for _ in 0..proj_vec.len() {
+                    let _ = criterion::black_box(proj_vec.swap_remove(0));
                 }
             },
             criterion::BatchSize::NumIterations(1000),
@@ -39,4 +37,4 @@ fn bench_opaque_vec_swap_remove(c: &mut Criterion) {
     });
 }
 
-criterion_group!(bench_swap_remove, bench_opaque_vec_swap_remove, bench_vec_swap_remove);
+criterion_group!(bench_swap_remove, bench_typed_proj_vec_swap_remove, bench_vec_swap_remove);

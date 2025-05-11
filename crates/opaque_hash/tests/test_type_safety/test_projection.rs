@@ -145,12 +145,12 @@ fn test_opaque_hasher_as_proj_mut_correct_type4() {
 #[should_panic]
 fn test_opaque_hasher_as_proj_mut_panics_wrong_type1() {
     let mut opaque_build_hasher = OpaqueBuildHasher::new::<hash::RandomState>(hash::RandomState::new());
-    let _ = opaque_build_hasher.as_proj_mut::<hash::RandomState>();
+    let _ = opaque_build_hasher.as_proj_mut::<BuildZeroHasher>();
 }
 
 #[test]
 #[should_panic]
 fn test_opaque_hasher_as_proj_mut_panics_wrong_type2() {
     let mut opaque_build_hasher = OpaqueBuildHasher::new::<BuildZeroHasher>(BuildZeroHasher::new());
-    let _ = opaque_build_hasher.as_proj_mut::<BuildZeroHasher>();
+    let _ = opaque_build_hasher.as_proj_mut::<hash::RandomState>();
 }

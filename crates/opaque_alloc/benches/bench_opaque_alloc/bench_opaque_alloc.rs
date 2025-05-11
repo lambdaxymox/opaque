@@ -1,10 +1,5 @@
-#![feature(allocator_api)]
-#![feature(slice_ptr_get)]
 use criterion;
-use criterion::{
-    criterion_group,
-    criterion_main,
-};
+use criterion::criterion_group;
 use opaque_alloc::OpaqueAlloc;
 use std::alloc::{
     Allocator,
@@ -53,7 +48,7 @@ bench_alloc!(bench_alloc_size_128_align_128, bench_opaque_alloc_size_128_align_1
 bench_alloc!(bench_alloc_size_256_align_256, bench_opaque_alloc_size_256_align_256, size => 256, align => 256);
 
 criterion_group!(
-    opaque_alloc_benches,
+    bench_opaque_alloc,
     bench_alloc_size_1_align_1,
     bench_opaque_alloc_size_1_align_1,
     bench_alloc_size_2_align_2,
@@ -73,4 +68,3 @@ criterion_group!(
     bench_alloc_size_256_align_256,
     bench_opaque_alloc_size_256_align_256,
 );
-criterion_main!(opaque_alloc_benches);
