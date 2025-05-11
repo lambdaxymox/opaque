@@ -49,6 +49,16 @@ fn test_opaque_hasher_i32() {
 }
 
 #[test]
+fn test_opaque_hasher_i64() {
+    run_test_opaque_hasher((i64::MIN..i64::MAX).step_by((i64::MAX as usize) / (i16::MAX as usize)).into_iter());
+}
+
+#[test]
+fn test_opaque_hasher_isize() {
+    run_test_opaque_hasher((isize::MIN..isize::MAX).step_by((isize::MAX as usize) / (i16::MAX as usize)).into_iter());
+}
+
+#[test]
 fn test_opaque_hasher_u8() {
     run_test_opaque_hasher((u8::MIN..u8::MAX).into_iter());
 }
@@ -61,4 +71,14 @@ fn test_opaque_hasher_u16() {
 #[test]
 fn test_opaque_hasher_u32() {
     run_test_opaque_hasher((u32::MIN..u32::MAX).step_by(u16::MAX as usize).into_iter());
+}
+
+#[test]
+fn test_opaque_hasher_u64() {
+    run_test_opaque_hasher((u64::MIN..u64::MAX).step_by((u64::MAX as usize) / (u16::MAX as usize)).into_iter());
+}
+
+#[test]
+fn test_opaque_hasher_usize() {
+    run_test_opaque_hasher((usize::MIN..usize::MAX).step_by((usize::MAX as usize) / (u16::MAX as usize)).into_iter());
 }
