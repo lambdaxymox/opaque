@@ -27,7 +27,7 @@ use opaque_hash;
 use opaque_vec::{OpaqueVec, TypedProjVec};
 
 pub use equivalent::Equivalent;
-use opaque_alloc::{OpaqueAlloc, TypedProjAlloc};
+use opaque_alloc::TypedProjAlloc;
 use opaque_hash::{OpaqueBuildHasher, TypedProjBuildHasher};
 
 pub struct Drain<'a, K, V, A>

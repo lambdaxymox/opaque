@@ -8,14 +8,14 @@ trait AnyHasher: hash::Hasher + any::Any {}
 
 impl<H> AnyHasher for H where H: hash::Hasher + any::Any {}
 
-pub struct OpaqueHasherInner {
+struct OpaqueHasherInner {
     hasher: Box<dyn AnyHasher>,
     type_id: TypeId,
 }
 
 impl OpaqueHasherInner {
     #[inline]
-    pub const fn hasher_type_id(&self) -> TypeId {
+    const fn hasher_type_id(&self) -> TypeId {
         self.type_id
     }
 }
@@ -57,6 +57,7 @@ impl OpaqueHasherInner {
         any_hasher.downcast_ref::<H>().unwrap()
     }
 
+    #[inline]
     fn into_boxed_hasher_assuming_type<H>(self) -> Box<H>
     where
         H: any::Any + hash::Hasher,
@@ -69,6 +70,7 @@ impl OpaqueHasherInner {
         boxed_hasher
     }
 
+    #[inline]
     fn clone_assuming_type<H>(&self) -> OpaqueHasherInner
     where
         H: hash::Hasher + any::Any + Clone,
@@ -193,7 +195,7 @@ impl OpaqueHasher {
     }
 
     #[inline]
-    pub fn is_type<H>(&self) -> bool
+    pub fn has_hasher_type<H>(&self) -> bool
     where
         H: any::Any + hash::Hasher,
     {
@@ -213,7 +215,7 @@ impl OpaqueHasher {
             panic!("Type mismatch. Need `{:?}`, got `{:?}`", type_id_self, type_id_other);
         }
 
-        if !self.is_type::<H>() {
+        if !self.has_hasher_type::<H>() {
             type_check_failed(self.inner.type_id, TypeId::of::<H>());
         }
     }
@@ -299,7 +301,7 @@ impl fmt::Debug for OpaqueHasher {
     }
 }
 
-pub struct OpaqueBuildHasherInner {
+struct OpaqueBuildHasherInner {
     build_hasher: Box<dyn any::Any>,
     build_hasher_type_id: TypeId,
     hasher_type_id: TypeId,
@@ -307,29 +309,13 @@ pub struct OpaqueBuildHasherInner {
 
 impl OpaqueBuildHasherInner {
     #[inline]
-    pub const fn build_hasher_type_id(&self) -> TypeId {
+    const fn build_hasher_type_id(&self) -> TypeId {
         self.build_hasher_type_id
     }
 
     #[inline]
-    pub const fn hasher_type_id(&self) -> TypeId {
+    const fn hasher_type_id(&self) -> TypeId {
         self.hasher_type_id
-    }
-
-    #[inline]
-    fn is_build_hasher_type<S>(&self) -> bool
-    where
-        S: any::Any + hash::BuildHasher,
-    {
-        self.build_hasher_type_id == TypeId::of::<S>()
-    }
-
-    #[inline]
-    fn is_hasher_type<S>(&self) -> bool
-    where
-        S: hash::Hasher + any::Any,
-    {
-        self.hasher_type_id == TypeId::of::<S>()
     }
 }
 
@@ -524,19 +510,19 @@ impl OpaqueBuildHasher {
     }
 
     #[inline]
-    pub fn is_build_hasher_type<S>(&self) -> bool
+    pub fn has_build_hasher_type<S>(&self) -> bool
     where
         S: any::Any + hash::BuildHasher,
     {
-        self.inner.is_build_hasher_type::<S>()
+        self.inner.build_hasher_type_id() == TypeId::of::<S>()
     }
 
     #[inline]
-    pub fn is_hasher_type<H>(&self) -> bool
+    pub fn has_hasher_type<H>(&self) -> bool
     where
         H: any::Any + hash::Hasher,
     {
-        self.inner.is_hasher_type::<H>()
+        self.inner.hasher_type_id() == TypeId::of::<H>()
     }
 
     #[inline]
@@ -552,7 +538,7 @@ impl OpaqueBuildHasher {
             panic!("Type mismatch. Need `{:?}`, got `{:?}`", type_id_self, type_id_other);
         }
 
-        if !self.is_build_hasher_type::<S>() {
+        if !self.has_build_hasher_type::<S>() {
             type_check_failed(self.inner.build_hasher_type_id, TypeId::of::<S>());
         }
     }

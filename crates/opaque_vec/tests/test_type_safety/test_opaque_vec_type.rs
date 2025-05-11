@@ -1,0 +1,116 @@
+use opaque_vec::OpaqueVec;
+
+use std::{alloc, any};
+use std::alloc::{Global, System};
+
+fn run_test_opaque_vec_new_in_has_type<T, A>(alloc: A)
+where
+    T: any::Any,
+    A: any::Any + alloc::Allocator,
+{
+    let opaque_vec = OpaqueVec::new_in::<T, A>(alloc);
+
+    assert!(opaque_vec.has_element_type::<T>());
+    assert!(opaque_vec.has_allocator_type::<A>());
+}
+
+fn run_test_opaque_vec_with_capacity_in_has_type<T, A>(alloc: A)
+where
+    T: any::Any,
+    A: any::Any + alloc::Allocator,
+{
+    let opaque_vec = OpaqueVec::with_capacity_in::<T, A>(1024, alloc);
+
+    assert!(opaque_vec.has_element_type::<T>());
+    assert!(opaque_vec.has_allocator_type::<A>());
+}
+
+fn run_test_opaque_vec_new_has_type<T>()
+where
+    T: any::Any,
+{
+    let opaque_vec = OpaqueVec::new::<T>();
+
+    assert!(opaque_vec.has_element_type::<T>());
+    assert!(opaque_vec.has_allocator_type::<Global>());
+}
+
+fn run_test_opaque_vec_with_capacity_has_type<T>()
+where
+    T: any::Any,
+{
+    let opaque_vec = OpaqueVec::with_capacity::<T>(1024);
+
+    assert!(opaque_vec.has_element_type::<T>());
+    assert!(opaque_vec.has_allocator_type::<Global>());
+}
+
+macro_rules! generate_tests {
+    ($module_name:ident, $element_typ:ident, $alloc_typ:ident) => {
+        mod $module_name {
+            use super::*;
+
+            #[test]
+            fn test_opaque_vec_new_in_has_type() {
+                let alloc: $alloc_typ = $alloc_typ::default();
+                run_test_opaque_vec_new_in_has_type::<$element_typ, $alloc_typ>(alloc);
+            }
+
+            #[test]
+            fn test_opaque_vec_with_capacity_in_has_type() {
+                let alloc: $alloc_typ = $alloc_typ::default();
+                run_test_opaque_vec_with_capacity_in_has_type::<$element_typ, $alloc_typ>(alloc);
+            }
+
+            #[test]
+            fn test_opaque_vec_new_has_type() {
+                run_test_opaque_vec_new_has_type::<$element_typ>();
+            }
+
+            #[test]
+            fn test_opaque_vec_with_capacity_has_type() {
+                run_test_opaque_vec_with_capacity_has_type::<$element_typ>();
+            }
+        }
+    };
+}
+
+generate_tests!(i8_global, i8, Global);
+generate_tests!(i8_system, i8, System);
+generate_tests!(i16_global, i16, Global);
+generate_tests!(i16_system, i16, System);
+generate_tests!(i32_global, i32, Global);
+generate_tests!(i32_system, i32, System);
+generate_tests!(i64_global, i64, Global);
+generate_tests!(i64_system, i64, System);
+generate_tests!(i128_global, i128, Global);
+generate_tests!(i128_system, i128, System);
+generate_tests!(isize_global, isize, Global);
+generate_tests!(isize_system, isize, System);
+
+generate_tests!(u8_global, u8, Global);
+generate_tests!(u8_system, u8, System);
+generate_tests!(u16_global, u16, Global);
+generate_tests!(u16_system, u16, System);
+generate_tests!(u32_global, u32, Global);
+generate_tests!(u32_system, u32, System);
+generate_tests!(u64_global, u64, Global);
+generate_tests!(u64_system, u64, System);
+generate_tests!(u128_global, u128, Global);
+generate_tests!(u128_system, u128, System);
+generate_tests!(usize_global, usize, Global);
+generate_tests!(usize_system, usize, System);
+
+generate_tests!(f32_global, f32, Global);
+generate_tests!(f32_system, f32, System);
+generate_tests!(f64_global, f64, Global);
+generate_tests!(f64_system, f64, System);
+
+generate_tests!(bool_global, bool, Global);
+generate_tests!(bool_system, bool, System);
+
+generate_tests!(char_global, char, Global);
+generate_tests!(char_system, char, System);
+
+generate_tests!(string_global, String, Global);
+generate_tests!(string_system, String, System);

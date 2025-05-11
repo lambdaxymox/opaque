@@ -18,13 +18,13 @@ impl<A> AnyAllocator for A where A: any::Any + Allocator {}
 
 struct OpaqueAllocInner {
     alloc: Box<dyn AnyAllocator>,
-    type_id: TypeId,
+    alloc_type_id: TypeId,
 }
 
 impl OpaqueAllocInner {
     #[inline]
-    const fn type_id(&self) -> TypeId {
-        self.type_id
+    const fn alloc_type_id(&self) -> TypeId {
+        self.alloc_type_id
     }
 }
 
@@ -35,9 +35,9 @@ impl OpaqueAllocInner {
         A: any::Any + Allocator,
     {
         let boxed_alloc = Box::new(alloc);
-        let type_id: TypeId = TypeId::of::<A>();
+        let alloc_type_id: TypeId = TypeId::of::<A>();
 
-        Self { alloc: boxed_alloc, type_id, }
+        Self { alloc: boxed_alloc, alloc_type_id, }
     }
 
     #[inline]
@@ -45,9 +45,9 @@ impl OpaqueAllocInner {
     where
         A: any::Any + Allocator,
     {
-        let type_id = TypeId::of::<A>();
+        let alloc_type_id = TypeId::of::<A>();
 
-        Self { alloc, type_id, }
+        Self { alloc, alloc_type_id, }
     }
 
     #[inline]
@@ -195,16 +195,16 @@ pub struct OpaqueAlloc {
 
 impl OpaqueAlloc {
     #[inline]
-    pub const fn type_id(&self) -> TypeId {
-        self.inner.type_id()
+    pub const fn alloc_type_id(&self) -> TypeId {
+        self.inner.alloc_type_id()
     }
 
     #[inline]
-    pub fn is_type<A>(&self) -> bool
+    pub fn has_alloc_type<A>(&self) -> bool
     where
         A: any::Any + Allocator,
     {
-        self.inner.type_id() == TypeId::of::<A>()
+        self.inner.alloc_type_id() == TypeId::of::<A>()
     }
 
     #[inline]
@@ -220,8 +220,8 @@ impl OpaqueAlloc {
             panic!("Type mismatch. Need `{:?}`, got `{:?}`", type_id_self, type_id_other);
         }
 
-        if !self.is_type::<A>() {
-            type_check_failed(self.inner.type_id, TypeId::of::<A>());
+        if !self.has_alloc_type::<A>() {
+            type_check_failed(self.inner.alloc_type_id, TypeId::of::<A>());
         }
     }
 }
