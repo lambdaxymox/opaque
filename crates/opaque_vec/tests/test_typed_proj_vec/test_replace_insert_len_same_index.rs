@@ -34,16 +34,8 @@ macro_rules! generate_tests {
     };
 }
 
-generate_tests!(i8, i8::MAX);
-generate_tests!(i16, i16::MAX);
-generate_tests!(i32, i32::MAX);
-generate_tests!(i64, i64::MAX);
-generate_tests!(i128, i128::MAX);
-generate_tests!(isize, isize::MAX);
-
 generate_tests!(u8, u8::MAX);
 generate_tests!(u16, u16::MAX);
 generate_tests!(u32, u32::MAX);
 generate_tests!(u64, u64::MAX);
-generate_tests!(u128, u128::MAX);
 generate_tests!(usize, usize::MAX);

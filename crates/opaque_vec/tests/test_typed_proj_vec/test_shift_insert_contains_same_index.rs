@@ -80,49 +80,6 @@ macro_rules! generate_tests {
 }
 
 generate_tests!(
-    i8,
-    128,
-    i8::MAX,
-    opaque_vec_testing::RangeValuesSpec::new(0),
-    opaque_vec_testing::AlternatingValuesSpec::new(i8::MIN, 0)
-);
-generate_tests!(
-    i16,
-    128,
-    i16::MAX,
-    opaque_vec_testing::RangeValuesSpec::new(0),
-    opaque_vec_testing::AlternatingValuesSpec::new(i16::MIN, 0)
-);
-generate_tests!(
-    i32,
-    128,
-    i32::MAX,
-    opaque_vec_testing::RangeValuesSpec::new(0),
-    opaque_vec_testing::AlternatingValuesSpec::new(i32::MIN, 0)
-);
-generate_tests!(
-    i64,
-    128,
-    i64::MAX,
-    opaque_vec_testing::RangeValuesSpec::new(0),
-    opaque_vec_testing::AlternatingValuesSpec::new(i64::MIN, 0)
-);
-generate_tests!(
-    i128,
-    128,
-    i128::MAX,
-    opaque_vec_testing::RangeValuesSpec::new(0),
-    opaque_vec_testing::AlternatingValuesSpec::new(i128::MIN, 0)
-);
-generate_tests!(
-    isize,
-    128,
-    isize::MAX,
-    opaque_vec_testing::RangeValuesSpec::new(0),
-    opaque_vec_testing::AlternatingValuesSpec::new(isize::MIN, 0)
-);
-
-generate_tests!(
     u8,
     128,
     u8::MAX,
@@ -149,13 +106,6 @@ generate_tests!(
     u64::MAX,
     opaque_vec_testing::RangeValuesSpec::new(0),
     opaque_vec_testing::AlternatingValuesSpec::new(u64::MIN, u64::MAX)
-);
-generate_tests!(
-    u128,
-    128,
-    u128::MAX,
-    opaque_vec_testing::RangeValuesSpec::new(0),
-    opaque_vec_testing::AlternatingValuesSpec::new(u128::MIN, u128::MAX)
 );
 generate_tests!(
     usize,

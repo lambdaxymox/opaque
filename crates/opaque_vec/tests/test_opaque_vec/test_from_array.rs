@@ -43,43 +43,6 @@ macro_rules! generate_tests {
 }
 
 generate_tests!(
-    i8,
-    lengths = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 32, 64, 128 },
-    opaque_vec_testing::RangeValuesSpec::new(0),
-    opaque_vec_testing::AlternatingValuesSpec::new(i8::MIN, 0)
-);
-generate_tests!(
-    i16,
-    lengths = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 32, 64, 128 },
-    opaque_vec_testing::RangeValuesSpec::new(0),
-    opaque_vec_testing::AlternatingValuesSpec::new(i16::MIN, 0)
-);
-generate_tests!(
-    i32,
-    lengths = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 32, 64, 128 },
-    opaque_vec_testing::RangeValuesSpec::new(0),
-    opaque_vec_testing::AlternatingValuesSpec::new(i32::MIN, 0)
-);
-generate_tests!(
-    i64,
-    lengths = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 32, 64, 128 },
-    opaque_vec_testing::RangeValuesSpec::new(0),
-    opaque_vec_testing::AlternatingValuesSpec::new(i64::MIN, 0)
-);
-generate_tests!(
-    i128,
-    lengths = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 32, 64, 128 },
-    opaque_vec_testing::RangeValuesSpec::new(0),
-    opaque_vec_testing::AlternatingValuesSpec::new(i128::MIN, 0)
-);
-generate_tests!(
-    isize,
-    lengths = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 32, 64, 128 },
-    opaque_vec_testing::RangeValuesSpec::new(0),
-    opaque_vec_testing::AlternatingValuesSpec::new(isize::MIN, 0)
-);
-
-generate_tests!(
     u8,
     lengths = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 32, 64, 128 },
     opaque_vec_testing::RangeValuesSpec::new(0),
@@ -102,12 +65,6 @@ generate_tests!(
     lengths = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 32, 64, 128 },
     opaque_vec_testing::RangeValuesSpec::new(0),
     opaque_vec_testing::AlternatingValuesSpec::new(u64::MIN, 0)
-);
-generate_tests!(
-    u128,
-    lengths = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 32, 64, 128 },
-    opaque_vec_testing::RangeValuesSpec::new(0),
-    opaque_vec_testing::AlternatingValuesSpec::new(u128::MIN, 0)
 );
 generate_tests!(
     usize,

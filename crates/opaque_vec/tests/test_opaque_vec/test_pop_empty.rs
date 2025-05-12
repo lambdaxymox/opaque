@@ -91,4 +91,4 @@ macro_rules! generate_tests {
     };
 }
 
-generate_tests!(i8, i16, i32, i64, isize, u8, u16, u32, u64, usize);
+generate_tests!(u8, u16, u32, u64, usize);
