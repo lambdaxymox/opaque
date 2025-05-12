@@ -13,7 +13,7 @@ where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
 {
-    let mut result = common::from_entries::<K, V>(entries);
+    let mut result= common::opaque_index_map::from_entries::<K, V>(entries);
     result.clear::<K, V, hash::RandomState, alloc::Global>();
 
     assert!(result.is_empty::<K, V, hash::RandomState, alloc::Global>());

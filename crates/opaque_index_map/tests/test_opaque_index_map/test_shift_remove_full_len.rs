@@ -13,7 +13,7 @@ where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
 {
-    let mut map = common::from_entries(&entries);
+    let mut map = common::opaque_index_map::from_entries(&entries);
     let keys: Vec<K> = map.keys::<K, V, hash::RandomState, alloc::Global>().cloned().collect();
     for (i, key_i) in keys.iter().enumerate() {
         map.swap_remove_full::<K, K, V, hash::RandomState, alloc::Global>(key_i);

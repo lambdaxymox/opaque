@@ -27,7 +27,7 @@ where
     K: any::Any + Clone + Eq + hash::Hash,
     V: any::Any + Clone + Eq,
 {
-    let mut cloned_map = common::clone::<K, V, hash::RandomState, alloc::Global>(map);
+    let mut cloned_map = common::opaque_index_map::clone::<K, V, hash::RandomState, alloc::Global>(map);
     cloned_map.truncate::<K, V, hash::RandomState, alloc::Global>(len);
 
     let vec: Vec<(K, V)> = cloned_map
@@ -44,7 +44,7 @@ where
     V: any::Any + Clone + Eq + fmt::Debug,
 {
     for len in 0..entries.len() {
-        let map = common::from_entries(entries);
+        let map = common::opaque_index_map::from_entries(entries);
         let expected = expected::<K, V>(entries, len);
         let result = result::<K, V>(&map, len);
 

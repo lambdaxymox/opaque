@@ -36,7 +36,7 @@ where
     K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
 {
-    let mut map = common::from_entries::<K, V>(entries);
+    let mut map = common::opaque_index_map::from_entries::<K, V>(entries);
     let expected = expected::<K, V>(&entries);
     let result = result::<K, V>(&mut map);
 

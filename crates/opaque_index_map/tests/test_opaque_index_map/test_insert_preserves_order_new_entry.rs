@@ -14,7 +14,7 @@ where
     K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
 {
-    let mut map = common::from_entries(entries);
+    let mut map = common::opaque_index_map::from_entries(entries);
     
     assert!(!map.contains_key::<K, K, V, hash::RandomState, alloc::Global>(&new_entry.0));
 

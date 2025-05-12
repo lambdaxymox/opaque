@@ -13,7 +13,7 @@ where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
 {
-    let map = common::from_entries(&entries);
+    let map = common::opaque_index_map::from_entries(&entries);
     for (index, (key, _)) in map.iter::<K, V, hash::RandomState, alloc::Global>().enumerate() {
         let expected = Some(index);
         let result = map.get_index_of::<K, K, V, hash::RandomState, alloc::Global>(key);

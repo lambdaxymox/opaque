@@ -13,7 +13,7 @@ where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
 {
-    let mut map = common::from_entries(&entries);
+    let mut map = common::opaque_index_map::from_entries(&entries);
     let entries: Vec<(K, V)> = map.iter::<K, V, hash::RandomState, alloc::Global>().map(|(k, v)| (k.clone(), v.clone())).collect();
     for (key, value) in entries.iter() {
         let expected = Some(value.clone());

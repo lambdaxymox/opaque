@@ -13,7 +13,7 @@ where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
 {
-    let map = common::from_entries(&entries);
+    let map = common::opaque_index_map::from_entries(&entries);
     for (key, _) in map.iter::<K, V, hash::RandomState, alloc::Global>() {
         assert!(map.contains_key::<K, K, V, hash::RandomState, alloc::Global>(key));
     }

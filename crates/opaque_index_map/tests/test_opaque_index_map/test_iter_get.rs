@@ -13,7 +13,7 @@ where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
 {
-    let map = common::from_entries(&entries);
+    let map = common::opaque_index_map::from_entries(&entries);
     for (key, value) in map.iter::<K, V, hash::RandomState, alloc::Global>() {
         let expected = Some(value.clone());
         let result = map.get::<K, K, V, hash::RandomState, alloc::Global>(key).cloned();

@@ -28,7 +28,7 @@ where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
     V: any::Any + Clone + Eq + fmt::Debug,
 {
-    let map = common::from_entries_full(entries);
+    let map = common::opaque_index_map::from_entries_full(entries);
     let expected = expected(entries);
     let result = map.len::<K, V, hash::RandomState, alloc::Global>();
 

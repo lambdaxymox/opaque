@@ -13,8 +13,8 @@ where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
 {
-    let map = common::from_entries(entries);
-    let cloned_map = common::clone::<K, V, hash::RandomState, alloc::Global>(&map);
+    let map = common::opaque_index_map::from_entries(entries);
+    let cloned_map = common::opaque_index_map::clone::<K, V, hash::RandomState, alloc::Global>(&map);
 
     let expected = map.as_slice::<K, V, hash::RandomState, alloc::Global>();
     let result = cloned_map.as_slice::<K, V, hash::RandomState, alloc::Global>();

@@ -13,7 +13,7 @@ where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
 {
-    let mut map = common::from_entries::<K, V>(entries);
+    let mut map= common::opaque_index_map::from_entries::<K, V>(entries);
     map.clear::<K, V, hash::RandomState, alloc::Global>();
 
     let expected = 0;

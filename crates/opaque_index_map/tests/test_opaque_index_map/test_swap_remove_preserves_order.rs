@@ -27,7 +27,7 @@ where
     K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
 {
-    let mut new_map = common::clone::<K, V, hash::RandomState, alloc::Global>(map);
+    let mut new_map = common::opaque_index_map::clone::<K, V, hash::RandomState, alloc::Global>(map);
     new_map.swap_remove::<K, K, V, hash::RandomState, alloc::Global>(key);
 
     let ordered_entries: Vec<(K, V)> = new_map
@@ -43,7 +43,7 @@ where
     K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
 {
-    let base_map = common::from_entries(entries);
+    let base_map = common::opaque_index_map::from_entries(entries);
     let base_keys: Vec<K> = base_map.keys::<K, V, hash::RandomState, alloc::Global>().cloned().collect();
     for (index, key) in base_keys.iter().enumerate() {
         let expected = expected(entries, index, &key);
