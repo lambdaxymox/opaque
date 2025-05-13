@@ -5229,8 +5229,8 @@ where
 impl<K, V, S> FromIterator<(K, V)> for TypedProjIndexMap<K, V, S, alloc::Global>
 where
     K: any::Any + hash::Hash + Eq,
-    S: any::Any + hash::BuildHasher + Default,
     V: any::Any,
+    S: any::Any + hash::BuildHasher + Default,
 {
     fn from_iter<I: IntoIterator<Item = (K, V)>>(iterable: I) -> Self {
         let iter = iterable.into_iter();
@@ -6500,5 +6500,32 @@ impl OpaqueIndexMap {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
 
         proj_self.swap_indices(a, b)
+    }
+}
+
+impl<K, V> FromIterator<(K, V)> for OpaqueIndexMap
+where
+    K: any::Any + hash::Hash + Eq,
+    V: any::Any,
+{
+    fn from_iter<I>(iterable: I) -> Self
+    where
+        I: IntoIterator<Item = (K, V)>
+    {
+        let proj_map = TypedProjIndexMap::<K, V, hash::RandomState, alloc::Global>::from_iter(iterable);
+
+        Self::from_proj(proj_map)
+    }
+}
+
+impl<K, V, const N: usize> From<[(K, V); N]> for OpaqueIndexMap
+where
+    K: any::Any + hash::Hash + Eq,
+    V: any::Any,
+{
+    fn from(array: [(K, V); N]) -> Self {
+        let proj_map = TypedProjIndexMap::<K, V, hash::RandomState, alloc::Global>::from_iter(array);
+
+        Self::from_proj(proj_map)
     }
 }

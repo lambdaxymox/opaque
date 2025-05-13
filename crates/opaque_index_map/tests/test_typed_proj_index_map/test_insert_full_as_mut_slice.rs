@@ -32,7 +32,7 @@ where
     result
 }
 
-fn run_test_opaque_index_map_insert_full_as_mut_slice<K, V>(entries: &mut [(K, V)])
+fn run_test_typed_proj_index_map_insert_full_as_mut_slice<K, V>(entries: &mut [(K, V)])
 where
     K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
@@ -44,7 +44,7 @@ where
     assert_eq!(result, expected);
 }
 
-fn run_test_opaque_index_map_insert_full_as_mut_slice_values<K, V>(entries: &[(K, V)])
+fn run_test_typed_proj_index_map_insert_full_as_mut_slice_values<K, V>(entries: &[(K, V)])
 where
     K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
@@ -52,7 +52,7 @@ where
     let iter = oimt::PrefixGenerator::new(entries);
     for entries in iter {
         let mut cloned_entries = Vec::from(entries);
-        run_test_opaque_index_map_insert_full_as_mut_slice(cloned_entries.as_mut());
+        run_test_typed_proj_index_map_insert_full_as_mut_slice(cloned_entries.as_mut());
     }
 }
 
@@ -62,25 +62,25 @@ macro_rules! generate_tests {
             use super::*;
 
             #[test]
-            fn test_opaque_index_map_insert_full_as_mut_slice_empty() {
+            fn test_typed_proj_index_map_insert_full_as_mut_slice_empty() {
                 let keys: Vec<$key_typ> = Vec::from(&[]);
                 let values: Vec<$value_typ> = Vec::from(&[]);
                 let entries = oimt::key_value_pairs(keys.iter().cloned(), values.iter().cloned());
-                run_test_opaque_index_map_insert_full_as_mut_slice_values(&entries);
+                run_test_typed_proj_index_map_insert_full_as_mut_slice_values(&entries);
             }
 
             #[test]
-            fn test_opaque_index_map_insert_full_as_mut_slice_range_values() {
+            fn test_typed_proj_index_map_insert_full_as_mut_slice_range_values() {
                 let spec = $range_spec;
                 let entries = oimt::range_entries::<$key_typ, $value_typ>(spec);
-                run_test_opaque_index_map_insert_full_as_mut_slice_values(&entries);
+                run_test_typed_proj_index_map_insert_full_as_mut_slice_values(&entries);
             }
 
             #[test]
-            fn test_opaque_index_map_insert_full_as_mut_slice_constant_values() {
+            fn test_typed_proj_index_map_insert_full_as_mut_slice_constant_values() {
                 let spec = $const_spec;
                 let entries = oimt::constant_key_entries::<$key_typ, $value_typ>(spec);
-                run_test_opaque_index_map_insert_full_as_mut_slice_values(&entries);
+                run_test_typed_proj_index_map_insert_full_as_mut_slice_values(&entries);
             }
         }
     };

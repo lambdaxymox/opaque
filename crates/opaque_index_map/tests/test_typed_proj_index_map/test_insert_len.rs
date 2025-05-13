@@ -23,7 +23,7 @@ where
     unique_keys.len()
 }
 
-fn run_test_opaque_index_map_insert_len<K, V>(entries: &[(K, V)])
+fn run_test_typed_proj_index_map_insert_len<K, V>(entries: &[(K, V)])
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
     V: any::Any + Clone + Eq + fmt::Debug,
@@ -35,14 +35,14 @@ where
     assert_eq!(result, expected);
 }
 
-fn run_test_opaque_index_map_insert_len_values<K, V>(entries: &[(K, V)])
+fn run_test_typed_proj_index_map_insert_len_values<K, V>(entries: &[(K, V)])
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
     V: any::Any + Clone + Eq + fmt::Debug,
 {
     let iter = oimt::PrefixGenerator::new(entries);
     for entries in iter {
-        run_test_opaque_index_map_insert_len(entries);
+        run_test_typed_proj_index_map_insert_len(entries);
     }
 }
 
@@ -52,25 +52,25 @@ macro_rules! generate_tests {
             use super::*;
 
             #[test]
-            fn test_opaque_index_map_insert_len_empty() {
+            fn test_typed_proj_index_map_insert_len_empty() {
                 let keys: Vec<$key_typ> = Vec::from(&[]);
                 let values: Vec<$value_typ> = Vec::from(&[]);
                 let entries = oimt::key_value_pairs(keys.iter().cloned(), values.iter().cloned());
-                run_test_opaque_index_map_insert_len_values(&entries);
+                run_test_typed_proj_index_map_insert_len_values(&entries);
             }
 
             #[test]
-            fn test_opaque_index_map_insert_len_range_values() {
+            fn test_typed_proj_index_map_insert_len_range_values() {
                 let spec = $range_spec;
                 let entries = oimt::range_entries::<$key_typ, $value_typ>(spec);
-                run_test_opaque_index_map_insert_len_values(&entries);
+                run_test_typed_proj_index_map_insert_len_values(&entries);
             }
 
             #[test]
-            fn test_opaque_index_map_insert_len_constant_values() {
+            fn test_typed_proj_index_map_insert_len_constant_values() {
                 let spec = $const_spec;
                 let entries = oimt::constant_key_entries::<$key_typ, $value_typ>(spec);
-                run_test_opaque_index_map_insert_len_values(&entries);
+                run_test_typed_proj_index_map_insert_len_values(&entries);
             }
         }
     };

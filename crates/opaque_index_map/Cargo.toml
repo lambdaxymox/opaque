@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+criterion = "0.5.1"
 
 [dependencies.equivalent]
 version = "1.0.2"
@@ -29,3 +30,11 @@ path = "../opaque_vec"
 [dev-dependencies.opaque_index_map_testing]
 version = "0.1.0"
 path = "../opaque_index_map_testing_support"
+
+[dev-dependencies.indexmap]
+version = "2.9.0"
+
+[[bench]]
+name = "bench_opaque_index_map"
+harness = false
+path = "benches/lib.rs"

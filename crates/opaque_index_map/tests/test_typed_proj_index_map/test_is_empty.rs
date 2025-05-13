@@ -6,7 +6,7 @@ use std::alloc;
 use std::iter;
 use std::hash;
 
-fn run_test_opaque_index_map_empty_len<K, V, S, A>(build_hasher: S, alloc: A)
+fn run_test_typed_proj_index_map_empty_len<K, V, S, A>(build_hasher: S, alloc: A)
 where
     K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
@@ -20,7 +20,7 @@ where
     assert_eq!(result, expected);
 }
 
-fn run_test_opaque_index_map_empty_is_empty<K, V, S, A>(build_hasher: S, alloc: A)
+fn run_test_typed_proj_index_map_empty_is_empty<K, V, S, A>(build_hasher: S, alloc: A)
 where
     K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
@@ -32,7 +32,7 @@ where
     assert!(proj_map.is_empty());
 }
 
-fn run_test_opaque_index_map_empty_contains_no_values<K, V, S, A>(build_hasher: S, alloc: A)
+fn run_test_typed_proj_index_map_empty_contains_no_values<K, V, S, A>(build_hasher: S, alloc: A)
 where
     K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug + TryFrom<usize> + iter::Step,
     <K as TryFrom<usize>>::Error: fmt::Debug,
@@ -48,7 +48,7 @@ where
     }
 }
 
-fn run_test_opaque_index_map_empty_get<K, V, S, A>(build_hasher: S, alloc: A)
+fn run_test_typed_proj_index_map_empty_get<K, V, S, A>(build_hasher: S, alloc: A)
 where
     K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug + TryFrom<usize> + iter::Step,
     <K as TryFrom<usize>>::Error: fmt::Debug,
@@ -72,31 +72,31 @@ macro_rules! generate_tests {
             use super::*;
 
             #[test]
-            fn test_opaque_index_map_empty_len() {
+            fn test_typed_proj_index_map_empty_len() {
                 let build_hasher = hash::RandomState::default();
                 let alloc = alloc::Global;
-                run_test_opaque_index_map_empty_len::<$key_typ, $value_typ, hash::RandomState, alloc::Global>(build_hasher, alloc)
+                run_test_typed_proj_index_map_empty_len::<$key_typ, $value_typ, hash::RandomState, alloc::Global>(build_hasher, alloc)
             }
 
             #[test]
-            fn test_opaque_index_map_empty_is_empty() {
+            fn test_typed_proj_index_map_empty_is_empty() {
                 let build_hasher = hash::RandomState::default();
                 let alloc = alloc::Global;
-                run_test_opaque_index_map_empty_is_empty::<$key_typ, $value_typ, hash::RandomState, alloc::Global>(build_hasher, alloc)
+                run_test_typed_proj_index_map_empty_is_empty::<$key_typ, $value_typ, hash::RandomState, alloc::Global>(build_hasher, alloc)
             }
 
             #[test]
-            fn test_opaque_index_map_empty_contains_no_values() {
+            fn test_typed_proj_index_map_empty_contains_no_values() {
                 let build_hasher = hash::RandomState::default();
                 let alloc = alloc::Global;
-                run_test_opaque_index_map_empty_contains_no_values::<$key_typ, $value_typ, hash::RandomState, alloc::Global>(build_hasher, alloc)
+                run_test_typed_proj_index_map_empty_contains_no_values::<$key_typ, $value_typ, hash::RandomState, alloc::Global>(build_hasher, alloc)
             }
 
             #[test]
-            fn test_opaque_index_map_empty_get() {
+            fn test_typed_proj_index_map_empty_get() {
                 let build_hasher = hash::RandomState::default();
                 let alloc = alloc::Global;
-                run_test_opaque_index_map_empty_get::<$key_typ, $value_typ, hash::RandomState, alloc::Global>(build_hasher, alloc)
+                run_test_typed_proj_index_map_empty_get::<$key_typ, $value_typ, hash::RandomState, alloc::Global>(build_hasher, alloc)
             }
         }
     };
@@ -112,4 +112,3 @@ generate_tests!(
     key_type = usize,
     value_type = i64
 );
-

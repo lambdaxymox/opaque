@@ -9,7 +9,7 @@ use opaque_vec::OpaqueVec;
 
 use opaque_index_map_testing as oimt;
 
-fn run_test_opaque_index_map_insert_preserves_order_new_entry<K, V>(entries: &[(K, V)], new_entry: &(K, V))
+fn run_test_typed_proj_index_map_insert_preserves_order_new_entry<K, V>(entries: &[(K, V)], new_entry: &(K, V))
 where
     K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
@@ -34,14 +34,14 @@ where
     assert_eq!(result, expected);
 }
 
-fn run_test_opaque_index_map_insert_preserves_order_new_entry_values<K, V>(entries: &[(K, V)], new_entry: &(K, V))
+fn run_test_typed_proj_index_map_insert_preserves_order_new_entry_values<K, V>(entries: &[(K, V)], new_entry: &(K, V))
 where
     K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
 {
     let iter = oimt::PrefixGenerator::new(entries);
     for entries in iter {
-        run_test_opaque_index_map_insert_preserves_order_new_entry(entries, new_entry);
+        run_test_typed_proj_index_map_insert_preserves_order_new_entry(entries, new_entry);
     }
 }
 
@@ -51,28 +51,28 @@ macro_rules! generate_tests {
             use super::*;
 
             #[test]
-            fn test_opaque_index_map_insert_preserves_order_new_entry_empty() {
+            fn test_typed_proj_index_map_insert_preserves_order_new_entry_empty() {
                 let keys: Vec<$key_typ> = Vec::from(&[]);
                 let values: Vec<$value_typ> = Vec::from(&[]);
                 let entries = oimt::key_value_pairs(keys.iter().cloned(), values.iter().cloned());
                 let new_entry = $new_entry;
-                run_test_opaque_index_map_insert_preserves_order_new_entry_values(&entries, &new_entry);
+                run_test_typed_proj_index_map_insert_preserves_order_new_entry_values(&entries, &new_entry);
             }
 
             #[test]
-            fn test_opaque_index_map_insert_preserves_order_new_entry_range_values() {
+            fn test_typed_proj_index_map_insert_preserves_order_new_entry_range_values() {
                 let spec = $range_spec;
                 let entries = oimt::range_entries::<$key_typ, $value_typ>(spec);
                 let new_entry = $new_entry;
-                run_test_opaque_index_map_insert_preserves_order_new_entry_values(&entries, &new_entry);
+                run_test_typed_proj_index_map_insert_preserves_order_new_entry_values(&entries, &new_entry);
             }
 
             #[test]
-            fn test_opaque_index_map_insert_preserves_order_new_entry_constant_values() {
+            fn test_typed_proj_index_map_insert_preserves_order_new_entry_constant_values() {
                 let spec = $const_spec;
                 let entries = oimt::constant_key_entries::<$key_typ, $value_typ>(spec);
                 let new_entry = $new_entry;
-                run_test_opaque_index_map_insert_preserves_order_new_entry_values(&entries, &new_entry);
+                run_test_typed_proj_index_map_insert_preserves_order_new_entry_values(&entries, &new_entry);
             }
         }
     };

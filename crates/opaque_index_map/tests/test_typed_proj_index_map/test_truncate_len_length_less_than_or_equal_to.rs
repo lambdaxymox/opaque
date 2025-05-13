@@ -38,7 +38,7 @@ where
     vec
 }
 
-fn run_test_opaque_index_map_truncate_len_length_less_than_or_equal_to<K, V>(entries: &[(K, V)])
+fn run_test_typed_proj_index_map_truncate_len_length_less_than_or_equal_to<K, V>(entries: &[(K, V)])
 where
     K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
@@ -54,14 +54,14 @@ where
     }
 }
 
-fn run_test_opaque_index_map_truncate_len_length_less_than_or_equal_to_values<K, V>(entries: &[(K, V)])
+fn run_test_typed_proj_index_map_truncate_len_length_less_than_or_equal_to_values<K, V>(entries: &[(K, V)])
 where
     K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
 {
     let iter = oimt::PrefixGenerator::new(entries);
     for entries in iter {
-        run_test_opaque_index_map_truncate_len_length_less_than_or_equal_to(entries);
+        run_test_typed_proj_index_map_truncate_len_length_less_than_or_equal_to(entries);
     }
 }
 
@@ -71,25 +71,25 @@ macro_rules! generate_tests {
             use super::*;
 
             #[test]
-            fn test_opaque_index_map_truncate_len_length_less_than_or_equal_to_empty() {
+            fn test_typed_proj_index_map_truncate_len_length_less_than_or_equal_to_empty() {
                 let keys: Vec<$key_typ> = Vec::from(&[]);
                 let values: Vec<$value_typ> = Vec::from(&[]);
                 let entries = oimt::key_value_pairs(keys.iter().cloned(), values.iter().cloned());
-                run_test_opaque_index_map_truncate_len_length_less_than_or_equal_to_values(&entries);
+                run_test_typed_proj_index_map_truncate_len_length_less_than_or_equal_to_values(&entries);
             }
 
             #[test]
-            fn test_opaque_index_map_as_truncate_range_values() {
+            fn test_typed_proj_index_map_as_truncate_range_values() {
                 let spec = $range_spec;
                 let entries = oimt::range_entries::<$key_typ, $value_typ>(spec);
-                run_test_opaque_index_map_truncate_len_length_less_than_or_equal_to_values(&entries);
+                run_test_typed_proj_index_map_truncate_len_length_less_than_or_equal_to_values(&entries);
             }
 
             #[test]
-            fn test_opaque_index_map_truncate_len_length_less_than_or_equal_to_const_values() {
+            fn test_typed_proj_index_map_truncate_len_length_less_than_or_equal_to_const_values() {
                 let spec = $const_spec;
                 let entries = oimt::constant_key_entries::<$key_typ, $value_typ>(spec);
-                run_test_opaque_index_map_truncate_len_length_less_than_or_equal_to_values(&entries);
+                run_test_typed_proj_index_map_truncate_len_length_less_than_or_equal_to_values(&entries);
             }
         }
     };
