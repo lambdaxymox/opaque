@@ -3,7 +3,7 @@ use opaque_vec::{OpaqueVec, TypedProjVec};
 use std::{alloc, any};
 use std::alloc::{Global, System};
 
-fn run_test_opaque_vec_new_in_has_type<T, A>(alloc: A)
+fn run_test_typed_proj_vec_new_in_has_type<T, A>(alloc: A)
 where
     T: any::Any,
     A: any::Any + alloc::Allocator,
@@ -15,7 +15,7 @@ where
     assert!(opaque_vec.has_allocator_type::<A>());
 }
 
-fn run_test_opaque_vec_with_capacity_in_has_type<T, A>(alloc: A)
+fn run_test_typed_proj_vec_with_capacity_in_has_type<T, A>(alloc: A)
 where
     T: any::Any,
     A: any::Any + alloc::Allocator,
@@ -27,7 +27,7 @@ where
     assert!(opaque_vec.has_allocator_type::<A>());
 }
 
-fn run_test_opaque_vec_new_has_type<T>()
+fn run_test_typed_proj_vec_new_has_type<T>()
 where
     T: any::Any,
 {
@@ -38,7 +38,7 @@ where
     assert!(opaque_vec.has_allocator_type::<Global>());
 }
 
-fn run_test_opaque_vec_with_capacity_has_type<T>()
+fn run_test_typed_proj_vec_with_capacity_has_type<T>()
 where
     T: any::Any,
 {
@@ -50,30 +50,30 @@ where
 }
 
 macro_rules! generate_tests {
-    ($module_name:ident, $element_typ:ident, $alloc_typ:ident) => {
+    ($module_name:ident, $element_typ:ty, $alloc_typ:ty) => {
         mod $module_name {
             use super::*;
 
             #[test]
-            fn test_opaque_vec_new_in_has_type() {
-                let alloc: $alloc_typ = $alloc_typ::default();
-                run_test_opaque_vec_new_in_has_type::<$element_typ, $alloc_typ>(alloc);
+            fn test_typed_proj_vec_new_in_has_type() {
+                let alloc: $alloc_typ = Default::default();
+                run_test_typed_proj_vec_new_in_has_type::<$element_typ, $alloc_typ>(alloc);
             }
 
             #[test]
-            fn test_opaque_vec_with_capacity_in_has_type() {
-                let alloc: $alloc_typ = $alloc_typ::default();
-                run_test_opaque_vec_with_capacity_in_has_type::<$element_typ, $alloc_typ>(alloc);
+            fn test_typed_proj_vec_with_capacity_in_has_type() {
+                let alloc: $alloc_typ = Default::default();
+                run_test_typed_proj_vec_with_capacity_in_has_type::<$element_typ, $alloc_typ>(alloc);
             }
 
             #[test]
-            fn test_opaque_vec_new_has_type() {
-                run_test_opaque_vec_new_has_type::<$element_typ>();
+            fn test_typed_proj_vec_new_has_type() {
+                run_test_typed_proj_vec_new_has_type::<$element_typ>();
             }
 
             #[test]
-            fn test_opaque_vec_with_capacity_has_type() {
-                run_test_opaque_vec_with_capacity_has_type::<$element_typ>();
+            fn test_typed_proj_vec_with_capacity_has_type() {
+                run_test_typed_proj_vec_with_capacity_has_type::<$element_typ>();
             }
         }
     };
@@ -118,3 +118,6 @@ generate_tests!(char_system, char, System);
 
 generate_tests!(string_global, String, Global);
 generate_tests!(string_system, String, System);
+
+generate_tests!(box_any_global, Box<dyn any::Any>, Global);
+generate_tests!(box_any_system, Box<dyn any::Any>, System);

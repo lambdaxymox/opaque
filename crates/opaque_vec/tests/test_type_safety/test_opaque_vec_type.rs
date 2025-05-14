@@ -46,19 +46,19 @@ where
 }
 
 macro_rules! generate_tests {
-    ($module_name:ident, $element_typ:ident, $alloc_typ:ident) => {
+    ($module_name:ident, $element_typ:ty, $alloc_typ:ty) => {
         mod $module_name {
             use super::*;
 
             #[test]
             fn test_opaque_vec_new_in_has_type() {
-                let alloc: $alloc_typ = $alloc_typ::default();
+                let alloc: $alloc_typ = Default::default();
                 run_test_opaque_vec_new_in_has_type::<$element_typ, $alloc_typ>(alloc);
             }
 
             #[test]
             fn test_opaque_vec_with_capacity_in_has_type() {
-                let alloc: $alloc_typ = $alloc_typ::default();
+                let alloc: $alloc_typ = Default::default();
                 run_test_opaque_vec_with_capacity_in_has_type::<$element_typ, $alloc_typ>(alloc);
             }
 
@@ -114,3 +114,6 @@ generate_tests!(char_system, char, System);
 
 generate_tests!(string_global, String, Global);
 generate_tests!(string_system, String, System);
+
+generate_tests!(box_any_global, Box<dyn any::Any>, Global);
+generate_tests!(box_any_system, Box<dyn any::Any>, System);
