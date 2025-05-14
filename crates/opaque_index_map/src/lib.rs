@@ -2515,7 +2515,7 @@ impl OpaqueIndexMapCoreInner {
 }
 
 #[repr(transparent)]
-pub struct TypedProjIndexMapCore<K, V, A> {
+struct TypedProjIndexMapCore<K, V, A> {
     inner: OpaqueIndexMapCoreInner,
     _marker: PhantomData<(K, V, A)>,
 }
