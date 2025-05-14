@@ -54,75 +54,23 @@ const fn assuming_non_null_mut<T>(item: *const T) -> NonNull<T> {
     unsafe { *(item as *mut NonNull<T>) }
 }
 
-struct Extender<'a, T> {
-    inner: &'a mut OpaqueVecInner,
-    _marker: core::marker::PhantomData<T>,
-}
-
-impl<'a, T> Extender<'a, T> {
-    #[inline]
-    const fn new(inner: &'a mut OpaqueVecInner) -> Self {
-        Self {
-            inner,
-            _marker: core::marker::PhantomData,
-        }
-    }
-}
-
-impl<'a, T> Extend<T> for Extender<'a, T>
-where
-    T: any::Any,
-{
-    fn extend<I>(&mut self, iter: I)
-    where
-        I: IntoIterator<Item = T>,
-    {
-        for item in iter.into_iter() {
-            self.inner.push::<T>(item);
-        }
-    }
-}
-
-impl<'a, 'b, T> Extend<&'b T> for Extender<'a, T>
-where
-    T: any::Any + Copy,
-{
-    fn extend<I>(&mut self, iter: I)
-    where
-        I: IntoIterator<Item = &'b T>,
-    {
-        for item in iter.into_iter() {
-            self.inner.push::<T>(*item);
-        }
-    }
-}
-struct OpaqueVecInner {
+#[repr(C)]
+struct TypedProjVecInner<T, A> {
     data: OpaqueBlobVec,
     element_type_id: TypeId,
     allocator_type_id: TypeId,
+    _marker: PhantomData<(T, A)>,
 }
 
-impl OpaqueVecInner {
-    #[inline]
-    pub(crate) const fn element_type_id(&self) -> TypeId {
-        self.element_type_id
-    }
-
-    #[inline]
-    pub(crate) const fn allocator_type_id(&self) -> TypeId {
-        self.allocator_type_id
-    }
-}
-
-impl OpaqueVecInner {
+impl<T, A> TypedProjVecInner<T, A>
+where
+    T: any::Any,
+    A: any::Any + Allocator,
+{
     #[inline]
     #[must_use]
     #[track_caller]
-    pub(crate) fn new_proj_in<T, A>(proj_alloc: TypedProjAlloc<A>) -> Self
-    where
-        T: any::Any,
-        A: any::Any + Allocator,
-    {
+    pub(crate) fn new_proj_in(proj_alloc: TypedProjAlloc<A>) -> Self {
         unsafe fn drop_fn<T>(value: NonNull<u8>) {
             let to_drop = value.as_ptr() as *mut T;
 
@@ -133,20 +81,16 @@ impl OpaqueVecInner {
         let element_layout = Layout::new::<T>();
         let drop_fn = Some(drop_fn::<T> as unsafe fn(NonNull<u8>));
         let data = OpaqueBlobVec::new_in(opaque_alloc, element_layout, drop_fn);
-        let type_id = TypeId::of::<T>();
-        let alloc_type_id = TypeId::of::<A>();
+        let element_type_id = TypeId::of::<T>();
+        let allocator_type_id = TypeId::of::<A>();
 
-        Self { data, element_type_id: type_id, allocator_type_id: alloc_type_id }
+        Self { data, element_type_id, allocator_type_id, _marker: PhantomData, }
     }
 
     #[inline]
     #[must_use]
     #[track_caller]
-    pub(crate) fn with_capacity_proj_in<T, A>(capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self
-    where
-        T: any::Any,
-        A: any::Any + Allocator,
-    {
+    pub(crate) fn with_capacity_proj_in(capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self {
         unsafe fn drop_fn<T>(value: NonNull<u8>) {
             let to_drop = value.as_ptr() as *mut T;
 
@@ -157,18 +101,14 @@ impl OpaqueVecInner {
         let element_layout = Layout::new::<T>();
         let drop_fn = Some(drop_fn::<T> as unsafe fn(NonNull<u8>));
         let data = OpaqueBlobVec::with_capacity_in(capacity, opaque_alloc, element_layout, drop_fn);
-        let type_id = TypeId::of::<T>();
-        let alloc_type_id = TypeId::of::<A>();
+        let element_type_id = TypeId::of::<T>();
+        let allocator_type_id = TypeId::of::<A>();
 
-        Self { data, element_type_id: type_id, allocator_type_id: alloc_type_id }
+        Self { data, element_type_id, allocator_type_id, _marker: PhantomData, }
     }
 
     #[inline]
-    pub(crate) fn try_with_capacity_proj_in<T, A>(capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Result<Self, opaque_error::TryReserveError>
-    where
-        T: any::Any,
-        A: any::Any + Allocator,
-    {
+    pub(crate) fn try_with_capacity_proj_in(capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Result<Self, opaque_error::TryReserveError> {
         unsafe fn drop_fn<T>(value: NonNull<u8>) {
             let to_drop = value.as_ptr() as *mut T;
 
@@ -179,18 +119,14 @@ impl OpaqueVecInner {
         let element_layout = Layout::new::<T>();
         let drop_fn = Some(drop_fn::<T> as unsafe fn(NonNull<u8>));
         let data = OpaqueBlobVec::try_with_capacity_in(capacity, opaque_alloc, element_layout, drop_fn)?;
-        let type_id = TypeId::of::<T>();
-        let alloc_type_id = TypeId::of::<A>();
+        let element_type_id = TypeId::of::<T>();
+        let allocator_type_id = TypeId::of::<A>();
 
-        Ok(Self { data, element_type_id: type_id, allocator_type_id: alloc_type_id })
+        Ok(Self { data, element_type_id, allocator_type_id, _marker: PhantomData, })
     }
 
     #[inline]
-    pub(crate) unsafe fn from_raw_parts_proj_in<T, A>(ptr: *mut T, length: usize, capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self
-    where
-        T: any::Any,
-        A: any::Any + Allocator,
-    {
+    pub(crate) unsafe fn from_raw_parts_proj_in(ptr: *mut T, length: usize, capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self {
         unsafe fn drop_fn<T>(value: NonNull<u8>) {
             let to_drop = value.as_ptr() as *mut T;
 
@@ -202,18 +138,14 @@ impl OpaqueVecInner {
         let drop_fn = Some(drop_fn::<T> as unsafe fn(NonNull<u8>));
         let ptr_bytes = ptr.cast::<u8>();
         let data = OpaqueBlobVec::from_raw_parts_in(ptr_bytes, length, capacity, opaque_alloc, element_layout, drop_fn);
-        let type_id = TypeId::of::<T>();
-        let alloc_type_id = TypeId::of::<A>();
+        let element_type_id = TypeId::of::<T>();
+        let allocator_type_id = TypeId::of::<A>();
 
-        Self { data, element_type_id: type_id, allocator_type_id: alloc_type_id }
+        Self { data, element_type_id, allocator_type_id, _marker: PhantomData, }
     }
 
     #[inline]
-    pub(crate) unsafe fn from_parts_proj_in<T, A>(ptr: NonNull<T>, length: usize, capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self
-    where
-        T: any::Any,
-        A: any::Any + Allocator,
-    {
+    pub(crate) unsafe fn from_parts_proj_in(ptr: NonNull<T>, length: usize, capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self {
         unsafe fn drop_fn<T>(value: NonNull<u8>) {
             let to_drop = value.as_ptr() as *mut T;
 
@@ -225,123 +157,93 @@ impl OpaqueVecInner {
         let drop_fn = Some(drop_fn::<T> as unsafe fn(NonNull<u8>));
         let ptr_bytes = ptr.cast::<u8>();
         let data = OpaqueBlobVec::from_parts_in(ptr_bytes, length, capacity, opaque_alloc, element_layout, drop_fn);
-        let type_id = TypeId::of::<T>();
-        let alloc_type_id = TypeId::of::<A>();
+        let element_type_id = TypeId::of::<T>();
+        let allocator_type_id = TypeId::of::<A>();
 
-        Self { data, element_type_id: type_id, allocator_type_id: alloc_type_id }
+        Self { data, element_type_id, allocator_type_id, _marker: PhantomData, }
     }
 
     #[inline]
     #[must_use]
     #[track_caller]
-    pub(crate) fn new_in<T, A>(alloc: A) -> Self
-    where
-        T: any::Any,
-        A: any::Any + Allocator,
-    {
+    pub(crate) fn new_in(alloc: A) -> Self {
         let proj_alloc = TypedProjAlloc::new(alloc);
 
-        Self::new_proj_in::<T, A>(proj_alloc)
+        Self::new_proj_in(proj_alloc)
     }
 
     #[inline]
     #[must_use]
     #[track_caller]
-    pub(crate) fn with_capacity_in<T, A>(capacity: usize, alloc: A) -> Self
-    where
-        T: any::Any,
-        A: any::Any + Allocator,
-    {
+    pub(crate) fn with_capacity_in(capacity: usize, alloc: A) -> Self {
         let proj_alloc = TypedProjAlloc::new(alloc);
 
-        Self::with_capacity_proj_in::<T, A>(capacity, proj_alloc)
+        Self::with_capacity_proj_in(capacity, proj_alloc)
     }
 
     #[inline]
-    pub(crate) fn try_with_capacity_in<T, A>(capacity: usize, alloc: A) -> Result<Self, opaque_error::TryReserveError>
-    where
-        T: any::Any,
-        A: any::Any + Allocator,
-    {
+    pub(crate) fn try_with_capacity_in(capacity: usize, alloc: A) -> Result<Self, opaque_error::TryReserveError> {
         let proj_alloc = TypedProjAlloc::new(alloc);
 
-        Self::try_with_capacity_proj_in::<T, A>(capacity, proj_alloc)
+        Self::try_with_capacity_proj_in(capacity, proj_alloc)
     }
 
     #[inline]
-    pub(crate) unsafe fn from_raw_parts_in<T, A>(ptr: *mut T, length: usize, capacity: usize, alloc: A) -> Self
-    where
-        T: any::Any,
-        A: any::Any + Allocator,
-    {
+    pub(crate) unsafe fn from_raw_parts_in(ptr: *mut T, length: usize, capacity: usize, alloc: A) -> Self {
         let proj_alloc = TypedProjAlloc::new(alloc);
 
         Self::from_raw_parts_proj_in(ptr, length, capacity, proj_alloc)
     }
 
     #[inline]
-    pub(crate) unsafe fn from_parts_in<T, A>(ptr: NonNull<T>, length: usize, capacity: usize, alloc: A) -> Self
-    where
-        T: any::Any,
-        A: any::Any + Allocator,
-    {
+    pub(crate) unsafe fn from_parts_in(ptr: NonNull<T>, length: usize, capacity: usize, alloc: A) -> Self {
         let proj_alloc = TypedProjAlloc::new(alloc);
 
         Self::from_parts_proj_in(ptr, length, capacity, proj_alloc)
     }
 }
 
-impl OpaqueVecInner {
+impl<T> TypedProjVecInner<T, Global>
+where
+    T: any::Any,
+{
     #[inline]
     #[must_use]
     #[track_caller]
-    pub(crate) fn new<T>() -> Self
-    where
-        T: any::Any,
-    {
-        Self::new_in::<T, Global>(Global)
+    pub(crate) fn new() -> Self {
+        Self::new_in(Global)
     }
 
     #[inline]
     #[must_use]
     #[track_caller]
-    pub(crate) fn with_capacity<T>(capacity: usize) -> Self
-    where
-        T: any::Any,
-    {
-        Self::with_capacity_in::<T, Global>(capacity, Global)
+    pub(crate) fn with_capacity(capacity: usize) -> Self {
+        Self::with_capacity_in(capacity, Global)
     }
 
     #[inline]
-    pub(crate) fn try_with_capacity<T>(capacity: usize) -> Result<Self, opaque_error::TryReserveError>
-    where
-        T: any::Any,
-    {
-        Self::try_with_capacity_in::<T, Global>(capacity, Global)
+    pub(crate) fn try_with_capacity(capacity: usize) -> Result<Self, opaque_error::TryReserveError> {
+        Self::try_with_capacity_in(capacity, Global)
     }
 
     #[inline]
-    pub(crate) unsafe fn from_raw_parts<T>(ptr: *mut T, length: usize, capacity: usize) -> Self
-    where
-        T: any::Any,
-    {
+    pub(crate) unsafe fn from_raw_parts(ptr: *mut T, length: usize, capacity: usize) -> Self {
         Self::from_raw_parts_in(ptr, length, capacity, Global)
     }
 
     #[inline]
-    pub(crate) unsafe fn from_parts<T>(ptr: NonNull<T>, length: usize, capacity: usize) -> Self
-    where
-        T: any::Any,
-    {
+    pub(crate) unsafe fn from_parts(ptr: NonNull<T>, length: usize, capacity: usize) -> Self {
         Self::from_parts_in(ptr, length, capacity, Global)
     }
 }
 
-impl OpaqueVecInner {
+impl<T, A> TypedProjVecInner<T, A> {
+    /*
     #[inline]
     pub(crate) const fn element_layout(&self) -> Layout {
         self.data.element_layout()
     }
+    */
 
     #[inline]
     pub(crate) const fn capacity(&self) -> usize {
@@ -357,45 +259,42 @@ impl OpaqueVecInner {
     pub(crate) const fn len(&self) -> usize {
         self.data.len()
     }
+}
 
+impl<T, A> TypedProjVecInner<T, A>
+where
+    T: any::Any,
+    A: any::Any + Allocator,
+{
     #[inline]
-    pub(crate) fn allocator<T, A>(&self) -> &TypedProjAlloc<A>
-    where
-        T: any::Any,
-        A: any::Any + Allocator,
-    {
+    pub(crate) fn allocator(&self) -> &TypedProjAlloc<A> {
         self.data.allocator().as_proj::<A>()
     }
 }
 
-impl OpaqueVecInner {
+impl<T, A> TypedProjVecInner<T, A>
+where
+    T: any::Any,
+    A: any::Any,
+{
     #[inline]
     unsafe fn set_len(&mut self, new_len: usize) {
         self.data.set_len(new_len);
     }
 
     #[inline]
-    pub(crate) fn iter<T>(&self) -> slice::Iter<'_, T>
-    where
-        T: any::Any,
-    {
-        self.as_slice::<T>().iter()
+    pub(crate) fn iter(&self) -> slice::Iter<'_, T> {
+        self.as_slice().iter()
     }
 
     #[inline]
-    pub(crate) fn iter_mut<T>(&mut self) -> slice::IterMut<'_, T>
-    where
-        T: any::Any,
-    {
-        self.as_mut_slice::<T>().iter_mut()
+    pub(crate) fn iter_mut(&mut self) -> slice::IterMut<'_, T> {
+        self.as_mut_slice().iter_mut()
     }
 
     #[inline]
     #[must_use]
-    pub(crate) fn get_unchecked<T>(&self, index: usize) -> &T
-    where
-        T: any::Any,
-    {
+    pub(crate) fn get_unchecked(&self, index: usize) -> &T {
         let ptr = self.data.get_unchecked(index);
 
         // SAFETY:
@@ -406,10 +305,7 @@ impl OpaqueVecInner {
 
     #[inline]
     #[must_use]
-    pub(crate) fn get_mut_unchecked<T>(&mut self, index: usize) -> &mut T
-    where
-        T: any::Any,
-    {
+    pub(crate) fn get_mut_unchecked(&mut self, index: usize) -> &mut T {
         let ptr = self.data.get_mut_unchecked(index);
 
         // SAFETY:
@@ -420,10 +316,7 @@ impl OpaqueVecInner {
 
     #[inline]
     #[track_caller]
-    pub(crate) fn push<T>(&mut self, value: T)
-    where
-        T: any::Any,
-    {
+    pub(crate) fn push(&mut self, value: T) {
         let mut me = ManuallyDrop::new(value);
         let value_ptr = unsafe { NonNull::new_unchecked(&mut *me as *mut T as *mut u8) };
 
@@ -431,10 +324,7 @@ impl OpaqueVecInner {
     }
 
     #[inline]
-    pub(crate) fn pop<T>(&mut self) -> Option<T>
-    where
-        T: any::Any,
-    {
+    pub(crate) fn pop(&mut self) -> Option<T> {
         if self.data.len() == 0 {
             None
         } else {
@@ -451,10 +341,7 @@ impl OpaqueVecInner {
     }
 
     #[inline]
-    pub(crate) fn replace_insert<T>(&mut self, index: usize, value: T)
-    where
-        T: any::Any,
-    {
+    pub(crate) fn replace_insert(&mut self, index: usize, value: T) {
         #[cold]
         #[track_caller]
         #[optimize(size)]
@@ -474,10 +361,7 @@ impl OpaqueVecInner {
     }
 
     #[inline]
-    pub(crate) fn shift_insert<T>(&mut self, index: usize, value: T)
-    where
-        T: any::Any,
-    {
+    pub(crate) fn shift_insert(&mut self, index: usize, value: T) {
         #[cold]
         #[track_caller]
         #[optimize(size)]
@@ -497,10 +381,7 @@ impl OpaqueVecInner {
     }
 
     #[inline]
-    pub(crate) fn swap_remove<T>(&mut self, index: usize) -> T
-    where
-        T: any::Any,
-    {
+    pub(crate) fn swap_remove(&mut self, index: usize) -> T {
         #[cold]
         #[track_caller]
         #[optimize(size)]
@@ -526,10 +407,7 @@ impl OpaqueVecInner {
     }
 
     #[inline]
-    pub(crate) fn shift_remove<T>(&mut self, index: usize) -> T
-    where
-        T: any::Any,
-    {
+    pub(crate) fn shift_remove(&mut self, index: usize) -> T {
         #[cold]
         #[track_caller]
         #[optimize(size)]
@@ -556,43 +434,31 @@ impl OpaqueVecInner {
     }
 
     #[inline]
-    pub(crate) fn contains<T>(&self, value: &T) -> bool
+    pub(crate) fn contains(&self, value: &T) -> bool
     where
-        T: any::Any + PartialEq,
+        T: PartialEq,
     {
-        self.as_slice::<T>().contains(value)
+        self.as_slice().contains(value)
     }
 
     #[inline]
-    pub const fn as_ptr<T>(&self) -> *const T
-    where
-        T: any::Any,
-    {
+    pub const fn as_ptr(&self) -> *const T {
         self.data.as_ptr() as *const T
     }
 
     #[inline]
-    pub(crate) const fn as_mut_ptr<T>(&mut self) -> *mut T
-    where
-        T: any::Any,
-    {
+    pub(crate) const fn as_mut_ptr(&mut self) -> *mut T {
         self.data.as_mut_ptr() as *mut T
     }
 
     #[inline]
-    pub(crate) const fn as_non_null<T>(&mut self) -> NonNull<T>
-    where
-        T: any::Any,
-    {
-        // SAFETY: An [`OpaqueVec`] always holds a non-null pointer.
+    pub(crate) const fn as_non_null(&mut self) -> NonNull<T> {
+        // SAFETY: A [`TypedProjVecInner`] always holds a non-null pointer.
         self.data.as_non_null().cast::<T>()
     }
 
     #[inline]
-    pub(crate) fn as_slice<T>(&self) -> &[T]
-    where
-        T: any::Any,
-    {
+    pub(crate) fn as_slice(&self) -> &[T] {
         unsafe {
             let data_ptr = self.data.as_ptr() as *const T;
             let len = self.data.len();
@@ -602,10 +468,7 @@ impl OpaqueVecInner {
     }
 
     #[inline]
-    pub(crate) fn as_mut_slice<T>(&mut self) -> &mut [T]
-    where
-        T: any::Any,
-    {
+    pub(crate) fn as_mut_slice(&mut self) -> &mut [T] {
         unsafe {
             let data_ptr = self.data.as_mut_ptr() as *mut T;
             let len = self.data.len();
@@ -616,10 +479,7 @@ impl OpaqueVecInner {
 
     #[inline]
     #[must_use]
-    pub(crate) fn into_raw_parts<T>(self) -> (*mut T, usize, usize)
-    where
-        T: any::Any,
-    {
+    pub(crate) fn into_raw_parts(self) -> (*mut T, usize, usize) {
         let mut me = ManuallyDrop::new(self);
         let ptr = me.as_mut_ptr();
         let len = me.len();
@@ -630,10 +490,7 @@ impl OpaqueVecInner {
 
     #[inline]
     #[must_use]
-    pub(crate) fn into_parts<T>(self) -> (NonNull<T>, usize, usize)
-    where
-        T: any::Any,
-    {
+    pub(crate) fn into_parts(self) -> (NonNull<T>, usize, usize) {
         let mut me = ManuallyDrop::new(self);
 
         // SAFETY: An `OpaqueVec` always has a non-null pointer.
@@ -646,26 +503,24 @@ impl OpaqueVecInner {
 
     #[inline]
     #[must_use]
-    pub(crate) fn into_raw_parts_with_alloc<T, A>(self) -> (*mut T, usize, usize, TypedProjAlloc<A>)
+    pub(crate) fn into_raw_parts_with_alloc(self) -> (*mut T, usize, usize, TypedProjAlloc<A>)
     where
-        T: any::Any,
-        A: any::Any + Allocator,
+        A: Allocator,
     {
         let mut me = ManuallyDrop::new(self);
         let ptr = me.as_mut_ptr();
         let len = me.len();
         let capacity = me.capacity();
-        let alloc = unsafe { core::ptr::read(me.allocator::<T, A>()) };
+        let alloc = unsafe { core::ptr::read(me.allocator()) };
 
         (ptr, len, capacity, alloc)
     }
 
     #[inline]
     #[must_use]
-    pub(crate) fn into_parts_with_alloc<T, A>(self) -> (NonNull<T>, usize, usize, TypedProjAlloc<A>)
+    pub(crate) fn into_parts_with_alloc(self) -> (NonNull<T>, usize, usize, TypedProjAlloc<A>)
     where
-        T: any::Any,
-        A: any::Any + Allocator,
+        A: Allocator,
     {
         let mut me = ManuallyDrop::new(self);
 
@@ -673,28 +528,24 @@ impl OpaqueVecInner {
         let ptr = unsafe { NonNull::new_unchecked(me.as_mut_ptr()) };
         let len = me.len();
         let capacity = me.capacity();
-        let alloc = unsafe { core::ptr::read(me.allocator::<T, A>()) };
+        let alloc = unsafe { core::ptr::read(me.allocator()) };
 
         (ptr, len, capacity, alloc)
     }
 
     #[inline]
-    pub(crate) fn spare_capacity_mut<T>(&mut self) -> &mut [MaybeUninit<T>]
-    where
-        T: any::Any,
-    {
+    pub(crate) fn spare_capacity_mut(&mut self) -> &mut [MaybeUninit<T>] {
         unsafe {
-            let ptr = self.as_mut_ptr::<T>().add(self.len()) as *mut MaybeUninit<T>;
+            let ptr = self.as_mut_ptr().add(self.len()) as *mut MaybeUninit<T>;
             let len = self.capacity() - self.len();
 
             std::slice::from_raw_parts_mut(ptr, len)
         }
     }
 
-    pub(crate) fn drain<R, T, A>(&mut self, range: R) -> Drain<'_, T, A>
+    pub(crate) fn drain<R>(&mut self, range: R) -> Drain<'_, T, A>
     where
-        T: any::Any,
-        A: any::Any + Allocator,
+        A: Allocator,
         R: ops::RangeBounds<usize>,
     {
         // Memory safety
@@ -713,20 +564,21 @@ impl OpaqueVecInner {
         unsafe {
             // set self.vec length's to start, to be safe in case Drain is leaked
             self.set_len(start);
-            let range_slice = slice::from_raw_parts(self.as_ptr::<T>().add(start), end - start);
+            let range_slice = slice::from_raw_parts(self.as_ptr().add(start), end - start);
 
             Drain::from_parts(end, len - end, range_slice.iter(), NonNull::from(self))
         }
     }
 }
 
-impl OpaqueVecInner {
+impl<T, A> TypedProjVecInner<T, A>
+where
+    T: any::Any,
+    A: any::Any,
+{
     #[inline]
     #[must_use]
-    pub(crate) fn get<T>(&self, index: usize) -> Option<&T>
-    where
-        T: any::Any,
-    {
+    pub(crate) fn get(&self, index: usize) -> Option<&T> {
         if index >= self.data.len() {
             return None;
         }
@@ -738,10 +590,7 @@ impl OpaqueVecInner {
 
     #[inline]
     #[must_use]
-    pub(crate) fn get_mut<T>(&mut self, index: usize) -> Option<&mut T>
-    where
-        T: any::Any,
-    {
+    pub(crate) fn get_mut(&mut self, index: usize) -> Option<&mut T> {
         if index >= self.data.len() {
             return None;
         }
@@ -752,15 +601,12 @@ impl OpaqueVecInner {
     }
 
     #[inline]
-    pub(crate) fn push_within_capacity<T>(&mut self, value: T) -> Result<(), T>
-    where
-        T: any::Any,
-    {
+    pub(crate) fn push_within_capacity(&mut self, value: T) -> Result<(), T> {
         if self.data.len() == self.data.capacity() {
             return Err(value);
         }
 
-        self.push::<T>(value);
+        self.push(value);
 
         Ok(())
     }
@@ -768,12 +614,9 @@ impl OpaqueVecInner {
     #[cfg(not(no_global_oom_handling))]
     #[inline]
     #[track_caller]
-    pub(crate) fn append<T>(&mut self, other: &mut Self)
-    where
-        T: any::Any,
-    {
+    pub(crate) fn append(&mut self, other: &mut Self) {
         unsafe {
-            let ptr = NonNull::new_unchecked(other.as_mut_slice::<T>().as_mut_ptr().cast::<u8>());
+            let ptr = NonNull::new_unchecked(other.as_mut_slice().as_mut_ptr().cast::<u8>());
             let count = other.len();
 
             self.data.append(ptr, count);
@@ -789,18 +632,17 @@ impl OpaqueVecInner {
     #[cfg(not(no_global_oom_handling))]
     #[inline]
     #[track_caller]
-    pub(crate) fn into_boxed_slice<T, A>(mut self) -> Box<[T], TypedProjAlloc<A>>
+    pub(crate) fn into_boxed_slice(mut self) -> Box<[T], TypedProjAlloc<A>>
     where
-        T: any::Any,
-        A: any::Any + Allocator,
+        A: Allocator,
     {
         unsafe {
             self.shrink_to_fit();
             let mut me = ManuallyDrop::new(self);
             let len = me.len();
-            let ptr = me.as_mut_ptr::<T>();
+            let ptr = me.as_mut_ptr();
             let slice_ptr = std::ptr::slice_from_raw_parts_mut(ptr, len);
-            let alloc = core::ptr::read(me.allocator::<T, A>());
+            let alloc = core::ptr::read(me.allocator());
 
             Box::from_raw_in(slice_ptr, alloc)
         }
@@ -808,10 +650,9 @@ impl OpaqueVecInner {
 
     #[cfg(not(no_global_oom_handling))]
     #[inline]
-    pub(crate) fn split_off<T, A>(&mut self, at: usize) -> Self
+    pub(crate) fn split_off(&mut self, at: usize) -> Self
     where
-        T: any::Any,
-        A: any::Any + Allocator + Clone,
+        A: Allocator + Clone,
     {
         #[cold]
         #[track_caller]
@@ -826,11 +667,11 @@ impl OpaqueVecInner {
 
         let other_len = self.len() - at;
         let mut other = {
-            let cloned_alloc = self.allocator::<T, A>().clone();
+            let cloned_alloc = self.allocator().clone();
             let box_alloc = cloned_alloc.into_boxed_alloc();
             let split_alloc = TypedProjAlloc::from_boxed_alloc(box_alloc);
 
-            OpaqueVecInner::with_capacity_proj_in::<T, A>(other_len, split_alloc)
+            TypedProjVecInner::with_capacity_proj_in(other_len, split_alloc)
         };
 
         // Unsafely `set_len` and copy items to `other`.
@@ -838,28 +679,32 @@ impl OpaqueVecInner {
             self.set_len(at);
             other.set_len(other_len);
 
-            core::ptr::copy_nonoverlapping(self.as_ptr::<T>().add(at), other.as_mut_ptr::<T>(), other.len());
+            core::ptr::copy_nonoverlapping(self.as_ptr().add(at), other.as_mut_ptr(), other.len());
         }
 
         other
     }
 
     #[inline]
-    pub(crate) fn resize_with<F, T>(&mut self, new_len: usize, f: F)
+    pub(crate) fn resize_with<F>(&mut self, new_len: usize, f: F)
     where
-        T: any::Any,
+        A: Allocator,
         F: FnMut() -> T,
     {
         let len = self.len();
         if new_len > len {
-            self.extend::<_, T>(core::iter::repeat_with(f).take(new_len - len));
+            self.extend::<_>(core::iter::repeat_with(f).take(new_len - len));
         } else {
             self.truncate(new_len);
         }
     }
 }
 
-impl OpaqueVecInner {
+impl<T, A> TypedProjVecInner<T, A>
+where
+    T: any::Any,
+    A: any::Any,
+{
     #[inline]
     pub(crate) fn try_reserve(&mut self, additional: usize) -> Result<(), opaque_error::TryReserveError> {
         self.data.try_reserve(additional)
@@ -903,11 +748,15 @@ impl OpaqueVecInner {
     }
 }
 
-impl OpaqueVecInner {
+impl<T, A> TypedProjVecInner<T, A>
+where
+    T: any::Any,
+    A: any::Any,
+{
     #[inline]
-    pub(crate) fn extend_with<T>(&mut self, count: usize, value: T)
+    pub(crate) fn extend_with(&mut self, count: usize, value: T)
     where
-        T: any::Any + Clone,
+        T: Clone,
     {
         let value_ptr = unsafe { NonNull::new_unchecked(&value as *const T as *mut T as *mut u8) };
 
@@ -915,28 +764,28 @@ impl OpaqueVecInner {
     }
 
     #[inline]
-    pub(crate) fn extend_from_iter<I, T>(&mut self, mut iterator: I)
+    pub(crate) fn extend_from_iter<I>(&mut self, mut iterator: I)
     where
-        T: any::Any + Clone,
+        T: Clone,
         I: Iterator<Item = T>,
     {
         for item in iterator {
-            self.push::<T>(item);
+            self.push(item);
         }
     }
 
     #[inline]
-    pub(crate) fn extend_from_slice<T>(&mut self, other: &[T])
+    pub(crate) fn extend_from_slice(&mut self, other: &[T])
     where
-        T: any::Any + Clone,
+        T: Clone,
     {
-        self.extend_from_iter::<_, T>(other.iter().cloned())
+        self.extend_from_iter::<_>(other.iter().cloned())
     }
 
     #[inline]
-    pub(crate) fn resize<T>(&mut self, new_len: usize, value: T)
+    pub(crate) fn resize(&mut self, new_len: usize, value: T)
     where
-        T: any::Any + Clone,
+        T: Clone,
     {
         let len = self.len();
 
@@ -948,20 +797,22 @@ impl OpaqueVecInner {
     }
 }
 
-impl OpaqueVecInner {
-    pub(crate) fn retain<F, T, A>(&mut self, mut f: F)
+impl<T, A> TypedProjVecInner<T, A>
+where
+    T: any::Any,
+    A: any::Any,
+{
+    pub(crate) fn retain<F>(&mut self, mut f: F)
     where
-        T: any::Any,
-        A: any::Any + Allocator,
+        A: Allocator,
         F: FnMut(&T) -> bool,
     {
-        self.retain_mut::<_, T, A>(|elem| f(elem));
+        self.retain_mut::<_>(|elem| f(elem));
     }
 
-    pub(crate) fn retain_mut<F, T, A>(&mut self, mut f: F)
+    pub(crate) fn retain_mut<F>(&mut self, mut f: F)
     where
-        T: any::Any,
-        A: any::Any + Allocator,
+        A: Allocator,
         F: FnMut(&mut T) -> bool,
     {
         let original_len = self.len();
@@ -989,27 +840,26 @@ impl OpaqueVecInner {
         struct BackshiftOnDrop<'a, T, A>
         where
             T: any::Any,
-            A: Allocator,
+            A: any::Any + Allocator,
         {
-            v: &'a mut OpaqueVecInner,
+            v: &'a mut TypedProjVecInner<T, A>,
             processed_len: usize,
             deleted_cnt: usize,
             original_len: usize,
-            _marker: PhantomData<(T, A)>,
         }
 
         impl<T, A> Drop for BackshiftOnDrop<'_, T, A>
         where
             T: any::Any,
-            A: Allocator,
+            A: any::Any + Allocator,
         {
             fn drop(&mut self) {
                 if self.deleted_cnt > 0 {
                     // SAFETY: Trailing unchecked items must be valid since we never touch them.
                     unsafe {
                         core::ptr::copy(
-                            self.v.as_ptr::<T>().add(self.processed_len),
-                            self.v.as_mut_ptr::<T>().add(self.processed_len - self.deleted_cnt),
+                            self.v.as_ptr().add(self.processed_len),
+                            self.v.as_mut_ptr().add(self.processed_len - self.deleted_cnt),
                             self.original_len - self.processed_len,
                         );
                     }
@@ -1026,18 +876,17 @@ impl OpaqueVecInner {
             processed_len: 0,
             deleted_cnt: 0,
             original_len,
-            _marker: PhantomData,
         };
 
         fn process_loop<F, T, A, const DELETED: bool>(original_len: usize, f: &mut F, g: &mut BackshiftOnDrop<'_, T, A>)
         where
             T: any::Any,
-            A: Allocator,
+            A: any::Any + Allocator,
             F: FnMut(&mut T) -> bool,
         {
             while g.processed_len != original_len {
                 // SAFETY: Unchecked element must be valid.
-                let cur = unsafe { &mut *g.v.as_mut_ptr::<T>().add(g.processed_len) };
+                let cur = unsafe { &mut *g.v.as_mut_ptr().add(g.processed_len) };
                 if !f(cur) {
                     // Advance early to avoid double drop if `drop_in_place` panicked.
                     g.processed_len += 1;
@@ -1055,7 +904,7 @@ impl OpaqueVecInner {
                     // SAFETY: `deleted_cnt` > 0, so the hole slot must not overlap with current element.
                     // We use copy for move, and never touch this element again.
                     unsafe {
-                        let hole_slot = g.v.as_mut_ptr::<T>().add(g.processed_len - g.deleted_cnt);
+                        let hole_slot = g.v.as_mut_ptr().add(g.processed_len - g.deleted_cnt);
                         core::ptr::copy_nonoverlapping(cur, hole_slot, 1);
                     }
                 }
@@ -1073,10 +922,9 @@ impl OpaqueVecInner {
         drop(g);
     }
 
-    pub(crate) fn dedup_by<F, T, A>(&mut self, mut same_bucket: F)
+    pub(crate) fn dedup_by<F>(&mut self, mut same_bucket: F)
     where
-        T: any::Any,
-        A: any::Any + Allocator,
+        A: Allocator,
         F: FnMut(&mut T, &mut T) -> bool,
     {
         let len = self.len();
@@ -1088,7 +936,7 @@ impl OpaqueVecInner {
         // This allows to use copy_non_overlapping in next cycle.
         // And avoids any memory writes if we don't need to remove anything.
         let mut first_duplicate_idx: usize = 1;
-        let start = self.as_mut_ptr::<T>();
+        let start = self.as_mut_ptr();
         while first_duplicate_idx != len {
             let found_duplicate = unsafe {
                 // SAFETY: first_duplicate always in range [1..len)
@@ -1113,7 +961,7 @@ impl OpaqueVecInner {
         struct FillGapOnDrop<'a, T, A>
         where
             T: any::Any,
-            A: core::alloc::Allocator,
+            A: any::Any + core::alloc::Allocator,
         {
             /* Offset of the element we want to check if it is duplicate */
             read: usize,
@@ -1123,14 +971,13 @@ impl OpaqueVecInner {
             write: usize,
 
             /* The Vec that would need correction if `same_bucket` panicked */
-            vec: &'a mut OpaqueVecInner,
-            _marker: PhantomData<(T, A)>,
+            vec: &'a mut TypedProjVecInner<T, A>,
         }
 
         impl<'a, T, A> Drop for FillGapOnDrop<'a, T, A>
         where
             T: any::Any,
-            A: core::alloc::Allocator,
+            A: any::Any + core::alloc::Allocator,
         {
             fn drop(&mut self) {
                 /* This code gets executed when `same_bucket` panics */
@@ -1139,7 +986,7 @@ impl OpaqueVecInner {
                  * and `len - read` never overflow and that the copy is always
                  * in-bounds. */
                 unsafe {
-                    let ptr = self.vec.as_mut_ptr::<T>();
+                    let ptr = self.vec.as_mut_ptr();
                     let len = self.vec.len();
 
                     /* How many items were left when `same_bucket` panicked.
@@ -1172,7 +1019,6 @@ impl OpaqueVecInner {
             read: first_duplicate_idx + 1,
             write: first_duplicate_idx,
             vec: self,
-            _marker: PhantomData,
         };
 
         unsafe {
@@ -1218,24 +1064,26 @@ impl OpaqueVecInner {
     }
 
     #[inline]
-    pub(crate) fn dedup_by_key<F, K, T, A>(&mut self, mut key: F)
+    pub(crate) fn dedup_by_key<F, K>(&mut self, mut key: F)
     where
-        T: any::Any,
-        A: any::Any + Allocator,
+        A: Allocator,
         F: FnMut(&mut T) -> K,
         K: PartialEq,
     {
-        self.dedup_by::<_, T, A>(|a, b| key(a) == key(b))
+        self.dedup_by::<_>(|a, b| key(a) == key(b))
     }
 }
 
-impl OpaqueVecInner {
+impl<T, A> TypedProjVecInner<T, A>
+where
+    T: any::Any,
+    A: any::Any,
+{
     #[cfg(not(no_global_oom_handling))]
     #[inline]
-    pub(crate) fn splice<R, I, T, A>(&mut self, range: R, replace_with: I) -> Splice<'_, I::IntoIter, A>
+    pub(crate) fn splice<R, I>(&mut self, range: R, replace_with: I) -> Splice<'_, I::IntoIter, A>
     where
-        T: any::Any,
-        A: any::Any + Allocator,
+        A: Allocator,
         R: ops::RangeBounds<usize>,
         I: IntoIterator<Item=T>,
     {
@@ -1243,10 +1091,9 @@ impl OpaqueVecInner {
     }
 
     #[inline]
-    pub(crate) fn extract_if<F, R, T, A>(&mut self, range: R, filter: F) -> ExtractIf<'_, T, F, A>
+    pub(crate) fn extract_if<F, R>(&mut self, range: R, filter: F) -> ExtractIf<'_, T, F, A>
     where
-        T: any::Any,
-        A: any::Any + Allocator,
+        A: Allocator,
         F: FnMut(&mut T) -> bool,
         R: ops::RangeBounds<usize>,
     {
@@ -1257,24 +1104,48 @@ impl OpaqueVecInner {
     pub(crate) fn truncate(&mut self, len: usize) {
         self.data.truncate(len);
     }
+}
 
-    #[inline]
-    pub(crate) fn extend<I, T>(&mut self, iter: I)
+impl<T, A> Extend<T> for TypedProjVecInner<T, A>
+where
+    T: any::Any,
+    A: any::Any + Allocator,
+{
+    fn extend<I>(&mut self, iter: I)
     where
-        T: any::Any,
-        I: IntoIterator<Item=T>,
+        I: IntoIterator<Item = T>,
     {
-        let mut extender = Extender::new(self);
-        extender.extend(iter)
+        for item in iter.into_iter() {
+            self.push(item);
+        }
     }
 }
 
-impl OpaqueVecInner {
-    #[inline]
-    pub(crate) fn clone<T, A>(&self) -> Self
+impl<'a, T, A> Extend<&'a T> for TypedProjVecInner<T, A>
+where
+    T: any::Any + Copy,
+    A: any::Any + Allocator,
+{
+    fn extend<I>(&mut self, iter: I)
     where
-        T: any::Any + Clone,
-        A: any::Any + Allocator + Clone,
+        I: IntoIterator<Item = &'a T>,
+    {
+        for item in iter.into_iter() {
+            self.push(*item);
+        }
+    }
+}
+
+impl<T, A> TypedProjVecInner<T, A>
+where
+    T: any::Any,
+    A: any::Any,
+{
+    #[inline]
+    pub(crate) fn clone(&self) -> Self
+    where
+        T: Clone,
+        A: Allocator + Clone,
     {
         unsafe fn drop_fn<T>(value: NonNull<u8>) {
             let to_drop = value.as_ptr() as *mut T;
@@ -1308,10 +1179,475 @@ impl OpaqueVecInner {
             data: new_data,
             element_type_id: new_type_id,
             allocator_type_id: new_alloc_type_id,
+            _marker: core::marker::PhantomData,
         }
     }
 }
 
+mod private {
+    use super::TypedProjVecInner;
+    use std::alloc::Allocator;
+    use core::any;
+
+    // We shouldn't add inline attribute to this since this is used in
+    // `vec!` macro mostly and causes perf regression. See #71204 for
+    // discussion and perf results.
+    #[allow(missing_docs)]
+    pub fn into_opaque_vec<T, A>(b: Box<[T], A>) -> TypedProjVecInner<T, A>
+    where
+        T: any::Any,
+        A: any::Any + Allocator,
+    {
+        unsafe {
+            let len = b.len();
+            let (b, alloc) = Box::into_raw_with_allocator(b);
+            TypedProjVecInner::from_raw_parts_in(b as *mut T, len, len, alloc)
+        }
+    }
+
+    #[cfg(not(no_global_oom_handling))]
+    #[allow(missing_docs)]
+    #[inline]
+    pub fn to_opaque_vec<T, A>(slice: &[T], alloc: A) -> TypedProjVecInner<T, A>
+    where
+        T: ConvertTypedProjVec,
+        A: any::Any + Allocator + Clone,
+    {
+        T::to_typed_proj_vec(slice, alloc)
+    }
+
+    #[cfg(not(no_global_oom_handling))]
+    pub trait ConvertTypedProjVec {
+        fn to_typed_proj_vec<A>(slice: &[Self], alloc: A) -> TypedProjVecInner<Self, A>
+        where
+            A: any::Any + Allocator + Clone,
+            Self: Sized;
+    }
+
+    #[cfg(not(no_global_oom_handling))]
+    impl<T> ConvertTypedProjVec for T
+    where
+        T: any::Any + Clone,
+    {
+        #[inline]
+        fn to_typed_proj_vec<A>(slice: &[T], alloc: A) -> TypedProjVecInner<T, A>
+        where
+            A: any::Any + Allocator + Clone,
+        {
+            struct DropGuard<'a, T, A>
+            where
+                T: any::Any,
+                A: any::Any + Allocator + Clone,
+            {
+                vec: &'a mut TypedProjVecInner<T, A>,
+                num_init: usize,
+            }
+
+            impl<'a, T, A> Drop for DropGuard<'a, T, A>
+            where
+                T: any::Any,
+                A: any::Any + Allocator + Clone,
+            {
+                #[inline]
+                fn drop(&mut self) {
+                    // SAFETY:
+                    // items were marked initialized in the loop below
+                    unsafe {
+                        self.vec.set_len(self.num_init);
+                    }
+                }
+            }
+
+            let mut vec = TypedProjVecInner::with_capacity_in(slice.len(), alloc);
+            let mut guard = DropGuard {
+                vec: &mut vec,
+                num_init: 0,
+            };
+            let slots = guard.vec.spare_capacity_mut();
+            // .take(slots.len()) is necessary for LLVM to remove bounds checks
+            // and has better codegen than zip.
+            for (i, b) in slice.iter().enumerate().take(slots.len()) {
+                guard.num_init = i;
+                slots[i].write(b.clone());
+            }
+
+            core::mem::forget(guard);
+
+            // SAFETY:
+            // the vec was allocated and initialized above to at least this length.
+            unsafe {
+                vec.set_len(slice.len());
+            }
+
+            vec
+        }
+    }
+}
+
+impl<T> From<&[T]> for TypedProjVecInner<T, Global>
+where
+    T: any::Any + Clone,
+{
+    fn from(slice: &[T]) -> Self {
+        private::to_opaque_vec::<T, Global>(slice, Global)
+    }
+}
+
+impl<T> From<&mut [T]> for TypedProjVecInner<T, Global>
+where
+    T: any::Any + Clone,
+{
+    fn from(slice: &mut [T]) -> Self {
+        private::to_opaque_vec::<T, Global>(slice, Global)
+    }
+}
+
+impl<const N: usize, T> From<&[T; N]> for TypedProjVecInner<T, Global>
+where
+    T: any::Any + Clone,
+{
+    fn from(array: &[T; N]) -> Self {
+        Self::from(array.as_slice())
+    }
+}
+
+impl<const N: usize, T> From<&mut [T; N]> for TypedProjVecInner<T, Global>
+where
+    T: any::Any + Clone,
+{
+    fn from(array: &mut [T; N]) -> Self {
+        Self::from(array.as_mut_slice())
+    }
+}
+
+impl<T, A> From<Vec<T, A>> for TypedProjVecInner<T, A>
+where
+    T: any::Any,
+    A: any::Any + Allocator,
+{
+    fn from(vec: Vec<T, A>) -> Self {
+        let (ptr, length, capacity, alloc) = vec.into_parts_with_alloc();
+        let inner = unsafe {
+            TypedProjVecInner::from_parts_in(ptr, length, capacity, alloc)
+        };
+
+        inner
+    }
+}
+
+impl<T, A> From<&Vec<T, A>> for TypedProjVecInner<T, A>
+where
+    T: any::Any + Clone,
+    A: any::Any + Allocator + Clone,
+{
+    fn from(vec: &Vec<T, A>) -> Self {
+        Self::from(vec.clone())
+    }
+}
+
+impl<T, A> From<&mut Vec<T, A>> for TypedProjVecInner<T, A>
+where
+    T: any::Any + Clone,
+    A: any::Any + Allocator + Clone,
+{
+    fn from(vec: &mut Vec<T, A>) -> Self {
+        Self::from(vec.clone())
+    }
+}
+
+impl<T, A> From<Box<[T], A>> for TypedProjVecInner<T, A>
+where
+    T: any::Any,
+    A: any::Any + Allocator,
+{
+    fn from(slice: Box<[T], A>) -> Self {
+        let length = slice.len();
+        let capacity = slice.len();
+        let (ptr, alloc) = {
+            let (slice_ptr, _alloc) = Box::into_non_null_with_allocator(slice);
+            let _ptr: NonNull<T> = unsafe { NonNull::new_unchecked(slice_ptr.as_ptr() as *mut T) };
+            (_ptr, _alloc)
+        };
+        let inner = unsafe {
+            TypedProjVecInner::from_parts_in(ptr, length, capacity, alloc)
+        };
+
+        inner
+    }
+}
+
+impl<const N: usize, T> From<[T; N]> for TypedProjVecInner<T, Global>
+where
+    T: any::Any,
+{
+    fn from(array: [T; N]) -> Self {
+        private::into_opaque_vec::<T, Global>(Box::new(array))
+    }
+}
+
+impl<T> FromIterator<T> for TypedProjVecInner<T, Global>
+where
+    T: any::Any,
+{
+    #[inline]
+    #[track_caller]
+    fn from_iter<I>(iter: I) -> TypedProjVecInner<T, Global>
+    where
+        I: IntoIterator<Item = T>,
+    {
+        let iter = iter.into_iter();
+        let (lower, _) = iter.size_hint();
+
+        let mut vec = TypedProjVecInner::with_capacity(lower);
+
+        for item in iter {
+            vec.push(item);
+        }
+
+        vec
+    }
+}
+
+#[repr(C)]
+struct OpaqueVecInner {
+    data: OpaqueBlobVec,
+    element_type_id: TypeId,
+    allocator_type_id: TypeId,
+}
+
+impl OpaqueVecInner {
+    #[inline]
+    pub(crate) const fn element_type_id(&self) -> TypeId {
+        self.element_type_id
+    }
+
+    #[inline]
+    pub(crate) const fn allocator_type_id(&self) -> TypeId {
+        self.allocator_type_id
+    }
+}
+
+impl OpaqueVecInner {
+    pub(crate) fn as_proj_assuming_type<T, A>(&self) -> &TypedProjVecInner<T, A>
+    where
+        T: any::Any,
+        A: any::Any + Allocator,
+    {
+        unsafe { &*(self as *const OpaqueVecInner as *const TypedProjVecInner<T, A>) }
+    }
+
+    pub(crate) fn as_proj_mut_assuming_type<T, A>(&mut self) -> &mut TypedProjVecInner<T, A>
+    where
+        T: any::Any,
+        A: any::Any + Allocator,
+    {
+        unsafe { &mut *(self as *mut OpaqueVecInner as *mut TypedProjVecInner<T, A>) }
+    }
+
+    pub(crate) fn into_proj_assuming_type<T, A>(self) -> TypedProjVecInner<T, A>
+    where
+        T: any::Any,
+        A: any::Any + Allocator,
+    {
+        TypedProjVecInner {
+            data: self.data,
+            element_type_id: self.element_type_id,
+            allocator_type_id: self.allocator_type_id,
+            _marker: std::marker::PhantomData,
+        }
+    }
+
+    #[inline]
+    pub(crate) fn from_proj<T, A>(proj_self: TypedProjVecInner<T, A>) -> Self
+    where
+        T: any::Any,
+        A: any::Any + Allocator,
+    {
+        Self {
+            data: proj_self.data,
+            element_type_id: proj_self.element_type_id,
+            allocator_type_id: proj_self.allocator_type_id,
+        }
+    }
+}
+
+impl OpaqueVecInner {
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub(crate) fn new_proj_in<T, A>(proj_alloc: TypedProjAlloc<A>) -> Self
+    where
+        T: any::Any,
+        A: any::Any + Allocator,
+    {
+        let proj_vec_inner = TypedProjVecInner::<T, A>::new_proj_in(proj_alloc);
+
+        Self::from_proj(proj_vec_inner)
+    }
+
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub(crate) fn with_capacity_proj_in<T, A>(capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self
+    where
+        T: any::Any,
+        A: any::Any + Allocator,
+    {
+        let proj_vec_inner = TypedProjVecInner::<T, A>::with_capacity_proj_in(capacity, proj_alloc);
+
+        Self::from_proj(proj_vec_inner)
+    }
+
+    #[inline]
+    pub(crate) fn try_with_capacity_proj_in<T, A>(capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Result<Self, opaque_error::TryReserveError>
+    where
+        T: any::Any,
+        A: any::Any + Allocator,
+    {
+        let proj_vec_inner = TypedProjVecInner::<T, A>::try_with_capacity_proj_in(capacity, proj_alloc)?;
+
+        Ok(Self::from_proj(proj_vec_inner))
+    }
+
+    #[inline]
+    pub(crate) unsafe fn from_raw_parts_proj_in<T, A>(ptr: *mut T, length: usize, capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self
+    where
+        T: any::Any,
+        A: any::Any + Allocator,
+    {
+        let proj_vec_inner = TypedProjVecInner::<T, A>::from_raw_parts_proj_in(ptr, length, capacity, proj_alloc);
+
+        Self::from_proj(proj_vec_inner)
+    }
+
+    #[inline]
+    pub(crate) unsafe fn from_parts_proj_in<T, A>(ptr: NonNull<T>, length: usize, capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self
+    where
+        T: any::Any,
+        A: any::Any + Allocator,
+    {
+        let proj_vec_inner = TypedProjVecInner::<T, A>::from_parts_proj_in(ptr, length, capacity, proj_alloc);
+
+        Self::from_proj(proj_vec_inner)
+    }
+
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub(crate) fn new_in<T, A>(alloc: A) -> Self
+    where
+        T: any::Any,
+        A: any::Any + Allocator,
+    {
+        let proj_vec_inner = TypedProjVecInner::<T, A>::new_in(alloc);
+
+        Self::from_proj(proj_vec_inner)
+    }
+
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub(crate) fn with_capacity_in<T, A>(capacity: usize, alloc: A) -> Self
+    where
+        T: any::Any,
+        A: any::Any + Allocator,
+    {
+        let proj_vec_inner = TypedProjVecInner::<T, A>::with_capacity_in(capacity, alloc);
+
+        Self::from_proj(proj_vec_inner)
+    }
+
+    #[inline]
+    pub(crate) fn try_with_capacity_in<T, A>(capacity: usize, alloc: A) -> Result<Self, opaque_error::TryReserveError>
+    where
+        T: any::Any,
+        A: any::Any + Allocator,
+    {
+        let proj_vec_inner = TypedProjVecInner::<T, A>::try_with_capacity_in(capacity, alloc)?;
+
+        Ok(Self::from_proj(proj_vec_inner))
+    }
+
+    #[inline]
+    pub(crate) unsafe fn from_raw_parts_in<T, A>(ptr: *mut T, length: usize, capacity: usize, alloc: A) -> Self
+    where
+        T: any::Any,
+        A: any::Any + Allocator,
+    {
+        let proj_vec_inner = TypedProjVecInner::<T, A>::from_raw_parts_in(ptr, length, capacity, alloc);
+
+        Self::from_proj(proj_vec_inner)
+    }
+
+    #[inline]
+    pub(crate) unsafe fn from_parts_in<T, A>(ptr: NonNull<T>, length: usize, capacity: usize, alloc: A) -> Self
+    where
+        T: any::Any,
+        A: any::Any + Allocator,
+    {
+        let proj_vec_inner = TypedProjVecInner::<T, A>::from_parts_in(ptr, length, capacity, alloc);
+
+        Self::from_proj(proj_vec_inner)
+    }
+}
+
+impl OpaqueVecInner {
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub(crate) fn new<T>() -> Self
+    where
+        T: any::Any,
+    {
+        let proj_vec_inner = TypedProjVecInner::<T, _>::new();
+
+        Self::from_proj(proj_vec_inner)
+    }
+
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub(crate) fn with_capacity<T>(capacity: usize) -> Self
+    where
+        T: any::Any,
+    {
+        let proj_vec_inner = TypedProjVecInner::<T, _>::with_capacity(capacity);
+
+        Self::from_proj(proj_vec_inner)
+    }
+
+    #[inline]
+    pub(crate) fn try_with_capacity<T>(capacity: usize) -> Result<Self, opaque_error::TryReserveError>
+    where
+        T: any::Any,
+    {
+        let proj_vec_inner = TypedProjVecInner::<T, _>::try_with_capacity(capacity)?;
+
+        Ok(Self::from_proj(proj_vec_inner))
+    }
+
+    #[inline]
+    pub(crate) unsafe fn from_raw_parts<T>(ptr: *mut T, length: usize, capacity: usize) -> Self
+    where
+        T: any::Any,
+    {
+        let proj_vec_inner = TypedProjVecInner::<T, _>::from_raw_parts(ptr, length, capacity);
+
+        Self::from_proj(proj_vec_inner)
+    }
+
+    #[inline]
+    pub(crate) unsafe fn from_parts<T>(ptr: NonNull<T>, length: usize, capacity: usize) -> Self
+    where
+        T: any::Any,
+    {
+        let proj_vec_inner = TypedProjVecInner::<T, _>::from_parts(ptr, length, capacity);
+
+        Self::from_proj(proj_vec_inner)
+    }
+}
+
+/*
 struct DebugDisplayDataFormatter<'a> {
     inner: &'a OpaqueVecInner,
 }
@@ -1359,227 +1695,12 @@ impl fmt::Debug for OpaqueVecInner {
             .finish()
     }
 }
+*/
 
-mod private {
-    use super::OpaqueVecInner;
-    use std::alloc::Allocator;
-    use core::any;
-
-    // We shouldn't add inline attribute to this since this is used in
-    // `vec!` macro mostly and causes perf regression. See #71204 for
-    // discussion and perf results.
-    #[allow(missing_docs)]
-    pub fn into_opaque_vec<T, A>(b: Box<[T], A>) -> OpaqueVecInner
-    where
-        T: any::Any,
-        A: any::Any + Allocator,
-    {
-        unsafe {
-            let len = b.len();
-            let (b, alloc) = Box::into_raw_with_allocator(b);
-            OpaqueVecInner::from_raw_parts_in(b as *mut T, len, len, alloc)
-        }
-    }
-
-    #[cfg(not(no_global_oom_handling))]
-    #[allow(missing_docs)]
-    #[inline]
-    pub fn to_opaque_vec<T, A>(slice: &[T], alloc: A) -> OpaqueVecInner
-    where
-        T: ConvertOpaqueVec,
-        A: any::Any + Allocator + Clone,
-    {
-        T::to_opaque_vec(slice, alloc)
-    }
-
-    #[cfg(not(no_global_oom_handling))]
-    pub trait ConvertOpaqueVec {
-        fn to_opaque_vec<A>(slice: &[Self], alloc: A) -> OpaqueVecInner
-        where
-            A: any::Any + Allocator + Clone,
-            Self: Sized;
-    }
-
-    #[cfg(not(no_global_oom_handling))]
-    impl<T> ConvertOpaqueVec for T
-    where
-        T: any::Any + Clone,
-    {
-        #[inline]
-        fn to_opaque_vec<A>(slice: &[Self], alloc: A) -> OpaqueVecInner
-        where
-            A: any::Any + Allocator + Clone,
-        {
-            struct DropGuard<'a> {
-                vec: &'a mut OpaqueVecInner,
-                num_init: usize,
-            }
-
-            impl<'a> Drop for DropGuard<'a> {
-                #[inline]
-                fn drop(&mut self) {
-                    // SAFETY:
-                    // items were marked initialized in the loop below
-                    unsafe {
-                        self.vec.set_len(self.num_init);
-                    }
-                }
-            }
-
-            let mut vec = OpaqueVecInner::with_capacity_in::<Self, A>(slice.len(), alloc);
-            let mut guard = DropGuard {
-                vec: &mut vec,
-                num_init: 0,
-            };
-            let slots = guard.vec.spare_capacity_mut();
-            // .take(slots.len()) is necessary for LLVM to remove bounds checks
-            // and has better codegen than zip.
-            for (i, b) in slice.iter().enumerate().take(slots.len()) {
-                guard.num_init = i;
-                slots[i].write(b.clone());
-            }
-
-            core::mem::forget(guard);
-
-            // SAFETY:
-            // the vec was allocated and initialized above to at least this length.
-            unsafe {
-                vec.set_len(slice.len());
-            }
-
-            vec
-        }
-    }
-}
-
-impl<T> From<&[T]> for OpaqueVecInner
-where
-    T: any::Any + Clone,
-{
-    fn from(slice: &[T]) -> Self {
-        private::to_opaque_vec::<T, Global>(slice, Global)
-    }
-}
-
-impl<T> From<&mut [T]> for OpaqueVecInner
-where
-    T: any::Any + Clone,
-{
-    fn from(slice: &mut [T]) -> Self {
-        private::to_opaque_vec::<T, Global>(slice, Global)
-    }
-}
-
-impl<const N: usize, T> From<&[T; N]> for OpaqueVecInner
-where
-    T: any::Any + Clone,
-{
-    fn from(array: &[T; N]) -> Self {
-        Self::from(array.as_slice())
-    }
-}
-
-impl<const N: usize, T> From<&mut [T; N]> for OpaqueVecInner
-where
-    T: any::Any + Clone,
-{
-    fn from(array: &mut [T; N]) -> Self {
-        Self::from(array.as_mut_slice())
-    }
-}
-
-impl<T, A> From<Vec<T, A>> for OpaqueVecInner
-where
-    T: any::Any,
-    A: any::Any + Allocator,
-{
-    fn from(vec: Vec<T, A>) -> Self {
-        let (ptr, length, capacity, alloc) = vec.into_parts_with_alloc();
-        let inner = unsafe {
-            OpaqueVecInner::from_parts_in(ptr, length, capacity, alloc)
-        };
-
-        inner
-    }
-}
-
-impl<T, A> From<&Vec<T, A>> for OpaqueVecInner
-where
-    T: any::Any + Clone,
-    A: any::Any + Allocator + Clone,
-{
-    fn from(vec: &Vec<T, A>) -> Self {
-        Self::from(vec.as_slice())
-    }
-}
-
-impl<T, A> From<&mut Vec<T, A>> for OpaqueVecInner
-where
-    T: any::Any + Clone,
-    A: any::Any + Allocator + Clone,
-{
-    fn from(vec: &mut Vec<T, A>) -> Self {
-        Self::from(vec.as_mut_slice())
-    }
-}
-
-impl<T, A> From<Box<[T], A>> for OpaqueVecInner
-where
-    T: any::Any,
-    A: any::Any + Allocator,
-{
-    fn from(slice: Box<[T], A>) -> Self {
-        let length = slice.len();
-        let capacity = slice.len();
-        let (ptr, alloc) = {
-            let (slice_ptr, _alloc) = Box::into_non_null_with_allocator(slice);
-            let _ptr: NonNull<T> = unsafe { NonNull::new_unchecked(slice_ptr.as_ptr() as *mut T) };
-            (_ptr, _alloc)
-        };
-        let inner = unsafe {
-            OpaqueVecInner::from_parts_in(ptr, length, capacity, alloc)
-        };
-
-        inner
-    }
-}
-
-impl<const N: usize, T> From<[T; N]> for OpaqueVecInner
-where
-    T: any::Any,
-{
-    fn from(array: [T; N]) -> Self {
-        private::into_opaque_vec::<T, Global>(Box::new(array))
-    }
-}
-
-impl<T> FromIterator<T> for OpaqueVecInner
-where
-    T: any::Any,
-{
-    #[inline]
-    #[track_caller]
-    fn from_iter<I>(iter: I) -> OpaqueVecInner
-    where
-        I: IntoIterator<Item = T>,
-    {
-        let iter = iter.into_iter();
-        let (lower, _) = iter.size_hint();
-
-        let mut vec = OpaqueVecInner::with_capacity::<T>(lower);
-
-        for item in iter {
-            vec.push::<T>(item);
-        }
-
-        vec
-    }
-}
 
 #[repr(transparent)]
 pub struct TypedProjVec<T, A: Allocator> {
-    inner: OpaqueVecInner,
-    _marker: core::marker::PhantomData<(T, A)>,
+    inner: TypedProjVecInner<T, A>,
 }
 
 impl<T, A> TypedProjVec<T, A>
@@ -1591,108 +1712,78 @@ where
     #[must_use]
     #[track_caller]
     pub fn new_proj_in(proj_alloc: TypedProjAlloc<A>) -> Self {
-        let inner = OpaqueVecInner::new_proj_in::<T, A>(proj_alloc);
+        let inner = TypedProjVecInner::new_proj_in(proj_alloc);
 
-        Self {
-            inner,
-            _marker: core::marker::PhantomData,
-        }
+        Self { inner, }
     }
 
     #[inline]
     #[must_use]
     #[track_caller]
     pub fn with_capacity_proj_in(capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self {
-        let inner = OpaqueVecInner::with_capacity_proj_in::<T, A>(capacity, proj_alloc);
+        let inner = TypedProjVecInner::with_capacity_proj_in(capacity, proj_alloc);
 
-        Self {
-            inner,
-            _marker: core::marker::PhantomData,
-        }
+        Self { inner, }
     }
 
     #[inline]
     pub fn try_with_capacity_proj_in(capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Result<Self, opaque_error::TryReserveError> {
-        let inner = OpaqueVecInner::try_with_capacity_proj_in::<T, A>(capacity, proj_alloc)?;
+        let inner = TypedProjVecInner::try_with_capacity_proj_in(capacity, proj_alloc)?;
 
-        Ok(Self {
-            inner,
-            _marker: core::marker::PhantomData,
-        })
+        Ok(Self { inner, })
     }
 
     #[inline]
     pub unsafe fn from_raw_parts_proj_in(ptr: *mut T, length: usize, capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self {
-        let inner = OpaqueVecInner::from_raw_parts_proj_in::<T, A>(ptr, length, capacity, proj_alloc);
+        let inner = TypedProjVecInner::from_raw_parts_proj_in(ptr, length, capacity, proj_alloc);
 
-        Self {
-            inner,
-            _marker: core::marker::PhantomData,
-        }
+        Self { inner, }
     }
 
     #[inline]
     pub unsafe fn from_parts_proj_in(ptr: NonNull<T>, length: usize, capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self {
-        let inner = OpaqueVecInner::from_parts_proj_in::<T, A>(ptr, length, capacity, proj_alloc);
+        let inner = TypedProjVecInner::from_parts_proj_in(ptr, length, capacity, proj_alloc);
 
-        Self {
-            inner,
-            _marker: core::marker::PhantomData,
-        }
+        Self { inner, }
     }
 
     #[inline]
     #[must_use]
     #[track_caller]
     pub fn new_in(alloc: A) -> Self {
-        let inner = OpaqueVecInner::new_in::<T, A>(alloc);
+        let inner = TypedProjVecInner::new_in(alloc);
 
-        Self {
-            inner,
-            _marker: core::marker::PhantomData,
-        }
+        Self { inner, }
     }
 
     #[inline]
     #[must_use]
     #[track_caller]
     pub fn with_capacity_in(capacity: usize, alloc: A) -> Self {
-        let inner = OpaqueVecInner::with_capacity_in::<T, A>(capacity, alloc);
+        let inner = TypedProjVecInner::with_capacity_in(capacity, alloc);
 
-        Self {
-            inner,
-            _marker: core::marker::PhantomData,
-        }
+        Self { inner, }
     }
 
     #[inline]
     pub fn try_with_capacity_in(capacity: usize, alloc: A) -> Result<Self, opaque_error::TryReserveError> {
-        let inner = OpaqueVecInner::try_with_capacity_in::<T, A>(capacity, alloc)?;
+        let inner = TypedProjVecInner::try_with_capacity_in(capacity, alloc)?;
 
-        Ok(Self {
-            inner,
-            _marker: core::marker::PhantomData,
-        })
+        Ok(Self { inner, })
     }
 
     #[inline]
     pub unsafe fn from_raw_parts_in(ptr: *mut T, length: usize, capacity: usize, alloc: A) -> Self {
-        let inner = OpaqueVecInner::from_raw_parts_in::<T, A>(ptr, length, capacity, alloc);
+        let inner = TypedProjVecInner::from_raw_parts_in(ptr, length, capacity, alloc);
 
-        Self {
-            inner,
-            _marker: core::marker::PhantomData,
-        }
+        Self { inner, }
     }
 
     #[inline]
     pub unsafe fn from_parts_in(ptr: NonNull<T>, length: usize, capacity: usize, alloc: A) -> Self {
-        let inner = OpaqueVecInner::from_parts_in::<T, A>(ptr, length, capacity, alloc);
+        let inner = TypedProjVecInner::from_parts_in(ptr, length, capacity, alloc);
 
-        Self {
-            inner,
-            _marker: core::marker::PhantomData,
-        }
+        Self { inner, }
     }
 }
 
@@ -1703,7 +1794,7 @@ where
 {
     #[inline]
     pub fn allocator(&self) -> &TypedProjAlloc<A> {
-        self.inner.allocator::<T, A>()
+        self.inner.allocator()
     }
 }
 
@@ -1715,54 +1806,39 @@ where
     #[must_use]
     #[track_caller]
     pub fn new() -> Self {
-        let inner = OpaqueVecInner::new::<T>();
+        let inner = TypedProjVecInner::new();
 
-        Self {
-            inner,
-            _marker: core::marker::PhantomData,
-        }
+        Self { inner, }
     }
 
     #[inline]
     #[must_use]
     #[track_caller]
     pub fn with_capacity(capacity: usize) -> Self {
-        let inner = OpaqueVecInner::with_capacity::<T>(capacity);
+        let inner = TypedProjVecInner::with_capacity(capacity);
 
-        Self {
-            inner,
-            _marker: core::marker::PhantomData,
-        }
+        Self { inner, }
     }
 
     #[inline]
     pub fn try_with_capacity(capacity: usize) -> Result<Self, opaque_error::TryReserveError> {
-        let inner = OpaqueVecInner::try_with_capacity::<T>(capacity)?;
+        let inner = TypedProjVecInner::try_with_capacity(capacity)?;
 
-        Ok(Self {
-            inner,
-            _marker: core::marker::PhantomData,
-        })
+        Ok(Self { inner, })
     }
 
     #[inline]
     pub unsafe fn from_raw_parts(ptr: *mut T, length: usize, capacity: usize) -> Self {
-        let inner = OpaqueVecInner::from_raw_parts::<T>(ptr, length, capacity);
+        let inner = TypedProjVecInner::from_raw_parts(ptr, length, capacity);
 
-        Self {
-            inner,
-            _marker: core::marker::PhantomData,
-        }
+        Self { inner, }
     }
 
     #[inline]
     pub unsafe fn from_parts(ptr: NonNull<T>, length: usize, capacity: usize) -> Self {
-        let inner = OpaqueVecInner::from_parts::<T>(ptr, length, capacity);
+        let inner = TypedProjVecInner::from_parts(ptr, length, capacity);
 
-        Self {
-            inner,
-            _marker: core::marker::PhantomData,
-        }
+        Self { inner, }
     }
 }
 
@@ -1771,10 +1847,12 @@ where
     T: any::Any,
     A: any::Any + Allocator,
 {
+    /*
     #[inline]
     pub const fn element_layout(&self) -> Layout {
         self.inner.element_layout()
     }
+    */
 
     #[inline]
     pub const fn capacity(&self) -> usize {
@@ -1805,105 +1883,105 @@ where
     #[inline]
     #[must_use]
     pub fn get(&self, index: usize) -> Option<&T> {
-        self.inner.get::<T>(index)
+        self.inner.get(index)
     }
 
     #[inline]
     #[must_use]
     pub fn get_mut(&mut self, index: usize) -> Option<&mut T> {
-        self.inner.get_mut::<T>(index)
+        self.inner.get_mut(index)
     }
 
     #[inline]
     #[track_caller]
     pub fn push(&mut self, value: T) {
-        self.inner.push::<T>(value);
+        self.inner.push(value);
     }
 
     #[inline]
     pub fn pop(&mut self) -> Option<T> {
-        self.inner.pop::<T>()
+        self.inner.pop()
     }
 
     #[inline]
     pub fn push_within_capacity(&mut self, value: T) -> Result<(), T> {
-        self.inner.push_within_capacity::<T>(value)
+        self.inner.push_within_capacity(value)
     }
 
     #[cfg(not(no_global_oom_handling))]
     #[track_caller]
     pub fn replace_insert(&mut self, index: usize, value: T) {
-        self.inner.replace_insert::<T>(index, value);
+        self.inner.replace_insert(index, value);
     }
 
     #[cfg(not(no_global_oom_handling))]
     #[track_caller]
     pub fn shift_insert(&mut self, index: usize, value: T) {
-        self.inner.shift_insert::<T>(index, value);
+        self.inner.shift_insert(index, value);
     }
 
     #[cfg(not(no_global_oom_handling))]
     #[track_caller]
     pub fn swap_remove(&mut self, index: usize) -> T {
-        self.inner.swap_remove::<T>(index)
+        self.inner.swap_remove(index)
     }
 
     #[cfg(not(no_global_oom_handling))]
     #[track_caller]
     pub fn shift_remove(&mut self, index: usize) -> T {
-        self.inner.shift_remove::<T>(index)
+        self.inner.shift_remove(index)
     }
 
     pub fn contains(&self, value: &T) -> bool
     where
         T: PartialEq,
     {
-        self.inner.contains::<T>(value)
+        self.inner.contains(value)
     }
 
     pub fn iter(&self) -> slice::Iter<'_, T> {
-        self.inner.iter::<T>()
+        self.inner.iter()
     }
 
     pub fn iter_mut(&mut self) -> slice::IterMut<'_, T> {
-        self.inner.iter_mut::<T>()
+        self.inner.iter_mut()
     }
 
     #[cfg(not(no_global_oom_handling))]
     #[inline]
     #[track_caller]
     pub fn append(&mut self, other: &mut Self) {
-        self.inner.append::<T>(&mut other.inner)
+        self.inner.append(&mut other.inner)
     }
 
     pub fn drain<R>(&mut self, range: R) -> Drain<'_, T, A>
     where
         R: ops::RangeBounds<usize>,
     {
-        self.inner.drain::<R, T, A>(range)
+        self.inner.drain(range)
     }
 
     #[inline]
     pub fn as_ptr(&self) -> *const T {
-        self.inner.as_ptr::<T>()
+        self.inner.as_ptr()
     }
 
     #[inline]
     pub fn as_mut_ptr(&mut self) -> *mut T {
-        self.inner.as_mut_ptr::<T>()
+        self.inner.as_mut_ptr()
     }
 
     #[inline]
     pub fn as_non_null(&mut self) -> NonNull<T> {
-        self.inner.as_non_null::<T>()
+        self.inner.as_non_null()
     }
 
     pub fn as_slice(&self) -> &[T] {
-        self.inner.as_slice::<T>()
+        self.inner.as_slice()
     }
 
     pub fn as_mut_slice(&mut self) -> &mut [T] {
-        self.inner.as_mut_slice::<T>()
+        self.inner.as_mut_slice()
     }
 
     pub fn as_byte_slice(&self) -> &[u8] {
@@ -1912,28 +1990,28 @@ where
 
     #[must_use]
     pub fn into_raw_parts(self) -> (*mut T, usize, usize) {
-        self.inner.into_raw_parts::<T>()
+        self.inner.into_raw_parts()
     }
 
     #[must_use]
     pub fn into_parts(self) -> (NonNull<T>, usize, usize) {
-        self.inner.into_parts::<T>()
+        self.inner.into_parts()
     }
 
     #[must_use]
     pub fn into_raw_parts_with_alloc(self) -> (*mut T, usize, usize, TypedProjAlloc<A>) {
-        self.inner.into_raw_parts_with_alloc::<T, A>()
+        self.inner.into_raw_parts_with_alloc()
     }
 
     #[must_use]
     pub fn into_parts_with_alloc(self) -> (NonNull<T>, usize, usize, TypedProjAlloc<A>) {
-        self.inner.into_parts_with_alloc::<T, A>()
+        self.inner.into_parts_with_alloc()
     }
 
     #[cfg(not(no_global_oom_handling))]
     #[track_caller]
     pub fn into_boxed_slice(self) -> Box<[T], TypedProjAlloc<A>> {
-        self.inner.into_boxed_slice::<T, A>()
+        self.inner.into_boxed_slice()
     }
 
     #[cfg(not(no_global_oom_handling))]
@@ -1944,12 +2022,9 @@ where
     where
         A: Clone,
     {
-        let inner = self.inner.split_off::<T, A>(at);
+        let inner = self.inner.split_off(at);
 
-        Self {
-            inner,
-            _marker: PhantomData,
-        }
+        Self { inner, }
     }
 
     #[cfg(not(no_global_oom_handling))]
@@ -1958,12 +2033,12 @@ where
     where
         F: FnMut() -> T,
     {
-        self.inner.resize_with::<F, T>(new_len, f)
+        self.inner.resize_with(new_len, f)
     }
 
     #[inline]
     pub fn spare_capacity_mut(&mut self) -> &mut [MaybeUninit<T>] {
-        self.inner.spare_capacity_mut::<T>()
+        self.inner.spare_capacity_mut()
     }
 }
 
@@ -2021,7 +2096,7 @@ where
         R: ops::RangeBounds<usize>,
         I: IntoIterator<Item = T>,
     {
-        self.inner.splice::<R, I, T, A>(range, replace_with)
+        self.inner.splice::<R, I>(range, replace_with)
     }
 
     pub fn extract_if<F, R>(&mut self, range: R, filter: F) -> ExtractIf<'_, T, F, A>
@@ -2030,7 +2105,7 @@ where
         F: FnMut(&mut T) -> bool,
         R: ops::RangeBounds<usize>,
     {
-        self.inner.extract_if::<F, R, T, A>(range, filter)
+        self.inner.extract_if::<F, R>(range, filter)
     }
 
     #[cfg(not(no_global_oom_handling))]
@@ -2039,7 +2114,7 @@ where
     where
         T: Clone,
     {
-        self.inner.extend_with::<T>(count, value);
+        self.inner.extend_with(count, value);
     }
 
     #[cfg(not(no_global_oom_handling))]
@@ -2049,7 +2124,7 @@ where
         T: Clone,
         I: Iterator<Item = T>,
     {
-        self.inner.extend_from_iter::<I, T>(iterator)
+        self.inner.extend_from_iter::<I>(iterator)
     }
 
     #[cfg(not(no_global_oom_handling))]
@@ -2058,7 +2133,7 @@ where
     where
         T: Clone,
     {
-        self.inner.extend_from_slice::<T>(other);
+        self.inner.extend_from_slice(other);
     }
 
     #[cfg(not(no_global_oom_handling))]
@@ -2067,7 +2142,7 @@ where
     where
         T: Clone,
     {
-        self.inner.resize::<T>(new_len, value);
+        self.inner.resize(new_len, value);
     }
 
     #[inline]
@@ -2085,14 +2160,14 @@ where
     where
         F: FnMut(&T) -> bool,
     {
-        self.inner.retain::<_, T, A>(|elem| f(elem));
+        self.inner.retain(|elem| f(elem));
     }
 
     pub fn retain_mut<F>(&mut self, mut f: F)
     where
         F: FnMut(&mut T) -> bool,
     {
-        self.inner.retain_mut::<F, T, A>(f)
+        self.inner.retain_mut(f)
     }
 
     #[inline]
@@ -2101,14 +2176,14 @@ where
         F: FnMut(&mut T) -> K,
         K: PartialEq,
     {
-        self.inner.dedup_by_key::<F, K, T, A>(key)
+        self.inner.dedup_by_key(key)
     }
 
     pub fn dedup_by<F>(&mut self, mut same_bucket: F)
     where
         F: FnMut(&mut T, &mut T) -> bool,
     {
-        self.inner.dedup_by::<F, T, A>(same_bucket)
+        self.inner.dedup_by(same_bucket)
     }
 }
 
@@ -2137,7 +2212,12 @@ where
 }
 
 /*
-unsafe impl<T, A: Allocator> ops::DerefPure for Vec<T, A> {}
+unsafe impl<T, A> ops::DerefPure for TypedProjVec<T, A>
+where
+    T: any::Any,
+    A: any::Any + Allocator,
+{
+}
 */
 
 impl<T, A> Clone for TypedProjVec<T, A>
@@ -2146,11 +2226,10 @@ where
     A: any::Any + Allocator + Clone,
 {
     fn clone(&self) -> Self {
-        let cloned_inner = self.inner.clone::<T, A>();
+        let cloned_inner = self.inner.clone();
 
         Self {
             inner: cloned_inner,
-            _marker: PhantomData,
         }
     }
 }
@@ -2206,12 +2285,9 @@ where
     where
         I: IntoIterator<Item = T>,
     {
-        let inner = OpaqueVecInner::from_iter(iter);
+        let inner = TypedProjVecInner::from_iter(iter);
 
-        Self {
-            inner,
-            _marker: core::marker::PhantomData,
-        }
+        Self { inner, }
     }
 }
 
@@ -2280,14 +2356,14 @@ where
     where
         I: IntoIterator<Item = T>,
     {
-        self.inner.extend::<I, T>(iter)
+        self.inner.extend(iter)
     }
 
     /*
     #[inline]
     #[track_caller]
     fn extend_one(&mut self, item: T) {
-        self.inner.push::<T>(item);
+        self.inner.push(item);
     }
      */
     /*
@@ -2321,7 +2397,7 @@ where
     where
         I: IntoIterator<Item = &'a T>,
     {
-        self.inner.extend::<_, T>(iter.into_iter().copied())
+        self.inner.extend(iter.into_iter().copied())
     }
 
     /*
@@ -2469,12 +2545,9 @@ where
 {
     #[track_caller]
     fn from(slice: &[T]) -> TypedProjVec<T, Global> {
-        let inner = OpaqueVecInner::from(slice);
+        let inner = TypedProjVecInner::from(slice);
 
-        Self {
-            inner,
-            _marker: core::marker::PhantomData,
-        }
+        Self { inner, }
     }
 }
 
@@ -2485,12 +2558,9 @@ where
 {
     #[track_caller]
     fn from(slice: &mut [T]) -> TypedProjVec<T, Global> {
-        let inner = OpaqueVecInner::from(slice);
+        let inner = TypedProjVecInner::from(slice);
 
-        Self {
-            inner,
-            _marker: core::marker::PhantomData,
-        }
+        Self { inner, }
     }
 }
 
@@ -2523,12 +2593,9 @@ where
 {
     #[track_caller]
     fn from(slice: [T; N]) -> TypedProjVec<T, Global> {
-        let inner = OpaqueVecInner::from(slice);
+        let inner = TypedProjVecInner::from(slice);
 
-        Self {
-            inner,
-            _marker: core::marker::PhantomData,
-        }
+        Self { inner, }
     }
 }
 
@@ -2549,12 +2616,9 @@ where
     A: any::Any + Allocator,
 {
     fn from(slice: Box<[T], A>) -> Self {
-        let inner = OpaqueVecInner::from(slice);
+        let inner = TypedProjVecInner::from(slice);
 
-        Self {
-            inner,
-            _marker: core::marker::PhantomData,
-        }
+        Self { inner, }
     }
 }
 
@@ -2566,12 +2630,9 @@ where
 {
     #[track_caller]
     fn from(vec: Vec<T, A>) -> Self {
-        let inner = OpaqueVecInner::from(vec);
+        let inner = TypedProjVecInner::from(vec);
 
-        Self {
-            inner,
-            _marker: core::marker::PhantomData,
-        }
+        Self { inner, }
     }
 }
 
@@ -2583,12 +2644,9 @@ where
 {
     #[track_caller]
     fn from(vec: &Vec<T, A>) -> Self {
-        let inner = OpaqueVecInner::from(vec);
+        let inner = TypedProjVecInner::from(vec);
 
-        Self {
-            inner,
-            _marker: core::marker::PhantomData,
-        }
+        Self { inner, }
     }
 }
 
@@ -2600,12 +2658,9 @@ where
 {
     #[track_caller]
     fn from(vec: &mut Vec<T, A>) -> Self {
-        let inner = OpaqueVecInner::from(vec);
+        let inner = TypedProjVecInner::from(vec);
 
-        Self {
-            inner,
-            _marker: core::marker::PhantomData,
-        }
+        Self { inner, }
     }
 }
 
@@ -2739,8 +2794,7 @@ impl OpaqueVec {
         self.assert_type_safety::<T, A>();
 
         TypedProjVec {
-            inner: self.inner,
-            _marker: std::marker::PhantomData,
+            inner: self.inner.into_proj_assuming_type::<T, A>(),
         }
     }
 
@@ -2751,7 +2805,7 @@ impl OpaqueVec {
         A: any::Any + Allocator,
     {
         Self {
-            inner: proj_self.inner,
+            inner: OpaqueVecInner::from_proj(proj_self.inner),
         }
     }
 }

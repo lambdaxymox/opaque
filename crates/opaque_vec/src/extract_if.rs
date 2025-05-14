@@ -2,7 +2,7 @@ use core::{fmt, slice};
 use std::alloc::Allocator;
 use std::{any, ops};
 use opaque_alloc::TypedProjAlloc;
-use crate::OpaqueVecInner;
+use crate::TypedProjVecInner;
 
 #[must_use = "iterators are lazy and do nothing unless consumed"]
 pub struct ExtractIf<'a, T, F, A>
@@ -10,7 +10,7 @@ where
     T: any::Any,
     A: any::Any + Allocator,
 {
-    vec: &'a mut OpaqueVecInner,
+    vec: &'a mut TypedProjVecInner<T, A>,
     /// The index of the item that will be inspected by the next call to `next`.
     idx: usize,
     /// Elements at and beyond this point will be retained. Must be equal or smaller than `old_len`.
@@ -24,13 +24,13 @@ where
     _marker: core::marker::PhantomData<(T, A)>,
 }
 
-impl<'a, T, F, A> crate::ExtractIf<'a, T, F, A>
+impl<'a, T, F, A> ExtractIf<'a, T, F, A>
 where
     T: any::Any,
     A: any::Any + Allocator,
 {
     #[inline]
-    pub(crate) fn new<R>(vec: &'a mut OpaqueVecInner, pred: F, range: R) -> Self
+    pub(crate) fn new<R>(vec: &'a mut TypedProjVecInner<T, A>, pred: F, range: R) -> Self
     where
         R: ops::RangeBounds<usize>,
     {
@@ -55,7 +55,7 @@ where
 
     #[inline]
     pub fn allocator(&self) -> &TypedProjAlloc<A> {
-        self.vec.allocator::<T, A>()
+        self.vec.allocator()
     }
 }
 
@@ -104,7 +104,7 @@ where
     fn drop(&mut self) {
         unsafe {
             if self.idx < self.old_len && self.del > 0 {
-                let ptr = self.vec.as_mut_ptr::<T>();
+                let ptr = self.vec.as_mut_ptr();
                 let src = ptr.add(self.idx);
                 let dst = src.sub(self.del);
                 let tail_len = self.old_len - self.idx;

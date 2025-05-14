@@ -7,7 +7,7 @@ use std::ptr::NonNull;
 use core::slice;
 use std::marker::PhantomData;
 use opaque_alloc::TypedProjAlloc;
-use crate::{is_zst, OpaqueVecInner};
+use crate::{is_zst, TypedProjVecInner};
 
 pub struct Drain<'a, T, A>
 where
@@ -20,7 +20,7 @@ where
     pub(crate) tail_len: usize,
     /// Current remaining range to remove
     pub(crate) iter: slice::Iter<'a, T>,
-    pub(crate) vec: NonNull<OpaqueVecInner>,
+    pub(crate) vec: NonNull<TypedProjVecInner<T, A>>,
     _marker: core::marker::PhantomData<A>,
 }
 
@@ -40,7 +40,7 @@ where
     A: any::Any + Allocator,
 {
     #[inline]
-    pub(crate) const fn from_parts(tail_start: usize, tail_len: usize, iter: slice::Iter<'a, T>, vec: NonNull<OpaqueVecInner>) -> Self {
+    pub(crate) const fn from_parts(tail_start: usize, tail_len: usize, iter: slice::Iter<'a, T>, vec: NonNull<TypedProjVecInner<T, A>>) -> Self {
         Self {
             tail_start,
             tail_len,
@@ -58,7 +58,7 @@ where
     #[must_use]
     #[inline]
     pub fn allocator(&self) -> &TypedProjAlloc<A> {
-        unsafe { self.vec.as_ref().allocator::<T, A>() }
+        unsafe { self.vec.as_ref().allocator() }
     }
 
     pub fn keep_rest(self) {
@@ -88,7 +88,7 @@ where
 
             // ZSTs have no identity, so we don't need to move them around.
             if !is_zst::<T>() {
-                let start_ptr = source_vec.as_mut_ptr::<T>().add(start);
+                let start_ptr = source_vec.as_mut_ptr().add(start);
 
                 // memmove back unyielded elements
                 if unyielded_ptr != start_ptr {
@@ -100,7 +100,7 @@ where
 
                 // memmove back untouched tail
                 if tail != (start + unyielded_len) {
-                    let src = source_vec.as_ptr::<T>().add(tail);
+                    let src = source_vec.as_ptr().add(tail);
                     let dst = start_ptr.add(unyielded_len);
                     core::ptr::copy(src, dst, this.tail_len);
                 }
@@ -185,8 +185,8 @@ where
                         let start = source_vec.len();
                         let tail = self.0.tail_start;
                         if tail != start {
-                            let src = source_vec.as_ptr::<T>().add(tail);
-                            let dst = source_vec.as_mut_ptr::<T>().add(start);
+                            let src = source_vec.as_ptr().add(tail);
+                            let dst = source_vec.as_mut_ptr().add(start);
                             core::ptr::copy(src, dst, self.0.tail_len);
                         }
                         source_vec.set_len(start + self.0.tail_len);

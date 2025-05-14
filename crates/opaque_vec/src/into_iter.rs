@@ -329,7 +329,7 @@ where
 
         unsafe {
             let mut me = ManuallyDrop::new(inner);
-            let data_ptr = me.as_non_null::<T>();
+            let data_ptr = me.as_non_null();
             let begin = data_ptr.as_ptr();
             let end = if is_zst::<T>() {
                 begin.wrapping_byte_add(me.len())
