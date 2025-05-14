@@ -238,13 +238,6 @@ where
 }
 
 impl<T, A> TypedProjVecInner<T, A> {
-    /*
-    #[inline]
-    pub(crate) const fn element_layout(&self) -> Layout {
-        self.data.element_layout()
-    }
-    */
-
     #[inline]
     pub(crate) const fn capacity(&self) -> usize {
         self.data.capacity()
@@ -1863,13 +1856,6 @@ where
     T: any::Any,
     A: any::Any + Allocator,
 {
-    /*
-    #[inline]
-    pub const fn element_layout(&self) -> Layout {
-        self.inner.element_layout()
-    }
-    */
-
     #[inline]
     pub const fn capacity(&self) -> usize {
         self.inner.capacity()
@@ -3015,6 +3001,11 @@ impl OpaqueVec {
 
 impl OpaqueVec {
     #[inline]
+    pub const fn element_layout(&self) -> Layout {
+        self.inner.element_layout()
+    }
+
+    #[inline]
     pub const fn capacity(&self) -> usize {
         self.inner.capacity()
     }
@@ -3027,11 +3018,6 @@ impl OpaqueVec {
     #[inline]
     pub const fn len(&self) -> usize {
         self.inner.len()
-    }
-
-    #[inline]
-    pub const fn element_layout(&self) -> Layout {
-        self.inner.element_layout()
     }
 
     #[inline]
