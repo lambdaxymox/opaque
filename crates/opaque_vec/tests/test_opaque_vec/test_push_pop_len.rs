@@ -19,7 +19,7 @@ where
     let _ = vec.pop::<T, A>();
 
     let expected = if values.len() > 0 { values.len() - 1 } else { 0 };
-    let result = vec.len::<T, A>();
+    let result = vec.len();
 
     assert_eq!(result, expected);
 }

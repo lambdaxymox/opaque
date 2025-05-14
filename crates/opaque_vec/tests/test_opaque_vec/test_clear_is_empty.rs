@@ -14,7 +14,7 @@ where
     let mut vec = common::opaque_vec::from_slice_in(values, alloc);
     vec.clear::<T, A>();
 
-    assert!(vec.is_empty::<T, A>());
+    assert!(vec.is_empty());
 }
 
 fn run_test_opaque_vec_clear_is_empty_values<T, A>(values: &[T], alloc: A)

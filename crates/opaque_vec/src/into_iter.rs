@@ -325,7 +325,7 @@ where
     fn clone(&self) -> Self {
         let alloc = Clone::clone(ops::Deref::deref(&self.alloc));
         let read_alloc = ManuallyDrop::new(unsafe { core::ptr::read(&alloc) });
-        let inner = private::to_opaque_vec(self.as_slice(), alloc);
+        let inner = private::to_typed_proj_vec(self.as_slice(), alloc);
 
         unsafe {
             let mut me = ManuallyDrop::new(inner);

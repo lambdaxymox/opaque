@@ -16,7 +16,7 @@ where
         vec.push::<T, A>(value);
     }
 
-    for _ in 0..vec.len::<T, A>() {
+    for _ in 0..vec.len() {
         let result = vec.pop::<T, A>();
 
         assert!(result.is_some());

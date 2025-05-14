@@ -13,8 +13,8 @@ where
 {
     let mut vec = common::opaque_vec::from_slice_in(values, alloc);
 
-    for _ in 0..vec.len::<T, A>() {
-        let last_index = vec.len::<T, A>() - 1;
+    for _ in 0..vec.len() {
+        let last_index = vec.len() - 1;
         let expected = vec.get::<T, A>(last_index).cloned().unwrap();
         let result = vec.swap_remove::<T, A>(last_index);
 

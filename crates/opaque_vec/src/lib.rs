@@ -259,6 +259,11 @@ impl<T, A> TypedProjVecInner<T, A> {
     pub(crate) const fn len(&self) -> usize {
         self.data.len()
     }
+
+    #[inline]
+    pub(crate) fn as_byte_slice(&self) -> &[u8] {
+        self.data.as_byte_slice()
+    }
 }
 
 impl<T, A> TypedProjVecInner<T, A>
@@ -622,11 +627,6 @@ where
             self.data.append(ptr, count);
             other.set_len(0);
         }
-    }
-
-    #[inline]
-    pub(crate) fn as_byte_slice(&self) -> &[u8] {
-        self.data.as_byte_slice()
     }
 
     #[cfg(not(no_global_oom_handling))]
@@ -1193,7 +1193,7 @@ mod private {
     // `vec!` macro mostly and causes perf regression. See #71204 for
     // discussion and perf results.
     #[allow(missing_docs)]
-    pub fn into_opaque_vec<T, A>(b: Box<[T], A>) -> TypedProjVecInner<T, A>
+    pub fn into_typed_proj_vec<T, A>(b: Box<[T], A>) -> TypedProjVecInner<T, A>
     where
         T: any::Any,
         A: any::Any + Allocator,
@@ -1208,7 +1208,7 @@ mod private {
     #[cfg(not(no_global_oom_handling))]
     #[allow(missing_docs)]
     #[inline]
-    pub fn to_opaque_vec<T, A>(slice: &[T], alloc: A) -> TypedProjVecInner<T, A>
+    pub fn to_typed_proj_vec<T, A>(slice: &[T], alloc: A) -> TypedProjVecInner<T, A>
     where
         T: ConvertTypedProjVec,
         A: any::Any + Allocator + Clone,
@@ -1289,7 +1289,7 @@ where
     T: any::Any + Clone,
 {
     fn from(slice: &[T]) -> Self {
-        private::to_opaque_vec::<T, Global>(slice, Global)
+        private::to_typed_proj_vec::<T, Global>(slice, Global)
     }
 }
 
@@ -1298,7 +1298,7 @@ where
     T: any::Any + Clone,
 {
     fn from(slice: &mut [T]) -> Self {
-        private::to_opaque_vec::<T, Global>(slice, Global)
+        private::to_typed_proj_vec::<T, Global>(slice, Global)
     }
 }
 
@@ -1381,7 +1381,7 @@ where
     T: any::Any,
 {
     fn from(array: [T; N]) -> Self {
-        private::into_opaque_vec::<T, Global>(Box::new(array))
+        private::into_typed_proj_vec::<T, Global>(Box::new(array))
     }
 }
 
@@ -1413,18 +1413,6 @@ struct OpaqueVecInner {
     data: OpaqueBlobVec,
     element_type_id: TypeId,
     allocator_type_id: TypeId,
-}
-
-impl OpaqueVecInner {
-    #[inline]
-    pub(crate) const fn element_type_id(&self) -> TypeId {
-        self.element_type_id
-    }
-
-    #[inline]
-    pub(crate) const fn allocator_type_id(&self) -> TypeId {
-        self.allocator_type_id
-    }
 }
 
 impl OpaqueVecInner {
@@ -1471,6 +1459,45 @@ impl OpaqueVecInner {
     }
 }
 
+impl OpaqueVecInner {
+    #[inline]
+    pub(crate) const fn element_type_id(&self) -> TypeId {
+        self.element_type_id
+    }
+
+    #[inline]
+    pub(crate) const fn allocator_type_id(&self) -> TypeId {
+        self.allocator_type_id
+    }
+}
+
+impl OpaqueVecInner {
+    #[inline]
+    pub(crate) const fn element_layout(&self) -> Layout {
+        self.data.element_layout()
+    }
+
+    #[inline]
+    pub(crate) const fn capacity(&self) -> usize {
+        self.data.capacity()
+    }
+
+    #[inline]
+    pub(crate) const fn len(&self) -> usize {
+        self.data.len()
+    }
+
+    #[inline]
+    pub(crate) const fn is_empty(&self) -> bool {
+        self.data.is_empty()
+    }
+
+    #[inline]
+    pub(crate) fn as_byte_slice(&self) -> &[u8] {
+        self.data.as_byte_slice()
+    }
+}
+/*
 impl OpaqueVecInner {
     #[inline]
     #[must_use]
@@ -1646,7 +1673,7 @@ impl OpaqueVecInner {
         Self::from_proj(proj_vec_inner)
     }
 }
-
+*/
 /*
 struct DebugDisplayDataFormatter<'a> {
     inner: &'a OpaqueVecInner,
@@ -1787,17 +1814,6 @@ where
     }
 }
 
-impl<T, A> TypedProjVec<T, A>
-where
-    T: any::Any,
-    A: any::Any + Allocator,
-{
-    #[inline]
-    pub fn allocator(&self) -> &TypedProjAlloc<A> {
-        self.inner.allocator()
-    }
-}
-
 impl<T> TypedProjVec<T, Global>
 where
     T: any::Any,
@@ -1869,9 +1885,8 @@ where
         self.inner.len()
     }
 
-    #[inline]
-    unsafe fn set_len(&mut self, new_len: usize) {
-        self.inner.set_len(new_len);
+    pub fn as_byte_slice(&self) -> &[u8] {
+        self.inner.as_byte_slice()
     }
 }
 
@@ -1880,6 +1895,22 @@ where
     T: any::Any,
     A: any::Any + Allocator,
 {
+    #[inline]
+    pub fn allocator(&self) -> &TypedProjAlloc<A> {
+        self.inner.allocator()
+    }
+}
+
+impl<T, A> TypedProjVec<T, A>
+where
+    T: any::Any,
+    A: any::Any + Allocator,
+{
+    #[inline]
+    unsafe fn set_len(&mut self, new_len: usize) {
+        self.inner.set_len(new_len);
+    }
+
     #[inline]
     #[must_use]
     pub fn get(&self, index: usize) -> Option<&T> {
@@ -1982,10 +2013,6 @@ where
 
     pub fn as_mut_slice(&mut self) -> &mut [T] {
         self.inner.as_mut_slice()
-    }
-
-    pub fn as_byte_slice(&self) -> &[u8] {
-        self.inner.as_byte_slice()
     }
 
     #[must_use]
@@ -2988,38 +3015,32 @@ impl OpaqueVec {
 
 impl OpaqueVec {
     #[inline]
-    pub fn capacity<T, A>(&self) -> usize
-    where
-        T: any::Any,
-        A: any::Any + Allocator,
-    {
-        let proj_self = self.as_proj::<T, A>();
-
-        proj_self.capacity()
+    pub const fn capacity(&self) -> usize {
+        self.inner.capacity()
     }
 
     #[inline]
-    pub fn is_empty<T, A>(&self) -> bool
-    where
-        T: any::Any,
-        A: any::Any + Allocator,
-    {
-        let proj_self = self.as_proj::<T, A>();
-
-        proj_self.is_empty()
+    pub const fn is_empty(&self) -> bool {
+        self.inner.is_empty()
     }
 
     #[inline]
-    pub fn len<T, A>(&self) -> usize
-    where
-        T: any::Any,
-        A: any::Any + Allocator,
-    {
-        let proj_self = self.as_proj::<T, A>();
-
-        proj_self.len()
+    pub const fn len(&self) -> usize {
+        self.inner.len()
     }
 
+    #[inline]
+    pub const fn element_layout(&self) -> Layout {
+        self.inner.element_layout()
+    }
+
+    #[inline]
+    pub fn as_byte_slice(&self) -> &[u8] {
+        self.inner.as_byte_slice()
+    }
+}
+
+impl OpaqueVec {
     #[inline]
     pub fn allocator<T, A>(&self) -> &TypedProjAlloc<A>
     where
@@ -3255,16 +3276,6 @@ impl OpaqueVec {
         let proj_self = self.as_proj_mut::<T, A>();
 
         proj_self.as_mut_slice()
-    }
-
-    pub fn as_byte_slice<T, A>(&self) -> &[u8]
-    where
-        T: any::Any,
-        A: any::Any + Allocator,
-    {
-        let proj_self = self.as_proj::<T, A>();
-
-        proj_self.as_byte_slice()
     }
 
     #[must_use]

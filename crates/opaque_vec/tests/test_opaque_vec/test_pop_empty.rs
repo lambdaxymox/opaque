@@ -34,11 +34,11 @@ where
 {
     let mut vec = OpaqueVec::new_in::<T, A>(alloc);
 
-    assert!(vec.is_empty::<T, A>());
+    assert!(vec.is_empty());
 
     vec.pop::<T, A>();
 
-    assert!(vec.is_empty::<T, A>());
+    assert!(vec.is_empty());
 }
 
 fn run_test_opaque_vec_pop_empty_is_empty2<T, A>(alloc: A)
@@ -48,13 +48,13 @@ where
 {
     let mut vec = OpaqueVec::new_in::<T, A>(alloc);
 
-    assert!(vec.is_empty::<T, A>());
+    assert!(vec.is_empty());
 
     for _ in 0..65536 {
         vec.pop::<T, A>();
     }
 
-    assert!(vec.is_empty::<T, A>());
+    assert!(vec.is_empty());
 }
 
 macro_rules! generate_tests {

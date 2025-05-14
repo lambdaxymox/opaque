@@ -23,7 +23,7 @@ where
         opaque_vec.truncate::<T, A>(len);
 
         let expected = values.len();
-        let result = opaque_vec.len::<T, A>();
+        let result = opaque_vec.len();
 
         assert_eq!(result, expected);
     }

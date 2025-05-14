@@ -10,13 +10,13 @@ where
 {
     let mut vec = OpaqueVec::new_in::<T, A>(alloc);
 
-    assert!(vec.is_empty::<T, A>());
+    assert!(vec.is_empty());
 
     for _ in 0..65536 {
         vec.replace_insert::<T, A>(0, value.clone());
     }
 
-    assert_eq!(vec.len::<T, A>(), 1);
+    assert_eq!(vec.len(), 1);
 }
 
 macro_rules! generate_tests {

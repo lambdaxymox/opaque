@@ -16,7 +16,7 @@ where
         vec.push::<T, A>(value);
     }
 
-    for i in 0..vec.len::<T, A>() {
+    for i in 0..vec.len() {
         let expected = Some(values[i].clone());
         let result = vec.get::<T, A>(i).cloned();
 

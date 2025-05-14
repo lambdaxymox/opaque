@@ -30,7 +30,7 @@ fn bench_opaque_vec_swap_remove(c: &mut Criterion) {
         b.iter_batched(
             || OpaqueVec::from_iter((0..1000).map(|_| dummy_data)),
             |mut opaque_vec| {
-                for _ in 0..opaque_vec.len::<i32, alloc::Global>() {
+                for _ in 0..opaque_vec.len() {
                     let _ = criterion::black_box(opaque_vec.swap_remove::<i32, alloc::Global>(0));
                 }
             },

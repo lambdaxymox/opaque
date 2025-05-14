@@ -17,7 +17,7 @@ where
     }
 
     let expected = values.len();
-    let result = vec.len::<T, A>();
+    let result = vec.len();
 
     assert_eq!(result, expected);
 }
