@@ -1943,7 +1943,7 @@ impl OpaqueIndexMapCoreInner {
         V: any::Any,
         A: any::Any + Allocator,
     {
-        Ord::min(self.indices.capacity(), self.entries.capacity::<Bucket<K, V>, A>())
+        Ord::min(self.indices.capacity(), self.entries.capacity())
     }
 
     pub(crate) fn clear<K, V, A>(&mut self)
@@ -1963,7 +1963,7 @@ impl OpaqueIndexMapCoreInner {
         A: any::Any + Allocator,
     {
         if len < self.len() {
-            self.erase_indices::<K, V, A>(len, self.entries.len::<Bucket<K, V>, A>());
+            self.erase_indices::<K, V, A>(len, self.entries.len());
             self.entries.truncate::<Bucket<K, V>, A>(len);
         }
     }
@@ -1976,7 +1976,7 @@ impl OpaqueIndexMapCoreInner {
         A: any::Any + Allocator,
         R: ops::RangeBounds<usize>,
     {
-        let range = simplify_range(range, self.entries.len::<Bucket<K, V>, A>());
+        let range = simplify_range(range, self.entries.len());
         self.erase_indices::<K, V, A>(range.start, range.end);
 
         self.entries.drain::<_, Bucket<K, V>, A>(range)
@@ -2004,17 +2004,17 @@ impl OpaqueIndexMapCoreInner {
         V: any::Any,
         A: any::Any + Allocator + Clone,
     {
-        let len = self.entries.len::<Bucket<K, V>, A>();
+        let len = self.entries.len();
         assert!(
             at <= len,
             "index out of bounds: the len is {len} but the index is {at}. Expected index <= len"
         );
 
-        self.erase_indices::<K, V, A>(at, self.entries.len::<Bucket<K, V>, A>());
+        self.erase_indices::<K, V, A>(at, self.entries.len());
         let entries = self.entries.split_off::<Bucket<K, V>, A>(at);
 
         // let mut indices = Indices::with_capacity(entries.len());
-        let mut indices = hashbrown::HashTable::with_capacity(entries.len::<Bucket<K, V>, A>());
+        let mut indices = hashbrown::HashTable::with_capacity(entries.len());
         insert_bulk_no_grow(&mut indices, entries.as_slice::<Bucket<K, V>, A>());
 
         let split_key_type_id = self.key_type_id;
@@ -2039,12 +2039,12 @@ impl OpaqueIndexMapCoreInner {
         R: ops::RangeBounds<usize>,
     {
         let range = simplify_range(range, self.len());
-        self.erase_indices::<K, V, A>(range.start, self.entries.len::<Bucket<K, V>, A>());
+        self.erase_indices::<K, V, A>(range.start, self.entries.len());
         let entries = self.entries.split_off::<Bucket<K, V>, A>(range.end);
         let drained = self.entries.split_off::<Bucket<K, V>, A>(range.start);
 
         // let mut indices = Indices::with_capacity(entries.len());
-        let mut indices = hashbrown::HashTable::with_capacity(entries.len::<Bucket<K, V>, A>());
+        let mut indices = hashbrown::HashTable::with_capacity(entries.len());
         insert_bulk_no_grow(&mut indices, entries.as_slice::<Bucket<K, V>, A>());
 
         let split_splice_key_type_id = self.key_type_id;
@@ -2083,7 +2083,7 @@ impl OpaqueIndexMapCoreInner {
     {
         self.indices.reserve(additional, get_hash(self.entries.as_slice::<Bucket<K, V>, A>()));
         // Only grow entries if necessary, since we also round up capacity.
-        if additional > self.entries.capacity::<Bucket<K, V>, A>() - self.entries.len::<Bucket<K, V>, A>() {
+        if additional > self.entries.capacity() - self.entries.len() {
             self.borrow_mut::<K, V, A>().reserve_entries(additional);
         }
     }
@@ -2117,7 +2117,7 @@ impl OpaqueIndexMapCoreInner {
             .try_reserve(additional, get_hash::<K, V>(self.entries.as_slice::<Bucket<K, V>, A>()))
             .map_err(from_hashbrown)?;
         // Only grow entries if necessary, since we also round up capacity.
-        if additional > self.entries.capacity::<Bucket<K, V>, A>() - self.entries.len::<Bucket<K, V>, A>() {
+        if additional > self.entries.capacity() - self.entries.len() {
             self.try_reserve_entries::<K, V, A>(additional)
         } else {
             Ok(())
@@ -2140,7 +2140,7 @@ impl OpaqueIndexMapCoreInner {
         // Use a soft-limit on the maximum capacity, but if the caller explicitly
         // requested more, do it and let them have the resulting error.
         let new_capacity = Ord::min(self.indices.capacity(), Self::max_entries_capacity::<K, V>());
-        let try_add = new_capacity - self.entries.len::<Bucket<K, V>, A>();
+        let try_add = new_capacity - self.entries.len();
         if try_add > additional && self.entries.try_reserve_exact::<Bucket<K, V>, A>(try_add).is_ok() {
             return Ok(());
         }
@@ -2196,7 +2196,7 @@ impl OpaqueIndexMapCoreInner {
         A: any::Any + Allocator,
     {
         if let Some(entry) = self.entries.pop::<Bucket<K, V>, A>() {
-            let last = self.entries.len::<Bucket<K, V>, A>();
+            let last = self.entries.len();
             erase_index(&mut self.indices, entry.hash, last);
             Some((entry.key, entry.value))
         } else {
@@ -2222,7 +2222,7 @@ impl OpaqueIndexMapCoreInner {
         V: any::Any,
         A: any::Any + Allocator,
     {
-        if self.entries.len::<Bucket<K, V>, A>() == self.entries.capacity::<Bucket<K, V>, A>() {
+        if self.entries.len() == self.entries.capacity() {
             // Reserve our own capacity synced to the indices,
             // rather than letting `Vec::push` just double it.
             self.borrow_mut::<K, V, A>().reserve_entries(1);
@@ -2246,11 +2246,11 @@ impl OpaqueIndexMapCoreInner {
                 (i, Some(core::mem::replace(&mut self.as_entries_mut::<K, V, A>()[i].value, value)))
             }
             hashbrown::hash_table::Entry::Vacant(entry) => {
-                let i = self.entries.len::<Bucket<K, V>, A>();
+                let i = self.entries.len();
                 entry.insert(i);
                 self.push_entry::<K, V, A>(hash, key, value);
 
-                debug_assert_eq!(self.indices.len(), self.entries.len::<Bucket<K, V>, A>());
+                debug_assert_eq!(self.indices.len(), self.entries.len());
 
                 (i, None)
             }
@@ -2395,7 +2395,7 @@ impl OpaqueIndexMapCoreInner {
     {
         self.entries
             .retain_mut::<_, Bucket<K, V>, A>(|entry: &mut Bucket<K, V>| keep(&mut entry.key, &mut entry.value));
-        if self.entries.len::<Bucket<K, V>, A>() < self.indices.len() {
+        if self.entries.len() < self.indices.len() {
             self.rebuild_hash_table::<K, V, A>();
         }
     }
@@ -2420,7 +2420,7 @@ impl OpaqueIndexMapCoreInner {
 
         // No need to save hash indices, can easily calculate what they should
         // be, given that this is an in-place reversal.
-        let len = self.entries.len::<Bucket<K, V>, A>();
+        let len = self.entries.len();
         for i in &mut self.indices {
             *i = len - *i - 1;
         }
