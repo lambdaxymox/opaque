@@ -8,6 +8,91 @@ trait AnyHasher: hash::Hasher + any::Any {}
 
 impl<H> AnyHasher for H where H: hash::Hasher + any::Any {}
 
+#[repr(C)]
+struct TypedProjHasherInner<H> {
+    hasher: Box<H>,
+    type_id: TypeId,
+}
+
+impl<H> TypedProjHasherInner<H> {
+    #[inline]
+    const fn hasher_type_id(&self) -> TypeId {
+        self.type_id
+    }
+}
+
+impl<H> TypedProjHasherInner<H>
+where
+    H: any::Any + hash::Hasher,
+{
+    #[inline]
+    fn new(hasher: H) -> Self {
+        let boxed_hasher = Box::new(hasher);
+        let type_id = TypeId::of::<H>();
+
+        Self {
+            hasher: boxed_hasher,
+            type_id
+        }
+    }
+
+    #[inline]
+    fn from_boxed_hasher(hasher: Box<H>) -> Self {
+        let type_id = TypeId::of::<H>();
+
+        Self {
+            hasher,
+            type_id,
+        }
+    }
+
+    #[inline]
+    fn hasher_assuming_type(&self) -> &H {
+        let any_hasher = self.hasher.as_ref() as &dyn any::Any;
+        any_hasher.downcast_ref::<H>().unwrap()
+    }
+
+    #[inline]
+    fn into_boxed_hasher_assuming_type(self) -> Box<H> {
+        let boxed_hasher = unsafe {
+            let unboxed_hasher = Box::into_raw(self.hasher);
+            Box::from_raw(unboxed_hasher as *mut H)
+        };
+
+        boxed_hasher
+    }
+}
+
+impl<H> TypedProjHasherInner<H> {
+    #[inline]
+    fn clone_assuming_type(&self) -> TypedProjHasherInner<H>
+    where
+        H: hash::Hasher + any::Any + Clone,
+    {
+        let any_hasher = self.hasher.as_ref() as &dyn any::Any;
+        let alloc_ref = any_hasher
+            .downcast_ref::<H>()
+            .unwrap();
+        let cloned_alloc = alloc_ref.clone();
+
+        TypedProjHasherInner::new(cloned_alloc)
+    }
+}
+
+impl<H> hash::Hasher for TypedProjHasherInner<H>
+where
+    H: any::Any + hash::Hasher,
+{
+    fn finish(&self) -> u64 {
+        self.hasher.finish()
+    }
+
+    fn write(&mut self, bytes: &[u8]) {
+        self.hasher.write(bytes)
+    }
+}
+
+#[repr(C)]
 struct OpaqueHasherInner {
     hasher: Box<dyn AnyHasher>,
     type_id: TypeId,
@@ -47,41 +132,47 @@ impl OpaqueHasherInner {
             type_id,
         }
     }
+}
 
-    #[inline]
-    fn hasher_assuming_type<H>(&self) -> &H
+impl OpaqueHasherInner {
+    pub(crate) fn as_proj<H>(&self) -> &TypedProjHasherInner<H>
     where
         H: any::Any + hash::Hasher,
     {
-        let any_hasher = self.hasher.as_ref() as &dyn any::Any;
-        any_hasher.downcast_ref::<H>().unwrap()
+        unsafe { &*(self as *const OpaqueHasherInner as *const TypedProjHasherInner<H>) }
     }
 
-    #[inline]
-    fn into_boxed_hasher_assuming_type<H>(self) -> Box<H>
+    pub(crate) fn as_proj_mut<H>(&mut self) -> &mut TypedProjHasherInner<H>
+    where
+        H: any::Any + hash::Hasher,
+    {
+        unsafe { &mut *(self as *mut OpaqueHasherInner as *mut TypedProjHasherInner<H>) }
+    }
+
+    pub(crate) fn into_proj<H>(self) -> TypedProjHasherInner<H>
     where
         H: any::Any + hash::Hasher,
     {
         let boxed_hasher = unsafe {
-            let unboxed_hasher = Box::into_raw(self.hasher);
-            Box::from_raw(unboxed_hasher as *mut H)
+            let unboxed_alloc = Box::into_raw(self.hasher);
+            Box::from_raw(unboxed_alloc as *mut H)
         };
 
-        boxed_hasher
+        TypedProjHasherInner {
+            hasher: boxed_hasher,
+            type_id: self.type_id,
+        }
     }
 
     #[inline]
-    fn clone_assuming_type<H>(&self) -> OpaqueHasherInner
+    pub(crate) fn from_proj<H>(proj_self: TypedProjHasherInner<H>) -> Self
     where
-        H: hash::Hasher + any::Any + Clone,
+        H: any::Any + hash::Hasher,
     {
-        let any_hasher = self.hasher.as_ref() as &dyn any::Any;
-        let alloc_ref = any_hasher
-            .downcast_ref::<H>()
-            .unwrap();
-        let cloned_alloc = alloc_ref.clone();
-
-        OpaqueHasherInner::new(cloned_alloc)
+        Self {
+            hasher: proj_self.hasher,
+            type_id: proj_self.type_id,
+        }
     }
 }
 
@@ -97,8 +188,7 @@ impl hash::Hasher for OpaqueHasherInner {
 
 #[repr(transparent)]
 pub struct TypedProjHasher<H> {
-    inner: OpaqueHasherInner,
-    _marker: core::marker::PhantomData<H>,
+    inner: TypedProjHasherInner<H>,
 }
 
 impl<H> TypedProjHasher<H>
@@ -107,24 +197,24 @@ where
 {
     #[inline]
     pub fn new(hasher: H) -> Self {
-        let inner = OpaqueHasherInner::new::<H>(hasher);
+        let inner = TypedProjHasherInner::new(hasher);
 
-        Self { inner, _marker: PhantomData }
+        Self { inner, }
     }
 
     #[inline]
     pub fn from_boxed_hasher(hasher: Box<H>) -> Self {
-        let inner = OpaqueHasherInner::from_boxed_hasher(hasher);
+        let inner = TypedProjHasherInner::from_boxed_hasher(hasher);
 
-        Self { inner, _marker: PhantomData }
+        Self { inner, }
     }
 
     pub fn hasher(&self) -> &H {
-        self.inner.hasher_assuming_type::<H>()
+        self.inner.hasher_assuming_type()
     }
 
     pub fn into_boxed_hasher(self) -> Box<H> {
-        self.inner.into_boxed_hasher_assuming_type::<H>()
+        self.inner.into_boxed_hasher_assuming_type()
     }
 }
 
@@ -147,8 +237,7 @@ where
 {
     fn clone(&self) -> Self {
         Self {
-            inner: self.inner.clone_assuming_type::<H>(),
-            _marker: self._marker,
+            inner: self.inner.clone_assuming_type(),
         }
     }
 }
@@ -169,7 +258,7 @@ where
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         formatter
             .debug_struct("TypedProjHasher")
-            .field("inner", self.inner.hasher_assuming_type::<H>())
+            .field("inner", self.inner.hasher_assuming_type())
             .finish()
     }
 }
@@ -269,8 +358,7 @@ impl OpaqueHasher {
         self.assert_type_safety::<H>();
 
         TypedProjHasher {
-            inner: self.inner,
-            _marker: std::marker::PhantomData,
+            inner: self.inner.into_proj(),
         }
     }
 
@@ -280,7 +368,7 @@ impl OpaqueHasher {
         H: any::Any + hash::Hasher,
     {
         Self {
-            inner: proj_self.inner,
+            inner: OpaqueHasherInner::from_proj(proj_self.inner),
         }
     }
 }
@@ -301,6 +389,75 @@ impl fmt::Debug for OpaqueHasher {
     }
 }
 
+#[repr(C)]
+struct TypedProjBuildHasherInner<S> {
+    build_hasher: Box<S>,
+    build_hasher_type_id: TypeId,
+    hasher_type_id: TypeId,
+}
+
+impl<S> TypedProjBuildHasherInner<S>
+where
+    S: any::Any + hash::BuildHasher,
+{
+    #[inline]
+    fn new(build_hasher: S) -> Self {
+        let boxed_build_hasher = Box::new(build_hasher);
+        let build_hasher_type_id: TypeId = TypeId::of::<S>();
+        let hasher_type_id = TypeId::of::<S::Hasher>();
+
+        Self {
+            build_hasher: boxed_build_hasher,
+            build_hasher_type_id,
+            hasher_type_id,
+        }
+    }
+
+    #[inline]
+    fn from_boxed_build_hasher(build_hasher: Box<S>) -> Self {
+        let build_hasher_type_id: TypeId = TypeId::of::<S>();
+        let hasher_type_id = TypeId::of::<S::Hasher>();
+
+        Self {
+            build_hasher,
+            build_hasher_type_id,
+            hasher_type_id,
+        }
+    }
+
+    fn get_build_hasher(&self) -> &S {
+        let any_build_hasher = self.build_hasher.as_ref() as &dyn any::Any;
+        any_build_hasher.downcast_ref::<S>().unwrap()
+    }
+
+    fn into_boxed_build_hasher(self) -> Box<S> {
+        let boxed_build_hasher = unsafe {
+            let unboxed_build_hasher = Box::into_raw(self.build_hasher);
+            Box::from_raw(unboxed_build_hasher as *mut S)
+        };
+
+        boxed_build_hasher
+    }
+
+    fn build_hasher(&self) -> TypedProjHasher<S::Hasher> {
+        let hasher = self.build_hasher.build_hasher();
+
+        TypedProjHasher::new(hasher)
+    }
+}
+
+impl<S> Clone for TypedProjBuildHasherInner<S>
+where
+    S: any::Any + hash::BuildHasher + Clone,
+{
+    fn clone(&self) -> Self {
+        let cloned_build_hasher = self.build_hasher.clone();
+
+        Self::from_boxed_build_hasher(cloned_build_hasher)
+    }
+}
+
+#[repr(C)]
 struct OpaqueBuildHasherInner {
     build_hasher: Box<dyn any::Any>,
     build_hasher_type_id: TypeId,
@@ -350,16 +507,24 @@ impl OpaqueBuildHasherInner {
             hasher_type_id,
         }
     }
+}
 
-    fn get_build_hasher_assuming_type<S>(&self) -> &S
+impl OpaqueBuildHasherInner {
+    pub fn as_proj<S>(&self) -> &TypedProjBuildHasherInner<S>
     where
         S: any::Any + hash::BuildHasher,
     {
-        let any_build_hasher = self.build_hasher.as_ref() as &dyn any::Any;
-        any_build_hasher.downcast_ref::<S>().unwrap()
+        unsafe { &*(self as *const OpaqueBuildHasherInner as *const TypedProjBuildHasherInner<S>) }
     }
 
-    fn into_boxed_build_hasher_assuming_type<S>(self) -> Box<S>
+    pub fn as_proj_mut<S>(&mut self) -> &mut TypedProjBuildHasherInner<S>
+    where
+        S: any::Any + hash::BuildHasher,
+    {
+        unsafe { &mut *(self as *mut OpaqueBuildHasherInner as *mut TypedProjBuildHasherInner<S>) }
+    }
+
+    pub fn into_proj<S>(self) -> TypedProjBuildHasherInner<S>
     where
         S: any::Any + hash::BuildHasher,
     {
@@ -368,37 +533,29 @@ impl OpaqueBuildHasherInner {
             Box::from_raw(unboxed_build_hasher as *mut S)
         };
 
-        boxed_build_hasher
+        TypedProjBuildHasherInner {
+            build_hasher: boxed_build_hasher,
+            build_hasher_type_id: self.build_hasher_type_id,
+            hasher_type_id: self.hasher_type_id,
+        }
     }
 
-    fn clone_assuming_type<A>(&self) -> Self
-    where
-        A: hash::BuildHasher + any::Any + Clone,
-    {
-        let any_build_hasher = self.build_hasher.as_ref() as &dyn any::Any;
-        let build_hasher_ref = any_build_hasher
-            .downcast_ref::<A>()
-            .unwrap();
-        let cloned_build_hasher = build_hasher_ref.clone();
-
-        Self::new(cloned_build_hasher)
-    }
-
-    fn build_hasher_assuming_type<S>(&self) -> TypedProjHasher<S::Hasher>
+    #[inline]
+    pub fn from_proj<S>(proj_self: TypedProjBuildHasherInner<S>) -> Self
     where
         S: any::Any + hash::BuildHasher,
     {
-        let build_hasher = self.build_hasher.as_ref().downcast_ref::<S>().unwrap();
-        let hasher = build_hasher.build_hasher();
-
-        TypedProjHasher::new(hasher)
+        Self {
+            build_hasher: proj_self.build_hasher,
+            build_hasher_type_id: proj_self.build_hasher_type_id,
+            hasher_type_id: proj_self.hasher_type_id,
+        }
     }
 }
 
 #[repr(transparent)]
 pub struct TypedProjBuildHasher<S> {
-    inner: OpaqueBuildHasherInner,
-    _marker: core::marker::PhantomData<S>,
+    inner: TypedProjBuildHasherInner<S>,
 }
 
 impl<S> TypedProjBuildHasher<S>
@@ -407,24 +564,24 @@ where
 {
     #[inline]
     pub fn new(build_hasher: S) -> Self {
-        let inner = OpaqueBuildHasherInner::new::<S>(build_hasher);
+        let inner = TypedProjBuildHasherInner::new(build_hasher);
 
-        Self { inner, _marker: PhantomData }
+        Self { inner, }
     }
 
     #[inline]
     pub fn from_boxed_build_hasher(build_hasher: Box<S>) -> Self {
-        let inner = OpaqueBuildHasherInner::from_boxed_build_hasher(build_hasher);
+        let inner = TypedProjBuildHasherInner::from_boxed_build_hasher(build_hasher);
 
-        Self { inner, _marker: PhantomData }
+        Self { inner, }
     }
 
     pub fn get_build_hasher(&self) -> &S {
-        self.inner.get_build_hasher_assuming_type::<S>()
+        self.inner.get_build_hasher()
     }
 
     pub fn into_boxed_build_hasher(self) -> Box<S> {
-        self.inner.into_boxed_build_hasher_assuming_type::<S>()
+        self.inner.into_boxed_build_hasher()
     }
 }
 
@@ -435,7 +592,7 @@ where
     type Hasher = TypedProjHasher<S::Hasher>;
 
     fn build_hasher(&self) -> Self::Hasher {
-        self.inner.build_hasher_assuming_type::<S>()
+        self.inner.build_hasher()
     }
 }
 
@@ -445,8 +602,7 @@ where
 {
     fn clone(&self) -> Self {
         Self {
-            inner: self.inner.clone_assuming_type::<S>(),
-            _marker: core::marker::PhantomData,
+            inner: self.inner.clone(),
         }
     }
 }
@@ -479,7 +635,7 @@ where
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter
             .debug_struct("TypedProjBuildHasher")
-            .field("inner", self.inner.get_build_hasher_assuming_type::<S>())
+            .field("inner", self.inner.get_build_hasher())
             .finish()
     }
 }
@@ -508,7 +664,9 @@ impl OpaqueBuildHasher {
     pub const fn hasher_type_id(&self) -> TypeId {
         self.inner.hasher_type_id()
     }
+}
 
+impl OpaqueBuildHasher {
     #[inline]
     pub fn has_build_hasher_type<S>(&self) -> bool
     where
@@ -592,8 +750,7 @@ impl OpaqueBuildHasher {
         self.assert_type_safety::<S>();
 
         TypedProjBuildHasher {
-            inner: self.inner,
-            _marker: std::marker::PhantomData,
+            inner: self.inner.into_proj(),
         }
     }
 
@@ -603,7 +760,7 @@ impl OpaqueBuildHasher {
         S: any::Any + hash::BuildHasher,
     {
         Self {
-            inner: proj_self.inner,
+            inner: OpaqueBuildHasherInner::from_proj(proj_self.inner),
         }
     }
 }
