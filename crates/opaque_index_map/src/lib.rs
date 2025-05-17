@@ -791,17 +791,7 @@ where
         Slice::from_boxed_slice(self.entries.to_vec_in(alloc).into_boxed_slice())
     }
 }
-/*
-impl<K, V> From<&Slice<K, V>> for Box<Slice<K, V>, opaque_alloc::OpaqueAlloc>
-where
-    K: Copy,
-    V: Copy,
-{
-    fn from(slice: &Slice<K, V>) -> Self {
-        Slice::from_boxed_slice(Box::from(&slice.entries))
-    }
-}
-*/
+
 impl<K, V> fmt::Debug for Slice<K, V>
 where
     K: fmt::Debug,
@@ -3075,20 +3065,6 @@ where
         core::mem::replace(self.get_mut(), value)
     }
 
-    /*
-    /// Remove the key, value pair stored in the map for this entry, and return the value.
-    ///
-    /// **NOTE:** This is equivalent to [`.swap_remove()`][Self::swap_remove], replacing this
-    /// entry's position with the last element, and it is deprecated in favor of calling that
-    /// explicitly. If you need to preserve the relative order of the keys in the map, use
-    /// [`.shift_remove()`][Self::shift_remove] instead.
-    #[deprecated(note = "`remove` disrupts the map order -- \
-        use `swap_remove` or `shift_remove` for explicit behavior.")]
-    pub fn remove(self) -> V {
-        self.swap_remove()
-    }
-    */
-
     pub fn swap_remove(self) -> V {
         self.swap_remove_entry().1
     }
@@ -3096,20 +3072,6 @@ where
     pub fn shift_remove(self) -> V {
         self.shift_remove_entry().1
     }
-
-    /*
-    /// Remove and return the key, value pair stored in the map for this entry
-    ///
-    /// **NOTE:** This is equivalent to [`.swap_remove_entry()`][Self::swap_remove_entry],
-    /// replacing this entry's position with the last element, and it is deprecated in favor of
-    /// calling that explicitly. If you need to preserve the relative order of the keys in the map,
-    /// use [`.shift_remove_entry()`][Self::shift_remove_entry] instead.
-    #[deprecated(note = "`remove_entry` disrupts the map order -- \
-        use `swap_remove_entry` or `shift_remove_entry` for explicit behavior.")]
-    pub fn remove_entry(self) -> (K, V) {
-        self.swap_remove_entry()
-    }
-    */
 
     pub fn swap_remove_entry(self) -> (K, V) {
         let (index, entry) = self.index.remove();
