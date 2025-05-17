@@ -2,14 +2,13 @@
 #![feature(slice_range)]
 #![feature(slice_iter_mut_as_mut_slice)]
 #![feature(optimize_attribute)]
-use core::cmp;
-use core::ops;
 use core::any;
-use core::any::TypeId;
+use core::cmp;
+use core::fmt;
+use core::iter;
+use core::ops;
 use std::alloc;
-use std::fmt;
 use std::hash;
-use std::iter;
 use std::marker::PhantomData;
 
 use opaque_alloc;
@@ -1515,9 +1514,9 @@ impl<K, V> Bucket<K, V> {
 pub(crate) struct OpaqueIndexMapCoreInner {
     indices: hashbrown::HashTable<usize>,
     entries: OpaqueVec,
-    key_type_id: TypeId,
-    value_type_id: TypeId,
-    allocator_type_id: TypeId,
+    key_type_id: any::TypeId,
+    value_type_id: any::TypeId,
+    allocator_type_id: any::TypeId,
 }
 
 #[inline(always)]
@@ -1770,17 +1769,17 @@ where
 
 impl OpaqueIndexMapCoreInner {
     #[inline]
-    pub(crate) const fn key_type_id(&self) -> TypeId {
+    pub(crate) const fn key_type_id(&self) -> any::TypeId {
         self.key_type_id
     }
 
     #[inline]
-    pub(crate) const fn value_type_id(&self) -> TypeId {
+    pub(crate) const fn value_type_id(&self) -> any::TypeId {
         self.value_type_id
     }
 
     #[inline]
-    pub(crate) const fn allocator_type_id(&self) -> TypeId {
+    pub(crate) const fn allocator_type_id(&self) -> any::TypeId {
         self.allocator_type_id
     }
 }
@@ -1795,9 +1794,9 @@ impl OpaqueIndexMapCoreInner {
     {
         let indices = hashbrown::HashTable::new();
         let entries = OpaqueVec::new_proj_in::<Bucket<K, V>, A>(alloc);
-        let key_type_id = TypeId::of::<K>();
-        let value_type_id = TypeId::of::<V>();
-        let allocator_type_id = TypeId::of::<A>();
+        let key_type_id = any::TypeId::of::<K>();
+        let value_type_id = any::TypeId::of::<V>();
+        let allocator_type_id = any::TypeId::of::<A>();
 
         Self {
             indices,
@@ -1817,9 +1816,9 @@ impl OpaqueIndexMapCoreInner {
     {
         let indices = hashbrown::HashTable::with_capacity(capacity);
         let entries = OpaqueVec::with_capacity_proj_in::<Bucket<K, V>, A>(capacity, alloc);
-        let key_type_id = TypeId::of::<K>();
-        let value_type_id = TypeId::of::<V>();
-        let allocator_type_id = TypeId::of::<A>();
+        let key_type_id = any::TypeId::of::<K>();
+        let value_type_id = any::TypeId::of::<V>();
+        let allocator_type_id = any::TypeId::of::<A>();
 
         Self {
             indices,
@@ -1841,9 +1840,9 @@ impl OpaqueIndexMapCoreInner {
     {
         let indices = hashbrown::HashTable::new();
         let entries = OpaqueVec::new_in::<Bucket<K, V>, A>(alloc);
-        let key_type_id = TypeId::of::<K>();
-        let value_type_id = TypeId::of::<V>();
-        let allocator_type_id = TypeId::of::<A>();
+        let key_type_id = any::TypeId::of::<K>();
+        let value_type_id = any::TypeId::of::<V>();
+        let allocator_type_id = any::TypeId::of::<A>();
 
         Self {
             indices,
@@ -1863,9 +1862,9 @@ impl OpaqueIndexMapCoreInner {
     {
         let indices = hashbrown::HashTable::with_capacity(capacity);
         let entries = OpaqueVec::with_capacity_in::<Bucket<K, V>, A>(capacity, alloc);
-        let key_type_id = TypeId::of::<K>();
-        let value_type_id = TypeId::of::<V>();
-        let allocator_type_id = TypeId::of::<A>();
+        let key_type_id = any::TypeId::of::<K>();
+        let value_type_id = any::TypeId::of::<V>();
+        let allocator_type_id = any::TypeId::of::<A>();
 
         Self {
             indices,
@@ -1886,9 +1885,9 @@ impl OpaqueIndexMapCoreInner {
     {
         let indices = hashbrown::HashTable::new();
         let entries = OpaqueVec::new::<Bucket<K, V>>();
-        let key_type_id = TypeId::of::<K>();
-        let value_type_id = TypeId::of::<V>();
-        let allocator_type_id = TypeId::of::<alloc::Global>();
+        let key_type_id = any::TypeId::of::<K>();
+        let value_type_id = any::TypeId::of::<V>();
+        let allocator_type_id = any::TypeId::of::<alloc::Global>();
 
         Self {
             indices,
@@ -1907,9 +1906,9 @@ impl OpaqueIndexMapCoreInner {
     {
         let indices = hashbrown::HashTable::with_capacity(capacity);
         let entries = OpaqueVec::with_capacity::<Bucket<K, V>>(capacity);
-        let key_type_id = TypeId::of::<K>();
-        let value_type_id = TypeId::of::<V>();
-        let allocator_type_id = TypeId::of::<alloc::Global>();
+        let key_type_id = any::TypeId::of::<K>();
+        let value_type_id = any::TypeId::of::<V>();
+        let allocator_type_id = any::TypeId::of::<alloc::Global>();
 
         Self {
             indices,
@@ -2840,17 +2839,17 @@ struct OpaqueIndexMapCore {
 
 impl OpaqueIndexMapCore {
     #[inline]
-    pub(crate) const fn key_type_id(&self) -> TypeId {
+    pub(crate) const fn key_type_id(&self) -> any::TypeId {
         self.inner.key_type_id()
     }
 
     #[inline]
-    pub(crate) const fn value_type_id(&self) -> TypeId {
+    pub(crate) const fn value_type_id(&self) -> any::TypeId {
         self.inner.value_type_id()
     }
 
     #[inline]
-    pub(crate) const fn allocator_type_id(&self) -> TypeId {
+    pub(crate) const fn allocator_type_id(&self) -> any::TypeId {
         self.inner.allocator_type_id()
     }
 }
@@ -4241,22 +4240,22 @@ struct OpaqueIndexMapInner {
 
 impl OpaqueIndexMapInner {
     #[inline]
-    pub fn key_type_id(&self) -> TypeId {
+    pub fn key_type_id(&self) -> any::TypeId {
         self.inner.key_type_id()
     }
 
     #[inline]
-    pub fn value_type_id(&self) -> TypeId {
+    pub fn value_type_id(&self) -> any::TypeId {
         self.inner.value_type_id()
     }
 
     #[inline]
-    pub fn build_hasher_type_id(&self) -> TypeId {
+    pub fn build_hasher_type_id(&self) -> any::TypeId {
         self.build_hasher.build_hasher_type_id()
     }
 
     #[inline]
-    pub fn allocator_type_id(&self) -> TypeId {
+    pub fn allocator_type_id(&self) -> any::TypeId {
         self.inner.allocator_type_id()
     }
 }
@@ -5306,7 +5305,7 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
     {
-        self.inner.key_type_id() == TypeId::of::<K>()
+        self.inner.key_type_id() == any::TypeId::of::<K>()
     }
 
     #[inline]
@@ -5314,7 +5313,7 @@ impl OpaqueIndexMap {
     where
         V: any::Any,
     {
-        self.inner.value_type_id() == TypeId::of::<V>()
+        self.inner.value_type_id() == any::TypeId::of::<V>()
     }
 
     #[inline]
@@ -5322,7 +5321,7 @@ impl OpaqueIndexMap {
     where
         S: any::Any,
     {
-        self.inner.build_hasher_type_id() == TypeId::of::<S>()
+        self.inner.build_hasher_type_id() == any::TypeId::of::<S>()
     }
 
     #[inline]
@@ -5330,7 +5329,7 @@ impl OpaqueIndexMap {
     where
         A: any::Any + alloc::Allocator,
     {
-        self.inner.allocator_type_id() == TypeId::of::<A>()
+        self.inner.allocator_type_id() == any::TypeId::of::<A>()
     }
 
     #[inline]
@@ -5345,24 +5344,24 @@ impl OpaqueIndexMap {
         #[cold]
         #[optimize(size)]
         #[track_caller]
-        fn type_check_failed(st: &str, type_id_self: TypeId, type_id_other: TypeId) -> ! {
+        fn type_check_failed(st: &str, type_id_self: any::TypeId, type_id_other: any::TypeId) -> ! {
             panic!("{:?} type mismatch. Need `{:?}`, got `{:?}`", st, type_id_self, type_id_other);
         }
 
         if !self.has_key_type::<K>() {
-            type_check_failed("Key", self.inner.key_type_id(), TypeId::of::<K>());
+            type_check_failed("Key", self.inner.key_type_id(), any::TypeId::of::<K>());
         }
 
         if !self.has_value_type::<V>() {
-            type_check_failed("Value", self.inner.value_type_id(), TypeId::of::<V>());
+            type_check_failed("Value", self.inner.value_type_id(), any::TypeId::of::<V>());
         }
 
         if !self.has_build_hasher_type::<S>() {
-            type_check_failed("BuildHasher", self.inner.build_hasher_type_id(), TypeId::of::<S>());
+            type_check_failed("BuildHasher", self.inner.build_hasher_type_id(), any::TypeId::of::<S>());
         }
 
         if !self.has_allocator_type::<A>() {
-            type_check_failed("Allocator", self.inner.allocator_type_id(), TypeId::of::<A>());
+            type_check_failed("Allocator", self.inner.allocator_type_id(), any::TypeId::of::<A>());
         }
     }
 }
