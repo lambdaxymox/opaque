@@ -2,14 +2,14 @@
 #![feature(slice_range)]
 #![feature(slice_iter_mut_as_mut_slice)]
 #![feature(optimize_attribute)]
-use core::cmp::Ordering;
+use core::cmp;
 use core::ops;
 use core::any;
 use core::any::TypeId;
 use std::alloc;
 use std::fmt;
 use std::hash;
-use std::iter::FusedIterator;
+use std::iter;
 use std::marker::PhantomData;
 
 use opaque_alloc;
@@ -87,7 +87,7 @@ where
     }
 }
 
-impl<K, V, A> FusedIterator for Drain<'_, K, V, A>
+impl<K, V, A> iter::FusedIterator for Drain<'_, K, V, A>
 where
     K: any::Any,
     V: any::Any,
@@ -147,7 +147,7 @@ impl<'a, K, V> ExactSizeIterator for Keys<'a, K, V> {
     }
 }
 
-impl<'a, K, V> FusedIterator for Keys<'a, K, V> {}
+impl<'a, K, V> iter::FusedIterator for Keys<'a, K, V> {}
 
 impl<'a, K, V> fmt::Debug for Keys<'a, K, V>
 where
@@ -220,7 +220,7 @@ where
     }
 }
 
-impl<K, V, A> FusedIterator for IntoKeys<K, V, A>
+impl<K, V, A> iter::FusedIterator for IntoKeys<K, V, A>
 where
     K: any::Any,
     V: any::Any,
@@ -287,7 +287,7 @@ impl<'a, K, V> ExactSizeIterator for Values<'a, K, V> {
     }
 }
 
-impl<'a, K, V> FusedIterator for Values<'a, K, V> {}
+impl<'a, K, V> iter::FusedIterator for Values<'a, K, V> {}
 
 impl<K, V> Clone for Values<'_, K, V> {
     fn clone(&self) -> Self {
@@ -341,7 +341,7 @@ impl<'a, K, V> ExactSizeIterator for ValuesMut<'a, K, V> {
     }
 }
 
-impl<'a, K, V> FusedIterator for ValuesMut<'a, K, V> {}
+impl<'a, K, V> iter::FusedIterator for ValuesMut<'a, K, V> {}
 
 impl<K, V: fmt::Debug> fmt::Debug for ValuesMut<'_, K, V> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -410,7 +410,7 @@ where
     }
 }
 
-impl<K, V, A> FusedIterator for IntoValues<K, V, A>
+impl<K, V, A> iter::FusedIterator for IntoValues<K, V, A>
 where
     K: any::Any,
     V: any::Any,
@@ -702,7 +702,7 @@ impl<K, V> Slice<K, V> {
     #[inline]
     pub fn binary_search_by<'a, F>(&'a self, mut f: F) -> Result<usize, usize>
     where
-        F: FnMut(&'a K, &'a V) -> Ordering,
+        F: FnMut(&'a K, &'a V) -> cmp::Ordering,
     {
         self.entries.binary_search_by(move |a| f(&a.key, &a.value))
     }
@@ -886,7 +886,7 @@ where
 impl<K: Eq, V: Eq> Eq for Slice<K, V> {}
 
 impl<K: PartialOrd, V: PartialOrd> PartialOrd for Slice<K, V> {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+    fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
         self.iter().partial_cmp(other)
     }
 }
@@ -896,7 +896,7 @@ where
     K: Ord,
     V: Ord,
 {
-    fn cmp(&self, other: &Self) -> Ordering {
+    fn cmp(&self, other: &Self) -> cmp::Ordering {
         self.iter().cmp(other)
     }
 }
@@ -1101,7 +1101,7 @@ impl<K, V> ExactSizeIterator for Iter<'_, K, V> {
     }
 }
 
-impl<K, V> FusedIterator for Iter<'_, K, V> {}
+impl<K, V> iter::FusedIterator for Iter<'_, K, V> {}
 
 impl<K, V> Clone for Iter<'_, K, V> {
     fn clone(&self) -> Self {
@@ -1164,7 +1164,7 @@ impl<K, V> ExactSizeIterator for IterMut<'_, K, V> {
     }
 }
 
-impl<K, V> FusedIterator for IterMut<'_, K, V> {}
+impl<K, V> iter::FusedIterator for IterMut<'_, K, V> {}
 
 impl<K: fmt::Debug, V: fmt::Debug> fmt::Debug for IterMut<'_, K, V> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -1249,7 +1249,7 @@ where
     }
 }
 
-impl<K, V, A> FusedIterator for IntoIter<K, V, A>
+impl<K, V, A> iter::FusedIterator for IntoIter<K, V, A>
 where
     K: any::Any,
     V: any::Any,
@@ -1398,7 +1398,7 @@ where
     }
 }
 
-impl<I, K, V, S, A> FusedIterator for Splice<'_, I, K, V, S, A>
+impl<I, K, V, S, A> iter::FusedIterator for Splice<'_, I, K, V, S, A>
 where
     I: Iterator<Item = (K, V)>,
     K: any::Any + hash::Hash + Eq,
@@ -4021,7 +4021,7 @@ where
 
     pub fn sort_by<F>(&mut self, mut cmp: F)
     where
-        F: FnMut(&K, &V, &K, &V) -> Ordering,
+        F: FnMut(&K, &V, &K, &V) -> cmp::Ordering,
     {
         self.with_entries::<_>(move |entries| {
             entries.sort_by(move |a, b| cmp(&a.key, &a.value, &b.key, &b.value));
@@ -4030,7 +4030,7 @@ where
 
     pub fn sorted_by<F>(self, mut cmp: F) -> IntoIter<K, V, A>
     where
-        F: FnMut(&K, &V, &K, &V) -> Ordering,
+        F: FnMut(&K, &V, &K, &V) -> cmp::Ordering,
     {
         let mut entries = self.into_entries();
         entries
@@ -4051,7 +4051,7 @@ where
 
     pub fn sort_unstable_by<F>(&mut self, mut cmp: F)
     where
-        F: FnMut(&K, &V, &K, &V) -> Ordering,
+        F: FnMut(&K, &V, &K, &V) -> cmp::Ordering,
     {
         self.with_entries::<_>(move |entries| {
             entries.sort_unstable_by(move |a, b| cmp(&a.key, &a.value, &b.key, &b.value));
@@ -4061,7 +4061,7 @@ where
     #[inline]
     pub fn sorted_unstable_by<F>(self, mut cmp: F) -> IntoIter<K, V, A>
     where
-        F: FnMut(&K, &V, &K, &V) -> Ordering,
+        F: FnMut(&K, &V, &K, &V) -> cmp::Ordering,
     {
         let mut entries = self.into_entries();
         entries
@@ -4091,7 +4091,7 @@ where
     #[inline]
     pub fn binary_search_by<F>(&self, f: F) -> Result<usize, usize>
     where
-        F: FnMut(&K, &V) -> Ordering,
+        F: FnMut(&K, &V) -> cmp::Ordering,
     {
         self.as_slice().binary_search_by(f)
     }
@@ -4847,7 +4847,7 @@ where
 
     pub fn sort_by<F>(&mut self, mut cmp: F)
     where
-        F: FnMut(&K, &V, &K, &V) -> Ordering,
+        F: FnMut(&K, &V, &K, &V) -> cmp::Ordering,
     {
         let proj_inner = self.inner.as_proj_mut::<K, V, S, A>();
 
@@ -4856,7 +4856,7 @@ where
 
     pub fn sorted_by<F>(self, mut cmp: F) -> IntoIter<K, V, A>
     where
-        F: FnMut(&K, &V, &K, &V) -> Ordering,
+        F: FnMut(&K, &V, &K, &V) -> cmp::Ordering,
     {
         let proj_inner = self.inner.into_proj::<K, V, S, A>();
 
@@ -4874,7 +4874,7 @@ where
 
     pub fn sort_unstable_by<F>(&mut self, mut cmp: F)
     where
-        F: FnMut(&K, &V, &K, &V) -> Ordering,
+        F: FnMut(&K, &V, &K, &V) -> cmp::Ordering,
     {
         let proj_inner = self.inner.as_proj_mut::<K, V, S, A>();
 
@@ -4884,7 +4884,7 @@ where
     #[inline]
     pub fn sorted_unstable_by<F>(self, mut cmp: F) -> IntoIter<K, V, A>
     where
-        F: FnMut(&K, &V, &K, &V) -> Ordering,
+        F: FnMut(&K, &V, &K, &V) -> cmp::Ordering,
     {
         let proj_inner = self.inner.into_proj::<K, V, S, A>();
 
@@ -4913,7 +4913,7 @@ where
     #[inline]
     pub fn binary_search_by<F>(&self, f: F) -> Result<usize, usize>
     where
-        F: FnMut(&K, &V) -> Ordering,
+        F: FnMut(&K, &V) -> cmp::Ordering,
     {
         let proj_inner = self.inner.as_proj::<K, V, S, A>();
 
@@ -6093,7 +6093,7 @@ impl OpaqueIndexMap {
         V: any::Any,
         S: any::Any + hash::BuildHasher,
         A: any::Any + alloc::Allocator,
-        F: FnMut(&K, &V, &K, &V) -> Ordering,
+        F: FnMut(&K, &V, &K, &V) -> cmp::Ordering,
     {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
 
@@ -6106,7 +6106,7 @@ impl OpaqueIndexMap {
         V: any::Any,
         S: any::Any + hash::BuildHasher,
         A: any::Any + alloc::Allocator,
-        F: FnMut(&K, &V, &K, &V) -> Ordering,
+        F: FnMut(&K, &V, &K, &V) -> cmp::Ordering,
     {
         let proj_self = self.into_proj::<K, V, S, A>();
 
@@ -6131,7 +6131,7 @@ impl OpaqueIndexMap {
         V: any::Any,
         S: any::Any + hash::BuildHasher,
         A: any::Any + alloc::Allocator,
-        F: FnMut(&K, &V, &K, &V) -> Ordering,
+        F: FnMut(&K, &V, &K, &V) -> cmp::Ordering,
     {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
 
@@ -6145,7 +6145,7 @@ impl OpaqueIndexMap {
         V: any::Any,
         S: any::Any + hash::BuildHasher,
         A: any::Any + alloc::Allocator,
-        F: FnMut(&K, &V, &K, &V) -> Ordering,
+        F: FnMut(&K, &V, &K, &V) -> cmp::Ordering,
     {
         let proj_self = self.into_proj::<K, V, S, A>();
 
@@ -6185,7 +6185,7 @@ impl OpaqueIndexMap {
         V: any::Any,
         S: any::Any + hash::BuildHasher,
         A: any::Any + alloc::Allocator,
-        F: FnMut(&K, &V) -> Ordering,
+        F: FnMut(&K, &V) -> cmp::Ordering,
     {
         let proj_self = self.as_proj::<K, V, S, A>();
 
