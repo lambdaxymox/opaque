@@ -804,7 +804,7 @@ where
 
 // Generic slice equality -- copied from the standard library but adding a custom comparator,
 // allowing for our `Bucket` wrapper on either or both sides.
-pub(crate) fn slice_eq<T, U>(left: &[T], right: &[U], eq: impl Fn(&T, &U) -> bool) -> bool {
+fn slice_eq<T, U>(left: &[T], right: &[U], eq: impl Fn(&T, &U) -> bool) -> bool {
     if left.len() != right.len() {
         return false;
     }
@@ -1568,7 +1568,6 @@ where
 {
     indices: &'a mut hashbrown::HashTable<usize>,
     entries: &'a mut TypedProjVec<Bucket<K, V>, A>,
-    _marker: core::marker::PhantomData<(K, V, A)>,
 }
 
 impl<'a, K, V, A> RefMut<'a, K, V, A>
@@ -1582,7 +1581,6 @@ where
         Self {
             indices,
             entries,
-            _marker: core::marker::PhantomData,
         }
     }
 
@@ -2470,7 +2468,6 @@ impl OpaqueIndexMapCoreInner {
             Ok(index) => Entry::Occupied(OccupiedEntry {
                 entries,
                 index,
-                _marker: PhantomData,
             }),
             Err(absent) => Entry::Vacant(VacantEntry {
                 map: RefMut::new(absent.into_table(), entries),
@@ -3002,7 +2999,6 @@ where
 {
     entries: &'a mut TypedProjVec<Bucket<K, V>, A>,
     index: hashbrown::hash_table::OccupiedEntry<'a, usize>,
-    _marker: PhantomData<(K, V, A)>,
 }
 
 impl<'a, K, V, A> OccupiedEntry<'a, K, V, A>
@@ -3015,7 +3011,6 @@ where
         Self {
             entries,
             index,
-            _marker: PhantomData,
         }
     }
 
@@ -3117,7 +3112,7 @@ where
 {
     fn from(other: IndexedEntry<'a, K, V, A>) -> Self {
         let IndexedEntry {
-            map: RefMut { indices, entries, _marker },
+            map: RefMut { indices, entries, },
             index,
         } = other;
         let hash = entries.as_slice()[index].hash;
@@ -3126,7 +3121,6 @@ where
         Self {
             entries,
             index,
-            _marker: PhantomData,
         }
     }
 }
