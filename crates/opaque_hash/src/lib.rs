@@ -861,37 +861,32 @@ mod hasher_layout_tests {
         }
     }
 
-    #[test]
-    fn test_hasher_layout_match_sizes_random_state() {
-        run_test_opaque_hasher_match_sizes::<hash::DefaultHasher>();
+    macro_rules! layout_tests {
+        ($module_name:ident, $hasher_typ:ty) => {
+            mod $module_name {
+                use super::*;
+
+                #[test]
+                fn test_hasher_layout_match_sizes() {
+                    run_test_opaque_hasher_match_sizes::<$hasher_typ>();
+                }
+
+                #[test]
+                fn test_hasher_layout_match_alignments() {
+                    run_test_opaque_hasher_match_alignments::<$hasher_typ>();
+                }
+
+                #[test]
+                fn test_hasher_layout_match_offsets() {
+                    run_test_opaque_hasher_match_offsets::<$hasher_typ>();
+                }
+            }
+        };
     }
 
-    #[test]
-    fn test_hasher_layout_match_alignments_random_state() {
-        run_test_opaque_hasher_match_alignments::<hash::DefaultHasher>();
-    }
-
-    #[test]
-    fn test_hasher_layout_match_offsets_random_state() {
-        run_test_opaque_hasher_match_offsets::<hash::DefaultHasher>();
-    }
-
-    #[test]
-    fn test_hasher_layout_match_sizes_dummy_build_hasher() {
-        run_test_opaque_hasher_match_sizes::<DummyHasher>();
-    }
-
-    #[test]
-    fn test_hasher_layout_match_alignments_dummy_build_hasher() {
-        run_test_opaque_hasher_match_alignments::<DummyHasher>();
-    }
-
-    #[test]
-    fn test_hasher_layout_match_offsets_dummy_build_hasher() {
-        run_test_opaque_hasher_match_offsets::<DummyHasher>();
-    }
+    layout_tests!(default_hasher, hash::DefaultHasher);
+    layout_tests!(dummy_hasher, DummyHasher);
 }
-
 
 #[cfg(test)]
 mod build_hasher_layout_tests {
@@ -951,33 +946,29 @@ mod build_hasher_layout_tests {
         }
     }
 
-    #[test]
-    fn test_build_hasher_layout_match_sizes_random_state() {
-        run_test_opaque_build_hasher_match_sizes::<hash::RandomState>();
+    macro_rules! layout_tests {
+        ($module_name:ident, $build_hasher_typ:ty) => {
+            mod $module_name {
+                use super::*;
+
+                #[test]
+                fn test_build_hasher_layout_match_sizes() {
+                    run_test_opaque_build_hasher_match_sizes::<$build_hasher_typ>();
+                }
+
+                #[test]
+                fn test_build_hasher_layout_match_alignments() {
+                    run_test_opaque_build_hasher_match_alignments::<$build_hasher_typ>();
+                }
+
+                #[test]
+                fn test_build_hasher_layout_match_offsets() {
+                    run_test_opaque_build_hasher_match_offsets::<$build_hasher_typ>();
+                }
+            }
+        };
     }
 
-    #[test]
-    fn test_build_hasher_layout_match_alignments_random_state() {
-        run_test_opaque_build_hasher_match_alignments::<hash::RandomState>();
-    }
-
-    #[test]
-    fn test_build_hasher_layout_match_offsets_random_state() {
-        run_test_opaque_build_hasher_match_offsets::<hash::RandomState>();
-    }
-
-    #[test]
-    fn test_build_hasher_layout_match_sizes_dummy_build_hasher() {
-        run_test_opaque_build_hasher_match_sizes::<DummyBuildHasher>();
-    }
-
-    #[test]
-    fn test_build_hasher_layout_match_alignments_dummy_build_hasher() {
-        run_test_opaque_build_hasher_match_alignments::<DummyBuildHasher>();
-    }
-
-    #[test]
-    fn test_build_hasher_layout_match_offsets_dummy_build_hasher() {
-        run_test_opaque_build_hasher_match_offsets::<DummyBuildHasher>();
-    }
+    layout_tests!(random_state, hash::RandomState);
+    layout_tests!(dummy_build_hasher, DummyBuildHasher);
 }

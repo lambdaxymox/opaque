@@ -429,35 +429,31 @@ mod alloc_inner_layout_tests {
         }
     }
 
-    #[test]
-    fn test_opaque_alloc_inner_layout_match_sizes_global() {
-        run_test_opaque_alloc_inner_match_sizes::<alloc::Global>();
+    macro_rules! layout_tests {
+        ($module_name:ident, $alloc_typ:ty) => {
+            mod $module_name {
+                use super::*;
+
+                #[test]
+                fn test_opaque_alloc_inner_layout_match_sizes() {
+                    run_test_opaque_alloc_inner_match_sizes::<$alloc_typ>();
+                }
+
+                #[test]
+                fn test_opaque_alloc_inner_layout_match_alignments() {
+                    run_test_opaque_alloc_inner_match_alignments::<$alloc_typ>();
+                }
+
+                #[test]
+                fn test_opaque_alloc_inner_layout_match_offsets() {
+                    run_test_opaque_alloc_inner_match_offsets::<$alloc_typ>();
+                }
+            }
+        };
     }
 
-    #[test]
-    fn test_opaque_alloc_inner_layout_match_alignments_global() {
-        run_test_opaque_alloc_inner_match_alignments::<alloc::Global>();
-    }
-
-    #[test]
-    fn test_opaque_alloc_inner_layout_match_offsets_global() {
-        run_test_opaque_alloc_inner_match_offsets::<alloc::Global>();
-    }
-
-    #[test]
-    fn test_opaque_alloc_inner_layout_match_sizes_dummy_allocator() {
-        run_test_opaque_alloc_inner_match_sizes::<DummyAlloc>();
-    }
-
-    #[test]
-    fn test_opaque_alloc_inner_layout_match_alignments_dummy_allocator() {
-        run_test_opaque_alloc_inner_match_alignments::<DummyAlloc>();
-    }
-
-    #[test]
-    fn test_opaque_alloc_inner_layout_match_offsets_dummy_allocator() {
-        run_test_opaque_alloc_inner_match_offsets::<DummyAlloc>();
-    }
+    layout_tests!(global, alloc::Global);
+    layout_tests!(dummy_alloc, DummyAlloc);
 }
 
 #[cfg(test)]
@@ -509,33 +505,29 @@ mod alloc_layout_tests {
         }
     }
 
-    #[test]
-    fn test_opaque_alloc_layout_match_sizes_global() {
-        run_test_opaque_alloc_match_sizes::<alloc::Global>();
+    macro_rules! layout_tests {
+        ($module_name:ident, $alloc_typ:ty) => {
+            mod $module_name {
+                use super::*;
+
+                #[test]
+                fn test_opaque_alloc_inner_layout_match_sizes() {
+                    run_test_opaque_alloc_match_sizes::<$alloc_typ>();
+                }
+
+                #[test]
+                fn test_opaque_alloc_inner_layout_match_alignments() {
+                    run_test_opaque_alloc_match_alignments::<$alloc_typ>();
+                }
+
+                #[test]
+                fn test_opaque_alloc_inner_layout_match_offsets() {
+                    run_test_opaque_alloc_match_offsets::<$alloc_typ>();
+                }
+            }
+        };
     }
 
-    #[test]
-    fn test_opaque_alloc_layout_match_alignments_global() {
-        run_test_opaque_alloc_match_alignments::<alloc::Global>();
-    }
-
-    #[test]
-    fn test_opaque_alloc_layout_match_offsets_global() {
-        run_test_opaque_alloc_match_offsets::<alloc::Global>();
-    }
-
-    #[test]
-    fn test_opaque_alloc_layout_match_sizes_dummy_allocator() {
-        run_test_opaque_alloc_match_sizes::<DummyAlloc>();
-    }
-
-    #[test]
-    fn test_opaque_alloc_layout_match_alignments_dummy_allocator() {
-        run_test_opaque_alloc_match_alignments::<DummyAlloc>();
-    }
-
-    #[test]
-    fn test_opaque_alloc_layout_match_offsets_dummy_allocator() {
-        run_test_opaque_alloc_match_offsets::<DummyAlloc>();
-    }
+    layout_tests!(global, alloc::Global);
+    layout_tests!(dummy_alloc, DummyAlloc);
 }

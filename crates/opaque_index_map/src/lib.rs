@@ -2514,50 +2514,32 @@ mod index_map_core_layout_tests {
         }
     }
 
-    #[test]
-    fn test_opaque_index_map_layout_match_sizes_u8_u8_random_state_global() {
-        run_test_opaque_index_map_core_match_sizes::<u8, u8, alloc::Global>();
+    macro_rules! layout_tests {
+        ($module_name:ident, $key_typ:ty, $value_typ:ty, $alloc_typ:ty) => {
+            mod $module_name {
+                use super::*;
+
+                #[test]
+                fn test_opaque_index_map_core_layout_match_sizes() {
+                    run_test_opaque_index_map_core_match_sizes::<$key_typ, $value_typ, $alloc_typ>();
+                }
+
+                #[test]
+                fn test_opaque_index_map_core_layout_match_alignments() {
+                    run_test_opaque_index_map_core_match_alignments::<$key_typ, $value_typ, $alloc_typ>();
+                }
+
+                #[test]
+                fn test_opaque_index_map_core_layout_match_offsets() {
+                    run_test_opaque_index_map_core_match_offsets::<$key_typ, $value_typ, $alloc_typ>();
+                }
+            }
+        };
     }
 
-    #[test]
-    fn test_opaque_index_map_layout_match_alignments_u8_u8_random_state_global() {
-        run_test_opaque_index_map_core_match_alignments::<u8, u8, alloc::Global>();
-    }
-
-    #[test]
-    fn test_opaque_index_map_layout_match_offsets_u8_u8_random_state_global() {
-        run_test_opaque_index_map_core_match_offsets::<u8, u8, alloc::Global>();
-    }
-
-    #[test]
-    fn test_opaque_index_map_layout_match_sizes_u64_pair_dummy_hasher_dummy_alloc() {
-        run_test_opaque_index_map_core_match_sizes::<u64, Pair, DummyAlloc>();
-    }
-
-    #[test]
-    fn test_opaque_index_map_layout_match_alignments_u64_pair_dummy_hasher_dummy_alloc() {
-        run_test_opaque_index_map_core_match_alignments::<u64, Pair, DummyAlloc>();
-    }
-
-    #[test]
-    fn test_opaque_index_map_layout_match_offsets_u64_pair_dummy_hasher_dummy_alloc() {
-        run_test_opaque_index_map_core_match_offsets::<u64, Pair, DummyAlloc>();
-    }
-
-    #[test]
-    fn test_opaque_index_map_layout_match_sizes_unit_str_dummy_hasher_dummy_alloc() {
-        run_test_opaque_index_map_core_match_sizes::<(), &'static str, DummyAlloc>();
-    }
-
-    #[test]
-    fn test_opaque_index_map_layout_match_alignments_unit_str_dummy_hasher_dummy_alloc() {
-        run_test_opaque_index_map_core_match_alignments::<(), &'static str, DummyAlloc>();
-    }
-
-    #[test]
-    fn test_opaque_index_map_layout_match_offsets_unit_str_dummy_hasher_dummy_alloc() {
-        run_test_opaque_index_map_core_match_offsets::<(), &'static str, DummyAlloc>();
-    }
+    layout_tests!(u8_u8_random_state_global, u8, u8, alloc::Global);
+    layout_tests!(u64_pair_dummy_hasher_dummy_alloc, u64, Pair, DummyAlloc);
+    layout_tests!(unit_str_zst_hasher_dummy_alloc, (), &'static str, DummyAlloc);
 }
 
 pub enum Entry<'a, K, V, A>
@@ -3969,7 +3951,7 @@ mod index_map_inner_layout_tests {
     use core::mem;
     use core::ptr::NonNull;
 
-    fn run_test_opaque_index_map_match_sizes<K, V, S, A>()
+    fn run_test_opaque_index_map_inner_match_sizes<K, V, S, A>()
     where
         K: any::Any,
         V: any::Any,
@@ -3982,7 +3964,7 @@ mod index_map_inner_layout_tests {
         assert_eq!(result, expected, "Opaque and Typed Projected data types size mismatch");
     }
 
-    fn run_test_opaque_index_map_match_alignments<K, V, S, A>()
+    fn run_test_opaque_index_map_inner_match_alignments<K, V, S, A>()
     where
         K: any::Any,
         V: any::Any,
@@ -3995,7 +3977,7 @@ mod index_map_inner_layout_tests {
         assert_eq!(result, expected, "Opaque and Typed Projected data types alignment mismatch");
     }
 
-    fn run_test_opaque_index_map_match_offsets<K, V, S, A>()
+    fn run_test_opaque_index_map_inner_match_offsets<K, V, S, A>()
     where
         K: any::Any,
         V: any::Any,
@@ -4038,51 +4020,32 @@ mod index_map_inner_layout_tests {
         }
     }
 
+    macro_rules! layout_tests {
+        ($module_name:ident, $key_typ:ty, $value_typ:ty, $build_hasher_typ:ty, $alloc_typ:ty) => {
+            mod $module_name {
+                use super::*;
 
-    #[test]
-    fn test_opaque_index_map_layout_match_sizes_u8_u8_random_state_global() {
-        run_test_opaque_index_map_match_sizes::<u8, u8, hash::RandomState, alloc::Global>();
+                #[test]
+                fn test_opaque_index_map_inner_layout_match_sizes() {
+                    run_test_opaque_index_map_inner_match_sizes::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>();
+                }
+
+                #[test]
+                fn test_opaque_index_map_inner_layout_match_alignments() {
+                    run_test_opaque_index_map_inner_match_alignments::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>();
+                }
+
+                #[test]
+                fn test_opaque_index_map_inner_layout_match_offsets() {
+                    run_test_opaque_index_map_inner_match_offsets::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>();
+                }
+            }
+        };
     }
 
-    #[test]
-    fn test_opaque_index_map_layout_match_alignments_u8_u8_random_state_global() {
-        run_test_opaque_index_map_match_alignments::<u8, u8, hash::RandomState, alloc::Global>();
-    }
-
-    #[test]
-    fn test_opaque_index_map_layout_match_offsets_u8_u8_random_state_global() {
-        run_test_opaque_index_map_match_offsets::<u8, u8, hash::RandomState, alloc::Global>();
-    }
-
-    #[test]
-    fn test_opaque_index_map_layout_match_sizes_u64_pair_dummy_hasher_dummy_alloc() {
-        run_test_opaque_index_map_match_sizes::<u64, Pair, DummyHasher, DummyAlloc>();
-    }
-
-    #[test]
-    fn test_opaque_index_map_layout_match_alignments_u64_pair_dummy_hasher_dummy_alloc() {
-        run_test_opaque_index_map_match_alignments::<u64, Pair, DummyHasher, DummyAlloc>();
-    }
-
-    #[test]
-    fn test_opaque_index_map_layout_match_offsets_u64_pair_dummy_hasher_dummy_alloc() {
-        run_test_opaque_index_map_match_offsets::<u64, Pair, DummyHasher, DummyAlloc>();
-    }
-
-    #[test]
-    fn test_opaque_index_map_layout_match_sizes_unit_str_dummy_hasher_dummy_alloc() {
-        run_test_opaque_index_map_match_sizes::<(), &'static str, DummyHasher, DummyAlloc>();
-    }
-
-    #[test]
-    fn test_opaque_index_map_layout_match_alignments_unit_str_dummy_hasher_dummy_alloc() {
-        run_test_opaque_index_map_match_alignments::<(), &'static str, DummyHasher, DummyAlloc>();
-    }
-
-    #[test]
-    fn test_opaque_index_map_layout_match_offsets_unit_str_dummy_hasher_dummy_alloc() {
-        run_test_opaque_index_map_match_offsets::<(), &'static str, DummyHasher, DummyAlloc>();
-    }
+    layout_tests!(u8_u8_random_state_global, u8, u8, hash::RandomState, alloc::Global);
+    layout_tests!(u64_pair_dummy_hasher_dummy_alloc, u64, Pair, DummyHasher, DummyAlloc);
+    layout_tests!(unit_str_zst_hasher_dummy_alloc, (), &'static str, DummyHasher, DummyAlloc);
 }
 
 #[repr(transparent)]
@@ -6364,48 +6327,30 @@ mod index_map_layout_tests {
         }
     }
 
-    #[test]
-    fn test_opaque_index_map_layout_match_sizes_u8_u8_random_state_global() {
-        run_test_opaque_index_map_match_sizes::<u8, u8, hash::RandomState, alloc::Global>();
+    macro_rules! layout_tests {
+        ($module_name:ident, $key_typ:ty, $value_typ:ty, $build_hasher_typ:ty, $alloc_typ:ty) => {
+            mod $module_name {
+                use super::*;
+
+                #[test]
+                fn test_opaque_index_map_layout_match_sizes() {
+                    run_test_opaque_index_map_match_sizes::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>();
+                }
+
+                #[test]
+                fn test_opaque_index_map_layout_match_alignments() {
+                    run_test_opaque_index_map_match_alignments::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>();
+                }
+
+                #[test]
+                fn test_opaque_index_map_layout_match_offsets() {
+                    run_test_opaque_index_map_match_offsets::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>();
+                }
+            }
+        };
     }
 
-    #[test]
-    fn test_opaque_index_map_layout_match_alignments_u8_u8_random_state_global() {
-        run_test_opaque_index_map_match_alignments::<u8, u8, hash::RandomState, alloc::Global>();
-    }
-
-    #[test]
-    fn test_opaque_index_map_layout_match_offsets_u8_u8_random_state_global() {
-        run_test_opaque_index_map_match_offsets::<u8, u8, hash::RandomState, alloc::Global>();
-    }
-
-    #[test]
-    fn test_opaque_index_map_layout_match_sizes_u64_pair_dummy_hasher_dummy_alloc() {
-        run_test_opaque_index_map_match_sizes::<u64, Pair, DummyHasher, DummyAlloc>();
-    }
-
-    #[test]
-    fn test_opaque_index_map_layout_match_alignments_u64_pair_dummy_hasher_dummy_alloc() {
-        run_test_opaque_index_map_match_alignments::<u64, Pair, DummyHasher, DummyAlloc>();
-    }
-
-    #[test]
-    fn test_opaque_index_map_layout_match_offsets_u64_pair_dummy_hasher_dummy_alloc() {
-        run_test_opaque_index_map_match_offsets::<u64, Pair, DummyHasher, DummyAlloc>();
-    }
-
-    #[test]
-    fn test_opaque_index_map_layout_match_sizes_unit_str_zst_hasher_dummy_alloc() {
-        run_test_opaque_index_map_match_sizes::<(), &'static str, DummyHasher, DummyAlloc>();
-    }
-
-    #[test]
-    fn test_opaque_index_map_layout_match_alignments_unit_str_zst_hasher_dummy_alloc() {
-        run_test_opaque_index_map_match_alignments::<(), &'static str, DummyHasher, DummyAlloc>();
-    }
-
-    #[test]
-    fn test_opaque_index_map_layout_match_offsets_unit_str_zst_hasher_dummy_alloc() {
-        run_test_opaque_index_map_match_offsets::<(), &'static str, DummyHasher, DummyAlloc>();
-    }
+    layout_tests!(u8_u8_random_state_global, u8, u8, hash::RandomState, alloc::Global);
+    layout_tests!(u64_pair_dummy_hasher_dummy_alloc, u64, Pair, DummyHasher, DummyAlloc);
+    layout_tests!(unit_str_zst_hasher_dummy_alloc, (), &'static str, DummyHasher, DummyAlloc);
 }

@@ -3579,50 +3579,32 @@ mod vec_inner_layout_tests {
         }
     }
 
-    #[test]
-    fn test_opaque_vec_inner_layout_match_sizes_u8_global() {
-        run_test_opaque_vec_inner_match_sizes::<u8, alloc::Global>();
+    macro_rules! layout_tests {
+        ($module_name:ident, $element_typ:ty, $alloc_typ:ty) => {
+            mod $module_name {
+                use super::*;
+
+                #[test]
+                fn test_opaque_vec_inner_layout_match_sizes() {
+                    run_test_opaque_vec_inner_match_sizes::<$element_typ, $alloc_typ>();
+                }
+
+                #[test]
+                fn test_opaque_vec_inner_layout_match_alignments() {
+                    run_test_opaque_vec_inner_match_alignments::<$element_typ, $alloc_typ>();
+                }
+
+                #[test]
+                fn test_opaque_vec_inner_layout_match_offsets() {
+                    run_test_opaque_vec_inner_match_offsets::<$element_typ, $alloc_typ>();
+                }
+            }
+        };
     }
 
-    #[test]
-    fn test_opaque_vec_inner_layout_match_alignments_u8_global() {
-        run_test_opaque_vec_inner_match_alignments::<u8, alloc::Global>();
-    }
-
-    #[test]
-    fn test_opaque_vec_inner_layout_match_offset_u8_global() {
-        run_test_opaque_vec_inner_match_offsets::<u8, alloc::Global>();
-    }
-
-    #[test]
-    fn test_opaque_vec_inner_layout_match_sizes_pair_dummy() {
-        run_test_opaque_vec_inner_match_sizes::<Pair, DummyAlloc>();
-    }
-
-    #[test]
-    fn test_opaque_vec_inner_layout_match_alignments_pair_dummy() {
-        run_test_opaque_vec_inner_match_alignments::<Pair, DummyAlloc>();
-    }
-
-    #[test]
-    fn test_opaque_vec_inner_layout_match_offsets_pair_dummy() {
-        run_test_opaque_vec_inner_match_offsets::<Pair, DummyAlloc>();
-    }
-
-    #[test]
-    fn test_opaque_vec_inner_layout_match_sizes_unit_dummy() {
-        run_test_opaque_vec_inner_match_sizes::<(), DummyAlloc>();
-    }
-
-    #[test]
-    fn test_opaque_vec_inner_layout_match_alignments_unit_dummy() {
-        run_test_opaque_vec_inner_match_alignments::<(), DummyAlloc>();
-    }
-
-    #[test]
-    fn test_opaque_vec_inner_layout_match_offsets_unit_dummy() {
-        run_test_opaque_vec_inner_match_offsets::<(), DummyAlloc>();
-    }
+    layout_tests!(u8_global, u8, alloc::Global);
+    layout_tests!(pair_dummy_alloc, Pair, DummyAlloc);
+    layout_tests!(unit_zst_dummy_alloc, (), DummyAlloc);
 }
 
 #[cfg(test)]
@@ -3678,48 +3660,30 @@ mod vec_layout_tests {
         }
     }
 
-    #[test]
-    fn test_opaque_vec_layout_match_sizez_u8_global() {
-        run_test_opaque_vec_match_sizes::<u8, alloc::Global>();
+    macro_rules! layout_tests {
+        ($module_name:ident, $element_typ:ty, $alloc_typ:ty) => {
+            mod $module_name {
+                use super::*;
+
+                #[test]
+                fn test_opaque_vec_layout_match_sizes() {
+                    run_test_opaque_vec_match_sizes::<$element_typ, $alloc_typ>();
+                }
+
+                #[test]
+                fn test_opaque_vec_layout_match_alignments() {
+                    run_test_opaque_vec_match_alignments::<$element_typ, $alloc_typ>();
+                }
+
+                #[test]
+                fn test_opaque_vec_layout_match_offsets() {
+                    run_test_opaque_vec_match_offsets::<$element_typ, $alloc_typ>();
+                }
+            }
+        };
     }
 
-    #[test]
-    fn test_opaque_vec_layout_match_alignments_u8_global() {
-        run_test_opaque_vec_match_sizes::<u8, alloc::Global>();
-    }
-
-    #[test]
-    fn test_opaque_vec_layout_match_offsets_u8_global() {
-        run_test_opaque_vec_match_offsets::<u8, alloc::Global>();
-    }
-
-    #[test]
-    fn test_opaque_vec_layout_match_sizes_pair_dummy_alloc() {
-        run_test_opaque_vec_match_sizes::<Pair, DummyAlloc>();
-    }
-
-    #[test]
-    fn test_opaque_vec_layout_match_alignments_pair_dummy_alloc() {
-        run_test_opaque_vec_match_alignments::<Pair, DummyAlloc>();
-    }
-
-    #[test]
-    fn test_opaque_vec_layout_match_offsets_pair_dummy_alloc() {
-        run_test_opaque_vec_match_offsets::<Pair, DummyAlloc>();
-    }
-
-    #[test]
-    fn test_opaque_vec_layout_match_sizes_unit_zst_dummy_alloc() {
-        run_test_opaque_vec_match_sizes::<(), DummyAlloc>();
-    }
-
-    #[test]
-    fn test_opaque_vec_layout_match_alignments_unit_zst_dummy_alloc() {
-        run_test_opaque_vec_match_alignments::<(), DummyAlloc>();
-    }
-
-    #[test]
-    fn test_opaque_vec_layout_match_offsets_unit_zst_dummy_alloc() {
-        run_test_opaque_vec_match_offsets::<(), DummyAlloc>();
-    }
+    layout_tests!(u8_global, u8, alloc::Global);
+    layout_tests!(pair_dummy_alloc, Pair, DummyAlloc);
+    layout_tests!(unit_zst_dummy_alloc, (), DummyAlloc);
 }
