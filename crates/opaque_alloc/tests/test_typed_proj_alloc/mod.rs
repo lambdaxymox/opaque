@@ -1,3 +1,4 @@
+mod test_clone;
 mod test_debug;
 mod test_global_allocate_layout_align;
 mod test_global_allocate_layout_over_aligned_align;

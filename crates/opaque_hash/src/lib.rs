@@ -1,8 +1,8 @@
 #![feature(optimize_attribute)]
 use core::{any, fmt};
 use core::any::TypeId;
-use core::hash;
-use core::marker::PhantomData;
+use core::marker;
+use std::hash;
 
 trait AnyHasher: hash::Hasher + any::Any {}
 
@@ -10,14 +10,15 @@ impl<H> AnyHasher for H where H: hash::Hasher + any::Any {}
 
 #[repr(C)]
 struct TypedProjHasherInner<H> {
-    hasher: Box<H>,
-    type_id: TypeId,
+    hasher: Box<dyn AnyHasher>,
+    hasher_type_id: TypeId,
+    _marker: marker::PhantomData<H>,
 }
 
 impl<H> TypedProjHasherInner<H> {
     #[inline]
     const fn hasher_type_id(&self) -> TypeId {
-        self.type_id
+        self.hasher_type_id
     }
 }
 
@@ -32,7 +33,8 @@ where
 
         Self {
             hasher: boxed_hasher,
-            type_id
+            hasher_type_id: type_id,
+            _marker: marker::PhantomData,
         }
     }
 
@@ -42,18 +44,23 @@ where
 
         Self {
             hasher,
-            type_id,
+            hasher_type_id: type_id,
+            _marker: marker::PhantomData,
         }
     }
 
     #[inline]
     fn hasher_assuming_type(&self) -> &H {
+        debug_assert_eq!(self.hasher_type_id, TypeId::of::<H>());
+
         let any_hasher = self.hasher.as_ref() as &dyn any::Any;
         any_hasher.downcast_ref::<H>().unwrap()
     }
 
     #[inline]
     fn into_boxed_hasher_assuming_type(self) -> Box<H> {
+        debug_assert_eq!(self.hasher_type_id, TypeId::of::<H>());
+
         let boxed_hasher = unsafe {
             let unboxed_hasher = Box::into_raw(self.hasher);
             Box::from_raw(unboxed_hasher as *mut H)
@@ -69,6 +76,8 @@ impl<H> TypedProjHasherInner<H> {
     where
         H: hash::Hasher + any::Any + Clone,
     {
+        debug_assert_eq!(self.hasher_type_id, TypeId::of::<H>());
+
         let any_hasher = self.hasher.as_ref() as &dyn any::Any;
         let alloc_ref = any_hasher
             .downcast_ref::<H>()
@@ -95,13 +104,13 @@ where
 #[repr(C)]
 struct OpaqueHasherInner {
     hasher: Box<dyn AnyHasher>,
-    type_id: TypeId,
+    hasher_type_id: TypeId,
 }
 
 impl OpaqueHasherInner {
     #[inline]
     const fn hasher_type_id(&self) -> TypeId {
-        self.type_id
+        self.hasher_type_id
     }
 }
 
@@ -116,7 +125,7 @@ impl OpaqueHasherInner {
 
         Self {
             hasher: boxed_hasher,
-            type_id
+            hasher_type_id: type_id
         }
     }
 
@@ -129,7 +138,7 @@ impl OpaqueHasherInner {
 
         Self {
             hasher,
-            type_id,
+            hasher_type_id: type_id,
         }
     }
 }
@@ -139,6 +148,8 @@ impl OpaqueHasherInner {
     where
         H: any::Any + hash::Hasher,
     {
+        debug_assert_eq!(self.hasher_type_id, TypeId::of::<H>());
+
         unsafe { &*(self as *const OpaqueHasherInner as *const TypedProjHasherInner<H>) }
     }
 
@@ -146,6 +157,8 @@ impl OpaqueHasherInner {
     where
         H: any::Any + hash::Hasher,
     {
+        debug_assert_eq!(self.hasher_type_id, TypeId::of::<H>());
+
         unsafe { &mut *(self as *mut OpaqueHasherInner as *mut TypedProjHasherInner<H>) }
     }
 
@@ -153,14 +166,12 @@ impl OpaqueHasherInner {
     where
         H: any::Any + hash::Hasher,
     {
-        let boxed_hasher = unsafe {
-            let unboxed_alloc = Box::into_raw(self.hasher);
-            Box::from_raw(unboxed_alloc as *mut H)
-        };
+        debug_assert_eq!(self.hasher_type_id, TypeId::of::<H>());
 
         TypedProjHasherInner {
-            hasher: boxed_hasher,
-            type_id: self.type_id,
+            hasher: self.hasher,
+            hasher_type_id: self.hasher_type_id,
+            _marker: marker::PhantomData,
         }
     }
 
@@ -171,7 +182,7 @@ impl OpaqueHasherInner {
     {
         Self {
             hasher: proj_self.hasher,
-            type_id: proj_self.type_id,
+            hasher_type_id: proj_self.hasher_type_id,
         }
     }
 }
@@ -305,7 +316,7 @@ impl OpaqueHasher {
         }
 
         if !self.has_hasher_type::<H>() {
-            type_check_failed(self.inner.type_id, TypeId::of::<H>());
+            type_check_failed(self.inner.hasher_type_id, TypeId::of::<H>());
         }
     }
 }
@@ -391,9 +402,10 @@ impl fmt::Debug for OpaqueHasher {
 
 #[repr(C)]
 struct TypedProjBuildHasherInner<S> {
-    build_hasher: Box<S>,
+    build_hasher: Box<dyn any::Any>,
     build_hasher_type_id: TypeId,
     hasher_type_id: TypeId,
+    _marker: marker::PhantomData<S>,
 }
 
 impl<S> TypedProjBuildHasherInner<S>
@@ -410,6 +422,7 @@ where
             build_hasher: boxed_build_hasher,
             build_hasher_type_id,
             hasher_type_id,
+            _marker: marker::PhantomData,
         }
     }
 
@@ -422,15 +435,20 @@ where
             build_hasher,
             build_hasher_type_id,
             hasher_type_id,
+            _marker: marker::PhantomData,
         }
     }
 
     fn get_build_hasher(&self) -> &S {
-        let any_build_hasher = self.build_hasher.as_ref() as &dyn any::Any;
+        debug_assert_eq!(self.build_hasher_type_id, TypeId::of::<S>());
+
+        let any_build_hasher = self.build_hasher.as_ref();
         any_build_hasher.downcast_ref::<S>().unwrap()
     }
 
     fn into_boxed_build_hasher(self) -> Box<S> {
+        debug_assert_eq!(self.build_hasher_type_id, TypeId::of::<S>());
+
         let boxed_build_hasher = unsafe {
             let unboxed_build_hasher = Box::into_raw(self.build_hasher);
             Box::from_raw(unboxed_build_hasher as *mut S)
@@ -440,7 +458,10 @@ where
     }
 
     fn build_hasher(&self) -> TypedProjHasher<S::Hasher> {
-        let hasher = self.build_hasher.build_hasher();
+        debug_assert_eq!(self.build_hasher_type_id, TypeId::of::<S>());
+
+        let build_hasher = self.build_hasher.downcast_ref::<S>().unwrap();
+        let hasher = build_hasher.build_hasher();
 
         TypedProjHasher::new(hasher)
     }
@@ -451,7 +472,10 @@ where
     S: any::Any + hash::BuildHasher + Clone,
 {
     fn clone(&self) -> Self {
-        let cloned_build_hasher = self.build_hasher.clone();
+        debug_assert_eq!(self.build_hasher_type_id, any::TypeId::of::<S>());
+
+        let build_hasher_ref = self.build_hasher.downcast_ref::<S>().unwrap();
+        let cloned_build_hasher = Box::new(build_hasher_ref.clone());
 
         Self::from_boxed_build_hasher(cloned_build_hasher)
     }
@@ -514,6 +538,8 @@ impl OpaqueBuildHasherInner {
     where
         S: any::Any + hash::BuildHasher,
     {
+        debug_assert_eq!(self.build_hasher_type_id, any::TypeId::of::<S>());
+
         unsafe { &*(self as *const OpaqueBuildHasherInner as *const TypedProjBuildHasherInner<S>) }
     }
 
@@ -521,6 +547,8 @@ impl OpaqueBuildHasherInner {
     where
         S: any::Any + hash::BuildHasher,
     {
+        debug_assert_eq!(self.build_hasher_type_id, any::TypeId::of::<S>());
+
         unsafe { &mut *(self as *mut OpaqueBuildHasherInner as *mut TypedProjBuildHasherInner<S>) }
     }
 
@@ -528,6 +556,8 @@ impl OpaqueBuildHasherInner {
     where
         S: any::Any + hash::BuildHasher,
     {
+        debug_assert_eq!(self.build_hasher_type_id, any::TypeId::of::<S>());
+
         let boxed_build_hasher = unsafe {
             let unboxed_build_hasher = Box::into_raw(self.build_hasher);
             Box::from_raw(unboxed_build_hasher as *mut S)
@@ -537,6 +567,7 @@ impl OpaqueBuildHasherInner {
             build_hasher: boxed_build_hasher,
             build_hasher_type_id: self.build_hasher_type_id,
             hasher_type_id: self.hasher_type_id,
+            _marker: marker::PhantomData,
         }
     }
 
@@ -780,5 +811,173 @@ impl OpaqueBuildHasher {
 impl fmt::Debug for OpaqueBuildHasher {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter.debug_struct("OpaqueBuildHasher").finish()
+    }
+}
+
+#[cfg(test)]
+mod hasher_layout_tests {
+    use super::*;
+    use std::hash;
+
+    fn run_test_opaque_hasher_match_sizes<H>()
+    where
+        H: any::Any + hash::Hasher,
+    {
+        let expected = core::mem::size_of::<TypedProjHasher<H>>();
+        let result = core::mem::size_of::<OpaqueHasher>();
+
+        assert_eq!(result, expected, "Opaque and Typed Projected data types size mismatch");
+    }
+
+    fn run_test_opaque_hasher_match_alignments<H>()
+    where
+        H: any::Any + hash::Hasher,
+    {
+        let expected = core::mem::align_of::<TypedProjHasher<H>>();
+        let result = core::mem::align_of::<OpaqueHasher>();
+
+        assert_eq!(result, expected, "Opaque and Typed Projected data types alignment mismatch");
+    }
+
+    fn run_test_opaque_hasher_match_offsets<H>()
+    where
+        H: any::Any + hash::Hasher,
+    {
+        assert_eq!(
+            core::mem::offset_of!(TypedProjHasher<H>, inner),
+            core::mem::offset_of!(OpaqueHasher, inner),
+            "Opaque and Typed Projected data types offsets mismatch"
+        );
+    }
+
+    struct DummyHasher {}
+
+    impl hash::Hasher for DummyHasher {
+        fn finish(&self) -> u64 {
+            0
+        }
+
+        fn write(&mut self, _bytes: &[u8]) {
+        }
+    }
+
+    #[test]
+    fn test_hasher_layout_match_sizes_random_state() {
+        run_test_opaque_hasher_match_sizes::<hash::DefaultHasher>();
+    }
+
+    #[test]
+    fn test_hasher_layout_match_alignments_random_state() {
+        run_test_opaque_hasher_match_alignments::<hash::DefaultHasher>();
+    }
+
+    #[test]
+    fn test_hasher_layout_match_offsets_random_state() {
+        run_test_opaque_hasher_match_offsets::<hash::DefaultHasher>();
+    }
+
+    #[test]
+    fn test_hasher_layout_match_sizes_dummy_build_hasher() {
+        run_test_opaque_hasher_match_sizes::<DummyHasher>();
+    }
+
+    #[test]
+    fn test_hasher_layout_match_alignments_dummy_build_hasher() {
+        run_test_opaque_hasher_match_alignments::<DummyHasher>();
+    }
+
+    #[test]
+    fn test_hasher_layout_match_offsets_dummy_build_hasher() {
+        run_test_opaque_hasher_match_offsets::<DummyHasher>();
+    }
+}
+
+
+#[cfg(test)]
+mod build_hasher_layout_tests {
+    use super::*;
+    use core::mem;
+    use std::hash;
+
+    fn run_test_opaque_build_hasher_match_sizes<S>()
+    where
+        S: any::Any + hash::BuildHasher,
+    {
+        let expected = mem::size_of::<TypedProjBuildHasher<S>>();
+        let result = mem::size_of::<OpaqueBuildHasher>();
+
+        assert_eq!(result, expected, "Opaque and Typed Projected data types size mismatch");
+    }
+
+    fn run_test_opaque_build_hasher_match_alignments<S>()
+    where
+        S: any::Any + hash::BuildHasher,
+    {
+        let expected = mem::align_of::<TypedProjBuildHasher<S>>();
+        let result = mem::align_of::<OpaqueBuildHasher>();
+
+        assert_eq!(result, expected, "Opaque and Typed Projected data types alignment mismatch");
+    }
+
+    fn run_test_opaque_build_hasher_match_offsets<S>()
+    where
+        S: any::Any + hash::BuildHasher,
+    {
+        assert_eq!(
+            mem::offset_of!(TypedProjBuildHasher<S>, inner),
+            mem::offset_of!(OpaqueBuildHasher, inner),
+            "Opaque and Typed Projected data types offsets mismatch"
+        );
+    }
+
+    struct DummyHasher {}
+
+    impl hash::Hasher for DummyHasher {
+        fn finish(&self) -> u64 {
+            0
+        }
+
+        fn write(&mut self, _bytes: &[u8]) {
+        }
+    }
+
+    struct DummyBuildHasher {}
+
+    impl hash::BuildHasher for DummyBuildHasher {
+        type Hasher = DummyHasher;
+
+        fn build_hasher(&self) -> Self::Hasher {
+            DummyHasher {}
+        }
+    }
+
+    #[test]
+    fn test_build_hasher_layout_match_sizes_random_state() {
+        run_test_opaque_build_hasher_match_sizes::<hash::RandomState>();
+    }
+
+    #[test]
+    fn test_build_hasher_layout_match_alignments_random_state() {
+        run_test_opaque_build_hasher_match_alignments::<hash::RandomState>();
+    }
+
+    #[test]
+    fn test_build_hasher_layout_match_offsets_random_state() {
+        run_test_opaque_build_hasher_match_offsets::<hash::RandomState>();
+    }
+
+    #[test]
+    fn test_build_hasher_layout_match_sizes_dummy_build_hasher() {
+        run_test_opaque_build_hasher_match_sizes::<DummyBuildHasher>();
+    }
+
+    #[test]
+    fn test_build_hasher_layout_match_alignments_dummy_build_hasher() {
+        run_test_opaque_build_hasher_match_alignments::<DummyBuildHasher>();
+    }
+
+    #[test]
+    fn test_build_hasher_layout_match_offsets_dummy_build_hasher() {
+        run_test_opaque_build_hasher_match_offsets::<DummyBuildHasher>();
     }
 }

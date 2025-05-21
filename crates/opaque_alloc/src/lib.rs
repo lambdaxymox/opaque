@@ -1,23 +1,26 @@
 #![feature(allocator_api)]
 #![feature(alloc_layout_extra)]
 #![feature(optimize_attribute)]
+use core::any;
+use core::fmt;
+use core::marker;
+use core::ptr::NonNull;
 use std::alloc;
-use std::alloc::Allocator;
-use std::any;
-use std::any::TypeId;
-use std::fmt;
-use std::marker::PhantomData;
-use std::ptr::NonNull;
+
+trait AnyAllocator: any::Any + alloc::Allocator {}
+
+impl<A> AnyAllocator for A where A: any::Any + alloc::Allocator {}
 
 #[repr(C)]
 struct TypedProjAllocInner<A> {
-    alloc: Box<A>,
-    alloc_type_id: TypeId,
+    alloc: Box<dyn AnyAllocator>,
+    alloc_type_id: any::TypeId,
+    _marker: marker::PhantomData<A>,
 }
 
 impl<A> TypedProjAllocInner<A> {
     #[inline]
-    const fn alloc_type_id(&self) -> TypeId {
+    const fn alloc_type_id(&self) -> any::TypeId {
         self.alloc_type_id
     }
 }
@@ -29,25 +32,41 @@ where
     #[inline]
     fn new(alloc: A) -> Self {
         let boxed_alloc = Box::new(alloc);
-        let alloc_type_id: TypeId = TypeId::of::<A>();
+        let alloc_type_id: any::TypeId = any::TypeId::of::<A>();
 
-        Self { alloc: boxed_alloc, alloc_type_id, }
+        Self {
+            alloc: boxed_alloc,
+            alloc_type_id,
+            _marker: marker::PhantomData,
+        }
     }
 
     #[inline]
     fn from_boxed_alloc(alloc: Box<A>) -> Self {
-        let alloc_type_id = TypeId::of::<A>();
+        let alloc_type_id = any::TypeId::of::<A>();
 
-        Self { alloc, alloc_type_id, }
+        Self {
+            alloc,
+            alloc_type_id,
+            _marker: marker::PhantomData,
+        }
     }
 
     #[inline]
     fn allocator(&self) -> &A {
-        self.alloc.as_ref()
+        debug_assert_eq!(self.alloc_type_id, any::TypeId::of::<A>());
+
+        let any_alloc = (&*self.alloc) as &dyn any::Any;
+
+        any_alloc.downcast_ref::<A>().unwrap()
     }
 
     fn into_boxed_alloc(self) -> Box<A> {
-        self.alloc
+        debug_assert_eq!(self.alloc_type_id, any::TypeId::of::<A>());
+
+        let any_alloc: Box<dyn any::Any> = self.alloc;
+
+        any_alloc.downcast::<A>().unwrap()
     }
 }
 
@@ -56,7 +75,7 @@ where
     A: any::Any + alloc::Allocator + Clone,
 {
     fn clone(&self) -> Self {
-        let cloned_alloc = self.alloc.clone();
+        let cloned_alloc = Box::new(self.allocator().clone());
 
         Self::from_boxed_alloc(cloned_alloc)
     }
@@ -79,19 +98,15 @@ where
     }
 }
 
-trait AnyAllocator: any::Any + alloc::Allocator {}
-
-impl<A> AnyAllocator for A where A: any::Any + alloc::Allocator {}
-
 #[repr(C)]
 struct OpaqueAllocInner {
     alloc: Box<dyn AnyAllocator>,
-    alloc_type_id: TypeId,
+    alloc_type_id: any::TypeId,
 }
 
 impl OpaqueAllocInner {
     #[inline]
-    const fn alloc_type_id(&self) -> TypeId {
+    const fn alloc_type_id(&self) -> any::TypeId {
         self.alloc_type_id
     }
 }
@@ -99,37 +114,39 @@ impl OpaqueAllocInner {
 impl OpaqueAllocInner {
     pub(crate) fn as_proj_assuming_type<A>(&self) -> &TypedProjAllocInner<A>
     where
-        A: any::Any + Allocator,
+        A: any::Any + alloc::Allocator,
     {
+        debug_assert_eq!(self.alloc_type_id, any::TypeId::of::<A>());
+
         unsafe { &*(self as *const OpaqueAllocInner as *const TypedProjAllocInner<A>) }
     }
 
     pub(crate) fn as_proj_mut_assuming_type<A>(&mut self) -> &mut TypedProjAllocInner<A>
     where
-        A: any::Any + Allocator,
+        A: any::Any + alloc::Allocator,
     {
+        debug_assert_eq!(self.alloc_type_id, any::TypeId::of::<A>());
+
         unsafe { &mut *(self as *mut OpaqueAllocInner as *mut TypedProjAllocInner<A>) }
     }
 
     pub(crate) fn into_proj_assuming_type<A>(self) -> TypedProjAllocInner<A>
     where
-        A: any::Any + Allocator,
+        A: any::Any + alloc::Allocator,
     {
-        let boxed_alloc = unsafe {
-            let unboxed_alloc = Box::into_raw(self.alloc);
-            Box::from_raw(unboxed_alloc as *mut A)
-        };
+        debug_assert_eq!(self.alloc_type_id, any::TypeId::of::<A>());
 
         TypedProjAllocInner {
-            alloc: boxed_alloc,
+            alloc: self.alloc,
             alloc_type_id: self.alloc_type_id,
+            _marker: marker::PhantomData,
         }
     }
 
     #[inline]
     pub(crate) fn from_proj<A>(proj_self: TypedProjAllocInner<A>) -> Self
     where
-        A: any::Any + Allocator,
+        A: any::Any + alloc::Allocator,
     {
         Self {
             alloc: proj_self.alloc,
@@ -246,7 +263,7 @@ pub struct OpaqueAlloc {
 
 impl OpaqueAlloc {
     #[inline]
-    pub const fn alloc_type_id(&self) -> TypeId {
+    pub const fn alloc_type_id(&self) -> any::TypeId {
         self.inner.alloc_type_id()
     }
 
@@ -255,7 +272,7 @@ impl OpaqueAlloc {
     where
         A: any::Any + alloc::Allocator,
     {
-        self.inner.alloc_type_id() == TypeId::of::<A>()
+        self.inner.alloc_type_id() == any::TypeId::of::<A>()
     }
 
     #[inline]
@@ -267,12 +284,12 @@ impl OpaqueAlloc {
         #[cold]
         #[optimize(size)]
         #[track_caller]
-        fn type_check_failed(type_id_self: TypeId, type_id_other: TypeId) -> ! {
+        fn type_check_failed(type_id_self: any::TypeId, type_id_other: any::TypeId) -> ! {
             panic!("Type mismatch. Need `{:?}`, got `{:?}`", type_id_self, type_id_other);
         }
 
         if !self.has_alloc_type::<A>() {
-            type_check_failed(self.inner.alloc_type_id, TypeId::of::<A>());
+            type_check_failed(self.inner.alloc_type_id, any::TypeId::of::<A>());
         }
     }
 }
@@ -355,5 +372,170 @@ unsafe impl alloc::Allocator for OpaqueAlloc {
 impl fmt::Debug for OpaqueAlloc {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter.debug_struct("OpaqueAlloc").finish()
+    }
+}
+
+#[cfg(test)]
+mod alloc_inner_layout_tests {
+    use super::*;
+    use core::mem;
+
+    fn run_test_opaque_alloc_inner_match_sizes<A>()
+    where
+        A: any::Any + alloc::Allocator,
+    {
+        let expected = mem::size_of::<TypedProjAllocInner<A>>();
+        let result = mem::size_of::<OpaqueAllocInner>();
+
+        assert_eq!(result, expected, "Opaque and Typed Projected data types size mismatch");
+    }
+
+    fn run_test_opaque_alloc_inner_match_alignments<A>()
+    where
+        A: any::Any + alloc::Allocator,
+    {
+        let expected = mem::align_of::<TypedProjAllocInner<A>>();
+        let result = mem::align_of::<OpaqueAllocInner>();
+
+        assert_eq!(result, expected, "Opaque and Typed Projected data types alignment mismatch");
+    }
+
+    fn run_test_opaque_alloc_inner_match_offsets<A>()
+    where
+        A: any::Any + alloc::Allocator,
+    {
+        assert_eq!(
+            mem::offset_of!(TypedProjAllocInner<A>, alloc),
+            mem::offset_of!(OpaqueAllocInner, alloc),
+            "Opaque and Typed Projected data types offsets mismatch"
+        );
+        assert_eq!(
+            mem::offset_of!(TypedProjAllocInner<A>, alloc_type_id),
+            mem::offset_of!(OpaqueAllocInner, alloc_type_id),
+            "Opaque and Typed Projected data types offsets mismatch"
+        );
+    }
+
+    struct DummyAlloc {}
+
+    unsafe impl alloc::Allocator for DummyAlloc {
+        fn allocate(&self, layout: alloc::Layout) -> Result<NonNull<[u8]>, alloc::AllocError> {
+            alloc::Global.allocate(layout)
+        }
+        unsafe fn deallocate(&self, ptr: NonNull<u8>, layout: alloc::Layout) {
+            unsafe {
+                alloc::Global.deallocate(ptr, layout)
+            }
+        }
+    }
+
+    #[test]
+    fn test_opaque_alloc_inner_layout_match_sizes_global() {
+        run_test_opaque_alloc_inner_match_sizes::<alloc::Global>();
+    }
+
+    #[test]
+    fn test_opaque_alloc_inner_layout_match_alignments_global() {
+        run_test_opaque_alloc_inner_match_alignments::<alloc::Global>();
+    }
+
+    #[test]
+    fn test_opaque_alloc_inner_layout_match_offsets_global() {
+        run_test_opaque_alloc_inner_match_offsets::<alloc::Global>();
+    }
+
+    #[test]
+    fn test_opaque_alloc_inner_layout_match_sizes_dummy_allocator() {
+        run_test_opaque_alloc_inner_match_sizes::<DummyAlloc>();
+    }
+
+    #[test]
+    fn test_opaque_alloc_inner_layout_match_alignments_dummy_allocator() {
+        run_test_opaque_alloc_inner_match_alignments::<DummyAlloc>();
+    }
+
+    #[test]
+    fn test_opaque_alloc_inner_layout_match_offsets_dummy_allocator() {
+        run_test_opaque_alloc_inner_match_offsets::<DummyAlloc>();
+    }
+}
+
+#[cfg(test)]
+mod alloc_layout_tests {
+    use super::*;
+    use core::mem;
+
+    fn run_test_opaque_alloc_match_sizes<A>()
+    where
+        A: any::Any + alloc::Allocator,
+    {
+        let expected = mem::size_of::<TypedProjAlloc<A>>();
+        let result = mem::size_of::<OpaqueAlloc>();
+
+        assert_eq!(result, expected, "Opaque and Typed Projected data types size mismatch");
+    }
+
+    fn run_test_opaque_alloc_match_alignments<A>()
+    where
+        A: any::Any + alloc::Allocator,
+    {
+        let expected = mem::align_of::<TypedProjAlloc<A>>();
+        let result = mem::align_of::<OpaqueAlloc>();
+
+        assert_eq!(result, expected, "Opaque and Typed Projected data types alignment mismatch");
+    }
+
+    fn run_test_opaque_alloc_match_offsets<A>()
+    where
+        A: any::Any + alloc::Allocator,
+    {
+        assert_eq!(
+            mem::offset_of!(TypedProjAlloc<A>, inner),
+            mem::offset_of!(OpaqueAlloc, inner),
+            "Opaque and Typed Projected data types offsets mismatch"
+        );
+    }
+
+    struct DummyAlloc {}
+
+    unsafe impl alloc::Allocator for DummyAlloc {
+        fn allocate(&self, layout: alloc::Layout) -> Result<NonNull<[u8]>, alloc::AllocError> {
+            alloc::Global.allocate(layout)
+        }
+        unsafe fn deallocate(&self, ptr: NonNull<u8>, layout: alloc::Layout) {
+            unsafe {
+                alloc::Global.deallocate(ptr, layout)
+            }
+        }
+    }
+
+    #[test]
+    fn test_opaque_alloc_layout_match_sizes_global() {
+        run_test_opaque_alloc_match_sizes::<alloc::Global>();
+    }
+
+    #[test]
+    fn test_opaque_alloc_layout_match_alignments_global() {
+        run_test_opaque_alloc_match_alignments::<alloc::Global>();
+    }
+
+    #[test]
+    fn test_opaque_alloc_layout_match_offsets_global() {
+        run_test_opaque_alloc_match_offsets::<alloc::Global>();
+    }
+
+    #[test]
+    fn test_opaque_alloc_layout_match_sizes_dummy_allocator() {
+        run_test_opaque_alloc_match_sizes::<DummyAlloc>();
+    }
+
+    #[test]
+    fn test_opaque_alloc_layout_match_alignments_dummy_allocator() {
+        run_test_opaque_alloc_match_alignments::<DummyAlloc>();
+    }
+
+    #[test]
+    fn test_opaque_alloc_layout_match_offsets_dummy_allocator() {
+        run_test_opaque_alloc_match_offsets::<DummyAlloc>();
     }
 }
