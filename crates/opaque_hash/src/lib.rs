@@ -70,12 +70,12 @@ where
     }
 }
 
-impl<H> TypedProjHasherInner<H> {
+impl<H> Clone for TypedProjHasherInner<H>
+where
+    H: any::Any + hash::Hasher + Clone,
+{
     #[inline]
-    fn clone_assuming_type(&self) -> TypedProjHasherInner<H>
-    where
-        H: hash::Hasher + any::Any + Clone,
-    {
+    fn clone(&self) -> TypedProjHasherInner<H> {
         debug_assert_eq!(self.hasher_type_id, TypeId::of::<H>());
 
         let any_hasher = self.hasher.as_ref() as &dyn any::Any;
@@ -248,7 +248,7 @@ where
 {
     fn clone(&self) -> Self {
         Self {
-            inner: self.inner.clone_assuming_type(),
+            inner: self.inner.clone(),
         }
     }
 }
