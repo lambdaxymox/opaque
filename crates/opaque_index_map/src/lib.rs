@@ -1876,6 +1876,11 @@ where
         Ord::min(self.indices.capacity(), self.entries.capacity())
     }
 
+    #[inline]
+    pub(crate) fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
     pub(crate) fn clear(&mut self) {
         self.indices.clear();
         self.entries.clear();
@@ -2402,6 +2407,23 @@ impl OpaqueIndexMapCore {
             value_type_id: proj_self.value_type_id,
             allocator_type_id: proj_self.allocator_type_id,
         }
+    }
+}
+
+impl OpaqueIndexMapCore {
+    #[inline]
+    fn capacity(&self) -> usize {
+        Ord::min(self.indices.capacity(), self.entries.capacity())
+    }
+
+    #[inline]
+    fn len(&self) -> usize {
+        self.indices.len()
+    }
+
+    #[inline]
+    fn is_empty(&self) -> bool {
+        self.len() == 0
     }
 }
 
@@ -3846,22 +3868,22 @@ struct OpaqueIndexMapInner {
 
 impl OpaqueIndexMapInner {
     #[inline]
-    pub fn key_type_id(&self) -> any::TypeId {
+    pub const fn key_type_id(&self) -> any::TypeId {
         self.inner.key_type_id()
     }
 
     #[inline]
-    pub fn value_type_id(&self) -> any::TypeId {
+    pub const fn value_type_id(&self) -> any::TypeId {
         self.inner.value_type_id()
     }
 
     #[inline]
-    pub fn build_hasher_type_id(&self) -> any::TypeId {
+    pub const fn build_hasher_type_id(&self) -> any::TypeId {
         self.build_hasher.build_hasher_type_id()
     }
 
     #[inline]
-    pub fn allocator_type_id(&self) -> any::TypeId {
+    pub const fn allocator_type_id(&self) -> any::TypeId {
         self.inner.allocator_type_id()
     }
 }
@@ -3921,6 +3943,23 @@ impl OpaqueIndexMapInner {
             inner: opaque_inner,
             build_hasher: opaque_build_hasher,
         }
+    }
+}
+
+impl OpaqueIndexMapInner {
+    #[inline]
+    fn capacity(&self) -> usize {
+        self.inner.capacity()
+    }
+
+    #[inline]
+    fn len(&self) -> usize {
+        self.inner.len()
+    }
+
+    #[inline]
+    fn is_empty(&self) -> bool {
+        self.inner.is_empty()
     }
 }
 
@@ -5029,6 +5068,26 @@ pub struct OpaqueIndexMap {
 
 impl OpaqueIndexMap {
     #[inline]
+    pub const fn key_type_id(&self) -> any::TypeId {
+        self.inner.key_type_id()
+    }
+
+    #[inline]
+    pub const fn value_type_id(&self) -> any::TypeId {
+        self.inner.value_type_id()
+    }
+
+    #[inline]
+    pub const fn build_hasher_type_id<S>(&self) -> any::TypeId {
+        self.inner.build_hasher_type_id()
+    }
+
+    #[inline]
+    pub const fn allocator_type_id(&self) -> any::TypeId {
+        self.inner.allocator_type_id()
+    }
+
+    #[inline]
     pub fn has_key_type<K>(&self) -> bool
     where
         K: any::Any,
@@ -5304,42 +5363,18 @@ impl OpaqueIndexMap {
 
 impl OpaqueIndexMap {
     #[inline]
-    pub fn capacity<K, V, S, A>(&self) -> usize
-    where
-        K: any::Any,
-        V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
-    {
-        let proj_self = self.as_proj::<K, V, S, A>();
-
-        proj_self.capacity()
+    pub fn capacity(&self) -> usize {
+        self.inner.capacity()
     }
 
     #[inline]
-    pub fn len<K, V, S, A>(&self) -> usize
-    where
-        K: any::Any,
-        V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
-    {
-        let proj_self = self.as_proj::<K, V, S, A>();
-
-        proj_self.len()
+    pub fn len(&self) -> usize {
+        self.inner.len()
     }
 
     #[inline]
-    pub fn is_empty<K, V, S, A>(&self) -> bool
-    where
-        K: any::Any,
-        V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
-    {
-        let proj_self = self.as_proj::<K, V, S, A>();
-
-        proj_self.is_empty()
+    pub fn is_empty(&self) -> bool {
+        self.inner.is_empty()
     }
 }
 

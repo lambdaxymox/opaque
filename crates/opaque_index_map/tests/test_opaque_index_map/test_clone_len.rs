@@ -16,8 +16,8 @@ where
     let map = common::opaque_index_map::from_entries(entries);
     let cloned_map = common::opaque_index_map::clone::<K, V, hash::RandomState, alloc::Global>(&map);
 
-    let expected = map.len::<K, V, hash::RandomState, alloc::Global>();
-    let result = cloned_map.len::<K, V, hash::RandomState, alloc::Global>();
+    let expected = map.len();
+    let result = cloned_map.len();
 
     assert_eq!(result, expected);
 }

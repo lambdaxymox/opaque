@@ -30,7 +30,7 @@ where
 {
     let map = common::opaque_index_map::from_entries(entries);
     let expected = expected(entries);
-    let result = map.len::<K, V, hash::RandomState, alloc::Global>();
+    let result = map.len();
 
     assert_eq!(result, expected);
 }

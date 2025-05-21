@@ -19,7 +19,7 @@ where
         map.swap_remove_full::<K, K, V, hash::RandomState, alloc::Global>(key_i);
 
         let expected = keys.len() - i - 1;
-        let result = map.len::<K, V, hash::RandomState, alloc::Global>();
+        let result = map.len();
 
         assert_eq!(result, expected);
     }

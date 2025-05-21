@@ -15,7 +15,7 @@ where
 {
     let opaque_map = OpaqueIndexMap::with_hasher_in::<K, V, S, A>(build_hasher, alloc);
     let expected = 0;
-    let result = opaque_map.len::<K, V, S, A>();
+    let result = opaque_map.len();
 
     assert_eq!(result, expected);
 }
@@ -29,7 +29,7 @@ where
 {
     let opaque_map = OpaqueIndexMap::with_hasher_in::<K, V, S, A>(build_hasher, alloc);
 
-    assert!(opaque_map.is_empty::<K, V, S, A>());
+    assert!(opaque_map.is_empty());
 }
 
 fn run_test_opaque_index_map_empty_contains_no_values<K, V, S, A>(build_hasher: S, alloc: A)

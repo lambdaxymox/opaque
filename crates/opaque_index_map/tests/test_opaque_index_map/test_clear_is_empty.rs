@@ -16,7 +16,7 @@ where
     let mut result= common::opaque_index_map::from_entries::<K, V>(entries);
     result.clear::<K, V, hash::RandomState, alloc::Global>();
 
-    assert!(result.is_empty::<K, V, hash::RandomState, alloc::Global>());
+    assert!(result.is_empty());
 }
 
 fn run_test_opaque_index_map_clear_is_empty_values<K, V>(entries: &[(K, V)])

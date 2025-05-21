@@ -17,7 +17,7 @@ where
     map.clear::<K, V, hash::RandomState, alloc::Global>();
 
     let expected = 0;
-    let result = map.len::<K, V, hash::RandomState, alloc::Global>();
+    let result = map.len();
 
     assert_eq!(result, expected);
 }
