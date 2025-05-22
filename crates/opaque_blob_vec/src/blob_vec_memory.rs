@@ -107,7 +107,7 @@ where
 }
 
 
-pub(crate) struct OpaqueVecMemory {
+pub(crate) struct BlobVecMemory {
     ptr: Unique<u8>,
     capacity: Capacity,
     alloc: OpaqueAlloc,
@@ -130,7 +130,7 @@ impl OpaqueVecMemory {
     }
 }
 */
-impl OpaqueVecMemory {
+impl BlobVecMemory {
     #[inline]
     pub(crate) const fn new_in(alloc: OpaqueAlloc, element_layout: Layout) -> Self {
         let ptr = unsafe { core::mem::transmute(element_layout.align()) };
@@ -243,11 +243,11 @@ impl OpaqueVecMemory {
     pub(crate) const fn capacity(&self, element_size: usize) -> usize {
         if element_size == 0 { usize::MAX } else { self.capacity.as_inner() }
     }
-    
+
     #[inline]
     pub(crate) const fn allocator_type_id(&self) -> any::TypeId {
         self.alloc.alloc_type_id()
-    } 
+    }
 
     #[inline]
     pub(crate) const fn allocator(&self) -> &OpaqueAlloc {
@@ -315,7 +315,7 @@ impl OpaqueVecMemory {
         // handle_reserve behind a call, while making sure that this function is likely to be
         // inlined as just a comparison and a call if the comparison fails.
         #[cold]
-        fn do_reserve_and_handle(slf: &mut OpaqueVecMemory, len: usize, additional: usize, element_layout: Layout) {
+        fn do_reserve_and_handle(slf: &mut BlobVecMemory, len: usize, additional: usize, element_layout: Layout) {
             if let Err(err) = slf.grow_amortized(len, additional, element_layout) {
                 handle_error(err);
             }

@@ -1,5 +1,5 @@
-use crate::opaque_vec_memory;
-use crate::opaque_vec_memory::OpaqueVecMemory;
+use crate::blob_vec_memory;
+use crate::blob_vec_memory::BlobVecMemory;
 
 use core::any;
 use core::fmt;
@@ -16,7 +16,7 @@ use opaque_error;
 struct BlobVecInner {
     element_layout: alloc::Layout,
     length: usize,
-    data: OpaqueVecMemory,
+    buffer: BlobVecMemory,
     drop_fn: Option<unsafe fn(NonNull<u8>)>,
 }
 
@@ -30,12 +30,12 @@ impl BlobVecInner {
     {
         let length = 0;
         let opaque_alloc = OpaqueAlloc::from_proj(alloc);
-        let data = OpaqueVecMemory::new_in(opaque_alloc, element_layout);
+        let buffer = BlobVecMemory::new_in(opaque_alloc, element_layout);
 
         Self {
             element_layout,
             length,
-            data,
+            buffer,
             drop_fn,
         }
     }
@@ -49,12 +49,12 @@ impl BlobVecInner {
     {
         let length = 0;
         let opaque_alloc = OpaqueAlloc::from_proj(alloc);
-        let data = OpaqueVecMemory::with_capacity_in(capacity, opaque_alloc, element_layout);
+        let buffer = BlobVecMemory::with_capacity_in(capacity, opaque_alloc, element_layout);
 
         Self {
             element_layout,
             length,
-            data,
+            buffer,
             drop_fn,
         }
     }
@@ -71,11 +71,11 @@ impl BlobVecInner {
     {
         let length = 0;
         let opaque_alloc = OpaqueAlloc::from_proj(alloc);
-        let data = OpaqueVecMemory::try_with_capacity_in(capacity, opaque_alloc, element_layout)?;
+        let buffer = BlobVecMemory::try_with_capacity_in(capacity, opaque_alloc, element_layout)?;
         let vec = Self {
             element_layout,
             length,
-            data,
+            buffer,
             drop_fn,
         };
 
@@ -94,14 +94,14 @@ impl BlobVecInner {
     where
         A: any::Any + alloc::Allocator,
     {
-        let capacity_bytes = opaque_vec_memory::new_capacity(capacity, element_layout);
+        let capacity_bytes = blob_vec_memory::new_capacity(capacity, element_layout);
         let opaque_alloc = OpaqueAlloc::from_proj(alloc);
-        let data = OpaqueVecMemory::from_raw_parts_in(ptr, capacity_bytes, opaque_alloc);
+        let buffer = BlobVecMemory::from_raw_parts_in(ptr, capacity_bytes, opaque_alloc);
 
         Self {
             element_layout,
             length,
-            data,
+            buffer,
             drop_fn,
         }
     }
@@ -118,14 +118,14 @@ impl BlobVecInner {
     where
         A: any::Any + alloc::Allocator,
     {
-        let capacity_bytes = opaque_vec_memory::new_capacity(capacity, element_layout);
+        let capacity_bytes = blob_vec_memory::new_capacity(capacity, element_layout);
         let opaque_alloc = OpaqueAlloc::from_proj(alloc);
-        let data = OpaqueVecMemory::from_nonnull_in(ptr, capacity_bytes, opaque_alloc);
+        let buffer = BlobVecMemory::from_nonnull_in(ptr, capacity_bytes, opaque_alloc);
 
         Self {
             element_layout,
             length,
-            data,
+            buffer,
             drop_fn,
         }
     }
@@ -134,12 +134,12 @@ impl BlobVecInner {
 impl BlobVecInner {
     #[inline]
     pub const fn allocator_type_id(&self) -> any::TypeId {
-        self.data.allocator_type_id()
+        self.buffer.allocator_type_id()
     }
 
     #[inline]
     const fn allocator(&self) -> &OpaqueAlloc {
-        self.data.allocator()
+        self.buffer.allocator()
     }
 }
 
@@ -151,7 +151,7 @@ impl BlobVecInner {
 
     #[inline]
     const fn capacity(&self) -> usize {
-        self.data.capacity(self.element_layout.size())
+        self.buffer.capacity(self.element_layout.size())
     }
 
     #[inline]
@@ -168,12 +168,12 @@ impl BlobVecInner {
 impl BlobVecInner {
     #[inline]
     const fn as_ptr(&self) -> *const u8 {
-        self.data.ptr() as *const u8
+        self.buffer.ptr() as *const u8
     }
 
     #[inline]
     const fn as_mut_ptr(&mut self) -> *mut u8 {
-        self.data.ptr()
+        self.buffer.ptr()
     }
 
     #[inline]
@@ -208,7 +208,7 @@ impl BlobVecInner {
 
     #[inline]
     fn grow_one(&mut self) {
-        self.data.grow_one(self.element_layout);
+        self.buffer.grow_one(self.element_layout);
     }
 
     fn get_unchecked(&self, index: usize) -> NonNull<u8> {
@@ -235,7 +235,7 @@ impl BlobVecInner {
         let length = self.len();
 
         if length == self.capacity() {
-            self.data.grow_one(self.element_layout);
+            self.buffer.grow_one(self.element_layout);
         }
 
         let element_size = self.element_layout().size();
@@ -386,31 +386,31 @@ impl BlobVecInner {
 
     #[inline]
     fn try_reserve(&mut self, additional: usize) -> Result<(), opaque_error::TryReserveError> {
-        self.data.try_reserve(self.length, additional, self.element_layout)
+        self.buffer.try_reserve(self.length, additional, self.element_layout)
     }
 
     #[inline]
     fn try_reserve_exact(&mut self, additional: usize) -> Result<(), opaque_error::TryReserveError> {
-        self.data.try_reserve_exact(self.length, additional, self.element_layout)
+        self.buffer.try_reserve_exact(self.length, additional, self.element_layout)
     }
 
     #[cfg(not(no_global_oom_handling))]
     #[track_caller]
     fn reserve(&mut self, additional: usize) {
-        self.data.reserve(self.length, additional, self.element_layout);
+        self.buffer.reserve(self.length, additional, self.element_layout);
     }
 
     #[cfg(not(no_global_oom_handling))]
     #[track_caller]
     fn reserve_exact(&mut self, additional: usize) {
-        self.data.reserve_exact(self.length, additional, self.element_layout);
+        self.buffer.reserve_exact(self.length, additional, self.element_layout);
     }
 
     #[track_caller]
     #[inline]
     fn shrink_to_fit(&mut self) {
         if self.capacity() > self.length {
-            self.data.shrink_to_fit(self.length, self.element_layout);
+            self.buffer.shrink_to_fit(self.length, self.element_layout);
         }
     }
 
@@ -418,7 +418,7 @@ impl BlobVecInner {
     #[track_caller]
     fn shrink_to(&mut self, min_capacity: usize) {
         if self.capacity() > min_capacity {
-            self.data
+            self.buffer
                 .shrink_to_fit(std::cmp::max(self.length, min_capacity), self.element_layout);
         }
     }
@@ -540,7 +540,7 @@ impl Drop for BlobVecInner {
         self.clear();
 
         unsafe {
-            self.data.deallocate(self.element_layout);
+            self.buffer.deallocate(self.element_layout);
         }
     }
 }
@@ -792,20 +792,7 @@ where
         self.inner.append(other, count)
     }
 }
-/*
-impl<A> Drop for TypedProjBlobVec<A>
-where
-    A: any::Any + alloc::Allocator,
-{
-    fn drop(&mut self) {
-        self.clear();
 
-        unsafe {
-            self.inner.deallocate(self.element_layout);
-        }
-    }
-}
-*/
 impl<A> fmt::Debug for TypedProjBlobVec<A>
 where
     A: any::Any + alloc::Allocator,
@@ -1226,18 +1213,6 @@ impl OpaqueBlobVec {
         proj_self.append(other, count);
     }
 }
-
-/*
-impl Drop for OpaqueBlobVec {
-    fn drop(&mut self) {
-        self.clear();
-
-        unsafe {
-            self.data.deallocate(self.element_layout);
-        }
-    }
-}
-*/
 
 impl fmt::Debug for OpaqueBlobVec {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
