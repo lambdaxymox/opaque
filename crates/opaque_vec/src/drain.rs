@@ -1,18 +1,18 @@
 use core::fmt;
-use std::alloc::Allocator;
-use std::any;
-use std::iter::FusedIterator;
-use std::mem::ManuallyDrop;
-use std::ptr::NonNull;
+use core::any;
+use core::iter;
+use core::mem::ManuallyDrop;
+use core::ptr::NonNull;
 use core::slice;
-use std::marker::PhantomData;
+use std::alloc;
+
 use opaque_alloc::TypedProjAlloc;
 use crate::{is_zst, TypedProjVecInner};
 
 pub struct Drain<'a, T, A>
 where
     T: any::Any,
-    A: any::Any + Allocator,
+    A: any::Any + alloc::Allocator,
 {
     /// Index of tail to preserve
     pub(crate) tail_start: usize,
@@ -21,23 +21,22 @@ where
     /// Current remaining range to remove
     pub(crate) iter: slice::Iter<'a, T>,
     pub(crate) vec: NonNull<TypedProjVecInner<T, A>>,
-    _marker: core::marker::PhantomData<A>,
 }
 
-impl<T, A> fmt::Debug for crate::Drain<'_, T, A>
+impl<T, A> fmt::Debug for Drain<'_, T, A>
 where
     T: any::Any + fmt::Debug,
-    A: any::Any + Allocator,
+    A: any::Any + alloc::Allocator,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_tuple("Drain").field(&self.iter.as_slice()).finish()
     }
 }
 
-impl<'a, T, A> crate::Drain<'a, T, A>
+impl<'a, T, A> Drain<'a, T, A>
 where
     T: any::Any,
-    A: any::Any + Allocator,
+    A: any::Any + alloc::Allocator,
 {
     #[inline]
     pub(crate) const fn from_parts(tail_start: usize, tail_len: usize, iter: slice::Iter<'a, T>, vec: NonNull<TypedProjVecInner<T, A>>) -> Self {
@@ -46,7 +45,6 @@ where
             tail_len,
             iter,
             vec,
-            _marker: PhantomData,
         }
     }
 
@@ -111,34 +109,34 @@ where
     }
 }
 
-impl<'a, T, A: Allocator> AsRef<[T]> for crate::Drain<'a, T, A>
+impl<'a, T, A> AsRef<[T]> for Drain<'a, T, A>
 where
     T: any::Any,
-    A: any::Any + Allocator,
+    A: any::Any + alloc::Allocator,
 {
     fn as_ref(&self) -> &[T] {
         self.as_slice()
     }
 }
 
-unsafe impl<T, A> Sync for crate::Drain<'_, T, A>
+unsafe impl<T, A> Sync for Drain<'_, T, A>
 where
     T: any::Any + Sync,
-    A: any::Any + Allocator + Sync,
+    A: any::Any + alloc::Allocator + Sync,
 {
 }
 
-unsafe impl<T: Send, A: Send + Allocator> Send for crate::Drain<'_, T, A>
+unsafe impl<T, A> Send for Drain<'_, T, A>
 where
     T: any::Any + Send,
-    A: any::Any + Allocator + Send,
+    A: any::Any + alloc::Allocator + Send,
 {
 }
 
-impl<T, A> Iterator for crate::Drain<'_, T, A>
+impl<T, A> Iterator for Drain<'_, T, A>
 where
     T: any::Any,
-    A: any::Any + Allocator,
+    A: any::Any + alloc::Allocator,
 {
     type Item = T;
 
@@ -152,10 +150,10 @@ where
     }
 }
 
-impl<T, A> DoubleEndedIterator for crate::Drain<'_, T, A>
+impl<T, A> DoubleEndedIterator for Drain<'_, T, A>
 where
     T: any::Any,
-    A: any::Any + Allocator,
+    A: any::Any + alloc::Allocator,
 {
     #[inline]
     fn next_back(&mut self) -> Option<T> {
@@ -163,19 +161,19 @@ where
     }
 }
 
-impl<T, A> Drop for crate::Drain<'_, T, A>
+impl<T, A> Drop for Drain<'_, T, A>
 where
     T: any::Any,
-    A: any::Any + Allocator,
+    A: any::Any + alloc::Allocator,
 {
     fn drop(&mut self) {
         /// Moves back the un-`Drain`ed elements to restore the original `Vec`.
-        struct DropGuard<'r, 'a, T: any::Any, A: any::Any + Allocator>(&'r mut crate::Drain<'a, T, A>);
+        struct DropGuard<'r, 'a, T: any::Any, A: any::Any + alloc::Allocator>(&'r mut Drain<'a, T, A>);
 
         impl<'r, 'a, T, A> Drop for DropGuard<'r, 'a, T, A>
         where
             T: any::Any,
-            A: any::Any + Allocator,
+            A: any::Any + alloc::Allocator,
         {
             fn drop(&mut self) {
                 if self.0.tail_len > 0 {
@@ -239,10 +237,10 @@ where
     }
 }
 
-impl<T, A> ExactSizeIterator for crate::Drain<'_, T, A>
+impl<T, A> ExactSizeIterator for Drain<'_, T, A>
 where
     T: any::Any,
-    A: any::Any + Allocator,
+    A: any::Any + alloc::Allocator,
 {
     /*
     fn is_empty(&self) -> bool {
@@ -251,9 +249,9 @@ where
      */
 }
 
-impl<T, A> FusedIterator for crate::Drain<'_, T, A>
+impl<T, A> iter::FusedIterator for Drain<'_, T, A>
 where
     T: any::Any,
-    A: any::Any + Allocator,
+    A: any::Any + alloc::Allocator,
 {
 }

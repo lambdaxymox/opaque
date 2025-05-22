@@ -1,6 +1,6 @@
 #![feature(optimize_attribute)]
-use core::{any, fmt};
-use core::any::TypeId;
+use core::any;
+use core::fmt;
 use core::marker;
 use std::hash;
 
@@ -11,13 +11,13 @@ impl<H> AnyHasher for H where H: hash::Hasher + any::Any {}
 #[repr(C)]
 struct TypedProjHasherInner<H> {
     hasher: Box<dyn AnyHasher>,
-    hasher_type_id: TypeId,
+    hasher_type_id: any::TypeId,
     _marker: marker::PhantomData<H>,
 }
 
 impl<H> TypedProjHasherInner<H> {
     #[inline]
-    const fn hasher_type_id(&self) -> TypeId {
+    const fn hasher_type_id(&self) -> any::TypeId {
         self.hasher_type_id
     }
 }
@@ -29,7 +29,7 @@ where
     #[inline]
     fn new(hasher: H) -> Self {
         let boxed_hasher = Box::new(hasher);
-        let type_id = TypeId::of::<H>();
+        let type_id = any::TypeId::of::<H>();
 
         Self {
             hasher: boxed_hasher,
@@ -40,7 +40,7 @@ where
 
     #[inline]
     fn from_boxed_hasher(hasher: Box<H>) -> Self {
-        let type_id = TypeId::of::<H>();
+        let type_id = any::TypeId::of::<H>();
 
         Self {
             hasher,
@@ -51,7 +51,7 @@ where
 
     #[inline]
     fn hasher_assuming_type(&self) -> &H {
-        debug_assert_eq!(self.hasher_type_id, TypeId::of::<H>());
+        debug_assert_eq!(self.hasher_type_id, any::TypeId::of::<H>());
 
         let any_hasher = self.hasher.as_ref() as &dyn any::Any;
         any_hasher.downcast_ref::<H>().unwrap()
@@ -59,7 +59,7 @@ where
 
     #[inline]
     fn into_boxed_hasher_assuming_type(self) -> Box<H> {
-        debug_assert_eq!(self.hasher_type_id, TypeId::of::<H>());
+        debug_assert_eq!(self.hasher_type_id, any::TypeId::of::<H>());
 
         let boxed_hasher = unsafe {
             let unboxed_hasher = Box::into_raw(self.hasher);
@@ -76,7 +76,7 @@ where
 {
     #[inline]
     fn clone(&self) -> TypedProjHasherInner<H> {
-        debug_assert_eq!(self.hasher_type_id, TypeId::of::<H>());
+        debug_assert_eq!(self.hasher_type_id, any::TypeId::of::<H>());
 
         let any_hasher = self.hasher.as_ref() as &dyn any::Any;
         let alloc_ref = any_hasher
@@ -104,12 +104,12 @@ where
 #[repr(C)]
 struct OpaqueHasherInner {
     hasher: Box<dyn AnyHasher>,
-    hasher_type_id: TypeId,
+    hasher_type_id: any::TypeId,
 }
 
 impl OpaqueHasherInner {
     #[inline]
-    const fn hasher_type_id(&self) -> TypeId {
+    const fn hasher_type_id(&self) -> any::TypeId {
         self.hasher_type_id
     }
 }
@@ -121,7 +121,7 @@ impl OpaqueHasherInner {
         H: any::Any + hash::Hasher,
     {
         let boxed_hasher = Box::new(hasher);
-        let type_id = TypeId::of::<H>();
+        let type_id = any::TypeId::of::<H>();
 
         Self {
             hasher: boxed_hasher,
@@ -134,7 +134,7 @@ impl OpaqueHasherInner {
     where
         H: any::Any + hash::Hasher,
     {
-        let type_id = TypeId::of::<H>();
+        let type_id = any::TypeId::of::<H>();
 
         Self {
             hasher,
@@ -148,7 +148,7 @@ impl OpaqueHasherInner {
     where
         H: any::Any + hash::Hasher,
     {
-        debug_assert_eq!(self.hasher_type_id, TypeId::of::<H>());
+        debug_assert_eq!(self.hasher_type_id, any::TypeId::of::<H>());
 
         unsafe { &*(self as *const OpaqueHasherInner as *const TypedProjHasherInner<H>) }
     }
@@ -157,7 +157,7 @@ impl OpaqueHasherInner {
     where
         H: any::Any + hash::Hasher,
     {
-        debug_assert_eq!(self.hasher_type_id, TypeId::of::<H>());
+        debug_assert_eq!(self.hasher_type_id, any::TypeId::of::<H>());
 
         unsafe { &mut *(self as *mut OpaqueHasherInner as *mut TypedProjHasherInner<H>) }
     }
@@ -166,7 +166,7 @@ impl OpaqueHasherInner {
     where
         H: any::Any + hash::Hasher,
     {
-        debug_assert_eq!(self.hasher_type_id, TypeId::of::<H>());
+        debug_assert_eq!(self.hasher_type_id, any::TypeId::of::<H>());
 
         TypedProjHasherInner {
             hasher: self.hasher,
@@ -290,7 +290,7 @@ pub struct OpaqueHasher {
 
 impl OpaqueHasher {
     #[inline]
-    pub const fn hasher_type_id(&self) -> TypeId {
+    pub const fn hasher_type_id(&self) -> any::TypeId {
         self.inner.hasher_type_id()
     }
 
@@ -299,7 +299,7 @@ impl OpaqueHasher {
     where
         H: any::Any + hash::Hasher,
     {
-        self.inner.hasher_type_id() == TypeId::of::<H>()
+        self.inner.hasher_type_id() == any::TypeId::of::<H>()
     }
 
     #[inline]
@@ -311,12 +311,12 @@ impl OpaqueHasher {
         #[cold]
         #[optimize(size)]
         #[track_caller]
-        fn type_check_failed(type_id_self: TypeId, type_id_other: TypeId) -> ! {
+        fn type_check_failed(type_id_self: any::TypeId, type_id_other: any::TypeId) -> ! {
             panic!("Type mismatch. Need `{:?}`, got `{:?}`", type_id_self, type_id_other);
         }
 
         if !self.has_hasher_type::<H>() {
-            type_check_failed(self.inner.hasher_type_id, TypeId::of::<H>());
+            type_check_failed(self.inner.hasher_type_id, any::TypeId::of::<H>());
         }
     }
 }
@@ -403,8 +403,8 @@ impl fmt::Debug for OpaqueHasher {
 #[repr(C)]
 struct TypedProjBuildHasherInner<S> {
     build_hasher: Box<dyn any::Any>,
-    build_hasher_type_id: TypeId,
-    hasher_type_id: TypeId,
+    build_hasher_type_id: any::TypeId,
+    hasher_type_id: any::TypeId,
     _marker: marker::PhantomData<S>,
 }
 
@@ -415,8 +415,8 @@ where
     #[inline]
     fn new(build_hasher: S) -> Self {
         let boxed_build_hasher = Box::new(build_hasher);
-        let build_hasher_type_id: TypeId = TypeId::of::<S>();
-        let hasher_type_id = TypeId::of::<S::Hasher>();
+        let build_hasher_type_id = any::TypeId::of::<S>();
+        let hasher_type_id = any::TypeId::of::<S::Hasher>();
 
         Self {
             build_hasher: boxed_build_hasher,
@@ -428,8 +428,8 @@ where
 
     #[inline]
     fn from_boxed_build_hasher(build_hasher: Box<S>) -> Self {
-        let build_hasher_type_id: TypeId = TypeId::of::<S>();
-        let hasher_type_id = TypeId::of::<S::Hasher>();
+        let build_hasher_type_id = any::TypeId::of::<S>();
+        let hasher_type_id = any::TypeId::of::<S::Hasher>();
 
         Self {
             build_hasher,
@@ -440,14 +440,14 @@ where
     }
 
     fn get_build_hasher(&self) -> &S {
-        debug_assert_eq!(self.build_hasher_type_id, TypeId::of::<S>());
+        debug_assert_eq!(self.build_hasher_type_id, any::TypeId::of::<S>());
 
         let any_build_hasher = self.build_hasher.as_ref();
         any_build_hasher.downcast_ref::<S>().unwrap()
     }
 
     fn into_boxed_build_hasher(self) -> Box<S> {
-        debug_assert_eq!(self.build_hasher_type_id, TypeId::of::<S>());
+        debug_assert_eq!(self.build_hasher_type_id, any::TypeId::of::<S>());
 
         let boxed_build_hasher = unsafe {
             let unboxed_build_hasher = Box::into_raw(self.build_hasher);
@@ -458,7 +458,7 @@ where
     }
 
     fn build_hasher(&self) -> TypedProjHasher<S::Hasher> {
-        debug_assert_eq!(self.build_hasher_type_id, TypeId::of::<S>());
+        debug_assert_eq!(self.build_hasher_type_id, any::TypeId::of::<S>());
 
         let build_hasher = self.build_hasher.downcast_ref::<S>().unwrap();
         let hasher = build_hasher.build_hasher();
@@ -484,18 +484,18 @@ where
 #[repr(C)]
 struct OpaqueBuildHasherInner {
     build_hasher: Box<dyn any::Any>,
-    build_hasher_type_id: TypeId,
-    hasher_type_id: TypeId,
+    build_hasher_type_id: any::TypeId,
+    hasher_type_id: any::TypeId,
 }
 
 impl OpaqueBuildHasherInner {
     #[inline]
-    const fn build_hasher_type_id(&self) -> TypeId {
+    const fn build_hasher_type_id(&self) -> any::TypeId {
         self.build_hasher_type_id
     }
 
     #[inline]
-    const fn hasher_type_id(&self) -> TypeId {
+    const fn hasher_type_id(&self) -> any::TypeId {
         self.hasher_type_id
     }
 }
@@ -507,8 +507,8 @@ impl OpaqueBuildHasherInner {
         S: any::Any + hash::BuildHasher,
     {
         let boxed_build_hasher = Box::new(build_hasher);
-        let build_hasher_type_id: TypeId = TypeId::of::<S>();
-        let hasher_type_id = TypeId::of::<S::Hasher>();
+        let build_hasher_type_id = any::TypeId::of::<S>();
+        let hasher_type_id = any::TypeId::of::<S::Hasher>();
 
         Self {
             build_hasher: boxed_build_hasher,
@@ -522,8 +522,8 @@ impl OpaqueBuildHasherInner {
     where
         S: any::Any + hash::BuildHasher,
     {
-        let build_hasher_type_id: TypeId = TypeId::of::<S>();
-        let hasher_type_id = TypeId::of::<S::Hasher>();
+        let build_hasher_type_id = any::TypeId::of::<S>();
+        let hasher_type_id = any::TypeId::of::<S::Hasher>();
 
         Self {
             build_hasher,
@@ -687,12 +687,12 @@ pub struct OpaqueBuildHasher {
 
 impl OpaqueBuildHasher {
     #[inline]
-    pub const fn build_hasher_type_id(&self) -> TypeId {
+    pub const fn build_hasher_type_id(&self) -> any::TypeId {
         self.inner.build_hasher_type_id()
     }
 
     #[inline]
-    pub const fn hasher_type_id(&self) -> TypeId {
+    pub const fn hasher_type_id(&self) -> any::TypeId {
         self.inner.hasher_type_id()
     }
 }
@@ -703,7 +703,7 @@ impl OpaqueBuildHasher {
     where
         S: any::Any + hash::BuildHasher,
     {
-        self.inner.build_hasher_type_id() == TypeId::of::<S>()
+        self.inner.build_hasher_type_id() == any::TypeId::of::<S>()
     }
 
     #[inline]
@@ -711,7 +711,7 @@ impl OpaqueBuildHasher {
     where
         H: any::Any + hash::Hasher,
     {
-        self.inner.hasher_type_id() == TypeId::of::<H>()
+        self.inner.hasher_type_id() == any::TypeId::of::<H>()
     }
 
     #[inline]
@@ -723,12 +723,12 @@ impl OpaqueBuildHasher {
         #[cold]
         #[optimize(size)]
         #[track_caller]
-        fn type_check_failed(type_id_self: TypeId, type_id_other: TypeId) -> ! {
+        fn type_check_failed(type_id_self: any::TypeId, type_id_other: any::TypeId) -> ! {
             panic!("Type mismatch. Need `{:?}`, got `{:?}`", type_id_self, type_id_other);
         }
 
         if !self.has_build_hasher_type::<S>() {
-            type_check_failed(self.inner.build_hasher_type_id, TypeId::of::<S>());
+            type_check_failed(self.inner.build_hasher_type_id, any::TypeId::of::<S>());
         }
     }
 }

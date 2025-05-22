@@ -1,6 +1,9 @@
-use core::{fmt, slice};
-use std::alloc::Allocator;
-use std::{any, ops};
+use core::any;
+use core::fmt;
+use core::slice;
+use core::ops;
+use std::alloc;
+
 use opaque_alloc::TypedProjAlloc;
 use crate::TypedProjVecInner;
 
@@ -8,7 +11,7 @@ use crate::TypedProjVecInner;
 pub struct ExtractIf<'a, T, F, A>
 where
     T: any::Any,
-    A: any::Any + Allocator,
+    A: any::Any + alloc::Allocator,
 {
     vec: &'a mut TypedProjVecInner<T, A>,
     /// The index of the item that will be inspected by the next call to `next`.
@@ -21,13 +24,12 @@ where
     old_len: usize,
     /// The filter test predicate.
     pred: F,
-    _marker: core::marker::PhantomData<(T, A)>,
 }
 
 impl<'a, T, F, A> ExtractIf<'a, T, F, A>
 where
     T: any::Any,
-    A: any::Any + Allocator,
+    A: any::Any + alloc::Allocator,
 {
     #[inline]
     pub(crate) fn new<R>(vec: &'a mut TypedProjVecInner<T, A>, pred: F, range: R) -> Self
@@ -42,14 +44,13 @@ where
             vec.set_len(0);
         }
 
-        crate::ExtractIf {
+        ExtractIf {
             vec,
             idx: start,
             del: 0,
             end,
             old_len,
             pred,
-            _marker: core::marker::PhantomData,
         }
     }
 
@@ -59,11 +60,11 @@ where
     }
 }
 
-impl<T, F, A> Iterator for crate::ExtractIf<'_, T, F, A>
+impl<T, F, A> Iterator for ExtractIf<'_, T, F, A>
 where
     T: any::Any,
     F: FnMut(&mut T) -> bool,
-    A: any::Any + Allocator,
+    A: any::Any + alloc::Allocator,
 {
     type Item = T;
 
@@ -96,10 +97,10 @@ where
     }
 }
 
-impl<T, F, A> Drop for crate::ExtractIf<'_, T, F, A>
+impl<T, F, A> Drop for ExtractIf<'_, T, F, A>
 where
     T: any::Any,
-    A: any::Any + Allocator,
+    A: any::Any + alloc::Allocator,
 {
     fn drop(&mut self) {
         unsafe {
@@ -115,10 +116,10 @@ where
     }
 }
 
-impl<T, F, A> fmt::Debug for crate::ExtractIf<'_, T, F, A>
+impl<T, F, A> fmt::Debug for ExtractIf<'_, T, F, A>
 where
     T: any::Any,
-    A: any::Any + Allocator,
+    A: any::Any + alloc::Allocator,
 {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(formatter, "ExtractIf {{ .. }}")

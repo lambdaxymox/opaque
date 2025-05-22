@@ -1,8 +1,5 @@
-use core::alloc::{
-    Layout,
-    LayoutError,
-};
 use core::fmt;
+use std::alloc;
 
 /// The error type for `try_reserve` methods.
 #[derive(Clone, PartialEq, Eq, Debug)]
@@ -29,7 +26,7 @@ pub enum TryReserveErrorKind {
     /// The memory allocator returned an error
     AllocError {
         /// The layout of allocation request that failed
-        layout: Layout,
+        layout: alloc::Layout,
     },
 }
 
@@ -40,10 +37,10 @@ impl From<TryReserveErrorKind> for TryReserveError {
     }
 }
 
-impl From<LayoutError> for TryReserveErrorKind {
+impl From<alloc::LayoutError> for TryReserveErrorKind {
     /// Always evaluates to [`TryReserveErrorKind::CapacityOverflow`].
     #[inline]
-    fn from(_: LayoutError) -> Self {
+    fn from(_: alloc::LayoutError) -> Self {
         TryReserveErrorKind::CapacityOverflow
     }
 }

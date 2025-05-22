@@ -1,6 +1,7 @@
-use std::alloc::Allocator;
-use std::any;
-use std::slice;
+use core::any;
+use core::slice;
+use std::alloc;
+
 use crate::Drain;
 
 #[derive(Debug)]
@@ -8,7 +9,7 @@ pub struct Splice<'a, I, A>
 where
     I: Iterator + 'a,
     <I as Iterator>::Item: any::Any,
-    A: any::Any + Allocator + 'a,
+    A: any::Any + alloc::Allocator + 'a,
 {
     drain: Drain<'a, I::Item, A>,
     replace_with: I,
@@ -18,7 +19,7 @@ impl<'a, I, A> Splice<'a, I, A>
 where
     I: Iterator + 'a,
     <I as Iterator>::Item: any::Any,
-    A: any::Any + Allocator + 'a,
+    A: any::Any + alloc::Allocator + 'a,
 {
     #[inline]
     pub(crate) const fn new(drain: Drain<'a, I::Item, A>, replace_with: I) -> Self {
@@ -26,11 +27,11 @@ where
     }
 }
 
-impl<I, A> Iterator for crate::Splice<'_, I, A>
+impl<I, A> Iterator for Splice<'_, I, A>
 where
     I: Iterator,
     I::Item: any::Any,
-    A: any::Any + Allocator,
+    A: any::Any + alloc::Allocator,
 {
     type Item = I::Item;
 
@@ -43,30 +44,30 @@ where
     }
 }
 
-impl<I, A> DoubleEndedIterator for crate::Splice<'_, I, A>
+impl<I, A> DoubleEndedIterator for Splice<'_, I, A>
 where
     I: Iterator,
     I::Item: any::Any,
-    A: any::Any + Allocator,
+    A: any::Any + alloc::Allocator,
 {
     fn next_back(&mut self) -> Option<Self::Item> {
         self.drain.next_back()
     }
 }
 
-impl<I, A> ExactSizeIterator for crate::Splice<'_, I, A>
+impl<I, A> ExactSizeIterator for Splice<'_, I, A>
 where
     I: Iterator,
     I::Item: any::Any,
-    A: any::Any + Allocator,
+    A: any::Any + alloc::Allocator,
 {
 }
 
-impl<I, A> Drop for crate::Splice<'_, I, A>
+impl<I, A> Drop for Splice<'_, I, A>
 where
     I: Iterator,
     I::Item: any::Any,
-    A: any::Any + Allocator,
+    A: any::Any + alloc::Allocator,
 {
     #[track_caller]
     fn drop(&mut self) {
@@ -118,7 +119,7 @@ where
 impl<T, A> Drain<'_, T, A>
 where
     T: any::Any,
-    A: any::Any + Allocator,
+    A: any::Any + alloc::Allocator,
 {
     /// The range from `self.vec.len` to `self.tail_start` contains elements
     /// that have been moved out.

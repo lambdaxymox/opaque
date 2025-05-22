@@ -1,11 +1,12 @@
+use core::any;
 use core::fmt;
-use std::alloc::Allocator;
-use std::{any, ops};
-use std::iter::FusedIterator;
-use std::marker::PhantomData;
+use core::iter;
+use core::ops;
+use core::slice;
+use std::alloc;
 use std::mem::ManuallyDrop;
 use std::ptr::NonNull;
-use core::slice;
+
 use opaque_alloc::TypedProjAlloc;
 use crate::{assuming_non_null, assuming_non_null_mut, is_zst, private};
 
@@ -21,13 +22,12 @@ pub struct IntoIter<T, A> {
     /// for both ZST and non-ZST.
     /// For non-ZSTs the pointer is treated as `NonNull<T>`
     end: *const T,
-    _marker: core::marker::PhantomData<(T, A)>,
 }
 
 impl<T, A> fmt::Debug for IntoIter<T, A>
 where
     T: any::Any + fmt::Debug,
-    A: any::Any + Allocator,
+    A: any::Any + alloc::Allocator,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_tuple("IntoIter").field(&self.as_slice()).finish()
@@ -37,11 +37,11 @@ where
 impl<T, A> IntoIter<T, A>
 where
     T: any::Any,
-    A: any::Any + Allocator,
+    A: any::Any + alloc::Allocator,
 {
     #[inline]
     pub(crate) const fn from_parts(buf: NonNull<T>, cap: usize, alloc: ManuallyDrop<TypedProjAlloc<A>>, ptr: NonNull<T>, end: *const T) -> Self {
-        Self { buf, cap, alloc, ptr, end, _marker: PhantomData, }
+        Self { buf, cap, alloc, ptr, end, }
     }
 
     pub fn as_slice(&self) -> &[T] {
@@ -65,7 +65,7 @@ where
 impl<T, A> AsRef<[T]> for IntoIter<T, A>
 where
     T: any::Any,
-    A: any::Any + Allocator,
+    A: any::Any + alloc::Allocator,
 {
     fn as_ref(&self) -> &[T] {
         self.as_slice()
@@ -75,20 +75,20 @@ where
 unsafe impl<T, A> Send for IntoIter<T, A>
 where
     T: any::Any + Send,
-    A: any::Any + Allocator + Send,
+    A: any::Any + alloc::Allocator + Send,
 {
 }
 unsafe impl<T, A> Sync for IntoIter<T, A>
 where
     T: any::Any + Sync,
-    A: any::Any + Allocator + Sync,
+    A: any::Any + alloc::Allocator + Sync,
 {
 }
 
 impl<T, A> Iterator for IntoIter<T, A>
 where
     T: any::Any,
-    A: any::Any + Allocator,
+    A: any::Any + alloc::Allocator,
 {
     type Item = T;
 
@@ -247,7 +247,7 @@ where
 impl<T, A> DoubleEndedIterator for IntoIter<T, A>
 where
     T: any::Any,
-    A: any::Any + Allocator,
+    A: any::Any + alloc::Allocator,
 {
     #[inline]
     fn next_back(&mut self) -> Option<T> {
@@ -297,7 +297,7 @@ where
 impl<T, A> ExactSizeIterator for IntoIter<T, A>
 where
     T: any::Any,
-    A: any::Any + Allocator,
+    A: any::Any + alloc::Allocator,
 {
     /*
     fn is_empty(&self) -> bool {
@@ -309,10 +309,10 @@ where
     }
     */
 }
-impl<T, A> FusedIterator for IntoIter<T, A>
+impl<T, A> iter::FusedIterator for IntoIter<T, A>
 where
     T: any::Any,
-    A: any::Any + Allocator,
+    A: any::Any + alloc::Allocator,
 {
 }
 
@@ -320,7 +320,7 @@ where
 impl<T, A> Clone for IntoIter<T, A>
 where
     T: any::Any + Clone,
-    A: any::Any + Allocator + Clone,
+    A: any::Any + alloc::Allocator + Clone,
 {
     fn clone(&self) -> Self {
         let alloc = Clone::clone(ops::Deref::deref(&self.alloc));
@@ -338,7 +338,7 @@ where
             };
             let cap = me.capacity();
 
-            IntoIter { buf: data_ptr, cap, alloc: read_alloc, ptr: data_ptr, end, _marker: PhantomData, }
+            IntoIter { buf: data_ptr, cap, alloc: read_alloc, ptr: data_ptr, end, }
         }
     }
 }
@@ -346,7 +346,7 @@ where
 unsafe impl<T, A> Drop for IntoIter<T, A>
 where
     T: any::Any,
-    A: any::Any + Allocator,
+    A: any::Any + alloc::Allocator,
 {
     fn drop(&mut self) {
         struct DropGuard<'a, T, A: Allocator>(&'a mut IntoIter<T, A>);
