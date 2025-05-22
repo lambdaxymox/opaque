@@ -11,15 +11,15 @@ where
     T: any::Any + PartialEq + Clone + fmt::Debug,
     A: any::Any + alloc::Allocator + Clone,
 {
-    let expected_blob_vec = common::new_opaque_blob_vec_in::<T, A>(alloc.clone());
+    let expected_blob_vec = common::opaque_blob_vec::new_in::<T, A>(alloc.clone());
     let result_blob_vec = {
-        let mut opaque_blob_vec = common::from_typed_slice_in(values, alloc.clone());
-        opaque_blob_vec.clear();
+        let mut opaque_blob_vec = common::opaque_blob_vec::from_slice_in(values, alloc.clone());
+        opaque_blob_vec.clear::<A>();
         opaque_blob_vec
     };
 
-    let expected = common::as_slice::<T>(&expected_blob_vec);
-    let result = common::as_slice::<T>(&result_blob_vec);
+    let expected = common::opaque_blob_vec::as_slice::<T>(&expected_blob_vec);
+    let result = common::opaque_blob_vec::as_slice::<T>(&result_blob_vec);
 
     assert_eq!(result, expected);
 }

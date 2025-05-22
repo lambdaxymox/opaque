@@ -14,11 +14,11 @@ where
     T: any::Any + PartialEq + Clone + fmt::Debug,
     A: any::Any + alloc::Allocator + Clone,
 {
-    let mut opaque_blob_vec = common::new_opaque_blob_vec_in::<T, A>(alloc);
+    let mut opaque_blob_vec = common::opaque_blob_vec::new_in::<T, A>(alloc);
     if !values.is_empty() {
         let value = values.last().unwrap();
         let value_ptr = NonNull::from(value).cast::<u8>();
-        opaque_blob_vec.push(value_ptr);
+        opaque_blob_vec.push::<A>(value_ptr);
     }
 
     opaque_blob_vec
@@ -29,10 +29,10 @@ where
     T: any::Any + PartialEq + Clone + fmt::Debug,
     A: alloc::Allocator + any::Any + Clone,
 {
-    let mut opaque_blob_vec = common::new_opaque_blob_vec_in::<T, A>(alloc);
+    let mut opaque_blob_vec = common::opaque_blob_vec::new_in::<T, A>(alloc);
     for value in values.iter() {
         let value_ptr = NonNull::from(value).cast::<u8>();
-        opaque_blob_vec.replace_insert(0, value_ptr);
+        opaque_blob_vec.replace_insert::<A>(0, value_ptr);
     }
 
     opaque_blob_vec
@@ -46,8 +46,8 @@ where
     let expected_vec = expected(values, alloc.clone());
     let result_vec = result(values, alloc.clone());
 
-    let expected = common::as_slice::<T>(&expected_vec);
-    let result = common::as_slice::<T>(&result_vec);
+    let expected = common::opaque_blob_vec::as_slice::<T>(&expected_vec);
+    let result = common::opaque_blob_vec::as_slice::<T>(&result_vec);
 
     assert_eq!(result, expected);
 }

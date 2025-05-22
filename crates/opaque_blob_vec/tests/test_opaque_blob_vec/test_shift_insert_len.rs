@@ -14,11 +14,11 @@ where
     T: any::Any + PartialEq + Clone + fmt::Debug,
     A: any::Any + alloc::Allocator + Clone,
 {
-    let mut vec = common::new_opaque_blob_vec_in::<T, A>(alloc);
+    let mut vec = common::opaque_blob_vec::new_in::<T, A>(alloc);
     for i in 0..values.len() {
         let value: T = values[i].clone();
         let value_ptr: NonNull<u8> = NonNull::from(&value).cast::<u8>();
-        vec.shift_insert(i, value_ptr);
+        vec.shift_insert::<A>(i, value_ptr);
     }
 
     vec

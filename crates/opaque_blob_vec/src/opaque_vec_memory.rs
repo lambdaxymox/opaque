@@ -4,10 +4,11 @@ use std::alloc::{
     Global,
     Layout,
 };
-
+use std::any;
 use crate::range_types::UsizeNoHighBit;
 use crate::unique::Unique;
 
+use opaque_alloc::OpaqueAlloc;
 use opaque_error;
 
 // One central function responsible for reporting capacity overflows. This will
@@ -106,12 +107,12 @@ where
 }
 
 
-pub(crate) struct OpaqueVecMemory<A: Allocator = Global> {
+pub(crate) struct OpaqueVecMemory {
     ptr: Unique<u8>,
     capacity: Capacity,
-    alloc: A,
+    alloc: OpaqueAlloc,
 }
-
+/*
 impl OpaqueVecMemory {
     #[must_use]
     pub(crate) const fn new(element_layout: Layout) -> Self {
@@ -128,20 +129,17 @@ impl OpaqueVecMemory {
         }
     }
 }
-
-impl<A> OpaqueVecMemory<A>
-where
-    A: Allocator,
-{
+*/
+impl OpaqueVecMemory {
     #[inline]
-    pub(crate) const fn new_in(alloc: A, element_layout: Layout) -> Self {
+    pub(crate) const fn new_in(alloc: OpaqueAlloc, element_layout: Layout) -> Self {
         let ptr = unsafe { core::mem::transmute(element_layout.align()) };
         let capacity = ZERO_CAP;
 
         Self { ptr, capacity, alloc }
     }
 
-    fn try_allocate_in(capacity: usize, init: AllocInit, alloc: A, element_layout: Layout) -> Result<Self, opaque_error::TryReserveError> {
+    fn try_allocate_in(capacity: usize, init: AllocInit, alloc: OpaqueAlloc, element_layout: Layout) -> Result<Self, opaque_error::TryReserveError> {
         // We avoid `unwrap_or_else` here because it bloats the amount of
         // LLVM IR generated.
         let layout = match layout_array(capacity, element_layout) {
@@ -183,14 +181,14 @@ where
     }
 
     #[inline]
-    pub(crate) fn try_with_capacity_in(capacity: usize, alloc: A, element_layout: Layout) -> Result<Self, opaque_error::TryReserveError> {
+    pub(crate) fn try_with_capacity_in(capacity: usize, alloc: OpaqueAlloc, element_layout: Layout) -> Result<Self, opaque_error::TryReserveError> {
         Self::try_allocate_in(capacity, AllocInit::Uninitialized, alloc, element_layout)
     }
 
     #[cfg(not(no_global_oom_handling))]
     #[inline]
     #[track_caller]
-    fn with_capacity_zeroed_in(capacity: usize, alloc: A, element_layout: Layout) -> Self {
+    fn with_capacity_zeroed_in(capacity: usize, alloc: OpaqueAlloc, element_layout: Layout) -> Self {
         match Self::try_allocate_in(capacity, AllocInit::Zeroed, alloc, element_layout) {
             Ok(res) => res,
             Err(err) => handle_error(err),
@@ -200,7 +198,7 @@ where
     #[cfg(not(no_global_oom_handling))]
     #[inline]
     #[track_caller]
-    pub(crate) fn with_capacity_in(capacity: usize, alloc: A, element_layout: Layout) -> Self {
+    pub(crate) fn with_capacity_in(capacity: usize, alloc: OpaqueAlloc, element_layout: Layout) -> Self {
         match Self::try_allocate_in(capacity, AllocInit::Uninitialized, alloc, element_layout) {
             Ok(this) => {
                 unsafe {
@@ -214,7 +212,7 @@ where
     }
 
     #[inline]
-    pub(crate) unsafe fn from_raw_parts_in(ptr: *mut u8, capacity: Capacity, alloc: A) -> Self {
+    pub(crate) unsafe fn from_raw_parts_in(ptr: *mut u8, capacity: Capacity, alloc: OpaqueAlloc) -> Self {
         Self {
             ptr: unsafe { Unique::new_unchecked(ptr) },
             capacity,
@@ -223,7 +221,7 @@ where
     }
 
     #[inline]
-    pub(crate) unsafe fn from_nonnull_in(ptr: NonNull<u8>, capacity: Capacity, alloc: A) -> Self {
+    pub(crate) unsafe fn from_nonnull_in(ptr: NonNull<u8>, capacity: Capacity, alloc: OpaqueAlloc) -> Self {
         Self {
             ptr: Unique::from(ptr),
             capacity,
@@ -245,9 +243,14 @@ where
     pub(crate) const fn capacity(&self, element_size: usize) -> usize {
         if element_size == 0 { usize::MAX } else { self.capacity.as_inner() }
     }
+    
+    #[inline]
+    pub(crate) const fn allocator_type_id(&self) -> any::TypeId {
+        self.alloc.alloc_type_id()
+    } 
 
     #[inline]
-    pub(crate) const fn allocator(&self) -> &A {
+    pub(crate) const fn allocator(&self) -> &OpaqueAlloc {
         &self.alloc
     }
 
@@ -312,7 +315,7 @@ where
         // handle_reserve behind a call, while making sure that this function is likely to be
         // inlined as just a comparison and a call if the comparison fails.
         #[cold]
-        fn do_reserve_and_handle<A: Allocator>(slf: &mut OpaqueVecMemory<A>, len: usize, additional: usize, element_layout: Layout) {
+        fn do_reserve_and_handle(slf: &mut OpaqueVecMemory, len: usize, additional: usize, element_layout: Layout) {
             if let Err(err) = slf.grow_amortized(len, additional, element_layout) {
                 handle_error(err);
             }

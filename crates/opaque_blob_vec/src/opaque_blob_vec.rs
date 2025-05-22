@@ -1,28 +1,36 @@
 use crate::opaque_vec_memory;
 use crate::opaque_vec_memory::OpaqueVecMemory;
-use opaque_alloc::OpaqueAlloc;
 
+use core::any;
 use core::fmt;
-use std::alloc::Layout;
+use core::marker;
+use std::alloc;
 use std::mem::ManuallyDrop;
 use std::ptr::NonNull;
 
+use opaque_alloc::{OpaqueAlloc, TypedProjAlloc};
 use opaque_error;
 
-pub struct OpaqueBlobVec {
-    element_layout: Layout,
+
+#[repr(C)]
+struct BlobVecInner {
+    element_layout: alloc::Layout,
     length: usize,
-    data: OpaqueVecMemory<OpaqueAlloc>,
+    data: OpaqueVecMemory,
     drop_fn: Option<unsafe fn(NonNull<u8>)>,
 }
 
-impl OpaqueBlobVec {
+impl BlobVecInner {
     #[inline]
     #[must_use]
     #[track_caller]
-    pub const fn new_in(alloc: OpaqueAlloc, element_layout: Layout, drop_fn: Option<unsafe fn(NonNull<u8>)>) -> Self {
+    fn new_in<A>(alloc: TypedProjAlloc<A>, element_layout: alloc::Layout, drop_fn: Option<unsafe fn(NonNull<u8>)>) -> Self
+    where
+        A: any::Any + alloc::Allocator,
+    {
         let length = 0;
-        let data = OpaqueVecMemory::new_in(alloc, element_layout);
+        let opaque_alloc = OpaqueAlloc::from_proj(alloc);
+        let data = OpaqueVecMemory::new_in(opaque_alloc, element_layout);
 
         Self {
             element_layout,
@@ -35,9 +43,13 @@ impl OpaqueBlobVec {
     #[inline]
     #[must_use]
     #[track_caller]
-    pub fn with_capacity_in(capacity: usize, alloc: OpaqueAlloc, element_layout: Layout, drop_fn: Option<unsafe fn(NonNull<u8>)>) -> Self {
+    fn with_capacity_in<A>(capacity: usize, alloc: TypedProjAlloc<A>, element_layout: alloc::Layout, drop_fn: Option<unsafe fn(NonNull<u8>)>) -> Self
+    where
+        A: any::Any + alloc::Allocator,
+    {
         let length = 0;
-        let data = OpaqueVecMemory::with_capacity_in(capacity, alloc, element_layout);
+        let opaque_alloc = OpaqueAlloc::from_proj(alloc);
+        let data = OpaqueVecMemory::with_capacity_in(capacity, opaque_alloc, element_layout);
 
         Self {
             element_layout,
@@ -48,14 +60,18 @@ impl OpaqueBlobVec {
     }
 
     #[inline]
-    pub fn try_with_capacity_in(
+    fn try_with_capacity_in<A>(
         capacity: usize,
-        alloc: OpaqueAlloc,
-        element_layout: Layout,
+        alloc: TypedProjAlloc<A>,
+        element_layout: alloc::Layout,
         drop_fn: Option<unsafe fn(NonNull<u8>)>,
-    ) -> Result<Self, opaque_error::TryReserveError> {
+    ) -> Result<Self, opaque_error::TryReserveError>
+    where
+        A: any::Any + alloc::Allocator,
+    {
         let length = 0;
-        let data = OpaqueVecMemory::try_with_capacity_in(capacity, alloc, element_layout)?;
+        let opaque_alloc = OpaqueAlloc::from_proj(alloc);
+        let data = OpaqueVecMemory::try_with_capacity_in(capacity, opaque_alloc, element_layout)?;
         let vec = Self {
             element_layout,
             length,
@@ -67,16 +83,20 @@ impl OpaqueBlobVec {
     }
 
     #[inline]
-    pub unsafe fn from_raw_parts_in(
+    unsafe fn from_raw_parts_in<A>(
         ptr: *mut u8,
         length: usize,
         capacity: usize,
-        alloc: OpaqueAlloc,
-        element_layout: Layout,
+        alloc: TypedProjAlloc<A>,
+        element_layout: alloc::Layout,
         drop_fn: Option<unsafe fn(NonNull<u8>)>,
-    ) -> Self {
+    ) -> Self
+    where
+        A: any::Any + alloc::Allocator,
+    {
         let capacity_bytes = opaque_vec_memory::new_capacity(capacity, element_layout);
-        let data = OpaqueVecMemory::from_raw_parts_in(ptr, capacity_bytes, alloc);
+        let opaque_alloc = OpaqueAlloc::from_proj(alloc);
+        let data = OpaqueVecMemory::from_raw_parts_in(ptr, capacity_bytes, opaque_alloc);
 
         Self {
             element_layout,
@@ -87,16 +107,20 @@ impl OpaqueBlobVec {
     }
 
     #[inline]
-    pub unsafe fn from_parts_in(
+    unsafe fn from_parts_in<A>(
         ptr: NonNull<u8>,
         length: usize,
         capacity: usize,
-        alloc: OpaqueAlloc,
-        element_layout: Layout,
+        alloc: TypedProjAlloc<A>,
+        element_layout: alloc::Layout,
         drop_fn: Option<unsafe fn(NonNull<u8>)>,
-    ) -> Self {
+    ) -> Self
+    where
+        A: any::Any + alloc::Allocator,
+    {
         let capacity_bytes = opaque_vec_memory::new_capacity(capacity, element_layout);
-        let data = OpaqueVecMemory::from_nonnull_in(ptr, capacity_bytes, alloc);
+        let opaque_alloc = OpaqueAlloc::from_proj(alloc);
+        let data = OpaqueVecMemory::from_nonnull_in(ptr, capacity_bytes, opaque_alloc);
 
         Self {
             element_layout,
@@ -105,63 +129,89 @@ impl OpaqueBlobVec {
             drop_fn,
         }
     }
+}
+
+impl BlobVecInner {
+    #[inline]
+    pub const fn allocator_type_id(&self) -> any::TypeId {
+        self.data.allocator_type_id()
+    }
 
     #[inline]
-    pub const fn allocator(&self) -> &OpaqueAlloc {
+    const fn allocator(&self) -> &OpaqueAlloc {
         self.data.allocator()
     }
 }
 
-impl OpaqueBlobVec {
+impl BlobVecInner {
     #[inline]
-    pub const fn element_layout(&self) -> Layout {
+    const fn element_layout(&self) -> alloc::Layout {
         self.element_layout
     }
 
     #[inline]
-    pub const fn capacity(&self) -> usize {
+    const fn capacity(&self) -> usize {
         self.data.capacity(self.element_layout.size())
     }
 
     #[inline]
-    pub const fn len(&self) -> usize {
+    const fn len(&self) -> usize {
         self.length
     }
 
     #[inline]
-    pub const fn is_empty(&self) -> bool {
+    const fn is_empty(&self) -> bool {
         self.length == 0
+    }
+}
+
+impl BlobVecInner {
+    #[inline]
+    const fn as_ptr(&self) -> *const u8 {
+        self.data.ptr() as *const u8
     }
 
     #[inline]
-    pub fn set_len(&mut self, new_len: usize) {
+    const fn as_mut_ptr(&mut self) -> *mut u8 {
+        self.data.ptr()
+    }
+
+    #[inline]
+    const fn as_non_null(&mut self) -> NonNull<u8> {
+        // SAFETY: A `Vec` always holds a non-null pointer.
+        unsafe { NonNull::new_unchecked(self.as_mut_ptr()) }
+    }
+
+    fn as_byte_slice(&self) -> &[u8] {
+        if self.is_empty() {
+            return &[];
+        }
+
+        let slice = unsafe {
+            let data_ptr = self.as_ptr();
+            let len = self.element_layout().size() * self.len();
+
+            std::slice::from_raw_parts(data_ptr, len)
+        };
+
+        slice
+    }
+}
+
+impl BlobVecInner {
+    #[inline]
+    fn set_len(&mut self, new_len: usize) {
         debug_assert!(new_len <= self.capacity());
 
         self.length = new_len;
     }
 
     #[inline]
-    pub const fn as_ptr(&self) -> *const u8 {
-        self.data.ptr() as *const u8
-    }
-
-    #[inline]
-    pub const fn as_mut_ptr(&mut self) -> *mut u8 {
-        self.data.ptr()
-    }
-
-    #[inline]
-    pub const fn as_non_null(&mut self) -> NonNull<u8> {
-        // SAFETY: A `Vec` always holds a non-null pointer.
-        unsafe { NonNull::new_unchecked(self.as_mut_ptr()) }
-    }
-
-    #[inline]
-    pub fn grow_one(&mut self) {
+    fn grow_one(&mut self) {
         self.data.grow_one(self.element_layout);
     }
 
-    pub fn get_unchecked(&self, index: usize) -> NonNull<u8> {
+    fn get_unchecked(&self, index: usize) -> NonNull<u8> {
         let base_ptr = self.as_ptr();
         let element = unsafe {
             let ptr = base_ptr.add(index * self.element_layout.size());
@@ -171,7 +221,7 @@ impl OpaqueBlobVec {
         element
     }
 
-    pub fn get_mut_unchecked(&mut self, index: usize) -> NonNull<u8> {
+    fn get_mut_unchecked(&mut self, index: usize) -> NonNull<u8> {
         let base_ptr = self.as_mut_ptr();
         let element = unsafe {
             let ptr = base_ptr.add(index * self.element_layout.size());
@@ -181,7 +231,7 @@ impl OpaqueBlobVec {
         element
     }
 
-    pub fn push(&mut self, value: NonNull<u8>) {
+    fn push(&mut self, value: NonNull<u8>) {
         let length = self.len();
 
         if length == self.capacity() {
@@ -198,23 +248,8 @@ impl OpaqueBlobVec {
         self.length = length + 1;
     }
 
-    pub fn as_byte_slice(&self) -> &[u8] {
-        if self.is_empty() {
-            return &[];
-        }
-
-        let slice = unsafe {
-            let data_ptr = self.as_ptr();
-            let len = self.element_layout().size() * self.len();
-
-            std::slice::from_raw_parts(data_ptr, len)
-        };
-
-        slice
-    }
-
     #[must_use]
-    pub fn swap_remove_forget_unchecked(&mut self, index: usize) -> NonNull<u8> {
+    fn swap_remove_forget_unchecked(&mut self, index: usize) -> NonNull<u8> {
         debug_assert!(index < self.len());
 
         let new_length = self.length - 1;
@@ -237,7 +272,7 @@ impl OpaqueBlobVec {
     }
 
     #[must_use]
-    pub fn shift_remove_forget_unchecked(&mut self, index: usize) -> NonNull<u8> {
+    fn shift_remove_forget_unchecked(&mut self, index: usize) -> NonNull<u8> {
         debug_assert!(index < self.len());
 
         let new_length = self.length - 1;
@@ -259,7 +294,7 @@ impl OpaqueBlobVec {
         unsafe { NonNull::new_unchecked(ptr) }
     }
 
-    pub fn replace_insert(&mut self, index: usize, value: NonNull<u8>) {
+    fn replace_insert(&mut self, index: usize, value: NonNull<u8>) {
         struct DropGuard<F: FnOnce()> {
             callback: ManuallyDrop<F>,
         }
@@ -324,7 +359,7 @@ impl OpaqueBlobVec {
         }
     }
 
-    pub fn shift_insert(&mut self, index: usize, value: NonNull<u8>) {
+    fn shift_insert(&mut self, index: usize, value: NonNull<u8>) {
         debug_assert!(index <= self.len());
 
         let length = self.len();
@@ -350,30 +385,30 @@ impl OpaqueBlobVec {
     }
 
     #[inline]
-    pub fn try_reserve(&mut self, additional: usize) -> Result<(), opaque_error::TryReserveError> {
+    fn try_reserve(&mut self, additional: usize) -> Result<(), opaque_error::TryReserveError> {
         self.data.try_reserve(self.length, additional, self.element_layout)
     }
 
     #[inline]
-    pub fn try_reserve_exact(&mut self, additional: usize) -> Result<(), opaque_error::TryReserveError> {
+    fn try_reserve_exact(&mut self, additional: usize) -> Result<(), opaque_error::TryReserveError> {
         self.data.try_reserve_exact(self.length, additional, self.element_layout)
     }
 
     #[cfg(not(no_global_oom_handling))]
     #[track_caller]
-    pub fn reserve(&mut self, additional: usize) {
+    fn reserve(&mut self, additional: usize) {
         self.data.reserve(self.length, additional, self.element_layout);
     }
 
     #[cfg(not(no_global_oom_handling))]
     #[track_caller]
-    pub fn reserve_exact(&mut self, additional: usize) {
+    fn reserve_exact(&mut self, additional: usize) {
         self.data.reserve_exact(self.length, additional, self.element_layout);
     }
 
     #[track_caller]
     #[inline]
-    pub fn shrink_to_fit(&mut self) {
+    fn shrink_to_fit(&mut self) {
         if self.capacity() > self.length {
             self.data.shrink_to_fit(self.length, self.element_layout);
         }
@@ -381,14 +416,14 @@ impl OpaqueBlobVec {
 
     #[cfg(not(no_global_oom_handling))]
     #[track_caller]
-    pub fn shrink_to(&mut self, min_capacity: usize) {
+    fn shrink_to(&mut self, min_capacity: usize) {
         if self.capacity() > min_capacity {
             self.data
                 .shrink_to_fit(std::cmp::max(self.length, min_capacity), self.element_layout);
         }
     }
 
-    pub fn clear(&mut self) {
+    fn clear(&mut self) {
         let len = self.length;
         self.length = 0;
 
@@ -404,7 +439,7 @@ impl OpaqueBlobVec {
         }
     }
 
-    pub fn truncate(&mut self, len: usize) {
+    fn truncate(&mut self, len: usize) {
         unsafe {
             if len > self.len() {
                 return;
@@ -423,7 +458,7 @@ impl OpaqueBlobVec {
 
     #[cfg(not(no_global_oom_handling))]
     #[track_caller]
-    pub fn extend_with(&mut self, count: usize, value: NonNull<u8>) {
+    fn extend_with(&mut self, count: usize, value: NonNull<u8>) {
         struct SetLenOnDrop<'a> {
             len: &'a mut usize,
             local_len: usize,
@@ -482,11 +517,11 @@ impl OpaqueBlobVec {
             // len set by scope guard
         }
     }
-    
+
     #[cfg(not(no_global_oom_handling))]
     #[inline]
     #[track_caller]
-    pub unsafe fn append(&mut self, other: NonNull<u8>, count: usize) {
+    unsafe fn append(&mut self, other: NonNull<u8>, count: usize) {
         self.reserve(count);
         let length = self.len();
 
@@ -500,6 +535,699 @@ impl OpaqueBlobVec {
     }
 }
 
+impl Drop for BlobVecInner {
+    fn drop(&mut self) {
+        self.clear();
+
+        unsafe {
+            self.data.deallocate(self.element_layout);
+        }
+    }
+}
+
+#[repr(transparent)]
+pub struct TypedProjBlobVec<A>
+where
+    A: any::Any + alloc::Allocator,
+{
+    inner: BlobVecInner,
+    _marker: marker::PhantomData<A>,
+}
+
+impl<A> TypedProjBlobVec<A>
+where
+    A: any::Any + alloc::Allocator,
+{
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn new_in(alloc: TypedProjAlloc<A>, element_layout: alloc::Layout, drop_fn: Option<unsafe fn(NonNull<u8>)>) -> Self {
+        let inner = BlobVecInner::new_in(alloc, element_layout, drop_fn);
+
+        Self {
+            inner,
+            _marker: marker::PhantomData,
+        }
+    }
+
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn with_capacity_in(capacity: usize, alloc: TypedProjAlloc<A>, element_layout: alloc::Layout, drop_fn: Option<unsafe fn(NonNull<u8>)>) -> Self {
+        let inner = BlobVecInner::with_capacity_in(capacity, alloc, element_layout, drop_fn);
+
+        Self {
+            inner,
+            _marker: marker::PhantomData,
+        }
+    }
+
+    #[inline]
+    pub fn try_with_capacity_in(
+        capacity: usize,
+        alloc: TypedProjAlloc<A>,
+        element_layout: alloc::Layout,
+        drop_fn: Option<unsafe fn(NonNull<u8>)>,
+    ) -> Result<Self, opaque_error::TryReserveError> {
+        let inner = BlobVecInner::try_with_capacity_in(capacity, alloc, element_layout, drop_fn)?;
+
+        let vec = Self {
+            inner,
+            _marker: marker::PhantomData,
+        };
+
+        Ok(vec)
+    }
+
+    #[inline]
+    pub unsafe fn from_raw_parts_in(
+        ptr: *mut u8,
+        length: usize,
+        capacity: usize,
+        alloc: TypedProjAlloc<A>,
+        element_layout: alloc::Layout,
+        drop_fn: Option<unsafe fn(NonNull<u8>)>,
+    ) -> Self {
+        let inner = BlobVecInner::from_raw_parts_in(ptr, length, capacity, alloc, element_layout, drop_fn);
+
+        Self {
+            inner,
+            _marker: marker::PhantomData,
+        }
+    }
+
+    #[inline]
+    pub unsafe fn from_parts_in(
+        ptr: NonNull<u8>,
+        length: usize,
+        capacity: usize,
+        alloc: TypedProjAlloc<A>,
+        element_layout: alloc::Layout,
+        drop_fn: Option<unsafe fn(NonNull<u8>)>,
+    ) -> Self {
+        let inner = BlobVecInner::from_parts_in(ptr, length, capacity, alloc, element_layout, drop_fn);
+
+        Self {
+            inner,
+            _marker: marker::PhantomData,
+        }
+    }
+}
+
+impl<A> TypedProjBlobVec<A>
+where
+    A: any::Any + alloc::Allocator,
+{
+    #[inline]
+    pub fn allocator(&self) -> &TypedProjAlloc<A> {
+        self.inner.allocator().as_proj::<A>()
+    }
+}
+
+impl<A> TypedProjBlobVec<A>
+where
+    A: any::Any + alloc::Allocator,
+{
+    #[inline]
+    pub const fn element_layout(&self) -> alloc::Layout {
+        self.inner.element_layout()
+    }
+
+    #[inline]
+    pub const fn capacity(&self) -> usize {
+        self.inner.capacity()
+    }
+
+    #[inline]
+    pub const fn len(&self) -> usize {
+        self.inner.len()
+    }
+
+    #[inline]
+    pub const fn is_empty(&self) -> bool {
+        self.inner.is_empty()
+    }
+}
+
+impl<A> TypedProjBlobVec<A>
+where
+    A: any::Any + alloc::Allocator,
+{
+    #[inline]
+    pub const fn as_ptr(&self) -> *const u8 {
+        self.inner.as_ptr()
+    }
+
+    #[inline]
+    pub const fn as_mut_ptr(&mut self) -> *mut u8 {
+        self.inner.as_mut_ptr()
+    }
+
+    #[inline]
+    pub const fn as_non_null(&mut self) -> NonNull<u8> {
+        self.inner.as_non_null()
+    }
+
+    pub fn as_byte_slice(&self) -> &[u8] {
+        self.inner.as_byte_slice()
+    }
+}
+
+impl<A> TypedProjBlobVec<A>
+where
+    A: any::Any + alloc::Allocator,
+{
+    #[inline]
+    pub fn set_len(&mut self, new_len: usize) {
+        self.inner.set_len(new_len)
+    }
+
+    #[inline]
+    pub fn grow_one(&mut self) {
+        self.inner.grow_one()
+    }
+
+    pub fn get_unchecked(&self, index: usize) -> NonNull<u8> {
+        self.inner.get_unchecked(index)
+    }
+
+    pub fn get_mut_unchecked(&mut self, index: usize) -> NonNull<u8> {
+        self.inner.get_mut_unchecked(index)
+    }
+
+    pub fn push(&mut self, value: NonNull<u8>) {
+        self.inner.push(value)
+    }
+
+    #[must_use]
+    pub fn swap_remove_forget_unchecked(&mut self, index: usize) -> NonNull<u8> {
+        self.inner.swap_remove_forget_unchecked(index)
+    }
+
+    #[must_use]
+    pub fn shift_remove_forget_unchecked(&mut self, index: usize) -> NonNull<u8> {
+        self.inner.shift_remove_forget_unchecked(index)
+    }
+
+    pub fn replace_insert(&mut self, index: usize, value: NonNull<u8>) {
+        self.inner.replace_insert(index, value)
+    }
+
+    pub fn shift_insert(&mut self, index: usize, value: NonNull<u8>) {
+        self.inner.shift_insert(index, value)
+    }
+
+    #[inline]
+    pub fn try_reserve(&mut self, additional: usize) -> Result<(), opaque_error::TryReserveError> {
+        self.inner.try_reserve(additional)
+    }
+
+    #[inline]
+    pub fn try_reserve_exact(&mut self, additional: usize) -> Result<(), opaque_error::TryReserveError> {
+        self.inner.try_reserve_exact(additional)
+    }
+
+    #[cfg(not(no_global_oom_handling))]
+    #[track_caller]
+    pub fn reserve(&mut self, additional: usize) {
+        self.inner.reserve(additional)
+    }
+
+    #[cfg(not(no_global_oom_handling))]
+    #[track_caller]
+    pub fn reserve_exact(&mut self, additional: usize) {
+        self.inner.reserve_exact(additional)
+    }
+
+    #[track_caller]
+    #[inline]
+    pub fn shrink_to_fit(&mut self) {
+        self.inner.shrink_to_fit()
+    }
+
+    #[cfg(not(no_global_oom_handling))]
+    #[track_caller]
+    pub fn shrink_to(&mut self, min_capacity: usize) {
+        self.inner.shrink_to(min_capacity)
+    }
+
+    pub fn clear(&mut self) {
+        self.inner.clear()
+    }
+
+    pub fn truncate(&mut self, len: usize) {
+        self.inner.truncate(len)
+    }
+
+    #[cfg(not(no_global_oom_handling))]
+    #[track_caller]
+    pub fn extend_with(&mut self, count: usize, value: NonNull<u8>) {
+        self.inner.extend_with(count, value)
+    }
+
+    #[cfg(not(no_global_oom_handling))]
+    #[inline]
+    #[track_caller]
+    pub unsafe fn append(&mut self, other: NonNull<u8>, count: usize) {
+        self.inner.append(other, count)
+    }
+}
+/*
+impl<A> Drop for TypedProjBlobVec<A>
+where
+    A: any::Any + alloc::Allocator,
+{
+    fn drop(&mut self) {
+        self.clear();
+
+        unsafe {
+            self.inner.deallocate(self.element_layout);
+        }
+    }
+}
+*/
+impl<A> fmt::Debug for TypedProjBlobVec<A>
+where
+    A: any::Any + alloc::Allocator,
+{
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.debug_struct("TypedProjBlobVec")
+            .field("element_layout", &self.element_layout())
+            .field("length", &self.len())
+            .field("data", &self.as_byte_slice())
+            .field("drop_fn", &self.inner.drop_fn)
+            .finish()
+    }
+}
+
+#[repr(transparent)]
+pub struct OpaqueBlobVec {
+    inner: BlobVecInner,
+}
+
+impl OpaqueBlobVec {
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn new_in<A>(alloc: TypedProjAlloc<A>, element_layout: alloc::Layout, drop_fn: Option<unsafe fn(NonNull<u8>)>) -> Self
+    where
+        A: any::Any + alloc::Allocator,
+    {
+        let proj_blob_vec = TypedProjBlobVec::new_in(alloc, element_layout, drop_fn);
+
+        Self::from_proj(proj_blob_vec)
+    }
+
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn with_capacity_in<A>(capacity: usize, alloc: TypedProjAlloc<A>, element_layout: alloc::Layout, drop_fn: Option<unsafe fn(NonNull<u8>)>) -> Self
+    where
+        A: any::Any + alloc::Allocator,
+    {
+        let proj_blob_vec = TypedProjBlobVec::with_capacity_in(capacity, alloc, element_layout, drop_fn);
+
+        Self::from_proj(proj_blob_vec)
+    }
+
+    #[inline]
+    pub fn try_with_capacity_in<A>(
+        capacity: usize,
+        alloc: TypedProjAlloc<A>,
+        element_layout: alloc::Layout,
+        drop_fn: Option<unsafe fn(NonNull<u8>)>,
+    ) -> Result<Self, opaque_error::TryReserveError>
+    where
+        A: any::Any + alloc::Allocator,
+    {
+        let proj_blob_vec = TypedProjBlobVec::try_with_capacity_in(capacity, alloc, element_layout, drop_fn)?;
+
+        Ok(Self::from_proj(proj_blob_vec))
+    }
+
+    #[inline]
+    pub unsafe fn from_raw_parts_in<A>(
+        ptr: *mut u8,
+        length: usize,
+        capacity: usize,
+        alloc: TypedProjAlloc<A>,
+        element_layout: alloc::Layout,
+        drop_fn: Option<unsafe fn(NonNull<u8>)>,
+    ) -> Self
+    where
+        A: any::Any + alloc::Allocator,
+    {
+        let proj_blob_vec = TypedProjBlobVec::from_raw_parts_in(ptr, length, capacity, alloc, element_layout, drop_fn);
+
+        Self::from_proj(proj_blob_vec)
+    }
+
+    #[inline]
+    pub unsafe fn from_parts_in<A>(
+        ptr: NonNull<u8>,
+        length: usize,
+        capacity: usize,
+        alloc: TypedProjAlloc<A>,
+        element_layout: alloc::Layout,
+        drop_fn: Option<unsafe fn(NonNull<u8>)>,
+    ) -> Self
+    where
+        A: any::Any + alloc::Allocator,
+    {
+        let proj_blob_vec = TypedProjBlobVec::from_parts_in(ptr, length, capacity, alloc, element_layout, drop_fn);
+
+        Self::from_proj(proj_blob_vec)
+    }
+}
+
+impl OpaqueBlobVec {
+    #[inline]
+    pub const fn allocator_type_id(&self) -> any::TypeId {
+        self.inner.allocator_type_id()
+    }
+}
+
+impl OpaqueBlobVec {
+    #[inline]
+    pub fn has_allocator_type<A>(&self) -> bool
+    where
+        A: any::Any + alloc::Allocator,
+    {
+        self.allocator_type_id() == any::TypeId::of::<A>()
+    }
+
+    #[inline]
+    #[track_caller]
+    fn assert_type_safety<A>(&self)
+    where
+        A: any::Any + alloc::Allocator,
+    {
+        #[cold]
+        #[optimize(size)]
+        #[track_caller]
+        fn type_check_failed(st: &str, type_id_self: any::TypeId, type_id_other: any::TypeId) -> ! {
+            panic!("{:?} type mismatch. Need `{:?}`, got `{:?}`", st, type_id_self, type_id_other);
+        }
+
+        if !self.has_allocator_type::<A>() {
+            type_check_failed("Allocator", self.allocator_type_id(), any::TypeId::of::<A>());
+        }
+    }
+}
+
+impl OpaqueBlobVec {
+    #[inline]
+    pub const fn element_layout(&self) -> alloc::Layout {
+        self.inner.element_layout()
+    }
+
+    #[inline]
+    pub const fn capacity(&self) -> usize {
+        self.inner.capacity()
+    }
+
+    #[inline]
+    pub const fn len(&self) -> usize {
+        self.inner.len()
+    }
+
+    #[inline]
+    pub const fn is_empty(&self) -> bool {
+        self.inner.is_empty()
+    }
+}
+
+impl OpaqueBlobVec {
+    #[inline]
+    pub fn as_proj<A>(&self) -> &TypedProjBlobVec<A>
+    where
+        A: any::Any + alloc::Allocator,
+    {
+        self.assert_type_safety::<A>();
+
+        unsafe { &*(self as *const OpaqueBlobVec as *const TypedProjBlobVec<A>) }
+    }
+
+    #[inline]
+    pub fn as_proj_mut<A>(&mut self) -> &mut TypedProjBlobVec<A>
+    where
+        A: any::Any + alloc::Allocator,
+    {
+        self.assert_type_safety::<A>();
+
+        unsafe { &mut *(self as *mut OpaqueBlobVec as *mut TypedProjBlobVec<A>) }
+    }
+
+    #[inline]
+    pub fn into_proj<A>(self) -> TypedProjBlobVec<A>
+    where
+        A: any::Any + alloc::Allocator,
+    {
+        self.assert_type_safety::<A>();
+
+        TypedProjBlobVec {
+            inner: self.inner,
+            _marker: marker::PhantomData,
+        }
+    }
+
+    #[inline]
+    pub fn from_proj<A>(proj_self: TypedProjBlobVec<A>) -> Self
+    where
+        A: any::Any + alloc::Allocator,
+    {
+        Self {
+            inner: proj_self.inner,
+        }
+    }
+}
+
+impl OpaqueBlobVec {
+    #[inline]
+    pub const fn as_ptr(&self) -> *const u8 {
+        self.inner.as_ptr()
+    }
+
+    #[inline]
+    pub const fn as_mut_ptr(&mut self) -> *mut u8 {
+        self.inner.as_mut_ptr()
+    }
+
+    #[inline]
+    pub const fn as_non_null(&mut self) -> NonNull<u8> {
+        self.inner.as_non_null()
+    }
+
+    pub fn as_byte_slice(&self) -> &[u8] {
+        self.inner.as_byte_slice()
+    }
+}
+
+impl OpaqueBlobVec {
+    #[inline]
+    pub fn allocator<A>(&self) -> &TypedProjAlloc<A>
+    where
+        A: any::Any + alloc::Allocator,
+    {
+        let proj_self = self.as_proj::<A>();
+
+        proj_self.allocator()
+    }
+}
+
+impl OpaqueBlobVec {
+    #[inline]
+    pub fn set_len<A>(&mut self, new_len: usize)
+    where
+        A: any::Any + alloc::Allocator,
+    {
+        let proj_self = self.as_proj_mut::<A>();
+
+        proj_self.set_len(new_len);
+    }
+
+    #[inline]
+    pub fn grow_one<A>(&mut self)
+    where
+        A: any::Any + alloc::Allocator,
+    {
+        let proj_self = self.as_proj_mut::<A>();
+
+        proj_self.grow_one();
+    }
+
+    pub fn get_unchecked<A>(&self, index: usize) -> NonNull<u8>
+    where
+        A: any::Any + alloc::Allocator,
+    {
+        let proj_self = self.as_proj::<A>();
+
+        proj_self.get_unchecked(index)
+    }
+
+    pub fn get_mut_unchecked<A>(&mut self, index: usize) -> NonNull<u8>
+    where
+        A: any::Any + alloc::Allocator,
+    {
+        let proj_self = self.as_proj_mut::<A>();
+
+        proj_self.get_mut_unchecked(index)
+    }
+
+    pub fn push<A>(&mut self, value: NonNull<u8>)
+    where
+        A: any::Any + alloc::Allocator,
+    {
+        let proj_self = self.as_proj_mut::<A>();
+
+        proj_self.push(value);
+    }
+
+    #[must_use]
+    pub fn swap_remove_forget_unchecked<A>(&mut self, index: usize) -> NonNull<u8>
+    where
+        A: any::Any + alloc::Allocator,
+    {
+        let proj_self = self.as_proj_mut::<A>();
+
+        proj_self.swap_remove_forget_unchecked(index)
+    }
+
+    #[must_use]
+    pub fn shift_remove_forget_unchecked<A>(&mut self, index: usize) -> NonNull<u8>
+    where
+        A: any::Any + alloc::Allocator,
+    {
+        let proj_self = self.as_proj_mut::<A>();
+
+        proj_self.shift_remove_forget_unchecked(index)
+    }
+
+    pub fn replace_insert<A>(&mut self, index: usize, value: NonNull<u8>)
+    where
+        A: any::Any + alloc::Allocator,
+    {
+        let proj_self = self.as_proj_mut::<A>();
+
+        proj_self.replace_insert(index, value)
+    }
+
+    pub fn shift_insert<A>(&mut self, index: usize, value: NonNull<u8>)
+    where
+        A: any::Any + alloc::Allocator,
+    {
+        let proj_self = self.as_proj_mut::<A>();
+
+        proj_self.shift_insert(index, value)
+    }
+
+    #[inline]
+    pub fn try_reserve<A>(&mut self, additional: usize) -> Result<(), opaque_error::TryReserveError>
+    where
+        A: any::Any + alloc::Allocator,
+    {
+        let proj_self = self.as_proj_mut::<A>();
+
+        proj_self.try_reserve(additional)
+    }
+
+    #[inline]
+    pub fn try_reserve_exact<A>(&mut self, additional: usize) -> Result<(), opaque_error::TryReserveError>
+    where
+        A: any::Any + alloc::Allocator,
+    {
+        let proj_self = self.as_proj_mut::<A>();
+
+        proj_self.try_reserve_exact(additional)
+    }
+
+    #[cfg(not(no_global_oom_handling))]
+    #[track_caller]
+    pub fn reserve<A>(&mut self, additional: usize)
+    where
+        A: any::Any + alloc::Allocator,
+    {
+        let proj_self = self.as_proj_mut::<A>();
+
+        proj_self.reserve(additional);
+    }
+
+    #[cfg(not(no_global_oom_handling))]
+    #[track_caller]
+    pub fn reserve_exact<A>(&mut self, additional: usize)
+    where
+        A: any::Any + alloc::Allocator,
+    {
+        let proj_self = self.as_proj_mut::<A>();
+
+        proj_self.reserve_exact(additional);
+    }
+
+    #[track_caller]
+    #[inline]
+    pub fn shrink_to_fit<A>(&mut self)
+    where
+        A: any::Any + alloc::Allocator,
+    {
+        let proj_self = self.as_proj_mut::<A>();
+
+        proj_self.shrink_to_fit();
+    }
+
+    #[cfg(not(no_global_oom_handling))]
+    #[track_caller]
+    pub fn shrink_to<A>(&mut self, min_capacity: usize)
+    where
+        A: any::Any + alloc::Allocator,
+    {
+        let proj_self = self.as_proj_mut::<A>();
+
+        proj_self.shrink_to(min_capacity);
+    }
+
+    pub fn clear<A>(&mut self)
+    where
+        A: any::Any + alloc::Allocator,
+    {
+        let proj_self = self.as_proj_mut::<A>();
+
+        proj_self.clear();
+    }
+
+    pub fn truncate<A>(&mut self, len: usize)
+    where
+        A: any::Any + alloc::Allocator,
+    {
+        let proj_self = self.as_proj_mut::<A>();
+
+        proj_self.truncate(len);
+    }
+
+    #[cfg(not(no_global_oom_handling))]
+    #[track_caller]
+    pub fn extend_with<A>(&mut self, count: usize, value: NonNull<u8>)
+    where
+        A: any::Any + alloc::Allocator,
+    {
+        let proj_self = self.as_proj_mut::<A>();
+
+        proj_self.extend_with(count, value);
+    }
+    
+    #[cfg(not(no_global_oom_handling))]
+    #[inline]
+    #[track_caller]
+    pub unsafe fn append<A>(&mut self, other: NonNull<u8>, count: usize)
+    where
+        A: any::Any + alloc::Allocator,
+    {
+        let proj_self = self.as_proj_mut::<A>();
+
+        proj_self.append(other, count);
+    }
+}
+
+/*
 impl Drop for OpaqueBlobVec {
     fn drop(&mut self) {
         self.clear();
@@ -509,6 +1237,7 @@ impl Drop for OpaqueBlobVec {
         }
     }
 }
+*/
 
 impl fmt::Debug for OpaqueBlobVec {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {

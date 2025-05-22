@@ -3,13 +3,14 @@ use criterion::{
     criterion_group,
 };
 use opaque_blob_vec::OpaqueBlobVec;
-use opaque_alloc::OpaqueAlloc;
+use opaque_alloc::TypedProjAlloc;
 
 use core::ptr::NonNull;
+use std::alloc;
 
 fn new_opaque_blob_vec() -> OpaqueBlobVec {
-    let alloc = OpaqueAlloc::new(std::alloc::Global);
-    let layout = core::alloc::Layout::new::<i32>();
+    let alloc = TypedProjAlloc::new(alloc::Global);
+    let layout = alloc::Layout::new::<i32>();
     let drop_fn = None;
 
     OpaqueBlobVec::new_in(alloc, layout, drop_fn)
@@ -38,7 +39,7 @@ fn bench_opaque_blob_vec_shift_insert_last(c: &mut Criterion) {
             let mut opaque_blob_vec = new_opaque_blob_vec();
             for i in 0..1024 {
                 let ptr = unsafe { NonNull::new_unchecked(&dummy_data as *const i32 as *mut u8) };
-                opaque_blob_vec.replace_insert(i, criterion::black_box(ptr));
+                opaque_blob_vec.replace_insert::<alloc::Global>(i, criterion::black_box(ptr));
             }
 
             opaque_blob_vec

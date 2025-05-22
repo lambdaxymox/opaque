@@ -5,20 +5,18 @@ use core::fmt;
 use core::ptr::NonNull;
 use std::alloc;
 
-use opaque_vec_testing as ovt;
-
 fn run_test_opaque_blob_vec_shift_insert_get_same_index1<T, A>(value: T, alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
     A: any::Any + alloc::Allocator + Clone,
 {
-    let mut opaque_blob_vec = common::new_opaque_blob_vec_in::<T, A>(alloc);
+    let mut opaque_blob_vec = common::opaque_blob_vec::new_in::<T, A>(alloc);
     let value_ptr = NonNull::from(&value).cast::<u8>();
-    opaque_blob_vec.shift_insert(0, value_ptr);
+    opaque_blob_vec.shift_insert::<A>(0, value_ptr);
 
     let expected = value.clone();
     let result = unsafe {
-        let ptr = opaque_blob_vec.get_unchecked(0).cast::<T>();
+        let ptr = opaque_blob_vec.get_unchecked::<A>(0).cast::<T>();
         ptr.read()
     };
 
@@ -30,13 +28,13 @@ where
     T: any::Any + PartialEq + Clone + fmt::Debug,
     A: any::Any + alloc::Allocator + Clone,
 {
-    let mut opaque_blob_vec = common::new_opaque_blob_vec_in::<T, A>(alloc);
+    let mut opaque_blob_vec = common::opaque_blob_vec::new_in::<T, A>(alloc);
     let initial_value_ptr = NonNull::from(&initial_value).cast::<u8>();
-    opaque_blob_vec.shift_insert(0, initial_value_ptr);
+    opaque_blob_vec.shift_insert::<A>(0, initial_value_ptr);
 
     let expected_initial = initial_value.clone();
     let result_initial = unsafe {
-        let ptr = opaque_blob_vec.get_unchecked(0).cast::<T>();
+        let ptr = opaque_blob_vec.get_unchecked::<A>(0).cast::<T>();
         ptr.read()
     };
 
@@ -44,11 +42,11 @@ where
 
     for _ in 0..65536 {
         let value_ptr = NonNull::from(&value).cast::<u8>();
-        opaque_blob_vec.shift_insert(0, value_ptr);
+        opaque_blob_vec.shift_insert::<A>(0, value_ptr);
 
         let expected = value.clone();
         let result = unsafe {
-            let ptr = opaque_blob_vec.get_unchecked(0).cast::<T>();
+            let ptr = opaque_blob_vec.get_unchecked::<A>(0).cast::<T>();
             ptr.read()
         };
 

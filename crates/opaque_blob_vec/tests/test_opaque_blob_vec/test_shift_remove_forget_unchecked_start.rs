@@ -14,11 +14,11 @@ where
     T: any::Any + PartialEq + Clone + fmt::Debug,
     A: any::Any + alloc::Allocator + Clone,
 {
-    let mut opaque_blob_vec = common::new_opaque_blob_vec_in::<T, A>(alloc);
+    let mut opaque_blob_vec = common::opaque_blob_vec::new_in::<T, A>(alloc);
     for value in values.iter().skip(1) {
         let value_cloned = value.clone();
         let value_ptr = NonNull::from(&value_cloned).cast::<u8>();
-        opaque_blob_vec.push(value_ptr);
+        opaque_blob_vec.push::<A>(value_ptr);
     }
 
     opaque_blob_vec
@@ -29,16 +29,16 @@ where
     T: any::Any + PartialEq + Clone + fmt::Debug,
     A: any::Any + alloc::Allocator + Clone,
 {
-    let mut opaque_blob_vec = common::from_typed_slice_in(values, alloc.clone());
+    let mut opaque_blob_vec = common::opaque_blob_vec::from_slice_in(values, alloc.clone());
 
     for i in 0..values.len() {
         let expected_opaque_blob_vec = expected(&values[i..], alloc.clone());
         let _ = unsafe {
-            let ptr = opaque_blob_vec.shift_remove_forget_unchecked(0).cast::<T>();
+            let ptr = opaque_blob_vec.shift_remove_forget_unchecked::<A>(0).cast::<T>();
             ptr.read()
         };
-        let expected = common::as_slice::<T>(&expected_opaque_blob_vec);
-        let result = common::as_slice::<T>(&opaque_blob_vec);
+        let expected = common::opaque_blob_vec::as_slice::<T>(&expected_opaque_blob_vec);
+        let result = common::opaque_blob_vec::as_slice::<T>(&opaque_blob_vec);
 
         assert_eq!(result, expected);
     }

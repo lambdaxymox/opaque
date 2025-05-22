@@ -12,11 +12,11 @@ where
     <T as TryFrom<usize>>::Error: fmt::Debug,
     A: any::Any + alloc::Allocator + Clone,
 {
-    let base_opaque_blob_vec = common::from_typed_slice_in(values, alloc);
+    let base_opaque_blob_vec = common::opaque_blob_vec::from_slice_in(values, alloc);
     for len in 0..values.len() {
-        let mut opaque_blob_vec = common::clone::<T, A>(&base_opaque_blob_vec);
+        let mut opaque_blob_vec = common::opaque_blob_vec::clone::<T, A>(&base_opaque_blob_vec);
 
-        opaque_blob_vec.truncate(len);
+        opaque_blob_vec.truncate::<A>(len);
 
         let expected = len;
         let result = opaque_blob_vec.len();

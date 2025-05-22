@@ -11,11 +11,11 @@ where
     T: any::Any + PartialEq + Clone + fmt::Debug,
     A: any::Any + alloc::Allocator + Clone,
 {
-    let mut opaque_blob_vec = common::from_typed_slice_in(values, alloc);
+    let mut opaque_blob_vec = common::opaque_blob_vec::from_slice_in(values, alloc);
 
     assert_eq!(opaque_blob_vec.len(), values.len());
 
-    opaque_blob_vec.clear();
+    opaque_blob_vec.clear::<A>();
 
     let result = opaque_blob_vec.len();
     let expected = 0;

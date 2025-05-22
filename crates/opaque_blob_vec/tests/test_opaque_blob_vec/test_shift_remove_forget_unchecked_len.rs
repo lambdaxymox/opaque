@@ -11,13 +11,13 @@ where
     T: any::Any + PartialEq + Clone + fmt::Debug,
     A: any::Any + alloc::Allocator + Clone,
 {
-    let values_vec = common::from_typed_slice_in(values, alloc);
+    let values_vec = common::opaque_blob_vec::from_slice_in(values, alloc);
 
     for i in 0..values.len() {
         let result_vec = {
-            let mut vec = common::clone::<T, A>(&values_vec);
+            let mut vec = common::opaque_blob_vec::clone::<T, A>(&values_vec);
             let values = unsafe {
-                let ptr = vec.shift_remove_forget_unchecked(i).cast::<T>();
+                let ptr = vec.shift_remove_forget_unchecked::<A>(i).cast::<T>();
                 ptr.read()
             };
 

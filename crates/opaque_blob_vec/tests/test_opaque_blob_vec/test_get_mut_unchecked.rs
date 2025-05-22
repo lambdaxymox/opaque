@@ -11,11 +11,11 @@ where
     T: any::Any + PartialEq + Clone + fmt::Debug,
     A: any::Any + alloc::Allocator + Clone,
 {
-    let mut opaque_blob_vec = common::from_typed_slice_in(values, alloc);
+    let mut opaque_blob_vec = common::opaque_blob_vec::from_slice_in(values, alloc);
     for i in 0..opaque_blob_vec.len() {
         let expected = values[i].clone();
         let result = unsafe {
-            let ptr = opaque_blob_vec.get_mut_unchecked(i).cast::<T>();
+            let ptr = opaque_blob_vec.get_mut_unchecked::<A>(i).cast::<T>();
             ptr.read()
         };
 

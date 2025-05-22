@@ -11,15 +11,15 @@ where
     T: any::Any + PartialEq + Clone + fmt::Debug,
     A: any::Any + alloc::Allocator + Clone,
 {
-    let mut opaque_blob_vec = common::from_typed_slice_in(values, alloc);
+    let mut opaque_blob_vec = common::opaque_blob_vec::from_slice_in(values, alloc);
 
     let last_index = opaque_blob_vec.len() - 1;
     let expected = &values[0..last_index];
     let _ = unsafe {
-        let ptr = opaque_blob_vec.shift_remove_forget_unchecked(last_index).cast::<T>();
+        let ptr = opaque_blob_vec.shift_remove_forget_unchecked::<A>(last_index).cast::<T>();
         ptr.read()
     };
-    let result = common::as_slice::<T>(&opaque_blob_vec);
+    let result = common::opaque_blob_vec::as_slice::<T>(&opaque_blob_vec);
 
     assert_eq!(result, expected);
 }

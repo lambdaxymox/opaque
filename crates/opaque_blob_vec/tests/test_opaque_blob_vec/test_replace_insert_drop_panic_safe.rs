@@ -1,7 +1,7 @@
-use opaque_alloc::OpaqueAlloc;
+use opaque_alloc::TypedProjAlloc;
 use opaque_blob_vec::OpaqueBlobVec;
 
-use std::alloc::Layout;
+use std::alloc;
 use std::mem::ManuallyDrop;
 use std::panic::{
     self,
@@ -110,8 +110,8 @@ where
         core::ptr::drop_in_place(to_drop)
     }
 
-    let alloc = OpaqueAlloc::new(std::alloc::Global);
-    let element_layout = Layout::new::<T>();
+    let alloc = TypedProjAlloc::new(alloc::Global);
+    let element_layout = alloc::Layout::new::<T>();
     let drop_fn = Some(drop_fn::<T> as unsafe fn(NonNull<u8>));
 
     OpaqueBlobVec::new_in(alloc, element_layout, drop_fn)
@@ -165,7 +165,7 @@ fn test_replace_insert_on_panic_drop_count() {
         // Manually implement move semantics since this a lower level operation.
         let value = ManuallyDrop::new(triggering_panic_cell.clone());
         let value_ptr = NonNull::from(&*value).cast::<u8>();
-        vec.replace_insert(0, value_ptr);
+        vec.replace_insert::<alloc::Global>(0, value_ptr);
     }
 
     assert_eq!(triggering_panic_cell.drop_count(), 0);
@@ -175,7 +175,7 @@ fn test_replace_insert_on_panic_drop_count() {
         // Manually implement move semantics since this a lower level operation.
         let value = ManuallyDrop::new(replacement_panic_cell.clone());
         let value_ptr = NonNull::from(&*value).cast::<u8>();
-        vec.replace_insert(0, value_ptr);
+        vec.replace_insert::<alloc::Global>(0, value_ptr);
     }));
 
     assert!(result.is_err());
@@ -197,7 +197,7 @@ fn test_replace_insert_on_success_drop_count() {
         // Manually implement move semantics since this a lower level operation.
         let value = ManuallyDrop::new(panic_cell.clone());
         let value_ptr = NonNull::from(&value).cast::<u8>();
-        vec.replace_insert(0, value_ptr);
+        vec.replace_insert::<alloc::Global>(0, value_ptr);
     }
 
     panic_cell.disable_panics();

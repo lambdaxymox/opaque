@@ -11,7 +11,7 @@ where
     T: any::Any + PartialEq + Clone + fmt::Debug,
     A: any::Any + alloc::Allocator + Clone,
 {
-    let opaque_blob_vec = common::from_typed_slice_in(values, alloc);
+    let opaque_blob_vec = common::opaque_blob_vec::from_slice_in(values, alloc);
     let expected = values.len();
     let result = opaque_blob_vec.len();
 

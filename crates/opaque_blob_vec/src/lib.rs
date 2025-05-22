@@ -9,4 +9,4 @@ mod opaque_vec_memory;
 mod range_types;
 mod unique;
 
-pub use opaque_blob_vec::OpaqueBlobVec;
+pub use opaque_blob_vec::*;

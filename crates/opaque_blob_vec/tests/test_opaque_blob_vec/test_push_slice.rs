@@ -11,9 +11,9 @@ where
     T: any::Any + PartialEq + Clone + fmt::Debug,
     A: any::Any + alloc::Allocator + Clone,
 {
-    let opaque_blob_vec = common::from_typed_slice_in(values, alloc);
+    let opaque_blob_vec = common::opaque_blob_vec::from_slice_in(values, alloc);
     let expected = values;
-    let result = common::as_slice::<T>(&opaque_blob_vec);
+    let result = common::opaque_blob_vec::as_slice::<T>(&opaque_blob_vec);
 
     assert_eq!(result, expected);
 }
