@@ -112,6 +112,7 @@ impl OpaqueAllocInner {
 }
 
 impl OpaqueAllocInner {
+    #[inline(always)]
     pub(crate) fn as_proj_assuming_type<A>(&self) -> &TypedProjAllocInner<A>
     where
         A: any::Any + alloc::Allocator,
@@ -121,6 +122,7 @@ impl OpaqueAllocInner {
         unsafe { &*(self as *const OpaqueAllocInner as *const TypedProjAllocInner<A>) }
     }
 
+    #[inline(always)]
     pub(crate) fn as_proj_mut_assuming_type<A>(&mut self) -> &mut TypedProjAllocInner<A>
     where
         A: any::Any + alloc::Allocator,
@@ -130,6 +132,7 @@ impl OpaqueAllocInner {
         unsafe { &mut *(self as *mut OpaqueAllocInner as *mut TypedProjAllocInner<A>) }
     }
 
+    #[inline(always)]
     pub(crate) fn into_proj_assuming_type<A>(self) -> TypedProjAllocInner<A>
     where
         A: any::Any + alloc::Allocator,
@@ -143,7 +146,7 @@ impl OpaqueAllocInner {
         }
     }
 
-    #[inline]
+    #[inline(always)]
     pub(crate) fn from_proj<A>(proj_self: TypedProjAllocInner<A>) -> Self
     where
         A: any::Any + alloc::Allocator,
@@ -317,6 +320,7 @@ impl OpaqueAlloc {
 }
 
 impl OpaqueAlloc {
+    #[inline]
     pub fn as_proj<A>(&self) -> &TypedProjAlloc<A>
     where
         A: any::Any + alloc::Allocator,
@@ -326,6 +330,7 @@ impl OpaqueAlloc {
         unsafe { &*(self as *const OpaqueAlloc as *const TypedProjAlloc<A>) }
     }
 
+    #[inline]
     pub fn as_proj_mut<A>(&mut self) -> &mut TypedProjAlloc<A>
     where
         A: any::Any + alloc::Allocator,
@@ -335,6 +340,7 @@ impl OpaqueAlloc {
         unsafe { &mut *(self as *mut OpaqueAlloc as *mut TypedProjAlloc<A>) }
     }
 
+    #[inline]
     pub fn into_proj<A>(self) -> TypedProjAlloc<A>
     where
         A: any::Any + alloc::Allocator,

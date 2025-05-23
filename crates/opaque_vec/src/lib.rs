@@ -1399,6 +1399,7 @@ struct OpaqueVecInner {
 }
 
 impl OpaqueVecInner {
+    #[inline(always)]
     pub(crate) fn as_proj_assuming_type<T, A>(&self) -> &TypedProjVecInner<T, A>
     where
         T: any::Any,
@@ -1407,6 +1408,7 @@ impl OpaqueVecInner {
         unsafe { &*(self as *const OpaqueVecInner as *const TypedProjVecInner<T, A>) }
     }
 
+    #[inline(always)]
     pub(crate) fn as_proj_mut_assuming_type<T, A>(&mut self) -> &mut TypedProjVecInner<T, A>
     where
         T: any::Any,
@@ -1415,6 +1417,7 @@ impl OpaqueVecInner {
         unsafe { &mut *(self as *mut OpaqueVecInner as *mut TypedProjVecInner<T, A>) }
     }
 
+    #[inline(always)]
     pub(crate) fn into_proj_assuming_type<T, A>(self) -> TypedProjVecInner<T, A>
     where
         T: any::Any,
@@ -1428,7 +1431,7 @@ impl OpaqueVecInner {
         }
     }
 
-    #[inline]
+    #[inline(always)]
     pub(crate) fn from_proj<T, A>(proj_self: TypedProjVecInner<T, A>) -> Self
     where
         T: any::Any,
@@ -2542,6 +2545,7 @@ impl OpaqueVec {
 }
 
 impl OpaqueVec {
+    #[inline]
     pub fn as_proj<T, A>(&self) -> &TypedProjVec<T, A>
     where
         T: any::Any,
@@ -2552,6 +2556,7 @@ impl OpaqueVec {
         unsafe { &*(self as *const OpaqueVec as *const TypedProjVec<T, A>) }
     }
 
+    #[inline]
     pub fn as_proj_mut<T, A>(&mut self) -> &mut TypedProjVec<T, A>
     where
         T: any::Any,
@@ -2562,6 +2567,7 @@ impl OpaqueVec {
         unsafe { &mut *(self as *mut OpaqueVec as *mut TypedProjVec<T, A>) }
     }
 
+    #[inline]
     pub fn into_proj<T, A>(self) -> TypedProjVec<T, A>
     where
         T: any::Any,

@@ -144,6 +144,7 @@ impl OpaqueHasherInner {
 }
 
 impl OpaqueHasherInner {
+    #[inline(always)]
     pub(crate) fn as_proj<H>(&self) -> &TypedProjHasherInner<H>
     where
         H: any::Any + hash::Hasher,
@@ -153,6 +154,7 @@ impl OpaqueHasherInner {
         unsafe { &*(self as *const OpaqueHasherInner as *const TypedProjHasherInner<H>) }
     }
 
+    #[inline(always)]
     pub(crate) fn as_proj_mut<H>(&mut self) -> &mut TypedProjHasherInner<H>
     where
         H: any::Any + hash::Hasher,
@@ -162,6 +164,7 @@ impl OpaqueHasherInner {
         unsafe { &mut *(self as *mut OpaqueHasherInner as *mut TypedProjHasherInner<H>) }
     }
 
+    #[inline(always)]
     pub(crate) fn into_proj<H>(self) -> TypedProjHasherInner<H>
     where
         H: any::Any + hash::Hasher,
@@ -175,7 +178,7 @@ impl OpaqueHasherInner {
         }
     }
 
-    #[inline]
+    #[inline(always)]
     pub(crate) fn from_proj<H>(proj_self: TypedProjHasherInner<H>) -> Self
     where
         H: any::Any + hash::Hasher,
@@ -344,6 +347,7 @@ impl OpaqueHasher {
 }
 
 impl OpaqueHasher {
+    #[inline]
     pub fn as_proj<H>(&self) -> &TypedProjHasher<H>
     where
         H: any::Any + hash::Hasher,
@@ -353,6 +357,7 @@ impl OpaqueHasher {
         unsafe { &*(self as *const OpaqueHasher as *const TypedProjHasher<H>) }
     }
 
+    #[inline]
     pub fn as_proj_mut<H>(&mut self) -> &mut TypedProjHasher<H>
     where
         H: any::Any + hash::Hasher,
@@ -362,6 +367,7 @@ impl OpaqueHasher {
         unsafe { &mut *(self as *mut OpaqueHasher as *mut TypedProjHasher<H>) }
     }
 
+    #[inline]
     pub fn into_proj<H>(self) -> TypedProjHasher<H>
     where
         H: any::Any + hash::Hasher,
@@ -534,6 +540,7 @@ impl OpaqueBuildHasherInner {
 }
 
 impl OpaqueBuildHasherInner {
+    #[inline(always)]
     pub fn as_proj<S>(&self) -> &TypedProjBuildHasherInner<S>
     where
         S: any::Any + hash::BuildHasher,
@@ -543,6 +550,7 @@ impl OpaqueBuildHasherInner {
         unsafe { &*(self as *const OpaqueBuildHasherInner as *const TypedProjBuildHasherInner<S>) }
     }
 
+    #[inline(always)]
     pub fn as_proj_mut<S>(&mut self) -> &mut TypedProjBuildHasherInner<S>
     where
         S: any::Any + hash::BuildHasher,
@@ -552,6 +560,7 @@ impl OpaqueBuildHasherInner {
         unsafe { &mut *(self as *mut OpaqueBuildHasherInner as *mut TypedProjBuildHasherInner<S>) }
     }
 
+    #[inline(always)]
     pub fn into_proj<S>(self) -> TypedProjBuildHasherInner<S>
     where
         S: any::Any + hash::BuildHasher,
@@ -571,7 +580,7 @@ impl OpaqueBuildHasherInner {
         }
     }
 
-    #[inline]
+    #[inline(always)]
     pub fn from_proj<S>(proj_self: TypedProjBuildHasherInner<S>) -> Self
     where
         S: any::Any + hash::BuildHasher,
@@ -756,6 +765,7 @@ impl OpaqueBuildHasher {
 }
 
 impl OpaqueBuildHasher {
+    #[inline]
     pub fn as_proj<S>(&self) -> &TypedProjBuildHasher<S>
     where
         S: any::Any + hash::BuildHasher,
@@ -765,6 +775,7 @@ impl OpaqueBuildHasher {
         unsafe { &*(self as *const OpaqueBuildHasher as *const TypedProjBuildHasher<S>) }
     }
 
+    #[inline]
     pub fn as_proj_mut<S>(&mut self) -> &mut TypedProjBuildHasher<S>
     where
         S: any::Any + hash::BuildHasher,
@@ -774,6 +785,7 @@ impl OpaqueBuildHasher {
         unsafe { &mut *(self as *mut OpaqueBuildHasher as *mut TypedProjBuildHasher<S>) }
     }
 
+    #[inline]
     pub fn into_proj<S>(self) -> TypedProjBuildHasher<S>
     where
         S: any::Any + hash::BuildHasher,

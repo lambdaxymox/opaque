@@ -2357,7 +2357,7 @@ impl OpaqueIndexMapCore {
 }
 
 impl OpaqueIndexMapCore {
-    #[inline]
+    #[inline(always)]
     const fn as_proj_assuming_type<K, V, A>(&self) -> &TypedProjIndexMapCore<K, V, A>
     where
         K: any::Any,
@@ -2367,7 +2367,7 @@ impl OpaqueIndexMapCore {
         unsafe { &*(self as *const OpaqueIndexMapCore as *const TypedProjIndexMapCore<K, V, A>) }
     }
 
-    #[inline]
+    #[inline(always)]
     const fn as_proj_mut_assuming_type<K, V, A>(&mut self) -> &mut TypedProjIndexMapCore<K, V, A>
     where
         K: any::Any,
@@ -2377,7 +2377,7 @@ impl OpaqueIndexMapCore {
         unsafe { &mut *(self as *mut OpaqueIndexMapCore as *mut TypedProjIndexMapCore<K, V, A>) }
     }
 
-    #[inline]
+    #[inline(always)]
     fn into_proj_assuming_type<K, V, A>(self) -> TypedProjIndexMapCore<K, V, A>
     where
         K: any::Any,
@@ -2393,7 +2393,7 @@ impl OpaqueIndexMapCore {
         }
     }
 
-    #[inline]
+    #[inline(always)]
     fn from_proj_assuming_type<K, V, A>(proj_self: TypedProjIndexMapCore<K, V, A>) -> Self
     where
         K: any::Any,
@@ -3871,7 +3871,7 @@ impl OpaqueIndexMapInner {
 }
 
 impl OpaqueIndexMapInner {
-    #[inline]
+    #[inline(always)]
     pub fn as_proj<K, V, S, A>(&self) -> &TypedProjIndexMapInner<K, V, S, A>
     where
         K: any::Any,
@@ -3882,7 +3882,7 @@ impl OpaqueIndexMapInner {
         unsafe { &*(self as *const OpaqueIndexMapInner as *const TypedProjIndexMapInner<K, V, S, A>) }
     }
 
-    #[inline]
+    #[inline(always)]
     pub fn as_proj_mut<K, V, S, A>(&mut self) -> &mut TypedProjIndexMapInner<K, V, S, A>
     where
         K: any::Any,
@@ -3893,7 +3893,7 @@ impl OpaqueIndexMapInner {
         unsafe { &mut *(self as *mut OpaqueIndexMapInner as *mut TypedProjIndexMapInner<K, V, S, A>) }
     }
 
-    #[inline]
+    #[inline(always)]
     pub fn into_proj<K, V, S, A>(self) -> TypedProjIndexMapInner<K, V, S, A>
     where
         K: any::Any,
@@ -3910,7 +3910,7 @@ impl OpaqueIndexMapInner {
         }
     }
 
-    #[inline]
+    #[inline(always)]
     pub fn from_proj<K, V, S, A>(proj_self: TypedProjIndexMapInner<K, V, S, A>) -> Self
     where
         K: any::Any,
