@@ -11,8 +11,7 @@ use opaque_error;
 // One central function responsible for reporting capacity overflows. This will
 // ensure that the code generation related to these panics is minimal as there's
 // only one location which panics rather than a bunch throughout the module.
-#[cfg(not(no_global_oom_handling))]
-#[cfg_attr(not(feature = "panic_immediate_abort"), inline(never))]
+#[inline(never)]
 #[track_caller]
 fn capacity_overflow() -> ! {
     panic!("capacity overflow");
@@ -21,20 +20,29 @@ fn capacity_overflow() -> ! {
 enum AllocInit {
     /// The contents of the new memory are uninitialized.
     Uninitialized,
-    #[cfg(not(no_global_oom_handling))]
     /// The new memory is guaranteed to be zeroed.
     Zeroed,
 }
 
 type Capacity = UsizeNoHighBit;
 
-const ZERO_CAP: Capacity = unsafe { Capacity::new_unchecked(0) };
+const ZERO_CAPACITY: Capacity = unsafe { Capacity::new_unchecked(0) };
 
 pub(crate) unsafe fn new_capacity(capacity: usize, layout: alloc::Layout) -> Capacity {
     if layout.size() == 0 {
-        ZERO_CAP
+        ZERO_CAPACITY
     } else {
         unsafe { Capacity::new_unchecked(capacity) }
+    }
+}
+
+const fn min_non_zero_cap(size: usize) -> usize {
+    if size == 1 {
+        8
+    } else if size <= 1024 {
+        4
+    } else {
+        1
     }
 }
 
@@ -45,7 +53,7 @@ pub(crate) unsafe fn new_capacity(capacity: usize, layout: alloc::Layout) -> Cap
 fn handle_error(err: opaque_error::TryReserveError) -> ! {
     match err.kind() {
         opaque_error::TryReserveErrorKind::CapacityOverflow => capacity_overflow(),
-        opaque_error::TryReserveErrorKind::AllocError { layout, .. } => std::alloc::handle_alloc_error(layout),
+        opaque_error::TryReserveErrorKind::AllocError { layout, .. } => alloc::handle_alloc_error(layout),
     }
 }
 
@@ -85,7 +93,7 @@ fn finish_grow<A>(
     alloc: &mut A,
 ) -> Result<NonNull<[u8]>, opaque_error::TryReserveError>
 where
-    A: std::alloc::Allocator,
+    A: alloc::Allocator,
 {
     alloc_guard(new_layout.size())?;
 
@@ -126,7 +134,7 @@ impl BlobVecMemory {
     #[inline]
     pub(crate) const fn new_in(alloc: OpaqueAlloc, element_layout: alloc::Layout) -> Self {
         let ptr = unsafe { core::mem::transmute(element_layout.align()) };
-        let capacity = ZERO_CAP;
+        let capacity = ZERO_CAPACITY;
 
         Self { ptr, capacity, alloc }
     }
@@ -156,7 +164,6 @@ impl BlobVecMemory {
 
         let result = match init {
             AllocInit::Uninitialized => alloc.allocate(layout),
-            #[cfg(not(no_global_oom_handling))]
             AllocInit::Zeroed => alloc.allocate_zeroed(layout),
         };
         let ptr = match result {
@@ -179,17 +186,15 @@ impl BlobVecMemory {
         Self::try_allocate_in(capacity, AllocInit::Uninitialized, alloc, element_layout)
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[inline]
     #[track_caller]
-    fn with_capacity_zeroed_in(capacity: usize, alloc: OpaqueAlloc, element_layout: alloc::Layout) -> Self {
+    pub(crate) fn with_capacity_zeroed_in(capacity: usize, alloc: OpaqueAlloc, element_layout: alloc::Layout) -> Self {
         match Self::try_allocate_in(capacity, AllocInit::Zeroed, alloc, element_layout) {
             Ok(res) => res,
             Err(err) => handle_error(err),
         }
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[inline]
     #[track_caller]
     pub(crate) fn with_capacity_in(capacity: usize, alloc: OpaqueAlloc, element_layout: alloc::Layout) -> Self {
@@ -293,8 +298,6 @@ impl BlobVecMemory {
         Ok(())
     }
 
-
-    #[cfg(not(no_global_oom_handling))]
     #[inline]
     #[track_caller]
     pub(crate) fn reserve(&mut self, len: usize, additional: usize, element_layout: alloc::Layout) {
@@ -314,7 +317,6 @@ impl BlobVecMemory {
         }
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[track_caller]
     pub(crate) fn reserve_exact(&mut self, len: usize, additional: usize, element_layout: alloc::Layout) {
         if let Err(err) = self.try_reserve_exact(len, additional, element_layout) {
@@ -322,7 +324,6 @@ impl BlobVecMemory {
         }
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[inline]
     #[track_caller]
     pub(crate) fn shrink_to_fit(&mut self, capacity: usize, element_layout: alloc::Layout) {
@@ -346,16 +347,6 @@ impl BlobVecMemory {
     }
 
     fn grow_amortized(&mut self, length: usize, additional: usize, element_layout: alloc::Layout) -> Result<(), opaque_error::TryReserveError> {
-        const fn min_non_zero_cap(size: usize) -> usize {
-            if size == 1 {
-                8
-            } else if size <= 1024 {
-                4
-            } else {
-                1
-            }
-        }
-
         // This is ensured by the calling contexts.
         debug_assert!(additional > 0);
 
@@ -409,14 +400,13 @@ impl BlobVecMemory {
         Ok(())
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[inline]
     #[track_caller]
     pub(crate) fn grow_one(&mut self, element_layout: alloc::Layout) {
         if let Err(err) = self.grow_amortized(self.capacity.as_inner(), 1, element_layout) {
             match err.kind() {
                 opaque_error::TryReserveErrorKind::CapacityOverflow => capacity_overflow(),
-                opaque_error::TryReserveErrorKind::AllocError { layout, .. } => std::alloc::handle_alloc_error(layout),
+                opaque_error::TryReserveErrorKind::AllocError { layout, .. } => alloc::handle_alloc_error(layout),
             }
         }
     }
@@ -431,7 +421,6 @@ impl BlobVecMemory {
     ///
     /// # Safety
     /// `cap <= self.capacity()`
-    #[cfg(not(no_global_oom_handling))]
     unsafe fn shrink_unchecked(&mut self, capacity: usize, element_layout: alloc::Layout) -> Result<(), opaque_error::TryReserveError> {
         use std::alloc::Allocator;
 
@@ -442,12 +431,12 @@ impl BlobVecMemory {
         };
 
         // If shrinking to 0, deallocate the buffer. We don't reach this point
-        // for the T::IS_ZST case since current_memory() will have returned
+        // for the is_zst<T>() case since current_memory() will have returned
         // None.
         if capacity == 0 {
             unsafe { self.alloc.deallocate(ptr, layout) };
             self.ptr = unsafe { Unique::new_unchecked(std::ptr::without_provenance_mut(element_layout.align())) };
-            self.capacity = ZERO_CAP;
+            self.capacity = ZERO_CAPACITY;
         } else {
             let ptr = unsafe {
                 // Layout cannot overflow here because it would have
@@ -467,7 +456,6 @@ impl BlobVecMemory {
         Ok(())
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[inline]
     fn shrink(&mut self, capacity: usize, element_layout: alloc::Layout) -> Result<(), opaque_error::TryReserveError> {
         assert!(
@@ -486,11 +474,9 @@ impl BlobVecMemory {
     /// Ideally this function would take `self` by move, but it cannot because it exists to be
     /// called from a `Drop` impl.
     pub(crate) unsafe fn deallocate(&mut self, element_layout: alloc::Layout) {
-        use std::alloc::Allocator;
-
         if let Some((ptr, layout)) = self.current_memory(element_layout) {
             unsafe {
-                self.alloc.deallocate(ptr, layout);
+                alloc::Allocator::deallocate(&mut self.alloc, ptr, layout);
             }
         }
     }

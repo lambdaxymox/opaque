@@ -319,7 +319,6 @@ where
 {
 }
 
-#[cfg(not(no_global_oom_handling))]
 impl<T, A> Clone for IntoIter<T, A>
 where
     T: any::Any + Clone,

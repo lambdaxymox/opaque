@@ -31,9 +31,6 @@ panic_immediate_abort = []
 
 [lints.rust.unexpected_cfgs]
 level = "warn"
-check-cfg = [
-    'cfg(no_global_oom_handling)',
-]
 
 [[bench]]
 name = "bench_opaque_vec"

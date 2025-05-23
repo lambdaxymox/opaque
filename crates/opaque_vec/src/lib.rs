@@ -627,7 +627,6 @@ where
         Ok(())
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[inline]
     #[track_caller]
     pub(crate) fn append(&mut self, other: &mut Self) {
@@ -640,7 +639,6 @@ where
         }
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[inline]
     #[track_caller]
     pub(crate) fn into_boxed_slice(mut self) -> Box<[T], TypedProjAlloc<A>>
@@ -659,7 +657,6 @@ where
         }
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[inline]
     pub(crate) fn split_off(&mut self, at: usize) -> Self
     where
@@ -726,14 +723,12 @@ where
         self.data.try_reserve_exact(additional)
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[inline]
     #[track_caller]
     pub(crate) fn reserve(&mut self, additional: usize) {
         self.data.reserve(additional);
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[inline]
     #[track_caller]
     pub(crate) fn reserve_exact(&mut self, additional: usize) {
@@ -746,7 +741,6 @@ where
         self.data.shrink_to_fit();
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[inline]
     #[track_caller]
     pub(crate) fn shrink_to(&mut self, min_capacity: usize) {
@@ -1087,7 +1081,6 @@ where
     T: any::Any,
     A: any::Any + alloc::Allocator,
 {
-    #[cfg(not(no_global_oom_handling))]
     #[inline]
     pub(crate) fn splice<R, I>(&mut self, range: R, replace_with: I) -> Splice<'_, I::IntoIter, A>
     where
@@ -1214,7 +1207,6 @@ mod private {
         }
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[allow(missing_docs)]
     #[inline]
     pub fn to_typed_proj_vec<T, A>(slice: &[T], alloc: A) -> TypedProjVecInner<T, A>
@@ -1225,7 +1217,6 @@ mod private {
         T::to_typed_proj_vec(slice, alloc)
     }
 
-    #[cfg(not(no_global_oom_handling))]
     pub trait ConvertTypedProjVec {
         fn to_typed_proj_vec<A>(slice: &[Self], alloc: A) -> TypedProjVecInner<Self, A>
         where
@@ -1233,7 +1224,6 @@ mod private {
             Self: Sized;
     }
 
-    #[cfg(not(no_global_oom_handling))]
     impl<T> ConvertTypedProjVec for T
     where
         T: any::Any + Clone,
@@ -1743,25 +1733,21 @@ where
         self.inner.push_within_capacity(value)
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[track_caller]
     pub fn replace_insert(&mut self, index: usize, value: T) {
         self.inner.replace_insert(index, value);
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[track_caller]
     pub fn shift_insert(&mut self, index: usize, value: T) {
         self.inner.shift_insert(index, value);
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[track_caller]
     pub fn swap_remove(&mut self, index: usize) -> T {
         self.inner.swap_remove(index)
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[track_caller]
     pub fn shift_remove(&mut self, index: usize) -> T {
         self.inner.shift_remove(index)
@@ -1782,7 +1768,6 @@ where
         self.inner.iter_mut()
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[inline]
     #[track_caller]
     pub fn append(&mut self, other: &mut Self) {
@@ -1839,13 +1824,11 @@ where
         self.inner.into_parts_with_alloc()
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[track_caller]
     pub fn into_boxed_slice(self) -> Box<[T], TypedProjAlloc<A>> {
         self.inner.into_boxed_slice()
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[inline]
     #[must_use = "use `.truncate()` if you don't need the other half"]
     #[track_caller]
@@ -1858,7 +1841,6 @@ where
         Self { inner, }
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[track_caller]
     pub fn resize_with<F>(&mut self, new_len: usize, f: F)
     where
@@ -1886,13 +1868,11 @@ where
         self.inner.try_reserve_exact(additional)
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[track_caller]
     pub fn reserve(&mut self, additional: usize) {
         self.inner.reserve(additional);
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[track_caller]
     pub fn reserve_exact(&mut self, additional: usize) {
         self.inner.reserve_exact(additional);
@@ -1904,7 +1884,6 @@ where
         self.inner.shrink_to_fit();
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[track_caller]
     pub fn shrink_to(&mut self, min_capacity: usize) {
         self.inner.shrink_to(min_capacity);
@@ -1920,7 +1899,6 @@ where
     T: any::Any,
     A: any::Any + alloc::Allocator,
 {
-    #[cfg(not(no_global_oom_handling))]
     #[inline]
     pub fn splice<R, I>(&mut self, range: R, replace_with: I) -> Splice<'_, I::IntoIter, A>
     where
@@ -1940,7 +1918,6 @@ where
     }
 
     /*
-    #[cfg(not(no_global_oom_handling))]
     #[track_caller]
     fn extend_with(&mut self, count: usize, value: T)
     where
@@ -1949,7 +1926,6 @@ where
         self.inner.extend_with(count, value);
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[track_caller]
     fn extend_from_iter<I>(&mut self, iterator: I)
     where
@@ -1960,7 +1936,6 @@ where
     }
     */
 
-    #[cfg(not(no_global_oom_handling))]
     #[track_caller]
     pub fn extend_from_slice(&mut self, other: &[T])
     where
@@ -1969,7 +1944,6 @@ where
         self.inner.extend_from_slice(other);
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[track_caller]
     pub fn resize(&mut self, new_len: usize, value: T)
     where
@@ -2107,7 +2081,6 @@ where
     }
 }
 
-#[cfg(not(no_global_oom_handling))]
 impl<T> FromIterator<T> for TypedProjVec<T, alloc::Global>
 where
     T: any::Any,
@@ -2177,7 +2150,6 @@ where
     }
 }
 
-#[cfg(not(no_global_oom_handling))]
 impl<T, A> Extend<T> for TypedProjVec<T, A>
 where
     T: any::Any,
@@ -2219,7 +2191,6 @@ where
     */
 }
 
-#[cfg(not(no_global_oom_handling))]
 impl<'a, T, A> Extend<&'a T> for TypedProjVec<T, A>
 where
     T: any::Any + Copy + 'a,
@@ -2371,7 +2342,6 @@ where
     }
 }
 
-#[cfg(not(no_global_oom_handling))]
 impl<T> From<&[T]> for TypedProjVec<T, alloc::Global>
 where
     T: any::Any + Clone,
@@ -2384,7 +2354,6 @@ where
     }
 }
 
-#[cfg(not(no_global_oom_handling))]
 impl<T> From<&mut [T]> for TypedProjVec<T, alloc::Global>
 where
     T: any::Any + Clone,
@@ -2397,7 +2366,6 @@ where
     }
 }
 
-#[cfg(not(no_global_oom_handling))]
 impl<T, const N: usize> From<&[T; N]> for TypedProjVec<T, alloc::Global>
 where
     T: any::Any + Clone,
@@ -2408,7 +2376,6 @@ where
     }
 }
 
-#[cfg(not(no_global_oom_handling))]
 impl<T, const N: usize> From<&mut [T; N]> for TypedProjVec<T, alloc::Global>
 where
     T: any::Any + Clone,
@@ -2419,7 +2386,6 @@ where
     }
 }
 
-#[cfg(not(no_global_oom_handling))]
 impl<T, const N: usize> From<[T; N]> for TypedProjVec<T, alloc::Global>
 where
     T: any::Any,
@@ -2455,7 +2421,6 @@ where
     }
 }
 
-#[cfg(not(no_global_oom_handling))]
 impl<T, A> From<Vec<T, A>> for TypedProjVec<T, A>
 where
     T: any::Any,
@@ -2469,7 +2434,6 @@ where
     }
 }
 
-#[cfg(not(no_global_oom_handling))]
 impl<T, A> From<&Vec<T, A>> for TypedProjVec<T, A>
 where
     T: any::Any + Clone,
@@ -2483,7 +2447,6 @@ where
     }
 }
 
-#[cfg(not(no_global_oom_handling))]
 impl<T, A> From<&mut Vec<T, A>> for TypedProjVec<T, A>
 where
     T: any::Any + Clone,
@@ -2497,7 +2460,6 @@ where
     }
 }
 
-#[cfg(not(no_global_oom_handling))]
 impl<T, A> From<TypedProjVec<T, A>> for Box<[T], TypedProjAlloc<A>>
 where
     T: any::Any,
@@ -2509,7 +2471,6 @@ where
     }
 }
 
-#[cfg(not(no_global_oom_handling))]
 impl From<&str> for TypedProjVec<u8, alloc::Global> {
     #[track_caller]
     fn from(st: &str) -> TypedProjVec<u8, alloc::Global> {
@@ -2933,7 +2894,6 @@ impl OpaqueVec {
         proj_self.push_within_capacity(value)
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[track_caller]
     pub fn replace_insert<T, A>(&mut self, index: usize, value: T)
     where
@@ -2945,7 +2905,6 @@ impl OpaqueVec {
         proj_self.replace_insert(index, value);
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[track_caller]
     pub fn shift_insert<T, A>(&mut self, index: usize, value: T)
     where
@@ -2957,7 +2916,6 @@ impl OpaqueVec {
         proj_self.shift_insert(index, value);
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[track_caller]
     pub fn swap_remove<T, A>(&mut self, index: usize) -> T
     where
@@ -2969,7 +2927,6 @@ impl OpaqueVec {
         proj_self.swap_remove(index)
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[track_caller]
     pub fn shift_remove<T, A>(&mut self, index: usize) -> T
     where
@@ -3021,7 +2978,6 @@ impl OpaqueVec {
         proj_self.into_iter()
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[inline]
     #[track_caller]
     pub fn append<T, A>(&mut self, other: &mut Self)
@@ -3141,7 +3097,6 @@ impl OpaqueVec {
         proj_self.into_parts_with_alloc()
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[track_caller]
     pub fn into_boxed_slice<T, A>(self) -> Box<[T], TypedProjAlloc<A>>
     where
@@ -3153,7 +3108,6 @@ impl OpaqueVec {
         proj_self.into_boxed_slice()
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[inline]
     #[must_use = "use `.truncate()` if you don't need the other half"]
     #[track_caller]
@@ -3168,7 +3122,6 @@ impl OpaqueVec {
         Self::from_proj(proj_split_off)
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[track_caller]
     pub fn resize_with<F, T, A>(&mut self, new_len: usize, f: F)
     where
@@ -3214,7 +3167,6 @@ impl OpaqueVec {
         proj_self.try_reserve_exact(additional)
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[track_caller]
     pub fn reserve<T, A>(&mut self, additional: usize)
     where
@@ -3226,7 +3178,6 @@ impl OpaqueVec {
         proj_self.reserve(additional);
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[track_caller]
     pub fn reserve_exact<T, A>(&mut self, additional: usize)
     where
@@ -3250,7 +3201,6 @@ impl OpaqueVec {
         proj_self.shrink_to_fit();
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[track_caller]
     pub fn shrink_to<T, A>(&mut self, min_capacity: usize)
     where
@@ -3274,7 +3224,6 @@ impl OpaqueVec {
 }
 
 impl OpaqueVec {
-    #[cfg(not(no_global_oom_handling))]
     #[inline]
     pub fn splice<R, I, T, A>(&mut self, range: R, replace_with: I) -> Splice<'_, I::IntoIter, A>
     where
@@ -3301,7 +3250,6 @@ impl OpaqueVec {
     }
 
     /*
-    #[cfg(not(no_global_oom_handling))]
     #[track_caller]
     fn extend_with<T, A>(&mut self, count: usize, value: T)
     where
@@ -3313,7 +3261,6 @@ impl OpaqueVec {
         proj_self.extend_with(count, value);
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[track_caller]
     fn extend_from_iter<I, T, A>(&mut self, iterator: I)
     where
@@ -3327,7 +3274,6 @@ impl OpaqueVec {
     }
     */
 
-    #[cfg(not(no_global_oom_handling))]
     #[track_caller]
     pub fn extend_from_slice<T, A>(&mut self, other: &[T])
     where
@@ -3339,7 +3285,6 @@ impl OpaqueVec {
         proj_self.extend_from_slice(other);
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[track_caller]
     pub fn resize<T, A>(&mut self, new_len: usize, value: T)
     where
@@ -3560,7 +3505,6 @@ where
     }
 }
 
-#[cfg(not(no_global_oom_handling))]
 impl From<&str> for OpaqueVec {
     #[track_caller]
     fn from(st: &str) -> Self {

@@ -60,6 +60,25 @@ impl BlobVecInner {
     }
 
     #[inline]
+    #[must_use]
+    #[track_caller]
+    fn with_capacity_zeroed_in<A>(capacity: usize, alloc: TypedProjAlloc<A>, element_layout: alloc::Layout, drop_fn: Option<unsafe fn(NonNull<u8>)>) -> Self
+    where
+        A: any::Any + alloc::Allocator,
+    {
+        let length = 0;
+        let opaque_alloc = OpaqueAlloc::from_proj(alloc);
+        let buffer = BlobVecMemory::with_capacity_zeroed_in(capacity, opaque_alloc, element_layout);
+
+        Self {
+            element_layout,
+            length,
+            buffer,
+            drop_fn,
+        }
+    }
+
+    #[inline]
     fn try_with_capacity_in<A>(
         capacity: usize,
         alloc: TypedProjAlloc<A>,
@@ -402,13 +421,11 @@ impl BlobVecInner {
         self.buffer.try_reserve_exact(self.length, additional, self.element_layout)
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[track_caller]
     fn reserve(&mut self, additional: usize) {
         self.buffer.reserve(self.length, additional, self.element_layout);
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[track_caller]
     fn reserve_exact(&mut self, additional: usize) {
         self.buffer.reserve_exact(self.length, additional, self.element_layout);
@@ -422,7 +439,6 @@ impl BlobVecInner {
         }
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[track_caller]
     fn shrink_to(&mut self, min_capacity: usize) {
         if self.capacity() > min_capacity {
@@ -464,7 +480,6 @@ impl BlobVecInner {
         }
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[track_caller]
     fn extend_with(&mut self, count: usize, value: NonNull<u8>) {
         struct SetLenOnDrop<'a> {
@@ -526,7 +541,6 @@ impl BlobVecInner {
         }
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[inline]
     #[track_caller]
     unsafe fn append(&mut self, other: NonNull<u8>, count: usize) {
@@ -583,6 +597,18 @@ where
     #[track_caller]
     pub fn with_capacity_in(capacity: usize, alloc: TypedProjAlloc<A>, element_layout: alloc::Layout, drop_fn: Option<unsafe fn(NonNull<u8>)>) -> Self {
         let inner = BlobVecInner::with_capacity_in(capacity, alloc, element_layout, drop_fn);
+
+        Self {
+            inner,
+            _marker: marker::PhantomData,
+        }
+    }
+
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn with_capacity_zeroed_in(capacity: usize, alloc: TypedProjAlloc<A>, element_layout: alloc::Layout, drop_fn: Option<unsafe fn(NonNull<u8>)>) -> Self {
+        let inner = BlobVecInner::with_capacity_zeroed_in(capacity, alloc, element_layout, drop_fn);
 
         Self {
             inner,
@@ -759,13 +785,11 @@ where
         self.inner.try_reserve_exact(additional)
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[track_caller]
     pub fn reserve(&mut self, additional: usize) {
         self.inner.reserve(additional)
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[track_caller]
     pub fn reserve_exact(&mut self, additional: usize) {
         self.inner.reserve_exact(additional)
@@ -777,7 +801,6 @@ where
         self.inner.shrink_to_fit()
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[track_caller]
     pub fn shrink_to(&mut self, min_capacity: usize) {
         self.inner.shrink_to(min_capacity)
@@ -791,13 +814,11 @@ where
         self.inner.truncate(len)
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[track_caller]
     pub fn extend_with(&mut self, count: usize, value: NonNull<u8>) {
         self.inner.extend_with(count, value)
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[inline]
     #[track_caller]
     pub unsafe fn append(&mut self, other: NonNull<u8>, count: usize) {
@@ -847,6 +868,18 @@ impl OpaqueBlobVec {
         A: any::Any + alloc::Allocator,
     {
         let proj_blob_vec = TypedProjBlobVec::with_capacity_in(capacity, alloc, element_layout, drop_fn);
+
+        Self::from_proj(proj_blob_vec)
+    }
+
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn with_capacity_zeroed_in<A>(capacity: usize, alloc: TypedProjAlloc<A>, element_layout: alloc::Layout, drop_fn: Option<unsafe fn(NonNull<u8>)>) -> Self
+    where
+        A: any::Any + alloc::Allocator,
+    {
+        let proj_blob_vec = TypedProjBlobVec::with_capacity_zeroed_in(capacity, alloc, element_layout, drop_fn);
 
         Self::from_proj(proj_blob_vec)
     }
@@ -1146,7 +1179,6 @@ impl OpaqueBlobVec {
         proj_self.try_reserve_exact(additional)
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[track_caller]
     pub fn reserve<A>(&mut self, additional: usize)
     where
@@ -1157,7 +1189,6 @@ impl OpaqueBlobVec {
         proj_self.reserve(additional);
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[track_caller]
     pub fn reserve_exact<A>(&mut self, additional: usize)
     where
@@ -1179,7 +1210,6 @@ impl OpaqueBlobVec {
         proj_self.shrink_to_fit();
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[track_caller]
     pub fn shrink_to<A>(&mut self, min_capacity: usize)
     where
@@ -1208,7 +1238,6 @@ impl OpaqueBlobVec {
         proj_self.truncate(len);
     }
 
-    #[cfg(not(no_global_oom_handling))]
     #[track_caller]
     pub fn extend_with<A>(&mut self, count: usize, value: NonNull<u8>)
     where
@@ -1218,8 +1247,7 @@ impl OpaqueBlobVec {
 
         proj_self.extend_with(count, value);
     }
-    
-    #[cfg(not(no_global_oom_handling))]
+
     #[inline]
     #[track_caller]
     pub unsafe fn append<A>(&mut self, other: NonNull<u8>, count: usize)
