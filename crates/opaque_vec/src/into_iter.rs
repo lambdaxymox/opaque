@@ -10,7 +10,10 @@ use std::ptr::NonNull;
 use opaque_alloc::TypedProjAlloc;
 use crate::{assuming_non_null, assuming_non_null_mut, is_zst, private};
 
-pub struct IntoIter<T, A> {
+pub struct IntoIter<T, A>
+where
+    A: any::Any + alloc::Allocator,
+{
     buf: NonNull<T>,
     cap: usize,
     // the drop impl reconstructs a RawVec from buf, cap and alloc

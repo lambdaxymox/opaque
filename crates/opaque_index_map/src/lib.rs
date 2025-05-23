@@ -165,7 +165,10 @@ impl<'a, K, V> core::ops::Index<usize> for Keys<'a, K, V> {
     }
 }
 
-pub struct IntoKeys<K, V, A> {
+pub struct IntoKeys<K, V, A>
+where
+    A: any::Any + alloc::Allocator,
+{
     iter: opaque_vec::IntoIter<Bucket<K, V>, A>,
 }
 
@@ -355,7 +358,10 @@ impl<K, V> Default for ValuesMut<'_, K, V> {
     }
 }
 
-pub struct IntoValues<K, V, A> {
+pub struct IntoValues<K, V, A>
+where
+    A: any::Any + alloc::Allocator,
+{
     iter: opaque_vec::IntoIter<Bucket<K, V>, A>,
 }
 
@@ -2358,22 +2364,30 @@ impl OpaqueIndexMapCore {
 
 impl OpaqueIndexMapCore {
     #[inline(always)]
-    const fn as_proj_assuming_type<K, V, A>(&self) -> &TypedProjIndexMapCore<K, V, A>
+    fn as_proj_assuming_type<K, V, A>(&self) -> &TypedProjIndexMapCore<K, V, A>
     where
         K: any::Any,
         V: any::Any,
         A: any::Any + alloc::Allocator,
     {
+        debug_assert_eq!(self.key_type_id, any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id, any::TypeId::of::<V>());
+        debug_assert_eq!(self.allocator_type_id, any::TypeId::of::<A>());
+
         unsafe { &*(self as *const OpaqueIndexMapCore as *const TypedProjIndexMapCore<K, V, A>) }
     }
 
     #[inline(always)]
-    const fn as_proj_mut_assuming_type<K, V, A>(&mut self) -> &mut TypedProjIndexMapCore<K, V, A>
+    fn as_proj_mut_assuming_type<K, V, A>(&mut self) -> &mut TypedProjIndexMapCore<K, V, A>
     where
         K: any::Any,
         V: any::Any,
         A: any::Any + alloc::Allocator,
     {
+        debug_assert_eq!(self.key_type_id, any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id, any::TypeId::of::<V>());
+        debug_assert_eq!(self.allocator_type_id, any::TypeId::of::<A>());
+
         unsafe { &mut *(self as *mut OpaqueIndexMapCore as *mut TypedProjIndexMapCore<K, V, A>) }
     }
 
@@ -2384,6 +2398,10 @@ impl OpaqueIndexMapCore {
         V: any::Any,
         A: any::Any + alloc::Allocator,
     {
+        debug_assert_eq!(self.key_type_id, any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id, any::TypeId::of::<V>());
+        debug_assert_eq!(self.allocator_type_id, any::TypeId::of::<A>());
+
         TypedProjIndexMapCore {
             indices: self.indices,
             entries: self.entries.into_proj::<Bucket<K, V>, A>(),
@@ -2960,6 +2978,7 @@ where
 struct TypedProjIndexMapInner<K, V, S, A>
 where
     A: any::Any + alloc::Allocator,
+    S: any::Any + hash::BuildHasher,
 {
     inner: TypedProjIndexMapCore<K, V, A>,
     build_hasher: TypedProjBuildHasher<S>,
@@ -3879,6 +3898,11 @@ impl OpaqueIndexMapInner {
         S: any::Any + hash::BuildHasher,
         A: any::Any + alloc::Allocator,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         unsafe { &*(self as *const OpaqueIndexMapInner as *const TypedProjIndexMapInner<K, V, S, A>) }
     }
 
@@ -3890,6 +3914,11 @@ impl OpaqueIndexMapInner {
         S: any::Any + hash::BuildHasher,
         A: any::Any + alloc::Allocator,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         unsafe { &mut *(self as *mut OpaqueIndexMapInner as *mut TypedProjIndexMapInner<K, V, S, A>) }
     }
 
@@ -3901,6 +3930,11 @@ impl OpaqueIndexMapInner {
         S: any::Any + hash::BuildHasher,
         A: any::Any + alloc::Allocator,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         let proj_inner = self.inner.into_proj_assuming_type::<K, V, A>();
         let proj_build_hasher = self.build_hasher.into_proj::<S>();
 
@@ -4052,6 +4086,7 @@ mod index_map_inner_layout_tests {
 pub struct TypedProjIndexMap<K, V, S, A>
 where
     A: any::Any + alloc::Allocator,
+    S: any::Any + hash::BuildHasher,
 {
     inner: OpaqueIndexMapInner,
     _marker: core::marker::PhantomData<(K, V, S, A)>,

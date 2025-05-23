@@ -50,7 +50,10 @@ const fn assuming_non_null_mut<T>(item: *const T) -> NonNull<T> {
 }
 
 #[repr(C)]
-struct TypedProjVecInner<T, A> where A: any::Any + alloc::Allocator {
+struct TypedProjVecInner<T, A>
+where
+    A: any::Any + alloc::Allocator,
+{
     data: TypedProjBlobVec<A>,
     element_type_id: any::TypeId,
     allocator_type_id: any::TypeId,
@@ -1405,6 +1408,9 @@ impl OpaqueVecInner {
         T: any::Any,
         A: any::Any + alloc::Allocator,
     {
+        debug_assert_eq!(self.element_type_id, any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id, any::TypeId::of::<A>());
+
         unsafe { &*(self as *const OpaqueVecInner as *const TypedProjVecInner<T, A>) }
     }
 
@@ -1414,6 +1420,9 @@ impl OpaqueVecInner {
         T: any::Any,
         A: any::Any + alloc::Allocator,
     {
+        debug_assert_eq!(self.element_type_id, any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id, any::TypeId::of::<A>());
+
         unsafe { &mut *(self as *mut OpaqueVecInner as *mut TypedProjVecInner<T, A>) }
     }
 
@@ -1423,6 +1432,9 @@ impl OpaqueVecInner {
         T: any::Any,
         A: any::Any + alloc::Allocator,
     {
+        debug_assert_eq!(self.element_type_id, any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id, any::TypeId::of::<A>());
+
         TypedProjVecInner {
             data: self.data.into_proj::<A>(),
             element_type_id: self.element_type_id,

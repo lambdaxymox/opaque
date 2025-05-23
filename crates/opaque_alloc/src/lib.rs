@@ -12,17 +12,13 @@ trait AnyAllocator: any::Any + alloc::Allocator {}
 impl<A> AnyAllocator for A where A: any::Any + alloc::Allocator {}
 
 #[repr(C)]
-struct TypedProjAllocInner<A> {
+struct TypedProjAllocInner<A>
+where
+    A: any::Any + alloc::Allocator,
+{
     alloc: Box<dyn AnyAllocator>,
     alloc_type_id: any::TypeId,
     _marker: marker::PhantomData<A>,
-}
-
-impl<A> TypedProjAllocInner<A> {
-    #[inline]
-    const fn allocator_type_id(&self) -> any::TypeId {
-        self.alloc_type_id
-    }
 }
 
 impl<A> TypedProjAllocInner<A>
@@ -173,7 +169,10 @@ unsafe impl alloc::Allocator for OpaqueAllocInner {
 }
 
 #[repr(transparent)]
-pub struct TypedProjAlloc<A> {
+pub struct TypedProjAlloc<A>
+where
+    A: any::Any + alloc::Allocator,
+{
     inner: TypedProjAllocInner<A>,
 }
 

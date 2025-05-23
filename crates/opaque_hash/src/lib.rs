@@ -9,17 +9,13 @@ trait AnyHasher: hash::Hasher + any::Any {}
 impl<H> AnyHasher for H where H: hash::Hasher + any::Any {}
 
 #[repr(C)]
-struct TypedProjHasherInner<H> {
+struct TypedProjHasherInner<H>
+where
+    H: any::Any + hash::Hasher,
+{
     hasher: Box<dyn AnyHasher>,
     hasher_type_id: any::TypeId,
     _marker: marker::PhantomData<H>,
-}
-
-impl<H> TypedProjHasherInner<H> {
-    #[inline]
-    const fn hasher_type_id(&self) -> any::TypeId {
-        self.hasher_type_id
-    }
 }
 
 impl<H> TypedProjHasherInner<H>
@@ -201,7 +197,10 @@ impl hash::Hasher for OpaqueHasherInner {
 }
 
 #[repr(transparent)]
-pub struct TypedProjHasher<H> {
+pub struct TypedProjHasher<H>
+where
+    H: any::Any + hash::Hasher,
+{
     inner: TypedProjHasherInner<H>,
 }
 
@@ -407,7 +406,10 @@ impl fmt::Debug for OpaqueHasher {
 }
 
 #[repr(C)]
-struct TypedProjBuildHasherInner<S> {
+struct TypedProjBuildHasherInner<S>
+where
+    S: any::Any + hash::BuildHasher,
+{
     build_hasher: Box<dyn any::Any>,
     build_hasher_type_id: any::TypeId,
     hasher_type_id: any::TypeId,
@@ -594,7 +596,10 @@ impl OpaqueBuildHasherInner {
 }
 
 #[repr(transparent)]
-pub struct TypedProjBuildHasher<S> {
+pub struct TypedProjBuildHasher<S>
+where
+    S: any::Any + hash::BuildHasher,
+{
     inner: TypedProjBuildHasherInner<S>,
 }
 
