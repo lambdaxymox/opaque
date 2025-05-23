@@ -8,6 +8,7 @@ use core::cmp;
 use core::fmt;
 use core::iter;
 use core::marker;
+use core::mem;
 use core::ops;
 use std::alloc;
 use std::hash;
@@ -706,17 +707,17 @@ impl<K, V> Slice<K, V> {
     }
 
     #[inline]
-    pub fn binary_search_by<'a, F>(&'a self, mut f: F) -> Result<usize, usize>
+    pub fn binary_search_by<F>(&self, mut f: F) -> Result<usize, usize>
     where
-        F: FnMut(&'a K, &'a V) -> cmp::Ordering,
+        F: FnMut(&K, &V) -> cmp::Ordering,
     {
         self.entries.binary_search_by(move |a| f(&a.key, &a.value))
     }
 
     #[inline]
-    pub fn binary_search_by_key<'a, B, F>(&'a self, b: &B, mut f: F) -> Result<usize, usize>
+    pub fn binary_search_by_key<B, F>(&self, b: &B, mut f: F) -> Result<usize, usize>
     where
-        F: FnMut(&'a K, &'a V) -> B,
+        F: FnMut(&K, &V) -> B,
         B: Ord,
     {
         self.binary_search_by(|k, v| f(k, v).cmp(b))
@@ -749,7 +750,7 @@ impl<'a, K, V> IntoIterator for &'a mut Slice<K, V> {
     }
 }
 
-impl<K, V, A> IntoIterator for Box<Slice<K, V>, opaque_alloc::TypedProjAlloc<A>>
+impl<K, V, A> IntoIterator for Box<Slice<K, V>, TypedProjAlloc<A>>
 where
     K: any::Any,
     V: any::Any,
@@ -1068,7 +1069,7 @@ impl<'a, K, V> Iter<'a, K, V> {
         Self { iter: entries.iter() }
     }
 
-    fn as_slice(&self) -> &Slice<K, V> {
+    pub fn as_slice(&self) -> &Slice<K, V> {
         Slice::from_slice(self.iter.as_slice())
     }
 }
@@ -1127,7 +1128,7 @@ impl<'a, K, V> IterMut<'a, K, V> {
         Self { iter: entries.iter_mut() }
     }
 
-    fn as_slice_mut(&'a mut self) -> &'a mut Slice<K, V> {
+    pub fn as_slice_mut(&'a mut self) -> &'a mut Slice<K, V> {
         Slice::from_slice_mut(self.iter.as_mut_slice())
     }
 
@@ -1466,7 +1467,7 @@ where
 }
 
 impl<K, V> Bucket<K, V> {
-    #[inline]
+    #[inline(always)]
     const fn new(hash: HashValue, key: K, value: V) -> Self {
         Self { hash, key, value }
     }
@@ -1503,9 +1504,11 @@ impl<K, V> Bucket<K, V> {
         (&self.key, &mut self.value)
     }
 
+    /*
     fn muts(&mut self) -> (&mut K, &mut V) {
         (&mut self.key, &mut self.value)
     }
+    */
 }
 
 #[inline(always)]
@@ -1542,7 +1545,7 @@ fn insert_bulk_no_grow<K, V>(indices: &mut hashbrown::HashTable<usize>, entries:
 
 #[inline(always)]
 const fn max_entries_capacity<K, V>() -> usize {
-    (isize::MAX as usize) / core::mem::size_of::<Bucket<K, V>>()
+    (isize::MAX as usize) / mem::size_of::<Bucket<K, V>>()
 }
 
 fn reserve_entries<K, V, A>(entries: &mut TypedProjVec<Bucket<K, V>, A>, additional: usize, try_capacity: usize)
@@ -1600,7 +1603,8 @@ where
             // doubling though, since we also consider `MAX_ENTRIES_CAPACITY`.
             reserve_entries::<K, V, A>(self.entries, 1, 2 * self.entries.capacity());
         }
-        self.entries.push(Bucket { hash, key, value });
+        self.entries.push(Bucket::new(hash, key, value));
+
         OccupiedEntry::new(self.entries, entry)
     }
 
@@ -1621,7 +1625,7 @@ where
             // rather than letting `Vec::insert` just double it.
             self.reserve_entries(1);
         }
-        self.entries.shift_insert(index, Bucket { hash, key, value });
+        self.entries.shift_insert(index, Bucket::new(hash, key, value));
     }
 
     fn shift_remove_index(&mut self, index: usize) -> Option<(K, V)> {
@@ -2034,7 +2038,7 @@ where
     /// TODO: Use the stored Layout information to calculate `core::mem::size_of::<Bucket<K, V>>()`.
     #[inline]
     const fn max_entries_capacity() -> usize {
-        (isize::MAX as usize) / core::mem::size_of::<Bucket<K, V>>()
+        (isize::MAX as usize) / mem::size_of::<Bucket<K, V>>()
     }
 
     fn try_reserve_entries(&mut self, additional: usize) -> Result<(), TryReserveError> {
@@ -2102,7 +2106,7 @@ where
             self.borrow_mut().reserve_entries(1);
         }
 
-        self.entries.push(Bucket { hash, key, value });
+        self.entries.push(Bucket::new(hash, key, value));
     }
 
     pub(crate) fn insert_full(&mut self, hash: HashValue, key: K, value: V) -> (usize, Option<V>)
@@ -2115,7 +2119,7 @@ where
             hashbrown::hash_table::Entry::Occupied(entry) => {
                 let i = *entry.get();
 
-                (i, Some(core::mem::replace(&mut self.as_entries_mut()[i].value, value)))
+                (i, Some(mem::replace(&mut self.as_entries_mut()[i].value, value)))
             }
             hashbrown::hash_table::Entry::Vacant(entry) => {
                 let i = self.entries.len();
@@ -2511,15 +2515,6 @@ mod index_map_core_layout_tests {
 
     struct Pair(u8, u64);
 
-    struct DummyHasher {}
-
-    impl hash::BuildHasher for DummyHasher {
-        type Hasher = hash::DefaultHasher;
-        fn build_hasher(&self) -> Self::Hasher {
-            Default::default()
-        }
-    }
-
     struct DummyAlloc {}
 
     unsafe impl alloc::Allocator for DummyAlloc {
@@ -2701,11 +2696,13 @@ where
         &self.entries.as_slice()[self.index()].key
     }
 
+    /*
     pub(crate) fn key_mut(&mut self) -> &mut K {
         let index = self.index();
 
         &mut self.entries.as_mut_slice()[index].key
     }
+    */
 
     pub fn get(&self) -> &V {
         &self.entries.as_slice()[self.index()].value
@@ -2723,14 +2720,16 @@ where
         &mut self.entries.as_mut_slice()[index].value
     }
 
+    /*
     fn into_muts(self) -> (&'a mut K, &'a mut V) {
         let index = self.index();
 
         self.entries.as_mut_slice()[index].muts()
     }
+    */
 
     pub fn insert(&mut self, value: V) -> V {
-        core::mem::replace(self.get_mut(), value)
+        mem::replace(self.get_mut(), value)
     }
 
     pub fn swap_remove(self) -> V {
@@ -2821,9 +2820,11 @@ where
         &self.key
     }
 
+    /*
     pub(crate) fn key_mut(&mut self) -> &mut K {
         &mut self.key
     }
+    */
 
     pub fn into_key(self) -> K {
         self.key
@@ -2900,9 +2901,11 @@ where
         &self.map.entries.as_slice()[self.index].key
     }
 
+    /*
     pub(crate) fn key_mut(&mut self) -> &mut K {
         &mut self.map.entries.as_mut_slice()[self.index].key
     }
+    */
 
     pub fn get(&self) -> &V {
         &self.map.entries.as_slice()[self.index].value
@@ -2913,7 +2916,7 @@ where
     }
 
     pub fn insert(&mut self, value: V) -> V {
-        core::mem::replace(self.get_mut(), value)
+        mem::replace(self.get_mut(), value)
     }
 
     pub fn into_mut(self) -> &'a mut V {
@@ -3590,7 +3593,7 @@ where
         // (Note: this is a copy of `std`/`hashbrown`'s reservation logic.)
         // Keys may be already present or show multiple times in the iterator.
         // Reserve the entire hint lower bound if the map is empty.
-        // Otherwise reserve half the hint (rounded up), so the map
+        // Otherwise, reserve half the hint (rounded up), so the map
         // will only resize twice in the worst case.
         let iter = iterable.into_iter();
         let reserve_count = if self.is_empty() {
@@ -4524,7 +4527,7 @@ where
     }
 
     #[track_caller]
-    pub fn insert_before(&mut self, mut index: usize, key: K, value: V) -> (usize, Option<V>)
+    pub fn insert_before(&mut self, index: usize, key: K, value: V) -> (usize, Option<V>)
     where
         K: Eq + hash::Hash,
     {
@@ -4592,7 +4595,7 @@ where
         proj_inner.pop()
     }
 
-    pub fn retain<F>(&mut self, mut keep: F)
+    pub fn retain<F>(&mut self, keep: F)
     where
         F: FnMut(&K, &mut V) -> bool,
     {
@@ -4610,7 +4613,7 @@ where
         proj_inner.sort_keys();
     }
 
-    pub fn sort_by<F>(&mut self, mut cmp: F)
+    pub fn sort_by<F>(&mut self, cmp: F)
     where
         F: FnMut(&K, &V, &K, &V) -> cmp::Ordering,
     {
@@ -4619,7 +4622,7 @@ where
         proj_inner.sort_by(cmp);
     }
 
-    pub fn sorted_by<F>(self, mut cmp: F) -> IntoIter<K, V, A>
+    pub fn sorted_by<F>(self, cmp: F) -> IntoIter<K, V, A>
     where
         F: FnMut(&K, &V, &K, &V) -> cmp::Ordering,
     {
@@ -4637,7 +4640,7 @@ where
         proj_inner.sort_unstable_keys();
     }
 
-    pub fn sort_unstable_by<F>(&mut self, mut cmp: F)
+    pub fn sort_unstable_by<F>(&mut self, cmp: F)
     where
         F: FnMut(&K, &V, &K, &V) -> cmp::Ordering,
     {
@@ -4647,7 +4650,7 @@ where
     }
 
     #[inline]
-    pub fn sorted_unstable_by<F>(self, mut cmp: F) -> IntoIter<K, V, A>
+    pub fn sorted_unstable_by<F>(self, cmp: F) -> IntoIter<K, V, A>
     where
         F: FnMut(&K, &V, &K, &V) -> cmp::Ordering,
     {
@@ -5745,7 +5748,7 @@ impl OpaqueIndexMap {
     }
 
     #[track_caller]
-    pub fn insert_before<K, V, S, A>(&mut self, mut index: usize, key: K, value: V) -> (usize, Option<V>)
+    pub fn insert_before<K, V, S, A>(&mut self, index: usize, key: K, value: V) -> (usize, Option<V>)
     where
         K: any::Any + Eq + hash::Hash,
         V: any::Any,
@@ -5825,7 +5828,7 @@ impl OpaqueIndexMap {
         proj_self.pop()
     }
 
-    pub fn retain<F, K, V, S, A>(&mut self, mut keep: F)
+    pub fn retain<F, K, V, S, A>(&mut self, keep: F)
     where
         K: any::Any,
         V: any::Any,
@@ -5850,7 +5853,7 @@ impl OpaqueIndexMap {
         proj_self.sort_keys()
     }
 
-    pub fn sort_by<F, K, V, S, A>(&mut self, mut cmp: F)
+    pub fn sort_by<F, K, V, S, A>(&mut self, cmp: F)
     where
         K: any::Any,
         V: any::Any,
@@ -5863,7 +5866,7 @@ impl OpaqueIndexMap {
         proj_self.sort_by(cmp)
     }
 
-    pub fn sorted_by<F, K, V, S, A>(self, mut cmp: F) -> IntoIter<K, V, A>
+    pub fn sorted_by<F, K, V, S, A>(self, cmp: F) -> IntoIter<K, V, A>
     where
         K: any::Any,
         V: any::Any,
@@ -5888,7 +5891,7 @@ impl OpaqueIndexMap {
         proj_self.sort_unstable_keys()
     }
 
-    pub fn sort_unstable_by<F, K, V, S, A>(&mut self, mut cmp: F)
+    pub fn sort_unstable_by<F, K, V, S, A>(&mut self, cmp: F)
     where
         K: any::Any,
         V: any::Any,
@@ -5902,7 +5905,7 @@ impl OpaqueIndexMap {
     }
 
     #[inline]
-    pub fn sorted_unstable_by<F, K, V, S, A>(self, mut cmp: F) -> IntoIter<K, V, A>
+    pub fn sorted_unstable_by<F, K, V, S, A>(self, cmp: F) -> IntoIter<K, V, A>
     where
         K: any::Any,
         V: any::Any,
@@ -6341,9 +6344,9 @@ mod index_map_layout_tests {
 
     struct Pair(u8, u64);
 
-    struct DummyHasher {}
+    struct DummyBuildHasher {}
 
-    impl hash::BuildHasher for DummyHasher {
+    impl hash::BuildHasher for DummyBuildHasher {
         type Hasher = hash::DefaultHasher;
         fn build_hasher(&self) -> Self::Hasher {
             Default::default()
@@ -6387,6 +6390,6 @@ mod index_map_layout_tests {
     }
 
     layout_tests!(u8_u8_random_state_global, u8, u8, hash::RandomState, alloc::Global);
-    layout_tests!(u64_pair_dummy_hasher_dummy_alloc, u64, Pair, DummyHasher, DummyAlloc);
-    layout_tests!(unit_str_zst_hasher_dummy_alloc, (), &'static str, DummyHasher, DummyAlloc);
+    layout_tests!(u64_pair_dummy_hasher_dummy_alloc, u64, Pair, DummyBuildHasher, DummyAlloc);
+    layout_tests!(unit_str_zst_hasher_dummy_alloc, (), &'static str, DummyBuildHasher, DummyAlloc);
 }

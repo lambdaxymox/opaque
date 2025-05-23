@@ -6,9 +6,6 @@ use criterion::{
 use indexmap::IndexMap;
 use opaque_index_map::TypedProjIndexMap;
 
-use std::alloc;
-use std::hash;
-
 fn bench_index_map_insert(c: &mut Criterion) {
     c.bench_function("index_map_insert", |b| {
         b.iter(|| {

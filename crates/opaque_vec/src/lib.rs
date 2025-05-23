@@ -479,7 +479,7 @@ where
             let data_ptr = self.data.as_ptr() as *const T;
             let len = self.data.len();
 
-            core::slice::from_raw_parts(data_ptr, len)
+            slice::from_raw_parts(data_ptr, len)
         }
     }
 
@@ -489,7 +489,7 @@ where
             let data_ptr = self.data.as_mut_ptr() as *mut T;
             let len = self.data.len();
 
-            core::slice::from_raw_parts_mut(data_ptr, len)
+            slice::from_raw_parts_mut(data_ptr, len)
         }
     }
 
@@ -555,7 +555,7 @@ where
             let ptr = self.as_mut_ptr().add(self.len()) as *mut MaybeUninit<T>;
             let len = self.capacity() - self.len();
 
-            std::slice::from_raw_parts_mut(ptr, len)
+            slice::from_raw_parts_mut(ptr, len)
         }
     }
 
@@ -775,7 +775,7 @@ where
     }
 
     #[inline]
-    pub(crate) fn extend_from_iter<I>(&mut self, mut iterator: I)
+    pub(crate) fn extend_from_iter<I>(&mut self, iterator: I)
     where
         T: Clone,
         I: Iterator<Item = T>,
@@ -970,7 +970,7 @@ where
         struct FillGapOnDrop<'a, T, A>
         where
             T: any::Any,
-            A: any::Any + core::alloc::Allocator,
+            A: any::Any + alloc::Allocator,
         {
             /* Offset of the element we want to check if it is duplicate */
             read: usize,
@@ -986,7 +986,7 @@ where
         impl<'a, T, A> Drop for FillGapOnDrop<'a, T, A>
         where
             T: any::Any,
-            A: any::Any + core::alloc::Allocator,
+            A: any::Any + alloc::Allocator,
         {
             fn drop(&mut self) {
                 /* This code gets executed when `same_bucket` panics */
@@ -1068,7 +1068,7 @@ where
              * when `same_bucket` is guaranteed to not panic, this bloats a little
              * the codegen, so we just do it manually */
             gap.vec.set_len(gap.write);
-            core::mem::forget(gap);
+            mem::forget(gap);
         }
     }
 
@@ -1939,6 +1939,7 @@ where
         self.inner.extract_if::<F, R>(range, filter)
     }
 
+    /*
     #[cfg(not(no_global_oom_handling))]
     #[track_caller]
     fn extend_with(&mut self, count: usize, value: T)
@@ -1957,6 +1958,7 @@ where
     {
         self.inner.extend_from_iter::<I>(iterator)
     }
+    */
 
     #[cfg(not(no_global_oom_handling))]
     #[track_caller]
@@ -1994,7 +1996,7 @@ where
         self.inner.retain(|elem| f(elem));
     }
 
-    pub fn retain_mut<F>(&mut self, mut f: F)
+    pub fn retain_mut<F>(&mut self, f: F)
     where
         F: FnMut(&mut T) -> bool,
     {
@@ -2002,7 +2004,7 @@ where
     }
 
     #[inline]
-    pub fn dedup_by_key<F, K>(&mut self, mut key: F)
+    pub fn dedup_by_key<F, K>(&mut self, key: F)
     where
         F: FnMut(&mut T) -> K,
         K: PartialEq,
@@ -2010,7 +2012,7 @@ where
         self.inner.dedup_by_key(key)
     }
 
-    pub fn dedup_by<F>(&mut self, mut same_bucket: F)
+    pub fn dedup_by<F>(&mut self, same_bucket: F)
     where
         F: FnMut(&mut T, &mut T) -> bool,
     {
@@ -3298,6 +3300,7 @@ impl OpaqueVec {
         proj_self.extract_if(range, filter)
     }
 
+    /*
     #[cfg(not(no_global_oom_handling))]
     #[track_caller]
     fn extend_with<T, A>(&mut self, count: usize, value: T)
@@ -3322,6 +3325,7 @@ impl OpaqueVec {
 
         proj_self.extend_from_iter(iterator);
     }
+    */
 
     #[cfg(not(no_global_oom_handling))]
     #[track_caller]
@@ -3360,7 +3364,7 @@ impl OpaqueVec {
 }
 
 impl OpaqueVec {
-    pub fn retain<F, T, A>(&mut self, mut f: F)
+    pub fn retain<F, T, A>(&mut self, f: F)
     where
         T: any::Any,
         A: any::Any + alloc::Allocator,
@@ -3371,7 +3375,7 @@ impl OpaqueVec {
         proj_self.retain(f);
     }
 
-    pub fn retain_mut<F, T, A>(&mut self, mut f: F)
+    pub fn retain_mut<F, T, A>(&mut self, f: F)
     where
         T: any::Any,
         A: any::Any + alloc::Allocator,
@@ -3395,7 +3399,7 @@ impl OpaqueVec {
         proj_self.dedup_by_key(&mut key);
     }
 
-    pub fn dedup_by<F, T, A>(&mut self, mut same_bucket: F)
+    pub fn dedup_by<F, T, A>(&mut self, same_bucket: F)
     where
         T: any::Any,
         A: any::Any + alloc::Allocator,
