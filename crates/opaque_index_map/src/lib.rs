@@ -157,7 +157,7 @@ where
     }
 }
 
-impl<'a, K, V> core::ops::Index<usize> for Keys<'a, K, V> {
+impl<'a, K, V> ops::Index<usize> for Keys<'a, K, V> {
     type Output = K;
 
     fn index(&self, index: usize) -> &K {
@@ -1277,7 +1277,7 @@ where
     }
 }
 
-pub struct Splice<'a, I, K, V, S, A = alloc::Global>
+pub struct Splice<'a, I, K, V, S = hash::RandomState, A = alloc::Global>
 where
     I: Iterator<Item = (K, V)>,
     K: any::Any + hash::Hash + Eq,
@@ -4083,13 +4083,13 @@ mod index_map_inner_layout_tests {
 }
 
 #[repr(transparent)]
-pub struct TypedProjIndexMap<K, V, S, A = alloc::Global>
+pub struct TypedProjIndexMap<K, V, S = hash::RandomState, A = alloc::Global>
 where
-    A: any::Any + alloc::Allocator,
     S: any::Any + hash::BuildHasher,
+    A: any::Any + alloc::Allocator,
 {
     inner: OpaqueIndexMapInner,
-    _marker: core::marker::PhantomData<(K, V, S, A)>,
+    _marker: marker::PhantomData<(K, V, S, A)>,
 }
 
 impl<K, V, S, A> TypedProjIndexMap<K, V, S, A>
@@ -4106,7 +4106,7 @@ where
 
         Self {
             inner: opaque_inner,
-            _marker: core::marker::PhantomData,
+            _marker: marker::PhantomData,
         }
     }
 
@@ -4120,7 +4120,7 @@ where
 
             Self {
                 inner: opaque_inner,
-                _marker: core::marker::PhantomData,
+                _marker: marker::PhantomData,
             }
         }
     }
@@ -4138,7 +4138,7 @@ where
 
         Self {
             inner : opaque_inner,
-            _marker: core::marker::PhantomData,
+            _marker: marker::PhantomData,
         }
     }
 
@@ -4148,7 +4148,7 @@ where
 
         Self {
             inner: opaque_inner,
-            _marker: core::marker::PhantomData,
+            _marker: marker::PhantomData,
         }
     }
 }
@@ -4167,7 +4167,7 @@ where
 
         Self {
             inner: opaque_inner,
-            _marker: core::marker::PhantomData,
+            _marker: marker::PhantomData,
         }
     }
 
@@ -4181,7 +4181,7 @@ where
 
             Self {
                 inner: opaque_inner,
-                _marker: core::marker::PhantomData,
+                _marker: marker::PhantomData,
             }
         }
     }
@@ -4199,7 +4199,7 @@ where
 
         Self {
             inner : opaque_inner,
-            _marker: core::marker::PhantomData,
+            _marker: marker::PhantomData,
         }
     }
 
@@ -4209,7 +4209,7 @@ where
 
         Self {
             inner: opaque_inner,
-            _marker: core::marker::PhantomData,
+            _marker: marker::PhantomData,
         }
     }
 }
@@ -5190,7 +5190,7 @@ impl OpaqueIndexMap {
 
         TypedProjIndexMap {
             inner: self.inner,
-            _marker: core::marker::PhantomData,
+            _marker: marker::PhantomData,
         }
     }
 
