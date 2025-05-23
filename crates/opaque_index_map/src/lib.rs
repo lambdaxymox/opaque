@@ -238,9 +238,9 @@ where
     V: any::Any,
     A: any::Any + alloc::Allocator,
 {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         let iter = self.iter.as_slice().iter().map(Bucket::key_ref);
-        f.debug_list().entries(iter).finish()
+        formatter.debug_list().entries(iter).finish()
     }
 }
 
@@ -299,9 +299,12 @@ impl<K, V> Clone for Values<'_, K, V> {
     }
 }
 
-impl<K, V: fmt::Debug> fmt::Debug for Values<'_, K, V> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_list().entries(self.clone()).finish()
+impl<K, V> fmt::Debug for Values<'_, K, V>
+where
+    V: fmt::Debug,
+{
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.debug_list().entries(self.clone()).finish()
     }
 }
 
@@ -347,10 +350,13 @@ impl<'a, K, V> ExactSizeIterator for ValuesMut<'a, K, V> {
 
 impl<'a, K, V> iter::FusedIterator for ValuesMut<'a, K, V> {}
 
-impl<K, V: fmt::Debug> fmt::Debug for ValuesMut<'_, K, V> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl<K, V> fmt::Debug for ValuesMut<'_, K, V>
+where
+    V: fmt::Debug,
+{
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         let iter = self.iter.as_slice().iter().map(Bucket::value_ref);
-        f.debug_list().entries(iter).finish()
+        formatter.debug_list().entries(iter).finish()
     }
 }
 
@@ -431,9 +437,9 @@ where
     V: any::Any + fmt::Debug,
     A: any::Any + alloc::Allocator,
 {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         let iter = self.iter.as_slice().iter().map(Bucket::value_ref);
-        f.debug_list().entries(iter).finish()
+        formatter.debug_list().entries(iter).finish()
     }
 }
 
@@ -805,24 +811,23 @@ where
     K: fmt::Debug,
     V: fmt::Debug,
 {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_list().entries(self).finish()
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.debug_list().entries(self).finish()
     }
 }
 
-// Generic slice equality -- copied from the standard library but adding a custom comparator,
-// allowing for our `Bucket` wrapper on either or both sides.
-fn slice_eq<T, U>(left: &[T], right: &[U], eq: impl Fn(&T, &U) -> bool) -> bool {
-    if left.len() != right.len() {
+
+fn slice_eq<T, U, F>(this: &[T], that: &[U], eq: F) -> bool
+where
+    F: Fn(&T, &U) -> bool,
+{
+    if this.len() != that.len() {
         return false;
     }
 
-    // Implemented as explicit indexing rather
-    // than zipped iterators for performance reasons.
-    // See PR https://github.com/rust-lang/rust/pull/116846
-    for i in 0..left.len() {
-        // bound checks are optimized away
-        if !eq(&left[i], &right[i]) {
+    // PERFORMANCE: Bounds checks are optimized away.
+    for i in 0..this.len() {
+        if !eq(&this[i], &that[i]) {
             return false;
         }
     }
@@ -1106,9 +1111,13 @@ impl<K, V> Clone for Iter<'_, K, V> {
     }
 }
 
-impl<K: fmt::Debug, V: fmt::Debug> fmt::Debug for Iter<'_, K, V> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_list().entries(self.clone()).finish()
+impl<K, V> fmt::Debug for Iter<'_, K, V>
+where
+    K: fmt::Debug,
+    V: fmt::Debug,
+{
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.debug_list().entries(self.clone()).finish()
     }
 }
 
@@ -1163,10 +1172,14 @@ impl<K, V> ExactSizeIterator for IterMut<'_, K, V> {
 
 impl<K, V> iter::FusedIterator for IterMut<'_, K, V> {}
 
-impl<K: fmt::Debug, V: fmt::Debug> fmt::Debug for IterMut<'_, K, V> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl<K, V> fmt::Debug for IterMut<'_, K, V>
+where
+    K: fmt::Debug,
+    V: fmt::Debug,
+{
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         let iter = self.iter.as_slice().iter().map(Bucket::refs);
-        f.debug_list().entries(iter).finish()
+        formatter.debug_list().entries(iter).finish()
     }
 }
 
@@ -1413,9 +1426,9 @@ where
     S: any::Any + hash::BuildHasher,
     A: any::Any + alloc::Allocator,
 {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         // Follow `vec::Splice` in only printing the drain and replacement
-        f.debug_struct("Splice")
+        formatter.debug_struct("Splice")
             .field("drain", &self.drain)
             .field("replace_with", &self.replace_with)
             .finish()
@@ -2651,8 +2664,8 @@ where
     V: any::Any + fmt::Debug,
     A: any::Any + alloc::Allocator,
 {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut tuple = f.debug_tuple("Entry");
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut tuple = formatter.debug_tuple("Entry");
         match self {
             Entry::Vacant(v) => tuple.field(v),
             Entry::Occupied(o) => tuple.field(o),
@@ -2768,8 +2781,8 @@ where
     V: any::Any + fmt::Debug,
     A: any::Any + alloc::Allocator,
 {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("OccupiedEntry")
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.debug_struct("OccupiedEntry")
             .field("key", self.key())
             .field("value", self.get())
             .finish()
@@ -2863,8 +2876,8 @@ where
     V: any::Any,
     A: any::Any + alloc::Allocator,
 {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_tuple("VacantEntry").field(self.key()).finish()
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.debug_tuple("VacantEntry").field(self.key()).finish()
     }
 }
 
@@ -2955,8 +2968,8 @@ where
     V: any::Any + fmt::Debug,
     A: any::Any + alloc::Allocator,
 {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("IndexedEntry")
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.debug_struct("IndexedEntry")
             .field("index", &self.index)
             .field("key", self.key())
             .field("value", self.get())
