@@ -2124,7 +2124,7 @@ where
     fn extend_one(&mut self, item: T) {
         self.inner.push(item);
     }
-     */
+    */
     /*
     #[inline]
     #[track_caller]
