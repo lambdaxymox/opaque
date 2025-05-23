@@ -1,0 +1,6 @@
+mod test_shift_insert_contains;
+mod test_shift_insert_contains_same_index;
+mod test_shift_insert_end;
+mod test_shift_insert_get;
+mod test_shift_insert_len;
+mod test_shift_insert_start;

@@ -1,0 +1,6 @@
+mod test_swap_remove_contains_key;
+mod test_swap_remove_get_key_value;
+mod test_swap_remove_get;
+mod test_swap_remove_len;
+mod test_swap_remove_preserves_order;
+mod test_swap_remove_get_mut;

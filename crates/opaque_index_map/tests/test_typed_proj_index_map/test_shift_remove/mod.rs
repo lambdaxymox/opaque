@@ -1,0 +1,6 @@
+mod test_shift_remove_get_mut;
+mod test_shift_remove_contains_key;
+mod test_shift_remove_len;
+mod test_shift_remove_preserves_order;
+mod test_shift_remove_get_key_value;
+mod test_shift_remove_get;

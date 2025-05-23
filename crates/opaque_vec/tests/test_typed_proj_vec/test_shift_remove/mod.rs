@@ -1,0 +1,4 @@
+mod test_shift_remove_end;
+mod test_shift_remove_get;
+mod test_shift_remove_len;
+mod test_shift_remove_start;

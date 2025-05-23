@@ -1,0 +1,7 @@
+mod test_shift_insert_len;
+mod test_shift_insert_get_mut_unchecked;
+mod test_shift_insert_as_slice_start;
+mod test_shift_insert_as_slice_end;
+mod test_shift_insert_capacity;
+mod test_shift_insert_same_index;
+mod test_shift_insert_get_unchecked;

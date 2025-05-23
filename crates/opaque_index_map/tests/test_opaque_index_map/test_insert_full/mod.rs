@@ -1,0 +1,15 @@
+mod test_insert_full_get;
+mod test_insert_full_as_slice;
+mod test_insert_full_get_key_value;
+mod test_insert_full_preserves_order_new_entry;
+mod test_insert_full_get_full;
+mod test_insert_full_values_mut;
+mod test_insert_full_iter_mut;
+mod test_insert_full_get_mut;
+mod test_insert_full_get_index_of;
+mod test_insert_full_as_mut_slice;
+mod test_insert_full_get_full_mut;
+mod test_insert_full_len;
+mod test_insert_full_values;
+mod test_insert_full_iter;
+mod test_insert_full_contains_key;
