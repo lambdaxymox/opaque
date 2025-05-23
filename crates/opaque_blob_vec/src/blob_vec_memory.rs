@@ -103,7 +103,7 @@ where
     memory.map_err(|_| opaque_error::TryReserveError::from(opaque_error::TryReserveErrorKind::AllocError { layout: new_layout }))
 }
 
-
+#[repr(C)]
 pub(crate) struct BlobVecMemory {
     ptr: Unique<u8>,
     capacity: Capacity,
@@ -113,7 +113,7 @@ pub(crate) struct BlobVecMemory {
 impl BlobVecMemory {
     #[inline]
     pub(crate) const fn allocator_type_id(&self) -> any::TypeId {
-        self.alloc.alloc_type_id()
+        self.alloc.allocator_type_id()
     }
 
     #[inline]

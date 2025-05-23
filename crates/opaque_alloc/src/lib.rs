@@ -20,7 +20,7 @@ struct TypedProjAllocInner<A> {
 
 impl<A> TypedProjAllocInner<A> {
     #[inline]
-    const fn alloc_type_id(&self) -> any::TypeId {
+    const fn allocator_type_id(&self) -> any::TypeId {
         self.alloc_type_id
     }
 }
@@ -106,7 +106,7 @@ struct OpaqueAllocInner {
 
 impl OpaqueAllocInner {
     #[inline]
-    const fn alloc_type_id(&self) -> any::TypeId {
+    const fn allocator_type_id(&self) -> any::TypeId {
         self.alloc_type_id
     }
 }
@@ -263,8 +263,8 @@ pub struct OpaqueAlloc {
 
 impl OpaqueAlloc {
     #[inline]
-    pub const fn alloc_type_id(&self) -> any::TypeId {
-        self.inner.alloc_type_id()
+    pub const fn allocator_type_id(&self) -> any::TypeId {
+        self.inner.allocator_type_id()
     }
 
     #[inline]
@@ -272,7 +272,7 @@ impl OpaqueAlloc {
     where
         A: any::Any + alloc::Allocator,
     {
-        self.inner.alloc_type_id() == any::TypeId::of::<A>()
+        self.inner.allocator_type_id() == any::TypeId::of::<A>()
     }
 
     #[inline]

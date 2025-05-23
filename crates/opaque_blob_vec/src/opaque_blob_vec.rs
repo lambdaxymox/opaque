@@ -1219,3 +1219,84 @@ impl fmt::Debug for OpaqueBlobVec {
         formatter.debug_struct("OpaqueBlobVec").finish()
     }
 }
+
+#[cfg(test)]
+mod blob_vec_layout_tests {
+    use super::*;
+    use core::mem;
+
+    fn run_test_opaque_blob_vec_match_sizes<T, A>()
+    where
+        T: any::Any,
+        A: any::Any + alloc::Allocator,
+    {
+        let expected = mem::size_of::<TypedProjBlobVec<A>>();
+        let result = mem::size_of::<OpaqueBlobVec>();
+
+        assert_eq!(result, expected, "Opaque and Typed Projected data types size mismatch");
+    }
+
+    fn run_test_opaque_blob_vec_match_alignments<T, A>()
+    where
+        T: any::Any,
+        A: any::Any + alloc::Allocator,
+    {
+        let expected = mem::align_of::<TypedProjBlobVec<A>>();
+        let result = mem::align_of::<OpaqueBlobVec>();
+
+        assert_eq!(result, expected, "Opaque and Typed Projected data types alignment mismatch");
+    }
+
+    fn run_test_opaque_blob_vec_match_offsets<T, A>()
+    where
+        T: any::Any,
+        A: any::Any + alloc::Allocator,
+    {
+        let expected = mem::offset_of!(TypedProjBlobVec<A>, inner);
+        let result = mem::offset_of!(OpaqueBlobVec, inner);
+
+        assert_eq!(result, expected, "Opaque and Typed Projected data types offsets mismatch");
+    }
+
+    struct Pair(u8, u64);
+
+    struct DummyAlloc {}
+
+    unsafe impl alloc::Allocator for DummyAlloc {
+        fn allocate(&self, layout: alloc::Layout) -> Result<NonNull<[u8]>, alloc::AllocError> {
+            alloc::Global.allocate(layout)
+        }
+        unsafe fn deallocate(&self, ptr: NonNull<u8>, layout: alloc::Layout) {
+            unsafe {
+                alloc::Global.deallocate(ptr, layout)
+            }
+        }
+    }
+
+    macro_rules! layout_tests {
+        ($module_name:ident, $element_typ:ty, $alloc_typ:ty) => {
+            mod $module_name {
+                use super::*;
+
+                #[test]
+                fn test_opaque_blob_vec_layout_match_sizes() {
+                    run_test_opaque_blob_vec_match_sizes::<$element_typ, $alloc_typ>();
+                }
+
+                #[test]
+                fn test_opaque_blob_vec_layout_match_alignments() {
+                    run_test_opaque_blob_vec_match_alignments::<$element_typ, $alloc_typ>();
+                }
+
+                #[test]
+                fn test_opaque_blob_vec_layout_match_offsets() {
+                    run_test_opaque_blob_vec_match_offsets::<$element_typ, $alloc_typ>();
+                }
+            }
+        };
+    }
+
+    layout_tests!(u8_global, u8, alloc::Global);
+    layout_tests!(pair_dummy_alloc, Pair, DummyAlloc);
+    layout_tests!(unit_zst_dummy_alloc, (), DummyAlloc);
+}
