@@ -1,5 +1,4 @@
 #![deny(unsafe_op_in_unsafe_fn)]
-#![feature(const_eval_select)]
 #![feature(allocator_api)]
 #![feature(structural_match)]
 #![feature(alloc_layout_extra)]
