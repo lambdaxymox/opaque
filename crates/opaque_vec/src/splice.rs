@@ -5,7 +5,7 @@ use std::alloc;
 use crate::Drain;
 
 #[derive(Debug)]
-pub struct Splice<'a, I, A>
+pub struct Splice<'a, I, A = alloc::Global>
 where
     I: Iterator + 'a,
     <I as Iterator>::Item: any::Any,

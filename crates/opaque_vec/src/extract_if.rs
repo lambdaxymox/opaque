@@ -8,7 +8,7 @@ use opaque_alloc::TypedProjAlloc;
 use crate::TypedProjVecInner;
 
 #[must_use = "iterators are lazy and do nothing unless consumed"]
-pub struct ExtractIf<'a, T, F, A>
+pub struct ExtractIf<'a, T, F, A = alloc::Global>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator,

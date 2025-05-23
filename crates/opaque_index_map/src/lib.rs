@@ -23,7 +23,7 @@ pub use equivalent::Equivalent;
 use opaque_alloc::TypedProjAlloc;
 use opaque_hash::{OpaqueBuildHasher, TypedProjBuildHasher};
 
-pub struct Drain<'a, K, V, A>
+pub struct Drain<'a, K, V, A = alloc::Global>
 where
     K: any::Any,
     V: any::Any,
@@ -165,7 +165,7 @@ impl<'a, K, V> core::ops::Index<usize> for Keys<'a, K, V> {
     }
 }
 
-pub struct IntoKeys<K, V, A>
+pub struct IntoKeys<K, V, A = alloc::Global>
 where
     A: any::Any + alloc::Allocator,
 {
@@ -358,7 +358,7 @@ impl<K, V> Default for ValuesMut<'_, K, V> {
     }
 }
 
-pub struct IntoValues<K, V, A>
+pub struct IntoValues<K, V, A = alloc::Global>
 where
     A: any::Any + alloc::Allocator,
 {
@@ -1175,7 +1175,7 @@ impl<K, V> Default for IterMut<'_, K, V> {
 }
 
 #[derive(Clone)]
-pub struct IntoIter<K, V, A>
+pub struct IntoIter<K, V, A = alloc::Global>
 where
     K: any::Any,
     V: any::Any,
@@ -1277,7 +1277,7 @@ where
     }
 }
 
-pub struct Splice<'a, I, K, V, S, A>
+pub struct Splice<'a, I, K, V, S, A = alloc::Global>
 where
     I: Iterator<Item = (K, V)>,
     K: any::Any + hash::Hash + Eq,
@@ -2665,7 +2665,7 @@ where
     }
 }
 
-pub struct OccupiedEntry<'a, K, V, A>
+pub struct OccupiedEntry<'a, K, V, A = alloc::Global>
 where
     A: any::Any + alloc::Allocator,
 {
@@ -2797,7 +2797,7 @@ where
     }
 }
 
-pub struct VacantEntry<'a, K, V, A>
+pub struct VacantEntry<'a, K, V, A = alloc::Global>
 where
     A: any::Any + alloc::Allocator,
 {
@@ -2866,7 +2866,7 @@ where
     }
 }
 
-pub struct IndexedEntry<'a, K, V, A>
+pub struct IndexedEntry<'a, K, V, A = alloc::Global>
 where
     A: any::Any + alloc::Allocator,
 {
@@ -4083,7 +4083,7 @@ mod index_map_inner_layout_tests {
 }
 
 #[repr(transparent)]
-pub struct TypedProjIndexMap<K, V, S, A>
+pub struct TypedProjIndexMap<K, V, S, A = alloc::Global>
 where
     A: any::Any + alloc::Allocator,
     S: any::Any + hash::BuildHasher,

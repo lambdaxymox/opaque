@@ -546,7 +546,7 @@ impl Drop for BlobVecInner {
 }
 
 #[repr(transparent)]
-pub struct TypedProjBlobVec<A>
+pub struct TypedProjBlobVec<A = alloc::Global>
 where
     A: any::Any + alloc::Allocator,
 {

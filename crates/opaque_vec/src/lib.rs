@@ -1497,7 +1497,10 @@ impl OpaqueVecInner {
 }
 
 #[repr(transparent)]
-pub struct TypedProjVec<T, A> where A: any::Any + alloc::Allocator {
+pub struct TypedProjVec<T, A = alloc::Global>
+where
+    A: any::Any + alloc::Allocator,
+{
     inner: TypedProjVecInner<T, A>,
 }
 

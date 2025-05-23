@@ -9,7 +9,7 @@ use std::alloc;
 use opaque_alloc::TypedProjAlloc;
 use crate::{is_zst, TypedProjVecInner};
 
-pub struct Drain<'a, T, A>
+pub struct Drain<'a, T, A = alloc::Global>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator,
