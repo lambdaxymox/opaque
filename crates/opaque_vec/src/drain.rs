@@ -7,7 +7,7 @@ use core::slice;
 use std::alloc;
 
 use opaque_alloc::TypedProjAlloc;
-use crate::{is_zst, TypedProjVecInner};
+use crate::TypedProjVecInner;
 
 pub struct Drain<'a, T, A = alloc::Global>
 where
@@ -85,7 +85,7 @@ where
             let unyielded_ptr = this.iter.as_slice().as_ptr();
 
             // ZSTs have no identity, so we don't need to move them around.
-            if !is_zst::<T>() {
+            if !crate::zst::is_zst::<T>() {
                 let start_ptr = source_vec.as_mut_ptr().add(start);
 
                 // memmove back unyielded elements
@@ -198,7 +198,7 @@ where
 
         let mut vec = self.vec;
 
-        if is_zst::<T>() {
+        if crate::zst::is_zst::<T>() {
             // ZSTs have no identity, so we don't need to move them around, we only need to drop the correct amount.
             // this can be achieved by manipulating the Vec length instead of moving values out from `iter`.
             unsafe {

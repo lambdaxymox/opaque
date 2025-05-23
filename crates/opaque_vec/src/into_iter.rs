@@ -8,7 +8,17 @@ use std::mem::ManuallyDrop;
 use std::ptr::NonNull;
 
 use opaque_alloc::TypedProjAlloc;
-use crate::{assuming_non_null, assuming_non_null_mut, is_zst, private};
+use crate::private;
+
+#[inline(always)]
+const fn assuming_non_null<T>(item: *const T) -> NonNull<T> {
+    unsafe { *(item as *const NonNull<T>) }
+}
+
+#[inline(always)]
+const fn assuming_non_null_mut<T>(item: *const T) -> NonNull<T> {
+    unsafe { *(item as *mut NonNull<T>) }
+}
 
 pub struct IntoIter<T, A = alloc::Global>
 where
@@ -97,7 +107,7 @@ where
 
     #[inline]
     fn next(&mut self) -> Option<T> {
-        let ptr = if is_zst::<T>() {
+        let ptr = if crate::zst::is_zst::<T>() {
             if self.ptr.as_ptr() == self.end as *mut T {
                 return None;
             }
@@ -119,7 +129,7 @@ where
 
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let exact = if is_zst::<T>() {
+        let exact = if crate::zst::is_zst::<T>() {
             self.end.addr().wrapping_sub(self.ptr.as_ptr().addr())
         } else {
             unsafe { assuming_non_null_mut(self.end).offset_from_unsigned(self.ptr) }
@@ -254,7 +264,7 @@ where
 {
     #[inline]
     fn next_back(&mut self) -> Option<T> {
-        if is_zst::<T>() {
+        if crate::zst::is_zst::<T>() {
             if self.ptr.as_ptr() == self.end as *mut _ {
                 return None;
             }
@@ -333,7 +343,7 @@ where
             let mut me = ManuallyDrop::new(inner);
             let data_ptr = me.as_non_null();
             let begin = data_ptr.as_ptr();
-            let end = if is_zst::<T>() {
+            let end = if crate::zst::is_zst::<T>() {
                 begin.wrapping_byte_add(me.len())
             } else {
                 begin.add(me.len()) as *const T

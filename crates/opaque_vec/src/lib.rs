@@ -9,6 +9,7 @@ mod into_iter;
 mod drain;
 mod splice;
 mod extract_if;
+mod zst;
 
 pub use crate::into_iter::*;
 pub use crate::drain::*;
@@ -34,21 +35,6 @@ use std::borrow;
 use opaque_blob_vec::{OpaqueBlobVec, TypedProjBlobVec};
 use opaque_alloc::TypedProjAlloc;
 use opaque_error;
-
-#[inline(always)]
-const fn is_zst<T>() -> bool {
-    mem::size_of::<T>() == 0
-}
-
-#[inline(always)]
-const fn assuming_non_null<T>(item: *const T) -> NonNull<T> {
-    unsafe { *(item as *const NonNull<T>) }
-}
-
-#[inline(always)]
-const fn assuming_non_null_mut<T>(item: *const T) -> NonNull<T> {
-    unsafe { *(item as *mut NonNull<T>) }
-}
 
 #[repr(C)]
 struct TypedProjVecInner<T, A>
@@ -2112,7 +2098,7 @@ where
             let alloc = ManuallyDrop::new(core::ptr::read(me.allocator()));
             let inner = me.as_non_null();
             let begin = inner.as_ptr();
-            let end = if is_zst::<T>() {
+            let end = if zst::is_zst::<T>() {
                 begin.wrapping_byte_add(me.len())
             } else {
                 begin.add(me.len()) as *const T
