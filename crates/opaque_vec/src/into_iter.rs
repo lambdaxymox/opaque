@@ -8,7 +8,8 @@ use std::mem::ManuallyDrop;
 use std::ptr::NonNull;
 
 use opaque_alloc::TypedProjAlloc;
-use crate::private;
+
+use crate::TypedProjVecInner;
 
 #[inline(always)]
 const fn assuming_non_null<T>(item: *const T) -> NonNull<T> {
@@ -284,7 +285,7 @@ where
             }
         }
     }
-
+    
     /*
     #[inline]
     fn advance_back_by(&mut self, n: usize) -> Result<(), core::num::NonZero<usize>> {
@@ -337,7 +338,7 @@ where
     fn clone(&self) -> Self {
         let alloc = Clone::clone(ops::Deref::deref(&self.alloc));
         let read_alloc = ManuallyDrop::new(unsafe { core::ptr::read(&alloc) });
-        let inner = private::to_typed_proj_vec(self.as_slice(), alloc);
+        let inner = TypedProjVecInner::from_slice_in(self.as_slice(), alloc);
 
         unsafe {
             let mut me = ManuallyDrop::new(inner);

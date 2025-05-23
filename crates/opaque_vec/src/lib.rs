@@ -1172,11 +1172,90 @@ where
     }
 }
 
+impl<T, A> TypedProjVecInner<T, A>
+where
+    T: any::Any + Clone,
+    A: any::Any + alloc::Allocator + Clone,
+{
+    #[inline]
+    pub(crate) fn from_slice_in(slice: &[T], alloc: A) -> TypedProjVecInner<T, A> {
+        struct DropGuard<'a, T, A>
+        where
+            T: any::Any,
+            A: any::Any + alloc::Allocator + Clone,
+        {
+            vec: &'a mut TypedProjVecInner<T, A>,
+            num_init: usize,
+        }
+
+        impl<'a, T, A> Drop for DropGuard<'a, T, A>
+        where
+            T: any::Any,
+            A: any::Any + alloc::Allocator + Clone,
+        {
+            #[inline]
+            fn drop(&mut self) {
+                // SAFETY:
+                // items were marked initialized in the loop below
+                unsafe {
+                    self.vec.set_len(self.num_init);
+                }
+            }
+        }
+
+        let mut vec: TypedProjVecInner<T, A> = TypedProjVecInner::with_capacity_in(slice.len(), alloc);
+        let mut guard = DropGuard {
+            vec: &mut vec,
+            num_init: 0,
+        };
+        let slots = guard.vec.spare_capacity_mut();
+        // .take(slots.len()) is necessary for LLVM to remove bounds checks
+        // and has better codegen than zip.
+        for (i, b) in slice.iter().enumerate().take(slots.len()) {
+            guard.num_init = i;
+            slots[i].write(b.clone());
+        }
+
+        mem::forget(guard);
+
+        // SAFETY:
+        // the vec was allocated and initialized above to at least this length.
+        unsafe {
+            vec.set_len(slice.len());
+        }
+
+        vec
+    }
+}
+
+impl<T, A> TypedProjVecInner<T, A>
+where
+    T: any::Any,
+    A: any::Any + alloc::Allocator,
+{
+    #[inline]
+    pub(crate) fn from_boxed_slice(box_slice: Box<[T], A>) -> TypedProjVecInner<T, A> {
+        let length = box_slice.len();
+        let capacity = box_slice.len();
+        let (ptr, alloc) = {
+            let (slice_ptr, _alloc) = Box::into_non_null_with_allocator(box_slice);
+            let _ptr: NonNull<T> = unsafe { NonNull::new_unchecked(slice_ptr.as_ptr() as *mut T) };
+            (_ptr, _alloc)
+        };
+        let vec = unsafe {
+            TypedProjVecInner::from_parts_in(ptr, length, capacity, alloc)
+        };
+
+        vec
+    }
+}
+
+/*
 mod private {
     use super::TypedProjVecInner;
     use std::alloc;
     use core::any;
-
+    /*
     // We shouldn't add inline attribute to this since this is used in
     // `vec!` macro mostly and causes perf regression. See #71204 for
     // discussion and perf results.
@@ -1192,7 +1271,8 @@ mod private {
             TypedProjVecInner::from_raw_parts_in(b as *mut T, len, len, alloc)
         }
     }
-
+    */
+    /*
     #[allow(missing_docs)]
     #[inline]
     pub fn to_typed_proj_vec<T, A>(slice: &[T], alloc: A) -> TypedProjVecInner<T, A>
@@ -1202,7 +1282,7 @@ mod private {
     {
         T::to_typed_proj_vec(slice, alloc)
     }
-
+    */
     pub trait ConvertTypedProjVec {
         fn to_typed_proj_vec<A>(slice: &[Self], alloc: A) -> TypedProjVecInner<Self, A>
         where
@@ -1268,13 +1348,14 @@ mod private {
         }
     }
 }
+*/
 
 impl<T> From<&[T]> for TypedProjVecInner<T, alloc::Global>
 where
     T: any::Any + Clone,
 {
     fn from(slice: &[T]) -> Self {
-        private::to_typed_proj_vec::<T, alloc::Global>(slice, alloc::Global)
+        Self::from_slice_in(slice, alloc::Global::default())
     }
 }
 
@@ -1283,7 +1364,7 @@ where
     T: any::Any + Clone,
 {
     fn from(slice: &mut [T]) -> Self {
-        private::to_typed_proj_vec::<T, alloc::Global>(slice, alloc::Global)
+        Self::from_slice_in(slice, alloc::Global::default())
     }
 }
 
@@ -1346,18 +1427,7 @@ where
     A: any::Any + alloc::Allocator,
 {
     fn from(slice: Box<[T], A>) -> Self {
-        let length = slice.len();
-        let capacity = slice.len();
-        let (ptr, alloc) = {
-            let (slice_ptr, _alloc) = Box::into_non_null_with_allocator(slice);
-            let _ptr: NonNull<T> = unsafe { NonNull::new_unchecked(slice_ptr.as_ptr() as *mut T) };
-            (_ptr, _alloc)
-        };
-        let inner = unsafe {
-            TypedProjVecInner::from_parts_in(ptr, length, capacity, alloc)
-        };
-
-        inner
+        Self::from_boxed_slice(slice)
     }
 }
 
@@ -1366,7 +1436,7 @@ where
     T: any::Any,
 {
     fn from(array: [T; N]) -> Self {
-        private::into_typed_proj_vec::<T, alloc::Global>(Box::new(array))
+        Self::from_boxed_slice(Box::new(array))
     }
 }
 
