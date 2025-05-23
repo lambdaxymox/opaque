@@ -1,3 +1,4 @@
+#![deny(unsafe_op_in_unsafe_fn)]
 #![feature(optimize_attribute)]
 use core::any;
 use core::fmt;

@@ -1,3 +1,4 @@
+#![deny(unsafe_op_in_unsafe_fn)]
 #![feature(allocator_api)]
 mod common;
 mod test_opaque_blob_vec;

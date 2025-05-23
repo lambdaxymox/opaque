@@ -1,3 +1,4 @@
+#![deny(unsafe_op_in_unsafe_fn)]
 mod bench_opaque_hasher;
 mod bench_typed_proj_hasher;
 

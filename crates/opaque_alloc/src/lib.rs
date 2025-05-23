@@ -1,3 +1,4 @@
+#![deny(unsafe_op_in_unsafe_fn)]
 #![feature(allocator_api)]
 #![feature(alloc_layout_extra)]
 #![feature(optimize_attribute)]

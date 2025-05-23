@@ -1,5 +1,6 @@
+#![deny(unsafe_op_in_unsafe_fn)]
 use core::any;
-use core::{fmt, hash};
+use core::fmt;
 use core::ops;
 
 pub struct PrefixGenerator<'a, T> {

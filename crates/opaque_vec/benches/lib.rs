@@ -1,3 +1,4 @@
+#![deny(unsafe_op_in_unsafe_fn)]
 #![feature(allocator_api)]
 mod bench_opaque_vec;
 mod bench_typed_proj_vec;

@@ -100,14 +100,16 @@ where
         T: any::Any + fmt::Debug,
     {
         {
-            let value_ref: &T = &*value.cast::<T>().as_ptr();
+            let value_ref: &T = unsafe { &*value.cast::<T>().as_ptr() };
 
             eprintln!("Dropping value `{:?}` at memory location: `{:?}`", value_ref, value);
         }
 
         let to_drop = value.as_ptr() as *mut T;
 
-        core::ptr::drop_in_place(to_drop)
+        unsafe {
+            core::ptr::drop_in_place(to_drop)
+        }
     }
 
     let alloc = TypedProjAlloc::new(alloc::Global);

@@ -1,3 +1,4 @@
+#![deny(unsafe_op_in_unsafe_fn)]
 #![feature(const_eval_select)]
 #![feature(allocator_api)]
 #![feature(structural_match)]
@@ -72,7 +73,9 @@ where
         unsafe fn drop_fn<T>(value: NonNull<u8>) {
             let to_drop = value.as_ptr() as *mut T;
 
-            core::ptr::drop_in_place(to_drop)
+            unsafe {
+                core::ptr::drop_in_place(to_drop)
+            }
         }
 
         let element_layout = alloc::Layout::new::<T>();
@@ -90,8 +93,9 @@ where
     pub(crate) fn with_capacity_proj_in(capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self {
         unsafe fn drop_fn<T>(value: NonNull<u8>) {
             let to_drop = value.as_ptr() as *mut T;
-
-            core::ptr::drop_in_place(to_drop)
+            unsafe {
+                core::ptr::drop_in_place(to_drop)
+            }
         }
 
         let element_layout = alloc::Layout::new::<T>();
@@ -108,7 +112,9 @@ where
         unsafe fn drop_fn<T>(value: NonNull<u8>) {
             let to_drop = value.as_ptr() as *mut T;
 
-            core::ptr::drop_in_place(to_drop)
+            unsafe {
+                core::ptr::drop_in_place(to_drop)
+            }
         }
 
         let element_layout = alloc::Layout::new::<T>();
@@ -124,14 +130,17 @@ where
     pub(crate) unsafe fn from_raw_parts_proj_in(ptr: *mut T, length: usize, capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self {
         unsafe fn drop_fn<T>(value: NonNull<u8>) {
             let to_drop = value.as_ptr() as *mut T;
-
-            core::ptr::drop_in_place(to_drop)
+            unsafe {
+                core::ptr::drop_in_place(to_drop)
+            }
         }
 
         let element_layout = alloc::Layout::new::<T>();
         let drop_fn = Some(drop_fn::<T> as unsafe fn(NonNull<u8>));
         let ptr_bytes = ptr.cast::<u8>();
-        let data = TypedProjBlobVec::from_raw_parts_in(ptr_bytes, length, capacity, proj_alloc, element_layout, drop_fn);
+        let data = unsafe {
+            TypedProjBlobVec::from_raw_parts_in(ptr_bytes, length, capacity, proj_alloc, element_layout, drop_fn)
+        };
         let element_type_id = any::TypeId::of::<T>();
         let allocator_type_id = any::TypeId::of::<A>();
 
@@ -143,13 +152,17 @@ where
         unsafe fn drop_fn<T>(value: NonNull<u8>) {
             let to_drop = value.as_ptr() as *mut T;
 
-            core::ptr::drop_in_place(to_drop)
+            unsafe {
+                core::ptr::drop_in_place(to_drop)
+            }
         }
 
         let element_layout = alloc::Layout::new::<T>();
         let drop_fn = Some(drop_fn::<T> as unsafe fn(NonNull<u8>));
         let ptr_bytes = ptr.cast::<u8>();
-        let data = TypedProjBlobVec::from_parts_in(ptr_bytes, length, capacity, proj_alloc, element_layout, drop_fn);
+        let data = unsafe {
+            TypedProjBlobVec::from_parts_in(ptr_bytes, length, capacity, proj_alloc, element_layout, drop_fn)
+        };
         let element_type_id = any::TypeId::of::<T>();
         let allocator_type_id = any::TypeId::of::<A>();
 
@@ -185,14 +198,18 @@ where
     pub(crate) unsafe fn from_raw_parts_in(ptr: *mut T, length: usize, capacity: usize, alloc: A) -> Self {
         let proj_alloc = TypedProjAlloc::new(alloc);
 
-        Self::from_raw_parts_proj_in(ptr, length, capacity, proj_alloc)
+        unsafe {
+            Self::from_raw_parts_proj_in(ptr, length, capacity, proj_alloc)
+        }
     }
 
     #[inline]
     pub(crate) unsafe fn from_parts_in(ptr: NonNull<T>, length: usize, capacity: usize, alloc: A) -> Self {
         let proj_alloc = TypedProjAlloc::new(alloc);
 
-        Self::from_parts_proj_in(ptr, length, capacity, proj_alloc)
+        unsafe {
+            Self::from_parts_proj_in(ptr, length, capacity, proj_alloc)
+        }
     }
 }
 
@@ -221,12 +238,16 @@ where
 
     #[inline]
     pub(crate) unsafe fn from_raw_parts(ptr: *mut T, length: usize, capacity: usize) -> Self {
-        Self::from_raw_parts_in(ptr, length, capacity, alloc::Global)
+        unsafe {
+            Self::from_raw_parts_in(ptr, length, capacity, alloc::Global)
+        }
     }
 
     #[inline]
     pub(crate) unsafe fn from_parts(ptr: NonNull<T>, length: usize, capacity: usize) -> Self {
-        Self::from_parts_in(ptr, length, capacity, alloc::Global)
+        unsafe {
+            Self::from_parts_in(ptr, length, capacity, alloc::Global)
+        }
     }
 }
 
@@ -1137,7 +1158,9 @@ where
         unsafe fn drop_fn<T>(value: NonNull<u8>) {
             let to_drop = value.as_ptr() as *mut T;
 
-            core::ptr::drop_in_place(to_drop)
+            unsafe {
+                core::ptr::drop_in_place(to_drop)
+            }
         }
 
         let new_data = {
@@ -1536,14 +1559,18 @@ where
 
     #[inline]
     pub unsafe fn from_raw_parts_proj_in(ptr: *mut T, length: usize, capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self {
-        let inner = TypedProjVecInner::from_raw_parts_proj_in(ptr, length, capacity, proj_alloc);
+        let inner = unsafe {
+            TypedProjVecInner::from_raw_parts_proj_in(ptr, length, capacity, proj_alloc)
+        };
 
         Self { inner, }
     }
 
     #[inline]
     pub unsafe fn from_parts_proj_in(ptr: NonNull<T>, length: usize, capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self {
-        let inner = TypedProjVecInner::from_parts_proj_in(ptr, length, capacity, proj_alloc);
+        let inner = unsafe {
+            TypedProjVecInner::from_parts_proj_in(ptr, length, capacity, proj_alloc)
+        };
 
         Self { inner, }
     }
@@ -1575,14 +1602,18 @@ where
 
     #[inline]
     pub unsafe fn from_raw_parts_in(ptr: *mut T, length: usize, capacity: usize, alloc: A) -> Self {
-        let inner = TypedProjVecInner::from_raw_parts_in(ptr, length, capacity, alloc);
+        let inner = unsafe {
+            TypedProjVecInner::from_raw_parts_in(ptr, length, capacity, alloc)
+        };
 
         Self { inner, }
     }
 
     #[inline]
     pub unsafe fn from_parts_in(ptr: NonNull<T>, length: usize, capacity: usize, alloc: A) -> Self {
-        let inner = TypedProjVecInner::from_parts_in(ptr, length, capacity, alloc);
+        let inner = unsafe {
+            TypedProjVecInner::from_parts_in(ptr, length, capacity, alloc)
+        };
 
         Self { inner, }
     }
@@ -1619,14 +1650,18 @@ where
 
     #[inline]
     pub unsafe fn from_raw_parts(ptr: *mut T, length: usize, capacity: usize) -> Self {
-        let inner = TypedProjVecInner::from_raw_parts(ptr, length, capacity);
+        let inner = unsafe {
+            TypedProjVecInner::from_raw_parts(ptr, length, capacity)
+        };
 
         Self { inner, }
     }
 
     #[inline]
     pub unsafe fn from_parts(ptr: NonNull<T>, length: usize, capacity: usize) -> Self {
-        let inner = TypedProjVecInner::from_parts(ptr, length, capacity);
+        let inner = unsafe {
+            TypedProjVecInner::from_parts(ptr, length, capacity)
+        };
 
         Self { inner, }
     }
@@ -1675,7 +1710,9 @@ where
 {
     #[inline]
     unsafe fn set_len(&mut self, new_len: usize) {
-        self.inner.set_len(new_len);
+        unsafe {
+            self.inner.set_len(new_len)
+        }
     }
 
     #[inline]
@@ -2651,7 +2688,9 @@ impl OpaqueVec {
         T: any::Any,
         A: any::Any + alloc::Allocator,
     {
-        let proj_vec = TypedProjVec::<T, A>::from_raw_parts_proj_in(ptr, length, capacity, proj_alloc);
+        let proj_vec = unsafe {
+            TypedProjVec::<T, A>::from_raw_parts_proj_in(ptr, length, capacity, proj_alloc)
+        };
 
         Self::from_proj(proj_vec)
     }
@@ -2662,7 +2701,9 @@ impl OpaqueVec {
         T: any::Any,
         A: any::Any + alloc::Allocator,
     {
-        let proj_vec = TypedProjVec::<T, A>::from_parts_proj_in(ptr, length, capacity, proj_alloc);
+        let proj_vec = unsafe {
+            TypedProjVec::<T, A>::from_parts_proj_in(ptr, length, capacity, proj_alloc)
+        };
 
         Self::from_proj(proj_vec)
     }
@@ -2710,7 +2751,9 @@ impl OpaqueVec {
         T: any::Any,
         A: any::Any + alloc::Allocator,
     {
-        let proj_vec = TypedProjVec::<T, A>::from_raw_parts_in(ptr, length, capacity, alloc);
+        let proj_vec = unsafe {
+            TypedProjVec::<T, A>::from_raw_parts_in(ptr, length, capacity, alloc)
+        };
 
         Self::from_proj(proj_vec)
     }
@@ -2721,7 +2764,9 @@ impl OpaqueVec {
         T: any::Any,
         A: any::Any + alloc::Allocator,
     {
-        let proj_vec = TypedProjVec::<T, A>::from_parts_in(ptr, length, capacity, alloc);
+        let proj_vec = unsafe {
+            TypedProjVec::<T, A>::from_parts_in(ptr, length, capacity, alloc)
+        };
 
         Self::from_proj(proj_vec)
     }
@@ -2767,7 +2812,9 @@ impl OpaqueVec {
     where
         T: any::Any,
     {
-        let proj_vec = TypedProjVec::<T, alloc::Global>::from_raw_parts(ptr, length, capacity);
+        let proj_vec = unsafe {
+            TypedProjVec::<T, alloc::Global>::from_raw_parts(ptr, length, capacity)
+        };
 
         Self::from_proj(proj_vec)
     }
@@ -2777,7 +2824,9 @@ impl OpaqueVec {
     where
         T: any::Any,
     {
-        let proj_vec = TypedProjVec::<T, alloc::Global>::from_parts(ptr, length, capacity);
+        let proj_vec = unsafe {
+            TypedProjVec::<T, alloc::Global>::from_parts(ptr, length, capacity)
+        };
 
         Self::from_proj(proj_vec)
     }

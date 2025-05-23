@@ -1,3 +1,4 @@
+#![deny(unsafe_op_in_unsafe_fn)]
 #![feature(allocator_api)]
 #![feature(slice_ptr_get)]
 mod bench_opaque_alloc;

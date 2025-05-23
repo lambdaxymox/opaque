@@ -94,9 +94,13 @@ impl BlobVecInner {
     where
         A: any::Any + alloc::Allocator,
     {
-        let capacity_bytes = blob_vec_memory::new_capacity(capacity, element_layout);
+        let capacity_bytes = unsafe {
+            blob_vec_memory::new_capacity(capacity, element_layout)
+        };
         let opaque_alloc = OpaqueAlloc::from_proj(alloc);
-        let buffer = BlobVecMemory::from_raw_parts_in(ptr, capacity_bytes, opaque_alloc);
+        let buffer = unsafe {
+            BlobVecMemory::from_raw_parts_in(ptr, capacity_bytes, opaque_alloc)
+        };
 
         Self {
             element_layout,
@@ -118,9 +122,13 @@ impl BlobVecInner {
     where
         A: any::Any + alloc::Allocator,
     {
-        let capacity_bytes = blob_vec_memory::new_capacity(capacity, element_layout);
+        let capacity_bytes = unsafe {
+            blob_vec_memory::new_capacity(capacity, element_layout)
+        };
         let opaque_alloc = OpaqueAlloc::from_proj(alloc);
-        let buffer = BlobVecMemory::from_nonnull_in(ptr, capacity_bytes, opaque_alloc);
+        let buffer = unsafe {
+            BlobVecMemory::from_nonnull_in(ptr, capacity_bytes, opaque_alloc)
+        };
 
         Self {
             element_layout,
@@ -608,7 +616,9 @@ where
         element_layout: alloc::Layout,
         drop_fn: Option<unsafe fn(NonNull<u8>)>,
     ) -> Self {
-        let inner = BlobVecInner::from_raw_parts_in(ptr, length, capacity, alloc, element_layout, drop_fn);
+        let inner = unsafe {
+            BlobVecInner::from_raw_parts_in(ptr, length, capacity, alloc, element_layout, drop_fn)
+        };
 
         Self {
             inner,
@@ -625,7 +635,9 @@ where
         element_layout: alloc::Layout,
         drop_fn: Option<unsafe fn(NonNull<u8>)>,
     ) -> Self {
-        let inner = BlobVecInner::from_parts_in(ptr, length, capacity, alloc, element_layout, drop_fn);
+        let inner = unsafe {
+            BlobVecInner::from_parts_in(ptr, length, capacity, alloc, element_layout, drop_fn)
+        };
 
         Self {
             inner,
@@ -789,7 +801,9 @@ where
     #[inline]
     #[track_caller]
     pub unsafe fn append(&mut self, other: NonNull<u8>, count: usize) {
-        self.inner.append(other, count)
+        unsafe {
+            self.inner.append(other, count)
+        }
     }
 }
 
@@ -864,7 +878,9 @@ impl OpaqueBlobVec {
     where
         A: any::Any + alloc::Allocator,
     {
-        let proj_blob_vec = TypedProjBlobVec::from_raw_parts_in(ptr, length, capacity, alloc, element_layout, drop_fn);
+        let proj_blob_vec = unsafe {
+            TypedProjBlobVec::from_raw_parts_in(ptr, length, capacity, alloc, element_layout, drop_fn)
+        };
 
         Self::from_proj(proj_blob_vec)
     }
@@ -881,7 +897,9 @@ impl OpaqueBlobVec {
     where
         A: any::Any + alloc::Allocator,
     {
-        let proj_blob_vec = TypedProjBlobVec::from_parts_in(ptr, length, capacity, alloc, element_layout, drop_fn);
+        let proj_blob_vec = unsafe {
+            TypedProjBlobVec::from_parts_in(ptr, length, capacity, alloc, element_layout, drop_fn)
+        };
 
         Self::from_proj(proj_blob_vec)
     }
@@ -1210,7 +1228,9 @@ impl OpaqueBlobVec {
     {
         let proj_self = self.as_proj_mut::<A>();
 
-        proj_self.append(other, count);
+        unsafe {
+            proj_self.append(other, count);
+        }
     }
 }
 

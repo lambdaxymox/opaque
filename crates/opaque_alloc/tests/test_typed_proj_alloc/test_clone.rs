@@ -37,7 +37,9 @@ fn test_opaque_alloc_clone_dummy_allocator() {
             alloc::Global.allocate(layout)
         }
         unsafe fn deallocate(&self, ptr: NonNull<u8>, layout: alloc::Layout) {
-            alloc::Global.deallocate(ptr, layout)
+            unsafe {
+                alloc::Global.deallocate(ptr, layout)
+            }
         }
     }
 
