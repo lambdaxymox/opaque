@@ -1,0 +1,37 @@
+[package]
+name = "opaque_index_set"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+criterion = "0.6.0"
+
+[dependencies.equivalent]
+version = "1.0.2"
+default-features = false
+
+[dependencies.opaque_alloc]
+path = "../opaque_alloc"
+
+[dependencies.opaque_error]
+path = "../opaque_error"
+
+[dependencies.opaque_hash]
+path = "../opaque_hash"
+
+[dependenceis.opaque_index_map]
+path = "../opaque_index_map"
+
+[dev-dependencies]
+
+[dev-dependencies.opaque_index_map_testing]
+version = "0.1.0"
+path = "../opaque_index_map_testing_support"
+
+[dev-dependencies.indexmap]
+version = "2.9.0"
+
+[[bench]]
+name = "bench_opaque_index_map"
+harness = false
+path = "benches/lib.rs"
