@@ -9,7 +9,7 @@ use opaque_vec_testing as ovt;
 fn run_test_opaque_blob_vec_shift_remove_forget_unchecked_end<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: any::Any + alloc::Allocator + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let mut opaque_blob_vec = common::opaque_blob_vec::from_slice_in(values, alloc);
 
@@ -27,7 +27,7 @@ where
 fn run_test_opaque_blob_vec_shift_remove_forget_unchecked_end_values<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: any::Any + alloc::Allocator + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let iter = ovt::PrefixGenerator::new_only_nonempty(values);
     for slice in iter {

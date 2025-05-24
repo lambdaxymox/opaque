@@ -9,7 +9,7 @@ use opaque_vec_testing as ovt;
 fn run_test_typed_proj_vec_clear_as_slice<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: any::Any + alloc::Allocator + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let expected = common::typed_proj_vec::new_in(alloc.clone());
     let result = {
@@ -25,7 +25,7 @@ fn run_test_typed_proj_vec_clear_as_slice_values<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug + TryFrom<usize>,
     <T as TryFrom<usize>>::Error: fmt::Debug,
-    A: any::Any + alloc::Allocator + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {

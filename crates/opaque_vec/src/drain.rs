@@ -12,7 +12,7 @@ use crate::TypedProjVecInner;
 pub struct Drain<'a, T, A = alloc::Global>
 where
     T: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     /// Index of tail to preserve
     pub(crate) tail_start: usize,
@@ -26,7 +26,7 @@ where
 impl<T, A> fmt::Debug for Drain<'_, T, A>
 where
     T: any::Any + fmt::Debug,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_tuple("Drain").field(&self.iter.as_slice()).finish()
@@ -36,7 +36,7 @@ where
 impl<'a, T, A> Drain<'a, T, A>
 where
     T: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[inline]
     pub(crate) const fn from_parts(tail_start: usize, tail_len: usize, iter: slice::Iter<'a, T>, vec: NonNull<TypedProjVecInner<T, A>>) -> Self {
@@ -112,7 +112,7 @@ where
 impl<'a, T, A> AsRef<[T]> for Drain<'a, T, A>
 where
     T: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn as_ref(&self) -> &[T] {
         self.as_slice()
@@ -122,21 +122,21 @@ where
 unsafe impl<T, A> Sync for Drain<'_, T, A>
 where
     T: any::Any + Sync,
-    A: any::Any + alloc::Allocator + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
 }
 
 unsafe impl<T, A> Send for Drain<'_, T, A>
 where
     T: any::Any + Send,
-    A: any::Any + alloc::Allocator + Send,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
 }
 
 impl<T, A> Iterator for Drain<'_, T, A>
 where
     T: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     type Item = T;
 
@@ -153,7 +153,7 @@ where
 impl<T, A> DoubleEndedIterator for Drain<'_, T, A>
 where
     T: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[inline]
     fn next_back(&mut self) -> Option<T> {
@@ -164,16 +164,16 @@ where
 impl<T, A> Drop for Drain<'_, T, A>
 where
     T: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn drop(&mut self) {
         /// Moves back the un-`Drain`ed elements to restore the original `Vec`.
-        struct DropGuard<'r, 'a, T: any::Any, A: any::Any + alloc::Allocator>(&'r mut Drain<'a, T, A>);
+        struct DropGuard<'r, 'a, T: any::Any, A: any::Any + alloc::Allocator + Send + Sync>(&'r mut Drain<'a, T, A>);
 
         impl<'r, 'a, T, A> Drop for DropGuard<'r, 'a, T, A>
         where
             T: any::Any,
-            A: any::Any + alloc::Allocator,
+            A: any::Any + alloc::Allocator + Send + Sync,
         {
             fn drop(&mut self) {
                 if self.0.tail_len > 0 {
@@ -240,7 +240,7 @@ where
 impl<T, A> ExactSizeIterator for Drain<'_, T, A>
 where
     T: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     /*
     fn is_empty(&self) -> bool {
@@ -252,6 +252,6 @@ where
 impl<T, A> iter::FusedIterator for Drain<'_, T, A>
 where
     T: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
 }

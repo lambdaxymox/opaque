@@ -6,7 +6,7 @@ use std::alloc::{Global, System};
 fn run_test_opaque_vec_new_in_has_type<T, A>(alloc: A)
 where
     T: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     let opaque_vec = OpaqueVec::new_in::<T, A>(alloc);
 
@@ -17,7 +17,7 @@ where
 fn run_test_opaque_vec_with_capacity_in_has_type<T, A>(alloc: A)
 where
     T: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     let opaque_vec = OpaqueVec::with_capacity_in::<T, A>(1024, alloc);
 

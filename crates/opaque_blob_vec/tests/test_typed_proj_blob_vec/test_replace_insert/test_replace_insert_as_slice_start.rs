@@ -12,7 +12,7 @@ use opaque_vec_testing as ovt;
 fn expected<T, A>(values: &[T], alloc: A) -> TypedProjBlobVec<A>
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: any::Any + alloc::Allocator + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let mut proj_blob_vec = common::typed_proj_blob_vec::new_in::<T, A>(alloc);
     if !values.is_empty() {
@@ -27,7 +27,7 @@ where
 fn result<T, A>(values: &[T], alloc: A) -> TypedProjBlobVec<A>
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: alloc::Allocator + any::Any + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let mut proj_blob_vec = common::typed_proj_blob_vec::new_in::<T, A>(alloc);
     for value in values.iter() {
@@ -41,7 +41,7 @@ where
 fn run_test_typed_proj_blob_vec_shift_insert_slice_start<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: alloc::Allocator + any::Any + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let expected_vec = expected(values, alloc.clone());
     let result_vec = result(values, alloc.clone());
@@ -55,7 +55,7 @@ where
 fn run_test_typed_proj_blob_vec_shift_insert_slice_start_values<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: alloc::Allocator + any::Any + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {

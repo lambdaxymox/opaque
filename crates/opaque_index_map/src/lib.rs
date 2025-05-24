@@ -29,7 +29,7 @@ pub struct Drain<'a, K, V, A = alloc::Global>
 where
     K: any::Any,
     V: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     iter: opaque_vec::Drain<'a, Bucket<K, V>, A>,
 }
@@ -38,7 +38,7 @@ impl<'a, K, V, A> Drain<'a, K, V, A>
 where
     K: any::Any,
     V: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     const fn new(iter: opaque_vec::Drain<'a, Bucket<K, V>, A>) -> Self {
         Self { iter }
@@ -53,7 +53,7 @@ impl<K, V, A> Iterator for Drain<'_, K, V, A>
 where
     K: any::Any,
     V: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     type Item = (K, V);
 
@@ -66,7 +66,7 @@ impl<K, V, A> DoubleEndedIterator for Drain<'_, K, V, A>
 where
     K: any::Any,
     V: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn next_back(&mut self) -> Option<Self::Item> {
         self.iter.next_back().map(Bucket::key_value)
@@ -81,7 +81,7 @@ impl<K, V, A> ExactSizeIterator for Drain<'_, K, V, A>
 where
     K: any::Any,
     V: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn len(&self) -> usize {
         <opaque_vec::Drain<'_, Bucket<K, V>, A> as ExactSizeIterator>::len(&self.iter)
@@ -92,7 +92,7 @@ impl<K, V, A> iter::FusedIterator for Drain<'_, K, V, A>
 where
     K: any::Any,
     V: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
 }
 
@@ -100,7 +100,7 @@ impl<K, V, A> fmt::Debug for Drain<'_, K, V, A>
 where
     K: any::Any + fmt::Debug,
     V: any::Any + fmt::Debug,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         let iter = self.iter.as_slice().iter().map(Bucket::refs);
@@ -169,7 +169,7 @@ impl<'a, K, V> ops::Index<usize> for Keys<'a, K, V> {
 
 pub struct IntoKeys<K, V, A = alloc::Global>
 where
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     iter: opaque_vec::IntoIter<Bucket<K, V>, A>,
 }
@@ -178,7 +178,7 @@ impl<K, V, A> IntoKeys<K, V, A>
 where
     K: any::Any,
     V: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn new(entries: TypedProjVec<Bucket<K, V>, A>) -> Self {
         Self { iter: entries.into_iter() }
@@ -189,7 +189,7 @@ impl<K, V, A> Iterator for IntoKeys<K, V, A>
 where
     K: any::Any,
     V: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     type Item = K;
 
@@ -202,7 +202,7 @@ impl<K, V, A> DoubleEndedIterator for IntoKeys<K, V, A>
 where
     K: any::Any,
     V: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn next_back(&mut self) -> Option<Self::Item> {
         self.iter.next_back().map(Bucket::key)
@@ -217,7 +217,7 @@ impl<K, V, A> ExactSizeIterator for IntoKeys<K, V, A>
 where
     K: any::Any,
     V: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn len(&self) -> usize {
         self.iter.len()
@@ -228,7 +228,7 @@ impl<K, V, A> iter::FusedIterator for IntoKeys<K, V, A>
 where
     K: any::Any,
     V: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
 }
 
@@ -236,7 +236,7 @@ impl<K, V, A> fmt::Debug for IntoKeys<K, V, A>
 where
     K: any::Any + fmt::Debug,
     V: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         let iter = self.iter.as_slice().iter().map(Bucket::key_ref);
@@ -248,7 +248,7 @@ impl<K, V, A> Default for IntoKeys<K, V, A>
 where
     K: any::Any,
     V: any::Any,
-    A: any::Any + alloc::Allocator + Default,
+    A: any::Any + alloc::Allocator + Send + Sync + Default,
 {
     fn default() -> Self {
         Self {
@@ -368,7 +368,7 @@ impl<K, V> Default for ValuesMut<'_, K, V> {
 
 pub struct IntoValues<K, V, A = alloc::Global>
 where
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     iter: opaque_vec::IntoIter<Bucket<K, V>, A>,
 }
@@ -377,7 +377,7 @@ impl<K, V, A> IntoValues<K, V, A>
 where
     K: any::Any,
     V: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn new(entries: TypedProjVec<Bucket<K, V>, A>) -> Self {
         Self { iter: entries.into_iter() }
@@ -388,7 +388,7 @@ impl<K, V, A> Iterator for IntoValues<K, V, A>
 where
     K: any::Any,
     V: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     type Item = V;
 
@@ -401,7 +401,7 @@ impl<K, V, A> DoubleEndedIterator for IntoValues<K, V, A>
 where
     K: any::Any,
     V: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn next_back(&mut self) -> Option<Self::Item> {
         self.iter.next_back().map(Bucket::value)
@@ -416,7 +416,7 @@ impl<K, V, A> ExactSizeIterator for IntoValues<K, V, A>
 where
     K: any::Any,
     V: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn len(&self) -> usize {
         self.iter.len()
@@ -427,7 +427,7 @@ impl<K, V, A> iter::FusedIterator for IntoValues<K, V, A>
 where
     K: any::Any,
     V: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
 }
 
@@ -435,7 +435,7 @@ impl<K, V, A> fmt::Debug for IntoValues<K, V, A>
 where
     K: any::Any,
     V: any::Any + fmt::Debug,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         let iter = self.iter.as_slice().iter().map(Bucket::value_ref);
@@ -447,7 +447,7 @@ impl<K, V, A> Default for IntoValues<K, V, A>
 where
     K: any::Any,
     V: any::Any,
-    A: any::Any + alloc::Allocator + Default,
+    A: any::Any + alloc::Allocator + Send + Sync + Default,
 {
     fn default() -> Self {
         Self {
@@ -529,7 +529,7 @@ impl<K, V> Slice<K, V> {
 
     fn from_boxed_slice<A>(entries: Box<[Bucket<K, V>], A>) -> Box<Self, A>
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         unsafe {
             let (ptr, alloc) = Box::into_raw_with_allocator(entries);
@@ -540,7 +540,7 @@ impl<K, V> Slice<K, V> {
 
     fn into_boxed_slice<A>(self: Box<Self, A>) -> Box<[Bucket<K, V>], A>
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         unsafe {
             let (ptr, alloc) = Box::into_raw_with_allocator(self);
@@ -553,7 +553,7 @@ impl<K, V> Slice<K, V> {
     where
         K: any::Any,
         V: any::Any,
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         unsafe {
             let len = self.entries.len();
@@ -683,7 +683,7 @@ impl<K, V> Slice<K, V> {
     where
         K: any::Any,
         V: any::Any,
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         IntoKeys::new(self.into_entries())
     }
@@ -700,7 +700,7 @@ impl<K, V> Slice<K, V> {
     where
         K: any::Any,
         V: any::Any,
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         IntoValues::new(self.into_entries())
     }
@@ -760,7 +760,7 @@ impl<K, V, A> IntoIterator for Box<Slice<K, V>, TypedProjAlloc<A>>
 where
     K: any::Any,
     V: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     type Item = (K, V);
     type IntoIter = IntoIter<K, V, A>;
@@ -787,7 +787,7 @@ impl<K, V, A> Default for Box<Slice<K, V>, A>
 where
     K: any::Any,
     V: any::Any,
-    A: any::Any + alloc::Allocator + Default,
+    A: any::Any + alloc::Allocator + Send + Sync + Default,
 {
     fn default() -> Self {
         Slice::from_boxed_slice(Box::new_in([], Default::default()))
@@ -798,7 +798,7 @@ impl<K, V, A> Clone for Box<Slice<K, V>, A>
 where
     K: Clone,
     V: Clone,
-    A: any::Any + alloc::Allocator + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     fn clone(&self) -> Self {
         let alloc = Box::<Slice<K, V>, A>::allocator(&self).clone();
@@ -1194,7 +1194,7 @@ pub struct IntoIter<K, V, A = alloc::Global>
 where
     K: any::Any,
     V: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     iter: opaque_vec::IntoIter<Bucket<K, V>, A>,
 }
@@ -1203,7 +1203,7 @@ impl<K, V, A> IntoIter<K, V, A>
 where
     K: any::Any,
     V: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn new(entries: TypedProjVec<Bucket<K, V>, A>) -> Self {
         Self {
@@ -1224,7 +1224,7 @@ impl<K, V, A> Iterator for IntoIter<K, V, A>
 where
     K: any::Any,
     V: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     type Item = (K, V);
 
@@ -1237,7 +1237,7 @@ impl<K, V, A> DoubleEndedIterator for IntoIter<K, V, A>
 where
     K: any::Any,
     V: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn next_back(&mut self) -> Option<Self::Item> {
         self.iter.next_back().map(Bucket::key_value)
@@ -1252,7 +1252,7 @@ impl<K, V, A> ExactSizeIterator for IntoIter<K, V, A>
 where
     K: any::Any,
     V: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn len(&self) -> usize {
         self.iter.len()
@@ -1263,7 +1263,7 @@ impl<K, V, A> iter::FusedIterator for IntoIter<K, V, A>
 where
     K: any::Any,
     V: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
 }
 
@@ -1271,7 +1271,7 @@ impl<K, V, A> fmt::Debug for IntoIter<K, V, A>
 where
     K: any::Any + fmt::Debug,
     V: any::Any + fmt::Debug,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         let iter = self.iter.as_slice().iter().map(Bucket::refs);
@@ -1283,7 +1283,7 @@ impl<K, V, A> Default for IntoIter<K, V, A>
 where
     K: any::Any,
     V: any::Any,
-    A: any::Any + alloc::Allocator + Default,
+    A: any::Any + alloc::Allocator + Send + Sync + Default,
 {
     fn default() -> Self {
         Self {
@@ -1297,8 +1297,9 @@ where
     I: Iterator<Item = (K, V)>,
     K: any::Any + hash::Hash + Eq,
     V: any::Any,
-    S: any::Any + hash::BuildHasher,
-    A: any::Any + alloc::Allocator,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     map: &'a mut TypedProjIndexMapInner<K, V, S, A>,
     tail: TypedProjIndexMapCore<K, V, A>,
@@ -1312,8 +1313,9 @@ where
     I: Iterator<Item = (K, V)>,
     K: any::Any + hash::Hash + Eq,
     V: any::Any,
-    S: any::Any + hash::BuildHasher,
-    A: any::Any + alloc::Allocator + Clone,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     #[track_caller]
     fn new<R>(map: &'a mut TypedProjIndexMapInner<K, V, S, A>, range: R, replace_with: I) -> Self
@@ -1336,8 +1338,9 @@ where
     I: Iterator<Item = (K, V)>,
     K: any::Any + hash::Hash + Eq,
     V: any::Any,
-    S: any::Any + hash::BuildHasher,
-    A: any::Any + alloc::Allocator,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn drop(&mut self) {
         // Finish draining unconsumed items. We don't strictly *have* to do this
@@ -1368,8 +1371,9 @@ where
     I: Iterator<Item = (K, V)>,
     K: any::Any + hash::Hash + Eq,
     V: any::Any,
-    S: any::Any + hash::BuildHasher,
-    A: any::Any + alloc::Allocator,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     type Item = (K, V);
 
@@ -1387,8 +1391,9 @@ where
     I: Iterator<Item = (K, V)>,
     K: any::Any + hash::Hash + Eq,
     V: any::Any,
-    S: any::Any + hash::BuildHasher,
-    A: any::Any + alloc::Allocator,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn next_back(&mut self) -> Option<Self::Item> {
         self.drain.next_back().map(Bucket::key_value)
@@ -1400,8 +1405,9 @@ where
     I: Iterator<Item = (K, V)>,
     K: any::Any + hash::Hash + Eq,
     V: any::Any,
-    S: any::Any + hash::BuildHasher,
-    A: any::Any + alloc::Allocator,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn len(&self) -> usize {
         self.drain.len()
@@ -1413,8 +1419,9 @@ where
     I: Iterator<Item = (K, V)>,
     K: any::Any + hash::Hash + Eq,
     V: any::Any,
-    S: any::Any + hash::BuildHasher,
-    A: any::Any + alloc::Allocator,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
 }
 
@@ -1423,8 +1430,9 @@ where
     I: fmt::Debug + Iterator<Item = (K, V)>,
     K: any::Any + fmt::Debug + hash::Hash + Eq,
     V: any::Any + fmt::Debug,
-    S: any::Any + hash::BuildHasher,
-    A: any::Any + alloc::Allocator,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         // Follow `vec::Splice` in only printing the drain and replacement
@@ -1565,7 +1573,7 @@ fn reserve_entries<K, V, A>(entries: &mut TypedProjVec<Bucket<K, V>, A>, additio
 where
     K: any::Any,
     V: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     // Use a soft-limit on the maximum capacity, but if the caller explicitly
     // requested more, do it and let them have the resulting panic.
@@ -1579,7 +1587,7 @@ where
 
 struct RefMut<'a, K, V, A>
 where
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     indices: &'a mut hashbrown::HashTable<usize>,
     entries: &'a mut TypedProjVec<Bucket<K, V>, A>,
@@ -1589,7 +1597,7 @@ impl<'a, K, V, A> RefMut<'a, K, V, A>
 where
     K: any::Any,
     V: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[inline]
     fn new(indices: &'a mut hashbrown::HashTable<usize>, entries: &'a mut TypedProjVec<Bucket<K, V>, A>) -> Self {
@@ -1774,7 +1782,7 @@ where
 #[repr(C)]
 struct TypedProjIndexMapCore<K, V, A>
 where
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     indices: hashbrown::HashTable<usize>,
     entries: TypedProjVec<Bucket<K, V>, A>,
@@ -1787,7 +1795,7 @@ impl<K, V, A> TypedProjIndexMapCore<K, V, A>
 where
     K: any::Any,
     V: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     pub(crate) fn new_proj_in(alloc: TypedProjAlloc<A>) -> Self {
         let indices = hashbrown::HashTable::new();
@@ -1826,7 +1834,7 @@ impl<K, V, A> TypedProjIndexMapCore<K, V, A>
 where
     K: any::Any,
     V: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[inline]
     pub(crate) fn new_in(alloc: A) -> Self {
@@ -1883,7 +1891,7 @@ impl<K, V, A> TypedProjIndexMapCore<K, V, A>
 where
     K: any::Any,
     V: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[inline]
     fn borrow_mut(&mut self) -> RefMut<'_, K, V, A> {
@@ -1927,22 +1935,6 @@ where
 
         self.entries.drain(range)
     }
-
-    /*
-    #[cfg(feature = "rayon")]
-    pub(crate) fn par_drain<R>(&mut self, range: R) -> rayon::vec::Drain<'_, Bucket<K, V>, A>
-    where
-        K: any::Any + Send,
-        V: any::Any + Send,
-        A: any::Any + alloc::Allocator,
-        R: ops::RangeBounds<usize>,
-    {
-        use rayon::iter::ParallelDrainRange;
-        let range = simplify_range(range, self.entries.len());
-        self.erase_indices(range.start, range.end);
-        self.entries.par_drain(range)
-    }
-    */
 
     #[track_caller]
     pub(crate) fn split_off(&mut self, at: usize) -> Self
@@ -2047,8 +2039,7 @@ where
         }
     }
 
-    /// The maximum capacity before the `entries` allocation would exceed `isize::MAX`.
-    /// TODO: Use the stored Layout information to calculate `core::mem::size_of::<Bucket<K, V>>()`.
+    /// The maximum capacity before the `entries` allocation would exceed `isize::MAX`. V>>()`.
     #[inline]
     const fn max_entries_capacity() -> usize {
         (isize::MAX as usize) / mem::size_of::<Bucket<K, V>>()
@@ -2277,7 +2268,7 @@ impl<K, V, A> TypedProjIndexMapCore<K, V, A>
 where
     K: any::Any,
     V: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[inline]
     fn into_entries(self) -> TypedProjVec<Bucket<K, V>, A> {
@@ -2308,7 +2299,7 @@ impl<K, V, A> TypedProjIndexMapCore<K, V, A>
 where
     K: any::Any + Eq,
     V: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     pub(crate) fn entry(&mut self, hash: HashValue, key: K) -> Entry<'_, K, V, A> {
         let entries = &mut self.entries;
@@ -2331,7 +2322,7 @@ impl<K, V, A> Clone for TypedProjIndexMapCore<K, V, A>
 where
     K: any::Any + Clone,
     V: any::Any + Clone,
-    A: any::Any + alloc::Allocator + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     fn clone(&self) -> Self {
         let cloned_indices = self.indices.clone();
@@ -2386,7 +2377,7 @@ impl OpaqueIndexMapCore {
     where
         K: any::Any,
         V: any::Any,
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         debug_assert_eq!(self.key_type_id, any::TypeId::of::<K>());
         debug_assert_eq!(self.value_type_id, any::TypeId::of::<V>());
@@ -2400,7 +2391,7 @@ impl OpaqueIndexMapCore {
     where
         K: any::Any,
         V: any::Any,
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         debug_assert_eq!(self.key_type_id, any::TypeId::of::<K>());
         debug_assert_eq!(self.value_type_id, any::TypeId::of::<V>());
@@ -2414,7 +2405,7 @@ impl OpaqueIndexMapCore {
     where
         K: any::Any,
         V: any::Any,
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         debug_assert_eq!(self.key_type_id, any::TypeId::of::<K>());
         debug_assert_eq!(self.value_type_id, any::TypeId::of::<V>());
@@ -2434,7 +2425,7 @@ impl OpaqueIndexMapCore {
     where
         K: any::Any,
         V: any::Any,
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         Self {
             indices: proj_self.indices,
@@ -2473,7 +2464,7 @@ mod index_map_core_layout_tests {
     where
         K: any::Any,
         V: any::Any,
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let expected = mem::size_of::<TypedProjIndexMapCore<K, V, A>>();
         let result = mem::size_of::<OpaqueIndexMapCore>();
@@ -2485,7 +2476,7 @@ mod index_map_core_layout_tests {
     where
         K: any::Any,
         V: any::Any,
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let expected = mem::align_of::<TypedProjIndexMapCore<K, V, A>>();
         let result = mem::align_of::<OpaqueIndexMapCore>();
@@ -2497,7 +2488,7 @@ mod index_map_core_layout_tests {
     where
         K: any::Any,
         V: any::Any,
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         assert_eq!(
             mem::offset_of!(TypedProjIndexMapCore<K, V, A>, indices),
@@ -2569,9 +2560,9 @@ mod index_map_core_layout_tests {
     layout_tests!(unit_str_zst_hasher_dummy_alloc, (), &'static str, DummyAlloc);
 }
 
-pub enum Entry<'a, K, V, A>
+pub enum Entry<'a, K, V, A = alloc::Global>
 where
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     Occupied(OccupiedEntry<'a, K, V, A>),
     Vacant(VacantEntry<'a, K, V, A>),
@@ -2581,7 +2572,7 @@ impl<'a, K, V, A> Entry<'a, K, V, A>
 where
     K: any::Any,
     V: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     pub fn index(&self) -> usize {
         match *self {
@@ -2662,7 +2653,7 @@ impl<K, V, A> fmt::Debug for Entry<'_, K, V, A>
 where
     K: any::Any + fmt::Debug,
     V: any::Any + fmt::Debug,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut tuple = formatter.debug_tuple("Entry");
@@ -2676,7 +2667,7 @@ where
 
 pub struct OccupiedEntry<'a, K, V, A = alloc::Global>
 where
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     entries: &'a mut TypedProjVec<Bucket<K, V>, A>,
     index: hashbrown::hash_table::OccupiedEntry<'a, usize>,
@@ -2686,7 +2677,7 @@ impl<'a, K, V, A> OccupiedEntry<'a, K, V, A>
 where
     K: any::Any,
     V: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     pub(crate) fn new(entries: &'a mut TypedProjVec<Bucket<K, V>, A>, index: hashbrown::hash_table::OccupiedEntry<'a, usize>) -> Self {
         Self {
@@ -2779,7 +2770,7 @@ impl<K, V, A> fmt::Debug for OccupiedEntry<'_, K, V, A>
 where
     K: any::Any + fmt::Debug,
     V: any::Any + fmt::Debug,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter.debug_struct("OccupiedEntry")
@@ -2793,7 +2784,7 @@ impl<'a, K, V, A> From<IndexedEntry<'a, K, V, A>> for OccupiedEntry<'a, K, V, A>
 where
     K: any::Any,
     V: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn from(other: IndexedEntry<'a, K, V, A>) -> Self {
         let IndexedEntry {
@@ -2812,7 +2803,7 @@ where
 
 pub struct VacantEntry<'a, K, V, A = alloc::Global>
 where
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     map: RefMut<'a, K, V, A>,
     hash: HashValue,
@@ -2823,7 +2814,7 @@ impl<'a, K, V, A> VacantEntry<'a, K, V, A>
 where
     K: any::Any,
     V: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     pub fn index(&self) -> usize {
         self.map.indices.len()
@@ -2874,7 +2865,7 @@ impl<K, V, A> fmt::Debug for VacantEntry<'_, K, V, A>
 where
     K: any::Any + fmt::Debug,
     V: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter.debug_tuple("VacantEntry").field(self.key()).finish()
@@ -2883,7 +2874,7 @@ where
 
 pub struct IndexedEntry<'a, K, V, A = alloc::Global>
 where
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     map: RefMut<'a, K, V, A>,
     index: usize,
@@ -2893,7 +2884,7 @@ impl<'a, K, V, A> IndexedEntry<'a, K, V, A>
 where
     K: any::Any,
     V: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     pub(crate) fn new(map: &'a mut TypedProjIndexMapCore<K, V, A>, index: usize) -> Self
     where
@@ -2966,7 +2957,7 @@ impl<K, V, A> fmt::Debug for IndexedEntry<'_, K, V, A>
 where
     K: any::Any + fmt::Debug,
     V: any::Any + fmt::Debug,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter.debug_struct("IndexedEntry")
@@ -2981,7 +2972,7 @@ impl<'a, K, V, A> From<OccupiedEntry<'a, K, V, A>> for IndexedEntry<'a, K, V, A>
 where
     K: any::Any,
     V: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn from(other: OccupiedEntry<'a, K, V, A>) -> Self {
         Self {
@@ -2994,8 +2985,9 @@ where
 #[repr(C)]
 struct TypedProjIndexMapInner<K, V, S, A>
 where
-    A: any::Any + alloc::Allocator,
-    S: any::Any + hash::BuildHasher,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     inner: TypedProjIndexMapCore<K, V, A>,
     build_hasher: TypedProjBuildHasher<S>,
@@ -3005,8 +2997,9 @@ impl<K, V, S, A> TypedProjIndexMapInner<K, V, S, A>
 where
     K: any::Any,
     V: any::Any,
-    S: any::Any + hash::BuildHasher,
-    A: any::Any + alloc::Allocator,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[inline]
     fn into_entries(self) -> TypedProjVec<Bucket<K, V>, A> {
@@ -3035,8 +3028,9 @@ impl<K, V, S, A> TypedProjIndexMapInner<K, V, S, A>
 where
     K: any::Any,
     V: any::Any,
-    S: any::Any + hash::BuildHasher,
-    A: any::Any + alloc::Allocator,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[inline]
     pub fn with_hasher_proj_in(proj_build_hasher: TypedProjBuildHasher<S>, proj_alloc: TypedProjAlloc<A>) -> Self {
@@ -3067,7 +3061,7 @@ impl<K, V, A> TypedProjIndexMapInner<K, V, hash::RandomState, A>
 where
     K: any::Any,
     V: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     pub fn new_proj_in(proj_alloc: TypedProjAlloc<A>) -> Self {
         let proj_inner = TypedProjIndexMapCore::<K, V, A>::new_proj_in(proj_alloc);
@@ -3094,8 +3088,9 @@ impl<K, V, S, A> TypedProjIndexMapInner<K, V, S, A>
 where
     K: any::Any,
     V: any::Any,
-    S: any::Any + hash::BuildHasher,
-    A: any::Any + alloc::Allocator,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[inline]
     pub fn with_hasher_in(build_hasher: S, alloc: A) -> Self {
@@ -3128,7 +3123,7 @@ impl<K, V, A> TypedProjIndexMapInner<K, V, hash::RandomState, A>
 where
     K: any::Any,
     V: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     pub fn new_in(alloc: A) -> Self {
         let proj_inner = TypedProjIndexMapCore::<K, V, A>::new_in(alloc);
@@ -3155,7 +3150,8 @@ impl<K, V, S> TypedProjIndexMapInner<K, V, S, alloc::Global>
 where
     K: any::Any,
     V: any::Any,
-    S: any::Any + hash::BuildHasher,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
 {
     #[inline]
     pub fn with_hasher(build_hasher: S) -> Self {
@@ -3188,8 +3184,9 @@ impl<K, V, S, A> TypedProjIndexMapInner<K, V, S, A>
 where
     K: any::Any,
     V: any::Any,
-    S: any::Any + hash::BuildHasher,
-    A: any::Any + alloc::Allocator,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[inline]
     pub fn capacity(&self) -> usize {
@@ -3437,8 +3434,9 @@ impl<K, V, S, A> TypedProjIndexMapInner<K, V, S, A>
 where
     K: any::Any,
     V: any::Any,
-    S: any::Any + hash::BuildHasher,
-    A: any::Any + alloc::Allocator,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     pub fn insert(&mut self, key: K, value: V) -> Option<V>
     where
@@ -3557,14 +3555,16 @@ impl<K, V, S, A> TypedProjIndexMapInner<K, V, S, A>
 where
     K: any::Any,
     V: any::Any,
-    S: any::Any + hash::BuildHasher,
-    A: any::Any + alloc::Allocator,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     pub fn append<S2, A2>(&mut self, other: &mut TypedProjIndexMapInner<K, V, S2, A2>)
     where
         K: Eq + hash::Hash,
-        S2: any::Any + hash::BuildHasher,
-        A2: any::Any + alloc::Allocator,
+        S2: any::Any + hash::BuildHasher + Send + Sync,
+        S2::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A2: any::Any + alloc::Allocator + Send + Sync,
     {
         self.extend(other.drain::<_>(..));
     }
@@ -3574,8 +3574,9 @@ impl<K, V, S, A> Clone for TypedProjIndexMapInner<K, V, S, A>
 where
     K: any::Any + Clone,
     V: any::Any + Clone,
-    S: any::Any + hash::BuildHasher + Clone,
-    A: any::Any + alloc::Allocator + Clone,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     fn clone(&self) -> Self {
         let cloned_inner = self.inner.clone();
@@ -3596,8 +3597,9 @@ impl<K, V, S, A> Extend<(K, V)> for TypedProjIndexMapInner<K, V, S, A>
 where
     K: any::Any + hash::Hash + Eq,
     V: any::Any,
-    S: any::Any + hash::BuildHasher,
-    A: any::Any + alloc::Allocator,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn extend<I>(&mut self, iterable: I)
     where
@@ -3625,8 +3627,9 @@ impl<'a, K, V, S, A> Extend<(&'a K, &'a V)> for TypedProjIndexMapInner<K, V, S, 
 where
     K: any::Any + hash::Hash + Eq + Copy,
     V: any::Any + Copy,
-    S: any::Any + hash::BuildHasher,
-    A: any::Any + alloc::Allocator,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn extend<I>(&mut self, iterable: I)
     where
@@ -3640,8 +3643,9 @@ impl<K, V, S, A> TypedProjIndexMapInner<K, V, S, A>
 where
     K: any::Any,
     V: any::Any,
-    S: any::Any + hash::BuildHasher,
-    A: any::Any + alloc::Allocator,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[doc(alias = "pop_last")] // like `BTreeMap`
     pub fn pop(&mut self) -> Option<(K, V)> {
@@ -3912,8 +3916,9 @@ impl OpaqueIndexMapInner {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
         debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
@@ -3928,8 +3933,9 @@ impl OpaqueIndexMapInner {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
         debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
@@ -3944,8 +3950,9 @@ impl OpaqueIndexMapInner {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
         debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
@@ -3966,8 +3973,9 @@ impl OpaqueIndexMapInner {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let opaque_inner = OpaqueIndexMapCore::from_proj_assuming_type::<K, V, A>(proj_self.inner);
         let opaque_build_hasher = OpaqueBuildHasher::from_proj::<S>(proj_self.build_hasher);
@@ -4006,8 +4014,9 @@ mod index_map_inner_layout_tests {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let expected = mem::size_of::<TypedProjIndexMapInner<K, V, S, A>>();
         let result = mem::size_of::<OpaqueIndexMapInner>();
@@ -4019,8 +4028,9 @@ mod index_map_inner_layout_tests {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let expected = mem::align_of::<TypedProjIndexMapInner<K, V, S, A>>();
         let result = mem::align_of::<OpaqueIndexMapInner>();
@@ -4032,8 +4042,9 @@ mod index_map_inner_layout_tests {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         assert_eq!(
             mem::offset_of!(TypedProjIndexMapInner<K, V, S, A>, inner),
@@ -4102,28 +4113,27 @@ mod index_map_inner_layout_tests {
 #[repr(transparent)]
 pub struct TypedProjIndexMap<K, V, S = hash::RandomState, A = alloc::Global>
 where
-    S: any::Any + hash::BuildHasher,
-    A: any::Any + alloc::Allocator,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
-    inner: OpaqueIndexMapInner,
-    _marker: marker::PhantomData<(K, V, S, A)>,
+    inner: TypedProjIndexMapInner<K, V, S, A>,
 }
 
 impl<K, V, S, A> TypedProjIndexMap<K, V, S, A>
 where
     K: any::Any,
     V: any::Any,
-    S: any::Any + hash::BuildHasher,
-    A: any::Any + alloc::Allocator,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[inline]
     pub fn with_hasher_proj_in(proj_build_hasher: TypedProjBuildHasher<S>, proj_alloc: TypedProjAlloc<A>) -> Self {
         let proj_inner = TypedProjIndexMapInner::<K, V, S, A>::with_hasher_proj_in(proj_build_hasher, proj_alloc);
-        let opaque_inner = OpaqueIndexMapInner::from_proj(proj_inner);
 
         Self {
-            inner: opaque_inner,
-            _marker: marker::PhantomData,
+            inner: proj_inner,
         }
     }
 
@@ -4133,11 +4143,9 @@ where
             Self::with_hasher_proj_in(proj_build_hasher, proj_alloc)
         } else {
             let proj_inner = TypedProjIndexMapInner::<K, V, S, A>::with_capacity_and_hasher_proj_in(capacity, proj_build_hasher, proj_alloc);
-            let opaque_inner = OpaqueIndexMapInner::from_proj(proj_inner);
 
             Self {
-                inner: opaque_inner,
-                _marker: marker::PhantomData,
+                inner: proj_inner,
             }
         }
     }
@@ -4147,25 +4155,21 @@ impl<K, V, A> TypedProjIndexMap<K, V, hash::RandomState, A>
 where
     K: any::Any,
     V: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     pub fn new_proj_in(proj_alloc: TypedProjAlloc<A>) -> Self {
         let proj_inner = TypedProjIndexMapInner::<K, V, hash::RandomState, A>::new_proj_in(proj_alloc);
-        let opaque_inner = OpaqueIndexMapInner::from_proj(proj_inner);
 
         Self {
-            inner : opaque_inner,
-            _marker: marker::PhantomData,
+            inner : proj_inner,
         }
     }
 
     pub fn with_capacity_proj_in(capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self {
         let proj_inner = TypedProjIndexMapInner::<K, V, hash::RandomState, A>::with_capacity_proj_in(capacity, proj_alloc);
-        let opaque_inner = OpaqueIndexMapInner::from_proj(proj_inner);
 
         Self {
-            inner: opaque_inner,
-            _marker: marker::PhantomData,
+            inner: proj_inner,
         }
     }
 }
@@ -4174,17 +4178,16 @@ impl<K, V, S, A> TypedProjIndexMap<K, V, S, A>
 where
     K: any::Any,
     V: any::Any,
-    S: any::Any + hash::BuildHasher,
-    A: any::Any + alloc::Allocator,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[inline]
     pub fn with_hasher_in(build_hasher: S, alloc: A) -> Self {
         let proj_inner = TypedProjIndexMapInner::<K, V, S, A>::with_hasher_in(build_hasher, alloc);
-        let opaque_inner = OpaqueIndexMapInner::from_proj(proj_inner);
 
         Self {
-            inner: opaque_inner,
-            _marker: marker::PhantomData,
+            inner: proj_inner,
         }
     }
 
@@ -4194,11 +4197,9 @@ where
             Self::with_hasher_in(build_hasher, alloc)
         } else {
             let proj_inner = TypedProjIndexMapInner::<K, V, S, A>::with_capacity_and_hasher_in(capacity, build_hasher, alloc);
-            let opaque_inner = OpaqueIndexMapInner::from_proj(proj_inner);
 
             Self {
-                inner: opaque_inner,
-                _marker: marker::PhantomData,
+                inner: proj_inner,
             }
         }
     }
@@ -4208,25 +4209,21 @@ impl<K, V, A> TypedProjIndexMap<K, V, hash::RandomState, A>
 where
     K: any::Any,
     V: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     pub fn new_in(alloc: A) -> Self {
         let proj_inner = TypedProjIndexMapInner::<K, V, hash::RandomState, A>::new_in(alloc);
-        let opaque_inner = OpaqueIndexMapInner::from_proj(proj_inner);
 
         Self {
-            inner : opaque_inner,
-            _marker: marker::PhantomData,
+            inner : proj_inner,
         }
     }
 
     pub fn with_capacity_in(capacity: usize, alloc: A) -> Self {
         let proj_inner = TypedProjIndexMapInner::<K, V, hash::RandomState, A>::with_capacity_in(capacity, alloc);
-        let opaque_inner = OpaqueIndexMapInner::from_proj(proj_inner);
 
         Self {
-            inner: opaque_inner,
-            _marker: marker::PhantomData,
+            inner: proj_inner,
         }
     }
 }
@@ -4235,7 +4232,8 @@ impl<K, V, S> TypedProjIndexMap<K, V, S, alloc::Global>
 where
     K: any::Any,
     V: any::Any,
-    S: any::Any + hash::BuildHasher,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
 {
     #[inline]
     pub fn with_hasher(build_hasher: S) -> Self {
@@ -4268,164 +4266,113 @@ impl<K, V, S, A> TypedProjIndexMap<K, V, S, A>
 where
     K: any::Any,
     V: any::Any,
-    S: any::Any + hash::BuildHasher,
-    A: any::Any + alloc::Allocator,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[inline]
     pub fn capacity(&self) -> usize {
-        let proj_inner = self.inner.as_proj::<K, V, S, A>();
-
-        proj_inner.capacity()
+        self.inner.capacity()
     }
 
     #[inline]
     pub fn hasher(&self) -> &TypedProjBuildHasher<S> {
-        let proj_inner = self.inner.as_proj::<K, V, S, A>();
-
-        proj_inner.hasher()
+        self.inner.hasher()
     }
 
     #[inline]
     pub fn len(&self) -> usize {
-        let proj_inner = self.inner.as_proj::<K, V, S, A>();
-
-        proj_inner.len()
+        self.inner.len()
     }
 
     #[inline]
     pub fn is_empty(&self) -> bool {
-        let proj_inner = self.inner.as_proj::<K, V, S, A>();
-
-        proj_inner.is_empty()
+        self.inner.is_empty()
     }
-
-    /*
-    fn hash<Q>(&self, key: &Q) -> HashValue
-    where
-        Q: ?Sized + hash::Hash,
-    {
-        let mut hasher = self.build_hasher.build_hasher();
-        key.hash(&mut hasher);
-
-        HashValue::new(hasher.finish() as usize)
-    }
-    */
 
     pub fn get_index_of<Q>(&self, key: &Q) -> Option<usize>
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
-        let proj_inner = self.inner.as_proj::<K, V, S, A>();
-
-        proj_inner.get_index_of(key)
+        self.inner.get_index_of(key)
     }
 
     pub fn contains_key<Q>(&self, key: &Q) -> bool
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
-        let proj_inner = self.inner.as_proj::<K, V, S, A>();
-
-        proj_inner.contains_key(key)
+        self.inner.contains_key(key)
     }
 
     pub fn get<Q>(&self, key: &Q) -> Option<&V>
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
-        let proj_inner = self.inner.as_proj::<K, V, S, A>();
-
-        proj_inner.get(key)
+        self.inner.get(key)
     }
 
     pub fn get_key_value<Q>(&self, key: &Q) -> Option<(&K, &V)>
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
-        let proj_inner = self.inner.as_proj::<K, V, S, A>();
-
-        proj_inner.get_key_value(key)
+        self.inner.get_key_value(key)
     }
 
     pub fn get_full<Q>(&self, key: &Q) -> Option<(usize, &K, &V)>
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
-        let proj_inner = self.inner.as_proj::<K, V, S, A>();
-
-        proj_inner.get_full(key)
+        self.inner.get_full(key)
     }
 
     pub fn get_mut<Q>(&mut self, key: &Q) -> Option<&mut V>
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
-        let proj_inner = self.inner.as_proj_mut::<K, V, S, A>();
-
-        proj_inner.get_mut(key)
+        self.inner.get_mut(key)
     }
 
     pub fn get_full_mut<Q>(&mut self, key: &Q) -> Option<(usize, &K, &mut V)>
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
-        let proj_inner = self.inner.as_proj_mut::<K, V, S, A>();
-
-        proj_inner.get_full_mut(key)
+        self.inner.get_full_mut(key)
     }
 
     pub fn keys(&self) -> Keys<'_, K, V> {
-        let proj_inner = self.inner.as_proj::<K, V, S, A>();
-
-        proj_inner.keys()
+        self.inner.keys()
     }
 
     pub fn into_keys(self) -> IntoKeys<K, V, A> {
-        let proj_inner = self.inner.into_proj::<K, V, S, A>();
-
-        proj_inner.into_keys()
+        self.inner.into_keys()
     }
 
     pub fn iter(&self) -> Iter<'_, K, V> {
-        let proj_inner = self.inner.as_proj::<K, V, S, A>();
-
-        proj_inner.iter()
+        self.inner.iter()
     }
 
     pub fn iter_mut(&mut self) -> IterMut<'_, K, V> {
-        let proj_inner = self.inner.as_proj_mut::<K, V, S, A>();
-
-        proj_inner.iter_mut()
+        self.inner.iter_mut()
     }
 
     pub fn values(&self) -> Values<'_, K, V> {
-        let proj_inner = self.inner.as_proj::<K, V, S, A>();
-
-        proj_inner.values()
+        self.inner.values()
     }
 
     pub fn values_mut(&mut self) -> ValuesMut<'_, K, V> {
-        let proj_inner = self.inner.as_proj_mut::<K, V, S, A>();
-
-        proj_inner.values_mut()
+        self.inner.values_mut()
     }
 
     pub fn into_values(self) -> IntoValues<K, V, A> {
-        let proj_inner = self.inner.into_proj::<K, V, S, A>();
-
-        proj_inner.into_values()
+        self.inner.into_values()
     }
 
     pub fn clear(&mut self) {
-        let proj_inner = self.inner.as_proj_mut::<K, V, S, A>();
-
-        proj_inner.clear();
+        self.inner.clear();
     }
 
     pub fn truncate(&mut self, len: usize) {
-        let proj_inner = self.inner.as_proj_mut::<K, V, S, A>();
-
-        proj_inner.truncate(len);
+        self.inner.truncate(len);
     }
 
     #[track_caller]
@@ -4433,75 +4380,57 @@ where
     where
         R: ops::RangeBounds<usize>,
     {
-        let proj_inner = self.inner.as_proj_mut::<K, V, S, A>();
-
-        proj_inner.drain(range)
+        self.inner.drain(range)
     }
 
     pub fn swap_remove<Q>(&mut self, key: &Q) -> Option<V>
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
-        let proj_inner = self.inner.as_proj_mut::<K, V, S, A>();
-
-        proj_inner.swap_remove(key)
+        self.inner.swap_remove(key)
     }
 
     pub fn swap_remove_entry<Q>(&mut self, key: &Q) -> Option<(K, V)>
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
-        let proj_inner = self.inner.as_proj_mut::<K, V, S, A>();
-
-        proj_inner.swap_remove_entry(key)
+        self.inner.swap_remove_entry(key)
     }
 
     pub fn swap_remove_full<Q>(&mut self, key: &Q) -> Option<(usize, K, V)>
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
-        let proj_inner = self.inner.as_proj_mut::<K, V, S, A>();
-
-        proj_inner.swap_remove_full(key)
+        self.inner.swap_remove_full(key)
     }
 
     pub fn shift_remove<Q>(&mut self, key: &Q) -> Option<V>
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
-        let proj_inner = self.inner.as_proj_mut::<K, V, S, A>();
-
-        proj_inner.shift_remove(key)
+        self.inner.shift_remove(key)
     }
 
     pub fn shift_remove_entry<Q>(&mut self, key: &Q) -> Option<(K, V)>
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
-        let proj_inner = self.inner.as_proj_mut::<K, V, S, A>();
-
-        proj_inner.shift_remove_entry(key)
+        self.inner.shift_remove_entry(key)
     }
 
     pub fn shift_remove_full<Q>(&mut self, key: &Q) -> Option<(usize, K, V)>
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
-        let proj_inner = self.inner.as_proj_mut::<K, V, S, A>();
-
-        proj_inner.shift_remove_full(key)
+        self.inner.shift_remove_full(key)
     }
 
     pub fn as_slice(&self) -> &'_ Slice<K, V> {
-        let proj_inner = self.inner.as_proj::<K, V, S, A>();
-
-        proj_inner.as_slice()
+        self.inner.as_slice()
     }
 
     pub fn as_mut_slice(&mut self) -> &mut Slice<K, V> {
-        let proj_inner = self.inner.as_proj_mut::<K, V, S, A>();
-
-        proj_inner.as_mut_slice()
+        self.inner.as_mut_slice()
     }
 }
 
@@ -4509,34 +4438,29 @@ impl<K, V, S, A> TypedProjIndexMap<K, V, S, A>
 where
     K: any::Any,
     V: any::Any,
-    S: any::Any + hash::BuildHasher,
-    A: any::Any + alloc::Allocator,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     pub fn insert(&mut self, key: K, value: V) -> Option<V>
     where
         K: Eq + hash::Hash,
     {
-        let proj_inner = self.inner.as_proj_mut::<K, V, S, A>();
-
-        proj_inner.insert(key, value)
+        self.inner.insert(key, value)
     }
 
     pub fn insert_full(&mut self, key: K, value: V) -> (usize, Option<V>)
     where
         K: Eq + hash::Hash,
     {
-        let proj_inner = self.inner.as_proj_mut::<K, V, S, A>();
-
-        proj_inner.insert_full(key, value)
+        self.inner.insert_full(key, value)
     }
 
     pub fn insert_sorted(&mut self, key: K, value: V) -> (usize, Option<V>)
     where
         K: Eq + hash::Hash + Ord,
     {
-        let proj_inner = self.inner.as_proj_mut::<K, V, S, A>();
-
-        proj_inner.insert_sorted(key, value)
+        self.inner.insert_sorted(key, value)
     }
 
     #[track_caller]
@@ -4544,9 +4468,7 @@ where
     where
         K: Eq + hash::Hash,
     {
-        let proj_inner = self.inner.as_proj_mut::<K, V, S, A>();
-
-        proj_inner.insert_before(index, key, value)
+        self.inner.insert_before(index, key, value)
     }
 
     #[track_caller]
@@ -4554,18 +4476,14 @@ where
     where
         K: Eq + hash::Hash,
     {
-        let proj_inner = self.inner.as_proj_mut::<K, V, S, A>();
-
-        proj_inner.shift_insert(index, key, value)
+        self.inner.shift_insert(index, key, value)
     }
 
     pub fn entry(&mut self, key: K) -> Entry<'_, K, V, A>
     where
         K: Eq + hash::Hash,
     {
-        let proj_inner = self.inner.as_proj_mut::<K, V, S, A>();
-
-        proj_inner.entry(key)
+        self.inner.entry(key)
     }
 
     #[track_caller]
@@ -4576,21 +4494,17 @@ where
         R: ops::RangeBounds<usize>,
         I: IntoIterator<Item = (K, V)>,
     {
-        let proj_inner = self.inner.as_proj_mut::<K, V, S, A>();
-
-        proj_inner.splice(range, replace_with)
+        self.inner.splice(range, replace_with)
     }
 
     pub fn append<S2, A2>(&mut self, other: &mut TypedProjIndexMap<K, V, S2, A2>)
     where
         K: Eq + hash::Hash,
-        S2: any::Any + hash::BuildHasher,
-        A2: any::Any + alloc::Allocator,
+        S2: any::Any + hash::BuildHasher + Send + Sync,
+        S2::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A2: any::Any + alloc::Allocator + Send + Sync,
     {
-        let proj_self_inner = self.inner.as_proj_mut::<K, V, S, A>();
-        let proj_other_inner = other.inner.as_proj_mut::<K, V, S, A>();
-
-        proj_self_inner.append(proj_other_inner);
+        self.inner.append(&mut other.inner);
     }
 }
 
@@ -4598,68 +4512,55 @@ impl<K, V, S, A> TypedProjIndexMap<K, V, S, A>
 where
     K: any::Any,
     V: any::Any,
-    S: any::Any + hash::BuildHasher,
-    A: any::Any + alloc::Allocator,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[doc(alias = "pop_last")] // like `BTreeMap`
     pub fn pop(&mut self) -> Option<(K, V)> {
-        let proj_inner = self.inner.as_proj_mut::<K, V, S, A>();
-
-        proj_inner.pop()
+        self.inner.pop()
     }
 
     pub fn retain<F>(&mut self, keep: F)
     where
         F: FnMut(&K, &mut V) -> bool,
     {
-        let proj_inner = self.inner.as_proj_mut::<K, V, S, A>();
-
-        proj_inner.retain(keep);
+        self.inner.retain(keep);
     }
 
     pub fn sort_keys(&mut self)
     where
         K: Ord,
     {
-        let proj_inner = self.inner.as_proj_mut::<K, V, S, A>();
-
-        proj_inner.sort_keys();
+        self.inner.sort_keys();
     }
 
     pub fn sort_by<F>(&mut self, cmp: F)
     where
         F: FnMut(&K, &V, &K, &V) -> cmp::Ordering,
     {
-        let proj_inner = self.inner.as_proj_mut::<K, V, S, A>();
-
-        proj_inner.sort_by(cmp);
+        self.inner.sort_by(cmp);
     }
 
     pub fn sorted_by<F>(self, cmp: F) -> IntoIter<K, V, A>
     where
         F: FnMut(&K, &V, &K, &V) -> cmp::Ordering,
     {
-        let proj_inner = self.inner.into_proj::<K, V, S, A>();
-
-        proj_inner.sorted_by(cmp)
+        self.inner.sorted_by(cmp)
     }
 
     pub fn sort_unstable_keys(&mut self)
     where
         K: Ord,
     {
-        let proj_inner = self.inner.as_proj_mut::<K, V, S, A>();
-
-        proj_inner.sort_unstable_keys();
+        self.inner.sort_unstable_keys();
     }
 
     pub fn sort_unstable_by<F>(&mut self, cmp: F)
     where
         F: FnMut(&K, &V, &K, &V) -> cmp::Ordering,
     {
-        let proj_inner = self.inner.as_proj_mut::<K, V, S, A>();
-
-        proj_inner.sort_unstable_by(cmp);
+        self.inner.sort_unstable_by(cmp);
     }
 
     #[inline]
@@ -4667,9 +4568,7 @@ where
     where
         F: FnMut(&K, &V, &K, &V) -> cmp::Ordering,
     {
-        let proj_inner = self.inner.into_proj::<K, V, S, A>();
-
-        proj_inner.sorted_unstable_by(cmp)
+        self.inner.sorted_unstable_by(cmp)
     }
 
     pub fn sort_by_cached_key<T, F>(&mut self, mut sort_key: F)
@@ -4677,18 +4576,14 @@ where
         T: Ord,
         F: FnMut(&K, &V) -> T,
     {
-        let proj_inner = self.inner.as_proj_mut::<K, V, S, A>();
-
-        proj_inner.sort_by_cached_key(&mut sort_key);
+        self.inner.sort_by_cached_key(&mut sort_key);
     }
 
     pub fn binary_search_keys(&self, key: &K) -> Result<usize, usize>
     where
         K: Ord,
     {
-        let proj_inner = self.inner.as_proj::<K, V, S, A>();
-
-        proj_inner.binary_search_keys(key)
+        self.inner.binary_search_keys(key)
     }
 
     #[inline]
@@ -4696,9 +4591,7 @@ where
     where
         F: FnMut(&K, &V) -> cmp::Ordering,
     {
-        let proj_inner = self.inner.as_proj::<K, V, S, A>();
-
-        proj_inner.binary_search_by(f)
+        self.inner.binary_search_by(f)
     }
 
     #[inline]
@@ -4707,9 +4600,7 @@ where
         F: FnMut(&K, &V) -> B,
         B: Ord,
     {
-        let proj_inner = self.inner.as_proj::<K, V, S, A>();
-
-        proj_inner.binary_search_by_key(b, f)
+        self.inner.binary_search_by_key(b, f)
     }
 
     #[must_use]
@@ -4717,166 +4608,118 @@ where
     where
         P: FnMut(&K, &V) -> bool,
     {
-        let proj_inner = self.inner.as_proj::<K, V, S, A>();
-
-        proj_inner.partition_point(pred)
+        self.inner.partition_point(pred)
     }
 
     pub fn reverse(&mut self) {
-        let proj_inner = self.inner.as_proj_mut::<K, V, S, A>();
-
-        proj_inner.reverse();
+        self.inner.reverse();
     }
 
     pub fn reserve(&mut self, additional: usize) {
-        let proj_inner = self.inner.as_proj_mut::<K, V, S, A>();
-
-        proj_inner.reserve(additional);
+        self.inner.reserve(additional);
     }
 
     pub fn reserve_exact(&mut self, additional: usize) {
-        let proj_inner = self.inner.as_proj_mut::<K, V, S, A>();
-
-        proj_inner.reserve_exact(additional);
+        self.inner.reserve_exact(additional);
     }
 
     pub fn try_reserve(&mut self, additional: usize) -> Result<(), TryReserveError> {
-        let proj_inner = self.inner.as_proj_mut::<K, V, S, A>();
-
-        proj_inner.try_reserve(additional)
+        self.inner.try_reserve(additional)
     }
 
     pub fn try_reserve_exact(&mut self, additional: usize) -> Result<(), TryReserveError> {
-        let proj_inner = self.inner.as_proj_mut::<K, V, S, A>();
-
-        proj_inner.try_reserve_exact(additional)
+        self.inner.try_reserve_exact(additional)
     }
 
     pub fn shrink_to_fit(&mut self) {
-        let proj_inner = self.inner.as_proj_mut::<K, V, S, A>();
-
-        proj_inner.shrink_to_fit();
+        self.inner.shrink_to_fit();
     }
 
     pub fn shrink_to(&mut self, min_capacity: usize) {
-        let proj_inner = self.inner.as_proj_mut::<K, V, S, A>();
-
-        proj_inner.shrink_to(min_capacity);
+        self.inner.shrink_to(min_capacity);
     }
 
     pub fn into_boxed_slice(self) -> Box<Slice<K, V>, TypedProjAlloc<A>> {
-        let proj_inner = self.inner.into_proj::<K, V, S, A>();
-
-        proj_inner.into_boxed_slice()
+        self.inner.into_boxed_slice()
     }
 
     pub fn get_index(&self, index: usize) -> Option<(&K, &V)> {
-        let proj_inner = self.inner.as_proj::<K, V, S, A>();
-
-        proj_inner.get_index(index)
+        self.inner.get_index(index)
     }
 
     pub fn get_index_mut(&mut self, index: usize) -> Option<(&K, &mut V)> {
-        let proj_inner = self.inner.as_proj_mut::<K, V, S, A>();
-
-        proj_inner.get_index_mut(index)
+        self.inner.get_index_mut(index)
     }
 
     pub fn get_index_entry(&mut self, index: usize) -> Option<IndexedEntry<'_, K, V, A>>
     where
         K: Ord,
     {
-        let proj_inner = self.inner.as_proj_mut::<K, V, S, A>();
-
-        proj_inner.get_index_entry(index)
+        self.inner.get_index_entry(index)
     }
 
     pub fn get_range<R>(&self, range: R) -> Option<&Slice<K, V>>
     where
         R: ops::RangeBounds<usize>,
     {
-        let proj_inner = self.inner.as_proj::<K, V, S, A>();
-
-        proj_inner.get_range(range)
+        self.inner.get_range(range)
     }
 
     pub fn get_range_mut<R>(&mut self, range: R) -> Option<&mut Slice<K, V>>
     where
         R: ops::RangeBounds<usize>,
     {
-        let proj_inner = self.inner.as_proj_mut::<K, V, S, A>();
-
-        proj_inner.get_range_mut(range)
+        self.inner.get_range_mut(range)
     }
 
     #[doc(alias = "first_key_value")] // like `BTreeMap`
     pub fn first(&self) -> Option<(&K, &V)> {
-        let proj_inner = self.inner.as_proj::<K, V, S, A>();
-
-        proj_inner.first()
+        self.inner.first()
     }
 
     pub fn first_mut(&mut self) -> Option<(&K, &mut V)> {
-        let proj_inner = self.inner.as_proj_mut::<K, V, S, A>();
-
-        proj_inner.first_mut()
+        self.inner.first_mut()
     }
 
     pub fn first_entry(&mut self) -> Option<IndexedEntry<'_, K, V, A>>
     where
         K: Ord,
     {
-        let proj_inner = self.inner.as_proj_mut::<K, V, S, A>();
-
-        proj_inner.first_entry()
+        self.inner.first_entry()
     }
 
     #[doc(alias = "last_key_value")] // like `BTreeMap`
     pub fn last(&self) -> Option<(&K, &V)> {
-        let proj_inner = self.inner.as_proj::<K, V, S, A>();
-
-        proj_inner.last()
+        self.inner.last()
     }
 
     pub fn last_mut(&mut self) -> Option<(&K, &mut V)> {
-        let proj_inner = self.inner.as_proj_mut::<K, V, S, A>();
-
-        proj_inner.last_mut()
+        self.inner.last_mut()
     }
 
     pub fn last_entry(&mut self) -> Option<IndexedEntry<'_, K, V, A>>
     where
         K: Ord,
     {
-        let proj_inner = self.inner.as_proj_mut::<K, V, S, A>();
-
-        proj_inner.last_entry()
+        self.inner.last_entry()
     }
 
     pub fn swap_remove_index(&mut self, index: usize) -> Option<(K, V)> {
-        let proj_inner = self.inner.as_proj_mut::<K, V, S, A>();
-
-        proj_inner.swap_remove_index(index)
+        self.inner.swap_remove_index(index)
     }
 
     pub fn shift_remove_index(&mut self, index: usize) -> Option<(K, V)> {
-        let proj_inner = self.inner.as_proj_mut::<K, V, S, A>();
-
-        proj_inner.shift_remove_index(index)
+        self.inner.shift_remove_index(index)
     }
 
     #[track_caller]
     pub fn move_index(&mut self, from: usize, to: usize) {
-        let proj_inner = self.inner.as_proj_mut::<K, V, S, A>();
-
-        proj_inner.move_index(from, to);
+        self.inner.move_index(from, to);
     }
 
     #[track_caller]
     pub fn swap_indices(&mut self, a: usize, b: usize) {
-        let proj_inner = self.inner.as_proj_mut::<K, V, S, A>();
-
-        proj_inner.swap_indices(a, b)
+        self.inner.swap_indices(a, b)
     }
 }
 
@@ -4885,8 +4728,9 @@ where
     Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     K: any::Any,
     V: any::Any,
-    S: any::Any + hash::BuildHasher,
-    A: any::Any + alloc::Allocator,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     type Output = V;
 
@@ -4901,8 +4745,9 @@ where
     Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     K: any::Any,
     V: any::Any,
-    S: any::Any + hash::BuildHasher,
-    A: any::Any + alloc::Allocator,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn index_mut(&mut self, key: &Q) -> &mut V {
         self.get_mut(key).expect("Entry not found for key")
@@ -4913,8 +4758,9 @@ impl<K, V, S, A> ops::Index<usize> for TypedProjIndexMap<K, V, S, A>
 where
     K: any::Any,
     V: any::Any,
-    S: any::Any + hash::BuildHasher,
-    A: any::Any + alloc::Allocator,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     type Output = V;
 
@@ -4934,8 +4780,9 @@ impl<K, V, S, A> ops::IndexMut<usize> for TypedProjIndexMap<K, V, S, A>
 where
     K: any::Any,
     V: any::Any,
-    S: any::Any + hash::BuildHasher,
-    A: any::Any + alloc::Allocator,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn index_mut(&mut self, index: usize) -> &mut V {
         let len: usize = self.len();
@@ -4952,25 +4799,20 @@ impl<K, V, S, A> Clone for TypedProjIndexMap<K, V, S, A>
 where
     K: any::Any + Clone,
     V: any::Any + Clone,
-    S: any::Any + hash::BuildHasher + Clone,
-    A: any::Any + alloc::Allocator + Clone,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     fn clone(&self) -> Self {
-        let proj_inner = self.inner.as_proj::<K, V, S, A>();
-        let cloned_proj_inner = Clone::clone(proj_inner);
-        let cloned_opaque_inner = OpaqueIndexMapInner::from_proj(cloned_proj_inner);
+        let cloned_inner = Clone::clone(&self.inner);
 
         Self {
-            inner: cloned_opaque_inner,
-            _marker: marker::PhantomData,
+            inner: cloned_inner,
         }
     }
 
     fn clone_from(&mut self, other: &Self) {
-        let proj_self_inner = self.inner.as_proj_mut::<K, V, S, A>();
-        let proj_other_inner = other.inner.as_proj::<K, V, S, A>();
-
-        Clone::clone_from(proj_self_inner, proj_other_inner);
+        Clone::clone_from(&mut self.inner, &other.inner);
     }
 }
 
@@ -4978,16 +4820,15 @@ impl<K, V, S, A> Extend<(K, V)> for TypedProjIndexMap<K, V, S, A>
 where
     K: any::Any + hash::Hash + Eq,
     V: any::Any,
-    S: any::Any + hash::BuildHasher,
-    A: any::Any + alloc::Allocator,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn extend<I>(&mut self, iterable: I)
     where
         I: IntoIterator<Item = (K, V)>,
     {
-        let proj_self_inner = self.inner.as_proj_mut::<K, V, S, A>();
-
-        proj_self_inner.extend(iterable);
+        self.inner.extend(iterable);
     }
 }
 
@@ -4995,16 +4836,15 @@ impl<'a, K, V, S, A> Extend<(&'a K, &'a V)> for TypedProjIndexMap<K, V, S, A>
 where
     K: any::Any + hash::Hash + Eq + Copy,
     V: any::Any + Copy,
-    S: any::Any + hash::BuildHasher,
-    A: any::Any + alloc::Allocator,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn extend<I>(&mut self, iterable: I)
     where
         I: IntoIterator<Item = (&'a K, &'a V)>,
     {
-        let proj_self_inner = self.inner.as_proj_mut::<K, V, S, A>();
-
-        proj_self_inner.extend(iterable);
+        self.inner.extend(iterable);
     }
 }
 
@@ -5012,7 +4852,8 @@ impl<K, V, S> FromIterator<(K, V)> for TypedProjIndexMap<K, V, S, alloc::Global>
 where
     K: any::Any + hash::Hash + Eq,
     V: any::Any,
-    S: any::Any + hash::BuildHasher + Default,
+    S: any::Any + hash::BuildHasher + Send + Sync + Default,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
 {
     fn from_iter<I: IntoIterator<Item = (K, V)>>(iterable: I) -> Self {
         let iter = iterable.into_iter();
@@ -5028,7 +4869,8 @@ impl<K, V, S, const N: usize> From<[(K, V); N]> for TypedProjIndexMap<K, V, S, a
 where
     K: any::Any + hash::Hash + Eq,
     V: any::Any,
-    S: any::Any + hash::BuildHasher + Default,
+    S: any::Any + hash::BuildHasher + Send + Sync + Default,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
 {
     fn from(arr: [(K, V); N]) -> Self {
         Self::from_iter(arr)
@@ -5039,8 +4881,9 @@ impl<K, V, S, A> Default for TypedProjIndexMap<K, V, S, A>
 where
     K: any::Any,
     V: any::Any,
-    S: any::Any + hash::BuildHasher + Default,
-    A: any::Any + alloc::Allocator + Default,
+    S: any::Any + hash::BuildHasher + Send + Sync + Default,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Default,
 {
     fn default() -> Self {
         Self::with_capacity_and_hasher_in(0, S::default(), A::default())
@@ -5052,10 +4895,12 @@ where
     K: any::Any + hash::Hash + Eq,
     V1: any::Any + PartialEq<V2>,
     V2: any::Any,
-    S1: any::Any + hash::BuildHasher,
-    S2: any::Any + hash::BuildHasher,
-    A1: any::Any + alloc::Allocator,
-    A2: any::Any + alloc::Allocator,
+    S1: any::Any + hash::BuildHasher + Send + Sync,
+    S1::Hasher: any::Any + hash::Hasher + Send + Sync,
+    S2: any::Any + hash::BuildHasher + Send + Sync,
+    S2::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A1: any::Any + alloc::Allocator + Send + Sync,
+    A2: any::Any + alloc::Allocator + Send + Sync,
 {
     fn eq(&self, other: &TypedProjIndexMap<K, V2, S2, A2>) -> bool {
         if self.len() != other.len() {
@@ -5071,8 +4916,9 @@ impl<K, V, S, A> Eq for TypedProjIndexMap<K, V, S, A>
 where
     K: any::Any + Eq + hash::Hash,
     V: any::Any + Eq,
-    S: any::Any + hash::BuildHasher,
-    A: any::Any + alloc::Allocator,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
 }
 
@@ -5129,7 +4975,7 @@ impl OpaqueIndexMap {
     #[inline]
     pub fn has_allocator_type<A>(&self) -> bool
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         self.inner.allocator_type_id() == any::TypeId::of::<A>()
     }
@@ -5141,7 +4987,7 @@ impl OpaqueIndexMap {
         K: any::Any,
         V: any::Any,
         S: any::Any,
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         #[cold]
         #[optimize(size)]
@@ -5174,8 +5020,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         self.assert_type_safety::<K, V, S, A>();
 
@@ -5187,8 +5034,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         self.assert_type_safety::<K, V, S, A>();
 
@@ -5200,14 +5048,14 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         self.assert_type_safety::<K, V, S, A>();
 
         TypedProjIndexMap {
-            inner: self.inner,
-            _marker: marker::PhantomData,
+            inner: self.inner.into_proj::<K, V, S, A>(),
         }
     }
 
@@ -5216,11 +5064,12 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         Self {
-            inner: proj_self.inner,
+            inner: OpaqueIndexMapInner::from_proj(proj_self.inner),
         }
     }
 }
@@ -5231,8 +5080,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_index_map = TypedProjIndexMap::<K, V, S, A>::with_hasher_proj_in(proj_build_hasher, proj_alloc);
 
@@ -5244,8 +5094,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_index_map = TypedProjIndexMap::<K, V, S, A>::with_capacity_and_hasher_proj_in(capacity, proj_build_hasher, proj_alloc);
 
@@ -5258,7 +5109,7 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_index_map = TypedProjIndexMap::<K, V, hash::RandomState, A>::new_proj_in(proj_alloc);
 
@@ -5269,7 +5120,7 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_index_map = TypedProjIndexMap::<K, V, hash::RandomState, A>::with_capacity_proj_in(capacity, proj_alloc);
 
@@ -5283,8 +5134,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_index_map = TypedProjIndexMap::<K, V, S, A>::with_hasher_in(build_hasher, alloc);
 
@@ -5296,8 +5148,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_index_map = TypedProjIndexMap::<K, V, S, A>::with_capacity_and_hasher_in(capacity, build_hasher, alloc);
 
@@ -5310,7 +5163,7 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_index_map = TypedProjIndexMap::<K, V, _, A>::new_in(alloc);
 
@@ -5321,7 +5174,7 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_index_map = TypedProjIndexMap::<K, V, _, A>::with_capacity_in(capacity, alloc);
 
@@ -5335,7 +5188,8 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
     {
         let proj_index_map = TypedProjIndexMap::<K, V, S, _>::with_hasher(build_hasher);
 
@@ -5347,7 +5201,8 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
     {
         let proj_index_map = TypedProjIndexMap::<K, V, S, _>::with_capacity_and_hasher(capacity, build_hasher);
 
@@ -5399,8 +5254,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj::<K, V, S, A>();
 
@@ -5411,8 +5267,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
         let proj_self = self.as_proj::<K, V, S, A>();
@@ -5424,8 +5281,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
         let proj_self = self.as_proj::<K, V, S, A>();
@@ -5437,8 +5295,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
         let proj_self = self.as_proj::<K, V, S, A>();
@@ -5450,8 +5309,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
         let proj_self = self.as_proj::<K, V, S, A>();
@@ -5463,8 +5323,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
         let proj_self = self.as_proj::<K, V, S, A>();
@@ -5476,8 +5337,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
@@ -5489,8 +5351,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
@@ -5502,8 +5365,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj::<K, V, S, A>();
 
@@ -5514,8 +5378,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.into_proj::<K, V, S, A>();
 
@@ -5526,8 +5391,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj::<K, V, S, A>();
 
@@ -5538,8 +5404,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
 
@@ -5550,8 +5417,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj::<K, V, S, A>();
 
@@ -5562,8 +5430,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
 
@@ -5574,8 +5443,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.into_proj::<K, V, S, A>();
 
@@ -5586,8 +5456,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
 
@@ -5598,8 +5469,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
 
@@ -5611,8 +5483,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
         R: ops::RangeBounds<usize>,
     {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
@@ -5624,8 +5497,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
@@ -5637,8 +5511,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
@@ -5650,8 +5525,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
@@ -5663,8 +5539,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
@@ -5676,8 +5553,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
@@ -5689,8 +5567,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
@@ -5702,8 +5581,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj::<K, V, S, A>();
 
@@ -5714,8 +5594,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
 
@@ -5728,8 +5609,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any + Eq + hash::Hash,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
 
@@ -5740,8 +5622,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any + Eq + hash::Hash,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
 
@@ -5752,8 +5635,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any + Eq + hash::Hash + Ord,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
 
@@ -5765,8 +5649,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any + Eq + hash::Hash,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
 
@@ -5778,8 +5663,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any + Eq + hash::Hash,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
 
@@ -5790,8 +5676,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any + Eq + hash::Hash,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
 
@@ -5803,8 +5690,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any + Eq + hash::Hash,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator + Clone,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync + Clone,
         R: ops::RangeBounds<usize>,
         I: IntoIterator<Item = (K, V)>,
     {
@@ -5817,8 +5705,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any + Eq + hash::Hash,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
         let proj_other = other.as_proj_mut::<K, V, S, A>();
@@ -5833,8 +5722,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
 
@@ -5845,8 +5735,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
         F: FnMut(&K, &mut V) -> bool,
     {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
@@ -5858,8 +5749,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any + Ord,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
 
@@ -5870,8 +5762,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
         F: FnMut(&K, &V, &K, &V) -> cmp::Ordering,
     {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
@@ -5883,8 +5776,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
         F: FnMut(&K, &V, &K, &V) -> cmp::Ordering,
     {
         let proj_self = self.into_proj::<K, V, S, A>();
@@ -5896,8 +5790,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any + Ord,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
 
@@ -5908,8 +5803,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
         F: FnMut(&K, &V, &K, &V) -> cmp::Ordering,
     {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
@@ -5922,8 +5818,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
         F: FnMut(&K, &V, &K, &V) -> cmp::Ordering,
     {
         let proj_self = self.into_proj::<K, V, S, A>();
@@ -5935,8 +5832,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
         T: Ord,
         F: FnMut(&K, &V) -> T,
     {
@@ -5949,8 +5847,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any + Ord,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj::<K, V, S, A>();
 
@@ -5962,8 +5861,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
         F: FnMut(&K, &V) -> cmp::Ordering,
     {
         let proj_self = self.as_proj::<K, V, S, A>();
@@ -5976,8 +5876,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
         F: FnMut(&K, &V) -> B,
         B: Ord,
     {
@@ -5991,8 +5892,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
         P: FnMut(&K, &V) -> bool,
     {
         let proj_self = self.as_proj::<K, V, S, A>();
@@ -6004,8 +5906,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
 
@@ -6016,8 +5919,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
 
@@ -6028,8 +5932,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
 
@@ -6040,8 +5945,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
 
@@ -6052,8 +5958,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
 
@@ -6064,8 +5971,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
 
@@ -6076,8 +5984,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
 
@@ -6088,8 +5997,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.into_proj::<K, V, S, A>();
 
@@ -6100,8 +6010,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj::<K, V, S, A>();
 
@@ -6112,8 +6023,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
 
@@ -6124,8 +6036,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any + Ord,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
 
@@ -6136,8 +6049,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
         R: ops::RangeBounds<usize>,
     {
         let proj_self = self.as_proj::<K, V, S, A>();
@@ -6149,8 +6063,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
         R: ops::RangeBounds<usize>,
     {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
@@ -6163,8 +6078,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj::<K, V, S, A>();
 
@@ -6175,8 +6091,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
 
@@ -6187,8 +6104,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any + Ord,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
 
@@ -6200,8 +6118,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj::<K, V, S, A>();
 
@@ -6212,8 +6131,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
 
@@ -6224,8 +6144,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any + Ord,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
 
@@ -6236,8 +6157,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
 
@@ -6248,8 +6170,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
 
@@ -6261,8 +6184,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
 
@@ -6274,8 +6198,9 @@ impl OpaqueIndexMap {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
 
@@ -6320,8 +6245,9 @@ mod index_map_layout_tests {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let expected = mem::size_of::<TypedProjIndexMap<K, V, S, A>>();
         let result = mem::size_of::<OpaqueIndexMap>();
@@ -6333,8 +6259,9 @@ mod index_map_layout_tests {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let expected = mem::align_of::<TypedProjIndexMap<K, V, S, A>>();
         let result = mem::align_of::<OpaqueIndexMap>();
@@ -6346,8 +6273,9 @@ mod index_map_layout_tests {
     where
         K: any::Any,
         V: any::Any,
-        S: any::Any + hash::BuildHasher,
-        A: any::Any + alloc::Allocator,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let expected = mem::offset_of!(TypedProjIndexMap<K, V, S, A>, inner);
         let result = mem::offset_of!(OpaqueIndexMap, inner);
@@ -6405,4 +6333,22 @@ mod index_map_layout_tests {
     layout_tests!(u8_u8_random_state_global, u8, u8, hash::RandomState, alloc::Global);
     layout_tests!(u64_pair_dummy_hasher_dummy_alloc, u64, Pair, DummyBuildHasher, DummyAlloc);
     layout_tests!(unit_str_zst_hasher_dummy_alloc, (), &'static str, DummyBuildHasher, DummyAlloc);
+}
+
+#[cfg(test)]
+mod assert_send_sync {
+    use super::*;
+
+    #[test]
+    fn test_assert_send_sync() {
+        fn assert_send_sync<T: Send + Sync>() {}
+
+        assert_send_sync::<TypedProjIndexMapCore<i32, i32, alloc::Global>>();
+        assert_send_sync::<TypedProjIndexMapInner<i32, i32, hash::RandomState, alloc::Global>>();
+        assert_send_sync::<TypedProjIndexMap<i32, i32, hash::RandomState, alloc::Global>>();
+        assert_send_sync::<Entry<'_, i32, i32, alloc::Global>>();
+        assert_send_sync::<OccupiedEntry<'_, i32, i32, alloc::Global>>();
+        assert_send_sync::<VacantEntry::<'_, i32, i32, alloc::Global>>();
+        assert_send_sync::<IndexedEntry::<'_, i32, i32, alloc::Global>>();
+    }
 }

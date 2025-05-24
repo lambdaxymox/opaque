@@ -5,7 +5,7 @@ use std::ptr::NonNull;
 
 fn clone<A>(opaque_alloc: OpaqueAlloc) -> OpaqueAlloc
 where
-    A: any::Any + alloc::Allocator + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let proj_alloc = opaque_alloc.as_proj::<A>();
     let cloned_proj_alloc = proj_alloc.clone();
@@ -14,7 +14,7 @@ where
 
 fn run_test_opaque_alloc_clone<A>(alloc: A)
 where
-    A: any::Any + alloc::Allocator + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let expected = OpaqueAlloc::new(alloc);
     let _ = clone::<A>(expected);

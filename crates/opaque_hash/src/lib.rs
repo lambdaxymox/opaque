@@ -5,14 +5,14 @@ use core::fmt;
 use core::marker;
 use std::hash;
 
-trait AnyHasher: hash::Hasher + any::Any {}
+trait AnyHasher: any::Any + hash::Hasher + Send + Sync {}
 
-impl<H> AnyHasher for H where H: hash::Hasher + any::Any {}
+impl<H> AnyHasher for H where H: any::Any + hash::Hasher + Send + Sync {}
 
 #[repr(C)]
 struct TypedProjHasherInner<H>
 where
-    H: any::Any + hash::Hasher,
+    H: any::Any + hash::Hasher + Send + Sync,
 {
     hasher: Box<dyn AnyHasher>,
     hasher_type_id: any::TypeId,
@@ -21,7 +21,7 @@ where
 
 impl<H> TypedProjHasherInner<H>
 where
-    H: any::Any + hash::Hasher,
+    H: any::Any + hash::Hasher + Send + Sync,
 {
     #[inline]
     fn new(hasher: H) -> Self {
@@ -69,7 +69,7 @@ where
 
 impl<H> Clone for TypedProjHasherInner<H>
 where
-    H: any::Any + hash::Hasher + Clone,
+    H: any::Any + hash::Hasher + Send + Sync + Clone,
 {
     #[inline]
     fn clone(&self) -> TypedProjHasherInner<H> {
@@ -87,7 +87,7 @@ where
 
 impl<H> hash::Hasher for TypedProjHasherInner<H>
 where
-    H: any::Any + hash::Hasher,
+    H: any::Any + hash::Hasher + Send + Sync,
 {
     fn finish(&self) -> u64 {
         self.hasher.finish()
@@ -115,7 +115,7 @@ impl OpaqueHasherInner {
     #[inline]
     fn new<H>(hasher: H) -> Self
     where
-        H: any::Any + hash::Hasher,
+        H: any::Any + hash::Hasher + Send + Sync,
     {
         let boxed_hasher = Box::new(hasher);
         let type_id = any::TypeId::of::<H>();
@@ -129,7 +129,7 @@ impl OpaqueHasherInner {
     #[inline]
     fn from_boxed_hasher<H>(hasher: Box<H>) -> Self
     where
-        H: any::Any + hash::Hasher,
+        H: any::Any + hash::Hasher + Send + Sync,
     {
         let type_id = any::TypeId::of::<H>();
 
@@ -144,7 +144,7 @@ impl OpaqueHasherInner {
     #[inline(always)]
     pub(crate) fn as_proj<H>(&self) -> &TypedProjHasherInner<H>
     where
-        H: any::Any + hash::Hasher,
+        H: any::Any + hash::Hasher + Send + Sync,
     {
         debug_assert_eq!(self.hasher_type_id, any::TypeId::of::<H>());
 
@@ -154,7 +154,7 @@ impl OpaqueHasherInner {
     #[inline(always)]
     pub(crate) fn as_proj_mut<H>(&mut self) -> &mut TypedProjHasherInner<H>
     where
-        H: any::Any + hash::Hasher,
+        H: any::Any + hash::Hasher + Send + Sync,
     {
         debug_assert_eq!(self.hasher_type_id, any::TypeId::of::<H>());
 
@@ -164,7 +164,7 @@ impl OpaqueHasherInner {
     #[inline(always)]
     pub(crate) fn into_proj<H>(self) -> TypedProjHasherInner<H>
     where
-        H: any::Any + hash::Hasher,
+        H: any::Any + hash::Hasher + Send + Sync,
     {
         debug_assert_eq!(self.hasher_type_id, any::TypeId::of::<H>());
 
@@ -178,7 +178,7 @@ impl OpaqueHasherInner {
     #[inline(always)]
     pub(crate) fn from_proj<H>(proj_self: TypedProjHasherInner<H>) -> Self
     where
-        H: any::Any + hash::Hasher,
+        H: any::Any + hash::Hasher + Send + Sync,
     {
         Self {
             hasher: proj_self.hasher,
@@ -200,14 +200,14 @@ impl hash::Hasher for OpaqueHasherInner {
 #[repr(transparent)]
 pub struct TypedProjHasher<H>
 where
-    H: any::Any + hash::Hasher,
+    H: any::Any + hash::Hasher + Send + Sync,
 {
     inner: TypedProjHasherInner<H>,
 }
 
 impl<H> TypedProjHasher<H>
 where
-    H: any::Any + hash::Hasher,
+    H: any::Any + hash::Hasher + Send + Sync,
 {
     #[inline]
     pub fn new(hasher: H) -> Self {
@@ -234,7 +234,7 @@ where
 
 impl<H> hash::Hasher for TypedProjHasher<H>
 where
-    H: any::Any + hash::Hasher,
+    H: any::Any + hash::Hasher + Send + Sync,
 {
     fn finish(&self) -> u64 {
         self.inner.finish()
@@ -247,7 +247,7 @@ where
 
 impl<H> Clone for TypedProjHasher<H>
 where
-    H: hash::Hasher + any::Any + Clone,
+    H: any::Any + hash::Hasher + Send + Sync + Clone,
 {
     fn clone(&self) -> Self {
         Self {
@@ -258,7 +258,7 @@ where
 
 impl<H> Default for TypedProjHasher<H>
 where
-    H: hash::Hasher + any::Any + Default,
+    H: any::Any + hash::Hasher + Send + Sync + Default,
 {
     fn default() -> Self {
         Self::new(Default::default())
@@ -267,7 +267,7 @@ where
 
 impl<H> fmt::Debug for TypedProjHasher<H>
 where
-    H: hash::Hasher + any::Any + fmt::Debug,
+    H: any::Any + hash::Hasher + Send + Sync + fmt::Debug,
 {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         formatter
@@ -279,7 +279,7 @@ where
 
 impl<H> From<H> for TypedProjHasher<H>
 where
-    H: any::Any + hash::Hasher,
+    H: any::Any + hash::Hasher + Send + Sync,
 {
     fn from(hasher: H) -> Self {
         Self::new(hasher)
@@ -300,7 +300,7 @@ impl OpaqueHasher {
     #[inline]
     pub fn has_hasher_type<H>(&self) -> bool
     where
-        H: any::Any + hash::Hasher,
+        H: any::Any + hash::Hasher + Send + Sync,
     {
         self.inner.hasher_type_id() == any::TypeId::of::<H>()
     }
@@ -309,7 +309,7 @@ impl OpaqueHasher {
     #[track_caller]
     fn assert_type_safety<H>(&self)
     where
-        H: any::Any + hash::Hasher,
+        H: any::Any + hash::Hasher + Send + Sync,
     {
         #[cold]
         #[optimize(size)]
@@ -328,7 +328,7 @@ impl OpaqueHasher {
     #[inline]
     pub fn new<H>(hasher: H) -> Self
     where
-        H: any::Any + hash::Hasher,
+        H: any::Any + hash::Hasher + Send + Sync,
     {
         let proj_alloc = TypedProjHasher::<H>::new(hasher);
 
@@ -338,7 +338,7 @@ impl OpaqueHasher {
     #[inline]
     pub fn from_boxed_hasher<H>(hasher: Box<H>) -> Self
     where
-        H: any::Any + hash::Hasher,
+        H: any::Any + hash::Hasher + Send + Sync,
     {
         let proj_alloc = TypedProjHasher::<H>::from_boxed_hasher(hasher);
 
@@ -350,7 +350,7 @@ impl OpaqueHasher {
     #[inline]
     pub fn as_proj<H>(&self) -> &TypedProjHasher<H>
     where
-        H: any::Any + hash::Hasher,
+        H: any::Any + hash::Hasher + Send + Sync,
     {
         self.assert_type_safety::<H>();
 
@@ -360,7 +360,7 @@ impl OpaqueHasher {
     #[inline]
     pub fn as_proj_mut<H>(&mut self) -> &mut TypedProjHasher<H>
     where
-        H: any::Any + hash::Hasher,
+        H: any::Any + hash::Hasher + Send + Sync,
     {
         self.assert_type_safety::<H>();
 
@@ -370,7 +370,7 @@ impl OpaqueHasher {
     #[inline]
     pub fn into_proj<H>(self) -> TypedProjHasher<H>
     where
-        H: any::Any + hash::Hasher,
+        H: any::Any + hash::Hasher + Send + Sync,
     {
         self.assert_type_safety::<H>();
 
@@ -382,7 +382,7 @@ impl OpaqueHasher {
     #[inline]
     pub fn from_proj<H>(proj_self: TypedProjHasher<H>) -> Self
     where
-        H: any::Any + hash::Hasher,
+        H: any::Any + hash::Hasher + Send + Sync,
     {
         Self {
             inner: OpaqueHasherInner::from_proj(proj_self.inner),
@@ -409,9 +409,10 @@ impl fmt::Debug for OpaqueHasher {
 #[repr(C)]
 struct TypedProjBuildHasherInner<S>
 where
-    S: any::Any + hash::BuildHasher,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
 {
-    build_hasher: Box<dyn any::Any>,
+    build_hasher: Box<dyn any::Any + Send + Sync>,
     build_hasher_type_id: any::TypeId,
     hasher_type_id: any::TypeId,
     _marker: marker::PhantomData<S>,
@@ -419,7 +420,8 @@ where
 
 impl<S> TypedProjBuildHasherInner<S>
 where
-    S: any::Any + hash::BuildHasher,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
 {
     #[inline]
     fn new(build_hasher: S) -> Self {
@@ -478,7 +480,8 @@ where
 
 impl<S> Clone for TypedProjBuildHasherInner<S>
 where
-    S: any::Any + hash::BuildHasher + Clone,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
 {
     fn clone(&self) -> Self {
         debug_assert_eq!(self.build_hasher_type_id, any::TypeId::of::<S>());
@@ -513,7 +516,7 @@ impl OpaqueBuildHasherInner {
     #[inline]
     fn new<S>(build_hasher: S) -> Self
     where
-        S: any::Any + hash::BuildHasher,
+        S: any::Any + hash::BuildHasher + Send + Sync,
     {
         let boxed_build_hasher = Box::new(build_hasher);
         let build_hasher_type_id = any::TypeId::of::<S>();
@@ -529,7 +532,7 @@ impl OpaqueBuildHasherInner {
     #[inline]
     fn from_boxed_build_hasher<S>(build_hasher: Box<S>) -> Self
     where
-        S: any::Any + hash::BuildHasher,
+        S: any::Any + hash::BuildHasher + Send + Sync,
     {
         let build_hasher_type_id = any::TypeId::of::<S>();
         let hasher_type_id = any::TypeId::of::<S::Hasher>();
@@ -546,7 +549,8 @@ impl OpaqueBuildHasherInner {
     #[inline(always)]
     pub fn as_proj<S>(&self) -> &TypedProjBuildHasherInner<S>
     where
-        S: any::Any + hash::BuildHasher,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
     {
         debug_assert_eq!(self.build_hasher_type_id, any::TypeId::of::<S>());
 
@@ -556,7 +560,8 @@ impl OpaqueBuildHasherInner {
     #[inline(always)]
     pub fn as_proj_mut<S>(&mut self) -> &mut TypedProjBuildHasherInner<S>
     where
-        S: any::Any + hash::BuildHasher,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
     {
         debug_assert_eq!(self.build_hasher_type_id, any::TypeId::of::<S>());
 
@@ -566,7 +571,8 @@ impl OpaqueBuildHasherInner {
     #[inline(always)]
     pub fn into_proj<S>(self) -> TypedProjBuildHasherInner<S>
     where
-        S: any::Any + hash::BuildHasher,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
     {
         debug_assert_eq!(self.build_hasher_type_id, any::TypeId::of::<S>());
 
@@ -586,7 +592,8 @@ impl OpaqueBuildHasherInner {
     #[inline(always)]
     pub fn from_proj<S>(proj_self: TypedProjBuildHasherInner<S>) -> Self
     where
-        S: any::Any + hash::BuildHasher,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
     {
         Self {
             build_hasher: proj_self.build_hasher,
@@ -599,14 +606,16 @@ impl OpaqueBuildHasherInner {
 #[repr(transparent)]
 pub struct TypedProjBuildHasher<S>
 where
-    S: any::Any + hash::BuildHasher,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
 {
     inner: TypedProjBuildHasherInner<S>,
 }
 
 impl<S> TypedProjBuildHasher<S>
 where
-    S: any::Any + hash::BuildHasher,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
 {
     #[inline]
     pub fn new(build_hasher: S) -> Self {
@@ -633,7 +642,8 @@ where
 
 impl<S> hash::BuildHasher for TypedProjBuildHasher<S>
 where
-    S: any::Any + hash::BuildHasher,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
 {
     type Hasher = TypedProjHasher<S::Hasher>;
 
@@ -644,7 +654,8 @@ where
 
 impl<S> Clone for TypedProjBuildHasher<S>
 where
-    S: hash::BuildHasher + any::Any + Clone,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
 {
     fn clone(&self) -> Self {
         Self {
@@ -655,7 +666,8 @@ where
 
 impl<S> Default for TypedProjBuildHasher<S>
 where
-    S: hash::BuildHasher + any::Any + Default,
+    S: any::Any + hash::BuildHasher + Send + Sync + Default,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
 {
     fn default() -> Self {
         Self::new(Default::default())
@@ -664,7 +676,8 @@ where
 
 impl<S> PartialEq for TypedProjBuildHasher<S>
 where
-    S: hash::BuildHasher + any::Any + PartialEq,
+    S: any::Any + hash::BuildHasher + Send + Sync + PartialEq,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
 {
     fn eq(&self, other: &Self) -> bool {
         let inner_self = self.get_build_hasher();
@@ -676,7 +689,8 @@ where
 
 impl<S> fmt::Debug for TypedProjBuildHasher<S>
 where
-    S: hash::BuildHasher + any::Any + fmt::Debug,
+    S: any::Any + hash::BuildHasher + Send + Sync + fmt::Debug,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
 {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter
@@ -688,7 +702,8 @@ where
 
 impl<S> From<S> for TypedProjBuildHasher<S>
 where
-    S: any::Any + hash::BuildHasher,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
 {
     fn from(hasher: S) -> Self {
         Self::new(hasher)
@@ -716,7 +731,7 @@ impl OpaqueBuildHasher {
     #[inline]
     pub fn has_build_hasher_type<S>(&self) -> bool
     where
-        S: any::Any + hash::BuildHasher,
+        S: any::Any + hash::BuildHasher + Send + Sync,
     {
         self.inner.build_hasher_type_id() == any::TypeId::of::<S>()
     }
@@ -724,7 +739,7 @@ impl OpaqueBuildHasher {
     #[inline]
     pub fn has_hasher_type<H>(&self) -> bool
     where
-        H: any::Any + hash::Hasher,
+        H: any::Any + hash::Hasher + Send + Sync,
     {
         self.inner.hasher_type_id() == any::TypeId::of::<H>()
     }
@@ -733,7 +748,7 @@ impl OpaqueBuildHasher {
     #[track_caller]
     fn assert_type_safety<S>(&self)
     where
-        S: any::Any + hash::BuildHasher,
+        S: any::Any + hash::BuildHasher + Send + Sync,
     {
         #[cold]
         #[optimize(size)]
@@ -752,7 +767,8 @@ impl OpaqueBuildHasher {
     #[inline]
     pub fn new<S>(build_hasher: S) -> Self
     where
-        S: any::Any + hash::BuildHasher,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
     {
         let proj_build_hasher = TypedProjBuildHasher::<S>::new(build_hasher);
 
@@ -762,7 +778,8 @@ impl OpaqueBuildHasher {
     #[inline]
     pub fn from_boxed_build_hasher<S>(build_hasher: Box<S>) -> Self
     where
-        S: any::Any + hash::BuildHasher,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
     {
         let proj_build_hasher = TypedProjBuildHasher::<S>::from_boxed_build_hasher(build_hasher);
 
@@ -774,7 +791,8 @@ impl OpaqueBuildHasher {
     #[inline]
     pub fn as_proj<S>(&self) -> &TypedProjBuildHasher<S>
     where
-        S: any::Any + hash::BuildHasher,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
     {
         self.assert_type_safety::<S>();
 
@@ -784,7 +802,8 @@ impl OpaqueBuildHasher {
     #[inline]
     pub fn as_proj_mut<S>(&mut self) -> &mut TypedProjBuildHasher<S>
     where
-        S: any::Any + hash::BuildHasher,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
     {
         self.assert_type_safety::<S>();
 
@@ -794,7 +813,8 @@ impl OpaqueBuildHasher {
     #[inline]
     pub fn into_proj<S>(self) -> TypedProjBuildHasher<S>
     where
-        S: any::Any + hash::BuildHasher,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
     {
         self.assert_type_safety::<S>();
 
@@ -806,7 +826,8 @@ impl OpaqueBuildHasher {
     #[inline]
     pub fn from_proj<S>(proj_self: TypedProjBuildHasher<S>) -> Self
     where
-        S: any::Any + hash::BuildHasher,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
     {
         Self {
             inner: OpaqueBuildHasherInner::from_proj(proj_self.inner),
@@ -817,7 +838,8 @@ impl OpaqueBuildHasher {
 impl OpaqueBuildHasher {
     pub fn build_hasher<S>(&self) -> OpaqueHasher
     where
-        S: any::Any + hash::BuildHasher,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
     {
         let proj_self = self.as_proj::<S>();
         let proj_hasher = <TypedProjBuildHasher<S> as hash::BuildHasher>::build_hasher(proj_self);
@@ -839,7 +861,7 @@ mod hasher_layout_tests {
 
     fn run_test_opaque_hasher_match_sizes<H>()
     where
-        H: any::Any + hash::Hasher,
+        H: any::Any + hash::Hasher + Send + Sync,
     {
         let expected = core::mem::size_of::<TypedProjHasher<H>>();
         let result = core::mem::size_of::<OpaqueHasher>();
@@ -849,7 +871,7 @@ mod hasher_layout_tests {
 
     fn run_test_opaque_hasher_match_alignments<H>()
     where
-        H: any::Any + hash::Hasher,
+        H: any::Any + hash::Hasher + Send + Sync,
     {
         let expected = core::mem::align_of::<TypedProjHasher<H>>();
         let result = core::mem::align_of::<OpaqueHasher>();
@@ -859,7 +881,7 @@ mod hasher_layout_tests {
 
     fn run_test_opaque_hasher_match_offsets<H>()
     where
-        H: any::Any + hash::Hasher,
+        H: any::Any + hash::Hasher + Send + Sync,
     {
         assert_eq!(
             core::mem::offset_of!(TypedProjHasher<H>, inner),
@@ -914,7 +936,8 @@ mod build_hasher_layout_tests {
 
     fn run_test_opaque_build_hasher_match_sizes<S>()
     where
-        S: any::Any + hash::BuildHasher,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
     {
         let expected = mem::size_of::<TypedProjBuildHasher<S>>();
         let result = mem::size_of::<OpaqueBuildHasher>();
@@ -924,7 +947,8 @@ mod build_hasher_layout_tests {
 
     fn run_test_opaque_build_hasher_match_alignments<S>()
     where
-        S: any::Any + hash::BuildHasher,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
     {
         let expected = mem::align_of::<TypedProjBuildHasher<S>>();
         let result = mem::align_of::<OpaqueBuildHasher>();
@@ -934,7 +958,8 @@ mod build_hasher_layout_tests {
 
     fn run_test_opaque_build_hasher_match_offsets<S>()
     where
-        S: any::Any + hash::BuildHasher,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
     {
         assert_eq!(
             mem::offset_of!(TypedProjBuildHasher<S>, inner),
@@ -989,4 +1014,17 @@ mod build_hasher_layout_tests {
 
     layout_tests!(random_state, hash::RandomState);
     layout_tests!(dummy_build_hasher, DummyBuildHasher);
+}
+
+#[cfg(test)]
+mod assert_send_sync {
+    use super::*;
+
+    #[test]
+    fn test_assert_send_sync() {
+        fn assert_send_sync<T: Send + Sync>() {}
+
+        assert_send_sync::<TypedProjHasher<hash::DefaultHasher>>();
+        assert_send_sync::<TypedProjBuildHasher<hash::RandomState>>();
+    }
 }

@@ -9,7 +9,7 @@ use opaque_vec_testing as ovt;
 fn run_test_opaque_vec_shift_insert_end<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: any::Any + alloc::Allocator + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let mut vec = OpaqueVec::new_in::<T, A>(alloc);
 
@@ -26,7 +26,7 @@ where
 fn run_test_opaque_vec_shift_insert_end_values<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: any::Any + alloc::Allocator + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {

@@ -9,7 +9,7 @@ use opaque_vec_testing as ovt;
 fn run_test_typed_proj_blob_vec_swap_remove_forget_unchecked_len<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: any::Any + alloc::Allocator + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let values_vec = common::typed_proj_blob_vec::from_slice_in(values, alloc);
 
@@ -34,7 +34,7 @@ where
 fn run_test_typed_proj_blob_vec_swap_remove_forget_unchecked_len_values<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: any::Any + alloc::Allocator + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {

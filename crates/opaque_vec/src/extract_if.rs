@@ -11,7 +11,7 @@ use crate::TypedProjVecInner;
 pub struct ExtractIf<'a, T, F, A = alloc::Global>
 where
     T: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     vec: &'a mut TypedProjVecInner<T, A>,
     /// The index of the item that will be inspected by the next call to `next`.
@@ -29,7 +29,7 @@ where
 impl<'a, T, F, A> ExtractIf<'a, T, F, A>
 where
     T: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[inline]
     pub(crate) fn new<R>(vec: &'a mut TypedProjVecInner<T, A>, pred: F, range: R) -> Self
@@ -64,7 +64,7 @@ impl<T, F, A> Iterator for ExtractIf<'_, T, F, A>
 where
     T: any::Any,
     F: FnMut(&mut T) -> bool,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     type Item = T;
 
@@ -100,7 +100,7 @@ where
 impl<T, F, A> Drop for ExtractIf<'_, T, F, A>
 where
     T: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn drop(&mut self) {
         unsafe {
@@ -119,7 +119,7 @@ where
 impl<T, F, A> fmt::Debug for ExtractIf<'_, T, F, A>
 where
     T: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(formatter, "ExtractIf {{ .. }}")

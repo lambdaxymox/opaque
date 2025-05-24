@@ -12,7 +12,7 @@ fn run_test_typed_proj_vec_truncate_len_length_less_than_or_equal_to<T, A>(value
 where
     T: any::Any + PartialEq + Clone + fmt::Debug + TryFrom<usize>,
     <T as TryFrom<usize>>::Error: fmt::Debug,
-    A: any::Any + alloc::Allocator + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let base_proj_vec = common::typed_proj_vec::from_slice_in(values, alloc);
     for len in 0..values.len() {
@@ -31,7 +31,7 @@ fn run_test_typed_proj_vec_truncate_len_length_less_than_or_equal_to_values<T, A
 where
     T: any::Any + PartialEq + Clone + fmt::Debug + TryFrom<usize>,
     <T as TryFrom<usize>>::Error: fmt::Debug,
-    A: any::Any + alloc::Allocator + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {

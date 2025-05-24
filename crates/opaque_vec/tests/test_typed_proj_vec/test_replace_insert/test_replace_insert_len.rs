@@ -8,7 +8,7 @@ use opaque_vec_testing as ovt;
 fn run_test_typed_proj_vec_replace_insert_len<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone,
-    A: any::Any + alloc::Allocator + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let mut vec = TypedProjVec::new_in(alloc);
     for (i, value) in values.iter().cloned().enumerate() {
@@ -24,7 +24,7 @@ where
 fn run_test_typed_proj_vec_replace_insert_len_values<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone,
-    A: any::Any + alloc::Allocator + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {

@@ -26,7 +26,7 @@ impl BlobVecInner {
     #[track_caller]
     fn new_in<A>(alloc: TypedProjAlloc<A>, element_layout: alloc::Layout, drop_fn: Option<unsafe fn(NonNull<u8>)>) -> Self
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let length = 0;
         let opaque_alloc = OpaqueAlloc::from_proj(alloc);
@@ -45,7 +45,7 @@ impl BlobVecInner {
     #[track_caller]
     fn with_capacity_in<A>(capacity: usize, alloc: TypedProjAlloc<A>, element_layout: alloc::Layout, drop_fn: Option<unsafe fn(NonNull<u8>)>) -> Self
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let length = 0;
         let opaque_alloc = OpaqueAlloc::from_proj(alloc);
@@ -64,7 +64,7 @@ impl BlobVecInner {
     #[track_caller]
     fn with_capacity_zeroed_in<A>(capacity: usize, alloc: TypedProjAlloc<A>, element_layout: alloc::Layout, drop_fn: Option<unsafe fn(NonNull<u8>)>) -> Self
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let length = 0;
         let opaque_alloc = OpaqueAlloc::from_proj(alloc);
@@ -86,7 +86,7 @@ impl BlobVecInner {
         drop_fn: Option<unsafe fn(NonNull<u8>)>,
     ) -> Result<Self, opaque_error::TryReserveError>
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let length = 0;
         let opaque_alloc = OpaqueAlloc::from_proj(alloc);
@@ -111,7 +111,7 @@ impl BlobVecInner {
         drop_fn: Option<unsafe fn(NonNull<u8>)>,
     ) -> Self
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let capacity_bytes = unsafe {
             blob_vec_memory::new_capacity(capacity, element_layout)
@@ -139,7 +139,7 @@ impl BlobVecInner {
         drop_fn: Option<unsafe fn(NonNull<u8>)>,
     ) -> Self
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let capacity_bytes = unsafe {
             blob_vec_memory::new_capacity(capacity, element_layout)
@@ -570,7 +570,7 @@ impl Drop for BlobVecInner {
 #[repr(transparent)]
 pub struct TypedProjBlobVec<A = alloc::Global>
 where
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     inner: BlobVecInner,
     _marker: marker::PhantomData<A>,
@@ -578,7 +578,7 @@ where
 
 impl<A> TypedProjBlobVec<A>
 where
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[inline]
     #[must_use]
@@ -674,7 +674,7 @@ where
 
 impl<A> TypedProjBlobVec<A>
 where
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[inline]
     pub fn allocator(&self) -> &TypedProjAlloc<A> {
@@ -684,7 +684,7 @@ where
 
 impl<A> TypedProjBlobVec<A>
 where
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[inline]
     pub const fn element_layout(&self) -> alloc::Layout {
@@ -709,7 +709,7 @@ where
 
 impl<A> TypedProjBlobVec<A>
 where
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[inline]
     pub const fn as_ptr(&self) -> *const u8 {
@@ -733,7 +733,7 @@ where
 
 impl<A> TypedProjBlobVec<A>
 where
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[inline]
     pub fn set_len(&mut self, new_len: usize) {
@@ -830,7 +830,7 @@ where
 
 impl<A> fmt::Debug for TypedProjBlobVec<A>
 where
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter.debug_struct("TypedProjBlobVec")
@@ -853,7 +853,7 @@ impl OpaqueBlobVec {
     #[track_caller]
     pub fn new_in<A>(alloc: TypedProjAlloc<A>, element_layout: alloc::Layout, drop_fn: Option<unsafe fn(NonNull<u8>)>) -> Self
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_blob_vec = TypedProjBlobVec::new_in(alloc, element_layout, drop_fn);
 
@@ -865,7 +865,7 @@ impl OpaqueBlobVec {
     #[track_caller]
     pub fn with_capacity_in<A>(capacity: usize, alloc: TypedProjAlloc<A>, element_layout: alloc::Layout, drop_fn: Option<unsafe fn(NonNull<u8>)>) -> Self
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_blob_vec = TypedProjBlobVec::with_capacity_in(capacity, alloc, element_layout, drop_fn);
 
@@ -877,7 +877,7 @@ impl OpaqueBlobVec {
     #[track_caller]
     pub fn with_capacity_zeroed_in<A>(capacity: usize, alloc: TypedProjAlloc<A>, element_layout: alloc::Layout, drop_fn: Option<unsafe fn(NonNull<u8>)>) -> Self
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_blob_vec = TypedProjBlobVec::with_capacity_zeroed_in(capacity, alloc, element_layout, drop_fn);
 
@@ -892,7 +892,7 @@ impl OpaqueBlobVec {
         drop_fn: Option<unsafe fn(NonNull<u8>)>,
     ) -> Result<Self, opaque_error::TryReserveError>
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_blob_vec = TypedProjBlobVec::try_with_capacity_in(capacity, alloc, element_layout, drop_fn)?;
 
@@ -909,7 +909,7 @@ impl OpaqueBlobVec {
         drop_fn: Option<unsafe fn(NonNull<u8>)>,
     ) -> Self
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_blob_vec = unsafe {
             TypedProjBlobVec::from_raw_parts_in(ptr, length, capacity, alloc, element_layout, drop_fn)
@@ -928,7 +928,7 @@ impl OpaqueBlobVec {
         drop_fn: Option<unsafe fn(NonNull<u8>)>,
     ) -> Self
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_blob_vec = unsafe {
             TypedProjBlobVec::from_parts_in(ptr, length, capacity, alloc, element_layout, drop_fn)
@@ -949,7 +949,7 @@ impl OpaqueBlobVec {
     #[inline]
     pub fn has_allocator_type<A>(&self) -> bool
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         self.allocator_type_id() == any::TypeId::of::<A>()
     }
@@ -958,7 +958,7 @@ impl OpaqueBlobVec {
     #[track_caller]
     fn assert_type_safety<A>(&self)
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         #[cold]
         #[optimize(size)]
@@ -999,7 +999,7 @@ impl OpaqueBlobVec {
     #[inline]
     pub fn as_proj<A>(&self) -> &TypedProjBlobVec<A>
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         self.assert_type_safety::<A>();
 
@@ -1009,7 +1009,7 @@ impl OpaqueBlobVec {
     #[inline]
     pub fn as_proj_mut<A>(&mut self) -> &mut TypedProjBlobVec<A>
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         self.assert_type_safety::<A>();
 
@@ -1019,7 +1019,7 @@ impl OpaqueBlobVec {
     #[inline]
     pub fn into_proj<A>(self) -> TypedProjBlobVec<A>
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         self.assert_type_safety::<A>();
 
@@ -1032,7 +1032,7 @@ impl OpaqueBlobVec {
     #[inline]
     pub fn from_proj<A>(proj_self: TypedProjBlobVec<A>) -> Self
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         Self {
             inner: proj_self.inner,
@@ -1065,7 +1065,7 @@ impl OpaqueBlobVec {
     #[inline]
     pub fn allocator<A>(&self) -> &TypedProjAlloc<A>
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj::<A>();
 
@@ -1077,7 +1077,7 @@ impl OpaqueBlobVec {
     #[inline]
     pub fn set_len<A>(&mut self, new_len: usize)
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj_mut::<A>();
 
@@ -1087,7 +1087,7 @@ impl OpaqueBlobVec {
     #[inline]
     pub fn grow_one<A>(&mut self)
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj_mut::<A>();
 
@@ -1096,7 +1096,7 @@ impl OpaqueBlobVec {
 
     pub fn get_unchecked<A>(&self, index: usize) -> NonNull<u8>
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj::<A>();
 
@@ -1105,7 +1105,7 @@ impl OpaqueBlobVec {
 
     pub fn get_mut_unchecked<A>(&mut self, index: usize) -> NonNull<u8>
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj_mut::<A>();
 
@@ -1114,7 +1114,7 @@ impl OpaqueBlobVec {
 
     pub fn push<A>(&mut self, value: NonNull<u8>)
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj_mut::<A>();
 
@@ -1124,7 +1124,7 @@ impl OpaqueBlobVec {
     #[must_use]
     pub fn swap_remove_forget_unchecked<A>(&mut self, index: usize) -> NonNull<u8>
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj_mut::<A>();
 
@@ -1134,7 +1134,7 @@ impl OpaqueBlobVec {
     #[must_use]
     pub fn shift_remove_forget_unchecked<A>(&mut self, index: usize) -> NonNull<u8>
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj_mut::<A>();
 
@@ -1143,7 +1143,7 @@ impl OpaqueBlobVec {
 
     pub fn replace_insert<A>(&mut self, index: usize, value: NonNull<u8>)
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj_mut::<A>();
 
@@ -1152,7 +1152,7 @@ impl OpaqueBlobVec {
 
     pub fn shift_insert<A>(&mut self, index: usize, value: NonNull<u8>)
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj_mut::<A>();
 
@@ -1162,7 +1162,7 @@ impl OpaqueBlobVec {
     #[inline]
     pub fn try_reserve<A>(&mut self, additional: usize) -> Result<(), opaque_error::TryReserveError>
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj_mut::<A>();
 
@@ -1172,7 +1172,7 @@ impl OpaqueBlobVec {
     #[inline]
     pub fn try_reserve_exact<A>(&mut self, additional: usize) -> Result<(), opaque_error::TryReserveError>
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj_mut::<A>();
 
@@ -1182,7 +1182,7 @@ impl OpaqueBlobVec {
     #[track_caller]
     pub fn reserve<A>(&mut self, additional: usize)
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj_mut::<A>();
 
@@ -1192,7 +1192,7 @@ impl OpaqueBlobVec {
     #[track_caller]
     pub fn reserve_exact<A>(&mut self, additional: usize)
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj_mut::<A>();
 
@@ -1203,7 +1203,7 @@ impl OpaqueBlobVec {
     #[inline]
     pub fn shrink_to_fit<A>(&mut self)
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj_mut::<A>();
 
@@ -1213,7 +1213,7 @@ impl OpaqueBlobVec {
     #[track_caller]
     pub fn shrink_to<A>(&mut self, min_capacity: usize)
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj_mut::<A>();
 
@@ -1222,7 +1222,7 @@ impl OpaqueBlobVec {
 
     pub fn clear<A>(&mut self)
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj_mut::<A>();
 
@@ -1231,7 +1231,7 @@ impl OpaqueBlobVec {
 
     pub fn truncate<A>(&mut self, len: usize)
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj_mut::<A>();
 
@@ -1241,7 +1241,7 @@ impl OpaqueBlobVec {
     #[track_caller]
     pub fn extend_with<A>(&mut self, count: usize, value: NonNull<u8>)
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj_mut::<A>();
 
@@ -1252,7 +1252,7 @@ impl OpaqueBlobVec {
     #[track_caller]
     pub unsafe fn append<A>(&mut self, other: NonNull<u8>, count: usize)
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_self = self.as_proj_mut::<A>();
 
@@ -1276,7 +1276,7 @@ mod blob_vec_layout_tests {
     fn run_test_opaque_blob_vec_match_sizes<T, A>()
     where
         T: any::Any,
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let expected = mem::size_of::<TypedProjBlobVec<A>>();
         let result = mem::size_of::<OpaqueBlobVec>();
@@ -1287,7 +1287,7 @@ mod blob_vec_layout_tests {
     fn run_test_opaque_blob_vec_match_alignments<T, A>()
     where
         T: any::Any,
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let expected = mem::align_of::<TypedProjBlobVec<A>>();
         let result = mem::align_of::<OpaqueBlobVec>();
@@ -1298,7 +1298,7 @@ mod blob_vec_layout_tests {
     fn run_test_opaque_blob_vec_match_offsets<T, A>()
     where
         T: any::Any,
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let expected = mem::offset_of!(TypedProjBlobVec<A>, inner);
         let result = mem::offset_of!(OpaqueBlobVec, inner);

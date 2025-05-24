@@ -10,7 +10,7 @@ fn run_test_opaque_vec_as_mut_slice<T, A>(values: &mut [T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug + TryFrom<usize>,
     <T as TryFrom<usize>>::Error: fmt::Debug,
-    A: any::Any + alloc::Allocator + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let mut vec = common::opaque_vec::from_slice_in(values, alloc);
 
@@ -24,7 +24,7 @@ fn run_test_opaque_vec_as_mut_slice_values<T, A>(values: &mut [T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug + TryFrom<usize>,
     <T as TryFrom<usize>>::Error: fmt::Debug,
-    A: any::Any + alloc::Allocator + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {

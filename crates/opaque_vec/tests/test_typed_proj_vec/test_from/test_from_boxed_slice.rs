@@ -9,7 +9,7 @@ use opaque_vec_testing as ovt;
 fn expected<T, A>(values: &[T], alloc: A) -> Box<[T], A>
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: any::Any + alloc::Allocator + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let mut vec = Vec::with_capacity_in(values.len(), alloc);
     for value in values.iter() {
@@ -22,7 +22,7 @@ where
 fn run_test_typed_proj_vec_from_boxed_slice<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: any::Any + alloc::Allocator + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let boxed_values = expected(values, alloc);
     let vec = TypedProjVec::from(boxed_values.clone());
@@ -36,7 +36,7 @@ where
 fn run_test_typed_proj_vec_from_boxed_slice_values<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: any::Any + alloc::Allocator + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {

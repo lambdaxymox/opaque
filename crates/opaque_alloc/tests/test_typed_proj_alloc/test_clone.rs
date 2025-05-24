@@ -7,7 +7,7 @@ use std::ptr::NonNull;
 
 fn run_test_opaque_alloc_clone<A>(alloc: A)
 where
-    A: any::Any + alloc::Allocator + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let expected = TypedProjAlloc::new(alloc);
     let _ = expected.clone();

@@ -9,7 +9,7 @@ pub struct Splice<'a, I, A = alloc::Global>
 where
     I: Iterator + 'a,
     <I as Iterator>::Item: any::Any,
-    A: any::Any + alloc::Allocator + 'a,
+    A: any::Any + alloc::Allocator + Send + Sync + 'a,
 {
     drain: Drain<'a, I::Item, A>,
     replace_with: I,
@@ -19,7 +19,7 @@ impl<'a, I, A> Splice<'a, I, A>
 where
     I: Iterator + 'a,
     <I as Iterator>::Item: any::Any,
-    A: any::Any + alloc::Allocator + 'a,
+    A: any::Any + alloc::Allocator + Send + Sync + 'a,
 {
     #[inline]
     pub(crate) const fn new(drain: Drain<'a, I::Item, A>, replace_with: I) -> Self {
@@ -31,7 +31,7 @@ impl<I, A> Iterator for Splice<'_, I, A>
 where
     I: Iterator,
     I::Item: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     type Item = I::Item;
 
@@ -48,7 +48,7 @@ impl<I, A> DoubleEndedIterator for Splice<'_, I, A>
 where
     I: Iterator,
     I::Item: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn next_back(&mut self) -> Option<Self::Item> {
         self.drain.next_back()
@@ -59,7 +59,7 @@ impl<I, A> ExactSizeIterator for Splice<'_, I, A>
 where
     I: Iterator,
     I::Item: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
 }
 
@@ -67,7 +67,7 @@ impl<I, A> Drop for Splice<'_, I, A>
 where
     I: Iterator,
     I::Item: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[track_caller]
     fn drop(&mut self) {
@@ -115,16 +115,11 @@ where
     }
 }
 
-/// Private helper methods for `Splice::drop`
 impl<T, A> Drain<'_, T, A>
 where
     T: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
-    /// The range from `self.vec.len` to `self.tail_start` contains elements
-    /// that have been moved out.
-    /// Fill that range as much as possible with new elements from the `replace_with` iterator.
-    /// Returns `true` if we filled the entire range. (`replace_with.next()` didn’t return `None`.)
     unsafe fn fill<I: Iterator<Item = T>>(&mut self, replace_with: &mut I) -> bool {
         let vec = unsafe { self.vec.as_mut() };
         let range_start = vec.len();
@@ -145,7 +140,6 @@ where
         true
     }
 
-    /// Makes room for inserting more elements before the tail.
     #[track_caller]
     unsafe fn move_tail(&mut self, additional: usize) {
         let vec = unsafe { self.vec.as_mut() };

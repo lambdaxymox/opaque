@@ -8,7 +8,7 @@ use core::any;
 
 fn run_test_opaque_alloc_allocate_zeroed_with_layout<A>(opaque_alloc: OpaqueAlloc, layout: Layout)
 where
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     unsafe {
         let proj_alloc = opaque_alloc.as_proj::<A>();
@@ -29,7 +29,7 @@ where
 
 fn run_test_opaque_alloc_allocate_zeroed_with_size_align<A>(alloc: A, size: usize, align: usize)
 where
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     let opaque_alloc = OpaqueAlloc::new::<A>(alloc);
     let layout = Layout::from_size_align(size, align).expect(&format!(

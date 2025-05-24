@@ -8,7 +8,7 @@ use core::any;
 
 fn run_test_opaque_alloc_allocate_align_with_layout_over_aligned_allocation<A>(opaque_alloc: OpaqueAlloc, layout: Layout)
 where
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     let expected = 0;
     let result = unsafe {
@@ -30,7 +30,7 @@ where
 
 fn run_test_opaque_alloc_allocate_align_over_aligned_allocation_with_size_align<A>(alloc: A, size: usize, align: usize)
 where
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     let opaque_alloc = OpaqueAlloc::new::<A>(alloc);
     let layout = Layout::from_size_align(size, align).expect(&format!(

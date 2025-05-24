@@ -9,7 +9,7 @@ use opaque_vec_testing as ovt;
 fn run_test_typed_proj_vec_clear_is_empty<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: any::Any + alloc::Allocator + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let mut vec = common::typed_proj_vec::from_slice_in(values, alloc);
     vec.clear();
@@ -21,7 +21,7 @@ fn run_test_typed_proj_vec_clear_is_empty_values<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug + TryFrom<usize>,
     <T as TryFrom<usize>>::Error: fmt::Debug,
-    A: any::Any + alloc::Allocator + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {

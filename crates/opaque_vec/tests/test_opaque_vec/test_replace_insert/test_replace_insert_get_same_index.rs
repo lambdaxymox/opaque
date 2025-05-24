@@ -7,7 +7,7 @@ use std::alloc;
 fn run_test_opaque_vec_replace_insert_get_same_index1<T, A>(value: T, alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: any::Any + alloc::Allocator + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let mut vec = OpaqueVec::new_in::<T, A>(alloc);
     vec.replace_insert::<T, A>(0, value.clone());
@@ -21,7 +21,7 @@ where
 fn run_test_opaque_vec_replace_insert_get_same_index2<T, A>(initial_value: T, value: T, alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: any::Any + alloc::Allocator + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let mut vec = OpaqueVec::new_in::<T, A>(alloc);
     vec.replace_insert::<T, A>(0, initial_value.clone());

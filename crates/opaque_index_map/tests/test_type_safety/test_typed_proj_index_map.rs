@@ -9,8 +9,9 @@ fn run_test_opaque_index_map_with_hasher_in_has_type<K, V, S, A>(build_hasher: S
 where
     K: any::Any,
     V: any::Any,
-    S: any::Any + hash::BuildHasher,
-    A: any::Any + alloc::Allocator,
+    S: any::Any + hash::BuildHasher + Send  + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     let proj_map = TypedProjIndexMap::<K, V, S, A>::with_hasher_in(build_hasher, alloc);
     let opaque_map = OpaqueIndexMap::from_proj(proj_map);
@@ -25,8 +26,9 @@ fn run_test_opaque_index_map_with_capacity_and_hasher_in_has_type<K, V, S, A>(bu
 where
     K: any::Any,
     V: any::Any,
-    S: any::Any + hash::BuildHasher,
-    A: any::Any + alloc::Allocator,
+    S: any::Any + hash::BuildHasher + Send  + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     let proj_map = TypedProjIndexMap::<K, V, S, A>::with_capacity_and_hasher_in(1024, build_hasher, alloc);
     let opaque_map = OpaqueIndexMap::from_proj(proj_map);
@@ -41,7 +43,7 @@ fn run_test_opaque_index_map_new_in_has_type<K, V, A>(alloc: A)
 where
     K: any::Any,
     V: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     let proj_map = TypedProjIndexMap::<K, V, _, A>::new_in(alloc);
     let opaque_map = OpaqueIndexMap::from_proj(proj_map);
@@ -56,7 +58,7 @@ fn run_test_opaque_index_map_with_capacity_in_has_type<K, V, A>(alloc: A)
 where
     K: any::Any,
     V: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     let proj_map = TypedProjIndexMap::<K, V, _, A>::with_capacity_in(1024, alloc);
     let opaque_map = OpaqueIndexMap::from_proj(proj_map);
@@ -71,7 +73,8 @@ fn run_test_opaque_index_map_with_hasher_has_type<K, V, S>(build_hasher: S)
 where
     K: any::Any,
     V: any::Any,
-    S: any::Any + hash::BuildHasher,
+    S: any::Any + hash::BuildHasher + Send  + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
 {
     let proj_map = TypedProjIndexMap::<K, V, S, _>::with_hasher(build_hasher);
     let opaque_map = OpaqueIndexMap::from_proj(proj_map);
@@ -86,7 +89,8 @@ fn run_test_opaque_index_map_with_capacity_and_hasher_has_type<K, V, S>(build_ha
 where
     K: any::Any,
     V: any::Any,
-    S: any::Any + hash::BuildHasher,
+    S: any::Any + hash::BuildHasher + Send  + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
 {
     let proj_map = TypedProjIndexMap::<K, V, S, _>::with_capacity_and_hasher(1024, build_hasher);
     let opaque_map = OpaqueIndexMap::from_proj(proj_map);

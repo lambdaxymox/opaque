@@ -11,7 +11,7 @@ use opaque_vec_testing as ovt;
 fn expected<T, A>(values: &[T], alloc: A) -> OpaqueVec
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: any::Any + alloc::Allocator + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let mut vec = OpaqueVec::new_in::<T, A>(alloc);
     for value in values.iter().rev().cloned() {
@@ -24,7 +24,7 @@ where
 fn result<T, A>(values: &[T], alloc: A) -> OpaqueVec
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: any::Any + alloc::Allocator + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let mut vec = common::opaque_vec::from_slice_in(values, alloc);
     vec.reverse::<T, A>();
@@ -35,7 +35,7 @@ where
 fn run_test_opaque_vec_reverse<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: any::Any + alloc::Allocator + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let expected = expected(values, alloc.clone());
     let result = result(values, alloc.clone());
@@ -46,7 +46,7 @@ where
 fn run_test_opaque_vec_reverse_values<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: any::Any + alloc::Allocator + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {

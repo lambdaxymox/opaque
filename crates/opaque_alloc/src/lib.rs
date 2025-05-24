@@ -8,14 +8,14 @@ use core::marker;
 use core::ptr::NonNull;
 use std::alloc;
 
-trait AnyAllocator: any::Any + alloc::Allocator {}
+trait AnyAllocator: any::Any + alloc::Allocator + Send + Sync {}
 
-impl<A> AnyAllocator for A where A: any::Any + alloc::Allocator {}
+impl<A> AnyAllocator for A where A: any::Any + alloc::Allocator + Send + Sync {}
 
 #[repr(C)]
 struct TypedProjAllocInner<A>
 where
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     alloc: Box<dyn AnyAllocator>,
     alloc_type_id: any::TypeId,
@@ -24,7 +24,7 @@ where
 
 impl<A> TypedProjAllocInner<A>
 where
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[inline]
     fn new(alloc: A) -> Self {
@@ -69,7 +69,7 @@ where
 
 impl<A> Clone for TypedProjAllocInner<A>
 where
-    A: any::Any + alloc::Allocator + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     fn clone(&self) -> Self {
         let cloned_alloc = Box::new(self.allocator().clone());
@@ -80,7 +80,7 @@ where
 
 unsafe impl<A> alloc::Allocator for TypedProjAllocInner<A>
 where
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[inline]
     fn allocate(&self, layout: alloc::Layout) -> Result<NonNull<[u8]>, alloc::AllocError> {
@@ -112,7 +112,7 @@ impl OpaqueAllocInner {
     #[inline(always)]
     pub(crate) fn as_proj_assuming_type<A>(&self) -> &TypedProjAllocInner<A>
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         debug_assert_eq!(self.alloc_type_id, any::TypeId::of::<A>());
 
@@ -122,7 +122,7 @@ impl OpaqueAllocInner {
     #[inline(always)]
     pub(crate) fn as_proj_mut_assuming_type<A>(&mut self) -> &mut TypedProjAllocInner<A>
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         debug_assert_eq!(self.alloc_type_id, any::TypeId::of::<A>());
 
@@ -132,7 +132,7 @@ impl OpaqueAllocInner {
     #[inline(always)]
     pub(crate) fn into_proj_assuming_type<A>(self) -> TypedProjAllocInner<A>
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         debug_assert_eq!(self.alloc_type_id, any::TypeId::of::<A>());
 
@@ -146,7 +146,7 @@ impl OpaqueAllocInner {
     #[inline(always)]
     pub(crate) fn from_proj<A>(proj_self: TypedProjAllocInner<A>) -> Self
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         Self {
             alloc: proj_self.alloc,
@@ -172,14 +172,14 @@ unsafe impl alloc::Allocator for OpaqueAllocInner {
 #[repr(transparent)]
 pub struct TypedProjAlloc<A>
 where
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     inner: TypedProjAllocInner<A>,
 }
 
 impl<A> TypedProjAlloc<A>
 where
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[inline]
     pub fn new(alloc: A) -> Self {
@@ -206,7 +206,7 @@ where
 
 unsafe impl<A> alloc::Allocator for TypedProjAlloc<A>
 where
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn allocate(&self, layout: alloc::Layout) -> Result<NonNull<[u8]>, std::alloc::AllocError> {
         self.inner.allocate(layout)
@@ -221,7 +221,7 @@ where
 
 impl<A> Clone for TypedProjAlloc<A>
 where
-    A: any::Any + alloc::Allocator + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     fn clone(&self) -> Self {
         Self {
@@ -232,7 +232,7 @@ where
 
 impl<A> fmt::Debug for TypedProjAlloc<A>
 where
-    A: any::Any + alloc::Allocator + fmt::Debug,
+    A: any::Any + alloc::Allocator + Send + Sync + fmt::Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("TypedProjAlloc")
@@ -243,7 +243,7 @@ where
 
 impl<A> Default for TypedProjAlloc<A>
 where
-    A: any::Any + alloc::Allocator + Default,
+    A: any::Any + alloc::Allocator + Send + Sync + Default,
 {
     fn default() -> Self {
         Self::new(Default::default())
@@ -252,7 +252,7 @@ where
 
 impl<A> From<A> for TypedProjAlloc<A>
 where
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn from(alloc: A) -> Self {
         Self::new(alloc)
@@ -273,7 +273,7 @@ impl OpaqueAlloc {
     #[inline]
     pub fn has_alloc_type<A>(&self) -> bool
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         self.inner.allocator_type_id() == any::TypeId::of::<A>()
     }
@@ -282,7 +282,7 @@ impl OpaqueAlloc {
     #[track_caller]
     fn assert_type_safety<A>(&self)
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         #[cold]
         #[optimize(size)]
@@ -301,7 +301,7 @@ impl OpaqueAlloc {
     #[inline]
     pub fn new<A>(alloc: A) -> Self
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_alloc = TypedProjAlloc::<A>::new(alloc);
 
@@ -311,7 +311,7 @@ impl OpaqueAlloc {
     #[inline]
     pub fn from_boxed_alloc<A>(alloc: Box<A>) -> Self
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_alloc = TypedProjAlloc::<A>::from_boxed_alloc(alloc);
 
@@ -323,7 +323,7 @@ impl OpaqueAlloc {
     #[inline]
     pub fn as_proj<A>(&self) -> &TypedProjAlloc<A>
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         self.assert_type_safety::<A>();
 
@@ -333,7 +333,7 @@ impl OpaqueAlloc {
     #[inline]
     pub fn as_proj_mut<A>(&mut self) -> &mut TypedProjAlloc<A>
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         self.assert_type_safety::<A>();
 
@@ -343,7 +343,7 @@ impl OpaqueAlloc {
     #[inline]
     pub fn into_proj<A>(self) -> TypedProjAlloc<A>
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         self.assert_type_safety::<A>();
 
@@ -355,7 +355,7 @@ impl OpaqueAlloc {
     #[inline]
     pub fn from_proj<A>(proj_self: TypedProjAlloc<A>) -> Self
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         Self {
             inner: OpaqueAllocInner::from_proj(proj_self.inner),
@@ -388,7 +388,7 @@ mod alloc_inner_layout_tests {
 
     fn run_test_opaque_alloc_inner_match_sizes<A>()
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let expected = mem::size_of::<TypedProjAllocInner<A>>();
         let result = mem::size_of::<OpaqueAllocInner>();
@@ -398,7 +398,7 @@ mod alloc_inner_layout_tests {
 
     fn run_test_opaque_alloc_inner_match_alignments<A>()
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let expected = mem::align_of::<TypedProjAllocInner<A>>();
         let result = mem::align_of::<OpaqueAllocInner>();
@@ -408,7 +408,7 @@ mod alloc_inner_layout_tests {
 
     fn run_test_opaque_alloc_inner_match_offsets<A>()
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         assert_eq!(
             mem::offset_of!(TypedProjAllocInner<A>, alloc),
@@ -469,7 +469,7 @@ mod alloc_layout_tests {
 
     fn run_test_opaque_alloc_match_sizes<A>()
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let expected = mem::size_of::<TypedProjAlloc<A>>();
         let result = mem::size_of::<OpaqueAlloc>();
@@ -479,7 +479,7 @@ mod alloc_layout_tests {
 
     fn run_test_opaque_alloc_match_alignments<A>()
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         let expected = mem::align_of::<TypedProjAlloc<A>>();
         let result = mem::align_of::<OpaqueAlloc>();
@@ -489,7 +489,7 @@ mod alloc_layout_tests {
 
     fn run_test_opaque_alloc_match_offsets<A>()
     where
-        A: any::Any + alloc::Allocator,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
         assert_eq!(
             mem::offset_of!(TypedProjAlloc<A>, inner),
@@ -536,4 +536,16 @@ mod alloc_layout_tests {
 
     layout_tests!(global, alloc::Global);
     layout_tests!(dummy_alloc, DummyAlloc);
+}
+
+#[cfg(test)]
+mod assert_send_sync {
+    use super::*;
+
+    #[test]
+    fn test_assert_send_sync() {
+        fn assert_send_sync<T: Send + Sync>() {}
+
+        assert_send_sync::<TypedProjAlloc<alloc::Global>>();
+    }
 }

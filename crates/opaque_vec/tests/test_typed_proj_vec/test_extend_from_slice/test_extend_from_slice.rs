@@ -11,7 +11,7 @@ use opaque_vec_testing as ovt;
 fn expected<T, A>(values: &[T], extension_values: &[T], alloc: A) -> TypedProjVec<T, A>
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: any::Any + alloc::Allocator + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let mut vec = common::typed_proj_vec::from_slice_in(values, alloc);
     for extension_value in extension_values.iter() {
@@ -24,7 +24,7 @@ where
 fn result<T, A>(values: &[T], extension_values: &[T], alloc: A) -> TypedProjVec<T, A>
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: any::Any + alloc::Allocator + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let mut vec = common::typed_proj_vec::from_slice_in(values, alloc);
     vec.extend_from_slice(extension_values);
@@ -35,7 +35,7 @@ where
 fn run_test_typed_proj_vec_extend_from_slice<T, A>(values: &[T], extension_values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: any::Any + alloc::Allocator + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let expected = expected(values, extension_values, alloc.clone());
     let result = result(values, extension_values, alloc.clone());
@@ -46,7 +46,7 @@ where
 fn run_test_typed_proj_vec_extend_from_slice_values<T, A>(values: &[T], extension_values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: any::Any + alloc::Allocator + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {

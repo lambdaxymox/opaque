@@ -6,7 +6,7 @@ use std::alloc;
 fn run_test_typed_proj_vec_replace_insert_len_same_index<T, A>(value: T, alloc: A)
 where
     T: any::Any + PartialEq + Clone,
-    A: any::Any + alloc::Allocator + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let mut vec = TypedProjVec::new_in(alloc);
 

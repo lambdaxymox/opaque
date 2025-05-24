@@ -9,8 +9,9 @@ fn run_test_opaque_index_map_with_hasher_in_has_type<K, V, S, A>(build_hasher: S
 where
     K: any::Any,
     V: any::Any,
-    S: any::Any + hash::BuildHasher,
-    A: any::Any + alloc::Allocator,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     let opaque_map = OpaqueIndexMap::with_hasher_in::<K, V, S, A>(build_hasher, alloc);
 
@@ -24,8 +25,9 @@ fn run_test_opaque_index_map_with_capacity_and_hasher_in_has_type<K, V, S, A>(bu
 where
     K: any::Any,
     V: any::Any,
-    S: any::Any + hash::BuildHasher,
-    A: any::Any + alloc::Allocator,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     let opaque_map = OpaqueIndexMap::with_capacity_and_hasher_in::<K, V, S, A>(1024, build_hasher, alloc);
 
@@ -39,7 +41,7 @@ fn run_test_opaque_index_map_new_in_has_type<K, V, A>(alloc: A)
 where
     K: any::Any,
     V: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     let opaque_map = OpaqueIndexMap::new_in::<K, V, A>(alloc);
 
@@ -53,7 +55,7 @@ fn run_test_opaque_index_map_with_capacity_in_has_type<K, V, A>(alloc: A)
 where
     K: any::Any,
     V: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     let opaque_map = OpaqueIndexMap::with_capacity_in::<K, V, A>(1024, alloc);
 
@@ -67,7 +69,8 @@ fn run_test_opaque_index_map_with_hasher_has_type<K, V, S>(build_hasher: S)
 where
     K: any::Any,
     V: any::Any,
-    S: any::Any + hash::BuildHasher,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
 {
     let opaque_map = OpaqueIndexMap::with_hasher::<K, V, S>(build_hasher);
 
@@ -81,7 +84,8 @@ fn run_test_opaque_index_map_with_capacity_and_hasher_has_type<K, V, S>(build_ha
 where
     K: any::Any,
     V: any::Any,
-    S: any::Any + hash::BuildHasher,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
 {
     let opaque_map = OpaqueIndexMap::with_capacity_and_hasher::<K, V, S>(1024, build_hasher);
 

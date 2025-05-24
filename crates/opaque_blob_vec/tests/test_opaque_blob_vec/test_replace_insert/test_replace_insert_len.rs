@@ -12,7 +12,7 @@ use opaque_vec_testing as ovt;
 pub fn from_slice_in<T, A>(values: &[T], alloc: A) -> OpaqueBlobVec
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: any::Any + alloc::Allocator + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let mut vec = common::opaque_blob_vec::new_in::<T, A>(alloc);
     for i in 0..values.len() {
@@ -27,7 +27,7 @@ where
 fn run_test_opaque_blob_vec_replace_insert_len<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: any::Any + alloc::Allocator + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let opaque_blob_vec = from_slice_in(values, alloc);
     let expected = values.len();
@@ -39,7 +39,7 @@ where
 fn run_test_opaque_blob_vec_replace_insert_len_values<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: any::Any + alloc::Allocator + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {

@@ -23,7 +23,7 @@ const fn assuming_non_null_mut<T>(item: *const T) -> NonNull<T> {
 
 pub struct IntoIter<T, A = alloc::Global>
 where
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     buf: NonNull<T>,
     cap: usize,
@@ -41,7 +41,7 @@ where
 impl<T, A> fmt::Debug for IntoIter<T, A>
 where
     T: any::Any + fmt::Debug,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_tuple("IntoIter").field(&self.as_slice()).finish()
@@ -51,7 +51,7 @@ where
 impl<T, A> IntoIter<T, A>
 where
     T: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[inline]
     pub(crate) const fn from_parts(buf: NonNull<T>, cap: usize, alloc: ManuallyDrop<TypedProjAlloc<A>>, ptr: NonNull<T>, end: *const T) -> Self {
@@ -79,7 +79,7 @@ where
 impl<T, A> AsRef<[T]> for IntoIter<T, A>
 where
     T: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn as_ref(&self) -> &[T] {
         self.as_slice()
@@ -89,20 +89,20 @@ where
 unsafe impl<T, A> Send for IntoIter<T, A>
 where
     T: any::Any + Send,
-    A: any::Any + alloc::Allocator + Send,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
 }
 unsafe impl<T, A> Sync for IntoIter<T, A>
 where
     T: any::Any + Sync,
-    A: any::Any + alloc::Allocator + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
 }
 
 impl<T, A> Iterator for IntoIter<T, A>
 where
     T: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     type Item = T;
 
@@ -261,7 +261,7 @@ where
 impl<T, A> DoubleEndedIterator for IntoIter<T, A>
 where
     T: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[inline]
     fn next_back(&mut self) -> Option<T> {
@@ -311,7 +311,7 @@ where
 impl<T, A> ExactSizeIterator for IntoIter<T, A>
 where
     T: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     /*
     fn is_empty(&self) -> bool {
@@ -326,14 +326,14 @@ where
 impl<T, A> iter::FusedIterator for IntoIter<T, A>
 where
     T: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
 }
 
 impl<T, A> Clone for IntoIter<T, A>
 where
     T: any::Any + Clone,
-    A: any::Any + alloc::Allocator + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     fn clone(&self) -> Self {
         let alloc = Clone::clone(ops::Deref::deref(&self.alloc));
@@ -359,7 +359,7 @@ where
 unsafe impl<T, A> Drop for IntoIter<T, A>
 where
     T: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn drop(&mut self) {
         struct DropGuard<'a, T, A: Allocator>(&'a mut IntoIter<T, A>);

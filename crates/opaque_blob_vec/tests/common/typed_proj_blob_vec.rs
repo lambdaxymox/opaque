@@ -27,7 +27,7 @@ where
 pub(crate) fn new_in<T, A>(alloc: A) -> TypedProjBlobVec<A>
 where
     T: any::Any + fmt::Debug,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     let alloc = TypedProjAlloc::new(alloc);
     let element_layout = Layout::new::<T>();
@@ -39,7 +39,7 @@ where
 pub(crate) fn from_slice_in<T, A>(values: &[T], alloc: A) -> TypedProjBlobVec<A>
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     let mut vec = new_in::<T, A>(alloc);
     for value in values.iter() {
@@ -53,7 +53,7 @@ where
 pub(crate) fn as_slice<T, A>(proj_blob_vec: &TypedProjBlobVec<A>) -> &[T]
 where
     T: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     let ptr = proj_blob_vec.as_ptr() as *const T;
     let len = proj_blob_vec.len();
@@ -64,7 +64,7 @@ where
 pub(crate) fn as_mut_slice<T, A>(proj_blob_vec: &mut TypedProjBlobVec<A>) -> &mut [T]
 where
     T: any::Any,
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     let ptr = proj_blob_vec.as_mut_ptr() as *mut T;
     let len = proj_blob_vec.len();
@@ -76,7 +76,7 @@ where
 pub(crate) fn clone<T, A>(proj_blob_vec: &TypedProjBlobVec<A>) -> TypedProjBlobVec<A>
 where
     T: any::Any + fmt::Debug + Clone,
-    A: any::Any + alloc::Allocator + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let new_alloc = {
         let proj_old_alloc = proj_blob_vec.allocator();

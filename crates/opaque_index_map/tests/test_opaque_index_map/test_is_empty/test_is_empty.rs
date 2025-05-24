@@ -10,8 +10,9 @@ fn run_test_opaque_index_map_empty_len<K, V, S, A>(build_hasher: S, alloc: A)
 where
     K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
-    S: any::Any + hash::BuildHasher + Clone,
-    A: any::Any + alloc::Allocator + Clone,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let opaque_map = OpaqueIndexMap::with_hasher_in::<K, V, S, A>(build_hasher, alloc);
     let expected = 0;
@@ -24,8 +25,9 @@ fn run_test_opaque_index_map_empty_is_empty<K, V, S, A>(build_hasher: S, alloc: 
 where
     K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
-    S: any::Any + hash::BuildHasher + Clone,
-    A: any::Any + alloc::Allocator + Clone,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let opaque_map = OpaqueIndexMap::with_hasher_in::<K, V, S, A>(build_hasher, alloc);
 
@@ -37,8 +39,9 @@ where
     K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug + TryFrom<usize> + iter::Step,
     <K as TryFrom<usize>>::Error: fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
-    S: any::Any + hash::BuildHasher + Clone,
-    A: any::Any + alloc::Allocator + Clone,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let opaque_map = OpaqueIndexMap::with_hasher_in::<K, V, S, A>(build_hasher, alloc);
     let min_key = TryFrom::try_from(0).unwrap();
@@ -53,8 +56,9 @@ where
     K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug + TryFrom<usize> + iter::Step,
     <K as TryFrom<usize>>::Error: fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
-    S: any::Any + hash::BuildHasher + Clone,
-    A: any::Any + alloc::Allocator + Clone,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let opaque_map = OpaqueIndexMap::new::<K, V>();
     let min_key = TryFrom::try_from(0).unwrap();

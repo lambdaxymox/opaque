@@ -8,7 +8,7 @@ use core::any;
 
 fn run_test_typed_proj_alloc_allocate_size_with_layout<A>(proj_alloc: TypedProjAlloc<A>, layout: Layout)
 where
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     let expected = layout.size();
     let result = unsafe {
@@ -28,7 +28,7 @@ where
 
 fn run_test_typed_proj_alloc_allocate_size_with_size_align<A>(alloc: A, size: usize, align: usize)
 where
-    A: any::Any + alloc::Allocator,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     let proj_alloc = TypedProjAlloc::new(alloc);
     let layout = Layout::from_size_align(size, align).expect(&format!(

@@ -35,8 +35,9 @@ pub mod opaque_index_map {
     where
         K: any::Any + Clone + Eq + hash::Hash,
         V: any::Any + Clone + Eq,
-        S: any::Any + hash::BuildHasher + Clone,
-        A: any::Any + alloc::Allocator + Clone,
+        S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync + Clone,
     {
         let proj_map = opaque_map.as_proj::<K, V, S, A>();
         let cloned_proj_map = proj_map.clone();
