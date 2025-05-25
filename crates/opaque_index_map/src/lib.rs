@@ -3,6 +3,9 @@
 #![feature(slice_range)]
 #![feature(slice_iter_mut_as_mut_slice)]
 #![feature(optimize_attribute)]
+
+mod range_ops;
+
 use core::any;
 use core::cmp;
 use core::fmt;
@@ -456,63 +459,6 @@ where
     }
 }
 
-fn try_simplify_range<R>(range: R, len: usize) -> Option<ops::Range<usize>>
-where
-    R: ops::RangeBounds<usize>,
-{
-    let start = match range.start_bound() {
-        ops::Bound::Unbounded => 0,
-        ops::Bound::Included(&i) if i <= len => i,
-        ops::Bound::Excluded(&i) if i < len => i + 1,
-        _ => return None,
-    };
-    let end = match range.end_bound() {
-        ops::Bound::Unbounded => len,
-        ops::Bound::Excluded(&i) if i <= len => i,
-        ops::Bound::Included(&i) if i < len => i + 1,
-        _ => return None,
-    };
-
-    if start > end {
-        return None;
-    }
-
-    Some(start..end)
-}
-
-#[track_caller]
-fn simplify_range<R>(range: R, len: usize) -> ops::Range<usize>
-where
-    R: ops::RangeBounds<usize>,
-{
-    let start = match range.start_bound() {
-        ops::Bound::Unbounded => 0,
-        ops::Bound::Included(&i) if i <= len => i,
-        ops::Bound::Excluded(&i) if i < len => i + 1,
-        ops::Bound::Included(i) | ops::Bound::Excluded(i) => {
-            panic!("range start index {i} out of range for slice of length {len}")
-        }
-    };
-    let end = match range.end_bound() {
-        ops::Bound::Unbounded => len,
-        ops::Bound::Excluded(&i) if i <= len => i,
-        ops::Bound::Included(&i) if i < len => i + 1,
-        ops::Bound::Included(i) | ops::Bound::Excluded(i) => {
-            panic!("range end index {i} out of range for slice of length {len}")
-        }
-    };
-
-    if start > end {
-        panic!(
-            "range start index {:?} should be <= range end index {:?}",
-            range.start_bound(),
-            range.end_bound()
-        );
-    }
-
-    start..end
-}
-
 #[repr(transparent)]
 pub struct Slice<K, V> {
     entries: [Bucket<K, V>],
@@ -594,7 +540,7 @@ impl<K, V> Slice<K, V> {
     where
         R: ops::RangeBounds<usize>,
     {
-        let range = try_simplify_range(range, self.entries.len())?;
+        let range = range_ops::try_simplify_range(range, self.entries.len())?;
 
         self.entries.get(range).map(Slice::from_slice)
     }
@@ -603,7 +549,7 @@ impl<K, V> Slice<K, V> {
     where
         R: ops::RangeBounds<usize>,
     {
-        let range = try_simplify_range(range, self.entries.len())?;
+        let range = range_ops::try_simplify_range(range, self.entries.len())?;
 
         self.entries.get_mut(range).map(Slice::from_slice_mut)
     }
@@ -1898,7 +1844,7 @@ where
     where
         R: ops::RangeBounds<usize>,
     {
-        let range = simplify_range(range, self.entries.len());
+        let range = range_ops::simplify_range(range, self.entries.len());
         self.erase_indices(range.start, range.end);
 
         self.entries.drain(range)
@@ -1941,7 +1887,7 @@ where
         A: Clone,
         R: ops::RangeBounds<usize>,
     {
-        let range = simplify_range(range, self.len());
+        let range = range_ops::simplify_range(range, self.len());
         self.erase_indices(range.start, self.entries.len());
         let entries = self.entries.split_off(range.end);
         let drained = self.entries.split_off(range.start);
@@ -2528,6 +2474,18 @@ mod index_map_core_layout_tests {
     layout_tests!(unit_str_zst_hasher_dummy_alloc, (), &'static str, DummyAlloc);
 }
 
+#[cfg(test)]
+mod index_map_core_assert_send_sync {
+    use super::*;
+
+    #[test]
+    fn test_assert_send_sync() {
+        fn assert_send_sync<T: Send + Sync>() {}
+
+        assert_send_sync::<TypedProjIndexMapCore<i32, i32, alloc::Global>>();
+    }
+}
+
 pub enum Entry<'a, K, V, A = alloc::Global>
 where
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -2947,6 +2905,21 @@ where
             index: other.index(),
             map: other.into_ref_mut(),
         }
+    }
+}
+
+#[cfg(test)]
+mod entry_assert_send_sync {
+    use super::*;
+
+    #[test]
+    fn test_assert_send_sync() {
+        fn assert_send_sync<T: Send + Sync>() {}
+
+        assert_send_sync::<Entry<'_, i32, i32, alloc::Global>>();
+        assert_send_sync::<OccupiedEntry<'_, i32, i32, alloc::Global>>();
+        assert_send_sync::<VacantEntry<'_, i32, i32, alloc::Global>>();
+        assert_send_sync::<IndexedEntry<'_, i32, i32, alloc::Global>>();
     }
 }
 
@@ -3786,7 +3759,7 @@ where
         R: ops::RangeBounds<usize>,
     {
         let entries = self.as_entries();
-        let range = try_simplify_range(range, entries.len())?;
+        let range = range_ops::try_simplify_range(range, entries.len())?;
         entries.get(range).map(Slice::from_slice)
     }
 
@@ -3795,7 +3768,7 @@ where
         R: ops::RangeBounds<usize>,
     {
         let entries = self.as_entries_mut();
-        let range = try_simplify_range(range, entries.len())?;
+        let range = range_ops::try_simplify_range(range, entries.len())?;
         entries.get_mut(range).map(Slice::from_slice_mut)
     }
 
@@ -4078,6 +4051,18 @@ mod index_map_inner_layout_tests {
     layout_tests!(unit_str_zst_hasher_dummy_alloc, (), &'static str, DummyHasher, DummyAlloc);
 }
 
+#[cfg(test)]
+mod index_map_inner_assert_send_sync {
+    use super::*;
+
+    #[test]
+    fn test_assert_send_sync() {
+        fn assert_send_sync<T: Send + Sync>() {}
+
+        assert_send_sync::<TypedProjIndexMapInner<i32, i32, hash::RandomState, alloc::Global>>();
+    }
+}
+
 #[repr(transparent)]
 pub struct TypedProjIndexMap<K, V, S = hash::RandomState, A = alloc::Global>
 where
@@ -4221,12 +4206,20 @@ where
 {
     #[inline]
     pub fn new() -> Self {
-        Self::new_in(alloc::Global)
+        let proj_inner = TypedProjIndexMapInner::new();
+
+        Self {
+            inner : proj_inner,
+        }
     }
 
     #[inline]
     pub fn with_capacity(capacity: usize) -> Self {
-        Self::with_capacity_in(capacity, alloc::Global)
+        let proj_inner = TypedProjIndexMapInner::with_capacity(capacity);
+
+        Self {
+            inner : proj_inner,
+        }
     }
 }
 
@@ -5403,7 +5396,6 @@ impl OpaqueIndexMap {
     }
 }
 
-
 impl OpaqueIndexMap {
     #[inline]
     pub fn capacity(&self) -> usize {
@@ -6509,19 +6501,13 @@ mod index_map_layout_tests {
 }
 
 #[cfg(test)]
-mod assert_send_sync {
+mod index_map_assert_send_sync {
     use super::*;
 
     #[test]
     fn test_assert_send_sync() {
         fn assert_send_sync<T: Send + Sync>() {}
 
-        assert_send_sync::<TypedProjIndexMapCore<i32, i32, alloc::Global>>();
-        assert_send_sync::<TypedProjIndexMapInner<i32, i32, hash::RandomState, alloc::Global>>();
         assert_send_sync::<TypedProjIndexMap<i32, i32, hash::RandomState, alloc::Global>>();
-        assert_send_sync::<Entry<'_, i32, i32, alloc::Global>>();
-        assert_send_sync::<OccupiedEntry<'_, i32, i32, alloc::Global>>();
-        assert_send_sync::<VacantEntry<'_, i32, i32, alloc::Global>>();
-        assert_send_sync::<IndexedEntry<'_, i32, i32, alloc::Global>>();
     }
 }
