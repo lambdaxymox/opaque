@@ -1032,38 +1032,6 @@ impl<K, V> ops::IndexMut<(ops::Bound<usize>, ops::Bound<usize>)> for Slice<K, V>
     }
 }
 
-/*
-// We can't have `impl<I: RangeBounds<usize>> Index<I>` because that conflicts
-// both upstream with `Index<usize>` and downstream with `Index<&Q>`.
-// Instead, we repeat the implementations for all the core range types.
-macro_rules! impl_index {
-    ($($range:ty),*) => {$(
-        impl<K, V, S> Index<$range> for IndexMap<K, V, S> {
-            type Output = Slice<K, V>;
-
-            fn index(&self, range: $range) -> &Self::Output {
-                Slice::from_slice(&self.as_entries()[range])
-            }
-        }
-
-        impl<K, V, S> IndexMut<$range> for IndexMap<K, V, S> {
-            fn index_mut(&mut self, range: $range) -> &mut Self::Output {
-                Slice::from_mut_slice(&mut self.as_entries_mut()[range])
-            }
-        }
-    )*}
-}
-impl_index!(
-    ops::Range<usize>,
-    ops::RangeFrom<usize>,
-    ops::RangeFull,
-    ops::RangeInclusive<usize>,
-    ops::RangeTo<usize>,
-    ops::RangeToInclusive<usize>,
-    (Bound<usize>, Bound<usize>)
-);
-*/
-
 pub struct Iter<'a, K, V> {
     iter: std::slice::Iter<'a, Bucket<K, V>>,
 }
@@ -4289,7 +4257,16 @@ where
     pub fn is_empty(&self) -> bool {
         self.inner.is_empty()
     }
+}
 
+impl<K, V, S, A> TypedProjIndexMap<K, V, S, A>
+where
+    K: any::Any,
+    V: any::Any,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
     pub fn get_index_of<Q>(&self, key: &Q) -> Option<usize>
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
@@ -4792,6 +4769,202 @@ where
                 panic!("index out of bounds: the len is `{len}` but the index is `{index}`");
             })
             .1
+    }
+}
+
+impl<K, V, S, A> ops::Index<ops::Range<usize>> for TypedProjIndexMap<K, V, S, A>
+where
+    K: any::Any,
+    V: any::Any,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    type Output = Slice<K, V>;
+
+    fn index(&self, range: ops::Range<usize>) -> &Self::Output {
+        Slice::from_slice(&self.inner.as_entries()[range])
+    }
+}
+
+impl<K, V, S, A> ops::IndexMut<ops::Range<usize>> for TypedProjIndexMap<K, V, S, A>
+where
+    K: any::Any,
+    V: any::Any,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    fn index_mut(&mut self, range: ops::Range<usize>) -> &mut Self::Output {
+        Slice::from_slice_mut(&mut self.inner.as_entries_mut()[range])
+    }
+}
+
+impl<K, V, S, A> ops::Index<ops::RangeFrom<usize>> for TypedProjIndexMap<K, V, S, A>
+where
+    K: any::Any,
+    V: any::Any,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    type Output = Slice<K, V>;
+
+    fn index(&self, range: ops::RangeFrom<usize>) -> &Self::Output {
+        Slice::from_slice(&self.inner.as_entries()[range])
+    }
+}
+
+impl<K, V, S, A> ops::IndexMut<ops::RangeFrom<usize>> for TypedProjIndexMap<K, V, S, A>
+where
+    K: any::Any,
+    V: any::Any,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    fn index_mut(&mut self, range: ops::RangeFrom<usize>) -> &mut Self::Output {
+        Slice::from_slice_mut(&mut self.inner.as_entries_mut()[range])
+    }
+}
+
+impl<K, V, S, A> ops::Index<ops::RangeFull> for TypedProjIndexMap<K, V, S, A>
+where
+    K: any::Any,
+    V: any::Any,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    type Output = Slice<K, V>;
+
+    fn index(&self, range: ops::RangeFull) -> &Self::Output {
+        Slice::from_slice(&self.inner.as_entries()[range])
+    }
+}
+
+impl<K, V, S, A> ops::IndexMut<ops::RangeFull> for TypedProjIndexMap<K, V, S, A>
+where
+    K: any::Any,
+    V: any::Any,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    fn index_mut(&mut self, range: ops::RangeFull) -> &mut Self::Output {
+        Slice::from_slice_mut(&mut self.inner.as_entries_mut()[range])
+    }
+}
+
+impl<K, V, S, A> ops::Index<ops::RangeInclusive<usize>> for TypedProjIndexMap<K, V, S, A>
+where
+    K: any::Any,
+    V: any::Any,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    type Output = Slice<K, V>;
+
+    fn index(&self, range: ops::RangeInclusive<usize>) -> &Self::Output {
+        Slice::from_slice(&self.inner.as_entries()[range])
+    }
+}
+
+impl<K, V, S, A> ops::IndexMut<ops::RangeInclusive<usize>> for TypedProjIndexMap<K, V, S, A>
+where
+    K: any::Any,
+    V: any::Any,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    fn index_mut(&mut self, range: ops::RangeInclusive<usize>) -> &mut Self::Output {
+        Slice::from_slice_mut(&mut self.inner.as_entries_mut()[range])
+    }
+}
+
+impl<K, V, S, A> ops::Index<ops::RangeTo<usize>> for TypedProjIndexMap<K, V, S, A>
+where
+    K: any::Any,
+    V: any::Any,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    type Output = Slice<K, V>;
+
+    fn index(&self, range: ops::RangeTo<usize>) -> &Self::Output {
+        Slice::from_slice(&self.inner.as_entries()[range])
+    }
+}
+
+impl<K, V, S, A> ops::IndexMut<ops::RangeTo<usize>> for TypedProjIndexMap<K, V, S, A>
+where
+    K: any::Any,
+    V: any::Any,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    fn index_mut(&mut self, range: ops::RangeTo<usize>) -> &mut Self::Output {
+        Slice::from_slice_mut(&mut self.inner.as_entries_mut()[range])
+    }
+}
+
+impl<K, V, S, A> ops::Index<ops::RangeToInclusive<usize>> for TypedProjIndexMap<K, V, S, A>
+where
+    K: any::Any,
+    V: any::Any,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    type Output = Slice<K, V>;
+
+    fn index(&self, range: ops::RangeToInclusive<usize>) -> &Self::Output {
+        Slice::from_slice(&self.inner.as_entries()[range])
+    }
+}
+
+impl<K, V, S, A> ops::IndexMut<ops::RangeToInclusive<usize>> for TypedProjIndexMap<K, V, S, A>
+where
+    K: any::Any,
+    V: any::Any,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    fn index_mut(&mut self, range: ops::RangeToInclusive<usize>) -> &mut Self::Output {
+        Slice::from_slice_mut(&mut self.inner.as_entries_mut()[range])
+    }
+}
+
+impl<K, V, S, A> ops::Index<(ops::Bound<usize>, ops::Bound<usize>)> for TypedProjIndexMap<K, V, S, A>
+where
+    K: any::Any,
+    V: any::Any,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    type Output = Slice<K, V>;
+
+    fn index(&self, range: (ops::Bound<usize>, ops::Bound<usize>)) -> &Self::Output {
+        Slice::from_slice(&self.inner.as_entries()[range])
+    }
+}
+
+impl<K, V, S, A> ops::IndexMut<(ops::Bound<usize>, ops::Bound<usize>)> for TypedProjIndexMap<K, V, S, A>
+where
+    K: any::Any,
+    V: any::Any,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    fn index_mut(&mut self, range: (ops::Bound<usize>, ops::Bound<usize>)) -> &mut Self::Output {
+        Slice::from_slice_mut(&mut self.inner.as_entries_mut()[range])
     }
 }
 
@@ -6348,7 +6521,7 @@ mod assert_send_sync {
         assert_send_sync::<TypedProjIndexMap<i32, i32, hash::RandomState, alloc::Global>>();
         assert_send_sync::<Entry<'_, i32, i32, alloc::Global>>();
         assert_send_sync::<OccupiedEntry<'_, i32, i32, alloc::Global>>();
-        assert_send_sync::<VacantEntry::<'_, i32, i32, alloc::Global>>();
-        assert_send_sync::<IndexedEntry::<'_, i32, i32, alloc::Global>>();
+        assert_send_sync::<VacantEntry<'_, i32, i32, alloc::Global>>();
+        assert_send_sync::<IndexedEntry<'_, i32, i32, alloc::Global>>();
     }
 }
