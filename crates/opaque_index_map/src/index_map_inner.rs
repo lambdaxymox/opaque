@@ -5,7 +5,6 @@ use core::any;
 use core::cmp;
 use core::fmt;
 use core::iter;
-use core::marker;
 use core::mem;
 use core::ops;
 use std::alloc;
@@ -1215,7 +1214,6 @@ where
     tail: TypedProjIndexMapCore<K, V, A>,
     drain: opaque_vec::IntoIter<Bucket<K, V>, A>,
     replace_with: I,
-    _marker: marker::PhantomData<S>,
 }
 
 impl<'a, I, K, V, S, A> Splice<'a, I, K, V, S, A>
@@ -1238,7 +1236,6 @@ where
             tail,
             drain,
             replace_with,
-            _marker: marker::PhantomData,
         }
     }
 }
