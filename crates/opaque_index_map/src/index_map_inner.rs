@@ -10,16 +10,13 @@ use core::ops;
 use std::alloc;
 use std::hash;
 
-use opaque_alloc;
+use opaque_alloc::TypedProjAlloc;
 use opaque_error::{
     TryReserveError,
     TryReserveErrorKind,
 };
-use opaque_hash;
-use opaque_vec::{OpaqueVec, TypedProjVec};
-
-use opaque_alloc::TypedProjAlloc;
 use opaque_hash::{OpaqueBuildHasher, TypedProjBuildHasher};
+use opaque_vec::{OpaqueVec, TypedProjVec};
 
 pub struct Drain<'a, K, V, A = alloc::Global>
 where
@@ -826,9 +823,18 @@ where
     }
 }
 
-impl<K: Eq, V: Eq> Eq for Slice<K, V> {}
+impl<K, V> Eq for Slice<K, V>
+where
+    K: Eq,
+    V: Eq,
+{
+}
 
-impl<K: PartialOrd, V: PartialOrd> PartialOrd for Slice<K, V> {
+impl<K, V> PartialOrd for Slice<K, V>
+where
+    K: PartialOrd,
+    V: PartialOrd,
+{
     fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
         self.iter().partial_cmp(other)
     }
@@ -3724,7 +3730,7 @@ where
         self.inner.shrink_to(min_capacity);
     }
 
-    pub fn into_boxed_slice(self) -> Box<Slice<K, V>, opaque_alloc::TypedProjAlloc<A>> {
+    pub fn into_boxed_slice(self) -> Box<Slice<K, V>, TypedProjAlloc<A>> {
         Slice::from_boxed_slice(self.into_entries().into_boxed_slice())
     }
 

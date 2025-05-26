@@ -1,9 +1,11 @@
-use crate::index_map_inner::{OpaqueIndexMapInner, TypedProjIndexMapInner, Drain, Iter, IterMut, IntoIter, Keys, IntoKeys, Values, ValuesMut, IntoValues, Entry, IndexedEntry, Slice, Splice};
+use crate::index_map_inner::{OpaqueIndexMapInner, TypedProjIndexMapInner};
 
-pub use crate::index_map_inner::*;
+use crate::index_map_inner as map_inner;
 
 use core::any;
 use core::cmp;
+use core::fmt;
+use core::iter;
 use core::mem;
 use core::ops;
 use std::alloc;
@@ -18,6 +20,1652 @@ use opaque_hash;
 pub use equivalent::Equivalent;
 use opaque_alloc::TypedProjAlloc;
 use opaque_hash::{TypedProjBuildHasher};
+use opaque_vec::TypedProjVec;
+
+pub struct Drain<'a, K, V, A = alloc::Global>
+where
+    K: any::Any,
+    V: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    iter: map_inner::Drain<'a, K, V, A>,
+}
+
+impl<'a, K, V, A> Drain<'a, K, V, A>
+where
+    K: any::Any,
+    V: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    const fn new(iter: map_inner::Drain<'a, K, V, A>) -> Self {
+        Self { iter }
+    }
+
+    pub fn as_slice(&self) -> &Slice<K, V> {
+        Slice::from_slice(self.iter.as_slice())
+    }
+}
+
+impl<K, V, A> Iterator for Drain<'_, K, V, A>
+where
+    K: any::Any,
+    V: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    type Item = (K, V);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next()
+    }
+}
+
+impl<K, V, A> DoubleEndedIterator for Drain<'_, K, V, A>
+where
+    K: any::Any,
+    V: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    fn next_back(&mut self) -> Option<Self::Item> {
+        self.iter.next_back()
+    }
+
+    fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
+        self.iter.nth_back(n)
+    }
+}
+
+impl<K, V, A> ExactSizeIterator for Drain<'_, K, V, A>
+where
+    K: any::Any,
+    V: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    fn len(&self) -> usize {
+        self.iter.len()
+    }
+}
+
+impl<K, V, A> iter::FusedIterator for Drain<'_, K, V, A>
+where
+    K: any::Any,
+    V: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+}
+
+impl<K, V, A> fmt::Debug for Drain<'_, K, V, A>
+where
+    K: any::Any + fmt::Debug,
+    V: any::Any + fmt::Debug,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Debug::fmt(&self.iter, formatter)
+    }
+}
+
+pub struct Keys<'a, K, V> {
+    iter: map_inner::Keys<'a, K, V>,
+}
+
+impl<'a, K, V> Keys<'a, K, V> {
+    fn new(iter: map_inner::Keys<'a, K, V>) -> Self {
+        Self { iter, }
+    }
+}
+
+impl<'a, K, V> Clone for Keys<'a, K, V> {
+    fn clone(&self) -> Self {
+        Keys { iter: self.iter.clone() }
+    }
+}
+
+impl<'a, K, V> Iterator for Keys<'a, K, V> {
+    type Item = &'a K;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next()
+    }
+}
+
+impl<'a, K, V> DoubleEndedIterator for Keys<'a, K, V> {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        self.iter.next_back()
+    }
+
+    fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
+        self.iter.nth_back(n)
+    }
+}
+
+impl<'a, K, V> ExactSizeIterator for Keys<'a, K, V> {
+    fn len(&self) -> usize {
+        self.iter.len()
+    }
+}
+
+impl<'a, K, V> iter::FusedIterator for Keys<'a, K, V> {}
+
+impl<'a, K, V> fmt::Debug for Keys<'a, K, V>
+where
+    K: fmt::Debug,
+{
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Debug::fmt(&self.iter, formatter)
+    }
+}
+
+impl<'a, K, V> ops::Index<usize> for Keys<'a, K, V> {
+    type Output = K;
+
+    fn index(&self, index: usize) -> &K {
+        self.iter.index(index)
+    }
+}
+
+pub struct IntoKeys<K, V, A = alloc::Global>
+where
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    iter: map_inner::IntoKeys<K, V, A>,
+}
+
+impl<K, V, A> IntoKeys<K, V, A>
+where
+    K: any::Any,
+    V: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    fn new(iter: map_inner::IntoKeys<K, V, A>) -> Self {
+        Self { iter, }
+    }
+}
+
+impl<K, V, A> Iterator for IntoKeys<K, V, A>
+where
+    K: any::Any,
+    V: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    type Item = K;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next()
+    }
+}
+
+impl<K, V, A> DoubleEndedIterator for IntoKeys<K, V, A>
+where
+    K: any::Any,
+    V: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    fn next_back(&mut self) -> Option<Self::Item> {
+        self.iter.next_back()
+    }
+
+    fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
+        self.iter.nth_back(n)
+    }
+}
+
+impl<K, V, A> ExactSizeIterator for IntoKeys<K, V, A>
+where
+    K: any::Any,
+    V: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    fn len(&self) -> usize {
+        self.iter.len()
+    }
+}
+
+impl<K, V, A> iter::FusedIterator for IntoKeys<K, V, A>
+where
+    K: any::Any,
+    V: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+}
+
+impl<K, V, A> fmt::Debug for IntoKeys<K, V, A>
+where
+    K: any::Any + fmt::Debug,
+    V: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Debug::fmt(&self.iter, formatter)
+    }
+}
+
+impl<K, V, A> Default for IntoKeys<K, V, A>
+where
+    K: any::Any,
+    V: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync + Default,
+{
+    fn default() -> Self {
+        Self {
+            iter: Default::default(),
+        }
+    }
+}
+
+pub struct Values<'a, K, V> {
+    iter: map_inner::Values<'a, K, V>,
+}
+
+impl<'a, K, V> Values<'a, K, V> {
+    #[inline]
+    const fn new(iter: map_inner::Values<'a, K, V>) -> Self {
+        Self { iter, }
+    }
+}
+
+impl<'a, K, V> Iterator for Values<'a, K, V> {
+    type Item = &'a V;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next()
+    }
+}
+
+impl<'a, K, V> DoubleEndedIterator for Values<'a, K, V> {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        self.iter.next_back()
+    }
+
+    fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
+        self.iter.nth_back(n)
+    }
+}
+
+impl<'a, K, V> ExactSizeIterator for Values<'a, K, V> {
+    fn len(&self) -> usize {
+        self.iter.len()
+    }
+}
+
+impl<'a, K, V> iter::FusedIterator for Values<'a, K, V> {}
+
+impl<K, V> Clone for Values<'_, K, V> {
+    fn clone(&self) -> Self {
+        Values { iter: self.iter.clone() }
+    }
+}
+
+impl<K, V> fmt::Debug for Values<'_, K, V>
+where
+    V: fmt::Debug,
+{
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.debug_list().entries(self.clone()).finish()
+    }
+}
+
+impl<K, V> Default for Values<'_, K, V> {
+    fn default() -> Self {
+        Self { iter: Default::default() }
+    }
+}
+
+pub struct ValuesMut<'a, K, V> {
+    iter: map_inner::ValuesMut<'a, K, V>,
+}
+
+impl<'a, K, V> ValuesMut<'a, K, V> {
+    #[inline]
+    const fn new(iter: map_inner::ValuesMut<'a, K, V>) -> Self {
+        Self { iter, }
+    }
+}
+
+impl<'a, K, V> Iterator for ValuesMut<'a, K, V> {
+    type Item = &'a mut V;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next()
+    }
+}
+
+impl<K, V> DoubleEndedIterator for ValuesMut<'_, K, V> {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        self.iter.next_back()
+    }
+
+    fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
+        self.iter.nth_back(n)
+    }
+}
+
+impl<'a, K, V> ExactSizeIterator for ValuesMut<'a, K, V> {
+    fn len(&self) -> usize {
+        self.iter.len()
+    }
+}
+
+impl<'a, K, V> iter::FusedIterator for ValuesMut<'a, K, V> {}
+
+impl<K, V> fmt::Debug for ValuesMut<'_, K, V>
+where
+    V: fmt::Debug,
+{
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Debug::fmt(&self.iter, formatter)
+    }
+}
+
+impl<K, V> Default for ValuesMut<'_, K, V> {
+    fn default() -> Self {
+        Self { iter: Default::default() }
+    }
+}
+
+pub struct IntoValues<K, V, A = alloc::Global>
+where
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    iter: map_inner::IntoValues<K, V, A>,
+}
+
+impl<K, V, A> IntoValues<K, V, A>
+where
+    K: any::Any,
+    V: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    #[inline]
+    const fn new(iter: map_inner::IntoValues<K, V, A>) -> Self {
+        Self { iter, }
+    }
+}
+
+impl<K, V, A> Iterator for IntoValues<K, V, A>
+where
+    K: any::Any,
+    V: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    type Item = V;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next()
+    }
+}
+
+impl<K, V, A> DoubleEndedIterator for IntoValues<K, V, A>
+where
+    K: any::Any,
+    V: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    fn next_back(&mut self) -> Option<Self::Item> {
+        self.iter.next_back()
+    }
+
+    fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
+        self.iter.nth_back(n)
+    }
+}
+
+impl<K, V, A> ExactSizeIterator for IntoValues<K, V, A>
+where
+    K: any::Any,
+    V: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    fn len(&self) -> usize {
+        self.iter.len()
+    }
+}
+
+impl<K, V, A> iter::FusedIterator for IntoValues<K, V, A>
+where
+    K: any::Any,
+    V: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+}
+
+impl<K, V, A> fmt::Debug for IntoValues<K, V, A>
+where
+    K: any::Any,
+    V: any::Any + fmt::Debug,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Debug::fmt(&self.iter, formatter)
+    }
+}
+
+impl<K, V, A> Default for IntoValues<K, V, A>
+where
+    K: any::Any,
+    V: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync + Default,
+{
+    fn default() -> Self {
+        Self {
+            iter: Default::default(),
+        }
+    }
+}
+
+#[repr(transparent)]
+pub struct Slice<K, V> {
+    entries: map_inner::Slice<K, V>,
+}
+
+impl<K, V> Slice<K, V> {
+    #[inline]
+    pub(crate) const fn from_slice(entries: &map_inner::Slice<K, V>) -> &Self {
+        unsafe { &*(entries as *const map_inner::Slice<K, V> as *const Self) }
+    }
+
+    #[inline]
+    pub(crate) const fn from_slice_mut(entries: &mut map_inner::Slice<K, V>) -> &mut Self {
+        unsafe { &mut *(entries as *mut map_inner::Slice<K, V> as *mut Self) }
+    }
+
+    fn from_boxed_slice<A>(entries: Box<map_inner::Slice<K, V>, A>) -> Box<Self, A>
+    where
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        unsafe {
+            let (ptr, alloc) = Box::into_raw_with_allocator(entries);
+
+            Box::from_raw_in(ptr as *mut Self, alloc)
+        }
+    }
+
+    fn into_boxed_slice<A>(self: Box<Self, A>) -> Box<map_inner::Slice<K, V>, A>
+    where
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        unsafe {
+            let (ptr, alloc) = Box::into_raw_with_allocator(self);
+
+            Box::from_raw_in(ptr as *mut map_inner::Slice<K, V>, alloc)
+        }
+    }
+
+    /*
+    pub(crate) fn into_entries<A>(self: Box<Self, TypedProjAlloc<A>>) -> map_inner::Slice<K, V>
+    where
+        K: any::Any,
+        V: any::Any,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        self.entries
+    }
+    */
+
+    pub const fn new<'a>() -> &'a Self {
+        Self::from_slice(map_inner::Slice::new())
+    }
+
+    pub fn new_mut<'a>() -> &'a mut Self {
+        Self::from_slice_mut(map_inner::Slice::new_mut())
+    }
+
+    #[inline]
+    pub const fn len(&self) -> usize {
+        self.entries.len()
+    }
+
+    #[inline]
+    pub const fn is_empty(&self) -> bool {
+        self.entries.is_empty()
+    }
+
+    pub fn get_index(&self, index: usize) -> Option<(&K, &V)> {
+        self.entries.get_index(index)
+    }
+
+    pub fn get_index_mut(&mut self, index: usize) -> Option<(&K, &mut V)> {
+        self.entries.get_index_mut(index)
+    }
+
+    pub fn get_range<R>(&self, range: R) -> Option<&Self>
+    where
+        R: ops::RangeBounds<usize>,
+    {
+        self.entries.get_range(range).map(Slice::from_slice)
+    }
+
+    pub fn get_range_mut<R>(&mut self, range: R) -> Option<&mut Self>
+    where
+        R: ops::RangeBounds<usize>,
+    {
+        self.entries.get_range_mut(range).map(Slice::from_slice_mut)
+    }
+
+    pub fn first(&self) -> Option<(&K, &V)> {
+        self.entries.first()
+    }
+
+    pub fn first_mut(&mut self) -> Option<(&K, &mut V)> {
+        self.entries.first_mut()
+    }
+
+    pub fn last(&self) -> Option<(&K, &V)> {
+        self.entries.last()
+    }
+
+    pub fn last_mut(&mut self) -> Option<(&K, &mut V)> {
+        self.entries.last_mut()
+    }
+
+    pub fn split_at(&self, index: usize) -> (&Self, &Self) {
+        let (first, second) = self.entries.split_at(index);
+
+        (Self::from_slice(first), Self::from_slice(second))
+    }
+
+    pub fn split_at_mut(&mut self, index: usize) -> (&mut Self, &mut Self) {
+        let (first, second) = self.entries.split_at_mut(index);
+
+        (Self::from_slice_mut(first), Self::from_slice_mut(second))
+    }
+
+    pub fn split_first(&self) -> Option<((&K, &V), &Self)> {
+        let (split, slice) = self.entries.split_first()?;
+
+        Some((split, Self::from_slice(slice)))
+    }
+
+    pub fn split_first_mut(&mut self) -> Option<((&K, &mut V), &mut Self)> {
+        let (split, slice) = self.entries.split_first_mut()?;
+
+        Some((split, Self::from_slice_mut(slice)))
+    }
+
+    pub fn split_last(&self) -> Option<((&K, &V), &Self)> {
+        let (split, slice) = self.entries.split_last()?;
+
+        Some((split, Self::from_slice(slice)))
+
+    }
+
+    pub fn split_last_mut(&mut self) -> Option<((&K, &mut V), &mut Self)> {
+        let (split, slice) = self.entries.split_last_mut()?;
+
+        Some((split, Slice::from_slice_mut(slice)))
+    }
+
+    pub fn iter(&self) -> Iter<'_, K, V> {
+        Iter::new(self.entries.iter())
+    }
+
+    pub fn iter_mut(&mut self) -> IterMut<'_, K, V> {
+        IterMut::new(self.entries.iter_mut())
+    }
+
+    pub fn keys(&self) -> Keys<'_, K, V> {
+        Keys::new(self.entries.keys())
+    }
+
+    pub fn into_keys<A>(self: Box<Self, TypedProjAlloc<A>>) -> IntoKeys<K, V, A>
+    where
+        K: any::Any,
+        V: any::Any,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        IntoKeys::new(self.into_boxed_slice().into_keys())
+    }
+
+    pub fn values(&self) -> Values<'_, K, V> {
+        Values::new(self.entries.values())
+    }
+
+    pub fn values_mut(&mut self) -> ValuesMut<'_, K, V> {
+        ValuesMut::new(self.entries.values_mut())
+    }
+
+    pub fn into_values<A>(self: Box<Self, TypedProjAlloc<A>>) -> IntoValues<K, V, A>
+    where
+        K: any::Any,
+        V: any::Any,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        IntoValues::new(self.into_boxed_slice().into_values())
+    }
+
+    pub fn binary_search_keys(&self, x: &K) -> Result<usize, usize>
+    where
+        K: Ord,
+    {
+        self.entries.binary_search_keys(x)
+    }
+
+    #[inline]
+    pub fn binary_search_by<F>(&self, f: F) -> Result<usize, usize>
+    where
+        F: FnMut(&K, &V) -> cmp::Ordering,
+    {
+        self.entries.binary_search_by(f)
+    }
+
+    #[inline]
+    pub fn binary_search_by_key<B, F>(&self, b: &B, f: F) -> Result<usize, usize>
+    where
+        F: FnMut(&K, &V) -> B,
+        B: Ord,
+    {
+        self.entries.binary_search_by_key(b, f)
+    }
+
+    #[must_use]
+    pub fn partition_point<P>(&self, pred: P) -> usize
+    where
+        P: FnMut(&K, &V) -> bool,
+    {
+        self.entries.partition_point(pred)
+    }
+}
+
+impl<'a, K, V> IntoIterator for &'a Slice<K, V> {
+    type Item = (&'a K, &'a V);
+    type IntoIter = Iter<'a, K, V>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+
+impl<'a, K, V> IntoIterator for &'a mut Slice<K, V> {
+    type Item = (&'a K, &'a mut V);
+    type IntoIter = IterMut<'a, K, V>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter_mut()
+    }
+}
+
+impl<K, V, A> IntoIterator for Box<Slice<K, V>, TypedProjAlloc<A>>
+where
+    K: any::Any,
+    V: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    type Item = (K, V);
+    type IntoIter = IntoIter<K, V, A>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        IntoIter::new(self.into_boxed_slice().into_iter())
+    }
+}
+
+impl<K, V> Default for &'_ Slice<K, V> {
+    fn default() -> Self {
+        Slice::from_slice(Default::default())
+    }
+}
+
+
+impl<K, V> Default for &'_ mut Slice<K, V> {
+    fn default() -> Self {
+        Slice::from_slice_mut(Default::default())
+    }
+}
+
+impl<K, V, A> Default for Box<Slice<K, V>, A>
+where
+    K: any::Any,
+    V: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync + Default,
+{
+    fn default() -> Self {
+        Slice::from_boxed_slice(Default::default())
+    }
+}
+
+impl<K, V, A> Clone for Box<Slice<K, V>, A>
+where
+    K: Clone,
+    V: Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
+{
+    fn clone(&self) -> Self {
+        todo!()
+    }
+}
+
+impl<K, V> fmt::Debug for Slice<K, V>
+where
+    K: fmt::Debug,
+    V: fmt::Debug,
+{
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.debug_list().entries(self).finish()
+    }
+}
+
+impl<K, V, K2, V2> PartialEq<Slice<K2, V2>> for Slice<K, V>
+where
+    K: PartialEq<K2>,
+    V: PartialEq<V2>,
+{
+    fn eq(&self, other: &Slice<K2, V2>) -> bool {
+        self.entries.eq(&other.entries)
+    }
+}
+
+impl<K, V, K2, V2> PartialEq<[(K2, V2)]> for Slice<K, V>
+where
+    K: PartialEq<K2>,
+    V: PartialEq<V2>,
+{
+    fn eq(&self, other: &[(K2, V2)]) -> bool {
+        self.entries.eq(other)
+    }
+}
+
+impl<K, V, K2, V2> PartialEq<Slice<K2, V2>> for [(K, V)]
+where
+    K: PartialEq<K2>,
+    V: PartialEq<V2>,
+{
+    fn eq(&self, other: &Slice<K2, V2>) -> bool {
+        self.eq(&other.entries)
+    }
+}
+
+impl<K, V, K2, V2, const N: usize> PartialEq<[(K2, V2); N]> for Slice<K, V>
+where
+    K: PartialEq<K2>,
+    V: PartialEq<V2>,
+{
+    fn eq(&self, other: &[(K2, V2); N]) -> bool {
+        self.entries.eq(other)
+    }
+}
+
+impl<K, V, const N: usize, K2, V2> PartialEq<Slice<K2, V2>> for [(K, V); N]
+where
+    K: PartialEq<K2>,
+    V: PartialEq<V2>,
+{
+    fn eq(&self, other: &Slice<K2, V2>) -> bool {
+        self.eq(&other.entries)
+    }
+}
+
+impl<K, V> Eq for Slice<K, V>
+where
+    K: Eq,
+    V: Eq,
+{
+}
+
+impl<K, V> PartialOrd for Slice<K, V>
+where
+    K: PartialOrd,
+    V: PartialOrd,
+{
+    fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
+        self.iter().partial_cmp(other)
+    }
+}
+
+impl<K, V> Ord for Slice<K, V>
+where
+    K: Ord,
+    V: Ord,
+{
+    fn cmp(&self, other: &Self) -> cmp::Ordering {
+        Ord::cmp(&self.entries, &other.entries)
+    }
+}
+
+impl<K, V> hash::Hash for Slice<K, V>
+where
+    K: hash::Hash,
+    V: hash::Hash,
+{
+    fn hash<H>(&self, state: &mut H)
+    where
+        H: hash::Hasher,
+    {
+        self.entries.hash(state);
+    }
+}
+
+impl<K, V> ops::Index<usize> for Slice<K, V> {
+    type Output = V;
+
+    fn index(&self, index: usize) -> &V {
+        self.entries.index(index)
+    }
+}
+
+impl<K, V> ops::IndexMut<usize> for Slice<K, V> {
+    fn index_mut(&mut self, index: usize) -> &mut V {
+        self.entries.index_mut(index)
+    }
+}
+
+impl<K, V> ops::Index<ops::Range<usize>> for Slice<K, V> {
+    type Output = Slice<K, V>;
+
+    fn index(&self, range: ops::Range<usize>) -> &Self {
+        Self::from_slice(&self.entries[range])
+    }
+}
+
+impl<K, V> ops::IndexMut<ops::Range<usize>> for Slice<K, V> {
+    fn index_mut(&mut self, range: ops::Range<usize>) -> &mut Self {
+        Self::from_slice_mut(&mut self.entries[range])
+    }
+}
+
+impl<K, V> ops::Index<ops::RangeFrom<usize>> for Slice<K, V> {
+    type Output = Slice<K, V>;
+
+    fn index(&self, range: ops::RangeFrom<usize>) -> &Self {
+        Self::from_slice(&self.entries[range])
+    }
+}
+
+impl<K, V> ops::IndexMut<ops::RangeFrom<usize>> for Slice<K, V> {
+    fn index_mut(&mut self, range: ops::RangeFrom<usize>) -> &mut Self {
+        Self::from_slice_mut(&mut self.entries[range])
+    }
+}
+
+impl<K, V> ops::Index<ops::RangeFull> for Slice<K, V> {
+    type Output = Slice<K, V>;
+
+    fn index(&self, range: ops::RangeFull) -> &Self {
+        Self::from_slice(&self.entries[range])
+    }
+}
+
+impl<K, V> ops::IndexMut<ops::RangeFull> for Slice<K, V> {
+    fn index_mut(&mut self, range: ops::RangeFull) -> &mut Self {
+        Self::from_slice_mut(&mut self.entries[range])
+    }
+}
+
+impl<K, V> ops::Index<ops::RangeInclusive<usize>> for Slice<K, V> {
+    type Output = Slice<K, V>;
+
+    fn index(&self, range: ops::RangeInclusive<usize>) -> &Self {
+        Self::from_slice(&self.entries[range])
+    }
+}
+
+impl<K, V> ops::IndexMut<ops::RangeInclusive<usize>> for Slice<K, V> {
+    fn index_mut(&mut self, range: ops::RangeInclusive<usize>) -> &mut Self {
+        Self::from_slice_mut(&mut self.entries[range])
+    }
+}
+
+impl<K, V> ops::Index<ops::RangeTo<usize>> for Slice<K, V> {
+    type Output = Slice<K, V>;
+
+    fn index(&self, range: ops::RangeTo<usize>) -> &Self {
+        Self::from_slice(&self.entries[range])
+    }
+}
+
+impl<K, V> ops::IndexMut<ops::RangeTo<usize>> for Slice<K, V> {
+    fn index_mut(&mut self, range: ops::RangeTo<usize>) -> &mut Self {
+        Self::from_slice_mut(&mut self.entries[range])
+    }
+}
+
+impl<K, V> ops::Index<ops::RangeToInclusive<usize>> for Slice<K, V> {
+    type Output = Slice<K, V>;
+
+    fn index(&self, range: ops::RangeToInclusive<usize>) -> &Self {
+        Self::from_slice(&self.entries[range])
+    }
+}
+
+impl<K, V> ops::IndexMut<ops::RangeToInclusive<usize>> for Slice<K, V> {
+    fn index_mut(&mut self, range: ops::RangeToInclusive<usize>) -> &mut Self {
+        Self::from_slice_mut(&mut self.entries[range])
+    }
+}
+
+impl<K, V> ops::Index<(ops::Bound<usize>, ops::Bound<usize>)> for Slice<K, V> {
+    type Output = Slice<K, V>;
+
+    fn index(&self, range: (ops::Bound<usize>, ops::Bound<usize>)) -> &Self {
+        Self::from_slice(&self.entries[range])
+    }
+}
+
+impl<K, V> ops::IndexMut<(ops::Bound<usize>, ops::Bound<usize>)> for Slice<K, V> {
+    fn index_mut(&mut self, range: (ops::Bound<usize>, ops::Bound<usize>)) -> &mut Self {
+        Self::from_slice_mut(&mut self.entries[range])
+    }
+}
+
+pub struct Iter<'a, K, V> {
+    iter: map_inner::Iter<'a, K, V>,
+}
+
+impl<'a, K, V> Iter<'a, K, V> {
+    #[inline]
+    fn new(iter: map_inner::Iter<'a, K, V>) -> Self {
+        Self { iter, }
+    }
+
+    pub fn as_slice(&self) -> &Slice<K, V> {
+        Slice::from_slice(self.iter.as_slice())
+    }
+}
+
+impl<'a, K, V> Iterator for Iter<'a, K, V> {
+    type Item = (&'a K, &'a V);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next()
+    }
+}
+
+impl<K, V> DoubleEndedIterator for Iter<'_, K, V> {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        self.iter.next_back()
+    }
+
+    fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
+        self.iter.nth_back(n)
+    }
+}
+
+impl<K, V> ExactSizeIterator for Iter<'_, K, V> {
+    fn len(&self) -> usize {
+        self.iter.len()
+    }
+}
+
+impl<K, V> iter::FusedIterator for Iter<'_, K, V> {}
+
+impl<K, V> Clone for Iter<'_, K, V> {
+    fn clone(&self) -> Self {
+        Iter { iter: self.iter.clone() }
+    }
+}
+
+impl<K, V> fmt::Debug for Iter<'_, K, V>
+where
+    K: fmt::Debug,
+    V: fmt::Debug,
+{
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.debug_list().entries(self.clone()).finish()
+    }
+}
+
+impl<K, V> Default for Iter<'_, K, V> {
+    fn default() -> Self {
+        Self { iter: Default::default() }
+    }
+}
+
+pub struct IterMut<'a, K, V> {
+    iter: map_inner::IterMut<'a, K, V>,
+}
+
+impl<'a, K, V> IterMut<'a, K, V> {
+    #[inline]
+    const fn new(iter: map_inner::IterMut<'a, K, V>) -> Self {
+        Self { iter, }
+    }
+
+    pub fn as_slice_mut(&'a mut self) -> &'a mut Slice<K, V> {
+        Slice::from_slice_mut(self.iter.as_slice_mut())
+    }
+
+    pub fn into_slice_mut(self) -> &'a mut Slice<K, V> {
+        Slice::from_slice_mut(self.iter.into_slice_mut())
+    }
+}
+
+impl<'a, K, V> Iterator for IterMut<'a, K, V> {
+    type Item = (&'a K, &'a mut V);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next()
+    }
+}
+
+impl<K, V> DoubleEndedIterator for IterMut<'_, K, V> {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        self.iter.next_back()
+    }
+
+    fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
+        self.iter.nth_back(n)
+    }
+}
+
+impl<K, V> ExactSizeIterator for IterMut<'_, K, V> {
+    fn len(&self) -> usize {
+        self.iter.len()
+    }
+}
+
+impl<K, V> iter::FusedIterator for IterMut<'_, K, V> {}
+
+impl<K, V> fmt::Debug for IterMut<'_, K, V>
+where
+    K: fmt::Debug,
+    V: fmt::Debug,
+{
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Debug::fmt(&self.iter, formatter)
+    }
+}
+
+impl<K, V> Default for IterMut<'_, K, V> {
+    fn default() -> Self {
+        Self { iter: Default::default() }
+    }
+}
+
+#[derive(Clone)]
+pub struct IntoIter<K, V, A = alloc::Global>
+where
+    K: any::Any,
+    V: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    iter: map_inner::IntoIter<K, V, A>,
+}
+
+impl<K, V, A> IntoIter<K, V, A>
+where
+    K: any::Any,
+    V: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    #[inline]
+    const fn new(iter: map_inner::IntoIter<K, V, A>) -> Self {
+        Self { iter, }
+    }
+
+    pub fn as_slice(&self) -> &Slice<K, V> {
+        Slice::from_slice(self.iter.as_slice())
+    }
+
+    pub fn as_mut_slice(&mut self) -> &mut Slice<K, V> {
+        Slice::from_slice_mut(self.iter.as_mut_slice())
+    }
+}
+
+impl<K, V, A> Iterator for IntoIter<K, V, A>
+where
+    K: any::Any,
+    V: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    type Item = (K, V);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next()
+    }
+}
+
+impl<K, V, A> DoubleEndedIterator for IntoIter<K, V, A>
+where
+    K: any::Any,
+    V: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    fn next_back(&mut self) -> Option<Self::Item> {
+        self.iter.next_back()
+    }
+
+    fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
+        self.iter.nth_back(n)
+    }
+}
+
+impl<K, V, A> ExactSizeIterator for IntoIter<K, V, A>
+where
+    K: any::Any,
+    V: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    fn len(&self) -> usize {
+        self.iter.len()
+    }
+}
+
+impl<K, V, A> iter::FusedIterator for IntoIter<K, V, A>
+where
+    K: any::Any,
+    V: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+}
+
+impl<K, V, A> fmt::Debug for IntoIter<K, V, A>
+where
+    K: any::Any + fmt::Debug,
+    V: any::Any + fmt::Debug,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Debug::fmt(&self.iter, formatter)
+    }
+}
+
+impl<K, V, A> Default for IntoIter<K, V, A>
+where
+    K: any::Any,
+    V: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync + Default,
+{
+    fn default() -> Self {
+        Self {
+            iter: Default::default(),
+        }
+    }
+}
+
+pub struct Splice<'a, I, K, V, S = hash::RandomState, A = alloc::Global>
+where
+    I: Iterator<Item = (K, V)>,
+    K: any::Any + hash::Hash + Eq,
+    V: any::Any,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    inner: map_inner::Splice<'a, I, K, V, S, A>,
+}
+
+impl<'a, I, K, V, S, A> Splice<'a, I, K, V, S, A>
+where
+    I: Iterator<Item = (K, V)>,
+    K: any::Any + hash::Hash + Eq,
+    V: any::Any,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
+{
+    #[inline]
+    const fn new<R>(inner: map_inner::Splice<'a, I, K, V, S, A>) -> Self
+    where
+        R: ops::RangeBounds<usize>,
+    {
+        Self { inner, }
+    }
+}
+
+impl<I, K, V, S, A> Iterator for Splice<'_, I, K, V, S, A>
+where
+    I: Iterator<Item = (K, V)>,
+    K: any::Any + hash::Hash + Eq,
+    V: any::Any,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    type Item = (K, V);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.inner.next()
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.inner.size_hint()
+    }
+}
+
+impl<I, K, V, S, A> DoubleEndedIterator for Splice<'_, I, K, V, S, A>
+where
+    I: Iterator<Item = (K, V)>,
+    K: any::Any + hash::Hash + Eq,
+    V: any::Any,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    fn next_back(&mut self) -> Option<Self::Item> {
+        self.inner.next_back()
+    }
+}
+
+impl<I, K, V, S, A> ExactSizeIterator for Splice<'_, I, K, V, S, A>
+where
+    I: Iterator<Item = (K, V)>,
+    K: any::Any + hash::Hash + Eq,
+    V: any::Any,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    fn len(&self) -> usize {
+        self.inner.len()
+    }
+}
+
+impl<I, K, V, S, A> iter::FusedIterator for Splice<'_, I, K, V, S, A>
+where
+    I: Iterator<Item = (K, V)>,
+    K: any::Any + hash::Hash + Eq,
+    V: any::Any,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+}
+
+impl<I, K, V, S, A> fmt::Debug for Splice<'_, I, K, V, S, A>
+where
+    I: fmt::Debug + Iterator<Item = (K, V)>,
+    K: any::Any + fmt::Debug + hash::Hash + Eq,
+    V: any::Any + fmt::Debug,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Debug::fmt(&self.inner, formatter)
+    }
+}
+
+pub enum Entry<'a, K, V, A = alloc::Global>
+where
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    Occupied(OccupiedEntry<'a, K, V, A>),
+    Vacant(VacantEntry<'a, K, V, A>),
+}
+
+impl<'a, K, V, A> Entry<'a, K, V, A>
+where
+    K: any::Any,
+    V: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    pub fn index(&self) -> usize {
+        match *self {
+            Entry::Occupied(ref entry) => entry.index(),
+            Entry::Vacant(ref entry) => entry.index(),
+        }
+    }
+
+    pub fn insert_entry(self, value: V) -> OccupiedEntry<'a, K, V, A> {
+        match self {
+            Entry::Occupied(mut entry) => {
+                entry.insert(value);
+                entry
+            }
+            Entry::Vacant(entry) => entry.insert_entry(value),
+        }
+    }
+
+    pub fn or_insert(self, default: V) -> &'a mut V {
+        match self {
+            Entry::Occupied(entry) => entry.into_mut(),
+            Entry::Vacant(entry) => entry.insert(default),
+        }
+    }
+
+    pub fn or_insert_with<F>(self, call: F) -> &'a mut V
+    where
+        F: FnOnce() -> V,
+    {
+        match self {
+            Entry::Occupied(entry) => entry.into_mut(),
+            Entry::Vacant(entry) => entry.insert(call()),
+        }
+    }
+
+    pub fn or_insert_with_key<F>(self, call: F) -> &'a mut V
+    where
+        F: FnOnce(&K) -> V,
+    {
+        match self {
+            Entry::Occupied(entry) => entry.into_mut(),
+            Entry::Vacant(entry) => {
+                let value = call(&entry.key());
+                entry.insert(value)
+            }
+        }
+    }
+
+    pub fn key(&self) -> &K {
+        match *self {
+            Entry::Occupied(ref entry) => entry.key(),
+            Entry::Vacant(ref entry) => entry.key(),
+        }
+    }
+
+    pub fn and_modify<F>(mut self, f: F) -> Self
+    where
+        F: FnOnce(&mut V),
+    {
+        if let Entry::Occupied(entry) = &mut self {
+            f(entry.get_mut());
+        }
+        self
+    }
+
+    pub fn or_default(self) -> &'a mut V
+    where
+        V: Default,
+    {
+        match self {
+            Entry::Occupied(entry) => entry.into_mut(),
+            Entry::Vacant(entry) => entry.insert(V::default()),
+        }
+    }
+}
+
+impl<K, V, A> fmt::Debug for Entry<'_, K, V, A>
+where
+    K: any::Any + fmt::Debug,
+    V: any::Any + fmt::Debug,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut tuple = formatter.debug_tuple("Entry");
+        match self {
+            Entry::Vacant(v) => tuple.field(v),
+            Entry::Occupied(o) => tuple.field(o),
+        };
+        tuple.finish()
+    }
+}
+
+pub struct OccupiedEntry<'a, K, V, A = alloc::Global>
+where
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    inner: map_inner::OccupiedEntry<'a, K, V, A>,
+}
+
+impl<'a, K, V, A> OccupiedEntry<'a, K, V, A>
+where
+    K: any::Any,
+    V: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+
+    #[inline]
+    pub(crate) const fn new(inner: map_inner::OccupiedEntry<'a, K, V, A>) -> Self {
+        Self { inner, }
+    }
+
+    #[inline]
+    pub fn index(&self) -> usize {
+        self.inner.index()
+    }
+
+    pub fn key(&self) -> &K {
+        self.inner.key()
+    }
+
+    /*
+    pub(crate) fn key_mut(&mut self) -> &mut K {
+        self.inner.key_mut()
+    }
+    */
+
+    pub fn get(&self) -> &V {
+        self.inner.get()
+    }
+
+    pub fn get_mut(&mut self) -> &mut V {
+        self.inner.get_mut()
+    }
+
+    pub fn into_mut(self) -> &'a mut V {
+        self.inner.into_mut()
+    }
+
+    pub fn insert(&mut self, value: V) -> V {
+        mem::replace(self.get_mut(), value)
+    }
+
+    pub fn swap_remove(self) -> V {
+        self.swap_remove_entry().1
+    }
+
+    pub fn shift_remove(self) -> V {
+        self.shift_remove_entry().1
+    }
+
+    pub fn swap_remove_entry(self) -> (K, V) {
+        self.inner.swap_remove_entry()
+    }
+
+    pub fn shift_remove_entry(self) -> (K, V) {
+        self.inner.shift_remove_entry()
+    }
+
+    #[track_caller]
+    pub fn move_index(self, to: usize) {
+        self.inner.move_index(to);
+    }
+
+    pub fn swap_indices(self, other: usize) {
+        self.inner.swap_indices(other);
+    }
+}
+
+impl<K, V, A> fmt::Debug for OccupiedEntry<'_, K, V, A>
+where
+    K: any::Any + fmt::Debug,
+    V: any::Any + fmt::Debug,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.debug_struct("OccupiedEntry")
+            .field("key", self.key())
+            .field("value", self.get())
+            .finish()
+    }
+}
+
+impl<'a, K, V, A> From<IndexedEntry<'a, K, V, A>> for OccupiedEntry<'a, K, V, A>
+where
+    K: any::Any,
+    V: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    fn from(other: IndexedEntry<'a, K, V, A>) -> Self {
+        Self::new(map_inner::OccupiedEntry::from(other.inner))
+    }
+}
+
+pub struct VacantEntry<'a, K, V, A = alloc::Global>
+where
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    inner: map_inner::VacantEntry<'a, K, V, A>,
+}
+
+impl<'a, K, V, A> VacantEntry<'a, K, V, A>
+where
+    K: any::Any,
+    V: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    #[inline]
+    const fn new(inner: map_inner::VacantEntry<'a, K, V, A>) -> Self {
+        Self { inner, }
+    }
+
+    pub fn index(&self) -> usize {
+        self.inner.index()
+    }
+
+    pub fn key(&self) -> &K {
+        self.inner.key()
+    }
+
+    /*
+    pub(crate) fn key_mut(&mut self) -> &mut K {
+        self.inner.key_mut()
+    }
+    */
+
+    pub fn into_key(self) -> K {
+        self.inner.into_key()
+    }
+
+    pub fn insert(self, value: V) -> &'a mut V {
+        self.inner.insert(value)
+    }
+
+    pub fn insert_entry(self, value: V) -> OccupiedEntry<'a, K, V, A> {
+        OccupiedEntry::new(self.inner.insert_entry(value))
+    }
+
+    pub fn insert_sorted(self, value: V) -> (usize, &'a mut V)
+    where
+        K: Ord,
+    {
+        self.inner.insert_sorted(value)
+    }
+
+    pub fn shift_insert(mut self, index: usize, value: V) -> &'a mut V {
+        self.inner.shift_insert(index, value)
+    }
+}
+
+impl<K, V, A> fmt::Debug for VacantEntry<'_, K, V, A>
+where
+    K: any::Any + fmt::Debug,
+    V: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.debug_tuple("VacantEntry").field(self.key()).finish()
+    }
+}
+
+pub struct IndexedEntry<'a, K, V, A = alloc::Global>
+where
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    inner: map_inner::IndexedEntry<'a, K, V, A>,
+}
+
+impl<'a, K, V, A> IndexedEntry<'a, K, V, A>
+where
+    K: any::Any,
+    V: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    pub(crate) fn new(inner: map_inner::IndexedEntry<'a, K, V, A>) -> Self
+    where
+        K: Ord,
+    {
+        Self {
+            inner,
+        }
+    }
+
+    #[inline]
+    pub fn index(&self) -> usize {
+        self.inner.index()
+    }
+
+    pub fn key(&self) -> &K {
+        self.inner.key()
+    }
+
+    /*
+    pub(crate) fn key_mut(&mut self) -> &mut K {
+        self.inner.key_mut()
+    }
+    */
+
+    pub fn get(&self) -> &V {
+        self.inner.get()
+    }
+
+    pub fn get_mut(&mut self) -> &mut V {
+        self.inner.get_mut()
+    }
+
+    pub fn insert(&mut self, value: V) -> V {
+        self.inner.insert(value)
+    }
+
+    pub fn into_mut(self) -> &'a mut V {
+        self.inner.into_mut()
+    }
+
+    pub fn swap_remove_entry(self) -> (K, V) {
+        self.inner.swap_remove_entry()
+    }
+
+    pub fn shift_remove_entry(self) -> (K, V) {
+        self.inner.shift_remove_entry()
+    }
+
+    pub fn swap_remove(self) -> V {
+        self.inner.swap_remove()
+    }
+
+    pub fn shift_remove(self) -> V {
+        self.inner.shift_remove()
+    }
+
+    #[track_caller]
+    pub fn move_index(self, to: usize) {
+        self.inner.move_index(to);
+    }
+
+    pub fn swap_indices(self, other: usize) {
+        self.inner.swap_indices(other);
+    }
+}
+
+impl<K, V, A> fmt::Debug for IndexedEntry<'_, K, V, A>
+where
+    K: any::Any + fmt::Debug,
+    V: any::Any + fmt::Debug,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.debug_struct("IndexedEntry")
+            .field("index", &self.index())
+            .field("key", self.key())
+            .field("value", self.get())
+            .finish()
+    }
+}
+
+impl<'a, K, V, A> From<OccupiedEntry<'a, K, V, A>> for IndexedEntry<'a, K, V, A>
+where
+    K: any::Any,
+    V: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    fn from(other: OccupiedEntry<'a, K, V, A>) -> Self {
+        Self {
+            inner: map_inner::IndexedEntry::from(other.inner),
+        }
+    }
+}
+
+#[cfg(test)]
+mod entry_assert_send_sync {
+    use super::*;
+
+    #[test]
+    fn test_assert_send_sync() {
+        fn assert_send_sync<T: Send + Sync>() {}
+
+        assert_send_sync::<Entry<'_, i32, i32, alloc::Global>>();
+        assert_send_sync::<OccupiedEntry<'_, i32, i32, alloc::Global>>();
+        assert_send_sync::<VacantEntry<'_, i32, i32, alloc::Global>>();
+        assert_send_sync::<IndexedEntry<'_, i32, i32, alloc::Global>>();
+    }
+}
 
 #[repr(transparent)]
 pub struct TypedProjIndexMap<K, V, S = hash::RandomState, A = alloc::Global>
@@ -266,31 +1914,31 @@ where
     }
 
     pub fn keys(&self) -> Keys<'_, K, V> {
-        self.inner.keys()
+        Keys::new(self.inner.keys())
     }
 
     pub fn into_keys(self) -> IntoKeys<K, V, A> {
-        self.inner.into_keys()
+        IntoKeys::new(self.inner.into_keys())
     }
 
     pub fn iter(&self) -> Iter<'_, K, V> {
-        self.inner.iter()
+        Iter::new(self.inner.iter())
     }
 
     pub fn iter_mut(&mut self) -> IterMut<'_, K, V> {
-        self.inner.iter_mut()
+        IterMut::new(self.inner.iter_mut())
     }
 
     pub fn values(&self) -> Values<'_, K, V> {
-        self.inner.values()
+        Values::new(self.inner.values())
     }
 
     pub fn values_mut(&mut self) -> ValuesMut<'_, K, V> {
-        self.inner.values_mut()
+        ValuesMut::new(self.inner.values_mut())
     }
 
     pub fn into_values(self) -> IntoValues<K, V, A> {
-        self.inner.into_values()
+        IntoValues::new(self.inner.into_values())
     }
 
     pub fn clear(&mut self) {
@@ -306,7 +1954,7 @@ where
     where
         R: ops::RangeBounds<usize>,
     {
-        self.inner.drain(range)
+        Drain::new(self.inner.drain(range))
     }
 
     pub fn swap_remove<Q>(&mut self, key: &Q) -> Option<V>
@@ -352,11 +2000,11 @@ where
     }
 
     pub fn as_slice(&self) -> &'_ Slice<K, V> {
-        self.inner.as_slice()
+        Slice::from_slice(self.inner.as_slice())
     }
 
     pub fn as_mut_slice(&mut self) -> &mut Slice<K, V> {
-        self.inner.as_mut_slice()
+        Slice::from_slice_mut(self.inner.as_mut_slice())
     }
 }
 
@@ -409,7 +2057,10 @@ where
     where
         K: Eq + hash::Hash,
     {
-        self.inner.entry(key)
+        match self.inner.entry(key) {
+            map_inner::Entry::Occupied(occupied) => Entry::Occupied(OccupiedEntry::new(occupied)),
+            map_inner::Entry::Vacant(vacant) => Entry::Vacant(VacantEntry::new(vacant)),
+        }
     }
 
     #[track_caller]
@@ -420,7 +2071,7 @@ where
         R: ops::RangeBounds<usize>,
         I: IntoIterator<Item = (K, V)>,
     {
-        self.inner.splice(range, replace_with)
+        Splice::new::<R>(self.inner.splice(range, replace_with))
     }
 
     pub fn append<S2, A2>(&mut self, other: &mut TypedProjIndexMap<K, V, S2, A2>)
@@ -472,7 +2123,7 @@ where
     where
         F: FnMut(&K, &V, &K, &V) -> cmp::Ordering,
     {
-        self.inner.sorted_by(cmp)
+        IntoIter::new(self.inner.sorted_by(cmp))
     }
 
     pub fn sort_unstable_keys(&mut self)
@@ -494,7 +2145,7 @@ where
     where
         F: FnMut(&K, &V, &K, &V) -> cmp::Ordering,
     {
-        self.inner.sorted_unstable_by(cmp)
+        IntoIter::new(self.inner.sorted_unstable_by(cmp))
     }
 
     pub fn sort_by_cached_key<T, F>(&mut self, mut sort_key: F)
@@ -566,7 +2217,7 @@ where
     }
 
     pub fn into_boxed_slice(self) -> Box<Slice<K, V>, TypedProjAlloc<A>> {
-        self.inner.into_boxed_slice()
+        Slice::from_boxed_slice(self.inner.into_boxed_slice())
     }
 
     pub fn get_index(&self, index: usize) -> Option<(&K, &V)> {
@@ -581,21 +2232,21 @@ where
     where
         K: Ord,
     {
-        self.inner.get_index_entry(index)
+        self.inner.get_index_entry(index).map(IndexedEntry::new)
     }
 
     pub fn get_range<R>(&self, range: R) -> Option<&Slice<K, V>>
     where
         R: ops::RangeBounds<usize>,
     {
-        self.inner.get_range(range)
+        self.inner.get_range(range).map(Slice::from_slice)
     }
 
     pub fn get_range_mut<R>(&mut self, range: R) -> Option<&mut Slice<K, V>>
     where
         R: ops::RangeBounds<usize>,
     {
-        self.inner.get_range_mut(range)
+        self.inner.get_range_mut(range).map(Slice::from_slice_mut)
     }
 
     #[doc(alias = "first_key_value")] // like `BTreeMap`
@@ -611,7 +2262,7 @@ where
     where
         K: Ord,
     {
-        self.inner.first_entry()
+        self.inner.first_entry().map(IndexedEntry::new)
     }
 
     #[doc(alias = "last_key_value")] // like `BTreeMap`
@@ -627,7 +2278,7 @@ where
     where
         K: Ord,
     {
-        self.inner.last_entry()
+        self.inner.last_entry().map(IndexedEntry::new)
     }
 
     pub fn swap_remove_index(&mut self, index: usize) -> Option<(K, V)> {
@@ -732,7 +2383,7 @@ where
     type Output = Slice<K, V>;
 
     fn index(&self, range: ops::Range<usize>) -> &Self::Output {
-        Slice::from_slice(&self.inner.as_entries()[range])
+        Slice::from_slice(self.inner.as_slice().index(range))
     }
 }
 
@@ -745,7 +2396,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn index_mut(&mut self, range: ops::Range<usize>) -> &mut Self::Output {
-        Slice::from_slice_mut(&mut self.inner.as_entries_mut()[range])
+        Slice::from_slice_mut(self.inner.as_mut_slice().index_mut(range))
     }
 }
 
@@ -760,7 +2411,7 @@ where
     type Output = Slice<K, V>;
 
     fn index(&self, range: ops::RangeFrom<usize>) -> &Self::Output {
-        Slice::from_slice(&self.inner.as_entries()[range])
+        Slice::from_slice(self.inner.as_slice().index(range))
     }
 }
 
@@ -773,7 +2424,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn index_mut(&mut self, range: ops::RangeFrom<usize>) -> &mut Self::Output {
-        Slice::from_slice_mut(&mut self.inner.as_entries_mut()[range])
+        Slice::from_slice_mut(self.inner.as_mut_slice().index_mut(range))
     }
 }
 
@@ -788,7 +2439,7 @@ where
     type Output = Slice<K, V>;
 
     fn index(&self, range: ops::RangeFull) -> &Self::Output {
-        Slice::from_slice(&self.inner.as_entries()[range])
+        Slice::from_slice(self.inner.as_slice().index(range))
     }
 }
 
@@ -801,7 +2452,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn index_mut(&mut self, range: ops::RangeFull) -> &mut Self::Output {
-        Slice::from_slice_mut(&mut self.inner.as_entries_mut()[range])
+        Slice::from_slice_mut(self.inner.as_mut_slice().index_mut(range))
     }
 }
 
@@ -816,7 +2467,7 @@ where
     type Output = Slice<K, V>;
 
     fn index(&self, range: ops::RangeInclusive<usize>) -> &Self::Output {
-        Slice::from_slice(&self.inner.as_entries()[range])
+        Slice::from_slice(&self.inner.as_slice().index(range))
     }
 }
 
@@ -829,7 +2480,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn index_mut(&mut self, range: ops::RangeInclusive<usize>) -> &mut Self::Output {
-        Slice::from_slice_mut(&mut self.inner.as_entries_mut()[range])
+        Slice::from_slice_mut(self.inner.as_mut_slice().index_mut(range))
     }
 }
 
@@ -844,7 +2495,7 @@ where
     type Output = Slice<K, V>;
 
     fn index(&self, range: ops::RangeTo<usize>) -> &Self::Output {
-        Slice::from_slice(&self.inner.as_entries()[range])
+        Slice::from_slice(self.inner.as_slice().index(range))
     }
 }
 
@@ -857,7 +2508,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn index_mut(&mut self, range: ops::RangeTo<usize>) -> &mut Self::Output {
-        Slice::from_slice_mut(&mut self.inner.as_entries_mut()[range])
+        Slice::from_slice_mut(self.inner.as_mut_slice().index_mut(range))
     }
 }
 
@@ -872,7 +2523,7 @@ where
     type Output = Slice<K, V>;
 
     fn index(&self, range: ops::RangeToInclusive<usize>) -> &Self::Output {
-        Slice::from_slice(&self.inner.as_entries()[range])
+        Slice::from_slice(self.inner.as_slice().index(range))
     }
 }
 
@@ -885,7 +2536,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn index_mut(&mut self, range: ops::RangeToInclusive<usize>) -> &mut Self::Output {
-        Slice::from_slice_mut(&mut self.inner.as_entries_mut()[range])
+        Slice::from_slice_mut(self.inner.as_mut_slice().index_mut(range))
     }
 }
 
@@ -900,7 +2551,7 @@ where
     type Output = Slice<K, V>;
 
     fn index(&self, range: (ops::Bound<usize>, ops::Bound<usize>)) -> &Self::Output {
-        Slice::from_slice(&self.inner.as_entries()[range])
+        Slice::from_slice(self.inner.as_slice().index(range))
     }
 }
 
@@ -913,7 +2564,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn index_mut(&mut self, range: (ops::Bound<usize>, ops::Bound<usize>)) -> &mut Self::Output {
-        Slice::from_slice_mut(&mut self.inner.as_entries_mut()[range])
+        Slice::from_slice_mut(self.inner.as_mut_slice().index_mut(range))
     }
 }
 
