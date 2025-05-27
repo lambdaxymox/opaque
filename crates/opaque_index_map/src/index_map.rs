@@ -1,4 +1,4 @@
-use crate::index_map_inner::{OpaqueIndexMapInner, TypedProjIndexMapInner};
+use crate::index_map_inner::{Bucket, OpaqueIndexMapInner, TypedProjIndexMapInner};
 
 use crate::index_map_inner as map_inner;
 
@@ -490,16 +490,21 @@ impl<K, V> Slice<K, V> {
         }
     }
 
-    /*
-    pub(crate) fn into_entries<A>(self: Box<Self, TypedProjAlloc<A>>) -> map_inner::Slice<K, V>
+    fn from_entries_in<A>(vec: TypedProjVec<Bucket<K, V>, A>) -> Box<Self, TypedProjAlloc<A>>
     where
         K: any::Any,
         V: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        self.entries
+        let boxed_slice_inner = map_inner::Slice::from_entries_in(vec);
+        let boxed_slice = unsafe {
+            let (_ptr, alloc) = Box::into_raw_with_allocator(boxed_slice_inner);
+            let ptr = _ptr as *mut Self;
+            Box::from_raw_in(ptr, alloc)
+        };
+
+        boxed_slice
     }
-    */
 
     pub const fn new<'a>() -> &'a Self {
         Self::from_slice(map_inner::Slice::new())
@@ -721,14 +726,17 @@ where
     }
 }
 
-impl<K, V, A> Clone for Box<Slice<K, V>, A>
+impl<K, V, A> Clone for Box<Slice<K, V>, TypedProjAlloc<A>>
 where
-    K: Clone,
-    V: Clone,
+    K: any::Any + Clone,
+    V: any::Any + Clone,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     fn clone(&self) -> Self {
-        todo!()
+        let alloc = Box::allocator(&self).clone();
+        let entries = self.entries.to_entries_in(alloc);
+
+        Slice::from_entries_in(entries)
     }
 }
 

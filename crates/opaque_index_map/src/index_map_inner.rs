@@ -502,6 +502,34 @@ impl<K, V> Slice<K, V> {
         }
     }
 
+    pub(crate) fn to_entries_in<A>(&self, alloc: TypedProjAlloc<A>) -> TypedProjVec<Bucket<K, V>, A>
+    where
+        K: any::Any + Clone,
+        V: any::Any + Clone,
+        A: any::Any + alloc::Allocator + Send + Sync + Clone,
+    {
+        let mut entries = TypedProjVec::with_capacity_proj_in(self.len(), alloc);
+        entries.extend_from_slice(&self.entries);
+
+        entries
+    }
+
+    pub(crate) fn from_entries_in<A>(vec: TypedProjVec<Bucket<K, V>, A>) -> Box<Self, TypedProjAlloc<A>>
+    where
+        K: any::Any,
+        V: any::Any,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let boxed_slice_inner = Box::from(vec);
+        let boxed_slice = unsafe {
+            let (_ptr, alloc) = Box::into_raw_with_allocator(boxed_slice_inner);
+            let ptr = _ptr as *mut Self;
+            Box::from_raw_in(ptr, alloc)
+        };
+
+        boxed_slice
+    }
+
     pub const fn new<'a>() -> &'a Self {
         Self::from_slice(&[])
     }
