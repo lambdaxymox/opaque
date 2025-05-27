@@ -4,7 +4,7 @@ use criterion::{
 };
 
 use indexmap::IndexMap;
-use opaque_index_map::TypedProjIndexMap;
+use opaque_index_map::map::TypedProjIndexMap;
 
 fn bench_index_map_insert(c: &mut Criterion) {
     c.bench_function("index_map_insert", |b| {

@@ -1,5 +1,5 @@
 use crate::range_ops;
-use crate::Equivalent;
+use crate::equivalent::Equivalent;
 
 use core::any;
 use core::cmp;

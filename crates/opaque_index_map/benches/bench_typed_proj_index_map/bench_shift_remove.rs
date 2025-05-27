@@ -3,7 +3,7 @@ use criterion::{
     criterion_group,
 };
 use indexmap::IndexMap;
-use opaque_index_map::TypedProjIndexMap;
+use opaque_index_map::map::TypedProjIndexMap;
 
 use std::hash;
 use std::alloc;

@@ -4,7 +4,7 @@ use criterion::{
 };
 
 use indexmap::IndexMap;
-use opaque_index_map::OpaqueIndexMap;
+use opaque_index_map::map::OpaqueIndexMap;
 
 use std::alloc;
 use std::hash;

@@ -1,9 +1,8 @@
-use opaque_index_map::{OpaqueIndexMap, TypedProjIndexMap};
+use opaque_index_map::map::{OpaqueIndexMap, TypedProjIndexMap};
 
 use std::{alloc, any, hash};
 use std::hash::RandomState;
 use std::alloc::{Global, System};
-
 
 fn run_test_opaque_index_map_with_hasher_in_has_type<K, V, S, A>(build_hasher: S, alloc: A)
 where

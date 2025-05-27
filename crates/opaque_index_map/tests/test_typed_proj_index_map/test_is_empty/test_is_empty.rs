@@ -1,4 +1,4 @@
-use opaque_index_map::TypedProjIndexMap;
+use opaque_index_map::map::TypedProjIndexMap;
 
 use core::any;
 use core::fmt;

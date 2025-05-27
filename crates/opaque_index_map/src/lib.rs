@@ -5,8 +5,7 @@
 #![feature(optimize_attribute)]
 mod equivalent;
 mod range_ops;
-mod index_map_inner;
-mod index_map;
+mod map_inner;
+pub mod map;
 
 pub use crate::equivalent::*;
-pub use crate::index_map::*;

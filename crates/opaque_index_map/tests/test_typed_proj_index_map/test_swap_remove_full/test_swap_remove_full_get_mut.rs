@@ -3,7 +3,6 @@ use crate::common;
 use core::any;
 use core::fmt;
 use std::{alloc, hash};
-use opaque_index_map::TypedProjIndexMap;
 
 use opaque_index_map_testing as oimt;
 

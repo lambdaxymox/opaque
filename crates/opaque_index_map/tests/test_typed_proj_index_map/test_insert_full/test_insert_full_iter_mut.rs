@@ -4,7 +4,8 @@ use core::any;
 use core::fmt;
 use std::alloc;
 use std::hash;
-use opaque_index_map::TypedProjIndexMap;
+
+use opaque_index_map::map::TypedProjIndexMap;
 
 use opaque_index_map_testing as oimt;
 

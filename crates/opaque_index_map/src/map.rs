@@ -1,6 +1,6 @@
-use crate::index_map_inner::{Bucket, OpaqueIndexMapInner, TypedProjIndexMapInner};
-
-use crate::index_map_inner as map_inner;
+use crate::equivalent::Equivalent;
+use crate::map_inner::{Bucket, OpaqueIndexMapInner, TypedProjIndexMapInner};
+use crate::map_inner as map_inner;
 
 use core::any;
 use core::cmp;
@@ -16,8 +16,6 @@ use opaque_error::{
     TryReserveError,
 };
 use opaque_hash;
-
-pub use equivalent::Equivalent;
 use opaque_alloc::TypedProjAlloc;
 use opaque_hash::{TypedProjBuildHasher};
 use opaque_vec::TypedProjVec;
