@@ -12,8 +12,8 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     let mut set = OpaqueIndexSet::with_hasher_in::<T, S, A>(build_hasher, alloc);
-    for element in entries.iter().cloned() {
-        set.insert::<T, hash::RandomState, alloc::Global>(element);
+    for value in entries.iter().cloned() {
+        set.insert::<T, hash::RandomState, alloc::Global>(value);
     }
 
     set
@@ -27,8 +27,8 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     let mut set = OpaqueIndexSet::with_hasher_in::<T, S, A>(build_hasher, alloc);
-    for element in entries.iter().cloned() {
-        set.insert_full::<T, hash::RandomState, alloc::Global>(element);
+    for value in entries.iter().cloned() {
+        set.insert_full::<T, hash::RandomState, alloc::Global>(value);
     }
 
     set

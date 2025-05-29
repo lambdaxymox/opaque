@@ -2074,7 +2074,7 @@ pub struct OpaqueIndexSet {
 
 impl OpaqueIndexSet {
     #[inline]
-    pub const fn key_type_id(&self) -> any::TypeId {
+    pub const fn value_type_id(&self) -> any::TypeId {
         self.inner.key_type_id()
     }
 
@@ -2089,7 +2089,7 @@ impl OpaqueIndexSet {
     }
 
     #[inline]
-    pub fn has_key_type<T>(&self) -> bool
+    pub fn has_value_type<T>(&self) -> bool
     where
         T: any::Any,
     {
@@ -2127,8 +2127,8 @@ impl OpaqueIndexSet {
             panic!("{:?} type mismatch. Need `{:?}`, got `{:?}`", st, type_id_self, type_id_other);
         }
 
-        if !self.has_key_type::<T>() {
-            type_check_failed("Key", self.inner.key_type_id(), any::TypeId::of::<T>());
+        if !self.has_value_type::<T>() {
+            type_check_failed("Value", self.inner.key_type_id(), any::TypeId::of::<T>());
         }
 
         if !self.has_build_hasher_type::<S>() {
@@ -3231,23 +3231,23 @@ mod index_set_layout_tests {
     }
 
     macro_rules! layout_tests {
-        ($module_name:ident, $key_typ:ty, $build_hasher_typ:ty, $alloc_typ:ty) => {
+        ($module_name:ident, $value_typ:ty, $build_hasher_typ:ty, $alloc_typ:ty) => {
             mod $module_name {
                 use super::*;
 
                 #[test]
                 fn test_opaque_index_set_layout_match_sizes() {
-                    run_test_opaque_index_set_match_sizes::<$key_typ, $build_hasher_typ, $alloc_typ>();
+                    run_test_opaque_index_set_match_sizes::<$value_typ, $build_hasher_typ, $alloc_typ>();
                 }
 
                 #[test]
                 fn test_opaque_index_set_layout_match_alignments() {
-                    run_test_opaque_index_set_match_alignments::<$key_typ, $build_hasher_typ, $alloc_typ>();
+                    run_test_opaque_index_set_match_alignments::<$value_typ, $build_hasher_typ, $alloc_typ>();
                 }
 
                 #[test]
                 fn test_opaque_index_set_layout_match_offsets() {
-                    run_test_opaque_index_set_match_offsets::<$key_typ, $build_hasher_typ, $alloc_typ>();
+                    run_test_opaque_index_set_match_offsets::<$value_typ, $build_hasher_typ, $alloc_typ>();
                 }
             }
         };

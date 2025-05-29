@@ -12,8 +12,8 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     let mut set = TypedProjIndexSet::with_hasher_in(build_hasher, alloc);
-    for element in entries.iter().cloned() {
-        set.insert(element);
+    for value in entries.iter().cloned() {
+        set.insert(value);
     }
 
     set
@@ -27,8 +27,8 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     let mut set = TypedProjIndexSet::with_hasher_in(build_hasher, alloc);
-    for element in entries.iter().cloned() {
-        set.insert_full(element);
+    for value in entries.iter().cloned() {
+        set.insert_full(value);
     }
 
     set
