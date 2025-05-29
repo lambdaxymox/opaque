@@ -930,103 +930,33 @@ impl<K, V> ops::IndexMut<usize> for Slice<K, V> {
     }
 }
 
-impl<K, V> ops::Index<ops::Range<usize>> for Slice<K, V> {
-    type Output = Slice<K, V>;
+macro_rules! impl_index_for_index_map_inner_slice {
+    ($($range:ty),*) => {$(
+        impl<K, V> ops::Index<$range> for Slice<K, V> {
+            type Output = Slice<K, V>;
 
-    fn index(&self, range: ops::Range<usize>) -> &Self::Output {
-        Self::from_slice(&self.entries[range])
-    }
+            fn index(&self, range: $range) -> &Self {
+                Self::from_slice(&self.entries[range])
+            }
+        }
+
+        impl<K, V> ops::IndexMut<$range> for Slice<K, V> {
+            fn index_mut(&mut self, range: $range) -> &mut Self {
+                Self::from_slice_mut(&mut self.entries[range])
+            }
+        }
+    )*}
 }
 
-impl<K, V> ops::IndexMut<ops::Range<usize>> for Slice<K, V> {
-    fn index_mut(&mut self, range: ops::Range<usize>) -> &mut Self::Output {
-        Self::from_slice_mut(&mut self.entries[range])
-    }
-}
-
-impl<K, V> ops::Index<ops::RangeFrom<usize>> for Slice<K, V> {
-    type Output = Slice<K, V>;
-
-    fn index(&self, range: ops::RangeFrom<usize>) -> &Self::Output {
-        Self::from_slice(&self.entries[range])
-    }
-}
-
-impl<K, V> ops::IndexMut<ops::RangeFrom<usize>> for Slice<K, V> {
-    fn index_mut(&mut self, range: ops::RangeFrom<usize>) -> &mut Self::Output {
-        Self::from_slice_mut(&mut self.entries[range])
-    }
-}
-
-impl<K, V> ops::Index<ops::RangeFull> for Slice<K, V> {
-    type Output = Slice<K, V>;
-
-    fn index(&self, range: ops::RangeFull) -> &Self::Output {
-        Self::from_slice(&self.entries[range])
-    }
-}
-
-impl<K, V> ops::IndexMut<ops::RangeFull> for Slice<K, V> {
-    fn index_mut(&mut self, range: ops::RangeFull) -> &mut Self::Output {
-        Self::from_slice_mut(&mut self.entries[range])
-    }
-}
-
-impl<K, V> ops::Index<ops::RangeInclusive<usize>> for Slice<K, V> {
-    type Output = Slice<K, V>;
-
-    fn index(&self, range: ops::RangeInclusive<usize>) -> &Self::Output {
-        Self::from_slice(&self.entries[range])
-    }
-}
-
-impl<K, V> ops::IndexMut<ops::RangeInclusive<usize>> for Slice<K, V> {
-    fn index_mut(&mut self, range: ops::RangeInclusive<usize>) -> &mut Self::Output {
-        Self::from_slice_mut(&mut self.entries[range])
-    }
-}
-
-impl<K, V> ops::Index<ops::RangeTo<usize>> for Slice<K, V> {
-    type Output = Slice<K, V>;
-
-    fn index(&self, range: ops::RangeTo<usize>) -> &Self::Output {
-        Self::from_slice(&self.entries[range])
-    }
-}
-
-impl<K, V> ops::IndexMut<ops::RangeTo<usize>> for Slice<K, V> {
-    fn index_mut(&mut self, range: ops::RangeTo<usize>) -> &mut Self::Output {
-        Self::from_slice_mut(&mut self.entries[range])
-    }
-}
-
-impl<K, V> ops::Index<ops::RangeToInclusive<usize>> for Slice<K, V> {
-    type Output = Slice<K, V>;
-
-    fn index(&self, range: ops::RangeToInclusive<usize>) -> &Self::Output {
-        Self::from_slice(&self.entries[range])
-    }
-}
-
-impl<K, V> ops::IndexMut<ops::RangeToInclusive<usize>> for Slice<K, V> {
-    fn index_mut(&mut self, range: ops::RangeToInclusive<usize>) -> &mut Self::Output {
-        Self::from_slice_mut(&mut self.entries[range])
-    }
-}
-
-impl<K, V> ops::Index<(ops::Bound<usize>, ops::Bound<usize>)> for Slice<K, V> {
-    type Output = Slice<K, V>;
-
-    fn index(&self, range: (ops::Bound<usize>, ops::Bound<usize>)) -> &Self::Output {
-        Self::from_slice(&self.entries[range])
-    }
-}
-
-impl<K, V> ops::IndexMut<(ops::Bound<usize>, ops::Bound<usize>)> for Slice<K, V> {
-    fn index_mut(&mut self, range: (ops::Bound<usize>, ops::Bound<usize>)) -> &mut Self::Output {
-        Self::from_slice_mut(&mut self.entries[range])
-    }
-}
+impl_index_for_index_map_inner_slice!(
+    ops::Range<usize>,
+    ops::RangeFrom<usize>,
+    ops::RangeFull,
+    ops::RangeInclusive<usize>,
+    ops::RangeTo<usize>,
+    ops::RangeToInclusive<usize>,
+    (ops::Bound<usize>, ops::Bound<usize>)
+);
 
 pub(crate) struct Iter<'a, K, V> {
     iter: std::slice::Iter<'a, Bucket<K, V>>,
