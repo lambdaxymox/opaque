@@ -1573,17 +1573,6 @@ where
         self.inner.get_index_of(value)
     }
 
-    /*
-    #[deprecated(note = "`remove` disrupts the set order -- \
-        use `swap_remove` or `shift_remove` for explicit behavior.")]
-    pub fn remove<Q>(&mut self, value: &Q) -> bool
-    where
-        Q: ?Sized + Hash + Equivalent<T>,
-    {
-        self.swap_remove(value)
-    }
-    */
-
     pub fn swap_remove<Q>(&mut self, value: &Q) -> bool
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<T>,
@@ -1596,15 +1585,6 @@ where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<T>,
     {
         self.inner.shift_remove(value).is_some()
-    }
-
-    #[deprecated(note = "`take` disrupts the set order -- \
-        use `swap_take` or `shift_take` for explicit behavior.")]
-    pub fn take<Q>(&mut self, value: &Q) -> Option<T>
-    where
-        Q: any::Any + ?Sized + hash::Hash + Equivalent<T>,
-    {
-        self.swap_take(value)
     }
 
     pub fn swap_take<Q>(&mut self, value: &Q) -> Option<T>
@@ -2376,6 +2356,786 @@ impl OpaqueIndexSet {
     #[inline]
     pub fn is_empty(&self) -> bool {
         self.inner.is_empty()
+    }
+}
+
+impl OpaqueIndexSet {
+    #[inline]
+    pub fn hasher<T, S, A>(&self) -> &TypedProjBuildHasher<S>
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_self = self.as_proj::<T, S, A>();
+
+        proj_self.hasher()
+    }
+
+    #[inline]
+    pub fn allocator<T, S, A>(&self) -> &TypedProjAlloc<A>
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_self = self.as_proj::<T, S, A>();
+
+        proj_self.allocator()
+    }
+}
+
+impl OpaqueIndexSet {
+    pub fn iter<T, S, A>(&self) -> Iter<'_, T>
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_self = self.as_proj::<T, S, A>();
+
+        proj_self.iter()
+    }
+
+    pub fn clear<T, S, A>(&mut self)
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_self = self.as_proj_mut::<T, S, A>();
+
+        proj_self.clear()
+    }
+
+    pub fn truncate<T, S, A>(&mut self, len: usize)
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_self = self.as_proj_mut::<T, S, A>();
+
+        proj_self.truncate(len)
+    }
+
+    #[track_caller]
+    pub fn drain<R, T, S, A>(&mut self, range: R) -> Drain<'_, T, A>
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+        R: ops::RangeBounds<usize>,
+    {
+        let proj_self = self.as_proj_mut::<T, S, A>();
+
+        proj_self.drain(range)
+    }
+
+    #[track_caller]
+    pub fn split_off<T, S, A>(&mut self, at: usize) -> Self
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync + Clone,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync + Clone,
+    {
+        let proj_self = self.as_proj_mut::<T, S, A>();
+        let proj_split = proj_self.split_off(at);
+
+        Self::from_proj(proj_split)
+    }
+
+    pub fn reserve<T, S, A>(&mut self, additional: usize)
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_self = self.as_proj_mut::<T, S, A>();
+
+        proj_self.reserve(additional)
+    }
+
+    pub fn reserve_exact<T, S, A>(&mut self, additional: usize)
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_self = self.as_proj_mut::<T, S, A>();
+
+        proj_self.reserve_exact(additional)
+    }
+
+    pub fn try_reserve<T, S, A>(&mut self, additional: usize) -> Result<(), TryReserveError>
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_self = self.as_proj_mut::<T, S, A>();
+
+        proj_self.try_reserve(additional)
+    }
+
+    pub fn try_reserve_exact<T, S, A>(&mut self, additional: usize) -> Result<(), TryReserveError>
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_self = self.as_proj_mut::<T, S, A>();
+
+        proj_self.try_reserve_exact(additional)
+    }
+
+    pub fn shrink_to_fit<T, S, A>(&mut self)
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_self = self.as_proj_mut::<T, S, A>();
+
+        proj_self.shrink_to_fit()
+    }
+
+    pub fn shrink_to<T, S, A>(&mut self, min_capacity: usize)
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_self = self.as_proj_mut::<T, S, A>();
+
+        proj_self.shrink_to(min_capacity)
+    }
+}
+
+impl OpaqueIndexSet {
+    pub fn insert<T, S, A>(&mut self, value: T) -> bool
+    where
+        T: any::Any + hash::Hash + Eq,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_self = self.as_proj_mut::<T, S, A>();
+
+        proj_self.insert(value)
+    }
+
+    pub fn insert_full<T, S, A>(&mut self, value: T) -> (usize, bool)
+    where
+        T: any::Any + hash::Hash + Eq,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_self =  self.as_proj_mut::<T, S, A>();
+
+        proj_self.insert_full(value)
+    }
+
+    pub fn insert_sorted<T, S, A>(&mut self, value: T) -> (usize, bool)
+    where
+        T: any::Any + hash::Hash + Eq + Ord,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_self = self.as_proj_mut::<T, S, A>();
+
+        proj_self.insert_sorted(value)
+    }
+
+    #[track_caller]
+    pub fn insert_before<T, S, A>(&mut self, index: usize, value: T) -> (usize, bool)
+    where
+        T: any::Any + hash::Hash + Eq,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_self = self.as_proj_mut::<T, S, A>();
+
+        proj_self.insert_before(index, value)
+    }
+
+    #[track_caller]
+    pub fn shift_insert<T, S, A>(&mut self, index: usize, value: T) -> bool
+    where
+        T: any::Any + hash::Hash + Eq,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_self = self.as_proj_mut::<T, S, A>();
+
+        proj_self.shift_insert(index, value)
+    }
+
+    pub fn replace<T, S, A>(&mut self, value: T) -> Option<T>
+    where
+        T: any::Any + hash::Hash + Eq,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_self = self.as_proj_mut::<T, S, A>();
+
+        proj_self.replace(value)
+    }
+
+    pub fn replace_full<T, S, A>(&mut self, value: T) -> (usize, Option<T>)
+    where
+        T: any::Any + hash::Hash + Eq,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let  proj_self = self.as_proj_mut::<T, S, A>();
+
+        proj_self.replace_full(value)
+    }
+
+    pub fn difference<'a, S2, T, S, A>(&'a self, other: &'a TypedProjIndexSet<T, S2, A>) -> Difference<'a, T, S2, A>
+    where
+        T: any::Any + hash::Hash + Eq,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+        S2: any::Any + hash::BuildHasher + Send + Sync,
+        S2::Hasher: any::Any + hash::Hasher + Send + Sync,
+    {
+        let proj_self = self.as_proj::<T, S, A>();
+
+        proj_self.difference(other)
+    }
+
+    pub fn symmetric_difference<'a, S2, T, S, A>(&'a self, other: &'a TypedProjIndexSet<T, S2, A>) -> SymmetricDifference<'a, T, S, S2, A>
+    where
+        T: any::Any + hash::Hash + Eq,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+        S2: any::Any + hash::BuildHasher + Send + Sync,
+        S2::Hasher: any::Any + hash::Hasher + Send + Sync,
+    {
+        let proj_self = self.as_proj::<T, S, A>();
+
+        proj_self.symmetric_difference(other)
+    }
+
+    pub fn intersection<'a, S2, T, S, A>(&'a self, other: &'a TypedProjIndexSet<T, S2, A>) -> Intersection<'a, T, S2, A>
+    where
+        T: any::Any + hash::Hash + Eq,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+        S2: any::Any + hash::BuildHasher + Send + Sync,
+        S2::Hasher: any::Any + hash::Hasher + Send + Sync,
+    {
+        let proj_self = self.as_proj::<T, S, A>();
+
+        proj_self.intersection(other)
+    }
+
+    pub fn union<'a, S2, T, S, A>(&'a self, other: &'a TypedProjIndexSet<T, S2, A>) -> Union<'a, T, S, A>
+    where
+        T: any::Any + hash::Hash + Eq,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+        S2: any::Any + hash::BuildHasher + Send + Sync,
+        S2::Hasher: any::Any + hash::Hasher + Send + Sync,
+    {
+        let proj_self = self.as_proj::<T, S, A>();
+
+        proj_self.union(other)
+    }
+
+    #[track_caller]
+    pub fn splice<R, I, T, S, A>(&mut self, range: R, replace_with: I) -> Splice<'_, I::IntoIter, T, S, A>
+    where
+        T: any::Any + hash::Hash + Eq,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync + Clone,
+        R: ops::RangeBounds<usize>,
+        I: IntoIterator<Item = T>,
+    {
+        let proj_self = self.as_proj_mut::<T, S, A>();
+
+        proj_self.splice(range, replace_with)
+    }
+
+    pub fn append<S2, A2, T, S, A>(&mut self, other: &mut TypedProjIndexSet<T, S2, A2>)
+    where
+        T: any::Any + hash::Hash + Eq,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+        S2: any::Any + hash::BuildHasher + Send + Sync,
+        S2::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A2: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_self = self.as_proj_mut::<T, S, A2>();
+
+        proj_self.append(other)
+    }
+}
+
+impl OpaqueIndexSet {
+    pub fn contains<Q, T, S, A>(&self, value: &Q) -> bool
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+        Q: any::Any + ?Sized + hash::Hash + Equivalent<T>,
+    {
+        let proj_self =  self.as_proj::<T, S, A>();
+
+        proj_self.contains(value)
+    }
+
+    pub fn get<Q, T, S, A>(&self, value: &Q) -> Option<&T>
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+        Q: any::Any + ?Sized + hash::Hash + Equivalent<T>,
+    {
+        let proj_self =  self.as_proj::<T, S, A>();
+
+        proj_self.get(value)
+    }
+
+    pub fn get_full<Q, T, S, A>(&self, value: &Q) -> Option<(usize, &T)>
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+        Q: any::Any + ?Sized + hash::Hash + Equivalent<T>,
+    {
+        let proj_self =  self.as_proj::<T, S, A>();
+
+        proj_self.get_full(value)
+    }
+
+    pub fn get_index_of<Q, T, S, A>(&self, value: &Q) -> Option<usize>
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+        Q: any::Any + ?Sized + hash::Hash + Equivalent<T>,
+    {
+        let proj_self =  self.as_proj::<T, S, A>();
+
+        proj_self.get_index_of(value)
+    }
+
+    pub fn swap_remove<Q, T, S, A>(&mut self, value: &Q) -> bool
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+        Q: any::Any + ?Sized + hash::Hash + Equivalent<T>,
+    {
+        let proj_self =  self.as_proj_mut::<T, S, A>();
+
+        proj_self.swap_remove(value)
+    }
+
+    pub fn shift_remove<Q, T, S, A>(&mut self, value: &Q) -> bool
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+        Q: any::Any + ?Sized + hash::Hash + Equivalent<T>,
+    {
+        let proj_self =  self.as_proj_mut::<T, S, A>();
+
+        proj_self.shift_remove(value)
+    }
+
+    pub fn swap_take<Q, T, S, A>(&mut self, value: &Q) -> Option<T>
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+        Q: any::Any + ?Sized + hash::Hash + Equivalent<T>,
+    {
+        let proj_self = self.as_proj_mut::<T, S, A>();
+
+        proj_self.swap_take(value)
+    }
+
+    pub fn shift_take<Q, T, S, A>(&mut self, value: &Q) -> Option<T>
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+        Q: any::Any + ?Sized + hash::Hash + Equivalent<T>,
+    {
+        let proj_self = self.as_proj_mut::<T, S, A>();
+
+        proj_self.shift_take(value)
+    }
+
+    pub fn swap_remove_full<Q, T, S, A>(&mut self, value: &Q) -> Option<(usize, T)>
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+        Q: any::Any + ?Sized + hash::Hash + Equivalent<T>,
+    {
+        let proj_self = self.as_proj_mut::<T, S, A>();
+
+        proj_self.swap_remove_full(value)
+    }
+
+    pub fn shift_remove_full<Q, T, S, A>(&mut self, value: &Q) -> Option<(usize, T)>
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+        Q: any::Any + ?Sized + hash::Hash + Equivalent<T>,
+    {
+        let proj_self = self.as_proj_mut::<T, S, A>();
+
+        proj_self.shift_remove_full(value)
+    }
+}
+
+impl OpaqueIndexSet {
+    #[doc(alias = "pop_last")] // like `BTreeSet`
+    pub fn pop<T, S, A>(&mut self) -> Option<T>
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_self = self.as_proj_mut::<T, S, A>();
+
+        proj_self.pop()
+    }
+
+    pub fn retain<F, T, S, A>(&mut self, mut keep: F)
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+        F: FnMut(&T) -> bool,
+    {
+        let proj_self = self.as_proj_mut::<T, S, A>();
+
+        proj_self.retain(&mut keep);
+    }
+
+    pub fn sort<T, S, A>(&mut self)
+    where
+        T: any::Any + Ord,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_self = self.as_proj_mut::<T, S, A>();
+
+        proj_self.sort();
+    }
+
+    pub fn sort_by<F, T, S, A>(&mut self, mut cmp: F)
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+        F: FnMut(&T, &T) -> cmp::Ordering,
+    {
+        let proj_self = self.as_proj_mut::<T, S, A>();
+
+        proj_self.sort_by(&mut cmp);
+    }
+
+    pub fn sorted_by<F, T, S, A>(self, mut cmp: F) -> IntoIter<T, A>
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+        F: FnMut(&T, &T) -> cmp::Ordering,
+    {
+        let proj_self = self.into_proj::<T, S, A>();
+
+        proj_self.sorted_by(&mut cmp)
+    }
+
+    pub fn sort_unstable<T, S, A>(&mut self)
+    where
+        T: any::Any + Ord,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_self = self.as_proj_mut::<T, S, A>();
+
+        proj_self.sort_unstable()
+    }
+
+    pub fn sort_unstable_by<F, T, S, A>(&mut self, mut cmp: F)
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+        F: FnMut(&T, &T) -> cmp::Ordering,
+    {
+        let proj_self = self.as_proj_mut::<T, S, A>();
+
+        proj_self.sort_unstable_by(&mut cmp)
+    }
+
+    pub fn sorted_unstable_by<F, T, S, A>(self, mut cmp: F) -> IntoIter<T, A>
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+        F: FnMut(&T, &T) -> cmp::Ordering,
+    {
+        let proj_self = self.into_proj::<T, S, A>();
+
+        proj_self.sorted_unstable_by(&mut cmp)
+    }
+
+    pub fn sort_by_cached_key<K, F, T, S, A>(&mut self, mut sort_key: F)
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+        K: Ord,
+        F: FnMut(&T) -> K,
+    {
+        let proj_self = self.as_proj_mut::<T, S, A>();
+
+        proj_self.sort_by_cached_key(&mut sort_key)
+    }
+
+    pub fn binary_search<T, S, A>(&self, x: &T) -> Result<usize, usize>
+    where
+        T: any::Any + Ord,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_self = self.as_proj::<T, S, A>();
+
+        proj_self.binary_search(x)
+    }
+
+    #[inline]
+    pub fn binary_search_by<F, T, S, A>(&self, f: F) -> Result<usize, usize>
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+        F: FnMut(&T) -> cmp::Ordering,
+    {
+        let proj_self = self.as_proj::<T, S, A>();
+
+        proj_self.binary_search_by(f)
+    }
+
+    #[inline]
+    pub fn binary_search_by_key<B, F, T, S, A>(&self, b: &B, f: F) -> Result<usize, usize>
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+        F: FnMut(&T) -> B,
+        B: Ord,
+    {
+        let proj_self = self.as_proj::<T, S, A>();
+
+        proj_self.binary_search_by_key(b, f)
+    }
+
+    #[must_use]
+    pub fn partition_point<P, T, S, A>(&self, pred: P) -> usize
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+        P: FnMut(&T) -> bool,
+    {
+        let proj_self = self.as_proj::<T, S, A>();
+
+        proj_self.partition_point(pred)
+    }
+
+    pub fn reverse<T, S, A>(&mut self)
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_self = self.as_proj_mut::<T, S, A>();
+
+        proj_self.reverse()
+    }
+
+    pub fn as_slice<T, S, A>(&self) -> &Slice<T>
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_self = self.as_proj::<T, S, A>();
+
+        proj_self.as_slice()
+    }
+
+    pub fn into_boxed_slice<T, S, A>(self) -> Box<Slice<T>, TypedProjAlloc<A>>
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_self = self.into_proj::<T, S, A>();
+
+        proj_self.into_boxed_slice()
+    }
+
+    pub fn get_index<T, S, A>(&self, index: usize) -> Option<&T>
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_self = self.as_proj::<T, S, A>();
+
+        proj_self.get_index(index)
+    }
+
+    pub fn get_range<R, T, S, A>(&self, range: R) -> Option<&Slice<T>>
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+        R: ops::RangeBounds<usize>,
+    {
+        let proj_self = self.as_proj::<T, S, A>();
+
+        proj_self.get_range(range)
+    }
+
+    pub fn first<T, S, A>(&self) -> Option<&T>
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_self = self.as_proj::<T, S, A>();
+
+        proj_self.first()
+    }
+
+    pub fn last<T, S, A>(&self) -> Option<&T>
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_self = self.as_proj::<T, S, A>();
+
+        proj_self.last()
+    }
+
+    pub fn swap_remove_index<T, S, A>(&mut self, index: usize) -> Option<T>
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_self = self.as_proj_mut::<T, S, A>();
+
+        proj_self.swap_remove_index(index)
+    }
+
+    pub fn shift_remove_index<T, S, A>(&mut self, index: usize) -> Option<T>
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_self = self.as_proj_mut::<T, S, A>();
+
+        proj_self.shift_remove_index(index)
+    }
+
+    #[track_caller]
+    pub fn move_index<T, S, A>(&mut self, from: usize, to: usize)
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_self = self.as_proj_mut::<T, S, A>();
+
+        proj_self.move_index(from, to)
+    }
+
+    #[track_caller]
+    pub fn swap_indices<T, S, A>(&mut self, a: usize, b: usize)
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_self = self.as_proj_mut::<T, S, A>();
+
+        proj_self.swap_indices(a, b)
     }
 }
 

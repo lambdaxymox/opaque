@@ -3131,6 +3131,21 @@ impl OpaqueIndexMap {
         proj_self.drain(range)
     }
 
+    #[track_caller]
+    pub fn split_off<K, V, S, A>(&mut self, at: usize) -> Self
+    where
+        K: any::Any,
+        V: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync + Clone,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync + Clone,
+    {
+        let proj_self =  self.as_proj_mut::<K, V, S, A>();
+        let proj_split = proj_self.split_off(at);
+
+        Self::from_proj(proj_split)
+    }
+
     pub fn swap_remove<Q, K, V, S, A>(&mut self, key: &Q) -> Option<V>
     where
         K: any::Any,
