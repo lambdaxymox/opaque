@@ -23,45 +23,54 @@ where
     map_entries
 }
 
-fn result<K, V>(map: &OpaqueIndexMap, key: &K) -> Vec<(K, V)>
+fn result<K, V, S, A>(map: &OpaqueIndexMap, key: &K) -> Vec<(K, V)>
 where
     K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
+    S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let mut new_map = common::opaque_index_map::clone::<K, V, hash::RandomState, alloc::Global>(map);
-    new_map.shift_remove::<K, K, V, hash::RandomState, alloc::Global>(key);
+    let mut new_map = common::opaque_index_map::clone::<K, V, S, A>(map);
+    new_map.shift_remove::<K, K, V, S, A>(key);
 
     let ordered_entries: Vec<(K, V)> = new_map
-        .iter::<K, V, hash::RandomState, alloc::Global>()
+        .iter::<K, V, S, A>()
         .map(|(key, value)| (key.clone(), value.clone()))
         .collect();
 
     ordered_entries
 }
 
-fn run_test_opaque_index_map_shift_remove_preserves_order<K, V>(entries: &[(K, V)])
+fn run_test_opaque_index_map_shift_remove_preserves_order<K, V, S, A>(entries: &[(K, V)], build_hasher: S, alloc: A)
 where
     K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
+    S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let base_map = common::opaque_index_map::from_entries(entries);
-    let base_keys: Vec<K> = base_map.keys::<K, V, hash::RandomState, alloc::Global>().cloned().collect();
+    let base_map = common::opaque_index_map::from_entries_in(entries, build_hasher, alloc);
+    let base_keys: Vec<K> = base_map.keys::<K, V, S, A>().cloned().collect();
     for (index, key) in base_keys.iter().enumerate() {
         let expected = expected(entries, index, &key);
-        let result = result::<K, V>(&base_map, key);
+        let result = result::<K, V, S, A>(&base_map, key);
 
         assert_eq!(result, expected);
     }
 }
 
-fn run_test_opaque_index_map_shift_remove_preserves_order_values<K, V>(entries: &[(K, V)])
+fn run_test_opaque_index_map_shift_remove_preserves_order_values<K, V, S, A>(entries: &[(K, V)], build_hasher: S, alloc: A)
 where
     K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
+    S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let iter = oimt::PrefixGenerator::new(entries);
     for entries in iter {
-        run_test_opaque_index_map_shift_remove_preserves_order(entries);
+        run_test_opaque_index_map_shift_remove_preserves_order(entries, build_hasher.clone(), alloc.clone());
     }
 }
 
@@ -75,21 +84,27 @@ macro_rules! generate_tests {
                 let keys: Vec<$key_typ> = Vec::from(&[]);
                 let values: Vec<$value_typ> = Vec::from(&[]);
                 let entries = oimt::key_value_pairs(keys.iter().cloned(), values.iter().cloned());
-                run_test_opaque_index_map_shift_remove_preserves_order_values(&entries);
+                let build_hasher = hash::RandomState::new();
+                let alloc = alloc::Global;
+                run_test_opaque_index_map_shift_remove_preserves_order_values(&entries, build_hasher, alloc);
             }
 
             #[test]
             fn test_opaque_index_map_shift_remove_preserves_order_range_values() {
                 let spec = $range_spec;
                 let entries = oimt::range_entries::<$key_typ, $value_typ>(spec);
-                run_test_opaque_index_map_shift_remove_preserves_order_values(&entries);
+                let build_hasher = hash::RandomState::new();
+                let alloc = alloc::Global;
+                run_test_opaque_index_map_shift_remove_preserves_order_values(&entries, build_hasher, alloc);
             }
 
             #[test]
             fn test_opaque_index_map_shift_remove_preserves_order_constant_values() {
                 let spec = $const_spec;
                 let entries = oimt::constant_key_entries::<$key_typ, $value_typ>(spec);
-                run_test_opaque_index_map_shift_remove_preserves_order_values(&entries);
+                let build_hasher = hash::RandomState::new();
+                let alloc = alloc::Global;
+                run_test_opaque_index_map_shift_remove_preserves_order_values(&entries, build_hasher, alloc);
             }
         }
     };

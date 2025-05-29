@@ -1,6 +1,6 @@
 use crate::equivalent::Equivalent;
 use crate::map_inner::{Bucket, OpaqueIndexMapInner, TypedProjIndexMapInner};
-use crate::map_inner as map_inner;
+use crate::map_inner;
 
 use core::any;
 use core::cmp;
@@ -11,12 +11,10 @@ use core::ops;
 use std::alloc;
 use std::hash;
 
-use opaque_alloc;
+use opaque_alloc::TypedProjAlloc;
 use opaque_error::{
     TryReserveError,
 };
-use opaque_hash;
-use opaque_alloc::TypedProjAlloc;
 use opaque_hash::{TypedProjBuildHasher};
 use opaque_vec::TypedProjVec;
 
@@ -156,7 +154,7 @@ where
 impl<'a, K, V> ops::Index<usize> for Keys<'a, K, V> {
     type Output = K;
 
-    fn index(&self, index: usize) -> &K {
+    fn index(&self, index: usize) -> &Self::Output {
         self.iter.index(index)
     }
 }
@@ -713,7 +711,7 @@ impl<K, V> Default for &'_ mut Slice<K, V> {
     }
 }
 
-impl<K, V, A> Default for Box<Slice<K, V>, A>
+impl<K, V, A> Default for Box<Slice<K, V>, TypedProjAlloc<A>>
 where
     K: any::Any,
     V: any::Any,
@@ -735,6 +733,18 @@ where
         let entries = self.entries.to_entries_in(alloc);
 
         Slice::from_entries_in(entries)
+    }
+}
+
+impl<K, V> From<&Slice<K, V>> for Box<Slice<K, V>, TypedProjAlloc<alloc::Global>>
+where
+    K: any::Any + Copy,
+    V: any::Any + Copy,
+{
+    fn from(slice: &Slice<K, V>) -> Self {
+        let boxed_entries: Box<map_inner::Slice<K, V>, TypedProjAlloc<alloc::Global>> = Box::from(&slice.entries);
+
+        Slice::from_boxed_slice(boxed_entries)
     }
 }
 
@@ -841,27 +851,27 @@ where
 impl<K, V> ops::Index<usize> for Slice<K, V> {
     type Output = V;
 
-    fn index(&self, index: usize) -> &V {
-        self.entries.index(index)
+    fn index(&self, index: usize) -> &Self::Output {
+        self.entries.index(index).value_ref()
     }
 }
 
 impl<K, V> ops::IndexMut<usize> for Slice<K, V> {
-    fn index_mut(&mut self, index: usize) -> &mut V {
-        self.entries.index_mut(index)
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        self.entries.index_mut(index).value_mut()
     }
 }
 
 impl<K, V> ops::Index<ops::Range<usize>> for Slice<K, V> {
     type Output = Slice<K, V>;
 
-    fn index(&self, range: ops::Range<usize>) -> &Self {
+    fn index(&self, range: ops::Range<usize>) -> &Self::Output {
         Self::from_slice(&self.entries[range])
     }
 }
 
 impl<K, V> ops::IndexMut<ops::Range<usize>> for Slice<K, V> {
-    fn index_mut(&mut self, range: ops::Range<usize>) -> &mut Self {
+    fn index_mut(&mut self, range: ops::Range<usize>) -> &mut Self::Output {
         Self::from_slice_mut(&mut self.entries[range])
     }
 }
@@ -869,13 +879,13 @@ impl<K, V> ops::IndexMut<ops::Range<usize>> for Slice<K, V> {
 impl<K, V> ops::Index<ops::RangeFrom<usize>> for Slice<K, V> {
     type Output = Slice<K, V>;
 
-    fn index(&self, range: ops::RangeFrom<usize>) -> &Self {
+    fn index(&self, range: ops::RangeFrom<usize>) -> &Self::Output {
         Self::from_slice(&self.entries[range])
     }
 }
 
 impl<K, V> ops::IndexMut<ops::RangeFrom<usize>> for Slice<K, V> {
-    fn index_mut(&mut self, range: ops::RangeFrom<usize>) -> &mut Self {
+    fn index_mut(&mut self, range: ops::RangeFrom<usize>) -> &mut Self::Output {
         Self::from_slice_mut(&mut self.entries[range])
     }
 }
@@ -883,13 +893,13 @@ impl<K, V> ops::IndexMut<ops::RangeFrom<usize>> for Slice<K, V> {
 impl<K, V> ops::Index<ops::RangeFull> for Slice<K, V> {
     type Output = Slice<K, V>;
 
-    fn index(&self, range: ops::RangeFull) -> &Self {
+    fn index(&self, range: ops::RangeFull) -> &Self::Output {
         Self::from_slice(&self.entries[range])
     }
 }
 
 impl<K, V> ops::IndexMut<ops::RangeFull> for Slice<K, V> {
-    fn index_mut(&mut self, range: ops::RangeFull) -> &mut Self {
+    fn index_mut(&mut self, range: ops::RangeFull) -> &mut Self::Output {
         Self::from_slice_mut(&mut self.entries[range])
     }
 }
@@ -897,13 +907,13 @@ impl<K, V> ops::IndexMut<ops::RangeFull> for Slice<K, V> {
 impl<K, V> ops::Index<ops::RangeInclusive<usize>> for Slice<K, V> {
     type Output = Slice<K, V>;
 
-    fn index(&self, range: ops::RangeInclusive<usize>) -> &Self {
+    fn index(&self, range: ops::RangeInclusive<usize>) -> &Self::Output {
         Self::from_slice(&self.entries[range])
     }
 }
 
 impl<K, V> ops::IndexMut<ops::RangeInclusive<usize>> for Slice<K, V> {
-    fn index_mut(&mut self, range: ops::RangeInclusive<usize>) -> &mut Self {
+    fn index_mut(&mut self, range: ops::RangeInclusive<usize>) -> &mut Self::Output {
         Self::from_slice_mut(&mut self.entries[range])
     }
 }
@@ -911,13 +921,13 @@ impl<K, V> ops::IndexMut<ops::RangeInclusive<usize>> for Slice<K, V> {
 impl<K, V> ops::Index<ops::RangeTo<usize>> for Slice<K, V> {
     type Output = Slice<K, V>;
 
-    fn index(&self, range: ops::RangeTo<usize>) -> &Self {
+    fn index(&self, range: ops::RangeTo<usize>) -> &Self::Output {
         Self::from_slice(&self.entries[range])
     }
 }
 
 impl<K, V> ops::IndexMut<ops::RangeTo<usize>> for Slice<K, V> {
-    fn index_mut(&mut self, range: ops::RangeTo<usize>) -> &mut Self {
+    fn index_mut(&mut self, range: ops::RangeTo<usize>) -> &mut Self::Output {
         Self::from_slice_mut(&mut self.entries[range])
     }
 }
@@ -925,13 +935,13 @@ impl<K, V> ops::IndexMut<ops::RangeTo<usize>> for Slice<K, V> {
 impl<K, V> ops::Index<ops::RangeToInclusive<usize>> for Slice<K, V> {
     type Output = Slice<K, V>;
 
-    fn index(&self, range: ops::RangeToInclusive<usize>) -> &Self {
+    fn index(&self, range: ops::RangeToInclusive<usize>) -> &Self::Output {
         Self::from_slice(&self.entries[range])
     }
 }
 
 impl<K, V> ops::IndexMut<ops::RangeToInclusive<usize>> for Slice<K, V> {
-    fn index_mut(&mut self, range: ops::RangeToInclusive<usize>) -> &mut Self {
+    fn index_mut(&mut self, range: ops::RangeToInclusive<usize>) -> &mut Self::Output {
         Self::from_slice_mut(&mut self.entries[range])
     }
 }
@@ -939,13 +949,13 @@ impl<K, V> ops::IndexMut<ops::RangeToInclusive<usize>> for Slice<K, V> {
 impl<K, V> ops::Index<(ops::Bound<usize>, ops::Bound<usize>)> for Slice<K, V> {
     type Output = Slice<K, V>;
 
-    fn index(&self, range: (ops::Bound<usize>, ops::Bound<usize>)) -> &Self {
+    fn index(&self, range: (ops::Bound<usize>, ops::Bound<usize>)) -> &Self::Output {
         Self::from_slice(&self.entries[range])
     }
 }
 
 impl<K, V> ops::IndexMut<(ops::Bound<usize>, ops::Bound<usize>)> for Slice<K, V> {
-    fn index_mut(&mut self, range: (ops::Bound<usize>, ops::Bound<usize>)) -> &mut Self {
+    fn index_mut(&mut self, range: (ops::Bound<usize>, ops::Bound<usize>)) -> &mut Self::Output {
         Self::from_slice_mut(&mut self.entries[range])
     }
 }
@@ -1963,6 +1973,17 @@ where
         Drain::new(self.inner.drain(range))
     }
 
+    #[track_caller]
+    pub fn split_off(&mut self, at: usize) -> Self
+    where
+        S: Clone,
+        A: Clone,
+    {
+        Self {
+            inner: self.inner.split_off(at),
+        }
+    }
+
     pub fn swap_remove<Q>(&mut self, key: &Q) -> Option<V>
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
@@ -2317,7 +2338,7 @@ where
 {
     type Output = V;
 
-    fn index(&self, key: &Q) -> &V {
+    fn index(&self, key: &Q) -> &Self::Output {
         self.get(key).expect("Entry not found for key")
     }
 }
@@ -2332,7 +2353,7 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    fn index_mut(&mut self, key: &Q) -> &mut V {
+    fn index_mut(&mut self, key: &Q) -> &mut Self::Output {
         self.get_mut(key).expect("Entry not found for key")
     }
 }
@@ -2347,7 +2368,7 @@ where
 {
     type Output = V;
 
-    fn index(&self, index: usize) -> &V {
+    fn index(&self, index: usize) -> &Self::Output {
         self.get_index(index)
             .unwrap_or_else(|| {
                 panic!(
@@ -2367,7 +2388,7 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    fn index_mut(&mut self, index: usize) -> &mut V {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         let len: usize = self.len();
 
         self.get_index_mut(index)
@@ -2665,7 +2686,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync + Default,
 {
     fn default() -> Self {
-        Self::with_capacity_and_hasher_in(0, S::default(), A::default())
+        Self { inner: TypedProjIndexMapInner::default(), }
     }
 }
 
@@ -2699,6 +2720,54 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
+}
+
+impl<'a, K, V, S, A> IntoIterator for &'a TypedProjIndexMap<K, V, S, A>
+where
+    K: any::Any,
+    V: any::Any,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    type Item = (&'a K, &'a V);
+    type IntoIter = Iter<'a, K, V>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+
+impl<'a, K, V, S, A> IntoIterator for &'a mut TypedProjIndexMap<K, V, S, A>
+where
+    K: any::Any,
+    V: any::Any,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    type Item = (&'a K, &'a mut V);
+    type IntoIter = IterMut<'a, K, V>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter_mut()
+    }
+}
+
+impl<K, V, S, A> IntoIterator for TypedProjIndexMap<K, V, S, A>
+where
+    K: any::Any,
+    V: any::Any,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    type Item = (K, V);
+    type IntoIter = IntoIter<K, V, A>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        IntoIter::new(map_inner::IntoIter::new(self.inner.into_entries()))
+    }
 }
 
 #[repr(transparent)]

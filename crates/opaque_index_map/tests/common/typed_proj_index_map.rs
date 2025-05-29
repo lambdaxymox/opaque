@@ -4,12 +4,15 @@ use core::any;
 use std::hash;
 use std::alloc;
 
-pub fn from_entries<K, V>(entries: &[(K, V)]) -> TypedProjIndexMap<K, V, hash::RandomState, alloc::Global>
+pub fn from_entries<K, V, S, A>(entries: &[(K, V)], build_hasher: S, alloc: A) -> TypedProjIndexMap<K, V, S, A>
 where
     K: any::Any + Clone + Eq + hash::Hash,
     V: any::Any + Clone + Eq,
+    S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
-    let mut map = TypedProjIndexMap::new();
+    let mut map = TypedProjIndexMap::with_hasher_in(build_hasher, alloc);
     for (key, value) in entries.iter().cloned() {
         map.insert(key, value);
     }
@@ -17,12 +20,15 @@ where
     map
 }
 
-pub fn from_entries_full<K, V>(entries: &[(K, V)]) -> TypedProjIndexMap<K, V, hash::RandomState, alloc::Global>
+pub fn from_entries_full<K, V, S, A>(entries: &[(K, V)], build_hasher: S, alloc: A) -> TypedProjIndexMap<K, V, S, A>
 where
     K: any::Any + Clone + Eq + hash::Hash,
     V: any::Any + Clone + Eq,
+    S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
-    let mut map = TypedProjIndexMap::new();
+    let mut map = TypedProjIndexMap::with_hasher_in(build_hasher, alloc);
     for (key, value) in entries.iter().cloned() {
         map.insert_full(key, value);
     }

@@ -7,15 +7,18 @@ use std::hash;
 
 use opaque_index_map_testing as oimt;
 
-fn run_test_opaque_index_map_shift_remove_len<K, V>(entries: &[(K, V)])
+fn run_test_opaque_index_map_shift_remove_len<K, V, S, A>(entries: &[(K, V)], build_hasher: S, alloc: A)
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
+    S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let mut map = common::opaque_index_map::from_entries(&entries);
-    let keys: Vec<K> = map.keys::<K, V, hash::RandomState, alloc::Global>().cloned().collect();
+    let mut map = common::opaque_index_map::from_entries_in(entries, build_hasher, alloc);
+    let keys: Vec<K> = map.keys::<K, V, S, A>().cloned().collect();
     for (i, key_i) in keys.iter().enumerate() {
-        map.shift_remove::<K, K, V, hash::RandomState, alloc::Global>(key_i);
+        map.shift_remove::<K, K, V, S, A>(key_i);
 
         let expected = keys.len() - i - 1;
         let result = map.len();
@@ -24,14 +27,17 @@ where
     }
 }
 
-fn run_test_opaque_index_map_shift_remove_len_values<K, V>(entries: &[(K, V)])
+fn run_test_opaque_index_map_shift_remove_len_values<K, V, S, A>(entries: &[(K, V)], build_hasher: S, alloc: A)
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
+    S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let iter = oimt::PrefixGenerator::new(entries);
     for entries in iter {
-        run_test_opaque_index_map_shift_remove_len(entries);
+        run_test_opaque_index_map_shift_remove_len(entries, build_hasher.clone(), alloc.clone());
     }
 }
 
@@ -45,21 +51,27 @@ macro_rules! generate_tests {
                 let keys: Vec<$key_typ> = Vec::from(&[]);
                 let values: Vec<$value_typ> = Vec::from(&[]);
                 let entries = oimt::key_value_pairs(keys.iter().cloned(), values.iter().cloned());
-                run_test_opaque_index_map_shift_remove_len_values(&entries);
+                let build_hasher = hash::RandomState::new();
+                let alloc = alloc::Global;
+                run_test_opaque_index_map_shift_remove_len_values(&entries, build_hasher, alloc);
             }
 
             #[test]
             fn test_opaque_index_map_shift_remove_len_range_values() {
                 let spec = $range_spec;
                 let entries = oimt::range_entries::<$key_typ, $value_typ>(spec);
-                run_test_opaque_index_map_shift_remove_len_values(&entries);
+                let build_hasher = hash::RandomState::new();
+                let alloc = alloc::Global;
+                run_test_opaque_index_map_shift_remove_len_values(&entries, build_hasher, alloc);
             }
 
             #[test]
             fn test_opaque_index_map_shift_remove_len_constant_values() {
                 let spec = $const_spec;
                 let entries = oimt::constant_key_entries::<$key_typ, $value_typ>(spec);
-                run_test_opaque_index_map_shift_remove_len_values(&entries);
+                let build_hasher = hash::RandomState::new();
+                let alloc = alloc::Global;
+                run_test_opaque_index_map_shift_remove_len_values(&entries, build_hasher, alloc);
             }
         }
     };

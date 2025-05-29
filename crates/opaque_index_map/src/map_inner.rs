@@ -1,4 +1,5 @@
 use crate::range_ops;
+use crate::slice_eq;
 use crate::equivalent::Equivalent;
 
 use core::any;
@@ -10,6 +11,8 @@ use core::ops;
 use std::alloc;
 use std::hash;
 
+use hashbrown::hash_table;
+
 use opaque_alloc::TypedProjAlloc;
 use opaque_error::{
     TryReserveError,
@@ -18,7 +21,7 @@ use opaque_error::{
 use opaque_hash::{OpaqueBuildHasher, TypedProjBuildHasher};
 use opaque_vec::{OpaqueVec, TypedProjVec};
 
-pub struct Drain<'a, K, V, A = alloc::Global>
+pub(crate) struct Drain<'a, K, V, A = alloc::Global>
 where
     K: any::Any,
     V: any::Any,
@@ -101,7 +104,7 @@ where
     }
 }
 
-pub struct Keys<'a, K, V> {
+pub(crate) struct Keys<'a, K, V> {
     iter: std::slice::Iter<'a, Bucket<K, V>>,
 }
 
@@ -155,12 +158,12 @@ where
 impl<'a, K, V> ops::Index<usize> for Keys<'a, K, V> {
     type Output = K;
 
-    fn index(&self, index: usize) -> &K {
+    fn index(&self, index: usize) -> &Self::Output {
         &self.iter.as_slice()[index].key
     }
 }
 
-pub struct IntoKeys<K, V, A = alloc::Global>
+pub(crate) struct IntoKeys<K, V, A = alloc::Global>
 where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
@@ -250,7 +253,7 @@ where
     }
 }
 
-pub struct Values<'a, K, V> {
+pub(crate) struct Values<'a, K, V> {
     iter: std::slice::Iter<'a, Bucket<K, V>>,
 }
 
@@ -307,7 +310,7 @@ impl<K, V> Default for Values<'_, K, V> {
     }
 }
 
-pub struct ValuesMut<'a, K, V> {
+pub(crate) struct ValuesMut<'a, K, V> {
     iter: core::slice::IterMut<'a, Bucket<K, V>>,
 }
 
@@ -359,7 +362,7 @@ impl<K, V> Default for ValuesMut<'_, K, V> {
     }
 }
 
-pub struct IntoValues<K, V, A = alloc::Global>
+pub(crate) struct IntoValues<K, V, A = alloc::Global>
 where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
@@ -450,7 +453,7 @@ where
 }
 
 #[repr(transparent)]
-pub struct Slice<K, V> {
+pub(crate) struct Slice<K, V> {
     entries: [Bucket<K, V>],
 }
 
@@ -530,11 +533,16 @@ impl<K, V> Slice<K, V> {
         boxed_slice
     }
 
+    #[inline]
+    pub(crate) const fn as_entries(&self) -> &[Bucket<K, V>] {
+        &self.entries
+    }
+
     pub const fn new<'a>() -> &'a Self {
         Self::from_slice(&[])
     }
 
-    pub fn new_mut<'a>() -> &'a mut Self {
+    pub const fn new_mut<'a>() -> &'a mut Self {
         Self::from_slice_mut(&mut [])
     }
 
@@ -772,6 +780,20 @@ where
     }
 }
 
+impl<K, V> From<&Slice<K, V>> for Box<Slice<K, V>, TypedProjAlloc<alloc::Global>>
+where
+    K: any::Any + Copy,
+    V: any::Any + Copy,
+{
+    fn from(slice: &Slice<K, V>) -> Self {
+        let alloc = TypedProjAlloc::new(alloc::Global);
+        let entries = slice.to_entries_in(alloc);
+        let boxed_entries: Box<[Bucket<K, V>], TypedProjAlloc<alloc::Global>> = entries.into_boxed_slice();
+
+        Slice::from_boxed_slice(boxed_entries)
+    }
+}
+
 impl<K, V> fmt::Debug for Slice<K, V>
 where
     K: fmt::Debug,
@@ -781,8 +803,7 @@ where
         formatter.debug_list().entries(self).finish()
     }
 }
-
-
+/*
 fn slice_eq<T, U, F>(this: &[T], that: &[U], eq: F) -> bool
 where
     F: Fn(&T, &U) -> bool,
@@ -800,14 +821,14 @@ where
 
     true
 }
-
+*/
 impl<K, V, K2, V2> PartialEq<Slice<K2, V2>> for Slice<K, V>
 where
     K: PartialEq<K2>,
     V: PartialEq<V2>,
 {
     fn eq(&self, other: &Slice<K2, V2>) -> bool {
-        slice_eq(&self.entries, &other.entries, |b1, b2| b1.key == b2.key && b1.value == b2.value)
+        slice_eq::slice_eq(&self.entries, &other.entries, |b1, b2| b1.key == b2.key && b1.value == b2.value)
     }
 }
 
@@ -817,7 +838,7 @@ where
     V: PartialEq<V2>,
 {
     fn eq(&self, other: &[(K2, V2)]) -> bool {
-        slice_eq(&self.entries, other, |b, t| b.key == t.0 && b.value == t.1)
+        slice_eq::slice_eq(&self.entries, other, |b, t| b.key == t.0 && b.value == t.1)
     }
 }
 
@@ -827,7 +848,7 @@ where
     V: PartialEq<V2>,
 {
     fn eq(&self, other: &Slice<K2, V2>) -> bool {
-        slice_eq(self, &other.entries, |t, b| t.0 == b.key && t.1 == b.value)
+        slice_eq::slice_eq(self, &other.entries, |t, b| t.0 == b.key && t.1 == b.value)
     }
 }
 
@@ -896,29 +917,29 @@ where
 }
 
 impl<K, V> ops::Index<usize> for Slice<K, V> {
-    type Output = V;
+    type Output = Bucket<K, V>;
 
-    fn index(&self, index: usize) -> &V {
-        &self.entries[index].value
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.entries[index]
     }
 }
 
 impl<K, V> ops::IndexMut<usize> for Slice<K, V> {
-    fn index_mut(&mut self, index: usize) -> &mut V {
-        &mut self.entries[index].value
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output{
+        &mut self.entries[index]
     }
 }
 
 impl<K, V> ops::Index<ops::Range<usize>> for Slice<K, V> {
     type Output = Slice<K, V>;
 
-    fn index(&self, range: ops::Range<usize>) -> &Self {
+    fn index(&self, range: ops::Range<usize>) -> &Self::Output {
         Self::from_slice(&self.entries[range])
     }
 }
 
 impl<K, V> ops::IndexMut<ops::Range<usize>> for Slice<K, V> {
-    fn index_mut(&mut self, range: ops::Range<usize>) -> &mut Self {
+    fn index_mut(&mut self, range: ops::Range<usize>) -> &mut Self::Output {
         Self::from_slice_mut(&mut self.entries[range])
     }
 }
@@ -926,13 +947,13 @@ impl<K, V> ops::IndexMut<ops::Range<usize>> for Slice<K, V> {
 impl<K, V> ops::Index<ops::RangeFrom<usize>> for Slice<K, V> {
     type Output = Slice<K, V>;
 
-    fn index(&self, range: ops::RangeFrom<usize>) -> &Self {
+    fn index(&self, range: ops::RangeFrom<usize>) -> &Self::Output {
         Self::from_slice(&self.entries[range])
     }
 }
 
 impl<K, V> ops::IndexMut<ops::RangeFrom<usize>> for Slice<K, V> {
-    fn index_mut(&mut self, range: ops::RangeFrom<usize>) -> &mut Self {
+    fn index_mut(&mut self, range: ops::RangeFrom<usize>) -> &mut Self::Output {
         Self::from_slice_mut(&mut self.entries[range])
     }
 }
@@ -940,13 +961,13 @@ impl<K, V> ops::IndexMut<ops::RangeFrom<usize>> for Slice<K, V> {
 impl<K, V> ops::Index<ops::RangeFull> for Slice<K, V> {
     type Output = Slice<K, V>;
 
-    fn index(&self, range: ops::RangeFull) -> &Self {
+    fn index(&self, range: ops::RangeFull) -> &Self::Output {
         Self::from_slice(&self.entries[range])
     }
 }
 
 impl<K, V> ops::IndexMut<ops::RangeFull> for Slice<K, V> {
-    fn index_mut(&mut self, range: ops::RangeFull) -> &mut Self {
+    fn index_mut(&mut self, range: ops::RangeFull) -> &mut Self::Output {
         Self::from_slice_mut(&mut self.entries[range])
     }
 }
@@ -954,13 +975,13 @@ impl<K, V> ops::IndexMut<ops::RangeFull> for Slice<K, V> {
 impl<K, V> ops::Index<ops::RangeInclusive<usize>> for Slice<K, V> {
     type Output = Slice<K, V>;
 
-    fn index(&self, range: ops::RangeInclusive<usize>) -> &Self {
+    fn index(&self, range: ops::RangeInclusive<usize>) -> &Self::Output {
         Self::from_slice(&self.entries[range])
     }
 }
 
 impl<K, V> ops::IndexMut<ops::RangeInclusive<usize>> for Slice<K, V> {
-    fn index_mut(&mut self, range: ops::RangeInclusive<usize>) -> &mut Self {
+    fn index_mut(&mut self, range: ops::RangeInclusive<usize>) -> &mut Self::Output {
         Self::from_slice_mut(&mut self.entries[range])
     }
 }
@@ -968,13 +989,13 @@ impl<K, V> ops::IndexMut<ops::RangeInclusive<usize>> for Slice<K, V> {
 impl<K, V> ops::Index<ops::RangeTo<usize>> for Slice<K, V> {
     type Output = Slice<K, V>;
 
-    fn index(&self, range: ops::RangeTo<usize>) -> &Self {
+    fn index(&self, range: ops::RangeTo<usize>) -> &Self::Output {
         Self::from_slice(&self.entries[range])
     }
 }
 
 impl<K, V> ops::IndexMut<ops::RangeTo<usize>> for Slice<K, V> {
-    fn index_mut(&mut self, range: ops::RangeTo<usize>) -> &mut Self {
+    fn index_mut(&mut self, range: ops::RangeTo<usize>) -> &mut Self::Output {
         Self::from_slice_mut(&mut self.entries[range])
     }
 }
@@ -982,13 +1003,13 @@ impl<K, V> ops::IndexMut<ops::RangeTo<usize>> for Slice<K, V> {
 impl<K, V> ops::Index<ops::RangeToInclusive<usize>> for Slice<K, V> {
     type Output = Slice<K, V>;
 
-    fn index(&self, range: ops::RangeToInclusive<usize>) -> &Self {
+    fn index(&self, range: ops::RangeToInclusive<usize>) -> &Self::Output {
         Self::from_slice(&self.entries[range])
     }
 }
 
 impl<K, V> ops::IndexMut<ops::RangeToInclusive<usize>> for Slice<K, V> {
-    fn index_mut(&mut self, range: ops::RangeToInclusive<usize>) -> &mut Self {
+    fn index_mut(&mut self, range: ops::RangeToInclusive<usize>) -> &mut Self::Output {
         Self::from_slice_mut(&mut self.entries[range])
     }
 }
@@ -996,18 +1017,18 @@ impl<K, V> ops::IndexMut<ops::RangeToInclusive<usize>> for Slice<K, V> {
 impl<K, V> ops::Index<(ops::Bound<usize>, ops::Bound<usize>)> for Slice<K, V> {
     type Output = Slice<K, V>;
 
-    fn index(&self, range: (ops::Bound<usize>, ops::Bound<usize>)) -> &Self {
+    fn index(&self, range: (ops::Bound<usize>, ops::Bound<usize>)) -> &Self::Output {
         Self::from_slice(&self.entries[range])
     }
 }
 
 impl<K, V> ops::IndexMut<(ops::Bound<usize>, ops::Bound<usize>)> for Slice<K, V> {
-    fn index_mut(&mut self, range: (ops::Bound<usize>, ops::Bound<usize>)) -> &mut Self {
+    fn index_mut(&mut self, range: (ops::Bound<usize>, ops::Bound<usize>)) -> &mut Self::Output {
         Self::from_slice_mut(&mut self.entries[range])
     }
 }
 
-pub struct Iter<'a, K, V> {
+pub(crate) struct Iter<'a, K, V> {
     iter: std::slice::Iter<'a, Bucket<K, V>>,
 }
 
@@ -1070,7 +1091,7 @@ impl<K, V> Default for Iter<'_, K, V> {
     }
 }
 
-pub struct IterMut<'a, K, V> {
+pub(crate) struct IterMut<'a, K, V> {
     iter: std::slice::IterMut<'a, Bucket<K, V>>,
 }
 
@@ -1133,7 +1154,7 @@ impl<K, V> Default for IterMut<'_, K, V> {
 }
 
 #[derive(Clone)]
-pub struct IntoIter<K, V, A = alloc::Global>
+pub(crate) struct IntoIter<K, V, A = alloc::Global>
 where
     K: any::Any,
     V: any::Any,
@@ -1148,7 +1169,7 @@ where
     V: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    fn new(entries: TypedProjVec<Bucket<K, V>, A>) -> Self {
+    pub(crate) fn new(entries: TypedProjVec<Bucket<K, V>, A>) -> Self {
         Self {
             iter: entries.into_iter(),
         }
@@ -1235,7 +1256,7 @@ where
     }
 }
 
-pub struct Splice<'a, I, K, V, S = hash::RandomState, A = alloc::Global>
+pub(crate) struct Splice<'a, I, K, V, S = hash::RandomState, A = alloc::Global>
 where
     I: Iterator<Item = (K, V)>,
     K: any::Any + hash::Hash + Eq,
@@ -1434,40 +1455,40 @@ impl<K, V> Bucket<K, V> {
         Self { hash, key, value }
     }
 
-    fn key_ref(&self) -> &K {
+    pub(crate) const fn key_ref(&self) -> &K {
         &self.key
     }
 
-    fn value_ref(&self) -> &V {
+    pub(crate) const fn value_ref(&self) -> &V {
         &self.value
     }
 
-    fn value_mut(&mut self) -> &mut V {
+    pub(crate) const fn value_mut(&mut self) -> &mut V {
         &mut self.value
     }
 
-    fn key(self) -> K {
+    pub(crate) fn key(self) -> K {
         self.key
     }
 
-    fn value(self) -> V {
+    pub(crate) fn value(self) -> V {
         self.value
     }
 
-    fn key_value(self) -> (K, V) {
+    pub(crate) fn key_value(self) -> (K, V) {
         (self.key, self.value)
     }
 
-    fn refs(&self) -> (&K, &V) {
+    pub(crate) const fn refs(&self) -> (&K, &V) {
         (&self.key, &self.value)
     }
 
-    fn ref_mut(&mut self) -> (&K, &mut V) {
+    pub(crate) fn ref_mut(&mut self) -> (&K, &mut V) {
         (&self.key, &mut self.value)
     }
 
     /*
-    fn muts(&mut self) -> (&mut K, &mut V) {
+    pub(crate) const fn muts(&mut self) -> (&mut K, &mut V) {
         (&mut self.key, &mut self.value)
     }
     */
@@ -2078,6 +2099,32 @@ where
         }
     }
 
+    pub(crate) fn replace_full(&mut self, hash: HashValue, key: K, value: V) -> (usize, Option<(K, V)>)
+    where
+        K: Eq,
+    {
+        let eq = equivalent(&key, &self.entries);
+        let hasher = get_hash(&self.entries);
+        match self.indices.entry(hash.get(), eq, hasher) {
+            hash_table::Entry::Occupied(entry) => {
+                let i = *entry.get();
+                let entry = &mut self.entries[i];
+                let kv = (
+                    mem::replace(&mut entry.key, key),
+                    mem::replace(&mut entry.value, value),
+                );
+                (i, Some(kv))
+            }
+            hash_table::Entry::Vacant(entry) => {
+                let i = self.entries.len();
+                entry.insert(i);
+                self.push_entry(hash, key, value);
+                debug_assert_eq!(self.indices.len(), self.entries.len());
+                (i, None)
+            }
+        }
+    }
+
     pub(crate) fn shift_remove_full<Q>(&mut self, hash: HashValue, key: &Q) -> Option<(usize, K, V)>
     where
         Q: ?Sized + Equivalent<K>,
@@ -2618,7 +2665,7 @@ where
     }
 }
 
-pub struct OccupiedEntry<'a, K, V, A = alloc::Global>
+pub(crate) struct OccupiedEntry<'a, K, V, A = alloc::Global>
 where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
@@ -2754,7 +2801,7 @@ where
     }
 }
 
-pub struct VacantEntry<'a, K, V, A = alloc::Global>
+pub(crate) struct VacantEntry<'a, K, V, A = alloc::Global>
 where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
@@ -2825,7 +2872,7 @@ where
     }
 }
 
-pub struct IndexedEntry<'a, K, V, A = alloc::Global>
+pub(crate) struct IndexedEntry<'a, K, V, A = alloc::Global>
 where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
@@ -3186,6 +3233,14 @@ where
         HashValue::new(hash::Hasher::finish(&mut hasher) as usize)
     }
 
+    pub(crate) fn replace_full(&mut self, key: K, value: V) -> (usize, Option<(K, V)>)
+    where
+        K: hash::Hash + Eq,
+    {
+        let hash = self.hash(&key);
+        self.inner.replace_full(hash, key, value)
+    }
+
     pub fn get_index_of<Q>(&self, key: &Q) -> Option<usize>
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
@@ -3311,6 +3366,19 @@ where
     {
         Drain::new(self.inner.drain::<R>(range))
     }
+
+    #[track_caller]
+    pub fn split_off(&mut self, at: usize) -> Self
+    where
+        S: Clone,
+        A: Clone,
+    {
+        Self {
+            inner: self.inner.split_off(at),
+            build_hasher: self.build_hasher.clone(),
+        }
+    }
+
 
     pub fn swap_remove<Q>(&mut self, key: &Q) -> Option<V>
     where
@@ -3535,6 +3603,19 @@ where
         A2: any::Any + alloc::Allocator + Send + Sync,
     {
         self.extend(other.drain::<_>(..));
+    }
+}
+
+impl<K, V, S, A> Default for TypedProjIndexMapInner<K, V, S, A>
+where
+    K: any::Any,
+    V: any::Any,
+    S: any::Any + hash::BuildHasher + Send + Sync + Default,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Default,
+{
+    fn default() -> Self {
+        Self::with_capacity_and_hasher_in(0, S::default(), A::default())
     }
 }
 

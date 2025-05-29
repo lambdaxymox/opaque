@@ -19,39 +19,48 @@ where
     expected
 }
 
-fn result<K, V>(map: &OpaqueIndexMap) -> Vec<V>
+fn result<K, V, S, A>(map: &OpaqueIndexMap) -> Vec<V>
 where
     K: any::Any + Clone + Eq + hash::Hash,
     V: any::Any + Clone + Eq,
+    S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let result: Vec<V> = map
-        .values::<K, V, hash::RandomState, alloc::Global>()
+        .values::<K, V, S, A>()
         .cloned()
         .collect();
 
     result
 }
 
-fn run_test_opaque_index_map_insert_full_values<K, V>(entries: &[(K, V)])
+fn run_test_opaque_index_map_insert_full_values<K, V, S, A>(entries: &[(K, V)], build_hasher: S, alloc: A)
 where
     K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
+    S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let map = common::opaque_index_map::from_entries_full::<K, V>(entries);
+    let map = common::opaque_index_map::from_entries_full_in(entries, build_hasher, alloc);
     let expected = expected::<K, V>(&entries);
-    let result = result::<K, V>(&map);
+    let result = result::<K, V, S, A>(&map);
 
     assert_eq!(result, expected);
 }
 
-fn run_test_opaque_index_map_insert_full_values_values<K, V>(entries: &[(K, V)])
+fn run_test_opaque_index_map_insert_full_values_values<K, V, S, A>(entries: &[(K, V)], build_hasher: S, alloc: A)
 where
     K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
+    S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let iter = oimt::PrefixGenerator::new(entries);
     for entries in iter {
-        run_test_opaque_index_map_insert_full_values(entries);
+        run_test_opaque_index_map_insert_full_values(entries, build_hasher.clone(), alloc.clone());
     }
 }
 
@@ -65,21 +74,27 @@ macro_rules! generate_tests {
                 let keys: Vec<$key_typ> = Vec::from(&[]);
                 let values: Vec<$value_typ> = Vec::from(&[]);
                 let entries = oimt::key_value_pairs(keys.iter().cloned(), values.iter().cloned());
-                run_test_opaque_index_map_insert_full_values_values(&entries);
+                let build_hasher = hash::RandomState::new();
+                let alloc = alloc::Global;
+                run_test_opaque_index_map_insert_full_values_values(&entries, build_hasher, alloc);
             }
 
             #[test]
             fn test_opaque_index_map_insert_full_values_range_values() {
                 let spec = $range_spec;
                 let entries = oimt::range_entries::<$key_typ, $value_typ>(spec);
-                run_test_opaque_index_map_insert_full_values_values(&entries);
+                let build_hasher = hash::RandomState::new();
+                let alloc = alloc::Global;
+                run_test_opaque_index_map_insert_full_values_values(&entries, build_hasher, alloc);
             }
 
             #[test]
             fn test_opaque_index_map_insert_full_values_const_values() {
                 let spec = $const_spec;
                 let entries = oimt::constant_key_entries::<$key_typ, $value_typ>(spec);
-                run_test_opaque_index_map_insert_full_values_values(&entries);
+                let build_hasher = hash::RandomState::new();
+                let alloc = alloc::Global;
+                run_test_opaque_index_map_insert_full_values_values(&entries, build_hasher, alloc);
             }
         }
     };

@@ -6,6 +6,17 @@
 mod equivalent;
 mod range_ops;
 mod map_inner;
-pub mod map;
+mod slice_eq;
 
-pub use crate::equivalent::*;
+pub mod map;
+pub mod set;
+
+pub use crate::equivalent::Equivalent;
+pub use crate::map::{
+    TypedProjIndexMap,
+    OpaqueIndexMap,
+};
+pub use crate::set::{
+    TypedProjIndexSet,
+    OpaqueIndexSet,
+};

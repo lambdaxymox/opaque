@@ -7,25 +7,31 @@ use std::hash;
 
 use opaque_index_map_testing as oimt;
 
-fn run_test_typed_proj_index_map_iter_contains<K, V>(entries: &[(K, V)])
+fn run_test_typed_proj_index_map_iter_contains<K, V, S, A>(entries: &[(K, V)], build_hasher: S, alloc: A)
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
+    S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let map = common::typed_proj_index_map::from_entries(&entries);
+    let map = common::typed_proj_index_map::from_entries(entries, build_hasher, alloc);
     for (key, _) in map.iter() {
         assert!(map.contains_key(key));
     }
 }
 
-fn run_test_typed_proj_index_map_iter_contains_values<K, V>(entries: &[(K, V)])
+fn run_test_typed_proj_index_map_iter_contains_values<K, V, S, A>(entries: &[(K, V)], build_hasher: S, alloc: A)
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
+    S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let iter = oimt::PrefixGenerator::new(entries);
     for entries in iter {
-        run_test_typed_proj_index_map_iter_contains(entries);
+        run_test_typed_proj_index_map_iter_contains(entries, build_hasher.clone(), alloc.clone());
     }
 }
 
@@ -39,21 +45,27 @@ macro_rules! generate_tests {
                 let keys: Vec<$key_typ> = Vec::from(&[]);
                 let values: Vec<$value_typ> = Vec::from(&[]);
                 let entries = oimt::key_value_pairs(keys.iter().cloned(), values.iter().cloned());
-                run_test_typed_proj_index_map_iter_contains_values(&entries);
+                let build_hasher = hash::RandomState::new();
+                let alloc = alloc::Global;
+                run_test_typed_proj_index_map_iter_contains_values(&entries, build_hasher, alloc);
             }
 
             #[test]
             fn test_typed_proj_index_map_iter_contains_key_range_values() {
                 let spec = $range_spec;
                 let entries = oimt::range_entries::<$key_typ, $value_typ>(spec);
-                run_test_typed_proj_index_map_iter_contains_values(&entries);
+                let build_hasher = hash::RandomState::new();
+                let alloc = alloc::Global;
+                run_test_typed_proj_index_map_iter_contains_values(&entries, build_hasher, alloc);
             }
 
             #[test]
             fn test_typed_proj_index_map_iter_contains_key_constant_values() {
                 let spec = $const_spec;
                 let entries = oimt::constant_key_entries::<$key_typ, $value_typ>(spec);
-                run_test_typed_proj_index_map_iter_contains_values(&entries);
+                let build_hasher = hash::RandomState::new();
+                let alloc = alloc::Global;
+                run_test_typed_proj_index_map_iter_contains_values(&entries, build_hasher, alloc);
             }
         }
     };

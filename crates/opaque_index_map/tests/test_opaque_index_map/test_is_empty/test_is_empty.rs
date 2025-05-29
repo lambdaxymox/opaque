@@ -60,7 +60,7 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync + Clone,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let opaque_map = OpaqueIndexMap::new::<K, V>();
+    let opaque_map = OpaqueIndexMap::with_hasher_in::<K, V, S, A>(build_hasher, alloc);
     let min_key = TryFrom::try_from(0).unwrap();
     let max_key = TryFrom::try_from(127).unwrap();
     for key in min_key..max_key {

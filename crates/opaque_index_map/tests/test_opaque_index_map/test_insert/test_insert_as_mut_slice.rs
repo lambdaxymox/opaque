@@ -22,37 +22,47 @@ where
     expected
 }
 
-fn result<K, V>(map: &mut OpaqueIndexMap) -> Vec<V>
+fn result<K, V, S, A>(map: &mut OpaqueIndexMap) -> Vec<V>
 where
     K: any::Any + Clone + Eq + hash::Hash,
     V: any::Any + Clone + Eq,
+    S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let result: Vec<V> = map.as_mut_slice::<K, V, hash::RandomState, alloc::Global>().values().cloned().collect();
+    let result: Vec<V> = map.as_mut_slice::<K, V, S, A>().values().cloned().collect();
 
     result
 }
 
-fn run_test_opaque_index_map_insert_as_mut_slice<K, V>(entries: &mut [(K, V)])
+fn run_test_opaque_index_map_insert_as_mut_slice<K, V, S, A>(entries: &mut [(K, V)], build_hasher: S, alloc: A)
 where
     K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
+    S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let mut map = common::opaque_index_map::from_entries::<K, V>(entries);
+    let mut map = common::opaque_index_map::from_entries_in(entries, build_hasher, alloc);
     let expected = expected::<K, V>(&entries);
-    let result = result::<K, V>(&mut map);
+    let result = result::<K, V, S, A>(&mut map);
 
     assert_eq!(result, expected);
 }
 
-fn run_test_opaque_index_map_insert_as_mut_slice_values<K, V>(entries: &[(K, V)])
+fn run_test_opaque_index_map_insert_as_mut_slice_values<K, V, S, A>(entries: &[(K, V)], build_hasher: S, alloc: A)
 where
     K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
+    S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
+
 {
     let iter = oimt::PrefixGenerator::new(entries);
     for entries in iter {
         let mut cloned_entries = Vec::from(entries);
-        run_test_opaque_index_map_insert_as_mut_slice(cloned_entries.as_mut());
+        run_test_opaque_index_map_insert_as_mut_slice(cloned_entries.as_mut(), build_hasher.clone(), alloc.clone());
     }
 }
 
@@ -66,21 +76,27 @@ macro_rules! generate_tests {
                 let keys: Vec<$key_typ> = Vec::from(&[]);
                 let values: Vec<$value_typ> = Vec::from(&[]);
                 let entries = oimt::key_value_pairs(keys.iter().cloned(), values.iter().cloned());
-                run_test_opaque_index_map_insert_as_mut_slice_values(&entries);
+                let build_hasher = hash::RandomState::new();
+                let alloc = alloc::Global;
+                run_test_opaque_index_map_insert_as_mut_slice_values(&entries, build_hasher, alloc);
             }
 
             #[test]
             fn test_opaque_index_map_insert_as_mut_slice_range_values() {
                 let spec = $range_spec;
                 let entries = oimt::range_entries::<$key_typ, $value_typ>(spec);
-                run_test_opaque_index_map_insert_as_mut_slice_values(&entries);
+                let build_hasher = hash::RandomState::new();
+                let alloc = alloc::Global;
+                run_test_opaque_index_map_insert_as_mut_slice_values(&entries, build_hasher, alloc);
             }
 
             #[test]
             fn test_opaque_index_map_insert_as_mut_slice_constant_values() {
                 let spec = $const_spec;
                 let entries = oimt::constant_key_entries::<$key_typ, $value_typ>(spec);
-                run_test_opaque_index_map_insert_as_mut_slice_values(&entries);
+                let build_hasher = hash::RandomState::new();
+                let alloc = alloc::Global;
+                run_test_opaque_index_map_insert_as_mut_slice_values(&entries, build_hasher, alloc);
             }
         }
     };

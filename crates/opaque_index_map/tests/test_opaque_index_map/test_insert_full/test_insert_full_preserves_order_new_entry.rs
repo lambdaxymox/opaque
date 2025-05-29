@@ -7,20 +7,23 @@ use std::hash;
 
 use opaque_index_map_testing as oimt;
 
-fn run_test_opaque_index_map_insert_full_preserves_order_new_entry<K, V>(entries: &[(K, V)], new_entry: &(K, V))
+fn run_test_opaque_index_map_insert_full_preserves_order_new_entry<K, V, S, A>(entries: &[(K, V)], build_hasher: S, alloc: A, new_entry: &(K, V))
 where
     K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
+    S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let mut map = common::opaque_index_map::from_entries(entries);
+    let mut map = common::opaque_index_map::from_entries_in(entries, build_hasher, alloc);
 
-    assert!(!map.contains_key::<K, K, V, hash::RandomState, alloc::Global>(&new_entry.0));
+    assert!(!map.contains_key::<K, K, V, S, A>(&new_entry.0));
 
-    let keys_before: Vec<K> = map.keys::<K, V, hash::RandomState, alloc::Global>().cloned().collect();
+    let keys_before: Vec<K> = map.keys::<K, V, S, A>().cloned().collect();
 
-    map.insert_full::<K, V, hash::RandomState, alloc::Global>(new_entry.0.clone(), new_entry.1.clone());
+    map.insert_full::<K, V, S, A>(new_entry.0.clone(), new_entry.1.clone());
 
-    let keys_after: Vec<K> = map.keys::<K, V, hash::RandomState, alloc::Global>().cloned().collect();
+    let keys_after: Vec<K> = map.keys::<K, V, S, A>().cloned().collect();
 
     let expected = {
         let mut _vec = keys_before.clone();
@@ -32,14 +35,17 @@ where
     assert_eq!(result, expected);
 }
 
-fn run_test_opaque_index_map_insert_full_preserves_order_new_entry_values<K, V>(entries: &[(K, V)], new_entry: &(K, V))
+fn run_test_opaque_index_map_insert_full_preserves_order_new_entry_values<K, V, S, A>(entries: &[(K, V)], build_hasher: S, alloc: A, new_entry: &(K, V))
 where
     K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
+    S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let iter = oimt::PrefixGenerator::new(entries);
     for entries in iter {
-        run_test_opaque_index_map_insert_full_preserves_order_new_entry(entries, new_entry);
+        run_test_opaque_index_map_insert_full_preserves_order_new_entry(entries, build_hasher.clone(), alloc.clone(), new_entry);
     }
 }
 
@@ -53,24 +59,30 @@ macro_rules! generate_tests {
                 let keys: Vec<$key_typ> = Vec::from(&[]);
                 let values: Vec<$value_typ> = Vec::from(&[]);
                 let entries = oimt::key_value_pairs(keys.iter().cloned(), values.iter().cloned());
+                let build_hasher = hash::RandomState::new();
+                let alloc = alloc::Global;
                 let new_entry = $new_entry;
-                run_test_opaque_index_map_insert_full_preserves_order_new_entry_values(&entries, &new_entry);
+                run_test_opaque_index_map_insert_full_preserves_order_new_entry_values(&entries, build_hasher, alloc, &new_entry);
             }
 
             #[test]
             fn test_opaque_index_map_insert_full_preserves_order_new_entry_range_values() {
                 let spec = $range_spec;
                 let entries = oimt::range_entries::<$key_typ, $value_typ>(spec);
+                let build_hasher = hash::RandomState::new();
+                let alloc = alloc::Global;
                 let new_entry = $new_entry;
-                run_test_opaque_index_map_insert_full_preserves_order_new_entry_values(&entries, &new_entry);
+                run_test_opaque_index_map_insert_full_preserves_order_new_entry_values(&entries, build_hasher, alloc, &new_entry);
             }
 
             #[test]
             fn test_opaque_index_map_insert_full_preserves_order_new_entry_constant_values() {
                 let spec = $const_spec;
                 let entries = oimt::constant_key_entries::<$key_typ, $value_typ>(spec);
+                let build_hasher = hash::RandomState::new();
+                let alloc = alloc::Global;
                 let new_entry = $new_entry;
-                run_test_opaque_index_map_insert_full_preserves_order_new_entry_values(&entries, &new_entry);
+                run_test_opaque_index_map_insert_full_preserves_order_new_entry_values(&entries, build_hasher, alloc, &new_entry);
             }
         }
     };

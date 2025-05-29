@@ -7,29 +7,35 @@ use std::hash;
 
 use opaque_index_map_testing as oimt;
 
-fn run_test_opaque_index_map_iter_get_full_mut<K, V>(entries: &[(K, V)])
+fn run_test_opaque_index_map_iter_get_full_mut<K, V, S, A>(entries: &[(K, V)], build_hasher: S, alloc: A)
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
+    S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let mut map = common::opaque_index_map::from_entries(&entries);
-    let entries: Vec<(K, V)> = map.iter::<K, V, hash::RandomState, alloc::Global>().map(|(k, v)| (k.clone(), v.clone())).collect();
+    let mut map = common::opaque_index_map::from_entries_in(entries, build_hasher, alloc);
+    let entries: Vec<(K, V)> = map.iter::<K, V, S, A>().map(|(k, v)| (k.clone(), v.clone())).collect();
     for (key, value) in entries.iter() {
         let expected = Some((key.clone(), value.clone()));
-        let result = map.get_full_mut::<K, K, V, hash::RandomState, alloc::Global>(key).map(|(_, k, v)| (k.clone(), v.clone()));
+        let result = map.get_full_mut::<K, K, V, S, A>(key).map(|(_, k, v)| (k.clone(), v.clone()));
 
         assert_eq!(result, expected);
     }
 }
 
-fn run_test_opaque_index_map_iter_get_full_mut_values<K, V>(entries: &[(K, V)])
+fn run_test_opaque_index_map_iter_get_full_mut_values<K, V, S, A>(entries: &[(K, V)], build_hasher: S, alloc: A)
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
+    S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let iter = oimt::PrefixGenerator::new(entries);
     for entries in iter {
-        run_test_opaque_index_map_iter_get_full_mut(entries);
+        run_test_opaque_index_map_iter_get_full_mut(entries, build_hasher.clone(), alloc.clone());
     }
 }
 
@@ -43,21 +49,27 @@ macro_rules! generate_tests {
                 let keys: Vec<$key_typ> = Vec::from(&[]);
                 let values: Vec<$value_typ> = Vec::from(&[]);
                 let entries = oimt::key_value_pairs(keys.iter().cloned(), values.iter().cloned());
-                run_test_opaque_index_map_iter_get_full_mut_values(&entries);
+                let build_hasher = hash::RandomState::new();
+                let alloc = alloc::Global;
+                run_test_opaque_index_map_iter_get_full_mut_values(&entries, build_hasher, alloc);
             }
 
             #[test]
             fn test_opaque_index_map_iter_get_full_mut_range_values() {
                 let spec = $range_spec;
                 let entries = oimt::range_entries::<$key_typ, $value_typ>(spec);
-                run_test_opaque_index_map_iter_get_full_mut_values(&entries);
+                let build_hasher = hash::RandomState::new();
+                let alloc = alloc::Global;
+                run_test_opaque_index_map_iter_get_full_mut_values(&entries, build_hasher, alloc);
             }
 
             #[test]
             fn test_opaque_index_map_iter_get_full_mut_constant_values() {
                 let spec = $const_spec;
                 let entries = oimt::constant_key_entries::<$key_typ, $value_typ>(spec);
-                run_test_opaque_index_map_iter_get_full_mut_values(&entries);
+                let build_hasher = hash::RandomState::new();
+                let alloc = alloc::Global;
+                run_test_opaque_index_map_iter_get_full_mut_values(&entries, build_hasher, alloc);
             }
         }
     };
