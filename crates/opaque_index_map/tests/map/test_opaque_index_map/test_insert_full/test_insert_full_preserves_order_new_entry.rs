@@ -43,7 +43,7 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let iter = oimt::PrefixGenerator::new(entries);
+    let iter = oimt::map::PrefixGenerator::new(entries);
     for entries in iter {
         run_test_opaque_index_map_insert_full_preserves_order_new_entry(entries, build_hasher.clone(), alloc.clone(), new_entry);
     }
@@ -58,7 +58,7 @@ macro_rules! generate_tests {
             fn test_opaque_index_map_insert_full_preserves_order_new_entry_empty() {
                 let keys: Vec<$key_typ> = Vec::from(&[]);
                 let values: Vec<$value_typ> = Vec::from(&[]);
-                let entries = oimt::key_value_pairs(keys.iter().cloned(), values.iter().cloned());
+                let entries = oimt::map::key_value_pairs(keys.iter().cloned(), values.iter().cloned());
                 let build_hasher = hash::RandomState::new();
                 let alloc = alloc::Global;
                 let new_entry = $new_entry;
@@ -68,7 +68,7 @@ macro_rules! generate_tests {
             #[test]
             fn test_opaque_index_map_insert_full_preserves_order_new_entry_range_values() {
                 let spec = $range_spec;
-                let entries = oimt::range_entries::<$key_typ, $value_typ>(spec);
+                let entries = oimt::map::range_entries::<$key_typ, $value_typ>(spec);
                 let build_hasher = hash::RandomState::new();
                 let alloc = alloc::Global;
                 let new_entry = $new_entry;
@@ -78,7 +78,7 @@ macro_rules! generate_tests {
             #[test]
             fn test_opaque_index_map_insert_full_preserves_order_new_entry_constant_values() {
                 let spec = $const_spec;
-                let entries = oimt::constant_key_entries::<$key_typ, $value_typ>(spec);
+                let entries = oimt::map::constant_key_entries::<$key_typ, $value_typ>(spec);
                 let build_hasher = hash::RandomState::new();
                 let alloc = alloc::Global;
                 let new_entry = $new_entry;
@@ -93,14 +93,14 @@ generate_tests!(
     key_type = u64,
     value_type = i64,
     new_entry = (u64::MAX, i64::MAX),
-    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
+    range_spec = oimt::map::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::map::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 generate_tests!(
     usize_i64,
     key_type = usize,
     value_type = i64,
     new_entry = (usize::MAX, i64::MAX),
-    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
+    range_spec = oimt::map::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::map::ConstantKeyEntriesSpec::new(126, 1..=128)
 );

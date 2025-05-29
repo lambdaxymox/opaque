@@ -13,7 +13,7 @@ where
     K: any::Any + Clone + Eq + Ord + hash::Hash,
     V: any::Any + Clone + Eq,
 {
-    let vec: Vec<(K, V)> = oimt::last_entry_per_key_ordered(entries)
+    let vec: Vec<(K, V)> = oimt::map::last_entry_per_key_ordered(entries)
         .iter()
         .map(|(k, v)| (k.clone(), v.clone()))
         .take(len)
@@ -50,7 +50,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     for len in 0..entries.len() {
-        let map = common::typed_proj_index_map::from_entries(entries, build_hasher.clone(), alloc.clone());
+        let map = common::typed_proj_index_map::from_entries_in(entries, build_hasher.clone(), alloc.clone());
         let expected_entries = expected::<K, V>(entries, len);
         let result_entries = result::<K, V, S, A>(&map, len);
         let expected = expected_entries.len();
@@ -68,7 +68,7 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let iter = oimt::PrefixGenerator::new(entries);
+    let iter = oimt::map::PrefixGenerator::new(entries);
     for entries in iter {
         run_test_typed_proj_index_map_truncate_len_length_less_than_or_equal_to(entries, build_hasher.clone(), alloc.clone());
     }
@@ -83,7 +83,7 @@ macro_rules! generate_tests {
             fn test_typed_proj_index_map_truncate_len_length_less_than_or_equal_to_empty() {
                 let keys: Vec<$key_typ> = Vec::from(&[]);
                 let values: Vec<$value_typ> = Vec::from(&[]);
-                let entries = oimt::key_value_pairs(keys.iter().cloned(), values.iter().cloned());
+                let entries = oimt::map::key_value_pairs(keys.iter().cloned(), values.iter().cloned());
                 let build_hasher = hash::RandomState::new();
                 let alloc = alloc::Global;
                 run_test_typed_proj_index_map_truncate_len_length_less_than_or_equal_to_values(&entries, build_hasher, alloc);
@@ -92,7 +92,7 @@ macro_rules! generate_tests {
             #[test]
             fn test_typed_proj_index_map_as_truncate_range_values() {
                 let spec = $range_spec;
-                let entries = oimt::range_entries::<$key_typ, $value_typ>(spec);
+                let entries = oimt::map::range_entries::<$key_typ, $value_typ>(spec);
                 let build_hasher = hash::RandomState::new();
                 let alloc = alloc::Global;
                 run_test_typed_proj_index_map_truncate_len_length_less_than_or_equal_to_values(&entries, build_hasher, alloc);
@@ -101,7 +101,7 @@ macro_rules! generate_tests {
             #[test]
             fn test_typed_proj_index_map_truncate_len_length_less_than_or_equal_to_const_values() {
                 let spec = $const_spec;
-                let entries = oimt::constant_key_entries::<$key_typ, $value_typ>(spec);
+                let entries = oimt::map::constant_key_entries::<$key_typ, $value_typ>(spec);
                 let build_hasher = hash::RandomState::new();
                 let alloc = alloc::Global;
                 run_test_typed_proj_index_map_truncate_len_length_less_than_or_equal_to_values(&entries, build_hasher, alloc);
@@ -114,13 +114,13 @@ generate_tests!(
     u64_i64,
     key_type = u64,
     value_type = i64,
-    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
+    range_spec = oimt::map::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::map::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 generate_tests!(
     usize_i64,
     key_type = usize,
     value_type = i64,
-    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
+    range_spec = oimt::map::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::map::ConstantKeyEntriesSpec::new(126, 1..=128)
 );

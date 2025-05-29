@@ -4,7 +4,7 @@ use core::any;
 use std::hash;
 use std::alloc;
 
-pub fn from_entries<K, V, S, A>(entries: &[(K, V)], build_hasher: S, alloc: A) -> TypedProjIndexMap<K, V, S, A>
+pub fn from_entries_in<K, V, S, A>(entries: &[(K, V)], build_hasher: S, alloc: A) -> TypedProjIndexMap<K, V, S, A>
 where
     K: any::Any + Clone + Eq + hash::Hash,
     V: any::Any + Clone + Eq,
@@ -20,7 +20,7 @@ where
     map
 }
 
-pub fn from_entries_full<K, V, S, A>(entries: &[(K, V)], build_hasher: S, alloc: A) -> TypedProjIndexMap<K, V, S, A>
+pub fn from_entries_full_in<K, V, S, A>(entries: &[(K, V)], build_hasher: S, alloc: A) -> TypedProjIndexMap<K, V, S, A>
 where
     K: any::Any + Clone + Eq + hash::Hash,
     V: any::Any + Clone + Eq,

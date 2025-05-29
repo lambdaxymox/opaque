@@ -4,7 +4,7 @@ use opaque_index_map_testing as oimt;
 fn test_last_entry_per_key1() {
     let entries: Vec<(i32, i32)> = vec![];
     let expected = vec![];
-    let result = oimt::last_entry_per_key_ordered(&entries);
+    let result = oimt::map::last_entry_per_key_ordered(&entries);
 
     assert_eq!(result, expected);
 }
@@ -13,7 +13,7 @@ fn test_last_entry_per_key1() {
 fn test_last_entry_per_key2() {
     let entries = vec![(1, 2)];
     let expected = vec![(1, 2)];
-    let result = oimt::last_entry_per_key_ordered(&entries);
+    let result = oimt::map::last_entry_per_key_ordered(&entries);
 
     assert_eq!(result, expected);
 }
@@ -22,7 +22,7 @@ fn test_last_entry_per_key2() {
 fn test_last_entry_per_key3() {
     let entries = vec![(1, 2), (1, 3), (1, 4)];
     let expected = vec![(1, 4)];
-    let result = oimt::last_entry_per_key_ordered(&entries);
+    let result = oimt::map::last_entry_per_key_ordered(&entries);
 
     assert_eq!(result, expected);
 }
@@ -31,7 +31,7 @@ fn test_last_entry_per_key3() {
 fn test_last_entry_per_key4() {
     let entries = vec![(1, 2), (1, 3), (1, 4), (2, 5)];
     let expected = vec![(1, 4), (2, 5)];
-    let result = oimt::last_entry_per_key_ordered(&entries);
+    let result = oimt::map::last_entry_per_key_ordered(&entries);
 
     assert_eq!(result, expected);
 }
@@ -58,7 +58,7 @@ fn test_last_entry_per_key5() {
         (8, 18),
     ];
     let expected = vec![(1, 4), (2, 5), (3, 7), (4, 12), (5, 15), (6, 16), (7, 17), (8, 18)];
-    let result = oimt::last_entry_per_key_ordered(&entries);
+    let result = oimt::map::last_entry_per_key_ordered(&entries);
 
     assert_eq!(result, expected);
 }
@@ -121,7 +121,7 @@ fn test_last_entry_per_key6() {
         (14, 34),
         (15, 38),
     ];
-    let result = oimt::last_entry_per_key_ordered(&entries);
+    let result = oimt::map::last_entry_per_key_ordered(&entries);
 
     assert_eq!(result, expected);
 }
@@ -184,7 +184,7 @@ fn test_last_entry_per_key7() {
         (13, 33),
         (14, 34),
     ];
-    let result = oimt::last_entry_per_key_ordered(&entries);
+    let result = oimt::map::last_entry_per_key_ordered(&entries);
 
     assert_eq!(result, expected);
 }
@@ -225,7 +225,7 @@ fn test_last_entry_per_key8() {
         (2, 5),
         (1, 4),
     ];
-    let result = oimt::last_entry_per_key_ordered(&entries);
+    let result = oimt::map::last_entry_per_key_ordered(&entries);
 
     assert_eq!(result, expected);
 }

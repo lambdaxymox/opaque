@@ -4,7 +4,7 @@ use core::any;
 use std::hash;
 use std::alloc;
 
-pub fn from_entries<T, S, A>(entries: &[T], build_hasher: S, alloc: A) -> TypedProjIndexSet<T, S, A>
+pub fn from_entries_in<T, S, A>(entries: &[T], build_hasher: S, alloc: A) -> TypedProjIndexSet<T, S, A>
 where
     T: any::Any + Clone + Eq + hash::Hash,
     S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
@@ -19,7 +19,7 @@ where
     set
 }
 
-pub fn from_entries_full<T, S, A>(entries: &[T], build_hasher: S, alloc: A) -> TypedProjIndexSet<T, S, A>
+pub fn from_entries_full_in<T, S, A>(entries: &[T], build_hasher: S, alloc: A) -> TypedProjIndexSet<T, S, A>
 where
     T: any::Any + Clone + Eq + hash::Hash,
     S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,

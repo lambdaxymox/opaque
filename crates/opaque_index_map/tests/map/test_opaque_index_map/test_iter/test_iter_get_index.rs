@@ -32,7 +32,7 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let iter = oimt::PrefixGenerator::new(entries);
+    let iter = oimt::map::PrefixGenerator::new(entries);
     for entries in iter {
         run_test_opaque_index_map_iter_get_index(entries, build_hasher.clone(), alloc.clone());
     }
@@ -47,7 +47,7 @@ macro_rules! generate_tests {
             fn test_opaque_index_map_iter_get_index_empty() {
                 let keys: Vec<$key_typ> = Vec::from(&[]);
                 let values: Vec<$value_typ> = Vec::from(&[]);
-                let entries = oimt::key_value_pairs(keys.iter().cloned(), values.iter().cloned());
+                let entries = oimt::map::key_value_pairs(keys.iter().cloned(), values.iter().cloned());
                 let build_hasher = hash::RandomState::new();
                 let alloc = alloc::Global;
                 run_test_opaque_index_map_iter_get_index_values(&entries, build_hasher, alloc);
@@ -56,7 +56,7 @@ macro_rules! generate_tests {
             #[test]
             fn test_opaque_index_map_iter_get_index_range_values() {
                 let spec = $range_spec;
-                let entries = oimt::range_entries::<$key_typ, $value_typ>(spec);
+                let entries = oimt::map::range_entries::<$key_typ, $value_typ>(spec);
                 let build_hasher = hash::RandomState::new();
                 let alloc = alloc::Global;
                 run_test_opaque_index_map_iter_get_index_values(&entries, build_hasher, alloc);
@@ -65,7 +65,7 @@ macro_rules! generate_tests {
             #[test]
             fn test_opaque_index_map_iter_get_index_constant_values() {
                 let spec = $const_spec;
-                let entries = oimt::constant_key_entries::<$key_typ, $value_typ>(spec);
+                let entries = oimt::map::constant_key_entries::<$key_typ, $value_typ>(spec);
                 let build_hasher = hash::RandomState::new();
                 let alloc = alloc::Global;
                 run_test_opaque_index_map_iter_get_index_values(&entries, build_hasher, alloc);
@@ -78,14 +78,14 @@ generate_tests!(
     u64_i64,
     key_type = u64,
     value_type = i64,
-    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
+    range_spec = oimt::map::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::map::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 generate_tests!(
     usize_i64,
     key_type = usize,
     value_type = i64,
-    range_spec = oimt::RangeEntriesSpec::new(0..=127, 1..=128),
-    const_spec = oimt::ConstantKeyEntriesSpec::new(126, 1..=128)
+    range_spec = oimt::map::RangeEntriesSpec::new(0..=127, 1..=128),
+    const_spec = oimt::map::ConstantKeyEntriesSpec::new(126, 1..=128)
 );
 
