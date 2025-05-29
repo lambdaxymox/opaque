@@ -1,5 +1,5 @@
-use crate::map_inner;
-use crate::map_inner::Bucket;
+use crate::{map_inner, OpaqueIndexMap, TypedProjIndexMap};
+use crate::map_inner::{Bucket, OpaqueIndexMapInner};
 use crate::range_ops;
 use crate::slice_eq;
 use crate::equivalent::Equivalent;
@@ -2091,6 +2091,131 @@ where
 #[repr(transparent)]
 pub struct OpaqueIndexSet {
     inner: map_inner::OpaqueIndexMapInner,
+}
+
+impl OpaqueIndexSet {
+    #[inline]
+    pub const fn key_type_id(&self) -> any::TypeId {
+        self.inner.key_type_id()
+    }
+
+    #[inline]
+    pub const fn build_hasher_type_id<S>(&self) -> any::TypeId {
+        self.inner.build_hasher_type_id()
+    }
+
+    #[inline]
+    pub const fn allocator_type_id(&self) -> any::TypeId {
+        self.inner.allocator_type_id()
+    }
+
+    #[inline]
+    pub fn has_key_type<T>(&self) -> bool
+    where
+        T: any::Any,
+    {
+        self.inner.key_type_id() == any::TypeId::of::<T>()
+    }
+
+    #[inline]
+    pub fn has_build_hasher_type<S>(&self) -> bool
+    where
+        S: any::Any,
+    {
+        self.inner.build_hasher_type_id() == any::TypeId::of::<S>()
+    }
+
+    #[inline]
+    pub fn has_allocator_type<A>(&self) -> bool
+    where
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        self.inner.allocator_type_id() == any::TypeId::of::<A>()
+    }
+
+    #[inline]
+    #[track_caller]
+    fn assert_type_safety<T, S, A>(&self)
+    where
+        T: any::Any,
+        S: any::Any,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        #[cold]
+        #[optimize(size)]
+        #[track_caller]
+        fn type_check_failed(st: &str, type_id_self: any::TypeId, type_id_other: any::TypeId) -> ! {
+            panic!("{:?} type mismatch. Need `{:?}`, got `{:?}`", st, type_id_self, type_id_other);
+        }
+
+        if !self.has_key_type::<T>() {
+            type_check_failed("Key", self.inner.key_type_id(), any::TypeId::of::<T>());
+        }
+
+        if !self.has_build_hasher_type::<S>() {
+            type_check_failed("BuildHasher", self.inner.build_hasher_type_id(), any::TypeId::of::<S>());
+        }
+
+        if !self.has_allocator_type::<A>() {
+            type_check_failed("Allocator", self.inner.allocator_type_id(), any::TypeId::of::<A>());
+        }
+    }
+}
+
+impl OpaqueIndexSet {
+    #[inline]
+    pub fn as_proj<T, S, A>(&self) -> &TypedProjIndexSet<T, S, A>
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        self.assert_type_safety::<T, S, A>();
+
+        unsafe { &*(self as *const OpaqueIndexSet as *const TypedProjIndexSet<T, S, A>) }
+    }
+
+    #[inline]
+    pub fn as_proj_mut<T, S, A>(&mut self) -> &mut TypedProjIndexSet<T, S, A>
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        self.assert_type_safety::<T, S, A>();
+
+        unsafe { &mut *(self as *mut OpaqueIndexSet as *mut TypedProjIndexSet<T, S, A>) }
+    }
+
+    #[inline]
+    pub fn into_proj<T, S, A>(self) -> TypedProjIndexSet<T, S, A>
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        self.assert_type_safety::<T, S, A>();
+
+        TypedProjIndexSet {
+            inner: self.inner.into_proj::<T, (), S, A>(),
+        }
+    }
+
+    #[inline]
+    pub fn from_proj<T, S, A>(proj_self: TypedProjIndexSet<T, S, A>) -> Self
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        Self {
+            inner: OpaqueIndexMapInner::from_proj(proj_self.inner),
+        }
+    }
 }
 
 #[cfg(test)]
