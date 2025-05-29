@@ -3139,6 +3139,31 @@ impl OpaqueIndexSet {
     }
 }
 
+impl<T> FromIterator<T> for OpaqueIndexSet
+where
+    T: any::Any + hash::Hash + Eq,
+{
+    fn from_iter<I>(iterable: I) -> Self
+    where
+        I: IntoIterator<Item = T>,
+    {
+        let proj_set = TypedProjIndexSet::<T, hash::RandomState, alloc::Global>::from_iter(iterable);
+
+        Self::from_proj(proj_set)
+    }
+}
+
+impl<T, const N: usize> From<[T; N]> for OpaqueIndexSet
+where
+    T: any::Any + hash::Hash + Eq,
+{
+    fn from(arr: [T; N]) -> Self {
+        let proj_set = TypedProjIndexSet::<T, hash::RandomState, alloc::Global>::from(arr);
+
+        Self::from_proj(proj_set)
+    }
+}
+
 #[cfg(test)]
 mod index_set_layout_tests {
     use super::*;

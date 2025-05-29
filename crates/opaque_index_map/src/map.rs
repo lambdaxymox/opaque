@@ -2901,6 +2901,22 @@ impl OpaqueIndexMap {
         proj_self.hasher()
     }
 
+    #[inline]
+    pub fn allocator<K, V, S, A>(&self) -> &TypedProjAlloc<A>
+    where
+        K: any::Any,
+        V: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_self = self.as_proj::<K, V, S, A>();
+
+        proj_self.allocator()
+    }
+}
+
+impl OpaqueIndexMap {
     pub fn get_index_of<Q, K, V, S, A>(&self, key: &Q) -> Option<usize>
     where
         K: any::Any,
