@@ -1,5 +1,5 @@
-use crate::{map_inner, TypedProjIndexMap};
-use crate::map_inner::{Bucket, TypedProjIndexMapInner};
+use crate::map_inner;
+use crate::map_inner::Bucket;
 use crate::range_ops;
 use crate::slice_eq;
 use crate::equivalent::Equivalent;
@@ -1208,15 +1208,71 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
+    #[inline]
+    pub fn with_hasher_proj_in(proj_build_hasher: TypedProjBuildHasher<S>, proj_alloc: TypedProjAlloc<A>) -> Self {
+        let proj_inner = map_inner::TypedProjIndexMapInner::<T, (), S, A>::with_hasher_proj_in(proj_build_hasher, proj_alloc);
+
+        Self {
+            inner: proj_inner,
+        }
+    }
+
+    #[inline]
+    pub fn with_capacity_and_hasher_proj_in(capacity: usize, proj_build_hasher: TypedProjBuildHasher<S>, proj_alloc: TypedProjAlloc<A>) -> Self {
+        if capacity == 0 {
+            Self::with_hasher_proj_in(proj_build_hasher, proj_alloc)
+        } else {
+            let proj_inner = map_inner::TypedProjIndexMapInner::<T, (), S, A>::with_capacity_and_hasher_proj_in(capacity, proj_build_hasher, proj_alloc);
+
+            Self {
+                inner: proj_inner,
+            }
+        }
+    }
+}
+
+impl<T, A> TypedProjIndexSet<T, hash::RandomState, A>
+where
+    T: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    pub fn new_proj_in(proj_alloc: TypedProjAlloc<A>) -> Self {
+        let proj_inner = map_inner::TypedProjIndexMapInner::<T, (), hash::RandomState, A>::new_proj_in(proj_alloc);
+
+        Self {
+            inner : proj_inner,
+        }
+    }
+
+    pub fn with_capacity_proj_in(capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self {
+        let proj_inner = map_inner::TypedProjIndexMapInner::<T, (), hash::RandomState, A>::with_capacity_proj_in(capacity, proj_alloc);
+
+        Self {
+            inner: proj_inner,
+        }
+    }
+}
+
+impl<T, S, A> TypedProjIndexSet<T, S, A>
+where
+    T: any::Any,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
     pub fn with_capacity_and_hasher_in(capacity: usize, build_hasher: S, alloc: A) -> Self {
+        let proj_inner = map_inner::TypedProjIndexMapInner::with_capacity_and_hasher_in(capacity, build_hasher, alloc);
+
         TypedProjIndexSet {
-            inner: map_inner::TypedProjIndexMapInner::with_capacity_and_hasher_in(capacity, build_hasher, alloc),
+            inner: proj_inner,
         }
     }
 
     pub fn with_hasher_in(build_hasher: S, alloc: A) -> Self {
+        let proj_inner = map_inner::TypedProjIndexMapInner::with_hasher_in(build_hasher, alloc);
+
         TypedProjIndexSet {
-            inner: map_inner::TypedProjIndexMapInner::with_hasher_in(build_hasher, alloc),
+            inner: proj_inner,
         }
     }
 }
@@ -1227,7 +1283,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     pub fn new_in(alloc: A) -> Self {
-        let proj_inner = TypedProjIndexMapInner::<T, (), hash::RandomState, A>::new_in(alloc);
+        let proj_inner = map_inner::TypedProjIndexMapInner::<T, (), hash::RandomState, A>::new_in(alloc);
 
         Self {
             inner : proj_inner,
@@ -1235,7 +1291,7 @@ where
     }
 
     pub fn with_capacity_in(capacity: usize, alloc: A) -> Self {
-        let proj_inner = TypedProjIndexMapInner::<T, (), hash::RandomState, A>::with_capacity_in(capacity, alloc);
+        let proj_inner = map_inner::TypedProjIndexMapInner::<T, (), hash::RandomState, A>::with_capacity_in(capacity, alloc);
 
         Self {
             inner: proj_inner,

@@ -1,6 +1,6 @@
 use crate::equivalent::Equivalent;
 use crate::map_inner::{Bucket, OpaqueIndexMapInner, TypedProjIndexMapInner};
-use crate::{map_inner, TypedProjIndexSet};
+use crate::map_inner;
 
 use core::any;
 use core::cmp;
