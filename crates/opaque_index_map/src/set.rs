@@ -2037,3 +2037,109 @@ pub struct OpaqueIndexSet {
     inner: map_inner::OpaqueIndexMapInner,
 }
 
+#[cfg(test)]
+mod index_set_layout_tests {
+    use super::*;
+    use core::mem;
+    use core::ptr::NonNull;
+
+    fn run_test_opaque_index_set_match_sizes<T, S, A>()
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let expected = mem::size_of::<TypedProjIndexSet<T, S, A>>();
+        let result = mem::size_of::<OpaqueIndexSet>();
+
+        assert_eq!(result, expected, "Opaque and Typed Projected data types size mismatch");
+    }
+
+    fn run_test_opaque_index_set_match_alignments<T, S, A>()
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let expected = mem::align_of::<TypedProjIndexSet<T, S, A>>();
+        let result = mem::align_of::<OpaqueIndexSet>();
+
+        assert_eq!(result, expected, "Opaque and Typed Projected data types alignment mismatch");
+    }
+
+    fn run_test_opaque_index_set_match_offsets<T, S, A>()
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let expected = mem::offset_of!(TypedProjIndexSet<T, S, A>, inner);
+        let result = mem::offset_of!(OpaqueIndexSet, inner);
+
+        assert_eq!(result, expected, "Opaque and Typed Projected data types offsets mismatch");
+    }
+
+    struct DummyBuildHasher {}
+
+    impl hash::BuildHasher for DummyBuildHasher {
+        type Hasher = hash::DefaultHasher;
+        fn build_hasher(&self) -> Self::Hasher {
+            Default::default()
+        }
+    }
+
+    struct DummyAlloc {}
+
+    unsafe impl alloc::Allocator for DummyAlloc {
+        fn allocate(&self, layout: alloc::Layout) -> Result<NonNull<[u8]>, alloc::AllocError> {
+            alloc::Global.allocate(layout)
+        }
+        unsafe fn deallocate(&self, ptr: NonNull<u8>, layout: alloc::Layout) {
+            unsafe {
+                alloc::Global.deallocate(ptr, layout)
+            }
+        }
+    }
+
+    macro_rules! layout_tests {
+        ($module_name:ident, $key_typ:ty, $build_hasher_typ:ty, $alloc_typ:ty) => {
+            mod $module_name {
+                use super::*;
+
+                #[test]
+                fn test_opaque_index_set_layout_match_sizes() {
+                    run_test_opaque_index_set_match_sizes::<$key_typ, $build_hasher_typ, $alloc_typ>();
+                }
+
+                #[test]
+                fn test_opaque_index_set_layout_match_alignments() {
+                    run_test_opaque_index_set_match_alignments::<$key_typ, $build_hasher_typ, $alloc_typ>();
+                }
+
+                #[test]
+                fn test_opaque_index_set_layout_match_offsets() {
+                    run_test_opaque_index_set_match_offsets::<$key_typ, $build_hasher_typ, $alloc_typ>();
+                }
+            }
+        };
+    }
+
+    layout_tests!(u8_u8_random_state_global, u8, hash::RandomState, alloc::Global);
+    layout_tests!(u64_pair_dummy_hasher_dummy_alloc, u64, DummyBuildHasher, DummyAlloc);
+    layout_tests!(unit_str_zst_hasher_dummy_alloc, (), DummyBuildHasher, DummyAlloc);
+}
+
+#[cfg(test)]
+mod index_set_assert_send_sync {
+    use super::*;
+
+    #[test]
+    fn test_assert_send_sync() {
+        fn assert_send_sync<T: Send + Sync>() {}
+
+        assert_send_sync::<TypedProjIndexSet<i32, hash::RandomState, alloc::Global>>();
+    }
+}
