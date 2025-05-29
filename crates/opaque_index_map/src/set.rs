@@ -1,4 +1,4 @@
-use crate::{map_inner, OpaqueIndexMap, TypedProjIndexMap};
+use crate::map_inner;
 use crate::map_inner::{Bucket, OpaqueIndexMapInner};
 use crate::range_ops;
 use crate::slice_eq;
@@ -2215,6 +2215,150 @@ impl OpaqueIndexSet {
         Self {
             inner: OpaqueIndexMapInner::from_proj(proj_self.inner),
         }
+    }
+}
+
+impl OpaqueIndexSet {
+    #[inline]
+    pub fn with_hasher_proj_in<T, S, A>(proj_build_hasher: TypedProjBuildHasher<S>, proj_alloc: TypedProjAlloc<A>) -> Self
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_index_set = TypedProjIndexSet::<T, S, A>::with_hasher_proj_in(proj_build_hasher, proj_alloc);
+
+        Self::from_proj(proj_index_set)
+    }
+
+    #[inline]
+    pub fn with_capacity_and_hasher_proj_in<T, S, A>(capacity: usize, proj_build_hasher: TypedProjBuildHasher<S>, proj_alloc: TypedProjAlloc<A>) -> Self
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_index_set = TypedProjIndexSet::<T, S, A>::with_capacity_and_hasher_proj_in(capacity, proj_build_hasher, proj_alloc);
+
+        Self::from_proj(proj_index_set)
+    }
+}
+
+impl OpaqueIndexSet {
+    pub fn new_proj_in<T, A>(proj_alloc: TypedProjAlloc<A>) -> Self
+    where
+        T: any::Any,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_index_set = TypedProjIndexSet::<T, hash::RandomState, A>::new_proj_in(proj_alloc);
+
+        Self::from_proj(proj_index_set)
+    }
+
+    pub fn with_capacity_proj_in<T, A>(capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self
+    where
+        T: any::Any,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_index_set = TypedProjIndexSet::<T, hash::RandomState, A>::with_capacity_proj_in(capacity, proj_alloc);
+
+        Self::from_proj(proj_index_set)
+    }
+}
+
+impl OpaqueIndexSet {
+    #[inline]
+    pub fn with_hasher_in<T, S, A>(build_hasher: S, alloc: A) -> Self
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_index_set = TypedProjIndexSet::<T, S, A>::with_hasher_in(build_hasher, alloc);
+
+        Self::from_proj(proj_index_set)
+    }
+
+    #[inline]
+    pub fn with_capacity_and_hasher_in<T, S, A>(capacity: usize, build_hasher: S, alloc: A) -> Self
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_index_set = TypedProjIndexSet::<T, S, A>::with_capacity_and_hasher_in(capacity, build_hasher, alloc);
+
+        Self::from_proj(proj_index_set)
+    }
+}
+
+impl OpaqueIndexSet {
+    pub fn new_in<T, A>(alloc: A) -> Self
+    where
+        T: any::Any,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_index_set = TypedProjIndexSet::<T, _, A>::new_in(alloc);
+
+        Self::from_proj(proj_index_set)
+    }
+
+    pub fn with_capacity_in<T, A>(capacity: usize, alloc: A) -> Self
+    where
+        T: any::Any,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_index_set = TypedProjIndexSet::<T, _, A>::with_capacity_in(capacity, alloc);
+
+        Self::from_proj(proj_index_set)
+    }
+}
+
+impl OpaqueIndexSet {
+    #[inline]
+    pub fn with_hasher<T, S>(build_hasher: S) -> Self
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    {
+        let proj_index_set = TypedProjIndexSet::<T, S, _>::with_hasher(build_hasher);
+
+        Self::from_proj(proj_index_set)
+    }
+
+    #[inline]
+    pub fn with_capacity_and_hasher<T, S>(capacity: usize, build_hasher: S) -> Self
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    {
+        let proj_index_set = TypedProjIndexSet::<T, S, _>::with_capacity_and_hasher(capacity, build_hasher);
+
+        Self::from_proj(proj_index_set)
+    }
+}
+
+impl OpaqueIndexSet {
+    #[inline]
+    pub fn new<T>() -> Self
+    where
+        T: any::Any,
+    {
+        Self::new_in::<T, alloc::Global>(alloc::Global)
+    }
+
+    #[inline]
+    pub fn with_capacity<T>(capacity: usize) -> Self
+    where
+        T: any::Any,
+    {
+        Self::with_capacity_in::<T, alloc::Global>(capacity, alloc::Global)
     }
 }
 
