@@ -5,3 +5,4 @@ mod test_keys_get;
 mod test_keys_get_index_of;
 mod test_keys_get_mut;
 mod test_keys_get_full;
+mod test_keys_contains_key;
