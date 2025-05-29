@@ -9,7 +9,7 @@ use opaque_index_map::set::{OpaqueIndexSet, TypedProjIndexSet};
 
 use opaque_index_map_testing as oimt;
 
-fn run_test_opaque_index_set_clear_as_slice<T, S, A>(entries: &[T], build_hasher: S, alloc: A)
+fn run_test_typed_proj_index_set_clear_as_slice<T, S, A>(entries: &[T], build_hasher: S, alloc: A)
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
@@ -18,15 +18,15 @@ where
 {
     let expected = TypedProjIndexSet::new();
     let result = {
-        let mut map = common::typed_proj_index_set::from_entries_in(entries, build_hasher, alloc);
-        map.clear();
-        map
+        let mut set = common::typed_proj_index_set::from_entries_in(entries, build_hasher, alloc);
+        set.clear();
+        set
     };
 
     assert_eq!(result.as_slice(), expected.as_slice());
 }
 
-fn run_test_opaque_index_set_clear_as_slice_values<T, S, A>(entries: &[T], build_hasher: S, alloc: A)
+fn run_test_typed_proj_index_set_clear_as_slice_values<T, S, A>(entries: &[T], build_hasher: S, alloc: A)
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
@@ -35,7 +35,7 @@ where
 {
     let iter = oimt::set::PrefixGenerator::new(entries);
     for entries in iter {
-        run_test_opaque_index_set_clear_as_slice(entries, build_hasher.clone(), alloc.clone());
+        run_test_typed_proj_index_set_clear_as_slice(entries, build_hasher.clone(), alloc.clone());
     }
 }
 
@@ -45,21 +45,21 @@ macro_rules! generate_tests {
             use super::*;
 
             #[test]
-            fn test_opaque_index_set_clear_as_slice_empty() {
+            fn test_typed_proj_index_set_clear_as_slice_empty() {
                 let values: Vec<$value_typ> = Vec::from(&[]);
                 let entries = oimt::set::values(values.iter().cloned());
                 let build_hasher = hash::RandomState::new();
                 let alloc = alloc::Global;
-                run_test_opaque_index_set_clear_as_slice_values(&entries, build_hasher, alloc);
+                run_test_typed_proj_index_set_clear_as_slice_values(&entries, build_hasher, alloc);
             }
 
             #[test]
-            fn test_opaque_index_set_clear_as_slice_range_values() {
+            fn test_typed_proj_index_set_clear_as_slice_range_values() {
                 let spec = $range_spec;
                 let entries = oimt::set::range_entries::<$value_typ>(spec);
                 let build_hasher = hash::RandomState::new();
                 let alloc = alloc::Global;
-                run_test_opaque_index_set_clear_as_slice_values(&entries, build_hasher, alloc);
+                run_test_typed_proj_index_set_clear_as_slice_values(&entries, build_hasher, alloc);
             }
         }
     };

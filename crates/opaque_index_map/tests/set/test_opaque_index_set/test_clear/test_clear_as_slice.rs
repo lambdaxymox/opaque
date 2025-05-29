@@ -18,9 +18,9 @@ where
 {
     let expected = OpaqueIndexSet::new::<T>();
     let result = {
-        let mut map = common::opaque_index_set::from_entries_in(entries, build_hasher, alloc);
-        map.clear::<T, S, A>();
-        map
+        let mut set = common::opaque_index_set::from_entries_in(entries, build_hasher, alloc);
+        set.clear::<T, S, A>();
+        set
     };
 
     assert_eq!(result.as_slice::<T, S, A>(), expected.as_slice::<T, S, A>());

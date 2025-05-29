@@ -7,29 +7,32 @@ use std::hash;
 
 use opaque_index_map_testing as oimt;
 
-fn run_test_opaque_index_set_clear_is_empty<T, S, A>(entries: &[T], build_hasher: S, alloc: A)
+fn run_test_typed_proj_index_set_clone<T, S, A>(entries: &[T], build_hasher: S, alloc: A)
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
-    S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let mut result = common::opaque_index_set::from_entries_in(entries, build_hasher, alloc);
-    result.clear::<T, S, A>();
+    let set = common::opaque_index_set::from_entries_in(entries, build_hasher, alloc);
+    let cloned_set = common::opaque_index_set::clone::<T, S, A>(&set);
 
-    assert!(result.is_empty());
+    let expected = set.as_slice::<T, S, A>();
+    let result = cloned_set.as_slice::<T, S, A>();
+
+    assert_eq!(result, expected);
 }
 
-fn run_test_opaque_index_set_clear_is_empty_values<T, S, A>(entries: &[T], build_hasher: S, alloc: A)
+fn run_test_typed_proj_index_set_clone_values<T, S, A>(entries: &[T], build_hasher: S, alloc: A)
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
-    S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let iter = oimt::set::PrefixGenerator::new(entries);
     for entries in iter {
-        run_test_opaque_index_set_clear_is_empty(entries, build_hasher.clone(), alloc.clone());
+        run_test_typed_proj_index_set_clone(entries, build_hasher.clone(), alloc.clone());
     }
 }
 
@@ -39,21 +42,21 @@ macro_rules! generate_tests {
             use super::*;
 
             #[test]
-            fn test_opaque_index_set_clear_is_empty_empty() {
+            fn test_typed_proj_index_set_clone_empty() {
                 let values: Vec<$value_typ> = Vec::from(&[]);
                 let entries = oimt::set::values(values.iter().cloned());
                 let build_hasher = hash::RandomState::new();
                 let alloc = alloc::Global;
-                run_test_opaque_index_set_clear_is_empty_values(&entries, build_hasher, alloc);
+                run_test_typed_proj_index_set_clone_values(&entries, build_hasher, alloc);
             }
 
             #[test]
-            fn test_opaque_index_set_clear_is_empty_range_values() {
+            fn test_typed_proj_index_set_clone_range_values() {
                 let spec = $range_spec;
                 let entries = oimt::set::range_entries::<$value_typ>(spec);
                 let build_hasher = hash::RandomState::new();
                 let alloc = alloc::Global;
-                run_test_opaque_index_set_clear_is_empty_values(&entries, build_hasher, alloc);
+                run_test_typed_proj_index_set_clone_values(&entries, build_hasher, alloc);
             }
         }
     };
