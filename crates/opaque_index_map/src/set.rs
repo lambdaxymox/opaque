@@ -1,4 +1,4 @@
-use crate::map_inner;
+use crate::{map_inner, OpaqueIndexMap};
 use crate::map_inner::{Bucket, OpaqueIndexMapInner};
 use crate::range_ops;
 use crate::slice_eq;
@@ -2359,6 +2359,23 @@ impl OpaqueIndexSet {
         T: any::Any,
     {
         Self::with_capacity_in::<T, alloc::Global>(capacity, alloc::Global)
+    }
+}
+
+impl OpaqueIndexSet {
+    #[inline]
+    pub fn capacity(&self) -> usize {
+        self.inner.capacity()
+    }
+
+    #[inline]
+    pub fn len(&self) -> usize {
+        self.inner.len()
+    }
+
+    #[inline]
+    pub fn is_empty(&self) -> bool {
+        self.inner.is_empty()
     }
 }
 
