@@ -1,4 +1,4 @@
-use crate::{map_inner, OpaqueIndexMap};
+use crate::map_inner;
 use crate::map_inner::{Bucket, OpaqueIndexMapInner};
 use crate::range_ops;
 use crate::slice_eq;
@@ -9,7 +9,6 @@ use core::cmp;
 use core::fmt;
 use core::iter;
 use core::ops;
-use core::slice;
 use std::alloc;
 use std::hash;
 
