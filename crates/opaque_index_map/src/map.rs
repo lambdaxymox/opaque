@@ -1,6 +1,6 @@
 use crate::equivalent::Equivalent;
 use crate::map_inner::{Bucket, OpaqueIndexMapInner, TypedProjIndexMapInner};
-use crate::map_inner;
+use crate::{map_inner, TypedProjIndexSet};
 
 use core::any;
 use core::cmp;
@@ -464,7 +464,7 @@ impl<K, V> Slice<K, V> {
         unsafe { &mut *(entries as *mut map_inner::Slice<K, V> as *mut Self) }
     }
 
-    fn from_boxed_slice<A>(entries: Box<map_inner::Slice<K, V>, A>) -> Box<Self, A>
+    fn from_boxed_slice<A>(entries: Box<map_inner::Slice<K, V>, TypedProjAlloc<A>>) -> Box<Self, TypedProjAlloc<A>>
     where
         A: any::Any + alloc::Allocator + Send + Sync,
     {
@@ -718,7 +718,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync + Default,
 {
     fn default() -> Self {
-        Slice::from_boxed_slice(Default::default())
+        Slice::from_boxed_slice(Box::default())
     }
 }
 
@@ -1857,11 +1857,6 @@ where
     }
 
     #[inline]
-    pub fn hasher(&self) -> &TypedProjBuildHasher<S> {
-        self.inner.hasher()
-    }
-
-    #[inline]
     pub fn len(&self) -> usize {
         self.inner.len()
     }
@@ -1869,6 +1864,25 @@ where
     #[inline]
     pub fn is_empty(&self) -> bool {
         self.inner.is_empty()
+    }
+}
+
+impl<K, V, S, A> TypedProjIndexMap<K, V, S, A>
+where
+    K: any::Any,
+    V: any::Any,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    #[inline]
+    pub const fn hasher(&self) -> &TypedProjBuildHasher<S> {
+        self.inner.hasher()
+    }
+
+    #[inline]
+    pub fn allocator(&self) -> &TypedProjAlloc<A> {
+        self.inner.allocator()
     }
 }
 

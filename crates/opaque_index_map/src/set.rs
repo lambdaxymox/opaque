@@ -1,5 +1,5 @@
-use crate::map_inner;
-use crate::map_inner::Bucket;
+use crate::{map_inner, TypedProjIndexMap};
+use crate::map_inner::{Bucket, TypedProjIndexMapInner};
 use crate::range_ops;
 use crate::slice_eq;
 use crate::equivalent::Equivalent;
@@ -28,14 +28,20 @@ impl<T> Slice<T> {
         unsafe { &*(entries as *const map_inner::Slice<T, ()> as *const Self) }
     }
 
-    fn from_boxed_slice(entries: Box<map_inner::Slice<T, ()>, TypedProjAlloc<alloc::Global>>) -> Box<Self, TypedProjAlloc<alloc::Global>> {
+    fn from_boxed_slice<A>(entries: Box<map_inner::Slice<T, ()>, TypedProjAlloc<A>>) -> Box<Self, TypedProjAlloc<A>>
+    where
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
         let (ptr, alloc) = Box::into_raw_with_allocator(entries);
         unsafe {
             Box::from_raw_in(ptr as *const Self as *mut Self, alloc)
         }
     }
 
-    fn into_boxed_slice(self: Box<Self, TypedProjAlloc<alloc::Global>>) -> Box<map_inner::Slice<T, ()>, TypedProjAlloc<alloc::Global>> {
+    fn into_boxed_slice<A>(self: Box<Self, TypedProjAlloc<A>>) -> Box<map_inner::Slice<T, ()>, TypedProjAlloc<A>>
+    where
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
         let (ptr, alloc) = Box::into_raw_with_allocator(self);
         unsafe {
             Box::from_raw_in(ptr as *const map_inner::Slice<T, ()> as *mut map_inner::Slice<T, ()>, alloc)
@@ -44,11 +50,12 @@ impl<T> Slice<T> {
 }
 
 impl<T> Slice<T> {
-    pub(crate) fn into_entries(self: Box<Self, TypedProjAlloc<alloc::Global>>) -> TypedProjVec<Bucket<T, ()>>
+    pub(crate) fn into_entries<A>(self: Box<Self, TypedProjAlloc<A>>) -> TypedProjVec<Bucket<T, ()>, A>
     where
         T: any::Any,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
-        let boxed_entries: Box<map_inner::Slice<T, ()>, TypedProjAlloc<alloc::Global>> = Self::into_boxed_slice(self);
+        let boxed_entries: Box<map_inner::Slice<T, ()>, TypedProjAlloc<A>> = Self::into_boxed_slice(self);
         map_inner::Slice::into_entries(boxed_entries)
 
     }
@@ -162,12 +169,13 @@ where
     }
 }
 
-impl<T> IntoIterator for Box<Slice<T>, TypedProjAlloc<alloc::Global>>
+impl<T, A> IntoIterator for Box<Slice<T>, TypedProjAlloc<A>>
 where
     T: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     type Item = T;
-    type IntoIter = IntoIter<T>;
+    type IntoIter = IntoIter<T, A>;
 
     fn into_iter(self) -> Self::IntoIter {
         IntoIter::new(map_inner::IntoIter::new(self.into_entries()))
@@ -180,18 +188,20 @@ impl<T> Default for &'_ Slice<T> {
     }
 }
 
-impl<T> Default for Box<Slice<T>, TypedProjAlloc<alloc::Global>>
+impl<T, A> Default for Box<Slice<T>, TypedProjAlloc<A>>
 where
     T: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync + Default,
 {
     fn default() -> Self {
         Slice::from_boxed_slice(Box::default())
     }
 }
 
-impl<T> Clone for Box<Slice<T>, TypedProjAlloc<alloc::Global>>
+impl<T, A> Clone for Box<Slice<T>, TypedProjAlloc<A>>
 where
     T: any::Any + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     fn clone(&self) -> Self {
         let alloc = Box::allocator(&self).clone();
@@ -401,19 +411,21 @@ impl<T> Default for Iter<'_, T> {
 }
 
 #[derive(Clone)]
-pub struct IntoIter<T>
+pub struct IntoIter<T, A>
 where
     T: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
-    iter: map_inner::IntoIter<T, ()>,
+    iter: map_inner::IntoIter<T, (), A>,
 }
 
-impl<T> IntoIter<T>
+impl<T, A> IntoIter<T, A>
 where
     T: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[inline]
-    const fn new(iter: map_inner::IntoIter<T, ()>) -> Self {
+    const fn new(iter: map_inner::IntoIter<T, (), A>) -> Self {
         Self {
             iter,
         }
@@ -424,9 +436,10 @@ where
     }
 }
 
-impl<T> Iterator for IntoIter<T>
+impl<T, A> Iterator for IntoIter<T, A>
 where
     T: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     type Item = T;
 
@@ -435,9 +448,10 @@ where
     }
 }
 
-impl<T> DoubleEndedIterator for IntoIter<T>
+impl<T, A> DoubleEndedIterator for IntoIter<T, A>
 where
     T: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn next_back(&mut self) -> Option<Self::Item> {
         self.iter.next_back().map(|tuple| tuple.0)
@@ -448,24 +462,27 @@ where
     }
 }
 
-impl<T> ExactSizeIterator for IntoIter<T>
+impl<T, A> ExactSizeIterator for IntoIter<T, A>
 where
     T: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn len(&self) -> usize {
         self.iter.len()
     }
 }
 
-impl<T> iter::FusedIterator for IntoIter<T>
+impl<T, A> iter::FusedIterator for IntoIter<T, A>
 where
     T: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
 }
 
-impl<T> fmt::Debug for IntoIter<T>
+impl<T, A> fmt::Debug for IntoIter<T, A>
 where
     T: any::Any + fmt::Debug,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         let iter = self.iter.as_slice().iter().map(|tuple| tuple.0);
@@ -473,9 +490,10 @@ where
     }
 }
 
-impl<T> Default for IntoIter<T>
+impl<T, A> Default for IntoIter<T, A>
 where
     T: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync + Default,
 {
     fn default() -> Self {
         Self {
@@ -484,18 +502,20 @@ where
     }
 }
 
-pub struct Drain<'a, T>
+pub struct Drain<'a, T, A>
 where
     T: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
-    iter: map_inner::Drain<'a, T, ()>,
+    iter: map_inner::Drain<'a, T, (), A>,
 }
 
-impl<'a, T> Drain<'a, T>
+impl<'a, T, A> Drain<'a, T, A>
 where
     T: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
-    fn new(iter: map_inner::Drain<'a, T, ()>) -> Self {
+    fn new(iter: map_inner::Drain<'a, T, (), A>) -> Self {
         Self { iter, }
     }
 
@@ -504,9 +524,10 @@ where
     }
 }
 
-impl<T> Iterator for Drain<'_, T>
+impl<T, A> Iterator for Drain<'_, T, A>
 where
     T: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     type Item = T;
 
@@ -515,9 +536,10 @@ where
     }
 }
 
-impl<T> DoubleEndedIterator for Drain<'_, T>
+impl<T, A> DoubleEndedIterator for Drain<'_, T, A>
 where
     T: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn next_back(&mut self) -> Option<Self::Item> {
         self.iter.next_back().map(|tuple| tuple.0)
@@ -528,24 +550,27 @@ where
     }
 }
 
-impl<T> ExactSizeIterator for Drain<'_, T>
+impl<T, A> ExactSizeIterator for Drain<'_, T, A>
 where
     T: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn len(&self) -> usize {
         self.iter.len()
     }
 }
 
-impl<T> iter::FusedIterator for Drain<'_, T>
+impl<T, A> iter::FusedIterator for Drain<'_, T, A>
 where
     T: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
 }
 
-impl<T> fmt::Debug for Drain<'_, T>
+impl<T, A> fmt::Debug for Drain<'_, T, A>
 where
     T: any::Any + fmt::Debug,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         let iter = self.iter.as_slice().iter().map(|tuple| tuple.0);
@@ -553,23 +578,25 @@ where
     }
 }
 
-pub struct Difference<'a, T, S>
+pub struct Difference<'a, T, S, A>
 where
     T: any::Any,
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     iter: Iter<'a, T>,
-    other: &'a TypedProjIndexSet<T, S>,
+    other: &'a TypedProjIndexSet<T, S, A>,
 }
 
-impl<'a, T, S> Difference<'a, T, S>
+impl<'a, T, S, A> Difference<'a, T, S, A>
 where
     T: any::Any,
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
-    fn new<S1>(set: &'a TypedProjIndexSet<T, S1>, other: &'a TypedProjIndexSet<T, S>) -> Self
+    fn new<S1>(set: &'a TypedProjIndexSet<T, S1, A>, other: &'a TypedProjIndexSet<T, S, A>) -> Self
     where
         S1: any::Any + hash::BuildHasher + Send + Sync,
         S1::Hasher: any::Any + hash::Hasher + Send + Sync,
@@ -581,11 +608,12 @@ where
     }
 }
 
-impl<'a, T, S> Iterator for Difference<'a, T, S>
+impl<'a, T, S, A> Iterator for Difference<'a, T, S, A>
 where
     T: any::Any + hash::Hash + Eq,
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     type Item = &'a T;
 
@@ -603,11 +631,12 @@ where
     }
 }
 
-impl<T, S> DoubleEndedIterator for Difference<'_, T, S>
+impl<T, S, A> DoubleEndedIterator for Difference<'_, T, S, A>
 where
     T: any::Any + hash::Hash + Eq,
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn next_back(&mut self) -> Option<Self::Item> {
         while let Some(item) = self.iter.next_back() {
@@ -619,19 +648,21 @@ where
     }
 }
 
-impl<T, S> iter::FusedIterator for Difference<'_, T, S>
+impl<T, S, A> iter::FusedIterator for Difference<'_, T, S, A>
 where
     T: any::Any + hash::Hash + Eq,
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
 }
 
-impl<T, S> Clone for Difference<'_, T, S>
+impl<T, S, A> Clone for Difference<'_, T, S, A>
 where
     T: any::Any,
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn clone(&self) -> Self {
         Difference {
@@ -641,34 +672,37 @@ where
     }
 }
 
-impl<T, S> fmt::Debug for Difference<'_, T, S>
+impl<T, S, A> fmt::Debug for Difference<'_, T, S, A>
 where
     T: any::Any + hash::Hash + Eq + fmt::Debug,
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter.debug_list().entries(self.clone()).finish()
     }
 }
 
-pub struct Intersection<'a, T, S>
+pub struct Intersection<'a, T, S, A>
 where
     T: any::Any,
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     iter: Iter<'a, T>,
-    other: &'a TypedProjIndexSet<T, S>,
+    other: &'a TypedProjIndexSet<T, S, A>,
 }
 
-impl<'a, T, S> Intersection<'a, T, S>
+impl<'a, T, S, A> Intersection<'a, T, S, A>
 where
     T: any::Any,
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
-    fn new<S1>(set: &'a TypedProjIndexSet<T, S1>, other: &'a TypedProjIndexSet<T, S>) -> Self
+    fn new<S1>(set: &'a TypedProjIndexSet<T, S1, A>, other: &'a TypedProjIndexSet<T, S, A>) -> Self
     where
         S1: any::Any + hash::BuildHasher + Send + Sync,
         S1::Hasher: any::Any + hash::Hasher + Send + Sync,
@@ -680,11 +714,12 @@ where
     }
 }
 
-impl<'a, T, S> Iterator for Intersection<'a, T, S>
+impl<'a, T, S, A> Iterator for Intersection<'a, T, S, A>
 where
     T: any::Any + hash::Hash + Eq,
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     type Item = &'a T;
 
@@ -702,11 +737,12 @@ where
     }
 }
 
-impl<T, S> DoubleEndedIterator for Intersection<'_, T, S>
+impl<T, S, A> DoubleEndedIterator for Intersection<'_, T, S, A>
 where
     T: any::Any + hash::Hash + Eq,
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn next_back(&mut self) -> Option<Self::Item> {
         while let Some(item) = self.iter.next_back() {
@@ -718,19 +754,21 @@ where
     }
 }
 
-impl<T, S> iter::FusedIterator for Intersection<'_, T, S>
+impl<T, S, A> iter::FusedIterator for Intersection<'_, T, S, A>
 where
     T: any::Any + hash::Hash + Eq,
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
 }
 
-impl<T, S> Clone for Intersection<'_, T, S>
+impl<T, S, A> Clone for Intersection<'_, T, S, A>
 where
     T: any::Any,
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn clone(&self) -> Self {
         Intersection {
@@ -740,37 +778,40 @@ where
     }
 }
 
-impl<T, S> fmt::Debug for Intersection<'_, T, S>
+impl<T, S, A> fmt::Debug for Intersection<'_, T, S, A>
 where
     T: any::Any + hash::Hash + Eq + fmt::Debug,
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter.debug_list().entries(self.clone()).finish()
     }
 }
 
-pub struct SymmetricDifference<'a, T, S1, S2>
+pub struct SymmetricDifference<'a, T, S1, S2, A>
 where
     T: any::Any,
     S1: any::Any + hash::BuildHasher + Send + Sync,
     S1::Hasher: any::Any + hash::Hasher + Send + Sync,
     S2: any::Any + hash::BuildHasher + Send + Sync,
     S2::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
-    iter: iter::Chain<Difference<'a, T, S2>, Difference<'a, T, S1>>,
+    iter: iter::Chain<Difference<'a, T, S2, A>, Difference<'a, T, S1, A>>,
 }
 
-impl<'a, T, S1, S2> SymmetricDifference<'a, T, S1, S2>
+impl<'a, T, S1, S2, A> SymmetricDifference<'a, T, S1, S2, A>
 where
     T: any::Any + hash::Hash + Eq,
     S1: any::Any + hash::BuildHasher + Send + Sync,
     S1::Hasher: any::Any + hash::Hasher + Send + Sync,
     S2: any::Any + hash::BuildHasher + Send + Sync,
     S2::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
-    fn new(set1: &'a TypedProjIndexSet<T, S1>, set2: &'a TypedProjIndexSet<T, S2>) -> Self {
+    fn new(set1: &'a TypedProjIndexSet<T, S1, A>, set2: &'a TypedProjIndexSet<T, S2, A>) -> Self {
         let diff1 = set1.difference(set2);
         let diff2 = set2.difference(set1);
         Self {
@@ -779,13 +820,14 @@ where
     }
 }
 
-impl<'a, T, S1, S2> Iterator for SymmetricDifference<'a, T, S1, S2>
+impl<'a, T, S1, S2, A> Iterator for SymmetricDifference<'a, T, S1, S2, A>
 where
     T: any::Any + hash::Hash + Eq,
     S1: any::Any + hash::BuildHasher + Send + Sync,
     S1::Hasher: any::Any + hash::Hasher + Send + Sync,
     S2: any::Any + hash::BuildHasher + Send + Sync,
     S2::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     type Item = &'a T;
 
@@ -805,13 +847,14 @@ where
     }
 }
 
-impl<T, S1, S2> DoubleEndedIterator for SymmetricDifference<'_, T, S1, S2>
+impl<T, S1, S2, A> DoubleEndedIterator for SymmetricDifference<'_, T, S1, S2, A>
 where
     T: any::Any + hash::Hash + Eq,
     S1: any::Any + hash::BuildHasher + Send + Sync,
     S1::Hasher: any::Any + hash::Hasher + Send + Sync,
     S2: any::Any + hash::BuildHasher + Send + Sync,
     S2::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn next_back(&mut self) -> Option<Self::Item> {
         self.iter.next_back()
@@ -825,23 +868,25 @@ where
     }
 }
 
-impl<T, S1, S2> iter::FusedIterator for SymmetricDifference<'_, T, S1, S2>
+impl<T, S1, S2, A> iter::FusedIterator for SymmetricDifference<'_, T, S1, S2, A>
 where
     T: any::Any + hash::Hash + Eq,
     S1: any::Any + hash::BuildHasher + Send + Sync,
     S1::Hasher: any::Any + hash::Hasher + Send + Sync,
     S2: any::Any + hash::BuildHasher + Send + Sync,
     S2::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
 }
 
-impl<T, S1, S2> Clone for SymmetricDifference<'_, T, S1, S2>
+impl<T, S1, S2, A> Clone for SymmetricDifference<'_, T, S1, S2, A>
 where
     T: any::Any,
     S1: any::Any + hash::BuildHasher + Send + Sync,
     S1::Hasher: any::Any + hash::Hasher + Send + Sync,
     S2: any::Any + hash::BuildHasher + Send + Sync,
     S2::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn clone(&self) -> Self {
         SymmetricDifference {
@@ -850,35 +895,38 @@ where
     }
 }
 
-impl<T, S1, S2> fmt::Debug for SymmetricDifference<'_, T, S1, S2>
+impl<T, S1, S2, A> fmt::Debug for SymmetricDifference<'_, T, S1, S2, A>
 where
     T: any::Any + hash::Hash + Eq + fmt::Debug,
     S1: any::Any + hash::BuildHasher + Send + Sync,
     S1::Hasher: any::Any + hash::Hasher + Send + Sync,
     S2: any::Any + hash::BuildHasher + Send + Sync,
     S2::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter.debug_list().entries(self.clone()).finish()
     }
 }
 
-pub struct Union<'a, T, S>
+pub struct Union<'a, T, S, A>
 where
     T: any::Any,
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
-    iter: iter::Chain<Iter<'a, T>, Difference<'a, T, S>>,
+    iter: iter::Chain<Iter<'a, T>, Difference<'a, T, S, A>>,
 }
 
-impl<'a, T, S> Union<'a, T, S>
+impl<'a, T, S, A> Union<'a, T, S, A>
 where
     T: any::Any + hash::Hash + Eq,
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
-    fn new<S2>(set1: &'a TypedProjIndexSet<T, S>, set2: &'a TypedProjIndexSet<T, S2>) -> Self
+    fn new<S2>(set1: &'a TypedProjIndexSet<T, S, A>, set2: &'a TypedProjIndexSet<T, S2, A>) -> Self
     where
         S2: any::Any + hash::BuildHasher + Send + Sync,
         S2::Hasher: any::Any + hash::Hasher + Send + Sync,
@@ -889,11 +937,12 @@ where
     }
 }
 
-impl<'a, T, S> Iterator for Union<'a, T, S>
+impl<'a, T, S, A> Iterator for Union<'a, T, S, A>
 where
     T: any::Any + hash::Hash + Eq,
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     type Item = &'a T;
 
@@ -913,11 +962,12 @@ where
     }
 }
 
-impl<T, S> DoubleEndedIterator for Union<'_, T, S>
+impl<T, S, A> DoubleEndedIterator for Union<'_, T, S, A>
 where
     T: any::Any + hash::Hash + Eq,
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn next_back(&mut self) -> Option<Self::Item> {
         self.iter.next_back()
@@ -931,19 +981,21 @@ where
     }
 }
 
-impl<T, S> iter::FusedIterator for Union<'_, T, S>
+impl<T, S, A> iter::FusedIterator for Union<'_, T, S, A>
 where
     T: any::Any + hash::Hash + Eq,
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
 }
 
-impl<T, S> Clone for Union<'_, T, S>
+impl<T, S, A> Clone for Union<'_, T, S, A>
 where
     T: any::Any,
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn clone(&self) -> Self {
         Union {
@@ -952,51 +1004,55 @@ where
     }
 }
 
-impl<T, S> fmt::Debug for Union<'_, T, S>
+impl<T, S, A> fmt::Debug for Union<'_, T, S, A>
 where
     T: any::Any + hash::Hash + Eq + fmt::Debug,
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter.debug_list().entries(self.clone()).finish()
     }
 }
 
-pub struct Splice<'a, I, T, S>
+pub struct Splice<'a, I, T, S, A>
 where
     I: Iterator<Item = T>,
     T: any::Any + hash::Hash + Eq,
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
-    iter: map_inner::Splice<'a, UnitValue<I>, T, (), S>,
+    iter: map_inner::Splice<'a, UnitValue<I>, T, (), S, A>,
 }
 
-impl<'a, I, T, S> Splice<'a, I, T, S>
+impl<'a, I, T, S, A> Splice<'a, I, T, S, A>
 where
     I: Iterator<Item = T>,
     T: any::Any + hash::Hash + Eq,
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     #[track_caller]
-    fn new<R>(set: &'a mut TypedProjIndexSet<T, S>, range: R, replace_with: I) -> Self
+    fn new<R>(set: &'a mut TypedProjIndexSet<T, S, A>, range: R, replace_with: I) -> Self
     where
         R: ops::RangeBounds<usize>,
     {
         Self {
-            iter: set.map.splice(range, UnitValue(replace_with)),
+            iter: set.inner.splice(range, UnitValue(replace_with)),
         }
     }
 }
 
-impl<I, T, S> Iterator for Splice<'_, I, T, S>
+impl<I, T, S, A> Iterator for Splice<'_, I, T, S, A>
 where
     I: Iterator<Item = T>,
     T: any::Any + hash::Hash + Eq,
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     type Item = T;
 
@@ -1009,36 +1065,39 @@ where
     }
 }
 
-impl<I, T, S> DoubleEndedIterator for Splice<'_, I, T, S>
+impl<I, T, S, A> DoubleEndedIterator for Splice<'_, I, T, S, A>
 where
     I: Iterator<Item = T>,
     T: any::Any + hash::Hash + Eq,
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn next_back(&mut self) -> Option<Self::Item> {
         Some(self.iter.next_back()?.0)
     }
 }
 
-impl<I, T, S> ExactSizeIterator for Splice<'_, I, T, S>
+impl<I, T, S, A> ExactSizeIterator for Splice<'_, I, T, S, A>
 where
     I: Iterator<Item = T>,
     T: any::Any + hash::Hash + Eq,
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn len(&self) -> usize {
         self.iter.len()
     }
 }
 
-impl<I, T, S> iter::FusedIterator for Splice<'_, I, T, S>
+impl<I, T, S, A> iter::FusedIterator for Splice<'_, I, T, S, A>
 where
     I: Iterator<Item = T>,
     T: any::Any + hash::Hash + Eq,
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
 }
 
@@ -1052,12 +1111,13 @@ impl<I: Iterator> Iterator for UnitValue<I> {
     }
 }
 
-impl<I, T, S> fmt::Debug for Splice<'_, I, T, S>
+impl<I, T, S, A> fmt::Debug for Splice<'_, I, T, S, A>
 where
     I: fmt::Debug + Iterator<Item = T>,
     T: any::Any + hash::Hash + Eq + fmt::Debug,
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt::Debug::fmt(&self.iter, formatter)
@@ -1071,109 +1131,119 @@ impl<I: fmt::Debug> fmt::Debug for UnitValue<I> {
 }
 
 #[repr(transparent)]
-pub struct TypedProjIndexSet<T, S>
+pub struct TypedProjIndexSet<T, S, A>
 where
     T: any::Any,
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
-    map: map_inner::TypedProjIndexMapInner<T, (), S, alloc::Global>,
+    inner: map_inner::TypedProjIndexMapInner<T, (), S, A>,
 }
 
-impl<T, S> Clone for TypedProjIndexSet<T, S>
+impl<T, S, A> Clone for TypedProjIndexSet<T, S, A>
 where
     T: any::Any + Clone,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     fn clone(&self) -> Self {
         TypedProjIndexSet {
-            map: self.map.clone(),
+            inner: self.inner.clone(),
         }
     }
 
     fn clone_from(&mut self, other: &Self) {
-        self.map.clone_from(&other.map);
+        self.inner.clone_from(&other.inner);
     }
 }
 
-impl<T, S> TypedProjIndexSet<T, S>
+impl<T, S, A> TypedProjIndexSet<T, S, A>
 where
     T: any::Any,
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[inline]
-    fn into_entries(self) -> TypedProjVec<Bucket<T, ()>> {
-        self.map.into_entries()
+    fn into_entries(self) -> TypedProjVec<Bucket<T, ()>, A> {
+        self.inner.into_entries()
     }
 
     #[inline]
     fn as_entries(&self) -> &map_inner::Slice<T, ()> {
-        self.map.as_slice()
+        self.inner.as_slice()
     }
 
     #[inline]
     fn as_entries_mut(&mut self) -> &mut map_inner::Slice<T, ()> {
-        self.map.as_mut_slice()
+        self.inner.as_mut_slice()
     }
 
     fn with_entries<F>(&mut self, f: F)
     where
         F: FnOnce(&mut [Bucket<T, ()>]),
     {
-        self.map.with_entries(f);
+        self.inner.with_entries(f);
     }
 }
 
-impl<T, S> fmt::Debug for TypedProjIndexSet<T, S>
+impl<T, S, A> fmt::Debug for TypedProjIndexSet<T, S, A>
 where
     T: any::Any + fmt::Debug,
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter.debug_set().entries(self.iter()).finish()
     }
 }
 
-impl<T, S> TypedProjIndexSet<T, S>
+impl<T, S, A> TypedProjIndexSet<T, S, A>
 where
     T: any::Any,
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
-    /*
     A: any::Any + alloc::Allocator + Send + Sync,
-     */
 {
-    /*
-    pub fn with_capacity_and_hasher_in(capacity: usize, build_hasher: S, A) -> Self {
+    pub fn with_capacity_and_hasher_in(capacity: usize, build_hasher: S, alloc: A) -> Self {
         TypedProjIndexSet {
-            map: map_inner::TypedProjIndexMapInner::with_capacity_and_hasher_in(capacity, build_hasher, alloc),
-        }
-    }
-    */
-    pub fn with_capacity_and_hasher_in(capacity: usize, build_hasher: S, alloc: alloc::Global) -> Self {
-        TypedProjIndexSet {
-            map: map_inner::TypedProjIndexMapInner::with_capacity_and_hasher_in(capacity, build_hasher, alloc),
+            inner: map_inner::TypedProjIndexMapInner::with_capacity_and_hasher_in(capacity, build_hasher, alloc),
         }
     }
 
-    /*
     pub fn with_hasher_in(build_hasher: S, alloc: A) -> Self {
         TypedProjIndexSet {
-            map: map_inner::TypedProjIndexMapInner::with_hasher_in(build_hasher, alloc),
-        }
-    }
-    */
-    pub fn with_hasher_in(build_hasher: S, alloc: alloc::Global) -> Self {
-        TypedProjIndexSet {
-            map: map_inner::TypedProjIndexMapInner::with_hasher_in(build_hasher, alloc),
+            inner: map_inner::TypedProjIndexMapInner::with_hasher_in(build_hasher, alloc),
         }
     }
 }
 
-impl<T, S> TypedProjIndexSet<T, S>
+impl<T, A> TypedProjIndexSet<T, hash::RandomState, A>
+where
+    T: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    pub fn new_in(alloc: A) -> Self {
+        let proj_inner = TypedProjIndexMapInner::<T, (), hash::RandomState, A>::new_in(alloc);
+
+        Self {
+            inner : proj_inner,
+        }
+    }
+
+    pub fn with_capacity_in(capacity: usize, alloc: A) -> Self {
+        let proj_inner = TypedProjIndexMapInner::<T, (), hash::RandomState, A>::with_capacity_in(capacity, alloc);
+
+        Self {
+            inner: proj_inner,
+        }
+    }
+}
+
+impl<T, S> TypedProjIndexSet<T, S, alloc::Global>
 where
     T: any::Any,
     S: any::Any + hash::BuildHasher + Send + Sync,
@@ -1181,123 +1251,148 @@ where
 {
     pub fn with_capacity_and_hasher(capacity: usize, build_hasher: S) -> Self {
         TypedProjIndexSet {
-            map: map_inner::TypedProjIndexMapInner::with_capacity_and_hasher(capacity, build_hasher),
+            inner: map_inner::TypedProjIndexMapInner::with_capacity_and_hasher(capacity, build_hasher),
         }
     }
 
     pub fn with_hasher(build_hasher: S) -> Self {
         TypedProjIndexSet {
-            map: map_inner::TypedProjIndexMapInner::with_hasher(build_hasher),
+            inner: map_inner::TypedProjIndexMapInner::with_hasher(build_hasher),
         }
     }
 }
 
-impl<T> TypedProjIndexSet<T, hash::RandomState>
+impl<T> TypedProjIndexSet<T, hash::RandomState, alloc::Global>
 where
     T: any::Any,
 {
     pub fn new() -> Self {
         TypedProjIndexSet {
-            map: map_inner::TypedProjIndexMapInner::new(),
+            inner: map_inner::TypedProjIndexMapInner::new(),
         }
     }
 
     pub fn with_capacity(capacity: usize) -> Self {
         TypedProjIndexSet {
-            map: map_inner::TypedProjIndexMapInner::with_capacity(capacity),
+            inner: map_inner::TypedProjIndexMapInner::with_capacity(capacity),
         }
     }
 }
 
-impl<T, S> TypedProjIndexSet<T, S>
+impl<T, S, A> TypedProjIndexSet<T, S, A>
 where
     T: any::Any,
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     pub fn capacity(&self) -> usize {
-        self.map.capacity()
-    }
-
-    pub fn hasher(&self) -> &TypedProjBuildHasher<S> {
-        self.map.hasher()
+        self.inner.capacity()
     }
 
     pub fn len(&self) -> usize {
-        self.map.len()
+        self.inner.len()
     }
 
     pub fn is_empty(&self) -> bool {
-        self.map.is_empty()
+        self.inner.is_empty()
+    }
+}
+
+impl<T, S, A> TypedProjIndexSet<T, S, A>
+where
+    T: any::Any,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    #[inline]
+    pub const fn hasher(&self) -> &TypedProjBuildHasher<S> {
+        self.inner.hasher()
     }
 
+    #[inline]
+    pub fn allocator(&self) -> &TypedProjAlloc<A> {
+        self.inner.allocator()
+    }
+}
+
+impl<T, S, A> TypedProjIndexSet<T, S, A>
+where
+    T: any::Any,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
     pub fn iter(&self) -> Iter<'_, T> {
         Iter::new(self.as_entries())
     }
 
     pub fn clear(&mut self) {
-        self.map.clear();
+        self.inner.clear();
     }
 
     pub fn truncate(&mut self, len: usize) {
-        self.map.truncate(len);
+        self.inner.truncate(len);
     }
 
     #[track_caller]
-    pub fn drain<R>(&mut self, range: R) -> Drain<'_, T>
+    pub fn drain<R>(&mut self, range: R) -> Drain<'_, T, A>
     where
         R: ops::RangeBounds<usize>,
     {
-        Drain::new(self.map.drain(range))
+        Drain::new(self.inner.drain(range))
     }
 
     #[track_caller]
     pub fn split_off(&mut self, at: usize) -> Self
     where
         S: Clone,
+        A: Clone,
     {
         Self {
-            map: self.map.split_off(at),
+            inner: self.inner.split_off(at),
         }
     }
 
     pub fn reserve(&mut self, additional: usize) {
-        self.map.reserve(additional);
+        self.inner.reserve(additional);
     }
 
     pub fn reserve_exact(&mut self, additional: usize) {
-        self.map.reserve_exact(additional);
+        self.inner.reserve_exact(additional);
     }
 
     pub fn try_reserve(&mut self, additional: usize) -> Result<(), TryReserveError> {
-        self.map.try_reserve(additional)
+        self.inner.try_reserve(additional)
     }
 
     pub fn try_reserve_exact(&mut self, additional: usize) -> Result<(), TryReserveError> {
-        self.map.try_reserve_exact(additional)
+        self.inner.try_reserve_exact(additional)
     }
 
     pub fn shrink_to_fit(&mut self) {
-        self.map.shrink_to_fit();
+        self.inner.shrink_to_fit();
     }
 
     pub fn shrink_to(&mut self, min_capacity: usize) {
-        self.map.shrink_to(min_capacity);
+        self.inner.shrink_to(min_capacity);
     }
 }
 
-impl<T, S> TypedProjIndexSet<T, S>
+impl<T, S, A> TypedProjIndexSet<T, S, A>
 where
     T: any::Any + hash::Hash + Eq,
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     pub fn insert(&mut self, value: T) -> bool {
-        self.map.insert(value, ()).is_none()
+        self.inner.insert(value, ()).is_none()
     }
 
     pub fn insert_full(&mut self, value: T) -> (usize, bool) {
-        let (index, existing) = self.map.insert_full(value, ());
+        let (index, existing) = self.inner.insert_full(value, ());
 
         (index, existing.is_none())
     }
@@ -1306,19 +1401,19 @@ where
     where
         T: Ord,
     {
-        let (index, existing) = self.map.insert_sorted(value, ());
+        let (index, existing) = self.inner.insert_sorted(value, ());
         (index, existing.is_none())
     }
 
     #[track_caller]
     pub fn insert_before(&mut self, index: usize, value: T) -> (usize, bool) {
-        let (index, existing) = self.map.insert_before(index, value, ());
+        let (index, existing) = self.inner.insert_before(index, value, ());
         (index, existing.is_none())
     }
 
     #[track_caller]
     pub fn shift_insert(&mut self, index: usize, value: T) -> bool {
-        self.map.shift_insert(index, value, ()).is_none()
+        self.inner.shift_insert(index, value, ()).is_none()
     }
 
     pub fn replace(&mut self, value: T) -> Option<T> {
@@ -1326,13 +1421,13 @@ where
     }
 
     pub fn replace_full(&mut self, value: T) -> (usize, Option<T>) {
-        match self.map.replace_full(value, ()) {
+        match self.inner.replace_full(value, ()) {
             (i, Some((replaced, ()))) => (i, Some(replaced)),
             (i, None) => (i, None),
         }
     }
 
-    pub fn difference<'a, S2>(&'a self, other: &'a TypedProjIndexSet<T, S2>) -> Difference<'a, T, S2>
+    pub fn difference<'a, S2>(&'a self, other: &'a TypedProjIndexSet<T, S2, A>) -> Difference<'a, T, S2, A>
     where
         S2: any::Any + hash::BuildHasher + Send + Sync,
         S2::Hasher: any::Any + hash::Hasher + Send + Sync,
@@ -1342,8 +1437,8 @@ where
 
     pub fn symmetric_difference<'a, S2>(
         &'a self,
-        other: &'a TypedProjIndexSet<T, S2>,
-    ) -> SymmetricDifference<'a, T, S, S2>
+        other: &'a TypedProjIndexSet<T, S2, A>,
+    ) -> SymmetricDifference<'a, T, S, S2, A>
     where
         S2: any::Any + hash::BuildHasher + Send + Sync,
         S2::Hasher: any::Any + hash::Hasher + Send + Sync,
@@ -1351,7 +1446,7 @@ where
         SymmetricDifference::new(self, other)
     }
 
-    pub fn intersection<'a, S2>(&'a self, other: &'a TypedProjIndexSet<T, S2>) -> Intersection<'a, T, S2>
+    pub fn intersection<'a, S2>(&'a self, other: &'a TypedProjIndexSet<T, S2, A>) -> Intersection<'a, T, S2, A>
     where
         S2: any::Any + hash::BuildHasher + Send + Sync,
         S2::Hasher: any::Any + hash::Hasher + Send + Sync,
@@ -1359,7 +1454,7 @@ where
         Intersection::new(self, other)
     }
 
-    pub fn union<'a, S2>(&'a self, other: &'a TypedProjIndexSet<T, S2>) -> Union<'a, T, S>
+    pub fn union<'a, S2>(&'a self, other: &'a TypedProjIndexSet<T, S2, A>) -> Union<'a, T, S, A>
     where
         S2: any::Any + hash::BuildHasher + Send + Sync,
         S2::Hasher: any::Any + hash::Hasher + Send + Sync,
@@ -1368,55 +1463,58 @@ where
     }
 
     #[track_caller]
-    pub fn splice<R, I>(&mut self, range: R, replace_with: I) -> Splice<'_, I::IntoIter, T, S>
+    pub fn splice<R, I>(&mut self, range: R, replace_with: I) -> Splice<'_, I::IntoIter, T, S, A>
     where
         R: ops::RangeBounds<usize>,
+        A: any::Any + alloc::Allocator + Clone,
         I: IntoIterator<Item = T>,
     {
         Splice::new(self, range, replace_with.into_iter())
     }
 
-    pub fn append<S2>(&mut self, other: &mut TypedProjIndexSet<T, S2>)
+    pub fn append<S2, A2>(&mut self, other: &mut TypedProjIndexSet<T, S2, A2>)
     where
         S2: any::Any + hash::BuildHasher + Send + Sync,
         S2::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A2: any::Any + alloc::Allocator + Send + Sync,
     {
-        self.map.append(&mut other.map);
+        self.inner.append(&mut other.inner);
     }
 }
 
-impl<T, S> TypedProjIndexSet<T, S>
+impl<T, S, A> TypedProjIndexSet<T, S, A>
 where
     T: any::Any,
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     pub fn contains<Q>(&self, value: &Q) -> bool
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<T>,
     {
-        self.map.contains_key(value)
+        self.inner.contains_key(value)
     }
 
     pub fn get<Q>(&self, value: &Q) -> Option<&T>
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<T>,
     {
-        self.map.get_key_value(value).map(|(x, &())| x)
+        self.inner.get_key_value(value).map(|(x, &())| x)
     }
 
     pub fn get_full<Q>(&self, value: &Q) -> Option<(usize, &T)>
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<T>,
     {
-        self.map.get_full(value).map(|(i, x, &())| (i, x))
+        self.inner.get_full(value).map(|(i, x, &())| (i, x))
     }
 
     pub fn get_index_of<Q>(&self, value: &Q) -> Option<usize>
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<T>,
     {
-        self.map.get_index_of(value)
+        self.inner.get_index_of(value)
     }
 
     /*
@@ -1434,14 +1532,14 @@ where
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<T>,
     {
-        self.map.swap_remove(value).is_some()
+        self.inner.swap_remove(value).is_some()
     }
 
     pub fn shift_remove<Q>(&mut self, value: &Q) -> bool
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<T>,
     {
-        self.map.shift_remove(value).is_some()
+        self.inner.shift_remove(value).is_some()
     }
 
     #[deprecated(note = "`take` disrupts the set order -- \
@@ -1457,64 +1555,65 @@ where
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<T>,
     {
-        self.map.swap_remove_entry(value).map(|(x, ())| x)
+        self.inner.swap_remove_entry(value).map(|(x, ())| x)
     }
 
     pub fn shift_take<Q>(&mut self, value: &Q) -> Option<T>
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<T>,
     {
-        self.map.shift_remove_entry(value).map(|(x, ())| x)
+        self.inner.shift_remove_entry(value).map(|(x, ())| x)
     }
 
     pub fn swap_remove_full<Q>(&mut self, value: &Q) -> Option<(usize, T)>
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<T>,
     {
-        self.map.swap_remove_full(value).map(|(i, x, ())| (i, x))
+        self.inner.swap_remove_full(value).map(|(i, x, ())| (i, x))
     }
 
     pub fn shift_remove_full<Q>(&mut self, value: &Q) -> Option<(usize, T)>
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<T>,
     {
-        self.map.shift_remove_full(value).map(|(i, x, ())| (i, x))
+        self.inner.shift_remove_full(value).map(|(i, x, ())| (i, x))
     }
 }
 
-impl<T, S> TypedProjIndexSet<T, S>
+impl<T, S, A> TypedProjIndexSet<T, S, A>
 where
     T: any::Any,
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[doc(alias = "pop_last")] // like `BTreeSet`
     pub fn pop(&mut self) -> Option<T> {
-        self.map.pop().map(|(x, ())| x)
+        self.inner.pop().map(|(x, ())| x)
     }
 
     pub fn retain<F>(&mut self, mut keep: F)
     where
         F: FnMut(&T) -> bool,
     {
-        self.map.retain(move |x, &mut ()| keep(x))
+        self.inner.retain(move |x, &mut ()| keep(x))
     }
 
     pub fn sort(&mut self)
     where
         T: Ord,
     {
-        self.map.sort_keys()
+        self.inner.sort_keys()
     }
 
     pub fn sort_by<F>(&mut self, mut cmp: F)
     where
         F: FnMut(&T, &T) -> cmp::Ordering,
     {
-        self.map.sort_by(move |a, _, b, _| cmp(a, b));
+        self.inner.sort_by(move |a, _, b, _| cmp(a, b));
     }
 
-    pub fn sorted_by<F>(self, mut cmp: F) -> IntoIter<T>
+    pub fn sorted_by<F>(self, mut cmp: F) -> IntoIter<T, A>
     where
         F: FnMut(&T, &T) -> cmp::Ordering,
     {
@@ -1528,21 +1627,21 @@ where
     where
         T: Ord,
     {
-        self.map.sort_unstable_keys()
+        self.inner.sort_unstable_keys()
     }
 
     pub fn sort_unstable_by<F>(&mut self, mut cmp: F)
     where
         F: FnMut(&T, &T) -> cmp::Ordering,
     {
-        self.map.sort_unstable_by(move |a, _, b, _| cmp(a, b))
+        self.inner.sort_unstable_by(move |a, _, b, _| cmp(a, b))
     }
 
-    pub fn sorted_unstable_by<F>(self, mut cmp: F) -> IntoIter<T>
+    pub fn sorted_unstable_by<F>(self, mut cmp: F) -> IntoIter<T, A>
     where
         F: FnMut(&T, &T) -> cmp::Ordering,
     {
-        let mut entries = self.map.into_entries();
+        let mut entries = self.inner.into_entries();
         entries.sort_unstable_by(move |a, b| cmp(a.key_ref(), b.key_ref()));
 
         IntoIter::new(map_inner::IntoIter::new(entries))
@@ -1591,15 +1690,15 @@ where
     }
 
     pub fn reverse(&mut self) {
-        self.map.reverse()
+        self.inner.reverse()
     }
 
     pub fn as_slice(&self) -> &Slice<T> {
         Slice::from_slice(self.as_entries())
     }
 
-    pub fn into_boxed_slice(self) -> Box<Slice<T>, TypedProjAlloc<alloc::Global>> {
-        let boxed_map = self.map.into_boxed_slice();
+    pub fn into_boxed_slice(self) -> Box<Slice<T>, TypedProjAlloc<A>> {
+        let boxed_map = self.inner.into_boxed_slice();
 
         Slice::from_boxed_slice(boxed_map)
     }
@@ -1626,29 +1725,30 @@ where
     }
 
     pub fn swap_remove_index(&mut self, index: usize) -> Option<T> {
-        self.map.swap_remove_index(index).map(|(x, ())| x)
+        self.inner.swap_remove_index(index).map(|(x, ())| x)
     }
 
     pub fn shift_remove_index(&mut self, index: usize) -> Option<T> {
-        self.map.shift_remove_index(index).map(|(x, ())| x)
+        self.inner.shift_remove_index(index).map(|(x, ())| x)
     }
 
     #[track_caller]
     pub fn move_index(&mut self, from: usize, to: usize) {
-        self.map.move_index(from, to)
+        self.inner.move_index(from, to)
     }
 
     #[track_caller]
     pub fn swap_indices(&mut self, a: usize, b: usize) {
-        self.map.swap_indices(a, b)
+        self.inner.swap_indices(a, b)
     }
 }
 
-impl<T, S> ops::Index<usize> for TypedProjIndexSet<T, S>
+impl<T, S, A> ops::Index<usize> for TypedProjIndexSet<T, S, A>
 where
     T: any::Any,
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     type Output = T;
 
@@ -1664,11 +1764,12 @@ where
 
 macro_rules! impl_index_for_index_set {
     ($($range:ty),*) => {$(
-        impl<T, S> ops::Index<$range> for TypedProjIndexSet<T, S>
+        impl<T, S, A> ops::Index<$range> for TypedProjIndexSet<T, S, A>
         where
             T: any::Any,
             S: any::Any + hash::BuildHasher + Send + Sync,
             S::Hasher: any::Any + hash::Hasher + Send + Sync,
+            A: any::Any + alloc::Allocator + Send + Sync,
         {
             type Output = Slice<T>;
 
@@ -1689,7 +1790,7 @@ impl_index_for_index_set!(
     (ops::Bound<usize>, ops::Bound<usize>)
 );
 
-impl<T, S> FromIterator<T> for TypedProjIndexSet<T, S>
+impl<T, S> FromIterator<T> for TypedProjIndexSet<T, S, alloc::Global>
 where
     T: any::Any + hash::Hash + Eq,
     S: any::Any + hash::BuildHasher + Send + Sync + Default,
@@ -1705,32 +1806,36 @@ where
     }
 }
 
-impl<T, const N: usize> From<[T; N]> for TypedProjIndexSet<T, hash::RandomState>
+impl<T, S, const N: usize> From<[T; N]> for TypedProjIndexSet<T, S, alloc::Global>
 where
     T: any::Any + hash::Hash + Eq,
+    S: any::Any + hash::BuildHasher + Send + Sync + Default,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
 {
     fn from(arr: [T; N]) -> Self {
         Self::from_iter(arr)
     }
 }
 
-impl<T, S> Extend<T> for TypedProjIndexSet<T, S>
+impl<T, S, A> Extend<T> for TypedProjIndexSet<T, S, A>
 where
     T: any::Any + hash::Hash + Eq,
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn extend<I: IntoIterator<Item = T>>(&mut self, iterable: I) {
         let iter = iterable.into_iter().map(|x| (x, ()));
-        self.map.extend(iter);
+        self.inner.extend(iter);
     }
 }
 
-impl<'a, T, S> Extend<&'a T> for TypedProjIndexSet<T, S>
+impl<'a, T, S, A> Extend<&'a T> for TypedProjIndexSet<T, S, A>
 where
     T: any::Any + hash::Hash + Eq + Copy + 'a,
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn extend<I: IntoIterator<Item = &'a T>>(&mut self, iterable: I) {
         let iter = iterable.into_iter().copied();
@@ -1738,48 +1843,54 @@ where
     }
 }
 
-impl<T, S> Default for TypedProjIndexSet<T, S>
+impl<T, S, A> Default for TypedProjIndexSet<T, S, A>
 where
     T: any::Any,
     S: any::Any + hash::BuildHasher + Send + Sync + Default,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Default,
 {
     fn default() -> Self {
-        Self { map: map_inner::TypedProjIndexMapInner::default(), }
+        Self { inner: map_inner::TypedProjIndexMapInner::default(), }
     }
 }
 
-impl<T, S1, S2> PartialEq<TypedProjIndexSet<T, S2>> for TypedProjIndexSet<T, S1>
+impl<T, S1, S2, A1, A2> PartialEq<TypedProjIndexSet<T, S2, A2>> for TypedProjIndexSet<T, S1, A1>
 where
     T: any::Any + hash::Hash + Eq,
     S1: any::Any + hash::BuildHasher + Send + Sync,
     S1::Hasher: any::Any + hash::Hasher + Send + Sync,
     S2: any::Any + hash::BuildHasher + Send + Sync,
     S2::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A1: any::Any + alloc::Allocator + Send + Sync,
+    A2: any::Any + alloc::Allocator + Send + Sync,
 {
-    fn eq(&self, other: &TypedProjIndexSet<T, S2>) -> bool {
+    fn eq(&self, other: &TypedProjIndexSet<T, S2, A2>) -> bool {
         self.len() == other.len() && self.is_subset(other)
     }
 }
 
-impl<T, S> Eq for TypedProjIndexSet<T, S>
+impl<T, S, A> Eq for TypedProjIndexSet<T, S, A>
 where
     T: any::Any + hash::Hash + Eq,
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
 }
 
-impl<T, S> TypedProjIndexSet<T, S>
+impl<T, S, A> TypedProjIndexSet<T, S, A>
 where
     T: any::Any + hash::Hash + Eq,
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
-    pub fn is_disjoint<S2>(&self, other: &TypedProjIndexSet<T, S2>) -> bool
+    pub fn is_disjoint<S2, A2>(&self, other: &TypedProjIndexSet<T, S2, A2>) -> bool
     where
         S2: any::Any + hash::BuildHasher + Send + Sync,
         S2::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A2: any::Any + alloc::Allocator + Send + Sync,
     {
         if self.len() <= other.len() {
             self.iter().all(move |value| !other.contains(value))
@@ -1788,88 +1899,115 @@ where
         }
     }
 
-    pub fn is_subset<S2>(&self, other: &TypedProjIndexSet<T, S2>) -> bool
+    pub fn is_subset<S2, A2>(&self, other: &TypedProjIndexSet<T, S2, A2>) -> bool
     where
         S2: any::Any + hash::BuildHasher + Send + Sync,
         S2::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A2: any::Any + alloc::Allocator + Send + Sync,
     {
         self.len() <= other.len() && self.iter().all(move |value| other.contains(value))
     }
 
-    pub fn is_superset<S2>(&self, other: &TypedProjIndexSet<T, S2>) -> bool
+    pub fn is_superset<S2, A2>(&self, other: &TypedProjIndexSet<T, S2, A2>) -> bool
     where
         S2: any::Any + hash::BuildHasher + Send + Sync,
         S2::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A2: any::Any + alloc::Allocator + Send + Sync,
     {
         other.is_subset(self)
     }
 }
 
-impl<T, S1, S2> ops::BitAnd<&TypedProjIndexSet<T, S2>> for &TypedProjIndexSet<T, S1>
+impl<T, S1, S2, A> ops::BitAnd<&TypedProjIndexSet<T, S2, A>> for &TypedProjIndexSet<T, S1, A>
 where
     T: any::Any + hash::Hash + Eq + Clone,
     S1: any::Any + hash::BuildHasher + Send + Sync + Default,
     S1::Hasher: any::Any + hash::Hasher + Send + Sync,
     S2: any::Any + hash::BuildHasher + Send + Sync,
     S2::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Default,
 {
-    type Output = TypedProjIndexSet<T, S1>;
+    type Output = TypedProjIndexSet<T, S1, A>;
 
-    fn bitand(self, other: &TypedProjIndexSet<T, S2>) -> Self::Output {
-        self.intersection(other).cloned().collect()
+    fn bitand(self, other: &TypedProjIndexSet<T, S2, A>) -> Self::Output {
+        let iter = self.intersection(other).cloned();
+        let capacity = Ord::max(self.len(), other.len());
+        let mut set = TypedProjIndexSet::with_capacity_and_hasher_in(capacity, S1::default(), A::default());
+        set.extend(iter);
+
+        set
     }
 }
 
-impl<T, S1, S2> ops::BitOr<&TypedProjIndexSet<T, S2>> for &TypedProjIndexSet<T, S1>
+impl<T, S1, S2, A> ops::BitOr<&TypedProjIndexSet<T, S2, A>> for &TypedProjIndexSet<T, S1, A>
 where
     T: any::Any + hash::Hash + Eq + Clone,
     S1: any::Any + hash::BuildHasher + Send + Sync + Default,
     S1::Hasher: any::Any + hash::Hasher + Send + Sync,
     S2: any::Any + hash::BuildHasher + Send + Sync,
     S2::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Default,
 {
-    type Output = TypedProjIndexSet<T, S1>;
+    type Output = TypedProjIndexSet<T, S1, A>;
 
-    fn bitor(self, other: &TypedProjIndexSet<T, S2>) -> Self::Output {
-        self.union(other).cloned().collect()
+    fn bitor(self, other: &TypedProjIndexSet<T, S2, A>) -> Self::Output {
+        let iter = self.union(other).cloned();
+        let capacity = Ord::max(self.len(), other.len());
+        let mut set = TypedProjIndexSet::with_capacity_and_hasher_in(capacity, S1::default(), A::default());
+        set.extend(iter);
+
+        set
     }
 }
 
-impl<T, S1, S2> ops::BitXor<&TypedProjIndexSet<T, S2>> for &TypedProjIndexSet<T, S1>
+impl<T, S1, S2, A> ops::BitXor<&TypedProjIndexSet<T, S2, A>> for &TypedProjIndexSet<T, S1, A>
 where
     T: any::Any + hash::Hash + Eq + Clone,
     S1: any::Any + hash::BuildHasher + Send + Sync + Default,
     S1::Hasher: any::Any + hash::Hasher + Send + Sync,
     S2: any::Any + hash::BuildHasher + Send + Sync,
     S2::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Default,
 {
-    type Output = TypedProjIndexSet<T, S1>;
+    type Output = TypedProjIndexSet<T, S1, A>;
 
-    fn bitxor(self, other: &TypedProjIndexSet<T, S2>) -> Self::Output {
-        self.symmetric_difference(other).cloned().collect()
+    fn bitxor(self, other: &TypedProjIndexSet<T, S2, A>) -> Self::Output {
+        let iter = self.symmetric_difference(other).cloned();
+        let capacity = Ord::max(self.len(), other.len());
+        let mut set = TypedProjIndexSet::with_capacity_and_hasher_in(capacity, S1::default(), A::default());
+        set.extend(iter);
+
+        set
     }
 }
 
-impl<T, S1, S2> ops::Sub<&TypedProjIndexSet<T, S2>> for &TypedProjIndexSet<T, S1>
+impl<T, S1, S2, A> ops::Sub<&TypedProjIndexSet<T, S2, A>> for &TypedProjIndexSet<T, S1, A>
 where
     T: any::Any + hash::Hash + Eq + Clone,
     S1: any::Any + hash::BuildHasher + Send + Sync + Default,
     S1::Hasher: any::Any + hash::Hasher + Send + Sync,
     S2: any::Any + hash::BuildHasher + Send + Sync,
     S2::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Default,
 {
-    type Output = TypedProjIndexSet<T, S1>;
+    type Output = TypedProjIndexSet<T, S1, A>;
 
-    fn sub(self, other: &TypedProjIndexSet<T, S2>) -> Self::Output {
-        self.difference(other).cloned().collect()
+    fn sub(self, other: &TypedProjIndexSet<T, S2, A>) -> Self::Output {
+        let iter = self.difference(other).cloned();
+        let capacity = Ord::max(self.len(), other.len());
+        let mut set = TypedProjIndexSet::with_capacity_and_hasher_in(capacity, S1::default(), A::default());
+        set.extend(iter);
+
+        set
     }
 }
 
-impl<'a, T, S> IntoIterator for &'a TypedProjIndexSet<T, S>
+impl<'a, T, S, A> IntoIterator for &'a TypedProjIndexSet<T, S, A>
 where
     T: any::Any,
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     type Item = &'a T;
     type IntoIter = Iter<'a, T>;
@@ -1879,17 +2017,18 @@ where
     }
 }
 
-impl<T, S> IntoIterator for TypedProjIndexSet<T, S>
+impl<T, S, A> IntoIterator for TypedProjIndexSet<T, S, A>
 where
     T: any::Any,
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
 {
     type Item = T;
-    type IntoIter = IntoIter<T>;
+    type IntoIter = IntoIter<T, A>;
 
     fn into_iter(self) -> Self::IntoIter {
-        IntoIter::new(map_inner::IntoIter::new(self.map.into_entries()))
+        IntoIter::new(map_inner::IntoIter::new(self.inner.into_entries()))
     }
 }
 
@@ -1897,3 +2036,4 @@ where
 pub struct OpaqueIndexSet {
     inner: map_inner::OpaqueIndexMapInner,
 }
+

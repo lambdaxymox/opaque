@@ -1,4 +1,4 @@
-use crate::range_ops;
+use crate::{range_ops, TypedProjIndexMap};
 use crate::slice_eq;
 use crate::equivalent::Equivalent;
 
@@ -1856,11 +1856,6 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[inline]
-    fn borrow_mut(&mut self) -> RefMut<'_, K, V, A> {
-        RefMut::new(&mut self.indices, &mut self.entries)
-    }
-
-    #[inline]
     pub(crate) fn len(&self) -> usize {
         self.indices.len()
     }
@@ -1873,6 +1868,30 @@ where
     #[inline]
     pub(crate) fn is_empty(&self) -> bool {
         self.len() == 0
+    }
+}
+
+impl<K, V, A> TypedProjIndexMapCore<K, V, A>
+where
+    K: any::Any,
+    V: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    #[inline]
+    pub(crate) fn allocator(&self) -> &TypedProjAlloc<A> {
+        self.entries.allocator()
+    }
+}
+
+impl<K, V, A> TypedProjIndexMapCore<K, V, A>
+where
+    K: any::Any,
+    V: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    #[inline]
+    fn borrow_mut(&mut self) -> RefMut<'_, K, V, A> {
+        RefMut::new(&mut self.indices, &mut self.entries)
     }
 
     pub(crate) fn clear(&mut self) {
@@ -3209,11 +3228,6 @@ where
     }
 
     #[inline]
-    pub const fn hasher(&self) -> &TypedProjBuildHasher<S> {
-        &self.build_hasher
-    }
-
-    #[inline]
     pub fn len(&self) -> usize {
         self.inner.len()
     }
@@ -3222,7 +3236,35 @@ where
     pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
+}
 
+impl<K, V, S, A> TypedProjIndexMapInner<K, V, S, A>
+where
+    K: any::Any,
+    V: any::Any,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    #[inline]
+    pub const fn hasher(&self) -> &TypedProjBuildHasher<S> {
+        &self.build_hasher
+    }
+
+    #[inline]
+    pub(crate) fn allocator(&self) -> &TypedProjAlloc<A> {
+        self.inner.allocator()
+    }
+}
+
+impl<K, V, S, A> TypedProjIndexMapInner<K, V, S, A>
+where
+    K: any::Any,
+    V: any::Any,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
     fn hash<Q>(&self, key: &Q) -> HashValue
     where
         Q: ?Sized + hash::Hash,
