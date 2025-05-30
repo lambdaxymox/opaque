@@ -44,8 +44,8 @@ where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let opaque_map = OpaqueIndexMap::with_hasher_in::<K, V, S, A>(build_hasher, alloc);
-    let min_key = TryFrom::try_from(0).unwrap();
-    let max_key = TryFrom::try_from(127).unwrap();
+    let min_key: K = TryFrom::try_from(0).unwrap();
+    let max_key: K = TryFrom::try_from(127).unwrap();
     for key in min_key..max_key {
         assert!(!opaque_map.contains_key::<K, K, V, S, A>(&key));
     }
@@ -61,8 +61,8 @@ where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let opaque_map = OpaqueIndexMap::with_hasher_in::<K, V, S, A>(build_hasher, alloc);
-    let min_key = TryFrom::try_from(0).unwrap();
-    let max_key = TryFrom::try_from(127).unwrap();
+    let min_key: K = TryFrom::try_from(0).unwrap();
+    let max_key: K = TryFrom::try_from(127).unwrap();
     for key in min_key..max_key {
         let result = opaque_map.get::<K, K, V, S, A>(&key);
 

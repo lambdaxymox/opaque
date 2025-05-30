@@ -41,8 +41,8 @@ where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let opaque_set = OpaqueIndexSet::with_hasher_in::<T, S, A>(build_hasher, alloc);
-    let min_value = TryFrom::try_from(0).unwrap();
-    let max_value = TryFrom::try_from(127).unwrap();
+    let min_value: T = TryFrom::try_from(0).unwrap();
+    let max_value: T = TryFrom::try_from(127).unwrap();
     for value in min_value..max_value {
         assert!(!opaque_set.contains::<T, T, S, A>(&value));
     }
@@ -57,8 +57,8 @@ where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let opaque_set = OpaqueIndexSet::with_hasher_in::<T, S, A>(build_hasher, alloc);
-    let min_value = TryFrom::try_from(0).unwrap();
-    let max_value = TryFrom::try_from(127).unwrap();
+    let min_value: T = TryFrom::try_from(0).unwrap();
+    let max_value: T = TryFrom::try_from(127).unwrap();
     for value in min_value..max_value {
         let result = opaque_set.get::<T, T, S, A>(&value);
 
