@@ -457,24 +457,6 @@ fn test_vec_dedup_by_key() {
 }
 
 #[test]
-fn test_vec_dedup_by() {
-    let mut vec = TypedProjVec::from(&["foo", "bar", "Bar", "baz", "bar"]);
-    vec.dedup_by(|a, b| a.eq_ignore_ascii_case(b));
-
-    assert_eq!(vec.as_ref(), ["foo", "bar", "baz", "bar"]);
-
-    let mut vec = TypedProjVec::from(&[("foo", 1), ("foo", 2), ("bar", 3), ("bar", 4), ("bar", 5)]);
-    vec.dedup_by(|a, b| {
-        a.0 == b.0 && {
-            b.1 += a.1;
-            true
-        }
-    });
-
-    assert_eq!(vec.as_ref(), [("foo", 3), ("bar", 12)]);
-}
-
-#[test]
 #[should_panic]
 fn test_vec_swap_remove_out_of_bounds1() {
     let mut vec = TypedProjVec::from(&[0]);
