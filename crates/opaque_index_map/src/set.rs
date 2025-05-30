@@ -410,7 +410,7 @@ impl<T> Default for Iter<'_, T> {
 }
 
 #[derive(Clone)]
-pub struct IntoIter<T, A>
+pub struct IntoIter<T, A = alloc::Global>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -501,7 +501,7 @@ where
     }
 }
 
-pub struct Drain<'a, T, A>
+pub struct Drain<'a, T, A = alloc::Global>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -577,7 +577,7 @@ where
     }
 }
 
-pub struct Difference<'a, T, S, A>
+pub struct Difference<'a, T, S, A = alloc::Global>
 where
     T: any::Any,
     S: any::Any + hash::BuildHasher + Send + Sync,
@@ -683,7 +683,7 @@ where
     }
 }
 
-pub struct Intersection<'a, T, S, A>
+pub struct Intersection<'a, T, S, A = alloc::Global>
 where
     T: any::Any,
     S: any::Any + hash::BuildHasher + Send + Sync,
@@ -789,7 +789,7 @@ where
     }
 }
 
-pub struct SymmetricDifference<'a, T, S1, S2, A>
+pub struct SymmetricDifference<'a, T, S1, S2, A = alloc::Global>
 where
     T: any::Any,
     S1: any::Any + hash::BuildHasher + Send + Sync,
@@ -908,7 +908,7 @@ where
     }
 }
 
-pub struct Union<'a, T, S, A>
+pub struct Union<'a, T, S, A = alloc::Global>
 where
     T: any::Any,
     S: any::Any + hash::BuildHasher + Send + Sync,
@@ -1015,7 +1015,7 @@ where
     }
 }
 
-pub struct Splice<'a, I, T, S, A>
+pub struct Splice<'a, I, T, S = hash::RandomState, A = alloc::Global>
 where
     I: Iterator<Item = T>,
     T: any::Any + hash::Hash + Eq,
@@ -1130,7 +1130,7 @@ impl<I: fmt::Debug> fmt::Debug for UnitValue<I> {
 }
 
 #[repr(transparent)]
-pub struct TypedProjIndexSet<T, S, A>
+pub struct TypedProjIndexSet<T, S = hash::RandomState, A = alloc::Global>
 where
     T: any::Any,
     S: any::Any + hash::BuildHasher + Send + Sync,
@@ -1185,18 +1185,6 @@ where
         F: FnOnce(&mut [Bucket<T, ()>]),
     {
         self.inner.with_entries(f);
-    }
-}
-
-impl<T, S, A> fmt::Debug for TypedProjIndexSet<T, S, A>
-where
-    T: any::Any + fmt::Debug,
-    S: any::Any + hash::BuildHasher + Send + Sync,
-    S::Hasher: any::Any + hash::Hasher + Send + Sync,
-    A: any::Any + alloc::Allocator + Send + Sync,
-{
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.debug_set().entries(self.iter()).finish()
     }
 }
 
@@ -1833,7 +1821,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.debug_map().entries(self.iter()).finish()
+        formatter.debug_set().entries(self.iter()).finish()
     }
 }
 
