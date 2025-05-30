@@ -1058,6 +1058,14 @@ where
     {
         self.dedup_by::<_>(|a, b| key(a) == key(b))
     }
+
+    #[inline]
+    pub(crate) fn dedup(&mut self)
+    where
+        T: PartialEq,
+    {
+        self.dedup_by(|a, b| a == b)
+    }
 }
 
 impl<T, A> TypedProjVecInner<T, A>
@@ -1945,6 +1953,14 @@ where
         F: FnMut(&mut T, &mut T) -> bool,
     {
         self.inner.dedup_by(same_bucket)
+    }
+
+    #[inline]
+    pub fn dedup(&mut self)
+    where
+        T: PartialEq,
+    {
+        self.inner.dedup()
     }
 }
 
@@ -3273,6 +3289,17 @@ impl OpaqueVec {
         let proj_self = self.as_proj_mut::<T, A>();
 
         proj_self.retain_mut(f);
+    }
+
+    #[inline]
+    pub fn dedup<T, A>(&mut self)
+    where
+        T: any::Any + PartialEq,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_self = self.as_proj_mut::<T, A>();
+
+        proj_self.dedup();
     }
 
     #[inline]
