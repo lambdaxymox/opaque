@@ -1,0 +1,19 @@
+mod bench_as_slice_index;
+mod bench_get;
+mod bench_get_full;
+mod bench_get_index_of;
+mod bench_insert;
+mod bench_insert_full;
+mod bench_shift_insert;
+mod bench_shift_remove;
+mod bench_swap_remove;
+
+pub use self::bench_as_slice_index::bench_as_slice_index;
+pub use self::bench_get::bench_get;
+pub use self::bench_get_full::bench_get_full;
+pub use self::bench_get_index_of::bench_get_index_of;
+pub use self::bench_insert::bench_insert;
+pub use self::bench_insert_full::bench_insert_full;
+pub use self::bench_shift_insert::bench_shift_insert;
+pub use self::bench_shift_remove::bench_shift_remove;
+pub use self::bench_swap_remove::bench_swap_remove;
