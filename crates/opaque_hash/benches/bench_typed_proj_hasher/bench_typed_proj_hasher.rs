@@ -17,8 +17,8 @@ macro_rules! bench_hasher {
             c.bench_function(stringify!($bench_name), |b| {
                 b.iter(|| {
                     let mut hasher = default_build_hasher.build_hasher();
-                    criterion::black_box(value).hash(&mut hasher);
-                    criterion::black_box(hasher.finish());
+                    core::hint::black_box(value).hash(&mut hasher);
+                    core::hint::black_box(hasher.finish());
                 });
             });
         }
@@ -31,8 +31,8 @@ macro_rules! bench_hasher {
             c.bench_function(stringify!($bench_typed_proj_name), |b| {
                 b.iter(|| {
                     let mut proj_hasher = proj_build_hasher.build_hasher();
-                    criterion::black_box(value).hash(&mut proj_hasher);
-                    criterion::black_box(proj_hasher.finish());
+                    core::hint::black_box(value).hash(&mut proj_hasher);
+                    core::hint::black_box(proj_hasher.finish());
                 });
             });
         }

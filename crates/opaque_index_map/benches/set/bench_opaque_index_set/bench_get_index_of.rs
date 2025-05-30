@@ -16,7 +16,7 @@ fn bench_index_set_get_index_of(c: &mut Criterion) {
     c.bench_function("index_set_get_index_of", |b| {
         b.iter(|| {
             for key in map.iter() {
-                let _ = criterion::black_box(map.get_index_of(key));
+                let _ = core::hint::black_box(map.get_index_of(key));
             }
         });
     });
@@ -29,7 +29,7 @@ fn bench_opaque_index_set_get_index_of(c: &mut Criterion) {
     c.bench_function("opaque_index_set_get_index_of", |b| {
         b.iter(|| {
             for key in opaque_set.iter::<i32, hash::RandomState, alloc::Global>() {
-                let _ = criterion::black_box(opaque_set.get_index_of::<i32, i32, hash::RandomState, alloc::Global>(key));
+                let _ = core::hint::black_box(opaque_set.get_index_of::<i32, i32, hash::RandomState, alloc::Global>(key));
             }
         });
     });

@@ -17,7 +17,7 @@ fn bench_index_map_get_key_value(c: &mut Criterion) {
     c.bench_function("index_map_get_key_value", |b| {
         b.iter(|| {
             for key in map.keys() {
-                let _ = criterion::black_box(map.get_key_value(key));
+                let _ = core::hint::black_box(map.get_key_value(key));
             }
         });
     });
@@ -31,7 +31,7 @@ fn bench_typed_proj_index_map_get_key_value(c: &mut Criterion) {
     c.bench_function("typed_proj_index_map_get_key_value", |b| {
         b.iter(|| {
             for key in proj_map.keys() {
-                let _ = criterion::black_box(proj_map.get_key_value(key));
+                let _ = core::hint::black_box(proj_map.get_key_value(key));
             }
         });
     });

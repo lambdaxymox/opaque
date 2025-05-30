@@ -14,7 +14,7 @@ fn bench_vec_shift_remove_last(c: &mut Criterion) {
             |mut vec| {
                 for _ in 0..vec.len() {
                     let last_index = vec.len() - 1;
-                    let _ = criterion::black_box(vec.remove(last_index));
+                    let _ = core::hint::black_box(vec.remove(last_index));
                 }
             },
             criterion::BatchSize::NumIterations(1000),
@@ -31,7 +31,7 @@ fn bench_typed_proj_vec_shift_remove_last(c: &mut Criterion) {
             |mut proj_vec| {
                 for _ in 0..proj_vec.len() {
                     let last_index = proj_vec.len() - 1;
-                    let _ = criterion::black_box(proj_vec.shift_remove(last_index));
+                    let _ = core::hint::black_box(proj_vec.shift_remove(last_index));
                 }
             },
             criterion::BatchSize::NumIterations(1000),

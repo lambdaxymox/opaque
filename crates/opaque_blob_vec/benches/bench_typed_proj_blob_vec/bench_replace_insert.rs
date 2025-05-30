@@ -23,7 +23,7 @@ fn bench_vec_replace_insert_last(c: &mut Criterion) {
         b.iter(|| {
             let mut vec = Vec::new();
             for _ in 0..1024 {
-                vec.push(criterion::black_box(dummy_data));
+                vec.push(core::hint::black_box(dummy_data));
             }
 
             vec
@@ -40,7 +40,7 @@ fn bench_typed_proj_blob_vec_replace_insert_last(c: &mut Criterion) {
             for _ in 0..1024 {
                 let last_index = if proj_blob_vec.len() == 0 { 0 } else { proj_blob_vec.len() - 1 };
                 let ptr = unsafe { NonNull::new_unchecked(&dummy_data as *const i32 as *mut u8) };
-                proj_blob_vec.replace_insert(last_index, criterion::black_box(ptr));
+                proj_blob_vec.replace_insert(last_index, core::hint::black_box(ptr));
             }
 
             proj_blob_vec

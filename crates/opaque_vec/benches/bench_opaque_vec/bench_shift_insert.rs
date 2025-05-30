@@ -13,7 +13,7 @@ fn bench_vec_shift_insert_last(c: &mut Criterion) {
         b.iter(|| {
             let mut vec = Vec::new();
             for i in 0..1024 {
-                vec.insert(i, criterion::black_box(dummy_data));
+                vec.insert(i, core::hint::black_box(dummy_data));
             }
 
             vec
@@ -28,7 +28,7 @@ fn bench_opaque_vec_shift_insert_last(c: &mut Criterion) {
         b.iter(|| {
             let mut opaque_vec = OpaqueVec::new::<i32>();
             for i in 0..1024 {
-                opaque_vec.shift_insert::<i32, alloc::Global>(i, criterion::black_box(dummy_data));
+                opaque_vec.shift_insert::<i32, alloc::Global>(i, core::hint::black_box(dummy_data));
             }
 
             opaque_vec

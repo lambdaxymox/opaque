@@ -16,7 +16,7 @@ fn bench_index_set_get(c: &mut Criterion) {
     c.bench_function("index_set_get", |b| {
         b.iter(|| {
             for value in set.iter() {
-                let _ = criterion::black_box(set.get(value));
+                let _ = core::hint::black_box(set.get(value));
             }
         });
     });
@@ -29,7 +29,7 @@ fn bench_typed_proj_index_set_get(c: &mut Criterion) {
     c.bench_function("typed_proj_index_set_get", |b| {
         b.iter(|| {
             for value in proj_set.iter() {
-                let _ = criterion::black_box(proj_set.get(value));
+                let _ = core::hint::black_box(proj_set.get(value));
             }
         });
     });

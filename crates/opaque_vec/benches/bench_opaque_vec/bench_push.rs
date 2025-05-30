@@ -13,7 +13,7 @@ fn bench_vec_push(c: &mut Criterion) {
         b.iter(|| {
             let mut vec = Vec::new();
             for _ in 0..1024 {
-                vec.push(criterion::black_box(dummy_data));
+                vec.push(core::hint::black_box(dummy_data));
             }
 
             vec
@@ -28,7 +28,7 @@ fn bench_opaque_vec_push(c: &mut Criterion) {
         b.iter(|| {
             let mut opaque_vec = OpaqueVec::new::<i32>();
             for _ in 0..1024 {
-                opaque_vec.push::<i32, alloc::Global>(criterion::black_box(dummy_data));
+                opaque_vec.push::<i32, alloc::Global>(core::hint::black_box(dummy_data));
             }
 
             opaque_vec

@@ -19,7 +19,7 @@ fn bench_index_map_swap_remove(c: &mut Criterion) {
             || map.clone(),
             |mut map| {
                 for key in keys.iter() {
-                    let _ = criterion::black_box(map.swap_remove(key));
+                    let _ = core::hint::black_box(map.swap_remove(key));
                 }
             },
             criterion::BatchSize::NumIterations(1000),
@@ -37,7 +37,7 @@ fn bench_opaque_index_map_swap_remove(c: &mut Criterion) {
             |mut opaque_map| {
                 let keys: Vec<i32> = opaque_map.keys::<i32, i32, hash::RandomState, alloc::Global>().cloned().collect();
                 for key in keys.iter() {
-                    let _ = criterion::black_box(opaque_map.swap_remove::<i32, i32, i32, hash::RandomState, alloc::Global>(key));
+                    let _ = core::hint::black_box(opaque_map.swap_remove::<i32, i32, i32, hash::RandomState, alloc::Global>(key));
                 }
             },
             criterion::BatchSize::NumIterations(1000),

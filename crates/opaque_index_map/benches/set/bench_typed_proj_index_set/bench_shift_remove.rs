@@ -18,7 +18,7 @@ fn bench_index_set_shift_remove(c: &mut Criterion) {
             || base_set.clone(),
             |mut set| {
                 for value in values_vec.iter() {
-                    let _ = criterion::black_box(set.shift_remove(value));
+                    let _ = core::hint::black_box(set.shift_remove(value));
                 }
             },
             criterion::BatchSize::NumIterations(1000),
@@ -35,7 +35,7 @@ fn bench_typed_proj_index_set_shift_remove(c: &mut Criterion) {
             |mut proj_set| {
                 let values_vec: Vec<i32> = proj_set.iter().cloned().collect();
                 for value in values_vec.iter() {
-                    let _ = criterion::black_box(proj_set.shift_remove(value));
+                    let _ = core::hint::black_box(proj_set.shift_remove(value));
                 }
             },
             criterion::BatchSize::NumIterations(1000),

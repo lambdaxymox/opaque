@@ -14,7 +14,7 @@ fn bench_vec_as_slice_index(c: &mut Criterion) {
         b.iter(|| {
             let slice = vec.as_slice();
             for i in 0..slice.len() {
-                let _ = criterion::black_box(slice[i]);
+                let _ = core::hint::black_box(slice[i]);
             }
         });
     });
@@ -28,7 +28,7 @@ fn bench_opaque_vec_as_slice_index(c: &mut Criterion) {
         b.iter(|| {
             let slice = opaque_vec.as_slice::<i32, alloc::Global>();
             for i in 0..slice.len() {
-                let _ = criterion::black_box(slice[i]);
+                let _ = core::hint::black_box(slice[i]);
             }
         });
     });

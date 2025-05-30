@@ -11,7 +11,7 @@ fn bench_vec_shift_insert_last(c: &mut Criterion) {
         b.iter(|| {
             let mut vec = Vec::new();
             for i in 0..1024 {
-                vec.insert(i, criterion::black_box(dummy_data));
+                vec.insert(i, core::hint::black_box(dummy_data));
             }
 
             vec
@@ -26,7 +26,7 @@ fn bench_typed_proj_vec_shift_insert_last(c: &mut Criterion) {
         b.iter(|| {
             let mut proj_vec = TypedProjVec::new();
             for i in 0..1024 {
-                proj_vec.shift_insert(i, criterion::black_box(dummy_data));
+                proj_vec.shift_insert(i, core::hint::black_box(dummy_data));
             }
 
             proj_vec

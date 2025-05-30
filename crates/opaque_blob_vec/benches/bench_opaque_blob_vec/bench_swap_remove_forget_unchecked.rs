@@ -50,7 +50,7 @@ fn bench_vec_swap_remove(c: &mut Criterion) {
             || vec.clone(),
             |mut vec| {
                 for _ in 0..vec.len() {
-                    let _ = criterion::black_box(vec.swap_remove(0));
+                    let _ = core::hint::black_box(vec.swap_remove(0));
                 }
             },
             criterion::BatchSize::NumIterations(1000),
@@ -67,7 +67,7 @@ fn bench_opaque_blob_vec_swap_remove(c: &mut Criterion) {
             || clone(&opaque_blob_vec),
             |mut opaque_blob_vec| {
                 for _ in 0..opaque_blob_vec.len() {
-                    let _ = criterion::black_box(opaque_blob_vec.swap_remove_forget_unchecked::<alloc::Global>(0));
+                    let _ = core::hint::black_box(opaque_blob_vec.swap_remove_forget_unchecked::<alloc::Global>(0));
                 }
             },
             criterion::BatchSize::NumIterations(1000),

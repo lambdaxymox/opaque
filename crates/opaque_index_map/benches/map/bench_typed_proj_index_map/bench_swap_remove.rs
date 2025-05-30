@@ -19,7 +19,7 @@ fn bench_index_map_swap_remove(c: &mut Criterion) {
             || map.clone(),
             |mut map| {
                 for key in keys.iter() {
-                    let _ = criterion::black_box(map.swap_remove(key));
+                    let _ = core::hint::black_box(map.swap_remove(key));
                 }
             },
             criterion::BatchSize::NumIterations(1000),
@@ -37,7 +37,7 @@ fn bench_typed_proj_index_map_swap_remove(c: &mut Criterion) {
             |mut proj_map| {
                 let keys: Vec<i32> = proj_map.keys().cloned().collect();
                 for key in keys.iter() {
-                    let _ = criterion::black_box(proj_map.swap_remove(key));
+                    let _ = core::hint::black_box(proj_map.swap_remove(key));
                 }
             },
             criterion::BatchSize::NumIterations(1000),

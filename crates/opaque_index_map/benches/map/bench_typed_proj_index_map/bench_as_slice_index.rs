@@ -18,7 +18,7 @@ fn bench_index_map_as_slice_index(c: &mut Criterion) {
         b.iter(|| {
             let slice = map.as_slice();
             for i in 0..slice.len() {
-                let _ = criterion::black_box(slice[i]);
+                let _ = core::hint::black_box(slice[i]);
             }
         });
     });
@@ -33,7 +33,7 @@ fn bench_typed_proj_index_map_as_slice_index(c: &mut Criterion) {
         b.iter(|| {
             let slice = proj_map.as_slice();
             for i in 0..slice.len() {
-                let _ = criterion::black_box(slice[i]);
+                let _ = core::hint::black_box(slice[i]);
             }
         });
     });

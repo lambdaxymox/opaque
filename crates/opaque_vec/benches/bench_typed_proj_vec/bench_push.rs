@@ -11,7 +11,7 @@ fn bench_vec_push(c: &mut Criterion) {
         b.iter(|| {
             let mut vec = Vec::new();
             for _ in 0..1024 {
-                vec.push(criterion::black_box(dummy_data));
+                vec.push(core::hint::black_box(dummy_data));
             }
 
             vec
@@ -26,7 +26,7 @@ fn bench_typed_proj_vec_push(c: &mut Criterion) {
         b.iter(|| {
             let mut proj_vec = TypedProjVec::new();
             for _ in 0..1024 {
-                proj_vec.push(criterion::black_box(dummy_data));
+                proj_vec.push(core::hint::black_box(dummy_data));
             }
 
             proj_vec

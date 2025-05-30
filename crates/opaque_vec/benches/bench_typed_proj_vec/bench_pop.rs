@@ -13,7 +13,7 @@ fn bench_vec_pop(c: &mut Criterion) {
             || vec![0_i32; 1000],
             |mut vec| {
                 for _ in 0..vec.len() {
-                    let _ = criterion::black_box(vec.pop());
+                    let _ = core::hint::black_box(vec.pop());
                 }
             },
             criterion::BatchSize::NumIterations(1000),
@@ -29,7 +29,7 @@ fn bench_typed_proj_vec_pop(c: &mut Criterion) {
             || TypedProjVec::from_iter((0..1000).map(|_| dummy_data)),
             |mut proj_vec| {
                 for _ in 0..proj_vec.len() {
-                    let _ = criterion::black_box(proj_vec.pop());
+                    let _ = core::hint::black_box(proj_vec.pop());
                 }
             },
             criterion::BatchSize::NumIterations(1000),

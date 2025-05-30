@@ -17,7 +17,7 @@ fn bench_index_map_get_key_value(c: &mut Criterion) {
     c.bench_function("index_map_get_key_value", |b| {
         b.iter(|| {
             for key in map.keys() {
-                let _ = criterion::black_box(map.get_key_value(key));
+                let _ = core::hint::black_box(map.get_key_value(key));
             }
         });
     });
@@ -31,7 +31,7 @@ fn bench_opaque_index_map_get_key_value(c: &mut Criterion) {
     c.bench_function("opaque_index_map_get_key_value", |b| {
         b.iter(|| {
             for key in opaque_map.keys::<i32, i32, hash::RandomState, alloc::Global>() {
-                let _ = criterion::black_box(opaque_map.get_key_value::<i32, i32, i32, hash::RandomState, alloc::Global>(key));
+                let _ = core::hint::black_box(opaque_map.get_key_value::<i32, i32, i32, hash::RandomState, alloc::Global>(key));
             }
         });
     });

@@ -16,7 +16,7 @@ fn bench_index_map_get_index_of(c: &mut Criterion) {
     c.bench_function("index_map_get_index_of", |b| {
         b.iter(|| {
             for value in set.iter() {
-                let _ = criterion::black_box(set.get_index_of(value));
+                let _ = core::hint::black_box(set.get_index_of(value));
             }
         });
     });
@@ -29,7 +29,7 @@ fn bench_typed_proj_index_map_get_index_of(c: &mut Criterion) {
     c.bench_function("typed_proj_index_map_get_index_of", |b| {
         b.iter(|| {
             for value in proj_set.iter() {
-                let _ = criterion::black_box(proj_set.get_index_of(value));
+                let _ = core::hint::black_box(proj_set.get_index_of(value));
             }
         });
     });

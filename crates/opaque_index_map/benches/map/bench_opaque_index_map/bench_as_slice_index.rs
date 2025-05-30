@@ -18,7 +18,7 @@ fn bench_index_map_as_slice_index(c: &mut Criterion) {
         b.iter(|| {
             let slice = map.as_slice();
             for i in 0..slice.len() {
-                let _ = criterion::black_box(slice[i]);
+                let _ = core::hint::black_box(slice[i]);
             }
         });
     });
@@ -33,7 +33,7 @@ fn bench_opaque_index_map_as_slice_index(c: &mut Criterion) {
         b.iter(|| {
             let slice = opaque_map.as_slice::<i32, i32, hash::RandomState, alloc::Global>();
             for i in 0..slice.len() {
-                let _ = criterion::black_box(slice[i]);
+                let _ = core::hint::black_box(slice[i]);
             }
         });
     });

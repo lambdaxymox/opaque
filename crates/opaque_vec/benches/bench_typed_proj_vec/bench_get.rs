@@ -11,7 +11,7 @@ fn bench_vec_get(c: &mut Criterion) {
     c.bench_function("vec_get", |b| {
         b.iter(|| {
             for i in 0..vec.len() {
-                let _ = criterion::black_box(vec.get(i));
+                let _ = core::hint::black_box(vec.get(i));
             }
         });
     });
@@ -24,7 +24,7 @@ fn bench_typed_proj_vec_get(c: &mut Criterion) {
     c.bench_function("typed_proj_vec_get", |b| {
         b.iter(|| {
             for i in 0..proj_vec.len() {
-                let _ = criterion::black_box(proj_vec.get(i));
+                let _ = core::hint::black_box(proj_vec.get(i));
             }
         });
     });

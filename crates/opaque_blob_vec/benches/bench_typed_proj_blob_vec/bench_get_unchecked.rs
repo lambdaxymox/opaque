@@ -28,7 +28,7 @@ fn bench_vec_get_unchecked(c: &mut Criterion) {
     c.bench_function("vec_get_unchecked", |b| {
         b.iter(|| {
             for i in 0..vec.len() {
-                let _ = criterion::black_box(unsafe { vec.get_unchecked(i) });
+                let _ = core::hint::black_box(unsafe { vec.get_unchecked(i) });
             }
         });
     });
@@ -41,7 +41,7 @@ fn bench_vec_get(c: &mut Criterion) {
     c.bench_function("vec_get", |b| {
         b.iter(|| {
             for i in 0..vec.len() {
-                let _ = criterion::black_box(vec.get(i));
+                let _ = core::hint::black_box(vec.get(i));
             }
         });
     });
@@ -54,7 +54,7 @@ fn bench_typed_proj_blob_vec_get_unchecked(c: &mut Criterion) {
     c.bench_function("typed_proj_blob_vec_get_unchecked", |b| {
         b.iter(|| {
             for i in 0..proj_blob_vec.len() {
-                let _ = criterion::black_box(proj_blob_vec.get_unchecked(i));
+                let _ = core::hint::black_box(proj_blob_vec.get_unchecked(i));
             }
         });
     });
