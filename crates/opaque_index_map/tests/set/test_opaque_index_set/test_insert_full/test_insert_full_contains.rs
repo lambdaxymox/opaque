@@ -7,7 +7,7 @@ use opaque_index_map::set::OpaqueIndexSet;
 
 use opaque_index_map_testing as oimt;
 
-fn run_test_opaque_index_set_insert_full_contains_key<T, S, A>(entries: &[T], build_hasher: S, alloc: A)
+fn run_test_opaque_index_set_insert_full_contains<T, S, A>(entries: &[T], build_hasher: S, alloc: A)
 where
     T: any::Any + Clone + Eq + hash::Hash,
     S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
@@ -29,7 +29,7 @@ where
     }
 }
 
-fn run_test_opaque_index_set_insert_full_contains_key_values<T, S, A>(entries: &[T], build_hasher: S, alloc: A)
+fn run_test_opaque_index_set_insert_full_contains_values<T, S, A>(entries: &[T], build_hasher: S, alloc: A)
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
@@ -38,7 +38,7 @@ where
 {
     let iter = oimt::set::PrefixGenerator::new(entries);
     for entries in iter {
-        run_test_opaque_index_set_insert_full_contains_key(entries, build_hasher.clone(), alloc.clone());
+        run_test_opaque_index_set_insert_full_contains(entries, build_hasher.clone(), alloc.clone());
     }
 }
 
@@ -48,21 +48,21 @@ macro_rules! generate_tests {
             use super::*;
 
             #[test]
-            fn test_opaque_index_set_insert_full_contains_key_empty() {
+            fn test_opaque_index_set_insert_full_contains_empty() {
                 let values: Vec<$value_typ> = Vec::from(&[]);
                 let entries = oimt::set::values(values.iter().cloned());
                 let build_hasher = hash::RandomState::new();
                 let alloc = alloc::Global;
-                run_test_opaque_index_set_insert_full_contains_key_values(&entries, build_hasher, alloc);
+                run_test_opaque_index_set_insert_full_contains_values(&entries, build_hasher, alloc);
             }
 
             #[test]
-            fn test_opaque_index_set_insert_full_contains_key_range_values() {
+            fn test_opaque_index_set_insert_full_contains_range_values() {
                 let spec = $range_spec;
                 let entries = oimt::set::range_entries::<$value_typ>(spec);
                 let build_hasher = hash::RandomState::new();
                 let alloc = alloc::Global;
-                run_test_opaque_index_set_insert_full_contains_key_values(&entries, build_hasher, alloc);
+                run_test_opaque_index_set_insert_full_contains_values(&entries, build_hasher, alloc);
             }
         }
     };

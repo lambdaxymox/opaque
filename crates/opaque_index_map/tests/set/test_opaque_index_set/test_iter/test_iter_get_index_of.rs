@@ -63,12 +63,12 @@ macro_rules! generate_tests {
 }
 
 generate_tests!(
-    u64_i64,
+    u64,
     value_type = u64,
     range_spec = oimt::set::RangeEntriesSpec::new(0..=127)
 );
 generate_tests!(
-    usize_i64,
+    usize,
     value_type = usize,
     range_spec = oimt::set::RangeEntriesSpec::new(0..=127)
 );

@@ -1,0 +1,4 @@
+mod test_shift_remove_contains;
+mod test_shift_remove_len;
+mod test_shift_remove_preserves_order;
+mod test_shift_remove_get;

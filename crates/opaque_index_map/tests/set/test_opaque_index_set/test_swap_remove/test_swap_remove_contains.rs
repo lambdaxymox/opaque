@@ -7,23 +7,25 @@ use std::hash;
 
 use opaque_index_map_testing as oimt;
 
-fn run_test_opaque_index_set_iter_get_full<T, S, A>(entries: &[T], build_hasher: S, alloc: A)
+fn run_test_opaque_index_set_swap_remove_contains<T, S, A>(entries: &[T], build_hasher: S, alloc: A)
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let set = common::opaque_index_set::from_entries_in(entries, build_hasher, alloc);
-    for value in set.iter::<T, S, A>() {
-        let expected = Some(value.clone());
-        let result = set.get_full::<T, T, S, A>(value).map(|(i, v)| v.clone());
+    let mut set = common::opaque_index_set::from_entries_in(entries, build_hasher, alloc);
+    let values: Vec<T> = set.iter::<T, S, A>().cloned().collect();
+    for value in values.iter() {
+        assert!(set.contains::<T, T, S, A>(value));
 
-        assert_eq!(result, expected);
+        set.swap_remove::<T, T, S, A>(&value);
+
+        assert!(!set.contains::<T, T, S, A>(&value));
     }
 }
 
-fn run_test_opaque_index_set_iter_get_full_values<T, S, A>(entries: &[T], build_hasher: S, alloc: A)
+fn run_test_opaque_index_set_swap_remove_contains_values<T, S, A>(entries: &[T], build_hasher: S, alloc: A)
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
@@ -32,7 +34,7 @@ where
 {
     let iter = oimt::set::PrefixGenerator::new(entries);
     for entries in iter {
-        run_test_opaque_index_set_iter_get_full(entries, build_hasher.clone(), alloc.clone());
+        run_test_opaque_index_set_swap_remove_contains(entries, build_hasher.clone(), alloc.clone());
     }
 }
 
@@ -42,21 +44,21 @@ macro_rules! generate_tests {
             use super::*;
 
             #[test]
-            fn test_opaque_index_set_iter_get_full_empty() {
+            fn test_opaque_index_set_swap_remove_contains_empty() {
                 let values: Vec<$value_typ> = Vec::from(&[]);
                 let entries = oimt::set::values(values.iter().cloned());
                 let build_hasher = hash::RandomState::new();
                 let alloc = alloc::Global;
-                run_test_opaque_index_set_iter_get_full_values(&entries, build_hasher, alloc);
+                run_test_opaque_index_set_swap_remove_contains_values(&entries, build_hasher, alloc);
             }
 
             #[test]
-            fn test_opaque_index_set_iter_get_full_range_values() {
+            fn test_opaque_index_set_swap_remove_contains_range_values() {
                 let spec = $range_spec;
                 let entries = oimt::set::range_entries::<$value_typ>(spec);
                 let build_hasher = hash::RandomState::new();
                 let alloc = alloc::Global;
-                run_test_opaque_index_set_iter_get_full_values(&entries, build_hasher, alloc);
+                run_test_opaque_index_set_swap_remove_contains_values(&entries, build_hasher, alloc);
             }
         }
     };

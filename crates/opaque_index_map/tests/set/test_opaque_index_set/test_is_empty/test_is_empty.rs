@@ -41,10 +41,10 @@ where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let opaque_set = OpaqueIndexSet::with_hasher_in::<T, S, A>(build_hasher, alloc);
-    let min_key = TryFrom::try_from(0).unwrap();
-    let max_key = TryFrom::try_from(127).unwrap();
-    for key in min_key..max_key {
-        assert!(!opaque_set.contains::<T, T, S, A>(&key));
+    let min_value = TryFrom::try_from(0).unwrap();
+    let max_value = TryFrom::try_from(127).unwrap();
+    for value in min_value..max_value {
+        assert!(!opaque_set.contains::<T, T, S, A>(&value));
     }
 }
 
@@ -57,10 +57,10 @@ where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let opaque_set = OpaqueIndexSet::with_hasher_in::<T, S, A>(build_hasher, alloc);
-    let min_key = TryFrom::try_from(0).unwrap();
-    let max_key = TryFrom::try_from(127).unwrap();
-    for key in min_key..max_key {
-        let result = opaque_set.get::<T, T, S, A>(&key);
+    let min_value = TryFrom::try_from(0).unwrap();
+    let max_value = TryFrom::try_from(127).unwrap();
+    for value in min_value..max_value {
+        let result = opaque_set.get::<T, T, S, A>(&value);
 
         assert!(result.is_none());
     }
@@ -103,11 +103,11 @@ macro_rules! generate_tests {
 }
 
 generate_tests!(
-    u64_i64,
+    u64,
     value_type = u64
 );
 generate_tests!(
-    usize_i64,
+    usize,
     value_type = usize
 );
 

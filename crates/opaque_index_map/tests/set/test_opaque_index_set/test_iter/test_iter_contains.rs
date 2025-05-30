@@ -39,7 +39,7 @@ macro_rules! generate_tests {
             use super::*;
 
             #[test]
-            fn test_opaque_index_set_iter_contains_key_empty() {
+            fn test_opaque_index_set_iter_contains_empty() {
                 let values: Vec<$value_typ> = Vec::from(&[]);
                 let entries = oimt::set::values(values.iter().cloned());
                 let build_hasher = hash::RandomState::new();
@@ -48,7 +48,7 @@ macro_rules! generate_tests {
             }
 
             #[test]
-            fn test_opaque_index_set_iter_contains_key_range_values() {
+            fn test_opaque_index_set_iter_contains_range_values() {
                 let spec = $range_spec;
                 let entries = oimt::set::range_entries::<$value_typ>(spec);
                 let build_hasher = hash::RandomState::new();
@@ -60,12 +60,12 @@ macro_rules! generate_tests {
 }
 
 generate_tests!(
-    u64_i64,
+    u64,
     value_type = u64,
     range_spec = oimt::set::RangeEntriesSpec::new(0..=127)
 );
 generate_tests!(
-    usize_i64,
+    usize,
     value_type = usize,
     range_spec = oimt::set::RangeEntriesSpec::new(0..=127)
 );
