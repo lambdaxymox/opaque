@@ -469,4 +469,3 @@ fn test_vec_swap_remove_out_of_bounds2() {
     let mut vec = TypedProjVec::from(&[0]);
     vec.swap_remove(usize::MAX);
 }
-
