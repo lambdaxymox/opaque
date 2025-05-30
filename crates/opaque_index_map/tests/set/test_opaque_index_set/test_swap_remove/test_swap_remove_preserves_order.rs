@@ -21,14 +21,14 @@ where
     map_entries
 }
 
-fn result<T, S, A>(map: &OpaqueIndexSet, value: &T) -> Vec<T>
+fn result<T, S, A>(set: &OpaqueIndexSet, value: &T) -> Vec<T>
 where
     T: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let mut new_set = common::opaque_index_set::clone::<T, S, A>(map);
+    let mut new_set = common::opaque_index_set::clone::<T, S, A>(set);
     new_set.swap_remove::<T, T, S, A>(value);
 
     let ordered_entries: Vec<T> = new_set

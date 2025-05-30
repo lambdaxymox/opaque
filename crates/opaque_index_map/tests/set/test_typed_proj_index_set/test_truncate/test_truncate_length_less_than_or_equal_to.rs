@@ -5,59 +5,58 @@ use core::fmt;
 use std::alloc;
 use std::hash;
 
-use opaque_index_map::set::OpaqueIndexSet;
+use opaque_index_map::set::TypedProjIndexSet;
 
 use opaque_index_map_testing as oimt;
 
-fn expected<T>(entries: &[T], index: usize, value: &T) -> Vec<T>
+fn expected<T>(entries: &[T], len: usize) -> Vec<T>
 where
-    T: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
+    T: any::Any + Clone + Eq + Ord + hash::Hash,
 {
-    let mut set_entries: Vec<T> = entries.iter().cloned().collect();
+    let vec: Vec<T> = entries
+        .iter()
+        .cloned()
+        .take(len)
+        .collect();
 
-    assert_eq!(set_entries[index], value.clone());
-
-    set_entries.remove(index);
-
-    set_entries
+    vec
 }
 
-fn result<T, S, A>(set: &OpaqueIndexSet, value: &T) -> Vec<T>
+fn result<T, S, A>(set: &TypedProjIndexSet<T, S, A>, len: usize) -> Vec<T>
 where
-    T: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
+    T: any::Any + Clone + Eq + hash::Hash,
     S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let mut new_set = common::opaque_index_set::clone::<T, S, A>(set);
-    new_set.shift_remove_full::<T, T, S, A>(value);
+    let mut cloned_set = set.clone();
+    cloned_set.truncate(len);
 
-    let ordered_entries: Vec<T> = new_set
-        .iter::<T, S, A>()
+    let vec: Vec<T> = cloned_set
+        .iter()
         .cloned()
         .collect();
 
-    ordered_entries
+    vec
 }
 
-fn run_test_opaque_index_set_shift_remove_full_preserves_order<T, S, A>(entries: &[T], build_hasher: S, alloc: A)
+fn run_test_typed_proj_index_set_truncate_length_less_than_or_equal_to<T, S, A>(entries: &[T], build_hasher: S, alloc: A)
 where
     T: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let base_set = common::opaque_index_set::from_entries_in(entries, build_hasher, alloc);
-    let base_values: Vec<T> = base_set.iter::<T, S, A>().cloned().collect();
-    for (index, value) in base_values.iter().enumerate() {
-        let expected = expected(entries, index, &value);
-        let result = result::<T, S, A>(&base_set, value);
+    for len in 0..entries.len() {
+        let set = common::typed_proj_index_set::from_entries_in(entries, build_hasher.clone(), alloc.clone());
+        let expected = expected::<T>(entries, len);
+        let result = result::<T, S, A>(&set, len);
 
         assert_eq!(result, expected);
     }
 }
 
-fn run_test_opaque_index_set_shift_remove_full_preserves_order_values<T, S, A>(entries: &[T], build_hasher: S, alloc: A)
+fn run_test_typed_proj_index_set_truncate_length_less_than_or_equal_to_values<T, S, A>(entries: &[T], build_hasher: S, alloc: A)
 where
     T: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
@@ -66,7 +65,7 @@ where
 {
     let iter = oimt::set::PrefixGenerator::new(entries);
     for entries in iter {
-        run_test_opaque_index_set_shift_remove_full_preserves_order(entries, build_hasher.clone(), alloc.clone());
+        run_test_typed_proj_index_set_truncate_length_less_than_or_equal_to(entries, build_hasher.clone(), alloc.clone());
     }
 }
 
@@ -76,21 +75,21 @@ macro_rules! generate_tests {
             use super::*;
 
             #[test]
-            fn test_opaque_index_set_shift_remove_full_preserves_order_empty() {
+            fn test_typed_proj_index_set_truncate_length_less_than_or_equal_to_empty() {
                 let values: Vec<$value_typ> = Vec::from(&[]);
                 let entries = oimt::set::values(values.iter().cloned());
                 let build_hasher = hash::RandomState::new();
                 let alloc = alloc::Global;
-                run_test_opaque_index_set_shift_remove_full_preserves_order_values(&entries, build_hasher, alloc);
+                run_test_typed_proj_index_set_truncate_length_less_than_or_equal_to_values(&entries, build_hasher, alloc);
             }
 
             #[test]
-            fn test_opaque_index_set_shift_remove_full_preserves_order_range_values() {
+            fn test_typed_proj_index_set_as_truncate_length_less_than_or_equal_to_range_values() {
                 let spec = $range_spec;
                 let entries = oimt::set::range_entries::<$value_typ>(spec);
                 let build_hasher = hash::RandomState::new();
                 let alloc = alloc::Global;
-                run_test_opaque_index_set_shift_remove_full_preserves_order_values(&entries, build_hasher, alloc);
+                run_test_typed_proj_index_set_truncate_length_less_than_or_equal_to_values(&entries, build_hasher, alloc);
             }
         }
     };
