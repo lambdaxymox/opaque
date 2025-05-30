@@ -1825,6 +1825,18 @@ impl_index_for_index_set!(
     (ops::Bound<usize>, ops::Bound<usize>)
 );
 
+impl<T, S, A> fmt::Debug for TypedProjIndexSet<T, S, A>
+where
+    T: any::Any + fmt::Debug,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.debug_map().entries(self.iter()).finish()
+    }
+}
+
 impl<T, S> FromIterator<T> for TypedProjIndexSet<T, S, alloc::Global>
 where
     T: any::Any + hash::Hash + Eq,
@@ -3135,6 +3147,14 @@ impl OpaqueIndexSet {
         let proj_self = self.as_proj_mut::<T, S, A>();
 
         proj_self.swap_indices(a, b)
+    }
+}
+
+impl fmt::Debug for OpaqueIndexSet {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("OpaqueIndexSet")
+            .finish()
     }
 }
 

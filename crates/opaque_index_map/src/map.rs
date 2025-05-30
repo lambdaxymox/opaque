@@ -16,7 +16,7 @@ use opaque_error::{
     TryReserveError,
 };
 use opaque_hash::{TypedProjBuildHasher};
-use opaque_vec::TypedProjVec;
+use opaque_vec::{OpaqueVec, TypedProjVec};
 
 pub struct Drain<'a, K, V, A = alloc::Global>
 where
@@ -2386,6 +2386,19 @@ impl_index_for_index_map!(
     (ops::Bound<usize>, ops::Bound<usize>)
 );
 
+impl<K, V, S, A> fmt::Debug for TypedProjIndexMap<K, V, S, A>
+where
+    K: any::Any + fmt::Debug,
+    V: any::Any + fmt::Debug,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.debug_map().entries(self.iter()).finish()
+    }
+}
+
 impl<K, V, S, A> Clone for TypedProjIndexMap<K, V, S, A>
 where
     K: any::Any + Clone,
@@ -3874,6 +3887,14 @@ impl OpaqueIndexMap {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
 
         proj_self.swap_indices(a, b)
+    }
+}
+
+impl fmt::Debug for OpaqueIndexMap {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("OpaqueIndexMap")
+            .finish()
     }
 }
 
