@@ -14,8 +14,8 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let set = common::opaque_index_set::from_entries_in(entries, build_hasher, alloc);
-    let cloned_set = common::opaque_index_set::clone::<T, S, A>(&set);
+    let set = common::typed_proj_index_set::from_entries_in(entries, build_hasher, alloc);
+    let cloned_set = set.clone();
 
     let expected = set.len();
     let result = cloned_set.len();
