@@ -732,8 +732,13 @@ where
     }
 
     #[inline]
-    pub(crate) fn clear(&mut self) {
-        self.data.clear();
+    pub fn clear(&mut self) {
+        let elements: *mut [T] = self.as_mut_slice();
+
+        unsafe {
+            self.set_len(0);
+            core::ptr::drop_in_place(elements);
+        }
     }
 }
 

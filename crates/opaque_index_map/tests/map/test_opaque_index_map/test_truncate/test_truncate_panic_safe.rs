@@ -109,7 +109,7 @@ fn test_truncate_on_panic_drop_count() {
 fn test_truncate_on_panic_drop_count2() {
     let mut triggering_panic_cell = PanicCell::new((), 0);
     let mut panic_cell = PanicCell::new((), 2);
-    let mut map = OpaqueIndexMap::new::<usize, DropCounter>();
+    let mut map = OpaqueIndexMap::new::<usize, PanicCell<()>>();
 
     map.insert::<usize, PanicCell<()>, hash::RandomState, alloc::Global>(0, triggering_panic_cell.clone());
     map.insert::<usize, PanicCell<()>, hash::RandomState, alloc::Global>(1, panic_cell.clone());
@@ -138,7 +138,7 @@ fn test_truncate_on_panic_drop_count2() {
 #[test]
 fn test_truncate_on_success_drop_count() {
     let mut panic_cell = PanicCell::new((), 2);
-    let mut map = OpaqueIndexMap::new::<usize, DropCounter>();
+    let mut map = OpaqueIndexMap::new::<usize, PanicCell<()>>();
 
     map.insert::<usize, PanicCell<()>, hash::RandomState, alloc::Global>(0, panic_cell.clone());
 
