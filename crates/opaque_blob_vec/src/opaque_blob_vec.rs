@@ -463,6 +463,60 @@ impl BlobVecInner {
         }
     }
 
+    /*
+    fn clear(&mut self) {
+        struct SetLenOnDrop<'a> {
+            length: &'a mut usize,
+            local_length: usize,
+        }
+
+        impl<'a> SetLenOnDrop<'a> {
+            #[inline]
+            fn new(length: &'a mut usize) -> Self {
+                Self {
+                    local_length: *length,
+                    length,
+                }
+            }
+
+            #[inline]
+            fn decrement(&mut self) {
+                self.local_length -= 1;
+            }
+
+            #[inline]
+            fn current(&self) -> usize {
+                self.local_length
+            }
+        }
+
+        impl Drop for SetLenOnDrop<'_> {
+            #[inline]
+            fn drop(&mut self) {
+                *self.length = self.local_length;
+            }
+        }
+
+        let len = self.length;
+        let ptr = self.as_non_null();
+        let mut length_on_drop = SetLenOnDrop::new(&mut self.length);
+        if let Some(drop_fn) = self.drop_fn {
+            let size = self.element_layout.size();
+            for i in 0..len {
+                eprintln!("i = {}", i);
+                length_on_drop.decrement();
+                let element = unsafe { ptr.byte_add(i * size) };
+                unsafe {
+                    drop_fn(element);
+                }
+            }
+        }
+
+        debug_assert_eq!(length_on_drop.current(), 0);
+        // Vector length set by drop guard.
+    }
+    */
+
     fn truncate(&mut self, len: usize) {
         struct SetLenOnDrop<'a> {
             length: &'a mut usize,
