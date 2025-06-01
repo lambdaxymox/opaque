@@ -124,52 +124,6 @@ where
     }
 }
 
-/*
-fn run_test_typed_proj_index_set_truncate_drop_to_zero_direct_values<S, A>(max_length: usize, build_hasher: S, alloc: A)
-where
-    S: any::Any + hash::BuildHasher + Send + Sync + Clone + Default,
-    S::Hasher: any::Any + hash::Hasher + Send + Sync,
-    A: any::Any + alloc::Allocator + Send + Sync + Clone + Default,
-{
-    for length in 0..max_length {
-        run_test_typed_proj_index_set_truncate_drop_to_zero_direct(length, build_hasher.clone(), alloc.clone());
-    }
-}
-
-fn run_test_typed_proj_index_set_truncate_drop_to_zero_steps_values<S, A>(max_length: usize, build_hasher: S, alloc: A)
-where
-    S: any::Any + hash::BuildHasher + Send + Sync + Clone + Default,
-    S::Hasher: any::Any + hash::Hasher + Send + Sync,
-    A: any::Any + alloc::Allocator + Send + Sync + Clone + Default,
-{
-    for length in 0..max_length {
-        run_test_typed_proj_index_set_truncate_drop_to_zero_steps(length, build_hasher.clone(), alloc.clone());
-    }
-}
-
-fn run_test_typed_proj_index_set_truncate_drop_to_length_values<S, A>(max_length: usize, build_hasher: S, alloc: A)
-where
-    S: any::Any + hash::BuildHasher + Send + Sync + Clone + Default,
-    S::Hasher: any::Any + hash::Hasher + Send + Sync,
-    A: any::Any + alloc::Allocator + Send + Sync + Clone + Default,
-{
-    for length in 0..max_length {
-        run_test_typed_proj_index_set_truncate_drop_to_length(length, build_hasher.clone(), alloc.clone());
-    }
-}
-
-fn run_test_typed_proj_index_set_truncate_drop_to_above_length_values<S, A>(max_length: usize, build_hasher: S, alloc: A)
-where
-    S: any::Any + hash::BuildHasher + Send + Sync + Clone + Default,
-    S::Hasher: any::Any + hash::Hasher + Send + Sync,
-    A: any::Any + alloc::Allocator + Send + Sync + Clone + Default,
-{
-    for length in 0..max_length {
-        run_test_typed_proj_index_set_truncate_drop_to_above_length(length, build_hasher.clone(), alloc.clone());
-    }
-}
-*/
-
 #[test]
 fn test_typed_proj_index_set_truncate_drop_to_zero_direct_range() {
     let max_length = 128;

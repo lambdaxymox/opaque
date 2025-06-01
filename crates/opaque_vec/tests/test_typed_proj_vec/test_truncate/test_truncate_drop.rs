@@ -96,48 +96,6 @@ where
     }
 }
 
-/*
-fn run_test_typed_proj_vec_truncate_drop_to_zero_direct_range<A>(max_length: usize)
-where
-    A: any::Any + alloc::Allocator + Send + Sync + Clone + Default,
-{
-    let alloc = A::default();
-    for length in 0..max_length {
-        run_test_typed_proj_vec_truncate_drop_to_zero_direct(length, alloc.clone());
-    }
-}
-
-fn run_test_typed_proj_vec_truncate_drop_to_zero_steps_range<A>(max_length: usize)
-where
-    A: any::Any + alloc::Allocator + Send + Sync + Clone + Default,
-{
-    let alloc = A::default();
-    for length in 0..max_length {
-        run_test_typed_proj_vec_truncate_drop_to_zero_steps(length, alloc.clone());
-    }
-}
-
-fn run_test_typed_proj_vec_truncate_drop_to_length_range<A>(max_length: usize)
-where
-    A: any::Any + alloc::Allocator + Send + Sync + Clone + Default,
-{
-    let alloc = A::default();
-    for length in 0..max_length {
-        run_test_typed_proj_vec_truncate_drop_to_length(length, alloc.clone());
-    }
-}
-
-fn run_test_typed_proj_vec_truncate_drop_to_above_length_range<A>(max_length: usize)
-where
-    A: any::Any + alloc::Allocator + Send + Sync + Clone + Default,
-{
-    let alloc = A::default();
-    for length in 0..max_length {
-        run_test_typed_proj_vec_truncate_drop_to_above_length(length, alloc.clone());
-    }
-}
-*/
-
 #[test]
 fn test_typed_proj_vec_truncate_drop_to_zero_direct_range() {
     let max_length = 128;
