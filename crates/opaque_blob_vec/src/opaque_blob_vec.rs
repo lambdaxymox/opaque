@@ -464,20 +464,58 @@ impl BlobVecInner {
     }
 
     fn truncate(&mut self, len: usize) {
-        unsafe {
-            if len > self.len() {
-                return;
+        struct SetLenOnDrop<'a> {
+            length: &'a mut usize,
+            local_length: usize,
+        }
+
+        impl<'a> SetLenOnDrop<'a> {
+            #[inline]
+            fn new(length: &'a mut usize) -> Self {
+                Self {
+                    local_length: *length,
+                    length,
+                }
             }
 
-            let remaining_len = self.len() - len;
-            let element_size = self.element_layout.size();
-            let len_bytes = element_size * len;
-            let remaining_len_bytes = element_size * remaining_len;
-            let slice = core::ptr::slice_from_raw_parts_mut(self.as_mut_ptr().add(len_bytes), remaining_len_bytes);
-            self.set_len(len);
+            #[inline]
+            fn decrement(&mut self) {
+                self.local_length -= 1;
+            }
 
-            core::ptr::drop_in_place(slice);
+            #[inline]
+            fn current(&self) -> usize {
+                self.local_length
+            }
         }
+
+        impl Drop for SetLenOnDrop<'_> {
+            #[inline]
+            fn drop(&mut self) {
+                *self.length = self.local_length;
+            }
+        }
+
+        if len > self.len() {
+            return;
+        }
+
+        let total_len = self.len();
+        let ptr = self.as_non_null();
+        let mut length_on_drop = SetLenOnDrop::new(&mut self.length);
+        if let Some(drop_fn) = self.drop_fn {
+            let size = self.element_layout.size();
+            for i in len..total_len {
+                length_on_drop.decrement();
+                let element = unsafe { ptr.byte_add(i * size) };
+                unsafe {
+                    drop_fn(element);
+                }
+            }
+        }
+
+        debug_assert_eq!(length_on_drop.current(), len);
+        // Vector length set by drop guard.
     }
 
     #[track_caller]

@@ -5,7 +5,7 @@ use core::ptr::NonNull;
 use std::alloc;
 
 use opaque_alloc::TypedProjAlloc;
-use opaque_blob_vec::TypedProjBlobVec;
+use opaque_blob_vec::{OpaqueBlobVec, TypedProjBlobVec};
 
 unsafe fn drop_fn<T>(value: NonNull<u8>)
 where
@@ -49,6 +49,19 @@ where
 
     vec
 }
+
+pub(crate) fn with_capacity_in<T, A>(capacity: usize, alloc: A) -> TypedProjBlobVec<A>
+where
+    T: any::Any + fmt::Debug,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    let alloc = TypedProjAlloc::new(alloc);
+    let element_layout = Layout::new::<T>();
+    let drop_fn = Some(drop_fn::<T> as unsafe fn(NonNull<u8>));
+
+    TypedProjBlobVec::with_capacity_in(capacity, alloc, element_layout, drop_fn)
+}
+
 
 pub(crate) fn as_slice<T, A>(proj_blob_vec: &TypedProjBlobVec<A>) -> &[T]
 where

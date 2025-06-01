@@ -50,6 +50,19 @@ where
     vec
 }
 
+pub(crate) fn with_capacity_in<T, A>(capacity: usize, alloc: A) -> OpaqueBlobVec
+where
+    T: any::Any + fmt::Debug,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    let alloc = TypedProjAlloc::new(alloc);
+    let element_layout = Layout::new::<T>();
+    let drop_fn = Some(drop_fn::<T> as unsafe fn(NonNull<u8>));
+
+    OpaqueBlobVec::with_capacity_in(capacity, alloc, element_layout, drop_fn)
+}
+
+
 pub(crate) fn as_slice<T>(opaque_blob_vec: &OpaqueBlobVec) -> &[T]
 where
     T: any::Any,

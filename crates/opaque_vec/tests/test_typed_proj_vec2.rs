@@ -469,3 +469,119 @@ fn test_vec_swap_remove_out_of_bounds2() {
     let mut vec = TypedProjVec::from(&[0]);
     vec.swap_remove(usize::MAX);
 }
+
+#[test]
+fn test_truncate_len1() {
+    let mut vec = TypedProjVec::from([1]);
+
+    vec.truncate(1);
+    assert_eq!(vec.len(), 1);
+    vec.truncate(0);
+    assert_eq!(vec.len(), 0);
+}
+
+#[test]
+fn test_truncate_len2() {
+    let mut vec = TypedProjVec::from([1, 2, 3, 4, 5, 6]);
+
+    vec.truncate(6);
+    assert_eq!(vec.len(), 6);
+    vec.truncate(5);
+    assert_eq!(vec.len(), 5);
+    vec.truncate(3);
+    assert_eq!(vec.len(), 3);
+    vec.truncate(0);
+    assert_eq!(vec.len(), 0);
+}
+
+
+#[test]
+fn test_truncate_drop1() {
+    static mut DROP_COUNT: usize = 0;
+
+    fn get_drop_count() -> usize { unsafe { DROP_COUNT } }
+
+    struct Value { data: i32 }
+
+    impl Value {
+        fn new(data: i32) -> Self { Self { data, } }
+    }
+
+    impl Drop for Value {
+        fn drop(&mut self) {
+            unsafe { DROP_COUNT += 1; }
+        }
+    }
+
+    let mut vec = TypedProjVec::from([Value::new(1)]);
+
+    vec.truncate(1);
+    assert_eq!(get_drop_count(), 0);
+    vec.truncate(0);
+    assert_eq!(get_drop_count(), 1);
+}
+
+#[test]
+fn test_truncate_drop2() {
+    static mut DROP_COUNT: usize = 0;
+
+    fn get_drop_count() -> usize { unsafe { DROP_COUNT } }
+
+    struct Value { data: i32 }
+
+    impl Value {
+        fn new(data: i32) -> Self { Self { data, } }
+    }
+
+    impl Drop for Value {
+        fn drop(&mut self) {
+            unsafe { DROP_COUNT += 1; }
+        }
+    }
+
+    let mut vec = TypedProjVec::from([
+        Value::new(1),
+        Value::new(2),
+        Value::new(3),
+        Value::new(4),
+        Value::new(5),
+        Value::new(6),
+    ]);
+
+    vec.truncate(6);
+    assert_eq!(get_drop_count(), 0);
+    vec.truncate(5);
+    assert_eq!(get_drop_count(), 1);
+    vec.truncate(3);
+    assert_eq!(get_drop_count(), 3);
+    vec.truncate(0);
+    assert_eq!(get_drop_count(), 6);
+}
+
+#[test]
+#[should_panic]
+fn test_vec_truncate_fail() {
+    struct BadValue { data: usize, }
+
+    impl BadValue {
+        fn new(data: usize) -> Self { BadValue { data, } }
+    }
+
+    impl Drop for BadValue {
+        fn drop(&mut self) {
+            let BadValue { ref mut data} = *self;
+            if *data == 0xbadbeef {
+                panic!("BadElem panic: 0xbadbeef")
+            }
+        }
+    }
+
+    let mut vec = TypedProjVec::from([
+        BadValue::new(1),
+        BadValue::new(2),
+        BadValue::new(0xbadbeef),
+        BadValue::new(4),
+    ]);
+
+    vec.truncate(0);
+}
