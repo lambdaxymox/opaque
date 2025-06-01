@@ -56,6 +56,7 @@ where
     assert_eq!(result, expected);
 }
 
+/*
 fn run_test_typed_proj_vec_clear_range<A>(max_length: usize)
 where
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default,
@@ -65,9 +66,13 @@ where
         run_test_typed_proj_vec_clear(length, alloc.clone());
     }
 }
+*/
 
 #[test]
 fn test_typed_proj_vec_clear_range() {
     let max_length = 128;
-    run_test_typed_proj_vec_clear_range::<alloc::Global>(max_length);
+    let alloc = alloc::Global;
+    for length in 0..max_length {
+        run_test_typed_proj_vec_clear(length, alloc.clone());
+    }
 }

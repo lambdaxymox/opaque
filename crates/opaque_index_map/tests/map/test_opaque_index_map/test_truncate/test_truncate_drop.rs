@@ -107,6 +107,7 @@ where
     }
 }
 
+/*
 fn run_test_opaque_index_map_truncate_drop_to_zero_direct_values<S, A>(max_length: usize, build_hasher: S, alloc: A)
 where
     S: any::Any + hash::BuildHasher + Send + Sync + Clone + Default,
@@ -150,13 +151,16 @@ where
         run_test_opaque_index_map_truncate_drop_to_above_length(length, build_hasher.clone(), alloc.clone());
     }
 }
+*/
 
 #[test]
 fn test_opaque_index_map_truncate_drop_to_zero_direct_range() {
     let max_length = 128;
     let build_hasher = hash::RandomState::new();
     let alloc = alloc::Global;
-    run_test_opaque_index_map_truncate_drop_to_zero_direct_values::<hash::RandomState, alloc::Global>(max_length, build_hasher, alloc);
+    for length in 0..max_length {
+        run_test_opaque_index_map_truncate_drop_to_zero_direct(length, build_hasher.clone(), alloc.clone());
+    }
 }
 
 #[test]
@@ -164,7 +168,9 @@ fn test_opaque_index_map_truncate_drop_to_zero_steps_range() {
     let max_length = 128;
     let build_hasher = hash::RandomState::new();
     let alloc = alloc::Global;
-    run_test_opaque_index_map_truncate_drop_to_zero_steps_values::<hash::RandomState, alloc::Global>(max_length, build_hasher, alloc);
+    for length in 0..max_length {
+        run_test_opaque_index_map_truncate_drop_to_zero_steps(length, build_hasher.clone(), alloc.clone());
+    }
 }
 
 #[test]
@@ -172,7 +178,9 @@ fn test_opaque_index_map_truncate_drop_to_length() {
     let max_length = 128;
     let build_hasher = hash::RandomState::new();
     let alloc = alloc::Global;
-    run_test_opaque_index_map_truncate_drop_to_length_values::<hash::RandomState, alloc::Global>(max_length, build_hasher, alloc);
+    for length in 0..max_length {
+        run_test_opaque_index_map_truncate_drop_to_length(length, build_hasher.clone(), alloc.clone());
+    }
 }
 
 #[test]
@@ -180,5 +188,7 @@ fn test_opaque_index_map_truncate_drop_to_above_length() {
     let max_length = 128;
     let build_hasher = hash::RandomState::new();
     let alloc = alloc::Global;
-    run_test_opaque_index_map_truncate_drop_to_above_length_values::<hash::RandomState, alloc::Global>(max_length, build_hasher, alloc);
+    for length in 0..max_length {
+        run_test_opaque_index_map_truncate_drop_to_above_length(length, build_hasher.clone(), alloc.clone());
+    }
 }
