@@ -35,7 +35,7 @@ fn create_drop_counter_index_map_in<S, A>(len: usize, build_hasher: S, alloc: A)
 where
     S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
-    A: any::Any + alloc::Allocator + Send + Sync + Clone + Default,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let drop_counter = DropCounter::new(Rc::new(RefCell::new(0)));
     let mut map = OpaqueIndexMap::with_capacity_and_hasher_in::<usize, DropCounter, S, A>(len, build_hasher, alloc);
@@ -50,7 +50,7 @@ fn run_test_opaque_index_map_clear<S, A>(length: usize, build_hasher: S, alloc: 
 where
     S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
-    A: any::Any + alloc::Allocator + Send + Sync + Clone + Default,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let (drop_counter, mut map) = create_drop_counter_index_map_in(length, build_hasher, alloc);
     let expected = map.len();

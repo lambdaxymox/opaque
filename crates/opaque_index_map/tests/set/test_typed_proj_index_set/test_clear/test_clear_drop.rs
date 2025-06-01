@@ -52,7 +52,7 @@ fn create_drop_counter_index_set_in<S, A>(len: usize, build_hasher: S, alloc: A)
 where
     S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
-    A: any::Any + alloc::Allocator + Send + Sync + Clone + Default,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let drop_counter = DropCounter::new(Rc::new(RefCell::new(0)));
     let mut set = TypedProjIndexSet::with_capacity_and_hasher_in(len, build_hasher, alloc);
@@ -67,7 +67,7 @@ fn run_test_typed_proj_index_set_clear<S, A>(length: usize, build_hasher: S, all
 where
     S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
-    A: any::Any + alloc::Allocator + Send + Sync + Clone + Default,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let (drop_counter, mut set) = create_drop_counter_index_set_in(length, build_hasher, alloc);
     let expected = set.len();

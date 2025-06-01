@@ -50,9 +50,9 @@ impl<T> hash::Hash for UnhashedValueWrapper<T> {
 
 fn create_drop_counter_index_set_in<S, A>(len: usize, build_hasher: S, alloc: A) -> (DropCounter, TypedProjIndexSet<UnhashedValueWrapper<DropCounter>, S, A>)
 where
-    S: any::Any + hash::BuildHasher + Send + Sync + Clone + Default,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
-    A: any::Any + alloc::Allocator + Send + Sync + Clone + Default,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let drop_counter = DropCounter::new(Rc::new(RefCell::new(0)));
     let mut set = TypedProjIndexSet::with_capacity_and_hasher_in(len, build_hasher, alloc);
@@ -65,9 +65,9 @@ where
 
 fn run_test_typed_proj_index_set_truncate_drop_to_zero_direct<S, A>(length: usize, build_hasher: S, alloc: A)
 where
-    S: any::Any + hash::BuildHasher + Send + Sync + Clone + Default,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
-    A: any::Any + alloc::Allocator + Send + Sync + Clone + Default,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let (drop_counter, mut set) = create_drop_counter_index_set_in(length, build_hasher, alloc);
     let expected = set.len();
@@ -80,9 +80,9 @@ where
 
 fn run_test_typed_proj_index_set_truncate_drop_to_zero_steps<S, A>(length: usize, build_hasher: S, alloc: A)
 where
-    S: any::Any + hash::BuildHasher + Send + Sync + Clone + Default,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
-    A: any::Any + alloc::Allocator + Send + Sync + Clone + Default,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let (drop_counter, mut set) = create_drop_counter_index_set_in(length, build_hasher, alloc);
     for i in 0..(length + 1) {
@@ -96,9 +96,9 @@ where
 
 fn run_test_typed_proj_index_set_truncate_drop_to_length<S, A>(length: usize, build_hasher: S, alloc: A)
 where
-    S: any::Any + hash::BuildHasher + Send + Sync + Clone + Default,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
-    A: any::Any + alloc::Allocator + Send + Sync + Clone + Default,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let (drop_counter, mut set) = create_drop_counter_index_set_in(length, build_hasher, alloc);
     let expected = 0;
@@ -110,9 +110,9 @@ where
 
 fn run_test_typed_proj_index_set_truncate_drop_to_above_length<S, A>(length: usize, build_hasher: S, alloc: A)
 where
-    S: any::Any + hash::BuildHasher + Send + Sync + Clone + Default,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
-    A: any::Any + alloc::Allocator + Send + Sync + Clone + Default,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let (drop_counter, mut set) = create_drop_counter_index_set_in(length, build_hasher, alloc);
     let expected = 0;

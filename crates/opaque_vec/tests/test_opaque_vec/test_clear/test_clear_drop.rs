@@ -33,7 +33,7 @@ impl Drop for DropCounter {
 
 fn create_drop_counter_vec_in<A>(len: usize, alloc: A) -> (DropCounter, OpaqueVec)
 where
-    A: any::Any + alloc::Allocator + Send + Sync + Clone + Default,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let drop_counter = DropCounter::new(Rc::new(RefCell::new(0)));
     let mut vec = OpaqueVec::with_capacity_in::<DropCounter, A>(len, alloc);
@@ -46,7 +46,7 @@ where
 
 fn run_test_typed_proj_vec_clear<A>(length: usize, alloc: A)
 where
-    A: any::Any + alloc::Allocator + Send + Sync + Clone + Default,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let (drop_counter, mut vec) = create_drop_counter_vec_in(length, alloc);
     let expected = vec.len();
