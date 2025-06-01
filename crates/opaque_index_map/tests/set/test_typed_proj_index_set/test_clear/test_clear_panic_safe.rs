@@ -1,4 +1,4 @@
-use opaque_index_map::TypedProjIndexSet;
+use opaque_index_map::set::TypedProjIndexSet;
 
 use std::alloc;
 use std::cell::RefCell;

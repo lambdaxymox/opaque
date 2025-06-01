@@ -3,7 +3,7 @@ use std::{alloc, hash};
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use opaque_index_map::TypedProjIndexSet;
+use opaque_index_map::set::TypedProjIndexSet;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct DropCounter {

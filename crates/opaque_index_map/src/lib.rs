@@ -3,11 +3,11 @@
 #![feature(slice_range)]
 #![feature(slice_iter_mut_as_mut_slice)]
 #![feature(optimize_attribute)]
-mod equivalent;
 mod range_ops;
 mod map_inner;
 mod slice_eq;
 
+pub mod equivalent;
 pub mod map;
 pub mod set;
 

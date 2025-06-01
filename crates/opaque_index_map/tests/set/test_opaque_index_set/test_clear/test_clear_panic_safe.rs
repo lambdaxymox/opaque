@@ -1,4 +1,4 @@
-use opaque_index_map::OpaqueIndexSet;
+use opaque_index_map::set::OpaqueIndexSet;
 
 use std::alloc;
 use std::cell::RefCell;

@@ -1,4 +1,4 @@
-use crate::{range_ops, TypedProjIndexMap};
+use crate::range_ops;
 use crate::slice_eq;
 use crate::equivalent::Equivalent;
 
