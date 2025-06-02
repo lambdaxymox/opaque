@@ -21,6 +21,7 @@ use core::mem;
 use core::ops;
 use core::slice;
 use core::fmt;
+use core::ptr;
 use core::ptr::NonNull;
 use core::marker;
 use std::mem::{
@@ -294,33 +295,34 @@ where
 
     #[inline]
     #[must_use]
-    pub(crate) fn get_unchecked(&self, index: usize) -> &T {
-        let ptr = self.data.get_unchecked(index);
-
-        // SAFETY:
-        // (1) The size of T matches the expected element size.
-        // (2) We assume that the caller has ensured that `index` is within bounds.
-        unsafe { &*ptr.as_ptr().cast::<T>() }
-    }
+    pub(crate) unsafe fn get_unchecked(&self, index: usize) -> &T {
+        unsafe {
+            self.as_slice().get_unchecked(index)
+        }
+}
 
     #[inline]
     #[must_use]
-    pub(crate) fn get_mut_unchecked(&mut self, index: usize) -> &mut T {
-        let ptr = self.data.get_mut_unchecked(index);
-
-        // SAFETY:
-        // (1) The size of T matches the expected element size.
-        // (2) We assume that the caller has ensured that `index` is within bounds.
-        unsafe { &mut *ptr.as_ptr().cast::<T>() }
+    pub(crate) unsafe fn get_mut_unchecked(&mut self, index: usize) -> &mut T {
+        unsafe {
+            self.as_mut_slice().get_unchecked_mut(index)
+        }
     }
 
     #[inline]
     #[track_caller]
     pub(crate) fn push(&mut self, value: T) {
-        let mut me = ManuallyDrop::new(value);
-        let value_ptr = unsafe { NonNull::new_unchecked(&mut *me as *mut T as *mut u8) };
+        let length = self.len();
 
-        self.data.push(value_ptr);
+        if length == self.data.capacity() {
+            self.data.grow_one();
+        }
+
+        unsafe {
+            let end = self.as_mut_ptr().add(length);
+            ptr::write(end, value);
+            self.set_len(length + 1);
+        }
     }
 
     #[inline]
@@ -329,11 +331,10 @@ where
             None
         } else {
             let last_value = unsafe {
-                let last_index = self.data.len() - 1;
-                let last_value_ptr = self.data.swap_remove_forget_unchecked(last_index);
-                let _last_value = last_value_ptr.cast::<T>().read();
+                self.set_len(self.data.len() - 1);
+                core::hint::assert_unchecked(self.data.len() < self.capacity());
 
-                _last_value
+                ptr::read(self.as_ptr().add(self.len()))
             };
 
             Some(last_value)
@@ -354,10 +355,27 @@ where
             index_out_of_bounds_failure(index, length);
         }
 
-        let mut me = ManuallyDrop::new(value);
-        let value_ptr = unsafe { NonNull::new_unchecked(&mut *me as *mut T as *mut u8) };
+        if length == self.capacity() {
+            self.data.grow_one();
+        }
 
-        self.data.replace_insert(index, value_ptr);
+        unsafe {
+            if index < length {
+                let value_ptr = self.as_mut_ptr().add(index);
+
+                let _old_value = ptr::read(value_ptr);
+
+                ptr::write(value_ptr, value);
+            } else {
+                let value_ptr = self.as_mut_ptr().add(index);
+
+                // SAFETY: We are pushing to the end of the vector, so no dropping is needed.
+                ptr::write(value_ptr, value);
+
+                // We pushed to the vec instead of replacing a value inside the vec.
+                self.set_len(length + 1);
+            }
+        }
     }
 
     #[inline]
@@ -374,10 +392,22 @@ where
             index_out_of_bounds_failure(index, length);
         }
 
-        let mut me = ManuallyDrop::new(value);
-        let value_ptr = unsafe { NonNull::new_unchecked(&mut *me as *mut T as *mut u8) };
+        if length == self.data.capacity() {
+            self.data.grow_one();
+        }
 
-        self.data.shift_insert(index, value_ptr);
+        unsafe {
+            {
+                let slot_ptr = self.as_mut_ptr().add(index);
+                if index < length {
+                    ptr::copy(slot_ptr, slot_ptr.add(1), length - index);
+                }
+
+                ptr::write(slot_ptr, value);
+            }
+
+            self.set_len(length + 1);
+        }
     }
 
     #[inline]
@@ -394,14 +424,14 @@ where
             index_out_of_bounds_failure(index, length);
         }
 
-        // index < self.len()
         let value = unsafe {
-            let ptr = self.data.get_unchecked(index);
-            let _value = ptr.cast::<T>().read();
+            let _value = ptr::read(self.as_ptr().add(index));
+            let base_ptr = self.as_mut_ptr();
+            ptr::copy(base_ptr.add(length - 1), base_ptr.add(index), 1);
+            self.set_len(length - 1);
+
             _value
         };
-
-        let _ = self.data.swap_remove_forget_unchecked(index);
 
         value
     }
@@ -420,15 +450,20 @@ where
             index_out_of_bounds_failure(index, length);
         }
 
-        // index < self.len()
         let value = unsafe {
-            let ptr = self.data.get_unchecked(index);
-            let _value = ptr.cast::<T>().read();
+            let _value = {
+                let ptr = self.as_mut_ptr().add(index);
+                let __value = ptr::read(ptr);
+
+                ptr::copy(ptr.add(1), ptr, length - index - 1);
+
+                __value
+            };
+
+            self.set_len(length - 1);
+
             _value
         };
-
-        // SAFETY:
-        let _ = self.data.shift_remove_forget_unchecked(index);
 
         value
     }
@@ -579,25 +614,13 @@ where
     #[inline]
     #[must_use]
     pub(crate) fn get(&self, index: usize) -> Option<&T> {
-        if index >= self.data.len() {
-            return None;
-        }
-
-        let ptr = self.get_unchecked(index);
-
-        Some(ptr)
+        self.as_slice().get(index)
     }
 
     #[inline]
     #[must_use]
     pub(crate) fn get_mut(&mut self, index: usize) -> Option<&mut T> {
-        if index >= self.data.len() {
-            return None;
-        }
-
-        let ptr = self.get_mut_unchecked(index);
-
-        Some(ptr)
+        self.as_mut_slice().get_mut(index)
     }
 
     #[inline]
@@ -671,7 +694,7 @@ where
             self.set_len(at);
             other.set_len(other_len);
 
-            core::ptr::copy_nonoverlapping(self.as_ptr().add(at), other.as_mut_ptr(), other.len());
+            ptr::copy_nonoverlapping(self.as_ptr().add(at), other.as_mut_ptr(), other.len());
         }
 
         other
@@ -1100,7 +1123,16 @@ where
 
     #[inline]
     pub(crate) fn truncate(&mut self, len: usize) {
-        self.data.truncate(len);
+        if len > self.len() {
+            return;
+        }
+
+        let remaining_len = self.len() - len;
+        unsafe {
+            let slice = ptr::slice_from_raw_parts_mut(self.as_mut_ptr().add(len), remaining_len);
+            self.set_len(len);
+            ptr::drop_in_place(slice);
+        }
     }
 }
 
@@ -1669,6 +1701,22 @@ where
     unsafe fn set_len(&mut self, new_len: usize) {
         unsafe {
             self.inner.set_len(new_len)
+        }
+    }
+
+    #[inline]
+    #[must_use]
+    pub(crate) unsafe fn get_unchecked(&self, index: usize) -> &T {
+        unsafe {
+            self.inner.get_unchecked(index)
+        }
+    }
+
+    #[inline]
+    #[must_use]
+    pub(crate) unsafe fn get_mut_unchecked(&mut self, index: usize) -> &mut T {
+        unsafe {
+            self.inner.get_mut_unchecked(index)
         }
     }
 

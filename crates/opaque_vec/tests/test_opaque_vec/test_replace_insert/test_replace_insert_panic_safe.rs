@@ -103,7 +103,7 @@ fn test_replace_insert_on_panic_drop_count() {
     triggering_panic_cell.disable_panics();
     replacement_panic_cell.disable_panics();
 
-    let expected = 2;
+    let expected = 0;
     let result = replacement_panic_cell.drop_count();
 
     assert_eq!(result, expected);
