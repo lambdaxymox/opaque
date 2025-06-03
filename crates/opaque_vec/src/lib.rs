@@ -1288,17 +1288,13 @@ where
     }
 }
 
-impl<T, A> TypedProjVecInner<T, A>
+impl<T, A> Clone for TypedProjVecInner<T, A>
 where
-    T: any::Any,
-    A: any::Any + alloc::Allocator + Send + Sync,
+    T: any::Any + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     #[inline]
-    pub(crate) fn clone(&self) -> Self
-    where
-        T: Clone,
-        A: Clone,
-    {
+    fn clone(&self) -> Self {
         let cloned_alloc = self.allocator().clone();
 
         Self::from_slice_proj_in(self.as_slice(), cloned_alloc)
