@@ -3668,6 +3668,11 @@ mod vec_inner_layout_tests {
             mem::offset_of!(OpaqueVecInner, allocator_type_id),
             "Opaque and Typed Projected data types offsets mismatch"
         );
+        assert_eq!(
+            mem::offset_of!(TypedProjVecInner<T, A>, drop_fn),
+            mem::offset_of!(OpaqueVecInner, drop_fn),
+            "Opaque and Typed Projected data types offsets mismatch"
+        );
     }
 
     struct Pair(u8, u64);

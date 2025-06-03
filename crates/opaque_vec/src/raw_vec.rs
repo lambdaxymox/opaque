@@ -6,11 +6,9 @@ use core::ptr::NonNull;
 use std::alloc;
 
 use crate::range_types::UsizeNoHighBit;
-use crate::unique::Unique;
 
 use opaque_alloc::{OpaqueAlloc, TypedProjAlloc};
 use opaque_error::{TryReserveError, TryReserveErrorKind};
-use crate::zst::is_zst;
 
 // One central function responsible for reporting capacity overflows. This will
 // ensure that the code generation related to these panics is minimal as there's
@@ -33,7 +31,7 @@ type Capacity = UsizeNoHighBit;
 const ZERO_CAPACITY: Capacity = unsafe { Capacity::new_unchecked(0) };
 
 pub(crate) unsafe fn new_capacity<T>(capacity: usize) -> Capacity {
-    if is_zst::<T>() {
+    if crate::zst::is_zst::<T>() {
         ZERO_CAPACITY
     } else {
         unsafe { Capacity::new_unchecked(capacity) }
@@ -125,6 +123,20 @@ where
     _marker: marker::PhantomData<(T, A)>,
 }
 
+unsafe impl<T, A> Send for TypedProjRawVec<T, A>
+where
+    T: any::Any + Send,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+}
+
+unsafe impl<T, A> Sync for TypedProjRawVec<T, A>
+where
+    T: any::Any + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+}
+
 impl<T, A> TypedProjRawVec<T, A>
 where
     T: any::Any,
@@ -162,10 +174,6 @@ where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    /*
-    pub(crate) const MIN_NON_ZERO_CAP: usize = min_non_zero_cap(size_of::<T>());
-    */
-
     #[inline]
     pub(crate) fn new_in(alloc: TypedProjAlloc<A>) -> Self {
         let element_layout = alloc::Layout::new::<T>();
@@ -390,7 +398,7 @@ impl Drop for OpaqueRawVec {
 }
 
 struct RawVecMemory {
-    ptr: Unique<u8>,
+    ptr: NonNull<u8>,
     capacity: Capacity,
     layout: alloc::Layout,
     alloc: OpaqueAlloc,
@@ -423,7 +431,7 @@ impl RawVecMemory {
 
     #[inline]
     const fn non_null<T>(&self) -> NonNull<T> {
-        self.ptr.cast().as_non_null_ptr()
+        self.ptr.cast::<T>()
     }
 
     #[inline]
@@ -493,7 +501,7 @@ impl RawVecMemory {
         // matches the size requested. If that ever changes, the capacity
         // here should change to `ptr.len() / mem::size_of::<T>()`.
         Ok(Self {
-            ptr: Unique::from(ptr.cast()),
+            ptr: NonNull::from(ptr.cast()),
             capacity: unsafe { Capacity::new_unchecked(capacity) },
             layout: element_layout,
             alloc: opaque_alloc,
@@ -546,7 +554,7 @@ impl RawVecMemory {
         let opaque_alloc = OpaqueAlloc::from_proj(proj_alloc);
 
         Self {
-            ptr: unsafe { Unique::new_unchecked(ptr) },
+            ptr: unsafe { NonNull::new_unchecked(ptr) },
             capacity,
             layout: element_layout,
             alloc: opaque_alloc,
@@ -561,7 +569,7 @@ impl RawVecMemory {
         let opaque_alloc = OpaqueAlloc::from_proj(proj_alloc);
 
         Self {
-            ptr: Unique::from(ptr),
+            ptr: NonNull::from(ptr),
             capacity,
             layout: element_layout,
             alloc: opaque_alloc,
@@ -665,7 +673,7 @@ impl RawVecMemory {
         // Allocators currently return a `NonNull<[u8]>` whose length matches
         // the size requested. If that ever changes, the capacity here should
         // change to `ptr.len() / mem::size_of::<T>()`.
-        self.ptr = Unique::from(ptr.cast());
+        self.ptr = NonNull::from(ptr.cast());
         self.capacity = unsafe { Capacity::new_unchecked(capacity) };
     }
 
@@ -758,7 +766,7 @@ impl RawVecMemory {
         // None.
         if capacity == 0 {
             unsafe { self.alloc.deallocate(ptr, layout) };
-            self.ptr = unsafe { Unique::new_unchecked(ptr::without_provenance_mut(element_layout.align())) };
+            self.ptr = unsafe { NonNull::new_unchecked(ptr::without_provenance_mut(element_layout.align())) };
             self.capacity = ZERO_CAPACITY;
         } else {
             let ptr = unsafe {
@@ -802,5 +810,98 @@ impl RawVecMemory {
                 alloc::Allocator::deallocate(&mut self.alloc, ptr, layout);
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod raw_vec_layout_tests {
+    use super::*;
+    use core::mem;
+
+    fn run_test_opaque_raw_vec_match_sizes<T, A>()
+    where
+        T: any::Any,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let expected = mem::size_of::<TypedProjRawVec<T, A>>();
+        let result = mem::size_of::<OpaqueRawVec>();
+
+        assert_eq!(result, expected, "Opaque and Typed Projected data types size mismatch");
+    }
+
+    fn run_test_opaque_raw_vec_match_alignments<T, A>()
+    where
+        T: any::Any,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let expected = mem::align_of::<TypedProjRawVec<T, A>>();
+        let result = mem::align_of::<OpaqueRawVec>();
+
+        assert_eq!(result, expected, "Opaque and Typed Projected data types alignment mismatch");
+    }
+
+    fn run_test_opaque_raw_vec_match_offsets<T, A>()
+    where
+        T: any::Any,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let expected = mem::offset_of!(TypedProjRawVec<T, A>, inner);
+        let result = mem::offset_of!(OpaqueRawVec, inner);
+
+        assert_eq!(result, expected, "Opaque and Typed Projected data types offsets mismatch");
+    }
+
+    struct Pair(u8, u64);
+
+    struct DummyAlloc {}
+
+    unsafe impl alloc::Allocator for DummyAlloc {
+        fn allocate(&self, layout: alloc::Layout) -> Result<NonNull<[u8]>, alloc::AllocError> {
+            alloc::Global.allocate(layout)
+        }
+        unsafe fn deallocate(&self, ptr: NonNull<u8>, layout: alloc::Layout) {
+            unsafe {
+                alloc::Global.deallocate(ptr, layout)
+            }
+        }
+    }
+
+    macro_rules! layout_tests {
+        ($module_name:ident, $element_typ:ty, $alloc_typ:ty) => {
+            mod $module_name {
+                use super::*;
+
+                #[test]
+                fn test_opaque_raw_vec_layout_match_sizes() {
+                    run_test_opaque_raw_vec_match_sizes::<$element_typ, $alloc_typ>();
+                }
+
+                #[test]
+                fn test_opaque_raw_vec_layout_match_alignments() {
+                    run_test_opaque_raw_vec_match_alignments::<$element_typ, $alloc_typ>();
+                }
+
+                #[test]
+                fn test_opaque_raw_vec_layout_match_offsets() {
+                    run_test_opaque_raw_vec_match_offsets::<$element_typ, $alloc_typ>();
+                }
+            }
+        };
+    }
+
+    layout_tests!(u8_global, u8, alloc::Global);
+    layout_tests!(pair_dummy_alloc, Pair, DummyAlloc);
+    layout_tests!(unit_zst_dummy_alloc, (), DummyAlloc);
+}
+
+#[cfg(test)]
+mod assert_send_sync {
+    use super::*;
+
+    #[test]
+    fn test_assert_send_sync() {
+        fn assert_send_sync<T: Send + Sync>() {}
+
+        assert_send_sync::<TypedProjRawVec<i32, alloc::Global>>();
     }
 }
