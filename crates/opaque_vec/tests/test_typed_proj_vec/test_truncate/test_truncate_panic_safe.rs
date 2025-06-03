@@ -84,7 +84,7 @@ impl<T> Drop for PanicCell<T> {
 
 #[test]
 #[cfg_attr(not(panic = "unwind"), ignore = "test requires unwinding support")]
-fn test_truncate_on_panic_drop_count() {
+fn test_truncate_on_panic_drop_count1() {
     let mut triggering_panic_cell = PanicCell::new((), 0);
     let mut vec = TypedProjVec::new();
 

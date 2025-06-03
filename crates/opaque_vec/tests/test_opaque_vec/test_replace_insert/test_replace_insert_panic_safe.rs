@@ -84,7 +84,7 @@ impl<T> Drop for PanicCell<T> {
 
 #[test]
 #[cfg_attr(not(panic = "unwind"), ignore = "test requires unwinding support")]
-fn test_replace_insert_on_panic_drop_count() {
+fn test_replace_insert_on_panic_drop_count1() {
     let mut triggering_panic_cell = PanicCell::new((), 0);
     let mut replacement_panic_cell = PanicCell::new((), 2);
     let mut vec = OpaqueVec::new::<PanicCell<()>>();
@@ -103,10 +103,95 @@ fn test_replace_insert_on_panic_drop_count() {
     triggering_panic_cell.disable_panics();
     replacement_panic_cell.disable_panics();
 
-    let expected = 0;
-    let result = replacement_panic_cell.drop_count();
+    assert_eq!(replacement_panic_cell.drop_count(), 0);
+}
 
-    assert_eq!(result, expected);
+#[test]
+#[cfg_attr(not(panic = "unwind"), ignore = "test requires unwinding support")]
+fn test_replace_insert_on_panic_drop_count2() {
+    let mut triggering_panic_cell = PanicCell::new((), 0);
+    let mut replacement_panic_cell = PanicCell::new((), 2);
+    let mut panic_cell = PanicCell::new((), 2);
+    let mut vec = OpaqueVec::new::<PanicCell<()>>();
+
+    vec.replace_insert::<PanicCell<()>, alloc::Global>(0, triggering_panic_cell.clone());
+    vec.replace_insert::<PanicCell<()>, alloc::Global>(1, panic_cell.clone());
+
+    assert_eq!(triggering_panic_cell.drop_count(), 0);
+    assert_eq!(replacement_panic_cell.drop_count(), 0);
+    assert_eq!(panic_cell.drop_count(), 0);
+
+    let result = panic::catch_unwind(AssertUnwindSafe(|| {
+        vec.replace_insert::<PanicCell<()>, alloc::Global>(0, replacement_panic_cell.clone());
+    }));
+
+    assert!(result.is_err());
+
+    triggering_panic_cell.disable_panics();
+    replacement_panic_cell.disable_panics();
+    panic_cell.disable_panics();
+
+    assert_eq!(replacement_panic_cell.drop_count(), 0);
+    assert_eq!(panic_cell.drop_count(), 0);
+}
+
+#[test]
+#[cfg_attr(not(panic = "unwind"), ignore = "test requires unwinding support")]
+fn test_replace_insert_on_panic_drop_count3() {
+    let mut triggering_panic_cell = PanicCell::new((), 0);
+    let mut replacement_panic_cell = PanicCell::new((), 2);
+    let mut panic_cell = PanicCell::new((), 2);
+    let mut vec = OpaqueVec::new::<PanicCell<()>>();
+
+    vec.replace_insert::<PanicCell<()>, alloc::Global>(0, panic_cell.clone());
+    vec.replace_insert::<PanicCell<()>, alloc::Global>(1, triggering_panic_cell.clone());
+
+    assert_eq!(triggering_panic_cell.drop_count(), 0);
+    assert_eq!(replacement_panic_cell.drop_count(), 0);
+    assert_eq!(panic_cell.drop_count(), 0);
+
+    let result = panic::catch_unwind(AssertUnwindSafe(|| {
+        vec.replace_insert::<PanicCell<()>, alloc::Global>(1, replacement_panic_cell.clone());
+    }));
+
+    assert!(result.is_err());
+
+    triggering_panic_cell.disable_panics();
+    replacement_panic_cell.disable_panics();
+    panic_cell.disable_panics();
+
+    assert_eq!(replacement_panic_cell.drop_count(), 0);
+    assert_eq!(panic_cell.drop_count(), 0);
+}
+
+#[test]
+#[cfg_attr(not(panic = "unwind"), ignore = "test requires unwinding support")]
+fn test_replace_insert_on_panic_drop_count4() {
+    let mut triggering_panic_cell = PanicCell::new((), 0);
+    let mut replacement_panic_cell = PanicCell::new((), 2);
+    let mut panic_cell = PanicCell::new((), 2);
+    let mut vec = OpaqueVec::new::<PanicCell<()>>();
+
+    vec.replace_insert::<PanicCell<()>, alloc::Global>(0, panic_cell.clone());
+    vec.replace_insert::<PanicCell<()>, alloc::Global>(1, triggering_panic_cell.clone());
+    vec.replace_insert::<PanicCell<()>, alloc::Global>(2, panic_cell.clone());
+
+    assert_eq!(triggering_panic_cell.drop_count(), 0);
+    assert_eq!(replacement_panic_cell.drop_count(), 0);
+    assert_eq!(panic_cell.drop_count(), 0);
+
+    let result = panic::catch_unwind(AssertUnwindSafe(|| {
+        vec.replace_insert::<PanicCell<()>, alloc::Global>(1, replacement_panic_cell.clone());
+    }));
+
+    assert!(result.is_err());
+
+    triggering_panic_cell.disable_panics();
+    replacement_panic_cell.disable_panics();
+    panic_cell.disable_panics();
+
+    assert_eq!(replacement_panic_cell.drop_count(), 0);
+    assert_eq!(panic_cell.drop_count(), 0);
 }
 
 #[test]
