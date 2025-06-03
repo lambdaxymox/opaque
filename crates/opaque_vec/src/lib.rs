@@ -23,7 +23,6 @@ use crate::raw_vec::{OpaqueRawVec, TypedProjRawVec};
 use core::any;
 use core::cmp;
 use core::hash;
-use core::marker;
 use core::mem;
 use core::ops;
 use core::slice;
