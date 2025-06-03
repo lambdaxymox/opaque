@@ -3,27 +3,34 @@
 #![feature(alloc_layout_extra)]
 #![feature(optimize_attribute)]
 #![feature(slice_range)]
+#![feature(structural_match)]
 mod into_iter;
 mod drain;
 mod splice;
 mod extract_if;
 mod zst;
 
+mod raw_vec;
+mod range_types;
+mod unique;
+
 pub use crate::into_iter::*;
 pub use crate::drain::*;
 pub use crate::splice::*;
 pub use crate::extract_if::*;
 
+use crate::raw_vec::{OpaqueRawVec, TypedProjRawVec};
+
 use core::any;
 use core::cmp;
 use core::hash;
+use core::marker;
 use core::mem;
 use core::ops;
 use core::slice;
 use core::fmt;
 use core::ptr;
 use core::ptr::NonNull;
-use core::marker;
 use std::mem::{
     ManuallyDrop,
     MaybeUninit,
@@ -31,19 +38,28 @@ use std::mem::{
 use std::alloc;
 use std::borrow;
 
-use opaque_blob_vec::{OpaqueBlobVec, TypedProjBlobVec};
 use opaque_alloc::TypedProjAlloc;
 use opaque_error;
+
+unsafe fn drop_fn<T>(value: NonNull<u8>) {
+    let to_drop = value.as_ptr() as *mut T;
+
+    unsafe {
+        ptr::drop_in_place(to_drop)
+    }
+}
 
 #[repr(C)]
 struct TypedProjVecInner<T, A>
 where
+    T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    data: TypedProjBlobVec<A>,
+    data: TypedProjRawVec<T, A>,
+    length: usize,
     element_type_id: any::TypeId,
     allocator_type_id: any::TypeId,
-    _marker: marker::PhantomData<(T, A)>,
+    drop_fn: unsafe fn(NonNull<u8>),
 }
 
 impl<T, A> TypedProjVecInner<T, A>
@@ -55,103 +71,61 @@ where
     #[must_use]
     #[track_caller]
     pub(crate) fn new_proj_in(proj_alloc: TypedProjAlloc<A>) -> Self {
-        unsafe fn drop_fn<T>(value: NonNull<u8>) {
-            let to_drop = value.as_ptr() as *mut T;
-
-            unsafe {
-                core::ptr::drop_in_place(to_drop)
-            }
-        }
-
-        let element_layout = alloc::Layout::new::<T>();
-        let drop_fn = Some(drop_fn::<T> as unsafe fn(NonNull<u8>));
-        let data = TypedProjBlobVec::new_in(proj_alloc, element_layout, drop_fn);
+        let data = TypedProjRawVec::new_in(proj_alloc);
+        let length = 0;
         let element_type_id = any::TypeId::of::<T>();
         let allocator_type_id = any::TypeId::of::<A>();
+        let drop_fn = drop_fn::<T> as unsafe fn(NonNull<u8>);
 
-        Self { data, element_type_id, allocator_type_id, _marker: marker::PhantomData, }
+        Self { data, length, element_type_id, allocator_type_id, drop_fn, }
     }
 
     #[inline]
     #[must_use]
     #[track_caller]
     pub(crate) fn with_capacity_proj_in(capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self {
-        unsafe fn drop_fn<T>(value: NonNull<u8>) {
-            let to_drop = value.as_ptr() as *mut T;
-            unsafe {
-                core::ptr::drop_in_place(to_drop)
-            }
-        }
-
-        let element_layout = alloc::Layout::new::<T>();
-        let drop_fn = Some(drop_fn::<T> as unsafe fn(NonNull<u8>));
-        let data = TypedProjBlobVec::with_capacity_in(capacity, proj_alloc, element_layout, drop_fn);
+        let data = TypedProjRawVec::with_capacity_in(capacity, proj_alloc);
+        let length = 0;
         let element_type_id = any::TypeId::of::<T>();
         let allocator_type_id = any::TypeId::of::<A>();
+        let drop_fn = drop_fn::<T> as unsafe fn(NonNull<u8>);
 
-        Self { data, element_type_id, allocator_type_id, _marker: marker::PhantomData, }
+        Self { data, length, element_type_id, allocator_type_id, drop_fn, }
     }
 
     #[inline]
     pub(crate) fn try_with_capacity_proj_in(capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Result<Self, opaque_error::TryReserveError> {
-        unsafe fn drop_fn<T>(value: NonNull<u8>) {
-            let to_drop = value.as_ptr() as *mut T;
-
-            unsafe {
-                core::ptr::drop_in_place(to_drop)
-            }
-        }
-
-        let element_layout = alloc::Layout::new::<T>();
-        let drop_fn = Some(drop_fn::<T> as unsafe fn(NonNull<u8>));
-        let data = TypedProjBlobVec::try_with_capacity_in(capacity, proj_alloc, element_layout, drop_fn)?;
+        let data = TypedProjRawVec::try_with_capacity_in(capacity, proj_alloc)?;
+        let length = 0;
         let element_type_id = any::TypeId::of::<T>();
         let allocator_type_id = any::TypeId::of::<A>();
+        let drop_fn = drop_fn::<T> as unsafe fn(NonNull<u8>);
 
-        Ok(Self { data, element_type_id, allocator_type_id, _marker: marker::PhantomData, })
+        Ok(Self { data, length, element_type_id, allocator_type_id, drop_fn, })
     }
 
     #[inline]
     pub(crate) unsafe fn from_raw_parts_proj_in(ptr: *mut T, length: usize, capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self {
-        unsafe fn drop_fn<T>(value: NonNull<u8>) {
-            let to_drop = value.as_ptr() as *mut T;
-            unsafe {
-                core::ptr::drop_in_place(to_drop)
-            }
-        }
-
-        let element_layout = alloc::Layout::new::<T>();
-        let drop_fn = Some(drop_fn::<T> as unsafe fn(NonNull<u8>));
-        let ptr_bytes = ptr.cast::<u8>();
         let data = unsafe {
-            TypedProjBlobVec::from_raw_parts_in(ptr_bytes, length, capacity, proj_alloc, element_layout, drop_fn)
+            TypedProjRawVec::from_raw_parts_in(ptr, capacity, proj_alloc)
         };
         let element_type_id = any::TypeId::of::<T>();
         let allocator_type_id = any::TypeId::of::<A>();
+        let drop_fn = drop_fn::<T> as unsafe fn(NonNull<u8>);
 
-        Self { data, element_type_id, allocator_type_id, _marker: marker::PhantomData, }
+        Self { data, length, element_type_id, allocator_type_id, drop_fn, }
     }
 
     #[inline]
     pub(crate) unsafe fn from_parts_proj_in(ptr: NonNull<T>, length: usize, capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self {
-        unsafe fn drop_fn<T>(value: NonNull<u8>) {
-            let to_drop = value.as_ptr() as *mut T;
-
-            unsafe {
-                core::ptr::drop_in_place(to_drop)
-            }
-        }
-
-        let element_layout = alloc::Layout::new::<T>();
-        let drop_fn = Some(drop_fn::<T> as unsafe fn(NonNull<u8>));
-        let ptr_bytes = ptr.cast::<u8>();
         let data = unsafe {
-            TypedProjBlobVec::from_parts_in(ptr_bytes, length, capacity, proj_alloc, element_layout, drop_fn)
+            TypedProjRawVec::from_non_null_in(ptr, capacity, proj_alloc)
         };
         let element_type_id = any::TypeId::of::<T>();
         let allocator_type_id = any::TypeId::of::<A>();
+        let drop_fn = drop_fn::<T> as unsafe fn(NonNull<u8>);
 
-        Self { data, element_type_id, allocator_type_id, _marker: marker::PhantomData, }
+        Self { data, length, element_type_id, allocator_type_id, drop_fn, }
     }
 
     #[inline]
@@ -248,17 +222,12 @@ where
 
     #[inline]
     pub(crate) const fn is_empty(&self) -> bool {
-        self.data.is_empty()
+        self.len() == 0
     }
 
     #[inline]
     pub(crate) const fn len(&self) -> usize {
-        self.data.len()
-    }
-
-    #[inline]
-    pub(crate) fn as_byte_slice(&self) -> &[u8] {
-        self.data.as_byte_slice()
+        self.length
     }
 }
 
@@ -280,7 +249,9 @@ where
 {
     #[inline]
     unsafe fn set_len(&mut self, new_len: usize) {
-        self.data.set_len(new_len);
+        debug_assert!(new_len <= self.capacity());
+
+        self.length = new_len;
     }
 
     #[inline]
@@ -299,7 +270,7 @@ where
         unsafe {
             self.as_slice().get_unchecked(index)
         }
-}
+    }
 
     #[inline]
     #[must_use]
@@ -327,12 +298,12 @@ where
 
     #[inline]
     pub(crate) fn pop(&mut self) -> Option<T> {
-        if self.data.len() == 0 {
+        if self.len() == 0 {
             None
         } else {
             let last_value = unsafe {
-                self.set_len(self.data.len() - 1);
-                core::hint::assert_unchecked(self.data.len() < self.capacity());
+                self.set_len(self.len() - 1);
+                core::hint::assert_unchecked(self.len() < self.capacity());
 
                 ptr::read(self.as_ptr().add(self.len()))
             };
@@ -478,25 +449,25 @@ where
 
     #[inline]
     pub const fn as_ptr(&self) -> *const T {
-        self.data.as_ptr() as *const T
+        self.data.ptr() as *const T
     }
 
     #[inline]
     pub(crate) const fn as_mut_ptr(&mut self) -> *mut T {
-        self.data.as_mut_ptr() as *mut T
+        self.data.ptr() as *mut T
     }
 
     #[inline]
     pub(crate) const fn as_non_null(&mut self) -> NonNull<T> {
         // SAFETY: A [`TypedProjVecInner`] always holds a non-null pointer.
-        self.data.as_non_null().cast::<T>()
+        self.data.non_null()
     }
 
     #[inline]
     pub(crate) fn as_slice(&self) -> &[T] {
         unsafe {
-            let data_ptr = self.data.as_ptr() as *const T;
-            let len = self.data.len();
+            let data_ptr = self.as_ptr();
+            let len = self.len();
 
             slice::from_raw_parts(data_ptr, len)
         }
@@ -505,8 +476,8 @@ where
     #[inline]
     pub(crate) fn as_mut_slice(&mut self) -> &mut [T] {
         unsafe {
-            let data_ptr = self.data.as_mut_ptr() as *mut T;
-            let len = self.data.len();
+            let data_ptr = self.as_mut_ptr();
+            let len = self.len();
 
             slice::from_raw_parts_mut(data_ptr, len)
         }
@@ -625,7 +596,7 @@ where
 
     #[inline]
     pub(crate) fn push_within_capacity(&mut self, value: T) -> Result<(), T> {
-        if self.data.len() == self.data.capacity() {
+        if self.len() == self.capacity() {
             return Err(value);
         }
 
@@ -636,12 +607,22 @@ where
 
     #[inline]
     #[track_caller]
+    unsafe fn append_elements(&mut self, other: *const [T]) {
+        let count = other.len();
+        self.reserve(count);
+        let length = self.len();
+        unsafe {
+            ptr::copy_nonoverlapping(other as *const T, self.as_mut_ptr().add(length), count)
+        };
+
+        self.length += count;
+    }
+
+    #[inline]
+    #[track_caller]
     pub(crate) fn append(&mut self, other: &mut Self) {
         unsafe {
-            let ptr = NonNull::new_unchecked(other.as_mut_slice().as_mut_ptr().cast::<u8>());
-            let count = other.len();
-
-            self.data.append(ptr, count);
+            self.append_elements(other.as_slice() as _);
             other.set_len(0);
         }
     }
@@ -722,45 +703,52 @@ where
 {
     #[inline]
     pub(crate) fn try_reserve(&mut self, additional: usize) -> Result<(), opaque_error::TryReserveError> {
-        self.data.try_reserve(additional)
+        self.data.try_reserve(self.len(), additional)
     }
 
     #[inline]
     pub(crate) fn try_reserve_exact(&mut self, additional: usize) -> Result<(), opaque_error::TryReserveError> {
-        self.data.try_reserve_exact(additional)
+        self.data.try_reserve_exact(self.len(), additional)
     }
 
     #[inline]
     #[track_caller]
     pub(crate) fn reserve(&mut self, additional: usize) {
-        self.data.reserve(additional);
+        self.data.reserve(self.len(), additional);
     }
 
     #[inline]
     #[track_caller]
     pub(crate) fn reserve_exact(&mut self, additional: usize) {
-        self.data.reserve_exact(additional);
+        self.data.reserve_exact(self.len(), additional);
     }
 
     #[inline]
     #[track_caller]
     pub(crate) fn shrink_to_fit(&mut self) {
-        self.data.shrink_to_fit();
+        self.data.shrink_to_fit(self.capacity());
     }
 
     #[inline]
     #[track_caller]
     pub(crate) fn shrink_to(&mut self, min_capacity: usize) {
-        self.data.shrink_to(min_capacity);
+        if self.capacity() > min_capacity {
+            self.data.shrink_to_fit(cmp::max(self.len(), min_capacity));
+        }
     }
-
+}
+impl<T, A> TypedProjVecInner<T, A>
+where
+    T: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
     #[inline]
     pub fn clear(&mut self) {
         let elements: *mut [T] = self.as_mut_slice();
 
         unsafe {
             self.set_len(0);
-            core::ptr::drop_in_place(elements);
+            ptr::drop_in_place(elements);
         }
     }
 }
@@ -775,9 +763,60 @@ where
     where
         T: Clone,
     {
-        let value_ptr = unsafe { NonNull::new_unchecked(&value as *const T as *mut T as *mut u8) };
+        struct SetLenOnDrop<'a> {
+            len: &'a mut usize,
+            local_len: usize,
+        }
 
-        self.data.extend_with(count, value_ptr);
+        impl<'a> SetLenOnDrop<'a> {
+            #[inline]
+            fn new(len: &'a mut usize) -> Self {
+                SetLenOnDrop { local_len: *len, len }
+            }
+
+            #[inline]
+            fn increment_len(&mut self, increment: usize) {
+                self.local_len += increment;
+            }
+
+            #[inline]
+            fn current_len(&self) -> usize {
+                self.local_len
+            }
+        }
+
+        impl Drop for SetLenOnDrop<'_> {
+            #[inline]
+            fn drop(&mut self) {
+                *self.len = self.local_len;
+            }
+        }
+
+        self.reserve(count);
+
+        unsafe {
+            let mut ptr = self.as_mut_ptr().add(self.len());
+            // Use SetLenOnDrop to work around bug where compiler
+            // might not realize the store through `ptr` through self.set_len()
+            // don't alias.
+            let mut local_len = SetLenOnDrop::new(&mut self.length);
+
+            // Write all elements except the last one
+            for _ in 1..count {
+                ptr::write(ptr, value.clone());
+                ptr = ptr.add(1);
+                // Increment the length in every step in case clone() panics
+                local_len.increment_len(1);
+            }
+
+            if count > 0 {
+                // We can write the last element directly without cloning needlessly
+                ptr::write(ptr, value);
+                local_len.increment_len(1);
+            }
+
+            // len set by scope guard
+        }
     }
 
     #[inline]
@@ -1168,60 +1207,11 @@ where
 
 impl<T, A> TypedProjVecInner<T, A>
 where
-    T: any::Any,
-    A: any::Any + alloc::Allocator + Send + Sync,
-{
-    #[inline]
-    pub(crate) fn clone(&self) -> Self
-    where
-        T: Clone,
-        A: Clone,
-    {
-        unsafe fn drop_fn<T>(value: NonNull<u8>) {
-            let to_drop = value.as_ptr() as *mut T;
-
-            unsafe {
-                core::ptr::drop_in_place(to_drop)
-            }
-        }
-
-        let new_data = {
-            let new_alloc = {
-                let proj_old_alloc = self.data.allocator();
-                Clone::clone(proj_old_alloc)
-            };
-            let new_element_layout = self.data.element_layout();
-            let new_capacity = self.data.capacity();
-            let new_drop_fn = Some(drop_fn::<T> as unsafe fn(NonNull<u8>));
-            let new_data = unsafe {
-                let mut _new_data = TypedProjBlobVec::with_capacity_in(new_capacity, new_alloc, new_element_layout, new_drop_fn);
-                let length = self.data.len();
-                let old_data_ptr = NonNull::new_unchecked(self.data.as_ptr() as *mut u8);
-                _new_data.append(old_data_ptr, length);
-                _new_data
-            };
-
-            new_data
-        };
-        let new_type_id = self.element_type_id;
-        let new_alloc_type_id = self.allocator_type_id;
-
-        Self {
-            data: new_data,
-            element_type_id: new_type_id,
-            allocator_type_id: new_alloc_type_id,
-            _marker: marker::PhantomData,
-        }
-    }
-}
-
-impl<T, A> TypedProjVecInner<T, A>
-where
     T: any::Any + Clone,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     #[inline]
-    pub(crate) fn from_slice_in(slice: &[T], alloc: A) -> TypedProjVecInner<T, A> {
+    pub(crate) fn from_slice_proj_in(slice: &[T], proj_alloc: TypedProjAlloc<A>) -> TypedProjVecInner<T, A> {
         struct DropGuard<'a, T, A>
         where
             T: any::Any,
@@ -1246,7 +1236,7 @@ where
             }
         }
 
-        let mut vec: TypedProjVecInner<T, A> = TypedProjVecInner::with_capacity_in(slice.len(), alloc);
+        let mut vec: TypedProjVecInner<T, A> = TypedProjVecInner::with_capacity_proj_in(slice.len(), proj_alloc);
         let mut guard = DropGuard {
             vec: &mut vec,
             num_init: 0,
@@ -1269,6 +1259,13 @@ where
 
         vec
     }
+
+    #[inline]
+    pub(crate) fn from_slice_in(slice: &[T], alloc: A) -> TypedProjVecInner<T, A> {
+        let proj_alloc = TypedProjAlloc::new(alloc);
+
+        Self::from_slice_proj_in(slice, proj_alloc)
+    }
 }
 
 impl<T, A> TypedProjVecInner<T, A>
@@ -1290,6 +1287,40 @@ where
         };
 
         vec
+    }
+}
+
+impl<T, A> TypedProjVecInner<T, A>
+where
+    T: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    #[inline]
+    pub(crate) fn clone(&self) -> Self
+    where
+        T: Clone,
+        A: Clone,
+    {
+        let cloned_alloc = self.allocator().clone();
+
+        Self::from_slice_proj_in(self.as_slice(), cloned_alloc)
+    }
+}
+
+impl<T, A> Drop for TypedProjVecInner<T, A>
+where
+    T: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    fn drop(&mut self) {
+        unsafe {
+            // use drop for [T]
+            // use a raw slice to refer to the elements of the vector as weakest necessary type;
+            // could avoid questions of validity in certain cases
+            ptr::drop_in_place(ptr::slice_from_raw_parts_mut(self.as_mut_ptr(), self.length))
+        }
+
+        // TypedProjRawVec handles deallocation
     }
 }
 
@@ -1408,9 +1439,11 @@ where
 
 #[repr(C)]
 struct OpaqueVecInner {
-    data: OpaqueBlobVec,
+    data: OpaqueRawVec,
+    length: usize,
     element_type_id: any::TypeId,
     allocator_type_id: any::TypeId,
+    drop_fn: unsafe fn(NonNull<u8>),
 }
 
 impl OpaqueVecInner {
@@ -1447,12 +1480,7 @@ impl OpaqueVecInner {
         debug_assert_eq!(self.element_type_id, any::TypeId::of::<T>());
         debug_assert_eq!(self.allocator_type_id, any::TypeId::of::<A>());
 
-        TypedProjVecInner {
-            data: self.data.into_proj::<A>(),
-            element_type_id: self.element_type_id,
-            allocator_type_id: self.allocator_type_id,
-            _marker: marker::PhantomData,
-        }
+        unsafe { mem::transmute(self) }
     }
 
     #[inline(always)]
@@ -1461,11 +1489,7 @@ impl OpaqueVecInner {
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        Self {
-            data: OpaqueBlobVec::from_proj(proj_self.data),
-            element_type_id: proj_self.element_type_id,
-            allocator_type_id: proj_self.allocator_type_id,
-        }
+        unsafe { mem::transmute(proj_self) }
     }
 }
 
@@ -1494,23 +1518,77 @@ impl OpaqueVecInner {
 
     #[inline]
     pub(crate) const fn len(&self) -> usize {
-        self.data.len()
+        self.length
     }
 
     #[inline]
     pub(crate) const fn is_empty(&self) -> bool {
-        self.data.is_empty()
+        self.len() == 0
     }
+}
 
-    #[inline]
-    pub(crate) fn as_byte_slice(&self) -> &[u8] {
-        self.data.as_byte_slice()
+impl OpaqueVecInner {
+    fn clear(&mut self) {
+        struct SetLenOnDrop<'a> {
+            length: &'a mut usize,
+            local_length: usize,
+        }
+
+        impl<'a> SetLenOnDrop<'a> {
+            #[inline]
+            fn new(length: &'a mut usize) -> Self {
+                Self {
+                    local_length: *length,
+                    length,
+                }
+            }
+
+            #[inline]
+            fn decrement(&mut self) {
+                self.local_length -= 1;
+            }
+
+            #[inline]
+            fn current(&self) -> usize {
+                self.local_length
+            }
+        }
+
+        impl Drop for SetLenOnDrop<'_> {
+            #[inline]
+            fn drop(&mut self) {
+                *self.length = self.local_length;
+            }
+        }
+
+        let len = self.length;
+        let ptr = self.data.as_non_null();
+        let mut length_on_drop = SetLenOnDrop::new(&mut self.length);
+        let size = self.data.element_layout().size();
+        for i in 0..len {
+            length_on_drop.decrement();
+            let element = unsafe { ptr.byte_add(i * size) };
+            unsafe {
+                (self.drop_fn)(element);
+            }
+        }
+
+        debug_assert_eq!(length_on_drop.current(), 0);
+        // Vector length set by drop guard.
+    }
+}
+
+impl Drop for  OpaqueVecInner {
+    fn drop(&mut self) {
+        self.clear();
+        // `OpaqueRawVec` deallocates `self.data` from memory.
     }
 }
 
 #[repr(transparent)]
 pub struct TypedProjVec<T, A = alloc::Global>
 where
+    T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     inner: TypedProjVecInner<T, A>,
@@ -1674,10 +1752,6 @@ where
     #[inline]
     pub const fn len(&self) -> usize {
         self.inner.len()
-    }
-
-    pub fn as_byte_slice(&self) -> &[u8] {
-        self.inner.as_byte_slice()
     }
 }
 
@@ -2827,11 +2901,6 @@ impl OpaqueVec {
     #[inline]
     pub const fn len(&self) -> usize {
         self.inner.len()
-    }
-
-    #[inline]
-    pub fn as_byte_slice(&self) -> &[u8] {
-        self.inner.as_byte_slice()
     }
 }
 

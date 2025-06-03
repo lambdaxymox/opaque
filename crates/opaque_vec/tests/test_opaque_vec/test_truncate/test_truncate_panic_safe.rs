@@ -1,4 +1,4 @@
-use opaque_vec::OpaqueVec;
+use opaque_vec::{OpaqueVec, TypedProjVec};
 
 use std::alloc;
 use std::cell::RefCell;
@@ -132,6 +132,38 @@ fn test_truncate_on_panic_drop_count2() {
 
     assert_eq!(triggering_panic_cell.drop_count(), 2);
     assert_eq!(panic_cell.drop_count(), 2);
+}
+
+#[test]
+#[cfg_attr(not(panic = "unwind"), ignore = "test requires unwinding support")]
+fn test_truncate_on_panic_drop_count3() {
+    let mut triggering_panic_cell = PanicCell::new((), 0);
+    let mut panic_cell = PanicCell::new((), 4);
+    let mut vec = OpaqueVec::new::<PanicCell<()>>();
+
+    vec.push::<PanicCell<()>, alloc::Global>(panic_cell.clone());
+    vec.push::<PanicCell<()>, alloc::Global>(triggering_panic_cell.clone());
+    vec.push::<PanicCell<()>, alloc::Global>(panic_cell.clone());
+
+    assert_eq!(triggering_panic_cell.drop_count(), 0);
+    assert_eq!(panic_cell.drop_count(), 0);
+
+    vec.truncate::<PanicCell<()>, alloc::Global>(2);
+
+    assert_eq!(triggering_panic_cell.drop_count(), 0);
+    assert_eq!(panic_cell.drop_count(), 2);
+
+    let result = panic::catch_unwind(AssertUnwindSafe(|| {
+        vec.truncate::<PanicCell<()>, alloc::Global>(0);
+    }));
+
+    assert!(result.is_err());
+
+    triggering_panic_cell.disable_panics();
+    panic_cell.disable_panics();
+
+    assert_eq!(triggering_panic_cell.drop_count(), 2);
+    assert_eq!(panic_cell.drop_count(), 4);
 }
 
 #[test]

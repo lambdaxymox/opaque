@@ -1461,6 +1461,8 @@ where
 
 struct RefMut<'a, K, V, A>
 where
+    K: any::Any,
+    V: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     indices: &'a mut hashbrown::HashTable<usize>,
@@ -1656,6 +1658,8 @@ where
 #[repr(C)]
 pub(crate) struct TypedProjIndexMapCore<K, V, A>
 where
+    K: any::Any,
+    V: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     indices: hashbrown::HashTable<usize>,
@@ -2013,12 +2017,12 @@ where
         let eq = equivalent(&key, self.entries.as_slice());
         let hasher = get_hash(self.entries.as_slice());
         match self.indices.entry(hash.get(), eq, hasher) {
-            hashbrown::hash_table::Entry::Occupied(entry) => {
+            hash_table::Entry::Occupied(entry) => {
                 let i = *entry.get();
 
                 (i, Some(mem::replace(&mut self.as_entries_mut()[i].value, value)))
             }
-            hashbrown::hash_table::Entry::Vacant(entry) => {
+            hash_table::Entry::Vacant(entry) => {
                 let i = self.entries.len();
                 entry.insert(i);
                 self.push_entry(hash, key, value);
@@ -2493,6 +2497,8 @@ mod index_map_core_assert_send_sync {
 
 pub enum Entry<'a, K, V, A = alloc::Global>
 where
+    K: any::Any,
+    V: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     Occupied(OccupiedEntry<'a, K, V, A>),
@@ -2598,10 +2604,12 @@ where
 
 pub(crate) struct OccupiedEntry<'a, K, V, A = alloc::Global>
 where
+    K: any::Any,
+    V: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     entries: &'a mut TypedProjVec<Bucket<K, V>, A>,
-    index: hashbrown::hash_table::OccupiedEntry<'a, usize>,
+    index: hash_table::OccupiedEntry<'a, usize>,
 }
 
 impl<'a, K, V, A> OccupiedEntry<'a, K, V, A>
@@ -2610,7 +2618,7 @@ where
     V: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    pub(crate) fn new(entries: &'a mut TypedProjVec<Bucket<K, V>, A>, index: hashbrown::hash_table::OccupiedEntry<'a, usize>) -> Self {
+    pub(crate) fn new(entries: &'a mut TypedProjVec<Bucket<K, V>, A>, index: hash_table::OccupiedEntry<'a, usize>) -> Self {
         Self {
             entries,
             index,
@@ -2734,6 +2742,8 @@ where
 
 pub(crate) struct VacantEntry<'a, K, V, A = alloc::Global>
 where
+    K: any::Any,
+    V: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     map: RefMut<'a, K, V, A>,
@@ -2805,6 +2815,8 @@ where
 
 pub(crate) struct IndexedEntry<'a, K, V, A = alloc::Global>
 where
+    K: any::Any,
+    V: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     map: RefMut<'a, K, V, A>,
@@ -2931,6 +2943,8 @@ mod entry_assert_send_sync {
 #[repr(C)]
 pub(crate) struct TypedProjIndexMapInner<K, V, S, A>
 where
+    K: any::Any,
+    V: any::Any,
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync,

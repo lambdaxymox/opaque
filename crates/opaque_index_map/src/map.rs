@@ -1221,6 +1221,8 @@ where
 
 pub enum Entry<'a, K, V, A = alloc::Global>
 where
+    K: any::Any,
+    V: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     Occupied(OccupiedEntry<'a, K, V, A>),
@@ -1326,6 +1328,8 @@ where
 
 pub struct OccupiedEntry<'a, K, V, A = alloc::Global>
 where
+    K: any::Any,
+    V: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     inner: map_inner::OccupiedEntry<'a, K, V, A>,
@@ -1427,6 +1431,8 @@ where
 
 pub struct VacantEntry<'a, K, V, A = alloc::Global>
 where
+    K: any::Any,
+    V: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     inner: map_inner::VacantEntry<'a, K, V, A>,
@@ -1494,6 +1500,8 @@ where
 
 pub struct IndexedEntry<'a, K, V, A = alloc::Global>
 where
+    K: any::Any,
+    V: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     inner: map_inner::IndexedEntry<'a, K, V, A>,
@@ -1617,6 +1625,8 @@ mod entry_assert_send_sync {
 #[repr(transparent)]
 pub struct TypedProjIndexMap<K, V, S = hash::RandomState, A = alloc::Global>
 where
+    K: any::Any,
+    V: any::Any,
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync,

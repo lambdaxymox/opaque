@@ -131,6 +131,33 @@ fn test_truncate_on_panic_drop_count2() {
 }
 
 #[test]
+#[cfg_attr(not(panic = "unwind"), ignore = "test requires unwinding support")]
+fn test_truncate_on_panic_drop_count3() {
+    let mut triggering_panic_cell = PanicCell::new((), 0);
+    let mut panic_cell = PanicCell::new((), 4);
+    let mut map = OpaqueIndexMap::new::<usize, PanicCell<()>>();
+
+    map.insert::<usize, PanicCell<()>, hash::RandomState, alloc::Global>(0, panic_cell.clone());
+    map.insert::<usize, PanicCell<()>, hash::RandomState, alloc::Global>(1, triggering_panic_cell.clone());
+    map.insert::<usize, PanicCell<()>, hash::RandomState, alloc::Global>(2, panic_cell.clone());
+
+    assert_eq!(triggering_panic_cell.drop_count(), 0);
+    assert_eq!(panic_cell.drop_count(), 0);
+
+    let result = panic::catch_unwind(AssertUnwindSafe(|| {
+        map.clear::<usize, PanicCell<()>, hash::RandomState, alloc::Global>();
+    }));
+
+    assert!(result.is_err());
+
+    triggering_panic_cell.disable_panics();
+    panic_cell.disable_panics();
+
+    assert_eq!(triggering_panic_cell.drop_count(), 2);
+    assert_eq!(panic_cell.drop_count(), 4);
+}
+
+#[test]
 fn test_truncate_on_success_drop_count() {
     let mut panic_cell = PanicCell::new((), 2);
     let mut map = OpaqueIndexMap::new::<usize, PanicCell<()>>();
