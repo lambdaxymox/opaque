@@ -12,7 +12,6 @@ mod zst;
 
 mod raw_vec;
 mod range_types;
-mod unique;
 
 pub use crate::into_iter::*;
 pub use crate::drain::*;
