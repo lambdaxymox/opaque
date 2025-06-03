@@ -1,5 +1,6 @@
 use core::any;
 use core::marker;
+use core::mem;
 use core::mem::{ManuallyDrop, MaybeUninit};
 use core::ptr;
 use core::ptr::NonNull;
@@ -350,7 +351,7 @@ impl OpaqueRawVec {
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        unsafe { std::mem::transmute(self) }
+        unsafe { mem::transmute(self) }
     }
 
     #[inline(always)]
@@ -359,7 +360,7 @@ impl OpaqueRawVec {
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        unsafe { std::mem::transmute(proj_self) }
+        unsafe { mem::transmute(proj_self) }
     }
 }
 

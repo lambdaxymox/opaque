@@ -3718,6 +3718,18 @@ mod vec_inner_layout_tests {
 }
 
 #[cfg(test)]
+mod vec_inner_assert_send_sync {
+    use super::*;
+
+    #[test]
+    fn test_assert_send_sync() {
+        fn assert_send_sync<T: Send + Sync>() {}
+
+        assert_send_sync::<TypedProjVecInner<i32, alloc::Global>>();
+    }
+}
+
+#[cfg(test)]
 mod vec_layout_tests {
     use super::*;
     use core::mem;
@@ -3799,14 +3811,13 @@ mod vec_layout_tests {
 }
 
 #[cfg(test)]
-mod assert_send_sync {
+mod vec_assert_send_sync {
     use super::*;
 
     #[test]
     fn test_assert_send_sync() {
         fn assert_send_sync<T: Send + Sync>() {}
 
-        assert_send_sync::<TypedProjVecInner<i32, alloc::Global>>();
         assert_send_sync::<TypedProjVec<i32, alloc::Global>>();
     }
 }
