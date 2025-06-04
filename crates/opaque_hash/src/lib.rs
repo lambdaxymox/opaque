@@ -467,14 +467,19 @@ where
 
         boxed_build_hasher
     }
+}
 
-    fn build_hasher(&self) -> TypedProjHasher<S::Hasher> {
+impl<S> TypedProjBuildHasherInner<S>
+where
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+{
+    fn build_hasher(&self) -> S::Hasher {
         debug_assert_eq!(self.build_hasher_type_id, any::TypeId::of::<S>());
 
         let build_hasher = self.build_hasher.downcast_ref::<S>().unwrap();
-        let hasher = build_hasher.build_hasher();
 
-        TypedProjHasher::new(hasher)
+        build_hasher.build_hasher()
     }
 }
 
@@ -645,12 +650,25 @@ where
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
 {
-    type Hasher = TypedProjHasher<S::Hasher>;
+    type Hasher = S::Hasher;
 
     fn build_hasher(&self) -> Self::Hasher {
         self.inner.build_hasher()
     }
 }
+
+impl<S> TypedProjBuildHasher<S>
+where
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+{
+    fn build_hasher_proj(&self) -> TypedProjHasher<S::Hasher> {
+        let hasher = self.inner.build_hasher();
+
+        TypedProjHasher::new(hasher)
+    }
+}
+
 
 impl<S> Clone for TypedProjBuildHasher<S>
 where
@@ -836,15 +854,26 @@ impl OpaqueBuildHasher {
 }
 
 impl OpaqueBuildHasher {
-    pub fn build_hasher<S>(&self) -> OpaqueHasher
+    pub fn build_hasher<S>(&self) -> S::Hasher
     where
         S: any::Any + hash::BuildHasher + Send + Sync,
         S::Hasher: any::Any + hash::Hasher + Send + Sync,
     {
         let proj_self = self.as_proj::<S>();
-        let proj_hasher = <TypedProjBuildHasher<S> as hash::BuildHasher>::build_hasher(proj_self);
 
-        OpaqueHasher::from_proj(proj_hasher)
+        <TypedProjBuildHasher<S> as hash::BuildHasher>::build_hasher(proj_self)
+    }
+}
+
+impl OpaqueBuildHasher {
+    pub fn build_hasher_proj<S>(&self) -> TypedProjHasher<S::Hasher>
+    where
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    {
+        let proj_self = self.as_proj::<S>();
+
+        proj_self.build_hasher_proj()
     }
 }
 

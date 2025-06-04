@@ -14,7 +14,7 @@ where
     let expected = hasher.finish();
 
     let opaque_build_hasher = OpaqueBuildHasher::new(default_build_hasher);
-    let mut opaque_hasher = opaque_build_hasher.build_hasher::<hash::RandomState>();
+    let mut opaque_hasher = opaque_build_hasher.build_hasher_proj::<hash::RandomState>();
     value.hash(&mut opaque_hasher);
     let result = opaque_hasher.finish();
 

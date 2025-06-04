@@ -30,7 +30,7 @@ macro_rules! bench_hasher {
 
             c.bench_function(stringify!($bench_opaque_name), |b| {
                 b.iter(|| {
-                    let mut opaque_hasher = opaque_build_hasher.build_hasher::<RandomState>();
+                    let mut opaque_hasher = opaque_build_hasher.build_hasher_proj::<RandomState>();
                     core::hint::black_box(value).hash(&mut opaque_hasher);
                     core::hint::black_box(opaque_hasher.finish());
                 });
