@@ -1,6 +1,12 @@
 #![deny(unsafe_op_in_unsafe_fn)]
+#![no_std]
+extern crate alloc as alloc_crate;
+
+#[cfg(feature = "std")]
+extern crate std;
+
 use core::fmt;
-use std::alloc;
+use alloc_crate::alloc;
 
 /// The error type for `try_reserve` methods.
 #[derive(Clone, PartialEq, Eq, Debug)]

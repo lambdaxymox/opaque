@@ -4,7 +4,7 @@ use core::iter;
 use core::mem::ManuallyDrop;
 use core::ptr::NonNull;
 use core::slice;
-use std::alloc;
+use alloc_crate::alloc;
 
 use opaque_alloc::TypedProjAlloc;
 use crate::TypedProjVecInner;

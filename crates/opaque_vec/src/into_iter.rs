@@ -3,9 +3,9 @@ use core::fmt;
 use core::iter;
 use core::ops;
 use core::slice;
-use std::alloc;
-use std::mem::ManuallyDrop;
-use std::ptr::NonNull;
+use core::mem::ManuallyDrop;
+use core::ptr::NonNull;
+use alloc_crate::alloc;
 
 use opaque_alloc::TypedProjAlloc;
 

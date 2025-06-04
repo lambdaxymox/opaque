@@ -3,6 +3,12 @@
 #![feature(alloc_layout_extra)]
 #![feature(optimize_attribute)]
 #![feature(slice_range)]
+#![no_std]
+extern crate alloc as alloc_crate;
+
+#[cfg(feature = "std")]
+extern crate std;
+
 mod into_iter;
 mod drain;
 mod splice;
@@ -27,12 +33,14 @@ use core::slice;
 use core::fmt;
 use core::ptr;
 use core::ptr::NonNull;
-use std::mem::{
+use core::mem::{
     ManuallyDrop,
     MaybeUninit,
 };
-use std::alloc;
-use std::borrow;
+use alloc_crate::alloc;
+use alloc_crate::borrow;
+use alloc_crate::boxed::Box;
+use alloc_crate::vec::Vec;
 
 use opaque_alloc::TypedProjAlloc;
 use opaque_error::TryReserveError;
@@ -2494,7 +2502,7 @@ where
 impl<'a, T> From<borrow::Cow<'a, [T]>> for TypedProjVec<T, alloc::Global>
 where
     T: any::Any,
-    [T]: ToOwned<Owned = TypedProjVec<T, alloc::Global>>,
+    [T]: borrow::ToOwned<Owned = TypedProjVec<T, alloc::Global>>,
 {
     #[track_caller]
     fn from(slice: borrow::Cow<'a, [T]>) -> TypedProjVec<T, alloc::Global> {
@@ -3627,6 +3635,24 @@ where
     }
 }
 
+mod dummy {
+    use super::*;
+    use core::ptr::NonNull;
+
+    #[allow(dead_code)]
+    pub(super) struct DummyAlloc {}
+
+    unsafe impl alloc::Allocator for DummyAlloc {
+        fn allocate(&self, _layout: alloc::Layout) -> Result<NonNull<[u8]>, alloc::AllocError> {
+            panic!("The [`DummyAlloc::allocate`] should never actually be called. Its purpose is for testing struct layouts");
+        }
+
+        unsafe fn deallocate(&self, _ptr: NonNull<u8>, _layout: alloc::Layout) {
+            panic!("The [`DummyAlloc::deallocate`] should never actually be called. Its purpose is for testing struct layouts");
+        }
+    }
+}
+
 #[cfg(test)]
 mod vec_inner_layout_tests {
     use super::*;
@@ -3683,19 +3709,6 @@ mod vec_inner_layout_tests {
 
     struct Pair(u8, u64);
 
-    struct DummyAlloc {}
-
-    unsafe impl alloc::Allocator for DummyAlloc {
-        fn allocate(&self, layout: alloc::Layout) -> Result<NonNull<[u8]>, alloc::AllocError> {
-            alloc::Global.allocate(layout)
-        }
-        unsafe fn deallocate(&self, ptr: NonNull<u8>, layout: alloc::Layout) {
-            unsafe {
-                alloc::Global.deallocate(ptr, layout)
-            }
-        }
-    }
-
     macro_rules! layout_tests {
         ($module_name:ident, $element_typ:ty, $alloc_typ:ty) => {
             mod $module_name {
@@ -3720,8 +3733,8 @@ mod vec_inner_layout_tests {
     }
 
     layout_tests!(u8_global, u8, alloc::Global);
-    layout_tests!(pair_dummy_alloc, Pair, DummyAlloc);
-    layout_tests!(unit_zst_dummy_alloc, (), DummyAlloc);
+    layout_tests!(pair_dummy_alloc, Pair, dummy::DummyAlloc);
+    layout_tests!(unit_zst_dummy_alloc, (), dummy::DummyAlloc);
 }
 
 #[cfg(test)]
@@ -3776,19 +3789,6 @@ mod vec_layout_tests {
 
     struct Pair(u8, u64);
 
-    struct DummyAlloc {}
-
-    unsafe impl alloc::Allocator for DummyAlloc {
-        fn allocate(&self, layout: alloc::Layout) -> Result<NonNull<[u8]>, alloc::AllocError> {
-            alloc::Global.allocate(layout)
-        }
-        unsafe fn deallocate(&self, ptr: NonNull<u8>, layout: alloc::Layout) {
-            unsafe {
-                alloc::Global.deallocate(ptr, layout)
-            }
-        }
-    }
-
     macro_rules! layout_tests {
         ($module_name:ident, $element_typ:ty, $alloc_typ:ty) => {
             mod $module_name {
@@ -3813,8 +3813,8 @@ mod vec_layout_tests {
     }
 
     layout_tests!(u8_global, u8, alloc::Global);
-    layout_tests!(pair_dummy_alloc, Pair, DummyAlloc);
-    layout_tests!(unit_zst_dummy_alloc, (), DummyAlloc);
+    layout_tests!(pair_dummy_alloc, Pair, dummy::DummyAlloc);
+    layout_tests!(unit_zst_dummy_alloc, (), dummy::DummyAlloc);
 }
 
 #[cfg(test)]
@@ -3822,9 +3822,16 @@ mod vec_assert_send_sync {
     use super::*;
 
     #[test]
-    fn test_assert_send_sync() {
+    fn test_assert_send_sync1() {
         fn assert_send_sync<T: Send + Sync>() {}
 
         assert_send_sync::<TypedProjVec<i32, alloc::Global>>();
+    }
+
+    #[test]
+    fn test_assert_send_sync2() {
+        fn assert_send_sync<T: Send + Sync>() {}
+
+        assert_send_sync::<TypedProjVec<i32, dummy::DummyAlloc>>();
     }
 }

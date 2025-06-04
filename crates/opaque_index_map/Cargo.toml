@@ -3,6 +3,10 @@ name = "opaque_index_map"
 version = "0.1.0"
 edition = "2024"
 
+[features]
+default = ["std"]
+std = ["opaque_alloc/std", "opaque_error/std", "opaque_hash/std", "opaque_vec/std"]
+
 [dependencies]
 criterion = "0.6.0"
 

@@ -2,11 +2,18 @@
 #![feature(allocator_api)]
 #![feature(alloc_layout_extra)]
 #![feature(optimize_attribute)]
+#![no_std]
+extern crate alloc as alloc_crate;
+
+#[cfg(feature = "std")]
+extern crate std;
+
 use core::any;
 use core::fmt;
 use core::marker;
 use core::ptr::NonNull;
-use std::alloc;
+use alloc_crate::alloc;
+use alloc_crate::boxed::Box;
 
 trait AnyAllocator: any::Any + alloc::Allocator + Send + Sync {}
 
@@ -381,6 +388,24 @@ impl fmt::Debug for OpaqueAlloc {
     }
 }
 
+mod dummy {
+    use super::*;
+    use core::ptr::NonNull;
+
+    #[allow(dead_code)]
+    pub(super) struct DummyAlloc {}
+
+    unsafe impl alloc::Allocator for DummyAlloc {
+        fn allocate(&self, _layout: alloc::Layout) -> Result<NonNull<[u8]>, alloc::AllocError> {
+            panic!("The [`DummyAlloc::allocate`] should never actually be called. Its purpose is for testing struct layouts");
+        }
+
+        unsafe fn deallocate(&self, _ptr: NonNull<u8>, _layout: alloc::Layout) {
+            panic!("The [`DummyAlloc::deallocate`] should never actually be called. Its purpose is for testing struct layouts");
+        }
+    }
+}
+
 #[cfg(test)]
 mod alloc_inner_layout_tests {
     use super::*;
@@ -422,19 +447,6 @@ mod alloc_inner_layout_tests {
         );
     }
 
-    struct DummyAlloc {}
-
-    unsafe impl alloc::Allocator for DummyAlloc {
-        fn allocate(&self, layout: alloc::Layout) -> Result<NonNull<[u8]>, alloc::AllocError> {
-            alloc::Global.allocate(layout)
-        }
-        unsafe fn deallocate(&self, ptr: NonNull<u8>, layout: alloc::Layout) {
-            unsafe {
-                alloc::Global.deallocate(ptr, layout)
-            }
-        }
-    }
-
     macro_rules! layout_tests {
         ($module_name:ident, $alloc_typ:ty) => {
             mod $module_name {
@@ -459,7 +471,7 @@ mod alloc_inner_layout_tests {
     }
 
     layout_tests!(global, alloc::Global);
-    layout_tests!(dummy_alloc, DummyAlloc);
+    layout_tests!(dummy_alloc, dummy::DummyAlloc);
 }
 
 #[cfg(test)]
@@ -498,19 +510,6 @@ mod alloc_layout_tests {
         );
     }
 
-    struct DummyAlloc {}
-
-    unsafe impl alloc::Allocator for DummyAlloc {
-        fn allocate(&self, layout: alloc::Layout) -> Result<NonNull<[u8]>, alloc::AllocError> {
-            alloc::Global.allocate(layout)
-        }
-        unsafe fn deallocate(&self, ptr: NonNull<u8>, layout: alloc::Layout) {
-            unsafe {
-                alloc::Global.deallocate(ptr, layout)
-            }
-        }
-    }
-
     macro_rules! layout_tests {
         ($module_name:ident, $alloc_typ:ty) => {
             mod $module_name {
@@ -535,7 +534,7 @@ mod alloc_layout_tests {
     }
 
     layout_tests!(global, alloc::Global);
-    layout_tests!(dummy_alloc, DummyAlloc);
+    layout_tests!(dummy_alloc, dummy::DummyAlloc);
 }
 
 #[cfg(test)]
@@ -543,9 +542,16 @@ mod assert_send_sync {
     use super::*;
 
     #[test]
-    fn test_assert_send_sync() {
+    fn test_assert_send_sync1() {
         fn assert_send_sync<T: Send + Sync>() {}
 
         assert_send_sync::<TypedProjAlloc<alloc::Global>>();
+    }
+
+    #[test]
+    fn test_assert_send_sync2() {
+        fn assert_send_sync<T: Send + Sync>() {}
+
+        assert_send_sync::<TypedProjAlloc<dummy::DummyAlloc>>();
     }
 }

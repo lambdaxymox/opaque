@@ -8,15 +8,21 @@ use core::fmt;
 use core::iter;
 use core::mem;
 use core::ops;
-use std::alloc;
+use alloc_crate::alloc;
+use alloc_crate::boxed::Box;
+
+#[cfg(feature = "std")]
 use std::hash;
+
+#[cfg(not(feature = "std"))]
+use core::hash;
 
 use opaque_alloc::TypedProjAlloc;
 use opaque_error::{
     TryReserveError,
 };
 use opaque_hash::{TypedProjBuildHasher};
-use opaque_vec::{OpaqueVec, TypedProjVec};
+use opaque_vec::TypedProjVec;
 
 pub struct Drain<'a, K, V, A = alloc::Global>
 where
@@ -1116,7 +1122,21 @@ where
     }
 }
 
+#[cfg(feature = "std")]
 pub struct Splice<'a, I, K, V, S = hash::RandomState, A = alloc::Global>
+where
+    I: Iterator<Item = (K, V)>,
+    K: any::Any + hash::Hash + Eq,
+    V: any::Any,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    inner: map_inner::Splice<'a, I, K, V, S, A>,
+}
+
+#[cfg(not(feature = "std"))]
+pub struct Splice<'a, I, K, V, S, A = alloc::Global>
 where
     I: Iterator<Item = (K, V)>,
     K: any::Any + hash::Hash + Eq,
@@ -1622,8 +1642,22 @@ mod entry_assert_send_sync {
     }
 }
 
+#[cfg(feature = "std")]
 #[repr(transparent)]
 pub struct TypedProjIndexMap<K, V, S = hash::RandomState, A = alloc::Global>
+where
+    K: any::Any,
+    V: any::Any,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    inner: TypedProjIndexMapInner<K, V, S, A>,
+}
+
+#[cfg(not(feature = "std"))]
+#[repr(transparent)]
+pub struct TypedProjIndexMap<K, V, S, A = alloc::Global>
 where
     K: any::Any,
     V: any::Any,
@@ -1665,6 +1699,7 @@ where
     }
 }
 
+#[cfg(feature = "std")]
 impl<K, V, A> TypedProjIndexMap<K, V, hash::RandomState, A>
 where
     K: any::Any,
@@ -1719,6 +1754,7 @@ where
     }
 }
 
+#[cfg(feature = "std")]
 impl<K, V, A> TypedProjIndexMap<K, V, hash::RandomState, A>
 where
     K: any::Any,
@@ -1760,6 +1796,7 @@ where
     }
 }
 
+#[cfg(feature = "std")]
 impl<K, V> TypedProjIndexMap<K, V, hash::RandomState, alloc::Global>
 where
     K: any::Any,
@@ -2486,8 +2523,8 @@ where
     S: any::Any + hash::BuildHasher + Send + Sync + Default,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
 {
-    fn from(arr: [(K, V); N]) -> Self {
-        Self::from_iter(arr)
+    fn from(array: [(K, V); N]) -> Self {
+        Self::from_iter(array)
     }
 }
 
@@ -2766,6 +2803,7 @@ impl OpaqueIndexMap {
     }
 }
 
+#[cfg(feature = "std")]
 impl OpaqueIndexMap {
     pub fn new_proj_in<K, V, A>(proj_alloc: TypedProjAlloc<A>) -> Self
     where
@@ -3908,6 +3946,7 @@ impl fmt::Debug for OpaqueIndexMap {
     }
 }
 
+#[cfg(feature = "std")]
 impl<K, V> FromIterator<(K, V)> for OpaqueIndexMap
 where
     K: any::Any + hash::Hash + Eq,
@@ -3923,6 +3962,7 @@ where
     }
 }
 
+#[cfg(feature = "std")]
 impl<K, V, const N: usize> From<[(K, V); N]> for OpaqueIndexMap
 where
     K: any::Any + hash::Hash + Eq,
@@ -3932,6 +3972,48 @@ where
         let proj_map = TypedProjIndexMap::<K, V, hash::RandomState, alloc::Global>::from_iter(array);
 
         Self::from_proj(proj_map)
+    }
+}
+
+mod dummy {
+    use super::*;
+    use core::ptr::NonNull;
+
+    pub(super) struct DummyHasher {}
+
+    impl hash::Hasher for DummyHasher {
+        #[inline]
+        fn finish(&self) -> u64 {
+            panic!("The [`DummyHasher::finish`] should never actually be called. Its purpose is to test struct layouts.");
+        }
+
+        #[inline]
+        fn write(&mut self, _bytes: &[u8]) {
+            panic!("The [`DummyHasher::write`] should never actually be called. Its purpose is for testing struct layouts");
+        }
+    }
+
+    #[allow(dead_code)]
+    pub(super) struct DummyBuildHasher {}
+
+    impl hash::BuildHasher for DummyBuildHasher {
+        type Hasher = DummyHasher;
+        fn build_hasher(&self) -> Self::Hasher {
+            panic!("The [`DummyBuildHasher::build_hasher`] should never actually be called. Its purpose is for testing struct layouts");
+        }
+    }
+
+    #[allow(dead_code)]
+    pub(super) struct DummyAlloc {}
+
+    unsafe impl alloc::Allocator for DummyAlloc {
+        fn allocate(&self, _layout: alloc::Layout) -> Result<NonNull<[u8]>, alloc::AllocError> {
+            panic!("The [`DummyAlloc::allocate`] should never actually be called. Its purpose is for testing struct layouts");
+        }
+
+        unsafe fn deallocate(&self, _ptr: NonNull<u8>, _layout: alloc::Layout) {
+            panic!("The [`DummyAlloc::deallocate`] should never actually be called. Its purpose is for testing struct layouts");
+        }
     }
 }
 
@@ -3985,28 +4067,6 @@ mod index_map_layout_tests {
 
     struct Pair(u8, u64);
 
-    struct DummyBuildHasher {}
-
-    impl hash::BuildHasher for DummyBuildHasher {
-        type Hasher = hash::DefaultHasher;
-        fn build_hasher(&self) -> Self::Hasher {
-            Default::default()
-        }
-    }
-
-    struct DummyAlloc {}
-
-    unsafe impl alloc::Allocator for DummyAlloc {
-        fn allocate(&self, layout: alloc::Layout) -> Result<NonNull<[u8]>, alloc::AllocError> {
-            alloc::Global.allocate(layout)
-        }
-        unsafe fn deallocate(&self, ptr: NonNull<u8>, layout: alloc::Layout) {
-            unsafe {
-                alloc::Global.deallocate(ptr, layout)
-            }
-        }
-    }
-
     macro_rules! layout_tests {
         ($module_name:ident, $key_typ:ty, $value_typ:ty, $build_hasher_typ:ty, $alloc_typ:ty) => {
             mod $module_name {
@@ -4030,19 +4090,29 @@ mod index_map_layout_tests {
         };
     }
 
+    #[cfg(feature = "std")]
     layout_tests!(u8_u8_random_state_global, u8, u8, hash::RandomState, alloc::Global);
-    layout_tests!(u64_pair_dummy_hasher_dummy_alloc, u64, Pair, DummyBuildHasher, DummyAlloc);
-    layout_tests!(unit_str_zst_hasher_dummy_alloc, (), &'static str, DummyBuildHasher, DummyAlloc);
+
+    layout_tests!(u64_pair_dummy_hasher_dummy_alloc, u64, Pair, dummy::DummyBuildHasher, dummy::DummyAlloc);
+    layout_tests!(unit_str_zst_hasher_dummy_alloc, (), &'static str, dummy::DummyBuildHasher, dummy::DummyAlloc);
 }
 
 #[cfg(test)]
 mod index_map_assert_send_sync {
     use super::*;
 
+    #[cfg(feature = "std")]
     #[test]
-    fn test_assert_send_sync() {
+    fn test_assert_send_sync1() {
         fn assert_send_sync<T: Send + Sync>() {}
 
         assert_send_sync::<TypedProjIndexMap<i32, i32, hash::RandomState, alloc::Global>>();
+    }
+
+    #[test]
+    fn test_assert_send_sync2() {
+        fn assert_send_sync<T: Send + Sync>() {}
+
+        assert_send_sync::<TypedProjIndexMap<i32, i32, dummy::DummyBuildHasher, alloc::Global>>();
     }
 }

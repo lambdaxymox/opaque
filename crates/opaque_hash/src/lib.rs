@@ -1,9 +1,21 @@
 #![deny(unsafe_op_in_unsafe_fn)]
 #![feature(optimize_attribute)]
+#![no_std]
+extern crate alloc as alloc_crate;
+
+#[cfg(feature = "std")]
+extern crate std;
+
 use core::any;
 use core::fmt;
 use core::marker;
+use alloc_crate::boxed::Box;
+
+#[cfg(feature = "std")]
 use std::hash;
+
+#[cfg(not(feature = "std"))]
+use core::hash;
 
 trait AnyHasher: any::Any + hash::Hasher + Send + Sync {}
 
@@ -883,6 +895,34 @@ impl fmt::Debug for OpaqueBuildHasher {
     }
 }
 
+mod dummy {
+    use super::*;
+
+    pub(super) struct DummyHasher {}
+
+    impl hash::Hasher for DummyHasher {
+        #[inline]
+        fn finish(&self) -> u64 {
+            panic!("The [`DummyHasher::finish`] should never actually be called. Its purpose is to test struct layouts.");
+        }
+
+        #[inline]
+        fn write(&mut self, _bytes: &[u8]) {
+            panic!("The [`DummyHasher::write`] should never actually be called. Its purpose is for testing struct layouts");
+        }
+    }
+
+    #[allow(dead_code)]
+    pub(super) struct DummyBuildHasher {}
+
+    impl hash::BuildHasher for DummyBuildHasher {
+        type Hasher = DummyHasher;
+        fn build_hasher(&self) -> Self::Hasher {
+            panic!("The [`DummyBuildHasher::build_hasher`] should never actually be called. Its purpose is for testing struct layouts");
+        }
+    }
+}
+
 #[cfg(test)]
 mod hasher_layout_tests {
     use super::*;
@@ -919,17 +959,6 @@ mod hasher_layout_tests {
         );
     }
 
-    struct DummyHasher {}
-
-    impl hash::Hasher for DummyHasher {
-        fn finish(&self) -> u64 {
-            0
-        }
-
-        fn write(&mut self, _bytes: &[u8]) {
-        }
-    }
-
     macro_rules! layout_tests {
         ($module_name:ident, $hasher_typ:ty) => {
             mod $module_name {
@@ -953,8 +982,10 @@ mod hasher_layout_tests {
         };
     }
 
+    #[cfg(feature = "std")]
     layout_tests!(default_hasher, hash::DefaultHasher);
-    layout_tests!(dummy_hasher, DummyHasher);
+
+    layout_tests!(dummy_hasher, dummy::DummyHasher);
 }
 
 #[cfg(test)]
@@ -997,27 +1028,6 @@ mod build_hasher_layout_tests {
         );
     }
 
-    struct DummyHasher {}
-
-    impl hash::Hasher for DummyHasher {
-        fn finish(&self) -> u64 {
-            0
-        }
-
-        fn write(&mut self, _bytes: &[u8]) {
-        }
-    }
-
-    struct DummyBuildHasher {}
-
-    impl hash::BuildHasher for DummyBuildHasher {
-        type Hasher = DummyHasher;
-
-        fn build_hasher(&self) -> Self::Hasher {
-            DummyHasher {}
-        }
-    }
-
     macro_rules! layout_tests {
         ($module_name:ident, $build_hasher_typ:ty) => {
             mod $module_name {
@@ -1042,18 +1052,27 @@ mod build_hasher_layout_tests {
     }
 
     layout_tests!(random_state, hash::RandomState);
-    layout_tests!(dummy_build_hasher, DummyBuildHasher);
+    layout_tests!(dummy_build_hasher, dummy::DummyBuildHasher);
 }
 
 #[cfg(test)]
 mod assert_send_sync {
     use super::*;
 
+    #[cfg(feature = "std")]
     #[test]
-    fn test_assert_send_sync() {
+    fn test_assert_send_sync1() {
         fn assert_send_sync<T: Send + Sync>() {}
 
         assert_send_sync::<TypedProjHasher<hash::DefaultHasher>>();
         assert_send_sync::<TypedProjBuildHasher<hash::RandomState>>();
+    }
+
+    #[test]
+    fn test_assert_send_sync2() {
+        fn assert_send_sync<T: Send + Sync>() {}
+
+        assert_send_sync::<TypedProjHasher<dummy::DummyHasher>>();
+        assert_send_sync::<TypedProjBuildHasher<dummy::DummyBuildHasher>>();
     }
 }

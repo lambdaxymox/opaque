@@ -2,7 +2,7 @@ use core::any;
 use core::fmt;
 use core::slice;
 use core::ops;
-use std::alloc;
+use alloc_crate::alloc;
 
 use opaque_alloc::TypedProjAlloc;
 use crate::TypedProjVecInner;

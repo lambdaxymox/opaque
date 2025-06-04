@@ -8,8 +8,14 @@ use core::fmt;
 use core::iter;
 use core::mem;
 use core::ops;
-use std::alloc;
+use alloc_crate::alloc;
+use alloc_crate::boxed::Box;
+
+#[cfg(feature = "std")]
 use std::hash;
+
+#[cfg(not(feature = "std"))]
+use core::hash;
 
 use hashbrown::hash_table;
 
@@ -21,7 +27,7 @@ use opaque_error::{
 use opaque_hash::{OpaqueBuildHasher, TypedProjBuildHasher};
 use opaque_vec::{OpaqueVec, TypedProjVec};
 
-pub(crate) struct Drain<'a, K, V, A = alloc::Global>
+pub(crate) struct Drain<'a, K, V, A>
 where
     K: any::Any,
     V: any::Any,
@@ -163,7 +169,7 @@ impl<'a, K, V> ops::Index<usize> for Keys<'a, K, V> {
     }
 }
 
-pub(crate) struct IntoKeys<K, V, A = alloc::Global>
+pub(crate) struct IntoKeys<K, V, A>
 where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
@@ -362,7 +368,7 @@ impl<K, V> Default for ValuesMut<'_, K, V> {
     }
 }
 
-pub(crate) struct IntoValues<K, V, A = alloc::Global>
+pub(crate) struct IntoValues<K, V, A>
 where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
@@ -1066,7 +1072,7 @@ impl<K, V> Default for IterMut<'_, K, V> {
 }
 
 #[derive(Clone)]
-pub(crate) struct IntoIter<K, V, A = alloc::Global>
+pub(crate) struct IntoIter<K, V, A>
 where
     K: any::Any,
     V: any::Any,
@@ -1168,7 +1174,7 @@ where
     }
 }
 
-pub(crate) struct Splice<'a, I, K, V, S = hash::RandomState, A = alloc::Global>
+pub(crate) struct Splice<'a, I, K, V, S, A>
 where
     I: Iterator<Item = (K, V)>,
     K: any::Any + hash::Hash + Eq,
@@ -2377,125 +2383,7 @@ impl OpaqueIndexMapCore {
     }
 }
 
-#[cfg(test)]
-mod index_map_core_layout_tests {
-    use super::*;
-    use core::mem;
-    use core::ptr::NonNull;
-
-    fn run_test_opaque_index_map_core_match_sizes<K, V, A>()
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + alloc::Allocator + Send + Sync,
-    {
-        let expected = mem::size_of::<TypedProjIndexMapCore<K, V, A>>();
-        let result = mem::size_of::<OpaqueIndexMapCore>();
-
-        assert_eq!(result, expected, "Opaque and Typed Projected data types size mismatch");
-    }
-
-    fn run_test_opaque_index_map_core_match_alignments<K, V, A>()
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + alloc::Allocator + Send + Sync,
-    {
-        let expected = mem::align_of::<TypedProjIndexMapCore<K, V, A>>();
-        let result = mem::align_of::<OpaqueIndexMapCore>();
-
-        assert_eq!(result, expected, "Opaque and Typed Projected data types alignment mismatch");
-    }
-
-    fn run_test_opaque_index_map_core_match_offsets<K, V, A>()
-    where
-        K: any::Any,
-        V: any::Any,
-        A: any::Any + alloc::Allocator + Send + Sync,
-    {
-        assert_eq!(
-            mem::offset_of!(TypedProjIndexMapCore<K, V, A>, indices),
-            mem::offset_of!(OpaqueIndexMapCore, indices),
-            "Opaque and Typed Projected data types offsets mismatch"
-        );
-        assert_eq!(
-            mem::offset_of!(TypedProjIndexMapCore<K, V, A>, entries),
-            mem::offset_of!(OpaqueIndexMapCore, entries),
-            "Opaque and Typed Projected data types offsets mismatch"
-        );
-        assert_eq!(
-            mem::offset_of!(TypedProjIndexMapCore<K, V, A>, key_type_id),
-            mem::offset_of!(OpaqueIndexMapCore, key_type_id),
-            "Opaque and Typed Projected data types offsets mismatch"
-        );
-        assert_eq!(
-            mem::offset_of!(TypedProjIndexMapCore<K, V, A>, value_type_id),
-            mem::offset_of!(OpaqueIndexMapCore, value_type_id),
-            "Opaque and Typed Projected data types offsets mismatch"
-        );
-        assert_eq!(
-            mem::offset_of!(TypedProjIndexMapCore<K, V, A>, allocator_type_id),
-            mem::offset_of!(OpaqueIndexMapCore, allocator_type_id),
-            "Opaque and Typed Projected data types offsets mismatch"
-        );
-    }
-
-    struct Pair(u8, u64);
-
-    struct DummyAlloc {}
-
-    unsafe impl alloc::Allocator for DummyAlloc {
-        fn allocate(&self, layout: alloc::Layout) -> Result<NonNull<[u8]>, alloc::AllocError> {
-            alloc::Global.allocate(layout)
-        }
-        unsafe fn deallocate(&self, ptr: NonNull<u8>, layout: alloc::Layout) {
-            unsafe {
-                alloc::Global.deallocate(ptr, layout)
-            }
-        }
-    }
-
-    macro_rules! layout_tests {
-        ($module_name:ident, $key_typ:ty, $value_typ:ty, $alloc_typ:ty) => {
-            mod $module_name {
-                use super::*;
-
-                #[test]
-                fn test_opaque_index_map_core_layout_match_sizes() {
-                    run_test_opaque_index_map_core_match_sizes::<$key_typ, $value_typ, $alloc_typ>();
-                }
-
-                #[test]
-                fn test_opaque_index_map_core_layout_match_alignments() {
-                    run_test_opaque_index_map_core_match_alignments::<$key_typ, $value_typ, $alloc_typ>();
-                }
-
-                #[test]
-                fn test_opaque_index_map_core_layout_match_offsets() {
-                    run_test_opaque_index_map_core_match_offsets::<$key_typ, $value_typ, $alloc_typ>();
-                }
-            }
-        };
-    }
-
-    layout_tests!(u8_u8_random_state_global, u8, u8, alloc::Global);
-    layout_tests!(u64_pair_dummy_hasher_dummy_alloc, u64, Pair, DummyAlloc);
-    layout_tests!(unit_str_zst_hasher_dummy_alloc, (), &'static str, DummyAlloc);
-}
-
-#[cfg(test)]
-mod index_map_core_assert_send_sync {
-    use super::*;
-
-    #[test]
-    fn test_assert_send_sync() {
-        fn assert_send_sync<T: Send + Sync>() {}
-
-        assert_send_sync::<TypedProjIndexMapCore<i32, i32, alloc::Global>>();
-    }
-}
-
-pub enum Entry<'a, K, V, A = alloc::Global>
+pub enum Entry<'a, K, V, A>
 where
     K: any::Any,
     V: any::Any,
@@ -2602,7 +2490,7 @@ where
     }
 }
 
-pub(crate) struct OccupiedEntry<'a, K, V, A = alloc::Global>
+pub(crate) struct OccupiedEntry<'a, K, V, A>
 where
     K: any::Any,
     V: any::Any,
@@ -2740,7 +2628,7 @@ where
     }
 }
 
-pub(crate) struct VacantEntry<'a, K, V, A = alloc::Global>
+pub(crate) struct VacantEntry<'a, K, V, A>
 where
     K: any::Any,
     V: any::Any,
@@ -2813,7 +2701,7 @@ where
     }
 }
 
-pub(crate) struct IndexedEntry<'a, K, V, A = alloc::Global>
+pub(crate) struct IndexedEntry<'a, K, V, A>
 where
     K: any::Any,
     V: any::Any,
@@ -3017,6 +2905,7 @@ where
     }
 }
 
+#[cfg(feature = "std")]
 impl<K, V, A> TypedProjIndexMapInner<K, V, hash::RandomState, A>
 where
     K: any::Any,
@@ -3079,6 +2968,7 @@ where
     }
 }
 
+#[cfg(feature = "std")]
 impl<K, V, A> TypedProjIndexMapInner<K, V, hash::RandomState, A>
 where
     K: any::Any,
@@ -3124,6 +3014,7 @@ where
     }
 }
 
+#[cfg(feature = "std")]
 impl<K, V> TypedProjIndexMapInner<K, V, hash::RandomState, alloc::Global>
 where
     K: any::Any,
@@ -4021,11 +3912,164 @@ impl OpaqueIndexMapInner {
     }
 }
 
+mod dummy {
+    use super::*;
+    use core::ptr::NonNull;
+
+    pub(super) struct DummyHasher {}
+
+    impl hash::Hasher for DummyHasher {
+        #[inline]
+        fn finish(&self) -> u64 {
+            panic!("The [`DummyHasher::finish`] should never actually be called. Its purpose is to test struct layouts.");
+        }
+
+        #[inline]
+        fn write(&mut self, _bytes: &[u8]) {
+            panic!("The [`DummyHasher::write`] should never actually be called. Its purpose is for testing struct layouts");
+        }
+    }
+
+    #[allow(dead_code)]
+    pub(super) struct DummyBuildHasher {}
+
+    impl hash::BuildHasher for DummyBuildHasher {
+        type Hasher = DummyHasher;
+        fn build_hasher(&self) -> Self::Hasher {
+            panic!("The [`DummyBuildHasher::build_hasher`] should never actually be called. Its purpose is for testing struct layouts");
+        }
+    }
+
+    #[allow(dead_code)]
+    pub(super) struct DummyAlloc {}
+
+    unsafe impl alloc::Allocator for DummyAlloc {
+        fn allocate(&self, _layout: alloc::Layout) -> Result<NonNull<[u8]>, alloc::AllocError> {
+            panic!("The [`DummyAlloc::allocate`] should never actually be called. Its purpose is for testing struct layouts");
+        }
+
+        unsafe fn deallocate(&self, _ptr: NonNull<u8>, _layout: alloc::Layout) {
+            panic!("The [`DummyAlloc::deallocate`] should never actually be called. Its purpose is for testing struct layouts");
+        }
+    }
+}
+
+#[cfg(test)]
+mod index_map_core_layout_tests {
+    use super::*;
+    use core::mem;
+    use core::ptr::NonNull;
+
+    fn run_test_opaque_index_map_core_match_sizes<K, V, A>()
+    where
+        K: any::Any,
+        V: any::Any,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let expected = mem::size_of::<TypedProjIndexMapCore<K, V, A>>();
+        let result = mem::size_of::<OpaqueIndexMapCore>();
+
+        assert_eq!(result, expected, "Opaque and Typed Projected data types size mismatch");
+    }
+
+    fn run_test_opaque_index_map_core_match_alignments<K, V, A>()
+    where
+        K: any::Any,
+        V: any::Any,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let expected = mem::align_of::<TypedProjIndexMapCore<K, V, A>>();
+        let result = mem::align_of::<OpaqueIndexMapCore>();
+
+        assert_eq!(result, expected, "Opaque and Typed Projected data types alignment mismatch");
+    }
+
+    fn run_test_opaque_index_map_core_match_offsets<K, V, A>()
+    where
+        K: any::Any,
+        V: any::Any,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        assert_eq!(
+            mem::offset_of!(TypedProjIndexMapCore<K, V, A>, indices),
+            mem::offset_of!(OpaqueIndexMapCore, indices),
+            "Opaque and Typed Projected data types offsets mismatch"
+        );
+        assert_eq!(
+            mem::offset_of!(TypedProjIndexMapCore<K, V, A>, entries),
+            mem::offset_of!(OpaqueIndexMapCore, entries),
+            "Opaque and Typed Projected data types offsets mismatch"
+        );
+        assert_eq!(
+            mem::offset_of!(TypedProjIndexMapCore<K, V, A>, key_type_id),
+            mem::offset_of!(OpaqueIndexMapCore, key_type_id),
+            "Opaque and Typed Projected data types offsets mismatch"
+        );
+        assert_eq!(
+            mem::offset_of!(TypedProjIndexMapCore<K, V, A>, value_type_id),
+            mem::offset_of!(OpaqueIndexMapCore, value_type_id),
+            "Opaque and Typed Projected data types offsets mismatch"
+        );
+        assert_eq!(
+            mem::offset_of!(TypedProjIndexMapCore<K, V, A>, allocator_type_id),
+            mem::offset_of!(OpaqueIndexMapCore, allocator_type_id),
+            "Opaque and Typed Projected data types offsets mismatch"
+        );
+    }
+
+    struct Pair(u8, u64);
+
+    macro_rules! layout_tests {
+        ($module_name:ident, $key_typ:ty, $value_typ:ty, $alloc_typ:ty) => {
+            mod $module_name {
+                use super::*;
+
+                #[test]
+                fn test_opaque_index_map_core_layout_match_sizes() {
+                    run_test_opaque_index_map_core_match_sizes::<$key_typ, $value_typ, $alloc_typ>();
+                }
+
+                #[test]
+                fn test_opaque_index_map_core_layout_match_alignments() {
+                    run_test_opaque_index_map_core_match_alignments::<$key_typ, $value_typ, $alloc_typ>();
+                }
+
+                #[test]
+                fn test_opaque_index_map_core_layout_match_offsets() {
+                    run_test_opaque_index_map_core_match_offsets::<$key_typ, $value_typ, $alloc_typ>();
+                }
+            }
+        };
+    }
+
+    layout_tests!(u8_u8_random_state_global, u8, u8, alloc::Global);
+    layout_tests!(u64_pair_dummy_hasher_dummy_alloc, u64, Pair, dummy::DummyAlloc);
+    layout_tests!(unit_str_zst_hasher_dummy_alloc, (), &'static str, dummy::DummyAlloc);
+}
+
+#[cfg(test)]
+mod index_map_core_assert_send_sync {
+    use super::*;
+
+    #[test]
+    fn test_assert_send_sync1() {
+        fn assert_send_sync<T: Send + Sync>() {}
+
+        assert_send_sync::<TypedProjIndexMapCore<i32, i32, alloc::Global>>();
+    }
+
+    #[test]
+    fn test_assert_send_sync2() {
+        fn assert_send_sync<T: Send + Sync>() {}
+
+        assert_send_sync::<TypedProjIndexMapCore<i32, i32, dummy::DummyAlloc>>();
+    }
+}
+
 #[cfg(test)]
 mod index_map_inner_layout_tests {
     use super::*;
     use core::mem;
-    use core::ptr::NonNull;
 
     fn run_test_opaque_index_map_inner_match_sizes<K, V, S, A>()
     where
@@ -4077,28 +4121,6 @@ mod index_map_inner_layout_tests {
 
     struct Pair(u8, u64);
 
-    struct DummyHasher {}
-
-    impl hash::BuildHasher for DummyHasher {
-        type Hasher = hash::DefaultHasher;
-        fn build_hasher(&self) -> Self::Hasher {
-            Default::default()
-        }
-    }
-
-    struct DummyAlloc {}
-
-    unsafe impl alloc::Allocator for DummyAlloc {
-        fn allocate(&self, layout: alloc::Layout) -> Result<NonNull<[u8]>, alloc::AllocError> {
-            alloc::Global.allocate(layout)
-        }
-        unsafe fn deallocate(&self, ptr: NonNull<u8>, layout: alloc::Layout) {
-            unsafe {
-                alloc::Global.deallocate(ptr, layout)
-            }
-        }
-    }
-
     macro_rules! layout_tests {
         ($module_name:ident, $key_typ:ty, $value_typ:ty, $build_hasher_typ:ty, $alloc_typ:ty) => {
             mod $module_name {
@@ -4122,19 +4144,29 @@ mod index_map_inner_layout_tests {
         };
     }
 
+    #[cfg(feature = "std")]
     layout_tests!(u8_u8_random_state_global, u8, u8, hash::RandomState, alloc::Global);
-    layout_tests!(u64_pair_dummy_hasher_dummy_alloc, u64, Pair, DummyHasher, DummyAlloc);
-    layout_tests!(unit_str_zst_hasher_dummy_alloc, (), &'static str, DummyHasher, DummyAlloc);
+
+    layout_tests!(u64_pair_dummy_hasher_dummy_alloc, u64, Pair, dummy::DummyBuildHasher, dummy::DummyAlloc);
+    layout_tests!(unit_str_zst_hasher_dummy_alloc, (), &'static str, dummy::DummyBuildHasher, dummy::DummyAlloc);
 }
 
 #[cfg(test)]
 mod index_map_inner_assert_send_sync {
     use super::*;
 
+    #[cfg(feature = "std")]
     #[test]
-    fn test_assert_send_sync() {
+    fn test_assert_send_sync1() {
         fn assert_send_sync<T: Send + Sync>() {}
 
         assert_send_sync::<TypedProjIndexMapInner<i32, i32, hash::RandomState, alloc::Global>>();
+    }
+
+    #[test]
+    fn test_assert_send_sync2() {
+        fn assert_send_sync<T: Send + Sync>() {}
+
+        assert_send_sync::<TypedProjIndexMapInner<i32, i32, dummy::DummyBuildHasher, alloc::Global>>();
     }
 }

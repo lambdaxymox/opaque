@@ -1,9 +1,8 @@
-use core::{
-    any,
-    fmt,
-    hash,
-};
-use std::ops;
+use core::any;
+use core::fmt;
+use core::hash;
+use core::ops;
+use alloc_crate::vec::Vec;
 
 pub struct PrefixGenerator<'a, T> {
     current_index: usize,

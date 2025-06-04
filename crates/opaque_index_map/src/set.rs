@@ -9,8 +9,14 @@ use core::cmp;
 use core::fmt;
 use core::iter;
 use core::ops;
-use std::alloc;
+use alloc_crate::alloc;
+use alloc_crate::boxed::Box;
+
+#[cfg(feature = "std")]
 use std::hash;
+
+#[cfg(not(feature = "std"))]
+use core::hash;
 
 use opaque_alloc::TypedProjAlloc;
 use opaque_hash::TypedProjBuildHasher;
@@ -1015,7 +1021,20 @@ where
     }
 }
 
+#[cfg(feature = "std")]
 pub struct Splice<'a, I, T, S = hash::RandomState, A = alloc::Global>
+where
+    I: Iterator<Item = T>,
+    T: any::Any + hash::Hash + Eq,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    iter: map_inner::Splice<'a, UnitValue<I>, T, (), S, A>,
+}
+
+#[cfg(not(feature = "std"))]
+pub struct Splice<'a, I, T, S, A = alloc::Global>
 where
     I: Iterator<Item = T>,
     T: any::Any + hash::Hash + Eq,
@@ -1129,8 +1148,21 @@ impl<I: fmt::Debug> fmt::Debug for UnitValue<I> {
     }
 }
 
+#[cfg(feature = "std")]
 #[repr(transparent)]
 pub struct TypedProjIndexSet<T, S = hash::RandomState, A = alloc::Global>
+where
+    T: any::Any,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    inner: map_inner::TypedProjIndexMapInner<T, (), S, A>,
+}
+
+#[cfg(not(feature = "std"))]
+#[repr(transparent)]
+pub struct TypedProjIndexSet<T, S, A = alloc::Global>
 where
     T: any::Any,
     S: any::Any + hash::BuildHasher + Send + Sync,
@@ -1218,6 +1250,7 @@ where
     }
 }
 
+#[cfg(feature = "std")]
 impl<T, A> TypedProjIndexSet<T, hash::RandomState, A>
 where
     T: any::Any,
@@ -1264,6 +1297,7 @@ where
     }
 }
 
+#[cfg(feature = "std")]
 impl<T, A> TypedProjIndexSet<T, hash::RandomState, A>
 where
     T: any::Any,
@@ -1305,6 +1339,7 @@ where
     }
 }
 
+#[cfg(feature = "std")]
 impl<T> TypedProjIndexSet<T, hash::RandomState, alloc::Global>
 where
     T: any::Any,
@@ -2225,6 +2260,7 @@ impl OpaqueIndexSet {
     }
 }
 
+#[cfg(feature = "std")]
 impl OpaqueIndexSet {
     pub fn new_proj_in<T, A>(proj_alloc: TypedProjAlloc<A>) -> Self
     where
@@ -3146,6 +3182,7 @@ impl fmt::Debug for OpaqueIndexSet {
     }
 }
 
+#[cfg(feature = "std")]
 impl<T> FromIterator<T> for OpaqueIndexSet
 where
     T: any::Any + hash::Hash + Eq,
@@ -3160,14 +3197,57 @@ where
     }
 }
 
+#[cfg(feature = "std")]
 impl<T, const N: usize> From<[T; N]> for OpaqueIndexSet
 where
     T: any::Any + hash::Hash + Eq,
 {
-    fn from(arr: [T; N]) -> Self {
-        let proj_set = TypedProjIndexSet::<T, hash::RandomState, alloc::Global>::from(arr);
+    fn from(array: [T; N]) -> Self {
+        let proj_set = TypedProjIndexSet::<T, hash::RandomState, alloc::Global>::from(array);
 
         Self::from_proj(proj_set)
+    }
+}
+
+mod dummy {
+    use super::*;
+    use core::ptr::NonNull;
+
+    pub(super) struct DummyHasher {}
+
+    impl hash::Hasher for DummyHasher {
+        #[inline]
+        fn write(&mut self, _bytes: &[u8]) {
+            panic!("The [`DummyHasher::write`] should never actually be called. Its purpose is for testing struct layouts");
+        }
+
+        #[inline]
+        fn finish(&self) -> u64 {
+            panic!("The [`DummyHasher::finish`] should never actually be called. Its purpose is to test struct layouts.");
+        }
+    }
+
+    pub(super) struct DummyBuildHasher {}
+
+    impl hash::BuildHasher for DummyBuildHasher {
+        type Hasher = DummyHasher;
+        fn build_hasher(&self) -> Self::Hasher {
+            panic!("The [`DummyBuildHasher::build_hasher`] should never actually be called. Its purpose is for testing struct layouts");
+        }
+    }
+
+    pub(super) struct DummyAlloc {}
+
+    unsafe impl alloc::Allocator for DummyAlloc {
+        fn allocate(&self, _layout: alloc::Layout) -> Result<NonNull<[u8]>, alloc::AllocError> {
+            panic!("The [`DummyAlloc::allocate`] should never actually be called. Its purpose is for testing struct layouts");
+        }
+
+        unsafe fn deallocate(&self, _ptr: NonNull<u8>, _layout: alloc::Layout) {
+            unsafe {
+                panic!("The [`DummyAlloc::deallocate`] should never actually be called. Its purpose is for testing struct layouts");
+            }
+        }
     }
 }
 
@@ -3175,7 +3255,6 @@ where
 mod index_set_layout_tests {
     use super::*;
     use core::mem;
-    use core::ptr::NonNull;
 
     fn run_test_opaque_index_set_match_sizes<T, S, A>()
     where
@@ -3216,28 +3295,6 @@ mod index_set_layout_tests {
         assert_eq!(result, expected, "Opaque and Typed Projected data types offsets mismatch");
     }
 
-    struct DummyBuildHasher {}
-
-    impl hash::BuildHasher for DummyBuildHasher {
-        type Hasher = hash::DefaultHasher;
-        fn build_hasher(&self) -> Self::Hasher {
-            Default::default()
-        }
-    }
-
-    struct DummyAlloc {}
-
-    unsafe impl alloc::Allocator for DummyAlloc {
-        fn allocate(&self, layout: alloc::Layout) -> Result<NonNull<[u8]>, alloc::AllocError> {
-            alloc::Global.allocate(layout)
-        }
-        unsafe fn deallocate(&self, ptr: NonNull<u8>, layout: alloc::Layout) {
-            unsafe {
-                alloc::Global.deallocate(ptr, layout)
-            }
-        }
-    }
-
     macro_rules! layout_tests {
         ($module_name:ident, $value_typ:ty, $build_hasher_typ:ty, $alloc_typ:ty) => {
             mod $module_name {
@@ -3261,19 +3318,29 @@ mod index_set_layout_tests {
         };
     }
 
+    #[cfg(feature = "std")]
     layout_tests!(u8_u8_random_state_global, u8, hash::RandomState, alloc::Global);
-    layout_tests!(u64_pair_dummy_hasher_dummy_alloc, u64, DummyBuildHasher, DummyAlloc);
-    layout_tests!(unit_str_zst_hasher_dummy_alloc, (), DummyBuildHasher, DummyAlloc);
+
+    layout_tests!(u64_pair_dummy_hasher_dummy_alloc, u64, dummy::DummyBuildHasher, dummy::DummyAlloc);
+    layout_tests!(unit_str_zst_hasher_dummy_alloc, (), dummy::DummyBuildHasher, dummy::DummyAlloc);
 }
 
 #[cfg(test)]
 mod index_set_assert_send_sync {
     use super::*;
 
+    #[cfg(feature = "std")]
     #[test]
-    fn test_assert_send_sync() {
+    fn test_assert_send_sync1() {
         fn assert_send_sync<T: Send + Sync>() {}
 
         assert_send_sync::<TypedProjIndexSet<i32, hash::RandomState, alloc::Global>>();
+    }
+
+    #[test]
+    fn test_assert_send_sync2() {
+        fn assert_send_sync<T: Send + Sync>() {}
+
+        assert_send_sync::<TypedProjIndexSet<i32, dummy::DummyBuildHasher, alloc::Global>>();
     }
 }

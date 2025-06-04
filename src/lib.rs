@@ -1,3 +1,9 @@
+#![no_std]
+extern crate alloc as alloc_crate;
+
+#[cfg(feature = "std")]
+extern crate std;
+
 pub mod opaque_alloc {
     pub use opaque_alloc::*;
 }

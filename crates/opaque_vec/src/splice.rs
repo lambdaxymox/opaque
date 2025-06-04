@@ -1,6 +1,7 @@
 use core::any;
 use core::slice;
-use std::alloc;
+use alloc_crate::alloc;
+use alloc_crate::vec::Vec;
 
 use crate::Drain;
 

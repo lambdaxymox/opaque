@@ -4,10 +4,10 @@ use core::mem;
 use core::mem::{ManuallyDrop, MaybeUninit};
 use core::ptr;
 use core::ptr::NonNull;
-use std::alloc;
+use alloc_crate::alloc;
+use alloc_crate::boxed::Box;
 
 use opaque_range_types::UsizeNoHighBit;
-
 use opaque_alloc::{OpaqueAlloc, TypedProjAlloc};
 use opaque_error::{TryReserveError, TryReserveErrorKind};
 
