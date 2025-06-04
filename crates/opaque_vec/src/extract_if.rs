@@ -1,3 +1,5 @@
+use crate::vec_inner::TypedProjVecInner;
+
 use core::any;
 use core::fmt;
 use core::slice;
@@ -5,7 +7,6 @@ use core::ops;
 use alloc_crate::alloc;
 
 use opaque_alloc::TypedProjAlloc;
-use crate::TypedProjVecInner;
 
 #[must_use = "iterators are lazy and do nothing unless consumed"]
 pub struct ExtractIf<'a, T, F, A = alloc::Global>

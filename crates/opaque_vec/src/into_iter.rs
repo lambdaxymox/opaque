@@ -1,3 +1,5 @@
+use crate::vec_inner::TypedProjVecInner;
+
 use core::any;
 use core::fmt;
 use core::iter;
@@ -8,8 +10,6 @@ use core::ptr::NonNull;
 use alloc_crate::alloc;
 
 use opaque_alloc::TypedProjAlloc;
-
-use crate::TypedProjVecInner;
 
 #[inline(always)]
 const fn assuming_non_null<T>(item: *const T) -> NonNull<T> {

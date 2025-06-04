@@ -1,3 +1,5 @@
+use crate::vec_inner::TypedProjVecInner;
+
 use core::fmt;
 use core::any;
 use core::iter;
@@ -7,7 +9,6 @@ use core::slice;
 use alloc_crate::alloc;
 
 use opaque_alloc::TypedProjAlloc;
-use crate::TypedProjVecInner;
 
 pub struct Drain<'a, T, A = alloc::Global>
 where
