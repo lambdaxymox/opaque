@@ -6,7 +6,7 @@ use core::ptr;
 use core::ptr::NonNull;
 use std::alloc;
 
-use crate::range_types::UsizeNoHighBit;
+use opaque_range_types::UsizeNoHighBit;
 
 use opaque_alloc::{OpaqueAlloc, TypedProjAlloc};
 use opaque_error::{TryReserveError, TryReserveErrorKind};
@@ -39,7 +39,7 @@ pub(crate) unsafe fn new_capacity<T>(capacity: usize) -> Capacity {
     }
 }
 
-const fn min_non_zero_cap(size: usize) -> usize {
+const fn min_non_zero_capacity(size: usize) -> usize {
     if size == 1 {
         8
     } else if size <= 1024 {
@@ -304,8 +304,8 @@ where
 
     #[track_caller]
     #[inline]
-    pub(crate) fn shrink_to_fit(&mut self, cap: usize) {
-        self.inner.shrink_to_fit(cap, alloc::Layout::new::<T>())
+    pub(crate) fn shrink_to_fit(&mut self, capacity: usize) {
+        self.inner.shrink_to_fit(capacity, alloc::Layout::new::<T>())
     }
 }
 
@@ -670,7 +670,7 @@ impl RawVecMemory {
     }
 
     #[inline]
-    unsafe fn set_ptr_and_cap(&mut self, ptr: NonNull<[u8]>, capacity: usize) {
+    unsafe fn set_ptr_and_capacity(&mut self, ptr: NonNull<[u8]>, capacity: usize) {
         // Allocators currently return a `NonNull<[u8]>` whose length matches
         // the size requested. If that ever changes, the capacity here should
         // change to `ptr.len() / mem::size_of::<T>()`.
@@ -696,16 +696,16 @@ impl RawVecMemory {
             .ok_or(TryReserveErrorKind::CapacityOverflow)?;
 
         // This guarantees exponential growth. The doubling cannot overflow
-        // because `cap <= isize::MAX` and the type of `cap` is `usize`.
-        let capacity = std::cmp::max(self.capacity.as_inner() * 2, required_capacity);
-        let capacity = std::cmp::max(min_non_zero_cap(element_layout.size()), capacity);
+        // because `capacity <= isize::MAX` and the type of `capacity` is `usize`.
+        let capacity = core::cmp::max(self.capacity.as_inner() * 2, required_capacity);
+        let capacity = core::cmp::max(min_non_zero_capacity(element_layout.size()), capacity);
 
         let new_layout = layout_array(capacity, element_layout)?;
 
         let ptr = finish_grow(new_layout, self.current_memory(element_layout), &mut self.alloc)?;
         // SAFETY: finish_grow would have resulted in a capacity overflow if we tried to allocate more than `isize::MAX` items
 
-        unsafe { self.set_ptr_and_cap(ptr, capacity) };
+        unsafe { self.set_ptr_and_capacity(ptr, capacity) };
 
         Ok(())
     }
@@ -719,15 +719,15 @@ impl RawVecMemory {
             ));
         }
 
-        let cap = len.checked_add(additional).ok_or(TryReserveError::from(
+        let capacity = len.checked_add(additional).ok_or(TryReserveError::from(
             TryReserveErrorKind::CapacityOverflow,
         ))?;
-        let new_layout = layout_array(cap, element_layout)?;
+        let new_layout = layout_array(capacity, element_layout)?;
 
         let ptr = finish_grow(new_layout, self.current_memory(element_layout), &mut self.alloc)?;
         // SAFETY: finish_grow would have resulted in a capacity overflow if we tried to allocate more than `isize::MAX` items
         unsafe {
-            self.set_ptr_and_cap(ptr, cap);
+            self.set_ptr_and_capacity(ptr, capacity);
         }
         Ok(())
     }
@@ -752,7 +752,7 @@ impl RawVecMemory {
     /// big for LLVM to be willing to inline.
     ///
     /// # Safety
-    /// `cap <= self.capacity()`
+    /// `capacity <= self.capacity()`
     unsafe fn shrink_unchecked(&mut self, capacity: usize, element_layout: alloc::Layout) -> Result<(), TryReserveError> {
         use std::alloc::Allocator;
 
@@ -781,7 +781,7 @@ impl RawVecMemory {
             };
             // SAFETY: if the allocation is valid, then the capacity is too
             unsafe {
-                self.set_ptr_and_cap(ptr, capacity);
+                self.set_ptr_and_capacity(ptr, capacity);
             }
         }
 
@@ -800,7 +800,7 @@ impl RawVecMemory {
 
     /// # Safety
     ///
-    /// This function deallocates the owned allocation, but does not update `ptr` or `cap` to
+    /// This function deallocates the owned allocation, but does not update `ptr` or `capacity` to
     /// prevent double-free or use-after-free. Essentially, do not do anything with the caller
     /// after this function returns.
     /// Ideally this function would take `self` by move, but it cannot because it exists to be

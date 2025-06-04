@@ -1,10 +1,4 @@
-/*
-#![unstable(
-    feature = "temporary_niche_types",
-    issue = "none",
-    reason = "for core, alloc, and std internals until pattern types are further along"
-)]
-*/
+#![feature(structural_match)]
 use core::cmp::Ordering;
 use core::fmt;
 use core::hash::{
@@ -20,10 +14,6 @@ macro_rules! define_valid_range_type {
     )+) => {$(
         #[derive(Clone, Copy, Eq)]
         #[repr(transparent)]
-        /*
-        #[rustc_layout_scalar_valid_range_start($low)]
-        #[rustc_layout_scalar_valid_range_end($high)]
-        */
         $(#[$m])*
         $vis struct $name($int);
 

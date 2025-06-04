@@ -3,7 +3,6 @@
 #![feature(alloc_layout_extra)]
 #![feature(optimize_attribute)]
 #![feature(slice_range)]
-#![feature(structural_match)]
 mod into_iter;
 mod drain;
 mod splice;
@@ -11,7 +10,6 @@ mod extract_if;
 mod zst;
 
 mod raw_vec;
-mod range_types;
 
 pub use crate::into_iter::*;
 pub use crate::drain::*;
@@ -37,7 +35,7 @@ use std::alloc;
 use std::borrow;
 
 use opaque_alloc::TypedProjAlloc;
-use opaque_error;
+use opaque_error::TryReserveError;
 
 unsafe fn drop_fn<T>(value: NonNull<u8>) {
     let to_drop = value.as_ptr() as *mut T;
@@ -92,7 +90,7 @@ where
     }
 
     #[inline]
-    pub(crate) fn try_with_capacity_proj_in(capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Result<Self, opaque_error::TryReserveError> {
+    pub(crate) fn try_with_capacity_proj_in(capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Result<Self, TryReserveError> {
         let data = TypedProjRawVec::try_with_capacity_in(capacity, proj_alloc)?;
         let length = 0;
         let element_type_id = any::TypeId::of::<T>();
@@ -145,7 +143,7 @@ where
     }
 
     #[inline]
-    pub(crate) fn try_with_capacity_in(capacity: usize, alloc: A) -> Result<Self, opaque_error::TryReserveError> {
+    pub(crate) fn try_with_capacity_in(capacity: usize, alloc: A) -> Result<Self, TryReserveError> {
         let proj_alloc = TypedProjAlloc::new(alloc);
 
         Self::try_with_capacity_proj_in(capacity, proj_alloc)
@@ -189,7 +187,7 @@ where
     }
 
     #[inline]
-    pub(crate) fn try_with_capacity(capacity: usize) -> Result<Self, opaque_error::TryReserveError> {
+    pub(crate) fn try_with_capacity(capacity: usize) -> Result<Self, TryReserveError> {
         Self::try_with_capacity_in(capacity, alloc::Global)
     }
 
@@ -700,12 +698,12 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[inline]
-    pub(crate) fn try_reserve(&mut self, additional: usize) -> Result<(), opaque_error::TryReserveError> {
+    pub(crate) fn try_reserve(&mut self, additional: usize) -> Result<(), TryReserveError> {
         self.data.try_reserve(self.len(), additional)
     }
 
     #[inline]
-    pub(crate) fn try_reserve_exact(&mut self, additional: usize) -> Result<(), opaque_error::TryReserveError> {
+    pub(crate) fn try_reserve_exact(&mut self, additional: usize) -> Result<(), TryReserveError> {
         self.data.try_reserve_exact(self.len(), additional)
     }
 
@@ -1612,7 +1610,7 @@ where
     }
 
     #[inline]
-    pub fn try_with_capacity_proj_in(capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Result<Self, opaque_error::TryReserveError> {
+    pub fn try_with_capacity_proj_in(capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Result<Self, TryReserveError> {
         let inner = TypedProjVecInner::try_with_capacity_proj_in(capacity, proj_alloc)?;
 
         Ok(Self { inner, })
@@ -1655,7 +1653,7 @@ where
     }
 
     #[inline]
-    pub fn try_with_capacity_in(capacity: usize, alloc: A) -> Result<Self, opaque_error::TryReserveError> {
+    pub fn try_with_capacity_in(capacity: usize, alloc: A) -> Result<Self, TryReserveError> {
         let inner = TypedProjVecInner::try_with_capacity_in(capacity, alloc)?;
 
         Ok(Self { inner, })
@@ -1703,7 +1701,7 @@ where
     }
 
     #[inline]
-    pub fn try_with_capacity(capacity: usize) -> Result<Self, opaque_error::TryReserveError> {
+    pub fn try_with_capacity(capacity: usize) -> Result<Self, TryReserveError> {
         let inner = TypedProjVecInner::try_with_capacity(capacity)?;
 
         Ok(Self { inner, })
@@ -1943,11 +1941,11 @@ where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    pub fn try_reserve(&mut self, additional: usize) -> Result<(), opaque_error::TryReserveError> {
+    pub fn try_reserve(&mut self, additional: usize) -> Result<(), TryReserveError> {
         self.inner.try_reserve(additional)
     }
 
-    pub fn try_reserve_exact(&mut self, additional: usize) -> Result<(), opaque_error::TryReserveError> {
+    pub fn try_reserve_exact(&mut self, additional: usize) -> Result<(), TryReserveError> {
         self.inner.try_reserve_exact(additional)
     }
 
@@ -2716,7 +2714,7 @@ impl OpaqueVec {
     }
 
     #[inline]
-    pub fn try_with_capacity_proj_in<T, A>(capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Result<Self, opaque_error::TryReserveError>
+    pub fn try_with_capacity_proj_in<T, A>(capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Result<Self, TryReserveError>
     where
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
@@ -2779,7 +2777,7 @@ impl OpaqueVec {
     }
 
     #[inline]
-    pub fn try_with_capacity_in<T, A>(capacity: usize, alloc: A) -> Result<Self, opaque_error::TryReserveError>
+    pub fn try_with_capacity_in<T, A>(capacity: usize, alloc: A) -> Result<Self, TryReserveError>
     where
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
@@ -2842,7 +2840,7 @@ impl OpaqueVec {
     }
 
     #[inline]
-    pub fn try_with_capacity<T>(capacity: usize) -> Result<Self, opaque_error::TryReserveError>
+    pub fn try_with_capacity<T>(capacity: usize) -> Result<Self, TryReserveError>
     where
         T: any::Any,
     {
@@ -3223,7 +3221,7 @@ impl OpaqueVec {
 }
 
 impl OpaqueVec {
-    pub fn try_reserve<T, A>(&mut self, additional: usize) -> Result<(), opaque_error::TryReserveError>
+    pub fn try_reserve<T, A>(&mut self, additional: usize) -> Result<(), TryReserveError>
     where
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
@@ -3233,7 +3231,7 @@ impl OpaqueVec {
         proj_self.try_reserve(additional)
     }
 
-    pub fn try_reserve_exact<T, A>(&mut self, additional: usize) -> Result<(), opaque_error::TryReserveError>
+    pub fn try_reserve_exact<T, A>(&mut self, additional: usize) -> Result<(), TryReserveError>
     where
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,

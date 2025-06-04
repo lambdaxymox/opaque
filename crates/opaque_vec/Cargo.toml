@@ -13,6 +13,10 @@ path = "../opaque_alloc"
 version = "0.1.0"
 path = "../opaque_error"
 
+[dependencies.opaque_range_types]
+version = "0.1.0"
+path = "../opaque_range_types"
+
 [dev-dependencies]
 
 [dev-dependencies.opaque_vec_testing]
