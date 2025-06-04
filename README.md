@@ -1,1 +1,1 @@
-# Opaque Collections
+# Opaque
