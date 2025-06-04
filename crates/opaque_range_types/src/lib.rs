@@ -1,11 +1,9 @@
-#![feature(structural_match)]
 use core::cmp::Ordering;
 use core::fmt;
 use core::hash::{
     Hash,
     Hasher,
 };
-use core::marker::StructuralPartialEq;
 
 macro_rules! define_valid_range_type {
     ($(
@@ -57,11 +55,6 @@ macro_rules! define_valid_range_type {
                 unsafe { core::mem::transmute(self) }
             }
         }
-
-        // This is required to allow matching a constant.  We don't get it from a derive
-        // because the derived `PartialEq` would do a field projection, which is banned
-        // by <https://github.com/rust-lang/compiler-team/issues/807>.
-        impl StructuralPartialEq for $name {}
 
         impl PartialEq for $name {
             #[inline]

@@ -45,6 +45,15 @@ unsafe fn drop_fn<T>(value: NonNull<u8>) {
     }
 }
 
+#[inline(always)]
+const fn get_drop_fn<T>() -> Option<unsafe fn(NonNull<u8>)> {
+    if mem::needs_drop::<T>() {
+        Some(drop_fn::<T> as unsafe fn(NonNull<u8>))
+    } else {
+        None
+    }
+}
+
 #[repr(C)]
 struct TypedProjVecInner<T, A>
 where
@@ -55,7 +64,7 @@ where
     length: usize,
     element_type_id: any::TypeId,
     allocator_type_id: any::TypeId,
-    drop_fn: unsafe fn(NonNull<u8>),
+    drop_fn: Option<unsafe fn(NonNull<u8>)>,
 }
 
 impl<T, A> TypedProjVecInner<T, A>
@@ -71,7 +80,7 @@ where
         let length = 0;
         let element_type_id = any::TypeId::of::<T>();
         let allocator_type_id = any::TypeId::of::<A>();
-        let drop_fn = drop_fn::<T> as unsafe fn(NonNull<u8>);
+        let drop_fn = get_drop_fn::<T>();
 
         Self { data, length, element_type_id, allocator_type_id, drop_fn, }
     }
@@ -84,7 +93,7 @@ where
         let length = 0;
         let element_type_id = any::TypeId::of::<T>();
         let allocator_type_id = any::TypeId::of::<A>();
-        let drop_fn = drop_fn::<T> as unsafe fn(NonNull<u8>);
+        let drop_fn = get_drop_fn::<T>();
 
         Self { data, length, element_type_id, allocator_type_id, drop_fn, }
     }
@@ -95,7 +104,7 @@ where
         let length = 0;
         let element_type_id = any::TypeId::of::<T>();
         let allocator_type_id = any::TypeId::of::<A>();
-        let drop_fn = drop_fn::<T> as unsafe fn(NonNull<u8>);
+        let drop_fn = get_drop_fn::<T>();
 
         Ok(Self { data, length, element_type_id, allocator_type_id, drop_fn, })
     }
@@ -107,7 +116,7 @@ where
         };
         let element_type_id = any::TypeId::of::<T>();
         let allocator_type_id = any::TypeId::of::<A>();
-        let drop_fn = drop_fn::<T> as unsafe fn(NonNull<u8>);
+        let drop_fn = get_drop_fn::<T>();
 
         Self { data, length, element_type_id, allocator_type_id, drop_fn, }
     }
@@ -119,7 +128,7 @@ where
         };
         let element_type_id = any::TypeId::of::<T>();
         let allocator_type_id = any::TypeId::of::<A>();
-        let drop_fn = drop_fn::<T> as unsafe fn(NonNull<u8>);
+        let drop_fn = get_drop_fn::<T>();
 
         Self { data, length, element_type_id, allocator_type_id, drop_fn, }
     }
@@ -771,12 +780,12 @@ where
             }
 
             #[inline]
-            fn increment_len(&mut self, increment: usize) {
+            fn increment(&mut self, increment: usize) {
                 self.local_len += increment;
             }
 
             #[inline]
-            fn current_len(&self) -> usize {
+            fn current(&self) -> usize {
                 self.local_len
             }
         }
@@ -790,27 +799,30 @@ where
 
         self.reserve(count);
 
+        let length = self.len();
+
         unsafe {
             let mut ptr = self.as_mut_ptr().add(self.len());
             // Use SetLenOnDrop to work around bug where compiler
             // might not realize the store through `ptr` through self.set_len()
             // don't alias.
-            let mut local_len = SetLenOnDrop::new(&mut self.length);
+            let mut local_length = SetLenOnDrop::new(&mut self.length);
 
             // Write all elements except the last one
             for _ in 1..count {
                 ptr::write(ptr, value.clone());
                 ptr = ptr.add(1);
                 // Increment the length in every step in case clone() panics
-                local_len.increment_len(1);
+                local_length.increment(1);
             }
 
             if count > 0 {
                 // We can write the last element directly without cloning needlessly
                 ptr::write(ptr, value);
-                local_len.increment_len(1);
+                local_length.increment(1);
             }
 
+            debug_assert_eq!(local_length.current(), length + count);
             // len set by scope guard
         }
     }
@@ -1007,20 +1019,20 @@ where
             return;
         }
 
-        /* INVARIANT: vec.len() > read > write > write-1 >= 0 */
+        // INVARIANT: vec.len() > read > write > write-1 >= 0
         struct FillGapOnDrop<'a, T, A>
         where
             T: any::Any,
             A: any::Any + alloc::Allocator + Send + Sync,
         {
-            /* Offset of the element we want to check if it is duplicate */
+            // Offset of the element we want to check if it is duplicate
             read: usize,
 
-            /* Offset of the place where we want to place the non-duplicate
-             * when we find it. */
+            // Offset of the place where we want to place the non-duplicate
+            // when we find it.
             write: usize,
 
-            /* The Vec that would need correction if `same_bucket` panicked */
+            // The Vec that would need correction if `same_bucket` panicked
             vec: &'a mut TypedProjVecInner<T, A>,
         }
 
@@ -1030,30 +1042,30 @@ where
             A: any::Any + alloc::Allocator + Send + Sync,
         {
             fn drop(&mut self) {
-                /* This code gets executed when `same_bucket` panics */
-
-                /* SAFETY: invariant guarantees that `read - write`
-                 * and `len - read` never overflow and that the copy is always
-                 * in-bounds. */
+                // This code gets executed when `same_bucket` panics.
+                //
+                // SAFETY: invariant guarantees that `read - write`
+                // and `len - read` never overflow and that the copy is always
+                // in-bounds.
                 unsafe {
                     let ptr = self.vec.as_mut_ptr();
                     let len = self.vec.len();
 
-                    /* How many items were left when `same_bucket` panicked.
-                     * Basically vec[read..].len() */
+                    // How many items were left when `same_bucket` panicked.
+                    // Basically vec[read..].len()
                     let items_left = len.wrapping_sub(self.read);
 
-                    /* Pointer to first item in vec[write..write+items_left] slice */
+                    // Pointer to first item in vec[write..write+items_left] slice
                     let dropped_ptr = ptr.add(self.write);
-                    /* Pointer to first item in vec[read..] slice */
+                    // Pointer to first item in vec[read..] slice
                     let valid_ptr = ptr.add(self.read);
 
-                    /* Copy `vec[read..]` to `vec[write..write+items_left]`.
-                     * The slices can overlap, so `copy_nonoverlapping` cannot be used */
+                    // Copy `vec[read..]` to `vec[write..write+items_left]`.
+                    // The slices can overlap, so `copy_nonoverlapping` cannot be used
                     core::ptr::copy(valid_ptr, dropped_ptr, items_left);
 
-                    /* How many items have been already dropped
-                     * Basically vec[read..write].len() */
+                    // How many items have been already dropped
+                    // Basically vec[read..write].len()
                     let dropped = self.read.wrapping_sub(self.write);
 
                     self.vec.set_len(len - dropped);
@@ -1061,8 +1073,8 @@ where
             }
         }
 
-        /* Drop items while going through Vec, it should be more efficient than
-         * doing slice partition_dedup + truncate */
+        // Drop items while going through Vec, it should be more efficient than
+        // doing slice partition_dedup + truncate
 
         // Construct gap first and then drop item to avoid memory corruption if `T::drop` panics.
         let mut gap: FillGapOnDrop<'_, T, A> = FillGapOnDrop {
@@ -1077,8 +1089,8 @@ where
             core::ptr::drop_in_place(start.add(first_duplicate_idx));
         }
 
-        /* SAFETY: Because of the invariant, read_ptr, prev_ptr and write_ptr
-         * are always in-bounds and read_ptr never aliases prev_ptr */
+        // SAFETY: Because of the invariant, read_ptr, prev_ptr and write_ptr
+        // are always in-bounds and read_ptr never aliases prev_ptr
         unsafe {
             while gap.read < len {
                 let read_ptr = start.add(gap.read);
@@ -1089,14 +1101,13 @@ where
                 if found_duplicate {
                     // Increase `gap.read` now since the drop may panic.
                     gap.read += 1;
-                    /* We have found duplicate, drop it in-place */
+                    // We have found duplicate, drop it in-place
                     core::ptr::drop_in_place(read_ptr);
                 } else {
                     let write_ptr = start.add(gap.write);
 
-                    /* read_ptr cannot be equal to write_ptr because at this point
-                     * we guaranteed to skip at least one element (before loop starts).
-                     */
+                    // read_ptr cannot be equal to write_ptr because at this point
+                    // we guaranteed to skip at least one element (before loop starts).
                     core::ptr::copy_nonoverlapping(read_ptr, write_ptr, 1);
 
                     /* We have filled that place, so go further */
@@ -1105,9 +1116,9 @@ where
                 }
             }
 
-            /* Technically we could let `gap` clean up with its Drop, but
-             * when `same_bucket` is guaranteed to not panic, this bloats a little
-             * the codegen, so we just do it manually */
+            // Technically we could let `gap` clean up with its Drop, but
+            // when `same_bucket` is guaranteed to not panic, this bloats a little
+            // the codegen, so we just do it manually
             gap.vec.set_len(gap.write);
             mem::forget(gap);
         }
@@ -1435,7 +1446,7 @@ struct OpaqueVecInner {
     length: usize,
     element_type_id: any::TypeId,
     allocator_type_id: any::TypeId,
-    drop_fn: unsafe fn(NonNull<u8>),
+    drop_fn: Option<unsafe fn(NonNull<u8>)>,
 }
 
 impl OpaqueVecInner {
@@ -1553,20 +1564,23 @@ impl OpaqueVecInner {
             }
         }
 
-        let len = self.length;
-        let ptr = self.data.as_non_null();
-        let mut length_on_drop = SetLenOnDrop::new(&mut self.length);
-        let size = self.data.element_layout().size();
-        for i in 0..len {
-            length_on_drop.decrement();
-            let element = unsafe { ptr.byte_add(i * size) };
-            unsafe {
-                (self.drop_fn)(element);
+        if let Some(drop_fn) = self.drop_fn {
+            let len = self.length;
+            let ptr = self.data.as_non_null();
+            let mut length_on_drop = SetLenOnDrop::new(&mut self.length);
+            let size = self.data.element_layout().size();
+            for i in 0..len {
+                length_on_drop.decrement();
+                let element = unsafe { ptr.byte_add(i * size) };
+                unsafe {
+                    drop_fn(element);
+                }
             }
-        }
 
-        debug_assert_eq!(length_on_drop.current(), 0);
-        // Vector length set by drop guard.
+            debug_assert_eq!(length_on_drop.current(), 0);
+        } else {
+            self.length = 0;
+        }
     }
 }
 
