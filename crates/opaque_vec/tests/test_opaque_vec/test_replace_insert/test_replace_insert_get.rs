@@ -18,7 +18,7 @@ where
 
     for i in 0..vec.len() {
         let expected = Some(values[i].clone());
-        let result = vec.get::<T, A>(i).cloned();
+        let result = vec.get::<_, T, A>(i).cloned();
 
         assert_eq!(result, expected);
     }

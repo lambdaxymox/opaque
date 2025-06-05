@@ -393,15 +393,17 @@ mod dummy {
     use core::ptr::NonNull;
 
     #[allow(dead_code)]
-    pub(super) struct DummyAlloc {}
+    pub(super) struct DummyAlloc {
+        _do_not_construct: marker::PhantomData<()>,
+    }
 
     unsafe impl alloc::Allocator for DummyAlloc {
         fn allocate(&self, _layout: alloc::Layout) -> Result<NonNull<[u8]>, alloc::AllocError> {
-            panic!("The [`DummyAlloc::allocate`] should never actually be called. Its purpose is for testing struct layouts");
+            panic!("[`DummyAlloc::allocate`] should never actually be called. Its purpose is to test struct layouts.");
         }
 
         unsafe fn deallocate(&self, _ptr: NonNull<u8>, _layout: alloc::Layout) {
-            panic!("The [`DummyAlloc::deallocate`] should never actually be called. Its purpose is for testing struct layouts");
+            panic!("[`DummyAlloc::deallocate`] should never actually be called. Its purpose is to test struct layouts.");
         }
     }
 }

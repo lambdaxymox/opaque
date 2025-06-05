@@ -3978,42 +3978,79 @@ where
 mod dummy {
     use super::*;
     use core::ptr::NonNull;
+    use std::marker;
 
-    pub(super) struct DummyHasher {}
+    #[allow(dead_code)]
+    pub(super) struct DummyHasher {
+        _do_not_construct: marker::PhantomData<()>,
+    }
 
     impl hash::Hasher for DummyHasher {
         #[inline]
         fn finish(&self) -> u64 {
-            panic!("The [`DummyHasher::finish`] should never actually be called. Its purpose is to test struct layouts.");
+            panic!("[`DummyHasher::finish`] should never actually be called. Its purpose is to test struct layouts.");
         }
 
         #[inline]
         fn write(&mut self, _bytes: &[u8]) {
-            panic!("The [`DummyHasher::write`] should never actually be called. Its purpose is for testing struct layouts");
+            panic!("[`DummyHasher::write`] should never actually be called. Its purpose is to test struct layouts.");
         }
     }
 
     #[allow(dead_code)]
-    pub(super) struct DummyBuildHasher {}
+    pub(super) struct DummyBuildHasher {
+        _do_not_construct: marker::PhantomData<()>,
+    }
 
     impl hash::BuildHasher for DummyBuildHasher {
         type Hasher = DummyHasher;
         fn build_hasher(&self) -> Self::Hasher {
-            panic!("The [`DummyBuildHasher::build_hasher`] should never actually be called. Its purpose is for testing struct layouts");
+            panic!("[`DummyBuildHasher::build_hasher`] should never actually be called. Its purpose is to test struct layouts.");
         }
     }
 
     #[allow(dead_code)]
-    pub(super) struct DummyAlloc {}
+    pub(super) struct DummyAlloc {
+        _do_not_construct: marker::PhantomData<()>,
+    }
 
     unsafe impl alloc::Allocator for DummyAlloc {
         fn allocate(&self, _layout: alloc::Layout) -> Result<NonNull<[u8]>, alloc::AllocError> {
-            panic!("The [`DummyAlloc::allocate`] should never actually be called. Its purpose is for testing struct layouts");
+            panic!("[`DummyAlloc::allocate`] should never actually be called. Its purpose is to test struct layouts.");
         }
 
         unsafe fn deallocate(&self, _ptr: NonNull<u8>, _layout: alloc::Layout) {
-            panic!("The [`DummyAlloc::deallocate`] should never actually be called. Its purpose is for testing struct layouts");
+            panic!("[`DummyAlloc::deallocate`] should never actually be called. Its purpose is to test struct layouts.");
         }
+    }
+}
+
+mod layout_testing_types {
+    use super::*;
+    use core::marker;
+
+    #[allow(dead_code)]
+    pub(super) struct TangentSpace {
+        tangent: [f32; 3],
+        bitangent: [f32; 3],
+        normal: [f32; 3],
+        _do_not_construct: marker::PhantomData<()>,
+    }
+
+    #[allow(dead_code)]
+    pub(super) struct SurfaceDifferential {
+        dpdu: [f32; 3],
+        dpdv: [f32; 3],
+        _do_not_construct: marker::PhantomData<()>,
+    }
+
+    #[allow(dead_code)]
+    pub(super) struct OctTreeNode {
+        center: [f32; 3],
+        extent: f32,
+        children: [Option<Box<OctTreeNode>>; 8],
+        occupancy: u8,
+        _do_not_construct: marker::PhantomData<()>,
     }
 }
 
@@ -4021,7 +4058,6 @@ mod dummy {
 mod index_map_layout_tests {
     use super::*;
     use core::mem;
-    use core::ptr::NonNull;
 
     fn run_test_opaque_index_map_match_sizes<K, V, S, A>()
     where
@@ -4065,8 +4101,6 @@ mod index_map_layout_tests {
         assert_eq!(result, expected, "Opaque and Typed Projected data types offsets mismatch");
     }
 
-    struct Pair(u8, u64);
-
     macro_rules! layout_tests {
         ($module_name:ident, $key_typ:ty, $value_typ:ty, $build_hasher_typ:ty, $alloc_typ:ty) => {
             mod $module_name {
@@ -4091,10 +4125,91 @@ mod index_map_layout_tests {
     }
 
     #[cfg(feature = "std")]
-    layout_tests!(u8_u8_random_state_global, u8, u8, hash::RandomState, alloc::Global);
+    layout_tests!(unit_zst_unit_zstrandom_state_global, (), (), hash::RandomState, alloc::Global);
 
-    layout_tests!(u64_pair_dummy_hasher_dummy_alloc, u64, Pair, dummy::DummyBuildHasher, dummy::DummyAlloc);
-    layout_tests!(unit_str_zst_hasher_dummy_alloc, (), &'static str, dummy::DummyBuildHasher, dummy::DummyAlloc);
+    #[cfg(feature = "std")]
+    layout_tests!(unit_zst_u8random_state_global, (), u8, hash::RandomState, alloc::Global);
+
+    #[cfg(feature = "std")]
+    layout_tests!(unit_zst_u64random_state_global, (), u64, hash::RandomState, alloc::Global);
+
+    #[cfg(feature = "std")]
+    layout_tests!(unit_zst_strrandom_state_global, (), &'static str, hash::RandomState, alloc::Global);
+
+    #[cfg(feature = "std")]
+    layout_tests!(unit_zst_tangent_spacerandom_state_global, (), layout_testing_types::TangentSpace, hash::RandomState, alloc::Global);
+
+    #[cfg(feature = "std")]
+    layout_tests!(unit_zst_surface_differentialrandom_state_global, (), layout_testing_types::SurfaceDifferential, hash::RandomState, alloc::Global);
+
+    #[cfg(feature = "std")]
+    layout_tests!(unit_zst_oct_tree_noderandom_state_global, (), layout_testing_types::OctTreeNode, hash::RandomState, alloc::Global);
+
+    #[cfg(feature = "std")]
+    layout_tests!(u8_unit_zstrandom_state_global, u8, (), hash::RandomState, alloc::Global);
+
+    #[cfg(feature = "std")]
+    layout_tests!(u8_u8random_state_global, u8, u8, hash::RandomState, alloc::Global);
+
+    #[cfg(feature = "std")]
+    layout_tests!(u8_u64random_state_global, u8, u64, hash::RandomState, alloc::Global);
+
+    #[cfg(feature = "std")]
+    layout_tests!(u8_strrandom_state_global, u8, &'static str, hash::RandomState, alloc::Global);
+
+    #[cfg(feature = "std")]
+    layout_tests!(u8_tangent_spacerandom_state_global, u8, layout_testing_types::TangentSpace, hash::RandomState, alloc::Global);
+
+    #[cfg(feature = "std")]
+    layout_tests!(u8_surface_differentialrandom_state_global, u8, layout_testing_types::SurfaceDifferential, hash::RandomState, alloc::Global);
+
+    #[cfg(feature = "std")]
+    layout_tests!(u8_oct_tree_noderandom_state_global, u8, layout_testing_types::OctTreeNode, hash::RandomState, alloc::Global);
+
+    #[cfg(feature = "std")]
+    layout_tests!(u64_unit_zstrandom_state_global, u64, (), hash::RandomState, alloc::Global);
+
+    #[cfg(feature = "std")]
+    layout_tests!(u64_u8random_state_global, u64, u8, hash::RandomState, alloc::Global);
+
+    #[cfg(feature = "std")]
+    layout_tests!(u64_u64random_state_global, u64, u64, hash::RandomState, alloc::Global);
+
+    #[cfg(feature = "std")]
+    layout_tests!(u64_strrandom_state_global, u64, &'static str, hash::RandomState, alloc::Global);
+
+    #[cfg(feature = "std")]
+    layout_tests!(u64_tangent_spacerandom_state_global, u64, layout_testing_types::TangentSpace, hash::RandomState, alloc::Global);
+
+    #[cfg(feature = "std")]
+    layout_tests!(u64_surface_differentialrandom_state_global, u64, layout_testing_types::SurfaceDifferential, hash::RandomState, alloc::Global);
+
+    #[cfg(feature = "std")]
+    layout_tests!(u64_oct_tree_noderandom_state_global, u64, layout_testing_types::OctTreeNode, hash::RandomState, alloc::Global);
+
+    layout_tests!(unit_zst_unit_zst_dummy_hasher_dummy_alloc, (), (), dummy::DummyBuildHasher, dummy::DummyAlloc);
+    layout_tests!(unit_zst_u8_dummy_hasher_dummy_alloc, (), u8, dummy::DummyBuildHasher, dummy::DummyAlloc);
+    layout_tests!(unit_zst_u64_dummy_hasher_dummy_alloc, (), u64, dummy::DummyBuildHasher, dummy::DummyAlloc);
+    layout_tests!(unit_zst_str_dummy_hasher_dummy_alloc, (), &'static str, dummy::DummyBuildHasher, dummy::DummyAlloc);
+    layout_tests!(unit_zst_tangent_space_dummy_hasher_dummy_alloc, (), layout_testing_types::TangentSpace, dummy::DummyBuildHasher, dummy::DummyAlloc);
+    layout_tests!(unit_zst_surface_differential_dummy_hasher_dummy_alloc, (), layout_testing_types::SurfaceDifferential, dummy::DummyBuildHasher, dummy::DummyAlloc);
+    layout_tests!(unit_zst_oct_tree_node_dummy_hasher_dummy_alloc, (), layout_testing_types::OctTreeNode, dummy::DummyBuildHasher, dummy::DummyAlloc);
+
+    layout_tests!(u8_unit_zst_dummy_hasher_dummy_alloc, u8, (), dummy::DummyBuildHasher, dummy::DummyAlloc);
+    layout_tests!(u8_u8_dummy_hasher_dummy_alloc, u8, u8, dummy::DummyBuildHasher, dummy::DummyAlloc);
+    layout_tests!(u8_u64_dummy_hasher_dummy_alloc, u8, u64, dummy::DummyBuildHasher, dummy::DummyAlloc);
+    layout_tests!(u8_str_dummy_hasher_dummy_alloc, u8, &'static str, dummy::DummyBuildHasher, dummy::DummyAlloc);
+    layout_tests!(u8_tangent_space_dummy_hasher_dummy_alloc, u8, layout_testing_types::TangentSpace, dummy::DummyBuildHasher, dummy::DummyAlloc);
+    layout_tests!(u8_surface_differential_dummy_hasher_dummy_alloc, u8, layout_testing_types::SurfaceDifferential, dummy::DummyBuildHasher, dummy::DummyAlloc);
+    layout_tests!(u8_oct_tree_node_dummy_hasher_dummy_alloc, u8, layout_testing_types::OctTreeNode, dummy::DummyBuildHasher, dummy::DummyAlloc);
+
+    layout_tests!(u64_unit_zst_dummy_hasher_dummy_alloc, u64, (), dummy::DummyBuildHasher, dummy::DummyAlloc);
+    layout_tests!(u64_u8_dummy_hasher_dummy_alloc, u64, u8, dummy::DummyBuildHasher, dummy::DummyAlloc);
+    layout_tests!(u64_u64_dummy_hasher_dummy_alloc, u64, u64, dummy::DummyBuildHasher, dummy::DummyAlloc);
+    layout_tests!(u64_str_dummy_hasher_dummy_alloc, u64, &'static str, dummy::DummyBuildHasher, dummy::DummyAlloc);
+    layout_tests!(u64_tangent_space_dummy_hasher_dummy_alloc, u64, layout_testing_types::TangentSpace, dummy::DummyBuildHasher, dummy::DummyAlloc);
+    layout_tests!(u64_surface_differential_dummy_hasher_dummy_alloc, u64, layout_testing_types::SurfaceDifferential, dummy::DummyBuildHasher, dummy::DummyAlloc);
+    layout_tests!(u64_oct_tree_node_dummy_hasher_dummy_alloc, u64, layout_testing_types::OctTreeNode, dummy::DummyBuildHasher, dummy::DummyAlloc);
 }
 
 #[cfg(test)]

@@ -898,27 +898,32 @@ impl fmt::Debug for OpaqueBuildHasher {
 mod dummy {
     use super::*;
 
-    pub(super) struct DummyHasher {}
+    #[allow(dead_code)]
+    pub(super) struct DummyHasher {
+        _do_not_construct: marker::PhantomData<()>,
+    }
 
     impl hash::Hasher for DummyHasher {
         #[inline]
         fn finish(&self) -> u64 {
-            panic!("The [`DummyHasher::finish`] should never actually be called. Its purpose is to test struct layouts.");
+            panic!("[`DummyHasher::finish`] should never actually be called. Its purpose is to test struct layouts.");
         }
 
         #[inline]
         fn write(&mut self, _bytes: &[u8]) {
-            panic!("The [`DummyHasher::write`] should never actually be called. Its purpose is for testing struct layouts");
+            panic!("[`DummyHasher::write`] should never actually be called. Its purpose is to test struct layouts.");
         }
     }
 
     #[allow(dead_code)]
-    pub(super) struct DummyBuildHasher {}
+    pub(super) struct DummyBuildHasher {
+        _do_not_construct: marker::PhantomData<()>,
+    }
 
     impl hash::BuildHasher for DummyBuildHasher {
         type Hasher = DummyHasher;
         fn build_hasher(&self) -> Self::Hasher {
-            panic!("The [`DummyBuildHasher::build_hasher`] should never actually be called. Its purpose is for testing struct layouts");
+            panic!("[`DummyBuildHasher::build_hasher`] should never actually be called. Its purpose is to test struct layouts.");
         }
     }
 }

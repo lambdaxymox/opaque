@@ -255,7 +255,10 @@ where
 
     #[inline]
     #[must_use]
-    pub(crate) unsafe fn get_unchecked(&self, index: usize) -> &T {
+    pub(crate) unsafe fn get_unchecked<I>(&self, index: I) -> &<I as slice::SliceIndex<[T]>>::Output
+    where
+        I: slice::SliceIndex<[T]>,
+    {
         unsafe {
             self.as_slice().get_unchecked(index)
         }
@@ -263,7 +266,10 @@ where
 
     #[inline]
     #[must_use]
-    pub(crate) unsafe fn get_mut_unchecked(&mut self, index: usize) -> &mut T {
+    pub(crate) unsafe fn get_mut_unchecked<I>(&mut self, index: I) -> &mut <I as slice::SliceIndex<[T]>>::Output
+    where
+        I: slice::SliceIndex<[T]>,
+    {
         unsafe {
             self.as_mut_slice().get_unchecked_mut(index)
         }
@@ -573,13 +579,19 @@ where
 {
     #[inline]
     #[must_use]
-    pub(crate) fn get(&self, index: usize) -> Option<&T> {
+    pub(crate) fn get<I>(&self, index: I) -> Option<&<I as slice::SliceIndex<[T]>>::Output>
+    where
+        I: slice::SliceIndex<[T]>,
+    {
         self.as_slice().get(index)
     }
 
     #[inline]
     #[must_use]
-    pub(crate) fn get_mut(&mut self, index: usize) -> Option<&mut T> {
+    pub(crate) fn get_mut<I>(&mut self, index: I) -> Option<&mut <I as slice::SliceIndex<[T]>>::Output>
+    where
+        I: slice::SliceIndex<[T]>,
+    {
         self.as_mut_slice().get_mut(index)
     }
 
@@ -1578,18 +1590,50 @@ impl Drop for  OpaqueVecInner {
 mod dummy {
     use super::*;
     use core::ptr::NonNull;
+    use std::marker;
 
     #[allow(dead_code)]
-    pub(super) struct DummyAlloc {}
+    pub(super) struct DummyAlloc {
+        _do_not_construct: marker::PhantomData<()>,
+    }
 
     unsafe impl alloc::Allocator for DummyAlloc {
         fn allocate(&self, _layout: alloc::Layout) -> Result<NonNull<[u8]>, alloc::AllocError> {
-            panic!("The [`DummyAlloc::allocate`] should never actually be called. Its purpose is for testing struct layouts");
+            panic!("[`DummyAlloc::allocate`] should never actually be called. Its purpose is to test struct layouts.");
         }
 
         unsafe fn deallocate(&self, _ptr: NonNull<u8>, _layout: alloc::Layout) {
-            panic!("The [`DummyAlloc::deallocate`] should never actually be called. Its purpose is for testing struct layouts");
+            panic!("[`DummyAlloc::deallocate`] should never actually be called. Its purpose is to test struct layouts.");
         }
+    }
+}
+
+mod layout_testing_types {
+    use super::*;
+    use core::marker;
+
+    #[allow(dead_code)]
+    pub(super) struct TangentSpace {
+        tangent: [f32; 3],
+        bitangent: [f32; 3],
+        normal: [f32; 3],
+        _do_not_construct: marker::PhantomData<()>,
+    }
+
+    #[allow(dead_code)]
+    pub(super) struct SurfaceDifferential {
+        dpdu: [f32; 3],
+        dpdv: [f32; 3],
+        _do_not_construct: marker::PhantomData<()>,
+    }
+
+    #[allow(dead_code)]
+    pub(super) struct OctTreeNode {
+        center: [f32; 3],
+        extent: f32,
+        children: [Option<Box<OctTreeNode>>; 8],
+        occupancy: u8,
+        _do_not_construct: marker::PhantomData<()>,
     }
 }
 
@@ -1631,6 +1675,11 @@ mod vec_inner_layout_tests {
             "Opaque and Typed Projected data types offsets mismatch"
         );
         assert_eq!(
+            mem::offset_of!(TypedProjVecInner<T, A>, length),
+            mem::offset_of!(OpaqueVecInner, length),
+            "Opaque and Typed Projected data types offsets mismatch"
+        );
+        assert_eq!(
             mem::offset_of!(TypedProjVecInner<T, A>, element_type_id),
             mem::offset_of!(OpaqueVecInner, element_type_id),
             "Opaque and Typed Projected data types offsets mismatch"
@@ -1646,8 +1695,6 @@ mod vec_inner_layout_tests {
             "Opaque and Typed Projected data types offsets mismatch"
         );
     }
-
-    struct Pair(u8, u64);
 
     macro_rules! layout_tests {
         ($module_name:ident, $element_typ:ty, $alloc_typ:ty) => {
@@ -1672,9 +1719,23 @@ mod vec_inner_layout_tests {
         };
     }
 
+    layout_tests!(unit_zst_global, (), alloc::Global);
     layout_tests!(u8_global, u8, alloc::Global);
-    layout_tests!(pair_dummy_alloc, Pair, dummy::DummyAlloc);
+    layout_tests!(u16_global, u16, alloc::Global);
+    layout_tests!(u32_global, u32, alloc::Global);
+    layout_tests!(u64_global, u64, alloc::Global);
+    layout_tests!(tangent_space_global, layout_testing_types::TangentSpace, alloc::Global);
+    layout_tests!(surface_differential_global, layout_testing_types::SurfaceDifferential, alloc::Global);
+    layout_tests!(oct_tree_node_global, layout_testing_types::OctTreeNode, alloc::Global);
+
     layout_tests!(unit_zst_dummy_alloc, (), dummy::DummyAlloc);
+    layout_tests!(u8_dummy_alloc,  u8, dummy::DummyAlloc);
+    layout_tests!(u16_dummy_alloc, u16, dummy::DummyAlloc);
+    layout_tests!(u32_dummy_alloc, u32, dummy::DummyAlloc);
+    layout_tests!(u64_dummy_alloc, u64, dummy::DummyAlloc);
+    layout_tests!(tangent_space_dummy_alloc, layout_testing_types::TangentSpace, dummy::DummyAlloc);
+    layout_tests!(surface_differential_dummy_alloc, layout_testing_types::SurfaceDifferential, dummy::DummyAlloc);
+    layout_tests!(oct_tree_node_dummy_alloc, layout_testing_types::OctTreeNode, dummy::DummyAlloc);
 }
 
 #[cfg(test)]

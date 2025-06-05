@@ -15,7 +15,7 @@ where
 
     for _ in 0..vec.len() {
         let last_index = vec.len() - 1;
-        let expected = vec.get::<T, A>(last_index).cloned().unwrap();
+        let expected = vec.get::<_, T, A>(last_index).cloned().unwrap();
         let result = vec.swap_remove::<T, A>(last_index);
 
         assert_eq!(result, expected);

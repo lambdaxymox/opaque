@@ -13,7 +13,7 @@ where
     vec.replace_insert::<T, A>(0, value.clone());
 
     let expected = Some(value.clone());
-    let result = vec.get::<T, A>(0).cloned();
+    let result = vec.get::<_, T, A>(0).cloned();
 
     assert_eq!(result, expected);
 }
@@ -27,13 +27,13 @@ where
     vec.replace_insert::<T, A>(0, initial_value.clone());
 
     let expected_initial = Some(initial_value.clone());
-    let result_initial = vec.get::<T, A>(0).cloned();
+    let result_initial = vec.get::<_, T, A>(0).cloned();
     assert_eq!(result_initial, expected_initial);
 
     for _ in 0..65536 {
         vec.replace_insert::<T, A>(0, value.clone());
         let expected = Some(value.clone());
-        let result = vec.get::<T, A>(0).cloned();
+        let result = vec.get::<_, T, A>(0).cloned();
 
         assert_eq!(result, expected);
     }

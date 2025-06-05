@@ -26,7 +26,7 @@ fn bench_opaque_vec_get(c: &mut Criterion) {
     c.bench_function("opaque_vec_get", |b| {
         b.iter(|| {
             for i in 0..opaque_vec.len() {
-                let _ = core::hint::black_box(opaque_vec.get::<i32, alloc::Global>(i));
+                let _ = core::hint::black_box(opaque_vec.get::<_, i32, alloc::Global>(i));
             }
         });
     });
