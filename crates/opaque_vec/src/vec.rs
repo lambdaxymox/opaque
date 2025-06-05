@@ -213,7 +213,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[inline]
-    unsafe fn set_len(&mut self, new_len: usize) {
+    pub unsafe fn set_len(&mut self, new_len: usize) {
         unsafe {
             self.inner.set_len(new_len)
         }
@@ -221,7 +221,7 @@ where
 
     #[inline]
     #[must_use]
-    pub(crate) unsafe fn get_unchecked<I>(&self, index: I) -> &<I as slice::SliceIndex<[T]>>::Output
+    pub unsafe fn get_unchecked<I>(&self, index: I) -> &<I as slice::SliceIndex<[T]>>::Output
     where
         I: slice::SliceIndex<[T]>,
     {
@@ -232,7 +232,7 @@ where
 
     #[inline]
     #[must_use]
-    pub(crate) unsafe fn get_mut_unchecked<I>(&mut self, index: I) -> &mut <I as slice::SliceIndex<[T]>>::Output
+    pub unsafe fn get_mut_unchecked<I>(&mut self, index: I) -> &mut <I as slice::SliceIndex<[T]>>::Output
     where
         I: slice::SliceIndex<[T]>,
     {
@@ -1259,9 +1259,8 @@ impl OpaqueVec {
     /// Erases the type-projected [`TypedProjVec`] value into a type-erased
     /// [`OpaqueVec`] value.
     ///
-    /// Unlike the type projection methods [`as_proj`][`OpaqueVec::as_proj`],
-    /// [`as_proj_mut`][`OpaqueVec::as_proj_mut`], and [`into_proj`][`OpaqueVec::into_proj`],
-    /// this method never panics.
+    /// Unlike the type projection methods [`as_proj`], [`as_proj_mut`], and [`into_proj`], this
+    /// method never panics.
     ///
     /// # Example
     ///
@@ -1273,6 +1272,10 @@ impl OpaqueVec {
     /// let proj_vec: TypedProjVec<i32, Global> = TypedProjVec::new_in(Global);
     /// let opaque_vec: OpaqueVec = OpaqueVec::from_proj(proj_vec);
     /// ```
+    ///
+    /// [`as_proj`]: OpaqueVec::as_proj,
+    /// [`as_proj_mut`]: OpaqueVec::as_proj_mut
+    /// [`into_proj`]: OpaqueVec::into_proj
     #[inline]
     pub fn from_proj<T, A>(proj_self: TypedProjVec<T, A>) -> Self
     where
@@ -1327,8 +1330,8 @@ impl OpaqueVec {
     ///
     /// The vector will be able to hold at least `capacity` elements without reallocating. The
     /// method _can_ allocate more than `capacity` elements. If `capacity` is zero, the
-    /// constructor does not allocate memory, i.e. it is equivalent to [`new_proj_in`][`OpaqueVec::new_proj_in`]
-    /// when `capacity` is zero.
+    /// constructor does not allocate memory, i.e. it is equivalent to [`new_proj_in`] when
+    /// `capacity` is zero.
     ///
     /// Note that while the returned vector will have a **capacity** of at least `capacity`, it will
     /// have a **length** of zero, because no elements have been pushed to the vector yet.
@@ -1360,6 +1363,8 @@ impl OpaqueVec {
     /// assert_eq!(empty_vec.capacity(), 0);
     /// assert!(empty_vec.is_empty());
     /// ```
+    ///
+    /// [`new_proj_in`]: OpaqueVec::new_proj_in
     #[inline]
     #[must_use]
     #[track_caller]
@@ -1378,8 +1383,8 @@ impl OpaqueVec {
     ///
     /// The vector will be able to hold at least `capacity` elements without reallocating. The
     /// method _can_ allocate more than `capacity` elements. If `capacity` is zero, the
-    /// constructor does not allocate memory, i.e. it is equivalent to [`new_proj_in`][`OpaqueVec::new_proj_in`]
-    /// when `capacity` is zero.
+    /// constructor does not allocate memory, i.e. it is equivalent to [`new_proj_in`] when
+    /// `capacity` is zero.
     ///
     /// Note that while the returned vector will have a **capacity** of at least `capacity`, it will
     /// have a **length** of zero, because no elements have been pushed to the vector yet.
@@ -1416,6 +1421,8 @@ impl OpaqueVec {
     /// assert_eq!(empty_vec.capacity(), 0);
     /// assert!(empty_vec.is_empty());
     /// ```
+    ///
+    /// [`new_proj_in`]: OpaqueVec::new_proj_in
     #[inline]
     pub fn try_with_capacity_proj_in<T, A>(capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Result<Self, TryReserveError>
     where
@@ -1439,12 +1446,11 @@ impl OpaqueVec {
     ///   allocator.
     /// * The element type `T` must have the same alignment that `ptr` was allocated with.
     ///   The type `T` cannot have a less strict alignment is not sufficient; the alignment really
-    ///   must be equal to satisfy the [`dealloc`][`std::alloc::Allocator::dealloc`] requirement
-    ///   that memory must be allocated and deallocated with the same layout.
+    ///   must be equal to satisfy the [`dealloc`] requirement that memory must be allocated and
+    ///   deallocated with the same layout.
     /// * The allocation size in bytes (`mem::size_of::<T>() * capacity`) must
-    ///   be the same size as the pointer was allocated with. Similar to alignment,
-    ///   [`dealloc`][`std::alloc::Allocator::dealloc`] must be called with the
-    ///   same layout `size`.
+    ///   be the same size as the pointer was allocated with. Similar to alignment, [`dealloc`] must
+    ///   be called with the same layout `size`.
     /// * The length `length` of the elements inside the allocation must be less than or equal to
     ///   the capacity `capacity`.
     /// * The first `length` values must be properly initialized values of type `T`.
@@ -1575,6 +1581,8 @@ impl OpaqueVec {
     /// # assert_eq!(result.len(), capacity);
     /// # assert_eq!(result.capacity(), capacity);
     /// ```
+    ///
+    /// [`dealloc`]: std::alloc::Allocator::dealloc
     #[inline]
     pub unsafe fn from_raw_parts_proj_in<T, A>(ptr: *mut T, length: usize, capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self
     where
@@ -1600,12 +1608,11 @@ impl OpaqueVec {
     ///   allocator.
     /// * The element type `T` must have the same alignment that `ptr` was allocated with.
     ///   The type `T` cannot have a less strict alignment is not sufficient; the alignment really
-    ///   must be equal to satisfy the [`dealloc`][`std::alloc::Allocator::dealloc`] requirement
-    ///   that memory must be allocated and deallocated with the same layout.
+    ///   must be equal to satisfy the [`dealloc`] requirement that memory must be allocated and
+    ///   deallocated with the same layout.
     /// * The allocation size in bytes (`mem::size_of::<T>() * capacity`) must
-    ///   be the same size as the pointer was allocated with. Similar to alignment,
-    ///   [`dealloc`][`std::alloc::Allocator::dealloc`] must be called with the
-    ///   same layout `size`.
+    ///   be the same size as the pointer was allocated with. Similar to alignment, [`dealloc`] must
+    ///   be called with the same layout `size`.
     /// * The length `length` of the elements inside the allocation must be less than or equal to
     ///   the capacity `capacity`.
     /// * The first `length` values must be properly initialized values of type `T`.
@@ -1737,6 +1744,8 @@ impl OpaqueVec {
     /// # assert_eq!(result.len(), capacity);
     /// # assert_eq!(result.capacity(), capacity);
     /// ```
+    ///
+    /// [`dealloc`]: std::alloc::Allocator::dealloc
     #[inline]
     pub unsafe fn from_parts_proj_in<T, A>(ptr: NonNull<T>, length: usize, capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self
     where
@@ -1787,8 +1796,8 @@ impl OpaqueVec {
     ///
     /// The vector will be able to hold at least `capacity` elements without reallocating. The
     /// method _can_ allocate more than `capacity` elements. If `capacity` is zero, the
-    /// constructor does not allocate memory, i.e. it is equivalent to [`new_in`][`OpaqueVec::new_in`]
-    /// when `capacity` is zero.
+    /// constructor does not allocate memory, i.e. it is equivalent to [`new_in`] when `capacity` is
+    /// zero.
     ///
     /// Note that while the returned vector will have a **capacity** of at least `capacity`, it will
     /// have a **length** of zero, because no elements have been pushed to the vector yet.
@@ -1817,6 +1826,8 @@ impl OpaqueVec {
     /// assert_eq!(empty_vec.capacity(), 0);
     /// assert!(empty_vec.is_empty());
     /// ```
+    ///
+    /// [`new_in`]: OpaqueVec::new_in`
     #[inline]
     #[must_use]
     #[track_caller]
@@ -1835,8 +1846,8 @@ impl OpaqueVec {
     ///
     /// The vector will be able to hold at least `capacity` elements without reallocating. The
     /// method _can_ allocate more than `capacity` elements. If `capacity` is zero, the
-    /// constructor does not allocate memory, i.e. it is equivalent to [`new_in`][`OpaqueVec::new_in`]
-    /// when `capacity` is zero.
+    /// constructor does not allocate memory, i.e. it is equivalent to [`new_in`] when `capacity` is
+    /// zero.
     ///
     /// Note that while the returned vector will have a **capacity** of at least `capacity`, it will
     /// have a **length** of zero, because no elements have been pushed to the vector yet.
@@ -1870,6 +1881,8 @@ impl OpaqueVec {
     /// assert_eq!(empty_vec.capacity(), 0);
     /// assert!(empty_vec.is_empty());
     /// ```
+    ///
+    /// [`new_in`]: OpaqueVec::new_in
     #[inline]
     pub fn try_with_capacity_in<T, A>(capacity: usize, alloc: A) -> Result<Self, TryReserveError>
     where
@@ -1893,12 +1906,11 @@ impl OpaqueVec {
     ///   allocator.
     /// * The element type `T` must have the same alignment that `ptr` was allocated with.
     ///   The type `T` cannot have a less strict alignment is not sufficient; the alignment really
-    ///   must be equal to satisfy the [`dealloc`][`std::alloc::Allocator::dealloc`] requirement
-    ///   that memory must be allocated and deallocated with the same layout.
+    ///   must be equal to satisfy the [`dealloc`] requirement that memory must be allocated and
+    ///   deallocated with the same layout.
     /// * The allocation size in bytes (`mem::size_of::<T>() * capacity`) must
-    ///   be the same size as the pointer was allocated with. Similar to alignment,
-    ///   [`dealloc`][`std::alloc::Allocator::dealloc`] must be called with the
-    ///   same layout `size`.
+    ///   be the same size as the pointer was allocated with. Similar to alignment, [`dealloc`] must
+    ///   be called with the same layout `size`.
     /// * The length `length` of the elements inside the allocation must be less than or equal to
     ///   the capacity `capacity`.
     /// * The first `length` values must be properly initialized values of type `T`.
@@ -2027,6 +2039,8 @@ impl OpaqueVec {
     /// # assert_eq!(result.len(), capacity);
     /// # assert_eq!(result.capacity(), capacity);
     /// ```
+    ///
+    /// [`dealloc`]: std::alloc::Allocator::dealloc
     #[inline]
     pub unsafe fn from_raw_parts_in<T, A>(ptr: *mut T, length: usize, capacity: usize, alloc: A) -> Self
     where
@@ -2052,12 +2066,11 @@ impl OpaqueVec {
     ///   allocator.
     /// * The element type `T` must have the same alignment that `ptr` was allocated with.
     ///   The type `T` cannot have a less strict alignment is not sufficient; the alignment really
-    ///   must be equal to satisfy the [`dealloc`][`std::alloc::Allocator::dealloc`] requirement
-    ///   that memory must be allocated and deallocated with the same layout.
+    ///   must be equal to satisfy the [`dealloc`] requirement that memory must be allocated and
+    ///   deallocated with the same layout.
     /// * The allocation size in bytes (`mem::size_of::<T>() * capacity`) must
-    ///   be the same size as the pointer was allocated with. Similar to alignment,
-    ///   [`dealloc`][`std::alloc::Allocator::dealloc`] must be called with the
-    ///   same layout `size`.
+    ///   be the same size as the pointer was allocated with. Similar to alignment, [`dealloc`] must
+    ///   be called with the same layout `size`.
     /// * The length `length` of the elements inside the allocation must be less than or equal to
     ///   the capacity `capacity`.
     /// * The first `length` values must be properly initialized values of type `T`.
@@ -2187,6 +2200,8 @@ impl OpaqueVec {
     /// # assert_eq!(result.len(), capacity);
     /// # assert_eq!(result.capacity(), capacity);
     /// ```
+    ///
+    /// [`dealloc`]: std::alloc::Allocator::dealloc
     #[inline]
     pub unsafe fn from_parts_in<T, A>(ptr: NonNull<T>, length: usize, capacity: usize, alloc: A) -> Self
     where
@@ -2237,8 +2252,8 @@ impl OpaqueVec {
     ///
     /// The vector will be able to hold at least `capacity` elements without reallocating. The
     /// method _can_ allocate more than `capacity` elements. If `capacity` is zero, the
-    /// constructor does not allocate memory, i.e. it is equivalent to [`new`][`OpaqueVec::new`]
-    /// when `capacity` is zero.
+    /// constructor does not allocate memory, i.e. it is equivalent to [`new`] when `capacity` is
+    /// zero.
     ///
     /// Note that while the returned vector will have a **capacity** of at least `capacity`, it will
     /// have a **length** of zero, because no elements have been pushed to the vector yet.
@@ -2267,6 +2282,8 @@ impl OpaqueVec {
     /// assert_eq!(empty_vec.capacity(), 0);
     /// assert!(empty_vec.is_empty());
     /// ```
+    ///
+    /// [`new`]: OpaqueVec::new
     #[inline]
     #[must_use]
     #[track_caller]
@@ -2283,8 +2300,8 @@ impl OpaqueVec {
     ///
     /// The vector will be able to hold at least `capacity` elements without reallocating. The
     /// method _can_ allocate more than `capacity` elements. If `capacity` is zero, the
-    /// constructor does not allocate memory, i.e. it is equivalent to [`new`][`OpaqueVec::new`]
-    /// when `capacity` is zero.
+    /// constructor does not allocate memory, i.e. it is equivalent to [`new`] when `capacity` is
+    /// zero.
     ///
     /// Note that while the returned vector will have a **capacity** of at least `capacity`, it will
     /// have a **length** of zero, because no elements have been pushed to the vector yet.
@@ -2318,6 +2335,8 @@ impl OpaqueVec {
     /// assert_eq!(empty_vec.capacity(), 0);
     /// assert!(empty_vec.is_empty());
     /// ```
+    ///
+    /// [`new`]: OpaqueVec::new
     #[inline]
     pub fn try_with_capacity<T>(capacity: usize) -> Result<Self, TryReserveError>
     where
@@ -2338,12 +2357,11 @@ impl OpaqueVec {
     /// * The allocation referred to by `ptr` must have been allocated using the global allocator.
     /// * The element type `T` must have the same alignment that `ptr` was allocated with.
     ///   The type `T` cannot have a less strict alignment is not sufficient; the alignment really
-    ///   must be equal to satisfy the [`dealloc`][`std::alloc::Allocator::dealloc`] requirement
-    ///   that memory must be allocated and deallocated with the same layout.
+    ///   must be equal to satisfy the [`dealloc`] requirement that memory must be allocated and
+    ///   deallocated with the same layout.
     /// * The allocation size in bytes (`mem::size_of::<T>() * capacity`) must
-    ///   be the same size as the pointer was allocated with. Similar to alignment,
-    ///   [`dealloc`][`std::alloc::Allocator::dealloc`] must be called with the
-    ///   same layout `size`.
+    ///   be the same size as the pointer was allocated with. Similar to alignment, [`dealloc`] must
+    ///   be called with the same layout `size`.
     /// * The length `length` of the elements inside the allocation must be less than or equal to
     ///   the capacity `capacity`.
     /// * The first `length` values must be properly initialized values of type `T`.
@@ -2470,6 +2488,8 @@ impl OpaqueVec {
     /// # assert_eq!(result.len(), capacity);
     /// # assert_eq!(result.capacity(), capacity);
     /// ```
+    ///
+    /// [`dealloc`]: std::alloc::Allocator::dealloc
     #[inline]
     pub unsafe fn from_raw_parts<T>(ptr: *mut T, length: usize, capacity: usize) -> Self
     where
@@ -2492,12 +2512,11 @@ impl OpaqueVec {
     /// * The allocation referred to by `ptr` must have been allocated using the global allocator.
     /// * The element type `T` must have the same alignment that `ptr` was allocated with.
     ///   The type `T` cannot have a less strict alignment is not sufficient; the alignment really
-    ///   must be equal to satisfy the [`dealloc`][`std::alloc::Allocator::dealloc`] requirement
-    ///   that memory must be allocated and deallocated with the same layout.
+    ///   must be equal to satisfy the [`dealloc`] requirement that memory must be allocated and
+    ///   deallocated with the same layout.
     /// * The allocation size in bytes (`mem::size_of::<T>() * capacity`) must
-    ///   be the same size as the pointer was allocated with. Similar to alignment,
-    ///   [`dealloc`][`std::alloc::Allocator::dealloc`] must be called with the
-    ///   same layout `size`.
+    ///   be the same size as the pointer was allocated with. Similar to alignment, [`dealloc`] must
+    ///   be called with the same layout `size`.
     /// * The length `length` of the elements inside the allocation must be less than or equal to
     ///   the capacity `capacity`.
     /// * The first `length` values must be properly initialized values of type `T`.
@@ -2625,6 +2644,8 @@ impl OpaqueVec {
     /// # assert_eq!(result.len(), capacity);
     /// # assert_eq!(result.capacity(), capacity);
     /// ```
+    ///
+    /// [`dealloc`]: std::alloc::Allocator::dealloc
     #[inline]
     pub unsafe fn from_parts<T>(ptr: NonNull<T>, length: usize, capacity: usize) -> Self
     where
@@ -2773,6 +2794,7 @@ impl OpaqueVec {
     /// allocator type `A`, respectively.
     ///
     /// # Example
+    ///
     /// ```
     /// # #![feature(allocator_api)]
     /// # use crate::opaque_vec::OpaqueVec;
@@ -2780,9 +2802,10 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// let opaque_vec = OpaqueVec::new::<i32>();
-    ///
+    /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    ///
     /// assert!(opaque_vec.is_empty());
     ///
     /// let alloc: &TypedProjAlloc<Global> = opaque_vec.allocator::<i32, Global>();
@@ -2800,6 +2823,260 @@ impl OpaqueVec {
 }
 
 impl OpaqueVec {
+    /// Forces the length of and [`OpaqueVec`] to be set to `new_len`.
+    ///
+    /// This is a low-level operation that does not maintain the invariants of the [`OpaqueVec`].
+    /// Normally one changes the length of the collection using operations such as [`truncate`],
+    /// [`extend`], [`resize`], or [`clear`].
+    ///
+    /// Note that reducing the length of an [`OpaqueVec`] using this method will not drop the truncated
+    /// elements. If those elements own heap-allocated memory or other resources (such as `Box`, `Vec`,
+    /// or custom types with destructors), this will result in a memory leak.
+    ///
+    /// # Safety
+    ///
+    /// This method is safe to call if the following conditions hold:
+    /// * The length `new_len` is less than or equal to `self.capacity()`.
+    /// * The elements in the subslice `self.len()..new_len` must be initialized.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the elements of `self` and the [`TypeId`]
+    /// of the memory allocator of `self` do not match the requested element type `T` and
+    /// allocator type `A`, respectively.
+    ///
+    /// # Examples
+    ///
+    /// Safely reducing the length of an [`OpaqueVec`] with this method.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// # use std::ptr;
+    /// #
+    /// struct DropCounter {}
+    ///
+    /// static mut DROP_COUNT: u32 = 0;
+    ///
+    /// impl Drop for DropCounter {
+    ///     fn drop(&mut self) {
+    ///         unsafe { DROP_COUNT += 1; }
+    ///     }
+    /// }
+    ///
+    /// let capacity = 4;
+    /// let mut opaque_vec = OpaqueVec::with_capacity::<Box<DropCounter>>(capacity);
+    /// #
+    /// # assert!(opaque_vec.has_element_type::<Box<DropCounter>>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    /// #
+    /// opaque_vec.push::<Box<DropCounter>, Global>(Box::new(DropCounter {}));
+    /// opaque_vec.push::<Box<DropCounter>, Global>(Box::new(DropCounter {}));
+    /// opaque_vec.push::<Box<DropCounter>, Global>(Box::new(DropCounter {}));
+    ///
+    /// assert_eq!(opaque_vec.len(), 3);
+    /// assert!(opaque_vec.capacity() >= capacity);
+    /// unsafe {
+    ///     let ptr = opaque_vec.as_mut_ptr::<Box<DropCounter>, Global>();
+    ///     // Read, then drop the last two elements.
+    ///     let _: Box<DropCounter> = ptr::read(ptr.add(2));
+    ///     let _: Box<DropCounter> = ptr::read(ptr.add(1));
+    ///     opaque_vec.set_len::<Box<DropCounter>, Global>(1);
+    /// }
+    ///
+    /// assert_eq!(opaque_vec.len(), 1);
+    /// assert!(opaque_vec.capacity() >= capacity);
+    ///
+    /// // No data leaks because we dropped then shrank the length.
+    /// assert_eq!(unsafe { DROP_COUNT }, 2);
+    /// ```
+    ///
+    /// Safely extending the length of an [`OpaqueVec`] with this method without leaking memory.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// # use std::ptr;
+    /// #
+    /// struct DropCounter {}
+    ///
+    /// static mut DROP_COUNT: u32 = 0;
+    ///
+    /// impl Drop for DropCounter {
+    ///     fn drop(&mut self) {
+    ///         unsafe { DROP_COUNT += 1; }
+    ///     }
+    /// }
+    ///
+    /// let capacity = 4;
+    /// let mut opaque_vec = OpaqueVec::with_capacity::<Box<DropCounter>>(capacity);
+    /// #
+    /// # assert!(opaque_vec.has_element_type::<Box<DropCounter>>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    /// #
+    /// assert_eq!(opaque_vec.len(), 0);
+    /// assert!(opaque_vec.capacity() >= capacity);
+    /// unsafe {
+    ///     let ptr = opaque_vec.as_mut_ptr::<Box<DropCounter>, Global>();
+    ///     // Write the elements into the allocation directly.
+    ///     ptr::write(ptr.add(0), Box::new(DropCounter {}));
+    ///     ptr::write(ptr.add(1), Box::new(DropCounter {}));
+    ///     ptr::write(ptr.add(2), Box::new(DropCounter {}));
+    ///     opaque_vec.set_len::<Box<DropCounter>, Global>(3);
+    /// }
+    ///
+    /// assert_eq!(opaque_vec.len(), 3);
+    /// assert!(opaque_vec.capacity() >= capacity);
+    ///
+    /// // Not data leaks after writing directly into the allocation.
+    /// assert_eq!(unsafe { DROP_COUNT }, 0);
+    /// ```
+    ///
+    /// Safely extending the length of an [`OpaqueVec`] with this method.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// # use std::ptr;
+    /// #
+    /// let capacity = 4;
+    /// let mut opaque_vec = OpaqueVec::with_capacity::<i32>(capacity);
+    /// #
+    /// # assert!(opaque_vec.has_element_type::<i32>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    /// #
+    /// assert_eq!(opaque_vec.len(), 0);
+    /// assert!(opaque_vec.capacity() >= capacity);
+    /// unsafe {
+    ///     let ptr = opaque_vec.as_mut_ptr::<i32, Global>();
+    ///     // Write the elements into the allocation directly.
+    ///     ptr::write(ptr.add(0), 1);
+    ///     ptr::write(ptr.add(1), 2);
+    ///     ptr::write(ptr.add(2), 3);
+    ///     opaque_vec.set_len::<i32, Global>(3);
+    /// }
+    ///
+    /// assert_eq!(opaque_vec.len(), 3);
+    /// assert!(opaque_vec.capacity() >= capacity);
+    ///
+    /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &[1, 2, 3]);
+    /// ```
+    ///
+    /// [`truncate`]: Vec::truncate
+    /// [`resize`]: Vec::resize
+    /// [`extend`]: Extend::extend
+    /// [`clear`]: Vec::clear
+    #[inline]
+    pub unsafe fn set_len<T, A>(&mut self, new_len: usize)
+    where
+        T: any::Any,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_self = self.as_proj_mut::<T, A>();
+        unsafe {
+            proj_self.set_len(new_len);
+        }
+    }
+
+    /// Returns a reference to an element or subslice of an [`OpaqueVec`], if it exists at the
+    /// given index or inside the given subslice.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if one of the following conditions holds:
+    /// * The [`TypeId`] of the elements of `self` and the [`TypeId`] of the memory allocator of
+    ///   `self` do not match the requested element type `T` and allocator type `A`, respectively.
+    /// * If `index` is a scalar index, and `index` is out of bounds.
+    /// * If `index` is a slice range, and a subslice of `index` falls out of bounds.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let array: [i32; 3] = [10, 40, 30];
+    /// let opaque_vec = OpaqueVec::from(array);
+    /// #
+    /// # assert!(opaque_vec.has_element_type::<i32>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    ///
+    /// unsafe {
+    ///     assert_eq!(opaque_vec.get_unchecked::<_, i32, Global>(0), &10);
+    ///     assert_eq!(opaque_vec.get_unchecked::<_, i32, Global>(1), &40);
+    ///     assert_eq!(opaque_vec.get_unchecked::<_, i32, Global>(2), &30);
+    ///
+    ///     assert_eq!(opaque_vec.get_unchecked::<_, i32, Global>(0..2), &[10, 40][..]);
+    ///     assert_eq!(opaque_vec.get_unchecked::<_, i32, Global>(1..3), &[40, 30][..]);
+    ///     assert_eq!(opaque_vec.get_unchecked::<_, i32, Global>(..), &[10, 40, 30][..]);
+    /// }
+    /// ```
+    #[inline]
+    #[must_use]
+    pub unsafe fn get_unchecked<I, T, A>(&self, index: I) -> &<I as slice::SliceIndex<[T]>>::Output
+    where
+        T: any::Any,
+        A: any::Any + alloc::Allocator + Send + Sync,
+        I: slice::SliceIndex<[T]>,
+    {
+        let proj_self = self.as_proj::<T, A>();
+        unsafe {
+            proj_self.get_unchecked(index)
+        }
+    }
+
+    /// Returns a mutable reference to an element or subslice of an [`OpaqueVec`], if it exists at the
+    /// given index or inside the given subslice.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if one of the following conditions holds:
+    /// * The [`TypeId`] of the elements of `self` and the [`TypeId`] of the memory allocator of
+    ///   `self` do not match the requested element type `T` and allocator type `A`, respectively.
+    /// * If `index` is a scalar index, and `index` is out of bounds.
+    /// * If `index` is a slice range, and a subslice of `index` falls out of bounds.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let array: [i32; 3] = [10, 40, 30];
+    /// let mut opaque_vec = OpaqueVec::from(array);
+    /// #
+    /// # assert!(opaque_vec.has_element_type::<i32>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    ///
+    /// unsafe {
+    ///     assert_eq!(opaque_vec.get_mut_unchecked::<_, i32, Global>(0), &10);
+    ///     assert_eq!(opaque_vec.get_mut_unchecked::<_, i32, Global>(1), &40);
+    ///     assert_eq!(opaque_vec.get_mut_unchecked::<_, i32, Global>(2), &30);
+    ///
+    ///     assert_eq!(opaque_vec.get_mut_unchecked::<_, i32, Global>(0..2), &[10, 40][..]);
+    ///     assert_eq!(opaque_vec.get_mut_unchecked::<_, i32, Global>(1..3), &[40, 30][..]);
+    ///     assert_eq!(opaque_vec.get_mut_unchecked::<_, i32, Global>(..), &[10, 40, 30][..]);
+    /// }
+    /// ```
+    #[inline]
+    #[must_use]
+    pub unsafe fn get_mut_unchecked<I, T, A>(&mut self, index: I) -> &mut <I as slice::SliceIndex<[T]>>::Output
+    where
+        T: any::Any,
+        A: any::Any + alloc::Allocator + Send + Sync,
+        I: slice::SliceIndex<[T]>,
+    {
+        let proj_self = self.as_proj_mut::<T, A>();
+        unsafe {
+            proj_self.get_mut_unchecked(index)
+        }
+    }
+
     /// Returns a reference to an element or subslice of an [`OpaqueVec`], if it exists at the
     /// given index or inside the given subslice.
     ///
@@ -2939,7 +3216,7 @@ impl OpaqueVec {
         proj_self.push(value);
     }
 
-    /// Returns the last element in an [`OpaaueVec`] if the vector is non-empty,
+    /// Returns the last element in an [`OpaqueVec`] if the vector is non-empty,
     /// and `None` if it is empty.
     ///
     /// # Panics
@@ -2985,9 +3262,9 @@ impl OpaqueVec {
     /// Appends an element to an [`OpaqueVec`] if there is sufficient spare capacity. Otherwise, an
     /// error is returned with the element.
     ///
-    /// Unlike [`push`][`OpaqueVec::push`], this method will not reallocate when there's insufficient
-    /// capacity. The caller should use [`reserve`][`OpaqueVec::reserve`] or
-    /// [`try_reserve`][`OpaaueVec::try_reserve`] to ensure that there is enough capacity.
+    /// Unlike [`push`], this method will not reallocate when there's insufficient
+    /// capacity. The caller should use [`reserve`] or [`try_reserve`] to ensure that
+    /// there is enough capacity.
     ///
     /// # Panics
     ///
@@ -3044,6 +3321,10 @@ impl OpaqueVec {
     /// assert!(result.is_err());
     /// assert_eq!(opaque_vec.capacity(), actual_capacity);
     /// ```
+    ///
+    /// [`push`]: OpaqueVec::push
+    /// [`reserve`]: OpaqueVec::reserve
+    /// [`try_reserve`]: OpaqueVec::try_reserve
     #[inline]
     pub fn push_within_capacity<T, A>(&mut self, value: T) -> Result<(), T>
     where
@@ -3226,9 +3507,8 @@ impl OpaqueVec {
     /// This method behaves with respect to `index` as follows:
     /// * If `index < self.len()`, it moves the every successive value in the collection to
     ///   the slot at `index` to the left one unit. Every value preceding the slot at `index` remains
-    ///   in the same location. In particular, the method acts like a [`pop`][`OpaqueVec::pop`] when
-    ///   the last value in the collection is shift-removed, because the sub-collection of successor
-    ///   values is empty.
+    ///   in the same location. In particular, the method acts like a [`pop`] when the last value in
+    ///   the collection is shift-removed, because the sub-collection of successor values is empty.
     /// * If `index >= self.len()`, it panics.
     ///
     /// # Panics
@@ -3275,6 +3555,8 @@ impl OpaqueVec {
     ///     assert_eq!(cloned.as_slice::<i32, Global>(), &[i32::MAX, 2, 3]);
     /// }
     /// ```
+    ///
+    /// [`pop`]: OpaqueVec::pop
     #[track_caller]
     pub fn shift_remove<T, A>(&mut self, index: usize) -> T
     where
@@ -3680,6 +3962,90 @@ impl OpaqueVec {
         proj_self.drain(range)
     }
 
+    /// Returns a raw pointer to the vector's buffer, or a dangling raw pointer
+    /// valid for zero sized reads if the vector didn't allocate.
+    ///
+    /// The caller must ensure that the vector outlives the pointer this
+    /// function returns, or else it will end up dangling.
+    /// Modifying the vector may cause its buffer to be reallocated,
+    /// which would also make any pointers to it invalid.
+    ///
+    /// The caller must also ensure that the memory the pointer (non-transitively) points to
+    /// is never written to (except inside an `UnsafeCell`) using this pointer or any pointer
+    /// derived from it. If you need to mutate the contents of the slice, use
+    /// [`as_mut_ptr`].
+    ///
+    /// This method guarantees that for the purpose of the aliasing model, this method
+    /// does not materialize a reference to the underlying slice, and thus the returned pointer
+    /// will remain valid when mixed with other calls to [`as_ptr`], [`as_mut_ptr`],
+    /// and [`as_non_null`].
+    ///
+    /// Note that calling other methods that materialize mutable references to the slice,
+    /// or mutable references to specific elements you are planning on accessing through this pointer,
+    /// as well as writing to those elements, may still invalidate this pointer.
+    /// See the second example below for how this guarantee can be used.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the elements of `self` and the [`TypeId`]
+    /// of the memory allocator of `self` do not match the requested element type `T` and
+    /// allocator type `A`, respectively.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_vec = {
+    ///     let array: [i32; 4] = [1, 2, 4, 8];
+    ///     OpaqueVec::from(array)
+    /// };
+    /// #
+    /// # assert!(opaque_vec.has_element_type::<i32>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    /// #
+    /// let ptr = opaque_vec.as_ptr::<i32, Global>();
+    ///
+    /// unsafe {
+    ///     for i in 0..opaque_vec.len() {
+    ///         assert_eq!(*ptr.add(i), 1 << i);
+    ///     }
+    /// }
+    ///
+    /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &[1, 2, 4, 8]);
+    /// ```
+    ///
+    /// Due to the aliasing guarantee, the following code is legal:
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_vec = {
+    ///     let array: [i32; 3] = [0, 1, 2];
+    ///     OpaqueVec::from(array)
+    /// };
+    /// #
+    /// # assert!(opaque_vec.has_element_type::<i32>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    /// #
+    /// unsafe {
+    ///     let ptr1 = opaque_vec.as_ptr::<i32, Global>();
+    ///     let _ = ptr1.read();
+    ///     let ptr2 = opaque_vec.as_mut_ptr::<i32, Global>().offset(2);
+    ///     ptr2.write(2);
+    ///     // Notably, the write to `ptr2` did **not** invalidate `ptr1`
+    ///     // because it mutated a different element:
+    ///     let _ = ptr1.read();
+    /// }
+    /// ```
+    ///
+    /// [`as_mut_ptr`]: OpaqueVec::as_mut_ptr
+    /// [`as_ptr`]: OpaqueVec::as_ptr
+    /// [`as_non_null`]: OpaqueVec::as_non_null
     #[inline]
     pub fn as_ptr<T, A>(&self) -> *const T
     where
@@ -3691,6 +4057,83 @@ impl OpaqueVec {
         proj_self.as_ptr()
     }
 
+    /// Returns a raw mutable pointer to the vector's buffer, or a dangling
+    /// raw pointer valid for zero sized reads if the vector didn't allocate.
+    ///
+    /// The caller must ensure that the vector outlives the pointer this
+    /// function returns, or else it will end up dangling.
+    /// Modifying the vector may cause its buffer to be reallocated,
+    /// which would also make any pointers to it invalid.
+    ///
+    /// This method guarantees that for the purpose of the aliasing model, this method
+    /// does not materialize a reference to the underlying slice, and thus the returned pointer
+    /// will remain valid when mixed with other calls to [`as_ptr`], [`as_mut_ptr`],
+    /// and [`as_non_null`].
+    /// Note that calling other methods that materialize references to the slice,
+    /// or references to specific elements you are planning on accessing through this pointer,
+    /// may still invalidate this pointer.
+    /// See the second example below for how this guarantee can be used.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the elements of `self` and the [`TypeId`]
+    /// of the memory allocator of `self` do not match the requested element type `T` and
+    /// allocator type `A`, respectively.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// // Allocate vector big enough for 4 elements.
+    /// let length = 4;
+    /// let mut opaque_vec: OpaqueVec = OpaqueVec::with_capacity::<i32>(length);
+    /// #
+    /// # assert!(opaque_vec.has_element_type::<i32>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    /// #
+    /// let ptr = opaque_vec.as_mut_ptr::<i32, Global>();
+    ///
+    /// // Initialize elements via raw pointer writes, then set the length.
+    /// unsafe {
+    ///     for i in 0..length {
+    ///         *ptr.add(i) = (i + 1) as i32;
+    ///     }
+    ///     opaque_vec.set_len::<i32, Global>(length);
+    /// }
+    ///
+    /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &[1, 2, 3, 4]);
+    /// ```
+    ///
+    /// Due to the aliasing guarantee, the following code is legal:
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_vec = OpaqueVec::with_capacity::<i32>(4);
+    /// #
+    /// # assert!(opaque_vec.has_element_type::<i32>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    /// #
+    /// opaque_vec.push::<i32, Global>(0);
+    ///
+    /// unsafe {
+    ///     let ptr1 = opaque_vec.as_mut_ptr::<i32, Global>();
+    ///     ptr1.write(1);
+    ///     let ptr2 = opaque_vec.as_mut_ptr::<i32, Global>();
+    ///     ptr2.write(2);
+    ///     // Notably, the write to `ptr2` did **not** invalidate `ptr1`:
+    ///     ptr1.write(3);
+    /// }
+    /// ```
+    ///
+    /// [`as_mut_ptr`]: OpaqueVec::as_mut_ptr
+    /// [`as_ptr`]: OpaqueVec::as_ptr
+    /// [`as_non_null`]: OpaqueVec::as_non_null
     #[inline]
     pub fn as_mut_ptr<T, A>(&mut self) -> *mut T
     where
@@ -3702,6 +4145,75 @@ impl OpaqueVec {
         proj_self.as_mut_ptr()
     }
 
+    /// Returns a [`NonNull`] pointer to the vector's buffer, or a dangling
+    /// [`NonNull`] pointer valid for zero sized reads if the vector didn't allocate.
+    ///
+    /// The caller must ensure that the vector outlives the pointer this
+    /// function returns, or else it will end up dangling.
+    /// Modifying the vector may cause its buffer to be reallocated,
+    /// which would also make any pointers to it invalid.
+    ///
+    /// This method guarantees that for the purpose of the aliasing model, this method
+    /// does not materialize a reference to the underlying slice, and thus the returned pointer
+    /// will remain valid when mixed with other calls to [`as_ptr`], [`as_mut_ptr`],
+    /// and [`as_non_null`].
+    /// Note that calling other methods that materialize references to the slice,
+    /// or references to specific elements you are planning on accessing through this pointer,
+    /// may still invalidate this pointer.
+    /// See the second example below for how this guarantee can be used.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// // Allocate vector big enough for 4 elements.
+    /// let length = 4;
+    /// let mut opaque_vec = OpaqueVec::with_capacity::<i32>(length);
+    /// #
+    /// # assert!(opaque_vec.has_element_type::<i32>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    /// #
+    /// let ptr = opaque_vec.as_non_null::<i32, Global>();
+    ///
+    /// // Initialize elements via raw pointer writes, then set length.
+    /// unsafe {
+    ///     for i in 0..length {
+    ///         ptr.add(i).write((i + 1) as i32);
+    ///     }
+    ///     opaque_vec.set_len::<i32, Global>(length);
+    /// }
+    ///
+    /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &[1, 2, 3, 4]);
+    /// ```
+    ///
+    /// Due to the aliasing guarantee, the following code is legal:
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_vec = OpaqueVec::with_capacity::<i32>(4);
+    /// #
+    /// # assert!(opaque_vec.has_element_type::<i32>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    /// #
+    /// unsafe {
+    ///     let ptr1 = opaque_vec.as_non_null::<i32, Global>();
+    ///     ptr1.write(1);
+    ///     let ptr2 = opaque_vec.as_non_null::<i32, Global>();
+    ///     ptr2.write(2);
+    ///     // Notably, the write to `ptr2` did **not** invalidate `ptr1`:
+    ///     ptr1.write(3);
+    /// }
+    /// ```
+    ///
+    /// [`as_mut_ptr`]: Vec::as_mut_ptr
+    /// [`as_ptr`]: Vec::as_ptr
+    /// [`as_non_null`]: Vec::as_non_null
     #[inline]
     pub fn as_non_null<T, A>(&mut self) -> NonNull<T>
     where
@@ -3713,6 +4225,27 @@ impl OpaqueVec {
         proj_self.as_non_null()
     }
 
+    /// Returns an immutable slice of the elements of the [`OpaqueVec`].
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let array: [i32; 3] = [9, 28, 37];
+    /// let opaque_vec = OpaqueVec::from(array);
+    /// #
+    /// # assert!(opaque_vec.has_element_type::<i32>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    /// #
+    /// let expected = array.as_slice();
+    /// let result = opaque_vec.as_slice::<i32, Global>();
+    ///
+    /// assert_eq!(result, expected);
+    /// assert_eq!(result.len(), opaque_vec.len());
+    /// ```
     pub fn as_slice<T, A>(&self) -> &[T]
     where
         T: any::Any,
@@ -3723,6 +4256,57 @@ impl OpaqueVec {
         proj_self.as_slice()
     }
 
+    /// Returns n mutable slice of the elements of the [`OpaqueVec`].
+    ///
+    /// # Example
+    ///
+    /// Getting a mutable slice of an [`OpaqueVec`].
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut array: [i32; 3] = [9, 28, 37];
+    /// let mut opaque_vec = OpaqueVec::from(array);
+    /// #
+    /// # assert!(opaque_vec.has_element_type::<i32>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    /// #
+    /// let expected = array.as_mut_slice();
+    /// let result = opaque_vec.as_mut_slice::<i32, Global>();
+    ///
+    /// assert_eq!(result, expected);
+    /// assert_eq!(result.len(), opaque_vec.len());
+    /// ```
+    ///
+    /// Getting and mutating a mutable slice of an [`OpaqueVec`].
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut array: [i32; 3] = [9, 28, 37];
+    /// let mut opaque_vec = OpaqueVec::from(array);
+    /// #
+    /// # assert!(opaque_vec.has_element_type::<i32>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    /// #
+    /// {
+    ///     let slice = opaque_vec.as_mut_slice::<i32, Global>();
+    ///     for i in 0..slice.len() {
+    ///         slice[i] = 2 * slice[i];
+    ///     }
+    /// }
+    ///
+    /// let expected_array = [18, 56, 74];
+    /// let expected = expected_array.as_slice();
+    /// let result = opaque_vec.as_slice::<i32, Global>();
+    ///
+    /// assert_eq!(result, expected);
+    /// assert_eq!(result.len(), opaque_vec.len());
+    /// ```
     pub fn as_mut_slice<T, A>(&mut self) -> &mut [T]
     where
         T: any::Any,
