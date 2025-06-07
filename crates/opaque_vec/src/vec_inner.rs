@@ -1277,7 +1277,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[inline]
-    pub(crate) fn from_boxed_slice(box_slice: Box<[T], A>) -> TypedProjVecInner<T, A> {
+    pub(crate) fn from_boxed_slice(box_slice: Box<[T], TypedProjAlloc<A>>) -> TypedProjVecInner<T, A> {
         let length = box_slice.len();
         let capacity = box_slice.len();
         let (ptr, alloc) = {
@@ -1286,7 +1286,7 @@ where
             (_ptr, _alloc)
         };
         let vec = unsafe {
-            TypedProjVecInner::from_parts_in(ptr, length, capacity, alloc)
+            TypedProjVecInner::from_parts_proj_in(ptr, length, capacity, alloc)
         };
 
         vec
@@ -1394,12 +1394,12 @@ where
     }
 }
 
-impl<T, A> From<Box<[T], A>> for TypedProjVecInner<T, A>
+impl<T, A> From<Box<[T], TypedProjAlloc<A>>> for TypedProjVecInner<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    fn from(slice: Box<[T], A>) -> Self {
+    fn from(slice: Box<[T], TypedProjAlloc<A>>) -> Self {
         Self::from_boxed_slice(slice)
     }
 }
@@ -1409,7 +1409,7 @@ where
     T: any::Any,
 {
     fn from(array: [T; N]) -> Self {
-        Self::from_boxed_slice(Box::new(array))
+        Self::from_boxed_slice(Box::new_in(array, TypedProjAlloc::new(alloc::Global)))
     }
 }
 

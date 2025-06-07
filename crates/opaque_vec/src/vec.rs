@@ -370,7 +370,13 @@ where
     pub fn into_boxed_slice(self) -> Box<[T], TypedProjAlloc<A>> {
         self.inner.into_boxed_slice()
     }
+}
 
+impl<T, A> TypedProjVec<T, A>
+where
+    T: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
     #[inline]
     #[must_use = "use `.truncate()` if you don't need the other half"]
     #[track_caller]
@@ -395,13 +401,7 @@ where
     pub fn spare_capacity_mut(&mut self) -> &mut [MaybeUninit<T>] {
         self.inner.spare_capacity_mut()
     }
-}
 
-impl<T, A> TypedProjVec<T, A>
-where
-    T: any::Any,
-    A: any::Any + alloc::Allocator + Send + Sync,
-{
     pub fn try_reserve(&mut self, additional: usize) -> Result<(), TryReserveError> {
         self.inner.try_reserve(additional)
     }
@@ -949,12 +949,12 @@ where
     }
 }
 
-impl<T, A> From<Box<[T], A>> for TypedProjVec<T, A>
+impl<T, A> From<Box<[T], TypedProjAlloc<A>>> for TypedProjVec<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    fn from(slice: Box<[T], A>) -> Self {
+    fn from(slice: Box<[T], TypedProjAlloc<A>>) -> Self {
         let inner = TypedProjVecInner::from(slice);
 
         Self { inner, }
@@ -4211,9 +4211,9 @@ impl OpaqueVec {
     /// }
     /// ```
     ///
-    /// [`as_mut_ptr`]: Vec::as_mut_ptr
-    /// [`as_ptr`]: Vec::as_ptr
-    /// [`as_non_null`]: Vec::as_non_null
+    /// [`as_mut_ptr`]: OpaqueVec::as_mut_ptr
+    /// [`as_ptr`]: OpaqueVec::as_ptr
+    /// [`as_non_null`]: OpaqueVec::as_non_null
     #[inline]
     pub fn as_non_null<T, A>(&mut self) -> NonNull<T>
     where
@@ -4226,6 +4226,12 @@ impl OpaqueVec {
     }
 
     /// Returns an immutable slice of the elements of the [`OpaqueVec`].
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the elements of `self` and the [`TypeId`]
+    /// of the memory allocator of `self` do not match the requested element type `T` and
+    /// allocator type `A`, respectively.
     ///
     /// # Example
     ///
@@ -4258,7 +4264,13 @@ impl OpaqueVec {
 
     /// Returns n mutable slice of the elements of the [`OpaqueVec`].
     ///
-    /// # Example
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the elements of `self` and the [`TypeId`]
+    /// of the memory allocator of `self` do not match the requested element type `T` and
+    /// allocator type `A`, respectively.
+    ///
+    /// # Examples
     ///
     /// Getting a mutable slice of an [`OpaqueVec`].
     ///
@@ -4317,6 +4329,52 @@ impl OpaqueVec {
         proj_self.as_mut_slice()
     }
 
+    /// Decomposes an [`OpaqueVec`] with the global allocator into its constituent parts:
+    /// `(pointer, length, capacity)`.
+    ///
+    /// This method returns a pointer to the memory allocation containing the vector, the
+    /// length of the vector inside the allocation, and the capacity of the vector (the
+    /// length in elements of the memory allocation). These are the same arguments in the same
+    /// order as the arguments to [`from_raw_parts`].
+    ///
+    /// After decomposing the vector, the user must ensure that they properly manage the
+    /// memory allocation pointed to by the raw pointer. The primary way to do this is to convert
+    /// the pointer into another data structure such as a [`Vec`], [`TypedProjVec`], or [`OpaqueVec`].
+    ///
+    /// [`from_raw_parts`]: OpaqueVec::from_raw_parts
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the elements of `self` and the [`TypeId`]
+    /// of the memory allocator of `self` do not match the requested element type `T` and
+    /// global allocator, respectively.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut array: [i32; 3] = [9, 28, 37];
+    /// let mut opaque_vec = OpaqueVec::from(array);
+    /// #
+    /// # assert!(opaque_vec.has_element_type::<i32>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    /// #
+    /// let array: [i32; 3] = [-1, 0, 1];
+    /// let opaque_vec = OpaqueVec::from(array);
+    ///
+    /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &[-1, 0, 1]);
+    ///
+    /// let (ptr, length, capacity) = opaque_vec.into_raw_parts::<i32>();
+    /// let reinterpreted = unsafe {
+    ///     let ptr = ptr as *mut u32;
+    ///     OpaqueVec::from_raw_parts(ptr, length, capacity)
+    /// };
+    ///
+    /// assert_eq!(reinterpreted.as_slice::<u32, Global>(), &[4294967295, 0, 1]);
+    /// ```
     #[must_use]
     pub fn into_raw_parts<T>(self) -> (*mut T, usize, usize)
     where
@@ -4327,6 +4385,52 @@ impl OpaqueVec {
         proj_self.into_raw_parts()
     }
 
+    /// Decomposes an [`OpaqueVec`] with the global allocator into its constituent parts:
+    /// `(non-null pointer, length, capacity)`.
+    ///
+    /// This method returns a [`NonNull`] pointer to the memory allocation containing the vector, the
+    /// length of the vector inside the allocation, and the capacity of the vector (the
+    /// length in elements of the memory allocation). These are the same arguments in the same
+    /// order as the arguments to [`from_parts`].
+    ///
+    /// After decomposing the vector, the user must ensure that they properly manage the
+    /// memory allocation pointed to by the raw pointer. The primary way to do this is to convert
+    /// the pointer into another data structure such as a [`Vec`], [`TypedProjVec`], or [`OpaqueVec`].
+    ///
+    /// [`from_parts`]: OpaqueVec::from_parts
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the elements of `self` and the [`TypeId`]
+    /// of the memory allocator of `self` do not match the requested element type `T` and
+    /// global allocator, respectively.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut array: [i32; 3] = [9, 28, 37];
+    /// let mut opaque_vec = OpaqueVec::from(array);
+    /// #
+    /// # assert!(opaque_vec.has_element_type::<i32>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    /// #
+    /// let array: [i32; 3] = [-1, 0, 1];
+    /// let opaque_vec = OpaqueVec::from(array);
+    ///
+    /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &[-1, 0, 1]);
+    ///
+    /// let (ptr, length, capacity) = opaque_vec.into_parts::<i32>();
+    /// let reinterpreted = unsafe {
+    ///     let ptr = ptr.cast::<u32>();
+    ///     OpaqueVec::from_parts(ptr, length, capacity)
+    /// };
+    ///
+    /// assert_eq!(reinterpreted.as_slice::<u32, Global>(), &[4294967295, 0, 1]);
+    /// ```
     #[must_use]
     pub fn into_parts<T>(self) -> (NonNull<T>, usize, usize)
     where
@@ -4337,6 +4441,53 @@ impl OpaqueVec {
         proj_self.into_parts()
     }
 
+    /// Decomposes an [`OpaqueVec`] with any memory allocator into its constituent parts:
+    /// `(pointer, length, capacity, allocator)`.
+    ///
+    /// This method returns a pointer to the memory allocation containing the vector, the
+    /// length of the vector inside the allocation, the capacity of the vector (the
+    /// length in elements of the memory allocation), and the underlying memory allocator that
+    /// manages the memory allocation. These are the same arguments in the same order as the
+    /// arguments to [`from_raw_parts_proj_in`].
+    ///
+    /// After decomposing the vector, the user must ensure that they properly manage the
+    /// memory allocation pointed to by the raw pointer. The primary way to do this is to convert
+    /// the pointer into another data structure such as a [`Vec`], [`TypedProjVec`], or [`OpaqueVec`].
+    ///
+    /// [`from_raw_parts_proj_in`]: OpaqueVec::from_raw_parts_proj_in
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the elements of `self` and the [`TypeId`]
+    /// of the memory allocator of `self` do not match the requested element type `T` and
+    /// allocator type `A`, respectively.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut array: [i32; 3] = [9, 28, 37];
+    /// let mut opaque_vec = OpaqueVec::from(array);
+    /// #
+    /// # assert!(opaque_vec.has_element_type::<i32>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    /// #
+    /// let array: [i32; 3] = [-1, 0, 1];
+    /// let opaque_vec = OpaqueVec::from(array);
+    ///
+    /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &[-1, 0, 1]);
+    ///
+    /// let (ptr, length, capacity, proj_alloc) = opaque_vec.into_raw_parts_with_alloc::<i32, Global>();
+    /// let reinterpreted = unsafe {
+    ///     let ptr = ptr as *mut u32;
+    ///     OpaqueVec::from_raw_parts_proj_in(ptr, length, capacity, proj_alloc)
+    /// };
+    ///
+    /// assert_eq!(reinterpreted.as_slice::<u32, Global>(), &[4294967295, 0, 1]);
+    /// ```
     #[must_use]
     pub fn into_raw_parts_with_alloc<T, A>(self) -> (*mut T, usize, usize, TypedProjAlloc<A>)
     where
@@ -4348,6 +4499,52 @@ impl OpaqueVec {
         proj_self.into_raw_parts_with_alloc()
     }
 
+    /// Decomposes an [`OpaqueVec`] with the global allocator into its constituent parts:
+    /// `(non-null pointer, length, capacity)`.
+    ///
+    /// This method returns a [`NonNull`] pointer to the memory allocation containing the vector, the
+    /// length of the vector inside the allocation, and the capacity of the vector (the
+    /// length in elements of the memory allocation). These are the same arguments in the same
+    /// order as the arguments to [`from_parts_proj_in`].
+    ///
+    /// After decomposing the vector, the user must ensure that they properly manage the
+    /// memory allocation pointed to by the raw pointer. The primary way to do this is to convert
+    /// the pointer into another data structure such as a [`Vec`], [`TypedProjVec`], or [`OpaqueVec`].
+    ///
+    /// [`from_parts_proj_in`]: OpaqueVec::from_parts_proj_in
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the elements of `self` and the [`TypeId`]
+    /// of the memory allocator of `self` do not match the requested element type `T` and
+    /// allocator type `A`, respectively.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut array: [i32; 3] = [9, 28, 37];
+    /// let mut opaque_vec = OpaqueVec::from(array);
+    /// #
+    /// # assert!(opaque_vec.has_element_type::<i32>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    /// #
+    /// let array: [i32; 3] = [-1, 0, 1];
+    /// let opaque_vec = OpaqueVec::from(array);
+    ///
+    /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &[-1, 0, 1]);
+    ///
+    /// let (ptr, length, capacity, proj_alloc) = opaque_vec.into_parts_with_alloc::<i32, Global>();
+    /// let reinterpreted = unsafe {
+    ///     let ptr = ptr.cast::<u32>();
+    ///     OpaqueVec::from_parts_proj_in(ptr, length, capacity, proj_alloc)
+    /// };
+    ///
+    /// assert_eq!(reinterpreted.as_slice::<u32, Global>(), &[4294967295, 0, 1]);
+    /// ```
     #[must_use]
     pub fn into_parts_with_alloc<T, A>(self) -> (NonNull<T>, usize, usize, TypedProjAlloc<A>)
     where
@@ -4359,6 +4556,54 @@ impl OpaqueVec {
         proj_self.into_parts_with_alloc()
     }
 
+    /// Converts an [`OpaqueVec`] into [`Box<[T]>`][owned slice].
+    ///
+    /// Before doing the conversion, this method discards excess capacity like [`shrink_to_fit`].
+    ///
+    /// [owned slice]: Box
+    /// [`shrink_to_fit`]: OpaqueVec::shrink_to_fit
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the elements of `self` and the [`TypeId`]
+    /// of the memory allocator of `self` do not match the requested element type `T` and
+    /// allocator type `A`, respectively.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_vec = {
+    ///     let mut _opaque_vec = OpaqueVec::with_capacity::<i32>(10);
+    ///     _opaque_vec.push::<i32, Global>(1);
+    ///     _opaque_vec.push::<i32, Global>(2);
+    ///     _opaque_vec.push::<i32, Global>(3);
+    ///     _opaque_vec
+    /// };
+    /// #
+    /// # assert!(opaque_vec.has_element_type::<i32>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    /// #
+    /// assert_eq!(opaque_vec.len(), 3);
+    /// assert_eq!(opaque_vec.capacity(), 10);
+    /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &[1, 2, 3]);
+    ///
+    /// let boxed_slice: Box<[i32], TypedProjAlloc<Global>> = opaque_vec.into_boxed_slice::<i32, Global>();
+    ///
+    /// assert_eq!(boxed_slice.len(), 3);
+    /// assert_eq!(boxed_slice.as_ref(), &[1, 2, 3]);
+    ///
+    /// let new_opaque_vec = OpaqueVec::from(boxed_slice);
+    ///
+    /// // Converting to a boxed slice removed any excess capacity from the vector.
+    /// assert_eq!(new_opaque_vec.len(), 3);
+    /// assert_eq!(new_opaque_vec.capacity(), 3);
+    /// assert_eq!(new_opaque_vec.as_slice::<i32, Global>(), &[1, 2, 3]);
+    /// ```
     #[track_caller]
     pub fn into_boxed_slice<T, A>(self) -> Box<[T], TypedProjAlloc<A>>
     where
@@ -4369,7 +4614,56 @@ impl OpaqueVec {
 
         proj_self.into_boxed_slice()
     }
+}
 
+impl OpaqueVec {
+    /// Splits an [`OpaqueVec`] into two [`OpaqueVec`]s at the given index.
+    ///
+    /// This method returns a newly allocated [`OpaqueVec`] consisting of every element from
+    /// the original [`OpaqueVec`] in the range `[at, len)`. The original [`OpaqueVec`] will
+    /// consist of the elements in the range `[0, at)` with its capacity unchanged.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if one of the following conditions holds:
+    /// * If the [`TypeId`] of the elements of `self` and the [`TypeId`] of the memory allocator of
+    ///   `self` do not match the requested element type `T` and allocator type `A`, respectively.
+    /// * If `at > self.len()`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let length = 6;
+    /// let capacity = 10;
+    /// let mut opaque_vec = {
+    ///     let mut _opaque_vec = OpaqueVec::with_capacity::<i32>(capacity);
+    ///     for i in 1..(length + 1) {
+    ///         _opaque_vec.push::<i32, Global>(i as i32);
+    ///     }
+    ///     _opaque_vec
+    /// };
+    /// #
+    /// # assert!(opaque_vec.has_element_type::<i32>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    /// #
+    /// assert_eq!(opaque_vec.len(), length);
+    /// assert!(opaque_vec.capacity() >= capacity);
+    /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &[1, 2, 3, 4, 5, 6]);
+    ///
+    /// let old_capacity = opaque_vec.capacity();
+    /// let split_vec = opaque_vec.split_off::<i32, Global>(4);
+    ///
+    /// assert_eq!(opaque_vec.len(), 4);
+    /// assert_eq!(opaque_vec.capacity(), old_capacity);
+    /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &[1, 2, 3, 4]);
+    ///
+    /// assert_eq!(split_vec.len(), 2);
+    /// assert_eq!(split_vec.as_slice::<i32, Global>(), &[5, 6]);
+    /// ```
     #[inline]
     #[must_use = "use `.truncate()` if you don't need the other half"]
     #[track_caller]
@@ -4384,6 +4678,77 @@ impl OpaqueVec {
         Self::from_proj(proj_split_off)
     }
 
+    /// Resizes the [`OpaqueVec`] in-place so that is length equals `new_len`.
+    ///
+    /// If the length `new_len` is greater than the length `len`, the [`OpaqueVec`] is extended
+    /// by the difference, with each additional slot filled with the result of calling
+    /// the closure `f`. The return values from `f` will end up in the `Vec` in the order
+    /// they have been generated.
+    ///
+    /// If `new_len` is less than `len`, the [`OpaqueVec`] is truncated, so the result is
+    /// similar to calling [`truncate`].
+    ///
+    /// This method uses a closure to create new values on every push. To clone a given value,
+    /// use [`resize`]. To use a data type's default value to generate values, use the
+    /// [`Default::default`] method.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if one of the following conditions holds:
+    /// * If the [`TypeId`] of the elements of `self` and the [`TypeId`] of the memory allocator of
+    ///   `self` do not match the requested element type `T` and allocator type `A`, respectively.
+    /// * If the new capacity exceeds `isize::MAX` _bytes_.
+    ///
+    /// # Examples
+    ///
+    /// Resizing to the same size does not change the collection.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let length = 3;
+    /// let mut opaque_vec = {
+    ///     let mut _opaque_vec = OpaqueVec::with_capacity::<i32>(10);
+    ///     for i in 1..(length + 1) {
+    ///         _opaque_vec.push::<i32, Global>(i as i32);
+    ///     }
+    ///     _opaque_vec.push::<i32, Global>(0);
+    ///     _opaque_vec.push::<i32, Global>(0);
+    ///     _opaque_vec
+    /// };
+    /// #
+    /// # assert!(opaque_vec.has_element_type::<i32>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    /// #
+    /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &[1, 2, 3, 0, 0]);
+    ///
+    /// opaque_vec.resize_with::<_, i32, Global>(5, Default::default);
+    ///
+    /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &[1, 2, 3, 0, 0]);
+    /// ```
+    ///
+    /// Resizing a collection to a larger collection.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_vec = OpaqueVec::new::<i32>();
+    /// #
+    /// # assert!(opaque_vec.has_element_type::<i32>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    /// #
+    /// let mut p = 1;
+    /// opaque_vec.resize_with::<_, i32, Global>(4, || { p *= 2; p });
+    ///
+    /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &[2, 4, 8, 16]);
+    /// ```
+    ///
+    /// [`truncate`]: OpaqueVec::truncate
+    /// [`resize`]: OpaqueVec::resize
     #[track_caller]
     pub fn resize_with<F, T, A>(&mut self, new_len: usize, f: F)
     where
@@ -4396,6 +4761,45 @@ impl OpaqueVec {
         proj_self.resize_with(new_len, f)
     }
 
+    /// Returns the remaining spare capacity of the [`OpaqueVec`] as a slice of [`MaybeUninit<T>`].
+    ///
+    /// The returned slice can be used to fill the [`OpaqueVec`] with data before marking the data
+    /// as initialized using the [`set_len`] method.
+    ///
+    /// [`set_len`]: OpaqueVec::set_len
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the elements of `self` and the [`TypeId`]
+    /// of the memory allocator of `self` do not match the requested element type `T` and
+    /// allocator type `A`, respectively.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_vec = OpaqueVec::with_capacity::<i32>(10);
+    /// #
+    /// # assert!(opaque_vec.has_element_type::<i32>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    /// #
+    ///
+    /// // Fill in the first 3 elements.
+    /// let uninit = opaque_vec.spare_capacity_mut::<i32, Global>();
+    /// uninit[0].write(1);
+    /// uninit[1].write(2);
+    /// uninit[2].write(3);
+    ///
+    /// // Mark the first 3 elements of the vector as being initialized.
+    /// unsafe {
+    ///     opaque_vec.set_len::<i32, Global>(3);
+    /// }
+    ///
+    /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &[1, 2, 3]);
+    /// ```
     #[inline]
     pub fn spare_capacity_mut<T, A>(&mut self) -> &mut [MaybeUninit<T>]
     where
@@ -4406,9 +4810,48 @@ impl OpaqueVec {
 
         proj_self.spare_capacity_mut()
     }
-}
 
-impl OpaqueVec {
+    /// Attempts to reserve capacity for **at least** `additional` more elements to be inserted
+    /// in the given `OpaqueVec`.
+    ///
+    /// The collection may reserve more space to speculatively avoid frequent reallocations.
+    /// After calling this method, the capacity will be greater than or equal to
+    /// `self.len() + additional` if it returns `Ok(())`. This method does nothing if the collection
+    /// capacity is already sufficient. This method preserves the contents even if an error occurs.
+    ///
+    /// # Errors
+    ///
+    /// This method returns an error if the capacity overflows, or the allocator reports a failure.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the elements of `self` and the [`TypeId`]
+    /// of the memory allocator of `self` do not match the requested element type `T` and
+    /// allocator type `A`, respectively.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_vec = OpaqueVec::new::<i32>();
+    /// #
+    /// # assert!(opaque_vec.has_element_type::<i32>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    /// #
+    /// let data: [i32; 6] = [1, 2, 3, 4, 5, 6];
+    /// let result = opaque_vec.try_reserve::<i32, Global>(10);
+    ///
+    /// assert!(result.is_ok());
+    ///
+    /// opaque_vec.extend::<_, i32, Global>(data.iter().map(|&value| value * 2 + 5));
+    ///
+    /// let expected = [7, 9, 11, 13, 15, 17];
+    ///
+    /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), expected.as_slice());
+    /// ```
     pub fn try_reserve<T, A>(&mut self, additional: usize) -> Result<(), TryReserveError>
     where
         T: any::Any,
@@ -4419,6 +4862,47 @@ impl OpaqueVec {
         proj_self.try_reserve(additional)
     }
 
+    /// Attempts to reserve capacity for **at least** `additional` more elements to be inserted
+    /// in the given `OpaqueVec`.
+    ///
+    /// The collection may reserve more space to speculatively avoid frequent reallocations.
+    /// After calling this method, the capacity will be greater than or equal to
+    /// `self.len() + additional` if it returns `Ok(())`. This method does nothing if the collection
+    /// capacity is already sufficient. This method preserves the contents even if an error occurs.
+    ///
+    /// # Errors
+    ///
+    /// This method returns an error if the capacity overflows, or the allocator reports a failure.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the elements of `self` and the [`TypeId`]
+    /// of the memory allocator of `self` do not match the requested element type `T` and
+    /// allocator type `A`, respectively.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_vec = OpaqueVec::new::<i32>();
+    /// #
+    /// # assert!(opaque_vec.has_element_type::<i32>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    /// #
+    /// let data: [i32; 6] = [1, 2, 3, 4, 5, 6];
+    /// let result = opaque_vec.try_reserve_exact::<i32, Global>(10);
+    ///
+    /// assert!(result.is_ok());
+    ///
+    /// opaque_vec.extend::<_, i32, Global>(data.iter().map(|&value| value * 2 + 5));
+    ///
+    /// let expected = [7, 9, 11, 13, 15, 17];
+    ///
+    /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), expected.as_slice());
+    /// ```
     pub fn try_reserve_exact<T, A>(&mut self, additional: usize) -> Result<(), TryReserveError>
     where
         T: any::Any,
@@ -4429,6 +4913,45 @@ impl OpaqueVec {
         proj_self.try_reserve_exact(additional)
     }
 
+    /// Attempts to reserve capacity for **at least** `additional` more elements to be inserted
+    /// in the given `OpaqueVec`.
+    ///
+    /// The collection may reserve more space to speculatively avoid frequent reallocations.
+    /// After calling this method, the capacity will be greater than or equal to
+    /// `self.len() + additional` if it returns. This method does nothing if the collection
+    /// capacity is already sufficient. This method preserves the contents even if a panic occurs.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if one of the following conditions occurs:
+    /// * If the [`TypeId`] of the elements of `self` and the [`TypeId`] of the memory allocator of
+    ///   `self` do not match the requested element type `T` and allocator type `A`, respectively.
+    /// * If the capacity of the vector overflows.
+    /// * If the allocator reports a failure.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_vec = OpaqueVec::new::<i32>();
+    /// #
+    /// # assert!(opaque_vec.has_element_type::<i32>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    /// #
+    /// let data: [i32; 6] = [1, 2, 3, 4, 5, 6];
+    /// let result = opaque_vec.try_reserve::<i32, Global>(10);
+    ///
+    /// assert!(result.is_ok());
+    ///
+    /// opaque_vec.extend::<_, i32, Global>(data.iter().map(|&value| value * 2 + 5));
+    ///
+    /// let expected = [7, 9, 11, 13, 15, 17];
+    ///
+    /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), expected.as_slice());
+    /// ```
     #[track_caller]
     pub fn reserve<T, A>(&mut self, additional: usize)
     where
@@ -4440,6 +4963,49 @@ impl OpaqueVec {
         proj_self.reserve(additional);
     }
 
+    /// Attempts to reserve capacity for **at least** `additional` more elements to be inserted
+    /// in the given `OpaqueVec`.
+    ///
+    /// The collection may reserve more space to speculatively avoid frequent reallocations.
+    /// After calling this method, the capacity will be greater than or equal to
+    /// `self.len() + additional` if it returns. This method does nothing if the collection
+    /// capacity is already sufficient. This method preserves the contents even if a panic occurs.
+    ///
+    /// # Errors
+    ///
+    /// This method returns an error if the capacity overflows, or the allocator reports a failure.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if one of the following conditions occurs:
+    /// * If the [`TypeId`] of the elements of `self` and the [`TypeId`] of the memory allocator of
+    ///   `self` do not match the requested element type `T` and allocator type `A`, respectively.
+    /// * If the capacity of the vector overflows.
+    /// * If the allocator reports a failure.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_vec = OpaqueVec::new::<i32>();
+    /// #
+    /// # assert!(opaque_vec.has_element_type::<i32>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    /// #
+    /// let data: [i32; 6] = [1, 2, 3, 4, 5, 6];
+    /// let result = opaque_vec.try_reserve_exact::<i32, Global>(10);
+    ///
+    /// assert!(result.is_ok());
+    ///
+    /// opaque_vec.extend::<_, i32, Global>(data.iter().map(|&value| value * 2 + 5));
+    ///
+    /// let expected = [7, 9, 11, 13, 15, 17];
+    ///
+    /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), expected.as_slice());
+    /// ```
     #[track_caller]
     pub fn reserve_exact<T, A>(&mut self, additional: usize)
     where
@@ -4451,6 +5017,41 @@ impl OpaqueVec {
         proj_self.reserve_exact(additional);
     }
 
+    /// Shrinks the capacity of the [`OpaqueVec`] as much as possible.
+    ///
+    /// The behavior of this method depends on the allocator, which may either shrink the
+    /// [`OpaqueVec`] in-place or reallocate. The resulting vector might still have some excess
+    /// capacity, just as is the case for [`with_capacity`]. See [`Allocator::shrink`] for more
+    /// details.
+    ///
+    /// [`with_capacity`]: OpaqueVec::with_capacity
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the elements of `self` and the [`TypeId`]
+    /// of the memory allocator of `self` do not match the requested element type `T` and
+    /// allocator type `A`, respectively.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_vec = OpaqueVec::with_capacity::<i32>(10);
+    /// #
+    /// # assert!(opaque_vec.has_element_type::<i32>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    /// #
+    /// opaque_vec.extend::<_, i32, Global>([1, 2, 3]);
+    ///
+    /// assert!(opaque_vec.capacity() >= 10);
+    ///
+    /// opaque_vec.shrink_to_fit::<i32, Global>();
+    ///
+    /// assert!(opaque_vec.capacity() >= 3);
+    /// ```
     #[track_caller]
     #[inline]
     pub fn shrink_to_fit<T, A>(&mut self)
@@ -4463,6 +5064,56 @@ impl OpaqueVec {
         proj_self.shrink_to_fit();
     }
 
+    /// Shrinks the capacity of the [`OpaqueVec`] to a lower bound.
+    ///
+    /// The behavior of this method depends on the allocator, which may either shrink the
+    /// [`OpaqueVec`] in-place or reallocate. The resulting vector might still have some excess
+    /// capacity, just as is the case for [`with_capacity`]. See [`Allocator::shrink`] for more
+    /// details.
+    ///
+    /// The capacity will remain at least as large as both the length
+    /// and the supplied capacity `min_capacity`. In particular, after calling this method,
+    /// the capacity of `self` satisfies
+    ///
+    /// ```text
+    /// self.capacity() >= max(self.len(), min_capacity).
+    /// ```
+    ///
+    /// If the current capacity of the [`OpaqueVec`] is less than the lower bound, the method does
+    /// nothing.
+    ///
+    /// [`with_capacity`]: OpaqueVec::with_capacity
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the elements of `self` and the [`TypeId`]
+    /// of the memory allocator of `self` do not match the requested element type `T` and
+    /// allocator type `A`, respectively.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_vec = OpaqueVec::with_capacity::<i32>(10);
+    /// #
+    /// # assert!(opaque_vec.has_element_type::<i32>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    /// #
+    /// opaque_vec.extend::<_, i32, Global>([1, 2, 3]);
+    ///
+    /// assert!(opaque_vec.capacity() >= 10);
+    ///
+    /// opaque_vec.shrink_to::<i32, Global>(4);
+    ///
+    /// assert!(opaque_vec.capacity() >= 4);
+    ///
+    /// opaque_vec.shrink_to::<i32, Global>(0);
+    ///
+    /// assert!(opaque_vec.capacity() >= 3);
+    /// ```
     #[track_caller]
     pub fn shrink_to<T, A>(&mut self, min_capacity: usize)
     where
@@ -4474,6 +5125,39 @@ impl OpaqueVec {
         proj_self.shrink_to(min_capacity);
     }
 
+    /// Removes all values from the [`OpaqueVec`].
+    ///
+    /// After calling this method, the collection will be empty. This method does not change the
+    /// allocated capacity of the [`OpaqueVec`].
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the elements of `self` and the [`TypeId`]
+    /// of the memory allocator of `self` do not match the requested element type `T` and
+    /// allocator type `A`, respectively.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_vec = OpaqueVec::with_capacity::<i32>(10);
+    /// #
+    /// # assert!(opaque_vec.has_element_type::<i32>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    /// #
+    /// opaque_vec.extend::<_, i32, Global>([1, 2, 3]);
+    ///
+    /// assert_eq!(opaque_vec.len(), 3);
+    ///
+    /// let old_capacity = opaque_vec.capacity();
+    /// opaque_vec.clear::<i32, Global>();
+    ///
+    /// assert_eq!(opaque_vec.len(), 0);
+    /// assert_eq!(opaque_vec.capacity(), old_capacity);
+    /// ```
     pub fn clear<T, A>(&mut self)
     where
         T: any::Any,
@@ -4486,6 +5170,96 @@ impl OpaqueVec {
 }
 
 impl OpaqueVec {
+    /// Creates a splicing iterator that replaces the specified range in the [`OpaqueVec`]
+    /// with the given `replace_with` iterator and yields the removed items.
+    /// `replace_with` does not need to be the same length as `range`.
+    ///
+    /// The `range` argument is removed even if the `Splice` iterator is not consumed before it is
+    /// dropped.
+    ///
+    /// It is unspecified how many elements are removed from the [`OpaaueVec`]
+    /// if the `Splice` value is leaked.
+    ///
+    /// The input iterator `replace_with` is only consumed when the `Splice` value is dropped.
+    ///
+    /// This is optimal if:
+    ///
+    /// * The tail (elements in the vector after `range`) is empty,
+    /// * or `replace_with` yields fewer or equal elements than `range`’s length
+    /// * or the lower bound of its `size_hint()` is exact.
+    ///
+    /// Otherwise, a temporary [`OpaqueVec`] is allocated and the tail is moved twice.
+    ///
+    /// # Panics
+    ///
+    /// This method panics under one of the following conditions:
+    /// * If the [`TypeId`] of the elements of `self` and the [`TypeId`] of the memory allocator of
+    ///   `self` do not match the requested element type `T` and allocator type `A`, respectively.
+    /// * If the starting point is greater than the end point or if the end point is greater than
+    ///   the length of the vector.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::{IntoIter, OpaqueVec};
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_vec = {
+    ///     let array: [i32; 4] = [1, 2, 3, 4];
+    ///     OpaqueVec::from(array)
+    /// };
+    /// #
+    /// # assert!(opaque_vec.has_element_type::<i32>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    /// #
+    /// let new = {
+    ///     let array: [i32; 3] = [7, 8, 9];
+    ///     OpaqueVec::from(array)
+    /// };
+    /// #
+    /// # assert!(new.has_element_type::<i32>());
+    /// # assert!(new.has_allocator_type::<Global>());
+    /// #
+    /// let opaque_vec2: OpaqueVec = opaque_vec.splice::<_, IntoIter<i32>, i32, Global>(1..3, new.into_iter::<i32, Global>()).collect();
+    /// #
+    /// # assert!(opaque_vec2.has_element_type::<i32>());
+    /// # assert!(opaque_vec2.has_allocator_type::<Global>());
+    /// #
+    ///
+    /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &[1, 7, 8, 9, 4]);
+    /// assert_eq!(opaque_vec2.as_slice::<i32, Global>(), &[2, 3]);
+    /// ```
+    ///
+    /// Using `splice` to insert new items into a vector efficiently at a specific position
+    /// indicated by an empty range.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::{IntoIter, OpaqueVec};
+    /// # use std::alloc::Global;
+    /// # use std::slice;
+    /// #
+    /// let mut opaque_vec = {
+    ///     let array: [i32; 2] = [1, 5];
+    ///     OpaqueVec::from(array)
+    /// };
+    /// #
+    /// # assert!(opaque_vec.has_element_type::<i32>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    /// #
+    /// let new = {
+    ///     let array: [i32; 3] = [2, 3, 4];
+    ///     OpaqueVec::from(array)
+    /// };
+    /// #
+    /// # assert!(new.has_element_type::<i32>());
+    /// # assert!(new.has_allocator_type::<Global>());
+    /// #
+    /// let splice: OpaqueVec = opaque_vec.splice::<_, IntoIter<i32>, i32, Global>(1..1, new.into_iter::<i32, Global>()).collect();
+    ///
+    /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &[1, 2, 3, 4, 5]);
+    /// ```
     #[inline]
     pub fn splice<R, I, T, A>(&mut self, range: R, replace_with: I) -> Splice<'_, I::IntoIter, A>
     where
@@ -4499,6 +5273,119 @@ impl OpaqueVec {
         proj_self.splice(range, replace_with)
     }
 
+    /// Creates an iterator which uses a closure to determine if an element in the range should be removed.
+    ///
+    /// If the closure returns `true`, the element is removed from the vector
+    /// and yielded. If the closure returns `false`, or panics, the element
+    /// remains in the vector and will not be yielded.
+    ///
+    /// Only elements that fall in the provided range are considered for extraction, but any elements
+    /// after the range will still have to be moved if any element has been extracted.
+    ///
+    /// If the returned [`ExtractIf`] is not exhausted, e.g. because it is dropped without iterating
+    /// or the iteration short-circuits, then the remaining elements will be retained.
+    /// Use [`retain_mut`] with a negated predicate if you do not need the returned iterator.
+    ///
+    /// [`retain_mut`]: Vec::retain_mut
+    ///
+    /// Using this method is equivalent to the following code:
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::{IntoIter, OpaqueVec};
+    /// # use std::alloc::Global;
+    /// #
+    /// # let some_predicate = |x: &mut i32| { *x % 2 == 1 };
+    /// # let mut opaque_vec = {
+    /// #     let array: [i32; 7] = [0, 1, 2, 3, 4, 5, 6];
+    /// #     OpaqueVec::from(array)
+    /// # };
+    /// #
+    /// # assert!(opaque_vec.has_element_type::<i32>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    /// #
+    /// # let mut opaque_vec2 = opaque_vec.clone::<i32, Global>();
+    /// #
+    /// # assert!(opaque_vec2.has_element_type::<i32>());
+    /// # assert!(opaque_vec2.has_allocator_type::<Global>());
+    /// #
+    /// # let range = 1..5;
+    /// let mut i = range.start;
+    /// let end_items = opaque_vec.len() - range.end;
+    /// # let mut extracted = OpaqueVec::new::<i32>();
+    ///
+    /// while i < opaque_vec.len() - end_items {
+    ///     if some_predicate(opaque_vec.get_mut::<_, i32, Global>(i).unwrap()) {
+    ///         let val = opaque_vec.shift_remove::<i32, Global>(i);
+    /// #         extracted.push::<i32, Global>(val);
+    ///         // your code here
+    ///     } else {
+    ///         i += 1;
+    ///     }
+    /// }
+    ///
+    /// # let extracted2: OpaqueVec = opaque_vec2.extract_if::<_, _, i32, Global>(range, some_predicate).collect();
+    /// # assert_eq!(opaque_vec.as_slice::<i32, Global>(), opaque_vec2.as_slice::<i32, Global>());
+    /// # assert_eq!(extracted.as_slice::<i32, Global>(), extracted2.as_slice::<i32, Global>());
+    /// ```
+    ///
+    /// But `extract_if` is easier to use. `extract_if` is also more efficient,
+    /// because it can backshift the elements of the array in bulk.
+    ///
+    /// The iterator also lets you mutate the value of each element in the
+    /// closure, regardless of whether you choose to keep or remove it.
+    ///
+    /// # Panics
+    ///
+    /// This method panics under one of the following conditions:
+    /// * If the [`TypeId`] of the elements of `self` and the [`TypeId`] of the memory allocator of
+    ///   `self` do not match the requested element type `T` and allocator type `A`, respectively.
+    /// * If `range` is out of bounds.
+    ///
+    /// # Examples
+    ///
+    /// Splitting a vector into even and odd values, reusing the original vector.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::{IntoIter, OpaqueVec};
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut numbers = {
+    ///     let array: [i32; 12] = [1, 2, 3, 4, 5, 6, 8, 9, 11, 13, 14, 15];
+    ///     OpaqueVec::from(array)
+    /// };
+    /// #
+    /// # assert!(numbers.has_element_type::<i32>());
+    /// # assert!(numbers.has_allocator_type::<Global>());
+    /// #
+    /// let evens: OpaqueVec = numbers.extract_if::<_, _, i32, Global>(.., |x| *x % 2 == 0).collect();
+    /// let odds = numbers;
+    ///
+    /// assert_eq!(evens.as_slice::<i32, Global>(), &[2, 4, 6, 8, 14]);
+    /// assert_eq!(odds.as_slice::<i32, Global>(), &[1, 3, 5, 9, 11, 13, 15]);
+    /// ```
+    ///
+    /// Using the range argument to only process a part of the vector.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::{IntoIter, OpaqueVec};
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut items = {
+    ///     let array: [i32; 13] = [0, 0, 0, 0, 0, 0, 0, 1, 2, 1, 2, 1, 2];
+    ///     OpaqueVec::from(array)
+    /// };
+    /// #
+    /// # assert!(items.has_element_type::<i32>());
+    /// # assert!(items.has_allocator_type::<Global>());
+    /// #
+    /// let ones: OpaqueVec = items.extract_if::<_, _, i32, Global>(7.., |x| *x == 1).collect();
+    ///
+    /// assert_eq!(items.as_slice::<i32, Global>(), &[0, 0, 0, 0, 0, 0, 0, 2, 2, 2]);
+    /// assert_eq!(ones.len(), 3);
+    /// ```
     pub fn extract_if<F, R, T, A>(&mut self, range: R, filter: F) -> ExtractIf<'_, T, F, A>
     where
         T: any::Any,
@@ -4536,6 +5423,39 @@ impl OpaqueVec {
     }
     */
 
+    /// Appends all elements from a slice to the [`OpaqueVec`].
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the elements of `self` and the [`TypeId`]
+    /// of the memory allocator of `self` do not match the requested element type `T` and
+    /// allocator type `A`, respectively.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let array: [i32; 6] = [1, 2, 3, 4, 5, 6];
+    /// let extension: [i32; 4] = [7, 8, 9, 10];
+    /// let combined: [i32; 10] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    /// let expected = OpaqueVec::from(combined);
+    /// #
+    /// # assert!(expected.has_element_type::<i32>());
+    /// # assert!(expected.has_allocator_type::<Global>());
+    /// #
+    /// let mut result = OpaqueVec::from(array);
+    /// #
+    /// # assert!(result.has_element_type::<i32>());
+    /// # assert!(result.has_allocator_type::<Global>());
+    /// #
+    /// result.extend_from_slice::<i32, Global>(&extension);
+    ///
+    /// assert_eq!(result.len(), array.len() + extension.len());
+    /// assert_eq!(result.as_slice::<i32, Global>(), expected.as_slice::<i32, Global>());
+    /// ```
     #[track_caller]
     pub fn extend_from_slice<T, A>(&mut self, other: &[T])
     where
@@ -4547,6 +5467,133 @@ impl OpaqueVec {
         proj_self.extend_from_slice(other);
     }
 
+    /// Resizes the [`OpaqueVec`] in-place so that `len` is equal to `new_len`.
+    ///
+    /// If `new_len > len`, the [`OpaqueVec`] is extended by the
+    /// difference, with each additional slot filled with `value`.
+    /// If `new_len < len`, the [`OpaqueVec`] is truncated.
+    ///
+    /// If you need more flexibility (or want to rely on [`Default`] instead of
+    /// [`Clone`]), use [`OpaqueVec::resize_with`].
+    /// If you only need to resize to a smaller size, use [`OpaqueVec::truncate`].
+    ///
+    /// # Panics
+    ///
+    /// This method panics under one of the following conditions:
+    /// * If the [`TypeId`] of the elements of `self` and the [`TypeId`] of the memory allocator of
+    ///   `self` do not match the requested element type `T` and allocator type `A`, respectively.
+    /// * If the new capacity exceeds `isize::MAX` _bytes_.
+    ///
+    /// # Examples
+    ///
+    /// Extending an [`OpaqueVec`] with a default value.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_vec = {
+    ///     let array: [&'static str; 8] = [
+    ///         "spam",
+    ///         "eggs",
+    ///         "sausage",
+    ///         "spam",
+    ///         "baked beans",
+    ///         "spam",
+    ///         "Lobster Thermidor aux Crevettes with a Mornay sauce, garnished with truffle pâté, brandy, with a fried egg on top, and spam",
+    ///         "bacon",
+    ///     ];
+    ///     OpaqueVec::from(array)
+    /// };
+    /// #
+    /// # assert!(opaque_vec.has_element_type::<&'static str>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    /// #
+    /// opaque_vec.resize::<&'static str, Global>(14, "spam");
+    ///
+    /// assert_eq!(opaque_vec.len(), 14);
+    ///
+    /// let expected = {
+    ///     let array: [&'static str; 14] = [
+    ///         "spam",
+    ///         "eggs",
+    ///         "sausage",
+    ///         "spam",
+    ///         "baked beans",
+    ///         "spam",
+    ///         "Lobster Thermidor aux Crevettes with a Mornay sauce, garnished with truffle pâté, brandy, with a fried egg on top, and spam",
+    ///         "bacon",
+    ///         "spam",
+    ///         "spam",
+    ///         "spam",
+    ///         "spam",
+    ///         "spam",
+    ///         "spam",
+    ///     ];
+    ///     OpaqueVec::from(array)
+    /// };
+    /// #
+    /// # assert!(expected.has_element_type::<&'static str>());
+    /// # assert!(expected.has_allocator_type::<Global>());
+    /// #
+    ///
+    /// assert_eq!(opaque_vec.as_slice::<&'static str, Global>(), expected.as_slice::<&'static str, Global>());
+    /// ```
+    ///
+    /// Shrinking an [`OpaqueVec`] with a default value.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_vec = {
+    ///     let array: [&'static str; 14] = [
+    ///         "spam",
+    ///         "eggs",
+    ///         "sausage",
+    ///         "spam",
+    ///         "baked beans",
+    ///         "spam",
+    ///         "Lobster Thermidor aux Crevettes with a Mornay sauce, garnished with truffle pâté, brandy, with a fried egg on top, and spam",
+    ///         "bacon",
+    ///         "spam",
+    ///         "spam",
+    ///         "spam",
+    ///         "spam",
+    ///         "spam",
+    ///         "spam",
+    ///     ];
+    ///     OpaqueVec::from(array)
+    /// };
+    /// #
+    /// # assert!(opaque_vec.has_element_type::<&'static str>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    /// #
+    /// let expected = {
+    ///     let array: [&'static str; 8] = [
+    ///         "spam",
+    ///         "eggs",
+    ///         "sausage",
+    ///         "spam",
+    ///         "baked beans",
+    ///         "spam",
+    ///         "Lobster Thermidor aux Crevettes with a Mornay sauce, garnished with truffle pâté, brandy, with a fried egg on top, and spam",
+    ///         "bacon",
+    ///     ];
+    ///     OpaqueVec::from(array)
+    /// };
+    /// #
+    /// # assert!(expected.has_element_type::<&'static str>());
+    /// # assert!(expected.has_allocator_type::<Global>());
+    /// #
+    ///
+    /// opaque_vec.resize::<&'static str, Global>(8, "I DON'T WANT SPAM!");
+    ///
+    /// assert_eq!(opaque_vec.len(), 8);
+    /// assert_eq!(opaque_vec.as_slice::<&'static str, Global>(), expected.as_slice::<&'static str, Global>());
+    /// ```
     #[track_caller]
     pub fn resize<T, A>(&mut self, new_len: usize, value: T)
     where
@@ -4558,6 +5605,107 @@ impl OpaqueVec {
         proj_self.resize(new_len, value);
     }
 
+    /// Shorten an [`OpaqueVec`] to the supplied length, dropping the remaining elements.
+    ///
+    /// This method keeps the first `len` elements, and drops the rest of the elements, so that
+    /// the length after calling this method is at most `len`. This method does nothing if
+    /// `self.len() <= len`.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the elements of `self` and the [`TypeId`]
+    /// of the memory allocator of `self` do not match the requested element type `T` and
+    /// allocator type `A`, respectively.
+    ///
+    /// # Examples
+    ///
+    /// Truncating a [`OpaaueVec`] when `len < self.len()`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_vec = {
+    ///     let array: [i32; 6] = [1, 2, 3, 4, 5, 6];
+    ///     OpaqueVec::from(array)
+    /// };
+    /// #
+    /// # assert!(opaque_vec.has_element_type::<i32>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    /// #
+    /// opaque_vec.truncate::<i32, Global>(2);
+    ///
+    /// assert_eq!(opaque_vec.len(), 2);
+    /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &[1, 2]);
+    /// ```
+    ///
+    /// No truncation occurs when `len == self.len()`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let array: [i32; 6] = [1, 2, 3, 4, 5, 6];
+    /// let mut opaque_vec = OpaqueVec::from(array);
+    /// #
+    /// # assert!(opaque_vec.has_element_type::<i32>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    /// #
+    /// opaque_vec.truncate::<i32, Global>(6);
+    ///
+    /// assert_eq!(opaque_vec.len(), 6);
+    /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &array);
+    /// ```
+    ///
+    /// No truncation occurs when `len > self.len()`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let array: [i32; 6] = [1, 2, 3, 4, 5, 6];
+    /// let mut opaque_vec = OpaqueVec::from(array);
+    /// #
+    /// # assert!(opaque_vec.has_element_type::<i32>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    /// #
+    /// opaque_vec.truncate::<i32, Global>(7);
+    ///
+    /// assert_eq!(opaque_vec.len(), 6);
+    /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &array);
+    ///
+    /// opaque_vec.truncate::<i32, Global>(10000);
+    ///
+    /// assert_eq!(opaque_vec.len(), 6);
+    /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &array);
+    /// ```
+    ///
+    /// Truncating when `len == 0` is equivalent to calling the [`clear`] method.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_vec = {
+    ///     let array: [i32; 6] = [1, 2, 3, 4, 5, 6];
+    ///     OpaqueVec::from(array)
+    /// };
+    /// #
+    /// # assert!(opaque_vec.has_element_type::<i32>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    /// #
+    /// opaque_vec.truncate::<i32, Global>(0);
+    ///
+    /// assert_eq!(opaque_vec.len(), 0);
+    /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &[]);
+    /// ```
+    ///
+    /// [`clear`]: Vec::clear
+    /// [`drain`]: Vec::drain
     #[inline]
     pub fn truncate<T, A>(&mut self, len: usize)
     where
@@ -4571,6 +5719,38 @@ impl OpaqueVec {
 }
 
 impl OpaqueVec {
+    /// Retains only the elements in the [`OpaqueVec`] that satisfy the supplied predicate.
+    ///
+    /// This method removes all elements from the collection for which the predicate returns
+    /// `false`. In particular, for each element `e` in the collection, it removes `e` provided
+    /// that `f(&e) == false`. This method operates in place, and preserves the order of the
+    /// retained elements.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the elements of `self` and the [`TypeId`]
+    /// of the memory allocator of `self` do not match the requested element type `T` and
+    /// allocator type `A`, respectively.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_vec = {
+    ///     let array: [i32; 6] = [1, 2, 3, 4, 5, 6];
+    ///     OpaqueVec::from(array)
+    /// };
+    /// #
+    /// # assert!(opaque_vec.has_element_type::<i32>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    /// #
+    /// opaque_vec.retain::<_, i32, Global>(|&x| x % 2 == 0);
+    ///
+    /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &[2, 4, 6]);
+    /// ```
     pub fn retain<F, T, A>(&mut self, f: F)
     where
         T: any::Any,
@@ -4582,6 +5762,45 @@ impl OpaqueVec {
         proj_self.retain(f);
     }
 
+    /// Retains only the elements in the [`OpaqueVec`] that satisfy the supplied predicate passing
+    /// a mutable reference to it.
+    ///
+    /// This method removes all elements from the collection for which the predicate returns
+    /// `false`. In particular, for each element `e` in the collection, it removes `e` provided
+    /// that `f(&e) == false`. This method operates in place, and preserves the order of the
+    /// retained elements.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the elements of `self` and the [`TypeId`]
+    /// of the memory allocator of `self` do not match the requested element type `T` and
+    /// allocator type `A`, respectively.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_vec = {
+    ///     let array: [i32; 6] = [1, 2, 3, 4, 5, 6];
+    ///     OpaqueVec::from(array)
+    /// };
+    /// #
+    /// # assert!(opaque_vec.has_element_type::<i32>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    /// #
+    ///
+    /// opaque_vec.retain_mut::<_, i32, Global>(|x| if *x <= 3 {
+    ///     *x += 1;
+    ///     true
+    /// } else {
+    ///     false
+    /// });
+    ///
+    /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &[2, 3, 4]);
+    /// ```
     pub fn retain_mut<F, T, A>(&mut self, f: F)
     where
         T: any::Any,
@@ -4593,6 +5812,78 @@ impl OpaqueVec {
         proj_self.retain_mut(f);
     }
 
+    /// Removes consecutive repeated elements in the [`OpaqueVec`] according to the
+    /// [`PartialEq`] trait implementation.
+    ///
+    /// This method removes all duplicates if the collection is sorted.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the elements of `self` and the [`TypeId`]
+    /// of the memory allocator of `self` do not match the requested element type `T` and
+    /// allocator type `A`, respectively.
+    ///
+    /// # Examples
+    ///
+    /// Deduplicating an unsorted [`OpaqueVec`].
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_vec = {
+    ///     let array: [i32; 9] = [1, 2, 3, 2, 2, 2, 6, 4, 4];
+    ///     OpaqueVec::from(array)
+    /// };
+    /// #
+    /// # assert!(opaque_vec.has_element_type::<i32>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    /// #
+    /// opaque_vec.dedup::<i32, Global>();
+    ///
+    /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &[1, 2, 3, 2, 6, 4]);
+    /// ```
+    ///
+    /// Deduplicating a sorted [`OpaqueVec`] with duplicate values.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_vec = {
+    ///     let array: [i32; 10] = [1, 2, 3, 3, 3, 3, 4, 4, 4, 5];
+    ///     OpaqueVec::from(array)
+    /// };
+    /// #
+    /// # assert!(opaque_vec.has_element_type::<i32>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    /// #
+    /// opaque_vec.dedup::<i32, Global>();
+    ///
+    /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &[1, 2, 3, 4, 5]);
+    /// ```
+    ///
+    /// Deduplicating a sorted [`OpaqueVec`] with no duplicate values does nothing.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_vec = {
+    ///     let array: [i32; 5] = [1, 2, 3, 4, 5];
+    ///     OpaqueVec::from(array)
+    /// };
+    /// #
+    /// # assert!(opaque_vec.has_element_type::<i32>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    /// #
+    /// opaque_vec.dedup::<i32, Global>();
+    ///
+    /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &[1, 2, 3, 4, 5]);
+    /// ```
     #[inline]
     pub fn dedup<T, A>(&mut self)
     where
@@ -4604,6 +5895,53 @@ impl OpaqueVec {
         proj_self.dedup();
     }
 
+    /// Removes all but the first of consecutive elements in the [`OpaqueVec`] that resolve to the
+    /// same key.
+    ///
+    /// This removes all duplicates if the collection is sorted (since each duplicate value
+    /// trivially resolves to the same key).
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the elements of `self` and the [`TypeId`]
+    /// of the memory allocator of `self` do not match the requested element type `T` and
+    /// allocator type `A`, respectively.
+    ///
+    /// # Examples
+    ///
+    /// Deduplicating an unsorted [`OpaqueVec`] by key.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_vec = {
+    ///     let array: [i32; 5] = [10, 20, 21, 30, 20];
+    ///     OpaqueVec::from(array)
+    /// };
+    ///
+    /// opaque_vec.dedup_by_key::<_, _, i32, Global>(|i| *i / 10);
+    ///
+    /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &[10, 20, 30, 20]);
+    /// ```
+    ///
+    /// Deduplicating a sorted [`OpaqueVec`] by key with duplicate values.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_vec = {
+    ///     let array: [i32; 8] = [10, 20, 20, 21, 30, 30, 30, 40];
+    ///     OpaqueVec::from(array)
+    /// };
+    ///
+    /// opaque_vec.dedup_by_key::<_, _, i32, Global>(|i| *i / 10);
+    ///
+    /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &[10, 20, 30, 40]);
+    /// ```
     #[inline]
     pub fn dedup_by_key<F, K, T, A>(&mut self, mut key: F)
     where
@@ -4617,6 +5955,56 @@ impl OpaqueVec {
         proj_self.dedup_by_key(&mut key);
     }
 
+    /// Removes all but the first of consecutive elements in the vector satisfying a given equality
+    /// relation.
+    ///
+    /// The `same_bucket` function is passed references to two elements from the collection and
+    /// must determine if the elements compare equal. The elements are passed in opposite order
+    /// from their order in the slice, so if `same_bucket(a, b)` returns `true`, `a` is removed.
+    ///
+    /// This method removes all duplicates if the collection is sorted.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the elements of `self` and the [`TypeId`]
+    /// of the memory allocator of `self` do not match the requested element type `T` and
+    /// allocator type `A`, respectively.
+    ///
+    /// # Examples
+    ///
+    /// Deduplicating an unsorted [`OpaqueVec`].
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_vec = {
+    ///     let array: [&'static str; 8] = ["foo", "bar", "Bar", "baz", "bar", "quux", "Quux", "QuuX"];
+    ///     OpaqueVec::from(array)
+    /// };
+    ///
+    /// opaque_vec.dedup_by::<_, &'static str, Global>(|a, b| a.eq_ignore_ascii_case(b));
+    ///
+    /// assert_eq!(opaque_vec.as_slice::<&'static str, Global>(), &["foo", "bar", "baz", "bar", "quux"]);
+    /// ```
+    ///
+    /// Deduplicating a sorted [`OpaqueVec`] with duplicate values.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_vec = {
+    ///     let array: [&'static str; 11] = ["foo", "bar", "Bar", "bar", "baz", "Baz", "BaZ", "quux", "Quux", "QuuX", "garply"];
+    ///     OpaqueVec::from(array)
+    /// };
+    ///
+    /// opaque_vec.dedup_by::<_, &'static str, Global>(|a, b| a.eq_ignore_ascii_case(b));
+    ///
+    /// assert_eq!(opaque_vec.as_slice::<&'static str, Global>(), &["foo", "bar", "baz", "quux", "garply"]);
+    /// ```
     pub fn dedup_by<F, T, A>(&mut self, same_bucket: F)
     where
         T: any::Any,
@@ -4906,12 +6294,12 @@ where
     }
 }
 
-impl<T, A> From<Box<[T], A>> for OpaqueVec
+impl<T, A> From<Box<[T], TypedProjAlloc<A>>> for OpaqueVec
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    fn from(slice: Box<[T], A>) -> Self {
+    fn from(slice: Box<[T], TypedProjAlloc<A>>) -> Self {
         let proj_vec = TypedProjVec::from(slice);
 
         Self::from_proj(proj_vec)

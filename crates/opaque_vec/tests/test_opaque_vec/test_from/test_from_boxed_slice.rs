@@ -1,4 +1,5 @@
 use opaque_vec::OpaqueVec;
+use opaque_alloc::TypedProjAlloc;
 
 use core::any;
 use core::fmt;
@@ -24,7 +25,8 @@ where
     T: any::Any + PartialEq + Clone + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let boxed_values = expected(values, alloc);
+    let proj_alloc = TypedProjAlloc::new(alloc);
+    let boxed_values = expected(values, proj_alloc);
     let vec = OpaqueVec::from(boxed_values.clone());
 
     let expected = boxed_values.as_ref();
