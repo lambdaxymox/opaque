@@ -5221,7 +5221,11 @@ impl OpaqueVec {
     /// # assert!(new.has_element_type::<i32>());
     /// # assert!(new.has_allocator_type::<Global>());
     /// #
-    /// let opaque_vec2: OpaqueVec = opaque_vec.splice::<_, IntoIter<i32>, i32, Global>(1..3, new.into_iter::<i32, Global>()).collect();
+    /// let opaque_vec2: OpaqueVec = opaque_vec.splice::<_, IntoIter<i32>, i32, Global>(
+    ///         1..3,
+    ///         new.into_iter::<i32, Global>()
+    ///     )
+    ///     .collect();
     /// #
     /// # assert!(opaque_vec2.has_element_type::<i32>());
     /// # assert!(opaque_vec2.has_allocator_type::<Global>());
@@ -5256,7 +5260,11 @@ impl OpaqueVec {
     /// # assert!(new.has_element_type::<i32>());
     /// # assert!(new.has_allocator_type::<Global>());
     /// #
-    /// let splice: OpaqueVec = opaque_vec.splice::<_, IntoIter<i32>, i32, Global>(1..1, new.into_iter::<i32, Global>()).collect();
+    /// let splice: OpaqueVec = opaque_vec.splice::<_, IntoIter<i32>, i32, Global>(
+    ///         1..1,
+    ///         new.into_iter::<i32, Global>()
+    ///     )
+    ///     .collect();
     ///
     /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &[1, 2, 3, 4, 5]);
     /// ```
