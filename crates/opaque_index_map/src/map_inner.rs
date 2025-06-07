@@ -171,6 +171,8 @@ impl<'a, K, V> ops::Index<usize> for Keys<'a, K, V> {
 
 pub(crate) struct IntoKeys<K, V, A>
 where
+    K: any::Any,
+    V: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     iter: opaque_vec::IntoIter<Bucket<K, V>, A>,
@@ -370,6 +372,8 @@ impl<K, V> Default for ValuesMut<'_, K, V> {
 
 pub(crate) struct IntoValues<K, V, A>
 where
+    K: any::Any,
+    V: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     iter: opaque_vec::IntoIter<Bucket<K, V>, A>,

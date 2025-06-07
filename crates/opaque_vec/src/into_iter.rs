@@ -18,6 +18,7 @@ const fn assuming_non_null<T>(item: *const T) -> NonNull<T> {
 
 pub struct IntoIter<T, A = alloc::Global>
 where
+    T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     buf: NonNull<T>,
@@ -350,34 +351,40 @@ where
         }
     }
 }
-/*
-unsafe impl<T, A> Drop for IntoIter<T, A>
+
+impl<T, A> Drop for IntoIter<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn drop(&mut self) {
-        struct DropGuard<'a, T, A: Allocator>(&'a mut IntoIter<T, A>);
+        struct DropGuard<'a, T, A>
+        where
+            T: any::Any,
+            A: any::Any + alloc::Allocator + Send + Sync,
+        {
+            inner: &'a mut IntoIter<T, A>
+        }
 
         impl<T, A> Drop for DropGuard<'_, T, A>
         where
-            A: Allocator,
+            T: any::Any,
+            A: any::Any + alloc::Allocator + Send + Sync,
         {
             fn drop(&mut self) {
                 unsafe {
                     // `IntoIter::alloc` is not used anymore after this and will be dropped by RawVec
-                    let alloc = ManuallyDrop::take(&mut self.0.alloc);
-                    let _ = OpaqueVecInner::from_raw_parts_in(self.0.buf.as_ptr(), self.0.len(), self.0.cap, alloc);
+                    let alloc = ManuallyDrop::take(&mut self.inner.alloc);
+                    let _ = TypedProjVecInner::from_raw_parts_in(self.inner.buf.as_ptr(), self.inner.len(), self.inner.cap, alloc);
                 }
             }
         }
 
-        let guard = DropGuard(self);
+        let guard = DropGuard { inner: self };
         // destroy the remaining elements
         unsafe {
-            core::ptr::drop_in_place(guard.0.as_raw_mut_slice());
+            core::ptr::drop_in_place(guard.inner.as_raw_mut_slice());
         }
         // now `guard` will be dropped and do the rest
     }
 }
-*/

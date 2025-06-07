@@ -167,6 +167,8 @@ impl<'a, K, V> ops::Index<usize> for Keys<'a, K, V> {
 
 pub struct IntoKeys<K, V, A = alloc::Global>
 where
+    K: any::Any,
+    V: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     iter: map_inner::IntoKeys<K, V, A>,
@@ -366,6 +368,8 @@ impl<K, V> Default for ValuesMut<'_, K, V> {
 
 pub struct IntoValues<K, V, A = alloc::Global>
 where
+    K: any::Any,
+    V: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     iter: map_inner::IntoValues<K, V, A>,
