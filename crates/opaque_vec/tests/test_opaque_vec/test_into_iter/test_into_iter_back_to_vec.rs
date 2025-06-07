@@ -1,4 +1,4 @@
-use opaque_vec::TypedProjVec;
+use opaque_vec::OpaqueVec;
 
 use core::any;
 use core::fmt;
@@ -6,34 +6,34 @@ use std::alloc;
 
 use opaque_vec_testing as ovt;
 
-fn run_test_typed_proj_vec_into_iter_back_to_vec<T, A>(expected: &[T], alloc: A)
+fn run_test_opaque_vec_into_iter_back_to_vec<T, A>(expected: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let mut vec = TypedProjVec::new_in(alloc.clone());
+    let mut vec = OpaqueVec::new_in::<T, A>(alloc.clone());
     for value in expected.iter().cloned() {
-        vec.push(value);
+        vec.push::<T, A>(value);
     }
 
-    let mut cloned_vec = TypedProjVec::new_in(alloc.clone());
-    for value in vec.into_iter() {
-        cloned_vec.push(value);
+    let mut cloned_vec = OpaqueVec::new_in::<T, A>(alloc.clone());
+    for value in vec.into_iter::<T, A>() {
+        cloned_vec.push::<T, A>(value);
     }
 
-    let result = cloned_vec.as_slice();
+    let result = cloned_vec.as_slice::<T, A>();
 
     assert_eq!(result, expected);
 }
 
-fn run_test_typed_proj_vec_into_iter_back_to_vec_values<T, A>(values: &[T], alloc: A)
+fn run_test_opaque_vec_into_iter_back_to_vec_values<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {
-        run_test_typed_proj_vec_into_iter_back_to_vec(slice, alloc.clone());
+        run_test_opaque_vec_into_iter_back_to_vec(slice, alloc.clone());
     }
 }
 
@@ -43,24 +43,24 @@ macro_rules! generate_tests {
             use super::*;
 
             #[test]
-            fn test_typed_proj_vec_into_iter_back_to_vec_empty() {
+            fn test_opaque_vec_into_iter_back_to_vec_empty() {
                 let values: [$typ; 0] = [];
                 let alloc = alloc::Global;
-                run_test_typed_proj_vec_into_iter_back_to_vec(&values, alloc);
+                run_test_opaque_vec_into_iter_back_to_vec(&values, alloc);
             }
 
             #[test]
-            fn test_typed_proj_vec_into_iter_back_to_vec_range_values() {
+            fn test_opaque_vec_into_iter_back_to_vec_range_values() {
                 let values = opaque_vec_testing::range_values::<$typ, $max_vec_size>($range_spec);
                 let alloc = alloc::Global;
-                run_test_typed_proj_vec_into_iter_back_to_vec_values(&values, alloc);
+                run_test_opaque_vec_into_iter_back_to_vec_values(&values, alloc);
             }
 
             #[test]
-            fn test_typed_proj_vec_into_iter_back_to_vec_alternating_values() {
+            fn test_opaque_vec_into_iter_back_to_vec_alternating_values() {
                 let values = opaque_vec_testing::alternating_values::<$typ, $max_vec_size>($alt_spec);
                 let alloc = alloc::Global;
-                run_test_typed_proj_vec_into_iter_back_to_vec_values(&values, alloc);
+                run_test_opaque_vec_into_iter_back_to_vec_values(&values, alloc);
             }
         }
     };

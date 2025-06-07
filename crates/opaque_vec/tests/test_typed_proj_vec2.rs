@@ -585,3 +585,85 @@ fn test_vec_truncate_fail() {
 
     vec.truncate(0);
 }
+
+#[test]
+fn test_vec_into_iter_clone_empty() {
+    let vec: TypedProjVec<i32> = TypedProjVec::with_capacity(10);
+    let mut cloned_vec = TypedProjVec::new();
+    for value in vec.into_iter() {
+        cloned_vec.push(value);
+    }
+
+    assert!(cloned_vec.is_empty());
+}
+
+#[test]
+fn test_vec_into_iter_clone1() {
+    let vec: TypedProjVec<i32> = TypedProjVec::from([1]);
+    let mut cloned_vec = TypedProjVec::new();
+    for value in vec.clone().into_iter() {
+        cloned_vec.push(value);
+    }
+
+    assert_eq!(cloned_vec, vec);
+}
+
+#[test]
+fn test_vec_into_iter_clone2() {
+    let vec: TypedProjVec<i32> = TypedProjVec::from([1, 2]);
+    let mut cloned_vec = TypedProjVec::new();
+    for value in vec.clone().into_iter() {
+        cloned_vec.push(value);
+    }
+
+    assert_eq!(cloned_vec, vec);
+}
+
+#[test]
+fn test_vec_into_iter_clone3() {
+    let vec: TypedProjVec<i32> = TypedProjVec::from([1, 2, 3, 4]);
+    let mut cloned_vec = TypedProjVec::new();
+    for value in vec.clone().into_iter() {
+        cloned_vec.push(value);
+    }
+
+    assert_eq!(cloned_vec, vec);
+}
+
+#[test]
+fn test_vec_into_iter_clone4() {
+    let vec = TypedProjVec::from([String::from("foo")]);
+    let mut cloned_vec = TypedProjVec::new();
+    for value in vec.clone().into_iter() {
+        cloned_vec.push(value);
+    }
+
+    assert_eq!(cloned_vec, vec);
+}
+
+#[test]
+fn test_vec_into_iter_clone5() {
+    let vec = TypedProjVec::from([String::from("foo"), String::from("bar")]);
+    let mut cloned_vec = TypedProjVec::new();
+    for value in vec.clone().into_iter() {
+        cloned_vec.push(value);
+    }
+
+    assert_eq!(cloned_vec, vec);
+}
+
+#[test]
+fn test_vec_into_iter_clone6() {
+    let vec = TypedProjVec::from([
+        String::from("foo"),
+        String::from("bar"),
+        String::from("baz"),
+        String::from("quux"),
+    ]);
+    let mut cloned_vec = TypedProjVec::new();
+    for value in vec.clone().into_iter() {
+        cloned_vec.push(value);
+    }
+
+    assert_eq!(cloned_vec, vec);
+}

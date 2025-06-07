@@ -13,12 +13,7 @@ use opaque_alloc::TypedProjAlloc;
 
 #[inline(always)]
 const fn assuming_non_null<T>(item: *const T) -> NonNull<T> {
-    unsafe { *(item as *const NonNull<T>) }
-}
-
-#[inline(always)]
-const fn assuming_non_null_mut<T>(item: *const T) -> NonNull<T> {
-    unsafe { *(item as *mut NonNull<T>) }
+    unsafe { NonNull::new_unchecked(item as *mut T) }
 }
 
 pub struct IntoIter<T, A = alloc::Global>
@@ -54,7 +49,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[inline]
-    pub(crate) const fn from_parts(buf: NonNull<T>, cap: usize, alloc: ManuallyDrop<TypedProjAlloc<A>>, ptr: NonNull<T>, end: *const T) -> Self {
+    pub(crate) const unsafe fn from_parts(buf: NonNull<T>, cap: usize, alloc: ManuallyDrop<TypedProjAlloc<A>>, ptr: NonNull<T>, end: *const T) -> Self {
         Self { buf, cap, alloc, ptr, end, }
     }
 
@@ -133,7 +128,7 @@ where
         let exact = if crate::zst::is_zst::<T>() {
             self.end.addr().wrapping_sub(self.ptr.as_ptr().addr())
         } else {
-            unsafe { assuming_non_null_mut(self.end).offset_from_unsigned(self.ptr) }
+            unsafe { assuming_non_null(self.end).offset_from_unsigned(self.ptr) }
         };
 
         (exact, Some(exact))
