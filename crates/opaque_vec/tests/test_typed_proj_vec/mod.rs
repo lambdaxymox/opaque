@@ -20,3 +20,4 @@ mod test_shift_remove;
 mod test_swap_remove;
 mod test_truncate;
 mod test_shift_insert_shift_remove;
+mod test_into_iter;
