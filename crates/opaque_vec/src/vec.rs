@@ -5172,12 +5172,12 @@ impl OpaqueVec {
 impl OpaqueVec {
     /// Creates a splicing iterator that replaces the specified range in the [`OpaqueVec`]
     /// with the given `replace_with` iterator and yields the removed items.
-    /// `replace_with` does not need to be the same length as `range`.
+    /// The argument `replace_with` does not need to be the same length as `range`.
     ///
     /// The `range` argument is removed even if the `Splice` iterator is not consumed before it is
     /// dropped.
     ///
-    /// It is unspecified how many elements are removed from the [`OpaaueVec`]
+    /// It is unspecified how many elements are removed from the [`OpaqueVec`]
     /// if the `Splice` value is leaked.
     ///
     /// The input iterator `replace_with` is only consumed when the `Splice` value is dropped.
@@ -5221,7 +5221,7 @@ impl OpaqueVec {
     /// # assert!(new.has_element_type::<i32>());
     /// # assert!(new.has_allocator_type::<Global>());
     /// #
-    /// let opaque_vec2: OpaqueVec = opaque_vec.splice::<_, IntoIter<i32>, i32, Global>(
+    /// let opaque_vec2: OpaqueVec = opaque_vec.splice::<_, _, i32, Global>(
     ///         1..3,
     ///         new.into_iter::<i32, Global>()
     ///     )
@@ -5260,7 +5260,7 @@ impl OpaqueVec {
     /// # assert!(new.has_element_type::<i32>());
     /// # assert!(new.has_allocator_type::<Global>());
     /// #
-    /// let splice: OpaqueVec = opaque_vec.splice::<_, IntoIter<i32>, i32, Global>(
+    /// let splice: OpaqueVec = opaque_vec.splice::<_, _, i32, Global>(
     ///         1..1,
     ///         new.into_iter::<i32, Global>()
     ///     )

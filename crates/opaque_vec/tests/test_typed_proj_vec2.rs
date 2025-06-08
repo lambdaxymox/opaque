@@ -667,3 +667,222 @@ fn test_vec_into_iter_clone6() {
 
     assert_eq!(cloned_vec, vec);
 }
+
+#[test]
+fn test_vec_drain_empty() {
+    let mut vec: TypedProjVec<i32> = TypedProjVec::from([]);
+    let expected = TypedProjVec::new();
+    let result: TypedProjVec<i32> = vec.drain(..).collect();
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn test_vec_drain_entire_range1() {
+    let mut vec: TypedProjVec<i32> = TypedProjVec::from([1]);
+    let expected_from_drain = TypedProjVec::from([1]);
+    let result_from_drain: TypedProjVec<i32> = vec.drain(..).collect();
+    let expected_vec = TypedProjVec::from([]);
+
+    assert_eq!(result_from_drain, expected_from_drain);
+    assert_eq!(vec.as_slice(), expected_vec.as_slice());
+}
+
+#[test]
+fn test_vec_drain_entire_range2() {
+    let mut vec: TypedProjVec<i32> = TypedProjVec::from([1, 2]);
+    let expected_from_drain = TypedProjVec::from([1, 2]);
+    let result_from_drain: TypedProjVec<i32> = vec.drain(..).collect();
+    let expected_vec = TypedProjVec::from([]);
+
+    assert_eq!(result_from_drain.as_slice(), expected_from_drain.as_slice());
+    assert_eq!(vec.as_slice(), expected_vec.as_slice());
+}
+
+#[test]
+fn test_vec_drain_entire_range3() {
+    let mut vec: TypedProjVec<i32> = TypedProjVec::from([1, 2, 3]);
+    let expected_from_drain = TypedProjVec::from([1, 2, 3]);
+    let result_from_drain: TypedProjVec<i32> = vec.drain(..).collect();
+    let expected_vec = TypedProjVec::from([]);
+
+    assert_eq!(result_from_drain.as_slice(), expected_from_drain.as_slice());
+    assert_eq!(vec.as_slice(), expected_vec.as_slice());
+}
+
+#[test]
+fn test_vec_drain_entire_range4() {
+    let mut vec: TypedProjVec<i32> = TypedProjVec::from([1, 2, 3, 4]);
+    let expected_from_drain = TypedProjVec::from([1, 2, 3, 4]);
+    let result_from_drain: TypedProjVec<i32> = vec.drain(..).collect();
+    let expected_vec = TypedProjVec::from([]);
+
+    assert_eq!(result_from_drain.as_slice(), expected_from_drain.as_slice());
+    assert_eq!(vec.as_slice(), expected_vec.as_slice());
+}
+
+#[test]
+fn test_vec_drain_entire_range5() {
+    let mut vec: TypedProjVec<String> = TypedProjVec::from([String::from("foo")]);
+    let expected_from_drain = vec.clone();
+    let result_from_drain: TypedProjVec<String> = vec.drain(..).collect();
+    let expected_vec: TypedProjVec<String> = TypedProjVec::from([]);
+
+    assert_eq!(result_from_drain.as_slice(), expected_from_drain.as_slice());
+    assert_eq!(vec.as_slice(), expected_vec.as_slice());
+}
+
+#[test]
+fn test_vec_drain_entire_range6() {
+    let mut vec: TypedProjVec<String> = TypedProjVec::from([String::from("foo"), String::from("bar")]);
+    let expected_from_drain = vec.clone();
+    let result_from_drain: TypedProjVec<String> = vec.drain(..).collect();
+    let expected_vec: TypedProjVec<String> = TypedProjVec::from([]);
+
+    assert_eq!(result_from_drain.as_slice(), expected_from_drain.as_slice());
+    assert_eq!(vec.as_slice(), expected_vec.as_slice());
+}
+
+#[test]
+fn test_vec_drain_entire_range7() {
+    let mut vec = TypedProjVec::from([
+        String::from("foo"),
+        String::from("bar"),
+        String::from("baz"),
+        String::from("quux"),
+    ]);
+    let expected_from_drain = vec.clone();
+    let result_from_drain: TypedProjVec<String> = vec.drain(..).collect();
+    let expected_vec: TypedProjVec<String> = TypedProjVec::from([]);
+
+    assert_eq!(result_from_drain.as_slice(), expected_from_drain.as_slice());
+    assert_eq!(vec.as_slice(), expected_vec.as_slice());
+}
+
+#[test]
+fn test_vec_drain_partial_range1() {
+    let mut vec = TypedProjVec::from([
+        String::from("foo"),
+        String::from("bar"),
+        String::from("baz"),
+        String::from("quux"),
+    ]);
+    let expected_from_drain: TypedProjVec<String> = vec[0..2].iter().cloned().collect();
+    let result_from_drain: TypedProjVec<String> = vec.drain(0..2).collect();
+    let expected_vec: TypedProjVec<String> = TypedProjVec::from([
+        String::from("baz"),
+        String::from("quux"),
+    ]);
+
+    assert_eq!(result_from_drain.as_slice(), expected_from_drain.as_slice());
+    assert_eq!(vec.as_slice(), expected_vec.as_slice());
+}
+
+#[test]
+fn test_vec_drain_partial_range2() {
+    let mut vec = TypedProjVec::from([
+        String::from("foo"),
+        String::from("bar"),
+        String::from("baz"),
+        String::from("quux"),
+    ]);
+    let expected_from_drain: TypedProjVec<String> = vec[1..3].iter().cloned().collect();
+    let result_from_drain: TypedProjVec<String> = vec.drain(1..3).collect();
+    let expected_vec: TypedProjVec<String> = TypedProjVec::from([
+        String::from("foo"),
+        String::from("quux"),
+    ]);
+
+    assert_eq!(result_from_drain.as_slice(), expected_from_drain.as_slice());
+    assert_eq!(vec.as_slice(), expected_vec.as_slice());
+}
+
+#[test]
+fn test_vec_drain_partial_range3() {
+    let mut vec = TypedProjVec::from([
+        String::from("foo"),
+        String::from("bar"),
+        String::from("baz"),
+        String::from("quux"),
+    ]);
+    let expected_from_drain: TypedProjVec<String> = vec[1..].iter().cloned().collect();
+    let result_from_drain: TypedProjVec<String> = vec.drain(1..).collect();
+    let expected_vec: TypedProjVec<String> = TypedProjVec::from([
+        String::from("foo"),
+    ]);
+
+    assert_eq!(result_from_drain.as_slice(), expected_from_drain.as_slice());
+    assert_eq!(vec.as_slice(), expected_vec.as_slice());
+}
+
+#[test]
+fn test_vec_drain_partial_range4() {
+    let mut vec = TypedProjVec::from([
+        String::from("foo"),
+        String::from("bar"),
+        String::from("baz"),
+        String::from("quux"),
+    ]);
+    let expected_from_drain: TypedProjVec<String> = vec[3..].iter().cloned().collect();
+    let result_from_drain: TypedProjVec<String> = vec.drain(3..).collect();
+    let expected_vec: TypedProjVec<String> = TypedProjVec::from([
+        String::from("foo"),
+        String::from("bar"),
+        String::from("baz"),
+    ]);
+
+    assert_eq!(result_from_drain.as_slice(), expected_from_drain.as_slice());
+    assert_eq!(vec.as_slice(), expected_vec.as_slice());
+}
+
+#[test]
+fn test_vec_splice1() {
+    let mut vec = TypedProjVec::from([1, 2, 3, 4, 5, 6]);
+    let splice_data = [i32::MAX, i32::MAX, i32::MAX, i32::MAX];
+    vec.splice(2..4, splice_data);
+
+    assert_eq!(vec.as_slice(), &[1, 2, i32::MAX, i32::MAX, i32::MAX, i32::MAX, 5, 6]);
+}
+
+#[test]
+fn test_vec_splice2() {
+    let mut vec = TypedProjVec::from([1, 2, 3, 4, 5, 6]);
+    let splice_data = [i32::MAX, i32::MAX, i32::MAX, i32::MAX];
+    vec.splice(4.., splice_data);
+
+    assert_eq!(vec.as_slice(), &[1, 2, 3, 4, i32::MAX, i32::MAX, i32::MAX, i32::MAX]);
+}
+
+#[test]
+fn test_vec_splice3() {
+    let mut vec = TypedProjVec::from([1, 2, 3, 4, 5, 6]);
+    let splice_data = [i32::MAX, i32::MAX, i32::MAX, i32::MAX];
+    vec.splice(0.., splice_data);
+
+    assert_eq!(vec.as_slice(), &[i32::MAX, i32::MAX, i32::MAX, i32::MAX]);
+}
+
+#[test]
+fn test_vec_splice4() {
+    let mut vec = TypedProjVec::from([1, 2, 3, 4, 5, 6]);
+    let splice_data = [i32::MAX, i32::MAX, i32::MAX, i32::MAX];
+    vec.splice(0..1, splice_data);
+
+    assert_eq!(vec.as_slice(), &[i32::MAX, i32::MAX, i32::MAX, i32::MAX, 2, 3, 4, 5, 6]);
+}
+
+#[test]
+fn test_vec_splice5() {
+    let mut vec = TypedProjVec::from([1, 2, 3, 4, 5, 6]);
+    vec.splice(1..3, Some(i32::MAX));
+
+    assert_eq!(vec.as_slice(), &[1, i32::MAX, 4, 5, 6]);
+}
+
+#[test]
+fn test_vec_splice6() {
+    let mut vec = TypedProjVec::from([1, 2, 3, 4, 5, 6]);
+    vec.splice(1..3, None);
+
+    assert_eq!(vec.as_slice(), &[1, 4, 5, 6]);
+}

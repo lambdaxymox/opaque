@@ -1,0 +1,97 @@
+use opaque_vec::OpaqueVec;
+
+use core::any;
+use core::fmt;
+use std::alloc;
+
+use opaque_vec_testing as ovt;
+
+fn run_test_typed_proj_vec_drain_nothing_vec<T, A>(values: &[T], start: usize, alloc: A)
+where
+    T: any::Any + PartialEq + Clone + fmt::Debug,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
+{
+    let mut result = OpaqueVec::with_capacity_in::<T, A>(values.len(), alloc.clone());
+    result.extend::<_, T, A>(values.iter().cloned());
+
+    let expected = result.clone::<T, A>();
+
+    let mut drained_result = OpaqueVec::new_in::<T, A>(alloc.clone());
+    drained_result.extend::<_, T, A>(result.drain::<_, T, A>(start..start));
+
+    assert!(drained_result.is_empty());
+    assert_eq!(result.as_slice::<T, A>(), expected.as_slice::<T, A>());
+}
+
+fn run_test_typed_proj_vec_drain_nothing_vec_values<T, A>(values: &[T], alloc: A)
+where
+    T: any::Any + PartialEq + Clone + fmt::Debug,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
+{
+    let iter = ovt::PrefixGenerator::new(values);
+    for slice in iter {
+        for i in 0..slice.len() {
+            run_test_typed_proj_vec_drain_nothing_vec(slice, i, alloc.clone());
+        }
+    }
+}
+
+macro_rules! generate_tests {
+    ($typ:ident, $max_vec_size:expr, $range_spec:expr, $alt_spec:expr) => {
+        mod $typ {
+            use super::*;
+
+            #[test]
+            fn test_typed_proj_vec_drain_nothing_vec_empty() {
+                let values: [$typ; 0] = [];
+                let alloc = alloc::Global;
+                run_test_typed_proj_vec_drain_nothing_vec_values(&values, alloc);
+            }
+
+            #[test]
+            fn test_typed_proj_vec_drain_nothing_vec_range_values() {
+                let values = opaque_vec_testing::range_values::<$typ, $max_vec_size>($range_spec);
+                let alloc = alloc::Global;
+                run_test_typed_proj_vec_drain_nothing_vec_values(&values, alloc);
+            }
+
+            #[test]
+            fn test_typed_proj_vec_drain_nothing_vec_alternating_values() {
+                let values = opaque_vec_testing::alternating_values::<$typ, $max_vec_size>($alt_spec);
+                let alloc = alloc::Global;
+                run_test_typed_proj_vec_drain_nothing_vec_values(&values, alloc);
+            }
+        }
+    };
+}
+
+generate_tests!(
+    u8,
+    128,
+    opaque_vec_testing::RangeValuesSpec::new(0),
+    opaque_vec_testing::AlternatingValuesSpec::new(u8::MIN, u8::MAX)
+);
+generate_tests!(
+    u16,
+    128,
+    opaque_vec_testing::RangeValuesSpec::new(0),
+    opaque_vec_testing::AlternatingValuesSpec::new(u16::MIN, u16::MAX)
+);
+generate_tests!(
+    u32,
+    128,
+    opaque_vec_testing::RangeValuesSpec::new(0),
+    opaque_vec_testing::AlternatingValuesSpec::new(u32::MIN, u32::MAX)
+);
+generate_tests!(
+    u64,
+    128,
+    opaque_vec_testing::RangeValuesSpec::new(0),
+    opaque_vec_testing::AlternatingValuesSpec::new(u64::MIN, u64::MAX)
+);
+generate_tests!(
+    usize,
+    128,
+    opaque_vec_testing::RangeValuesSpec::new(0),
+    opaque_vec_testing::AlternatingValuesSpec::new(usize::MIN, usize::MAX)
+);

@@ -168,8 +168,14 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn drop(&mut self) {
-        /// Moves back the un-`Drain`ed elements to restore the original `Vec`.
-        struct DropGuard<'r, 'a, T: any::Any, A: any::Any + alloc::Allocator + Send + Sync>(&'r mut Drain<'a, T, A>);
+        /// Moves back the un-`Drain`ed elements to restore the original `TypedProjVec`.
+        struct DropGuard<'r, 'a, T, A>
+        where
+            T: any::Any,
+            A: any::Any + alloc::Allocator + Send + Sync,
+        {
+            inner: &'r mut Drain<'a, T, A>
+        }
 
         impl<'r, 'a, T, A> Drop for DropGuard<'r, 'a, T, A>
         where
@@ -177,18 +183,18 @@ where
             A: any::Any + alloc::Allocator + Send + Sync,
         {
             fn drop(&mut self) {
-                if self.0.tail_len > 0 {
+                if self.inner.tail_len > 0 {
                     unsafe {
-                        let source_vec = self.0.vec.as_mut();
+                        let source_vec = self.inner.vec.as_mut();
                         // memmove back untouched tail, update to new length
                         let start = source_vec.len();
-                        let tail = self.0.tail_start;
+                        let tail = self.inner.tail_start;
                         if tail != start {
                             let src = source_vec.as_ptr().add(tail);
                             let dst = source_vec.as_mut_ptr().add(start);
-                            core::ptr::copy(src, dst, self.0.tail_len);
+                            core::ptr::copy(src, dst, self.inner.tail_len);
                         }
-                        source_vec.set_len(start + self.0.tail_len);
+                        source_vec.set_len(start + self.inner.tail_len);
                     }
                 }
             }
@@ -213,7 +219,7 @@ where
         }
 
         // ensure elements are moved back into their appropriate places, even when drop_in_place panics
-        let _guard = DropGuard(self);
+        let _guard = DropGuard { inner: self };
 
         if drop_len == 0 {
             return;
@@ -247,7 +253,7 @@ where
     fn is_empty(&self) -> bool {
         self.iter.is_empty()
     }
-     */
+    */
 }
 
 impl<T, A> iter::FusedIterator for Drain<'_, T, A>
