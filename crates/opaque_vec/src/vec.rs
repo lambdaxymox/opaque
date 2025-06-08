@@ -40,6 +40,26 @@ where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
+    /// Constructs a new empty [`TypedProjVec`] using a specific type-projected memory allocator.
+    ///
+    /// The vector will not allocate until elements are pushed into it. In particular, the
+    /// vector has zero capacity until elements are pushed into it.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_alloc = TypedProjAlloc::new(Global);
+    /// let proj_vec: TypedProjVec<i32, Global> = TypedProjVec::new_proj_in(proj_alloc);
+    ///
+    /// assert!(proj_vec.is_empty());
+    ///
+    /// assert_eq!(proj_vec.capacity(), 0);
+    /// ```
     #[inline]
     #[must_use]
     #[track_caller]
@@ -49,6 +69,43 @@ where
         Self { inner, }
     }
 
+    /// Constructs a new empty [`TypedProjVec`] using a specific type-projected memory allocator
+    /// and a specific capacity.
+    ///
+    /// The vector will be able to hold at least `capacity` elements without reallocating. The
+    /// method _can_ allocate more than `capacity` elements. If `capacity` is zero, the
+    /// constructor does not allocate memory, i.e. it is equivalent to [`new_proj_in`] when
+    /// `capacity` is zero.
+    ///
+    /// Note that while the returned vector will have a **capacity** of at least `capacity`, it will
+    /// have a **length** of zero, because no elements have been pushed to the vector yet.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the new capacity exceeds `isize::MAX` _bytes_.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::alloc::Global;
+    /// #
+    /// let capacity = 32;
+    /// let proj_alloc = TypedProjAlloc::new(Global);
+    /// let proj_vec: TypedProjVec<i32, Global> = TypedProjVec::with_capacity_proj_in(capacity, proj_alloc.clone());
+    ///
+    /// assert!(proj_vec.capacity() >= capacity);
+    /// assert!(proj_vec.is_empty());
+    ///
+    /// let empty_vec: TypedProjVec<i32, Global> = TypedProjVec::with_capacity_proj_in(0, proj_alloc.clone());
+    ///
+    /// assert_eq!(empty_vec.capacity(), 0);
+    /// assert!(empty_vec.is_empty());
+    /// ```
+    ///
+    /// [`new_proj_in`]: TypedProjVec::new_proj_in
     #[inline]
     #[must_use]
     #[track_caller]
@@ -58,6 +115,48 @@ where
         Self { inner, }
     }
 
+    /// Constructs a new empty [`TypedProjVec`] using a specific type-projected memory allocator
+    /// and a specific capacity.
+    ///
+    /// The vector will be able to hold at least `capacity` elements without reallocating. The
+    /// method _can_ allocate more than `capacity` elements. If `capacity` is zero, the
+    /// constructor does not allocate memory, i.e. it is equivalent to [`new_proj_in`] when
+    /// `capacity` is zero.
+    ///
+    /// Note that while the returned vector will have a **capacity** of at least `capacity`, it will
+    /// have a **length** of zero, because no elements have been pushed to the vector yet.
+    ///
+    /// # Errors
+    ///
+    /// This method returns an error if the capacity `capacity` exceeds `isize::MAX` bytes, or if the
+    /// allocator reports an allocation failure.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::alloc::Global;
+    /// #
+    /// let capacity = 32;
+    /// let proj_alloc = TypedProjAlloc::new(Global);
+    /// let proj_vec: Result<TypedProjVec<i32, Global>, _> = TypedProjVec::try_with_capacity_proj_in(capacity, proj_alloc.clone());
+    ///
+    /// assert!(proj_vec.is_ok());
+    ///
+    /// let proj_vec = proj_vec.unwrap();
+    ///
+    /// assert!(proj_vec.capacity() >= capacity);
+    /// assert!(proj_vec.is_empty());
+    ///
+    /// let empty_vec: TypedProjVec<i32, Global> = TypedProjVec::with_capacity_proj_in(0, proj_alloc.clone());
+    ///
+    /// assert_eq!(empty_vec.capacity(), 0);
+    /// assert!(empty_vec.is_empty());
+    /// ```
+    ///
+    /// [`new_proj_in`]: TypedProjVec::new_proj_in
     #[inline]
     pub fn try_with_capacity_proj_in(capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Result<Self, TryReserveError> {
         let inner = TypedProjVecInner::try_with_capacity_proj_in(capacity, proj_alloc)?;
@@ -65,6 +164,149 @@ where
         Ok(Self { inner, })
     }
 
+    /// Constructs an [`TypedProjVec`] directly from a pointer, a length, a capacity, and a
+    /// type-projected allocator.
+    ///
+    /// # Safety
+    ///
+    /// This method is highly unsafe. A safe use of it must satisfy the following invariants:
+    ///
+    /// * The pointer `ptr` must be non-null.
+    /// * The allocation referred to by `ptr` must have been allocated using the supplied
+    ///   allocator.
+    /// * The element type `T` must have the same alignment that `ptr` was allocated with.
+    ///   The type `T` cannot have a less strict alignment is not sufficient; the alignment really
+    ///   must be equal to satisfy the [`dealloc`] requirement that memory must be allocated and
+    ///   deallocated with the same layout.
+    /// * The allocation size in bytes (`mem::size_of::<T>() * capacity`) must
+    ///   be the same size as the pointer was allocated with. Similar to alignment, [`dealloc`] must
+    ///   be called with the same layout `size`.
+    /// * The length `length` of the elements inside the allocation must be less than or equal to
+    ///   the capacity `capacity`.
+    /// * The first `length` values must be properly initialized values of type `T`.
+    /// * `capacity` must be the capacity that the pointer was allocated with.
+    /// * The allocated size in bytes must be no larger than `isize::MAX`.
+    ///   See the safety documentation of [`pointer::offset`].
+    ///
+    /// These requirements always hold for any `ptr` that has been allocated via [`TypedProjVec`].
+    ///
+    /// The ownership of `ptr` is effectively transferred to the
+    /// [`TypedProjVec`] which may then deallocate, reallocate or change the
+    /// contents of memory pointed to by the pointer at will. The caller must ensure
+    /// that nothing else uses the pointer `ptr` after calling this method.
+    ///
+    /// # Examples
+    ///
+    /// Using memory that was allocated by an [`TypedProjVec`].
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::alloc::Global;
+    /// # use std::ptr;
+    /// # use std::mem;
+    /// #
+    /// let proj_vec = TypedProjVec::from([1, 2, 3]);
+    ///
+    /// // Prevent running `opaque_vec`'s destructor to completely control the allocation.
+    /// let mut proj_vec = mem::ManuallyDrop::new(proj_vec);
+    ///
+    /// // Destructure `opaque_vec` into its constituent parts.
+    /// let ptr: *mut i32 = proj_vec.as_mut_ptr();
+    /// let length = proj_vec.len();
+    /// let capacity = proj_vec.capacity();
+    /// let proj_alloc: TypedProjAlloc<Global> = unsafe { ptr::read(proj_vec.allocator()) };
+    ///
+    /// let expected = TypedProjVec::from([4, 5, 6]);
+    /// let result = unsafe {
+    ///     // Mutate the values directly in memory.
+    ///     for i in 0..length {
+    ///         ptr::write(ptr.add(i), 4 + i as i32);
+    ///     }
+    ///
+    ///     // Rebuild the vector.
+    ///     TypedProjVec::from_raw_parts_proj_in(ptr, length, capacity, proj_alloc)
+    /// };
+    ///
+    /// assert_eq!(result.as_slice(), expected.as_slice());
+    /// assert_eq!(result.len(), expected.len());
+    /// assert_eq!(result.capacity(), expected.capacity());
+    /// # assert!(!result.is_empty());
+    /// # assert_eq!(result.len(), length);
+    /// # assert_eq!(result.capacity(), capacity);
+    /// # assert!(result.len() <= result.capacity());
+    /// # assert!(!expected.is_empty());
+    /// # assert_eq!(expected.len(), length);
+    /// # assert_eq!(expected.capacity(), capacity);
+    /// # assert!(expected.len() <= expected.capacity());
+    ///
+    /// let mut result = result;
+    /// let new_capacity = 16;
+    ///
+    /// // It is safe to work further with the vector since it satisfies the required invariants.
+    /// for _ in 0..(new_capacity - length) {
+    ///     result.push(i32::MAX);
+    /// }
+    ///
+    /// let expected = TypedProjVec::from([
+    ///     4,        5,        6,        i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX,
+    ///     i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX,
+    /// ]);
+    ///
+    /// assert_eq!(result.as_slice(), expected.as_slice());
+    /// assert_eq!(result.len(), expected.len());
+    /// assert!(result.len() <= result.capacity());
+    /// # assert_eq!(result.len(), new_capacity);
+    /// # assert!(result.capacity() >= new_capacity);
+    /// ```
+    ///
+    /// Using memory that was allocated outside an [`TypedProjVec`].
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::alloc::Allocator;
+    /// # use std::alloc::Global;
+    /// # use std::alloc::Layout;
+    /// # use std::ptr::NonNull;
+    /// #
+    /// let value = 1_000_000;
+    /// let layout = Layout::array::<u32>(16).unwrap();
+    /// let proj_alloc = TypedProjAlloc::new(Global);
+    /// let length = 1;
+    /// let capacity = 16;
+    /// let proj_vec = unsafe {
+    ///     let mut memory: NonNull<u32> = proj_alloc.allocate(layout).unwrap().cast::<u32>();
+    ///     memory.write(value);
+    ///
+    ///     TypedProjVec::from_raw_parts_proj_in(memory.as_mut() as *mut u32, length, capacity, proj_alloc)
+    /// };
+    ///
+    /// assert_eq!(proj_vec.as_slice(), &[value]);
+    /// assert_eq!(proj_vec.len(), length);
+    /// assert_eq!(proj_vec.capacity(), capacity);
+    /// # assert!(!proj_vec.is_empty());
+    ///
+    /// // It is safe to work further with the vector since it satisfies the required invariants.
+    /// let mut result = proj_vec;
+    /// for _ in 0..(capacity - length) {
+    ///     result.push(u32::MAX);
+    /// }
+    ///
+    /// let expected = TypedProjVec::from([
+    ///     value,     u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX,
+    ///     u32::MAX,  u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX,
+    /// ]);
+    ///
+    /// assert_eq!(result.as_slice(), expected.as_slice());
+    /// assert_eq!(result.len(), result.capacity());
+    /// # assert_eq!(result.len(), capacity);
+    /// # assert_eq!(result.capacity(), capacity);
+    /// ```
+    ///
+    /// [`dealloc`]: std::alloc::Allocator::dealloc
     #[inline]
     pub unsafe fn from_raw_parts_proj_in(ptr: *mut T, length: usize, capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self {
         let inner = unsafe {
@@ -74,6 +316,150 @@ where
         Self { inner, }
     }
 
+    /// Constructs an [`TypedProjVec`] directly from a non-null pointer, a length, a capacity, and a
+    /// type-projected allocator.
+    ///
+    /// # Safety
+    ///
+    /// This method is highly unsafe. A safe use of it must satisfy the following invariants:
+    ///
+    /// * The pointer `ptr` must be non-null.
+    /// * The allocation referred to by `ptr` must have been allocated using the supplied
+    ///   allocator.
+    /// * The element type `T` must have the same alignment that `ptr` was allocated with.
+    ///   The type `T` cannot have a less strict alignment is not sufficient; the alignment really
+    ///   must be equal to satisfy the [`dealloc`] requirement that memory must be allocated and
+    ///   deallocated with the same layout.
+    /// * The allocation size in bytes (`mem::size_of::<T>() * capacity`) must
+    ///   be the same size as the pointer was allocated with. Similar to alignment, [`dealloc`] must
+    ///   be called with the same layout `size`.
+    /// * The length `length` of the elements inside the allocation must be less than or equal to
+    ///   the capacity `capacity`.
+    /// * The first `length` values must be properly initialized values of type `T`.
+    /// * `capacity` must be the capacity that the pointer was allocated with.
+    /// * The allocated size in bytes must be no larger than `isize::MAX`.
+    ///   See the safety documentation of [`pointer::offset`].
+    ///
+    /// These requirements always hold for any `ptr` that has been allocated via [`TypedProjVec`].
+    ///
+    /// The ownership of `ptr` is effectively transferred to the
+    /// [`TypedProjVec`] which may then deallocate, reallocate or change the
+    /// contents of memory pointed to by the pointer at will. The caller must ensure
+    /// that nothing else uses the pointer `ptr` after calling this method.
+    ///
+    /// # Examples
+    ///
+    /// Using memory that was allocated by an [`TypedProjVec`].
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::alloc::Global;
+    /// # use std::ptr::NonNull;
+    /// # use std::ptr;
+    /// # use std::mem;
+    /// #
+    /// let proj_vec = TypedProjVec::from([1, 2, 3]);
+    ///
+    /// // Prevent running `opaque_vec`'s destructor to completely control the allocation.
+    /// let mut proj_vec = mem::ManuallyDrop::new(proj_vec);
+    ///
+    /// // Destructure `opaque_vec` into its constituent parts.
+    /// let ptr: NonNull<i32> = proj_vec.as_non_null();
+    /// let length = proj_vec.len();
+    /// let capacity = proj_vec.capacity();
+    /// let proj_alloc: TypedProjAlloc<Global> = unsafe { ptr::read(proj_vec.allocator()) };
+    ///
+    /// let expected = TypedProjVec::from([4, 5, 6]);
+    /// let result = unsafe {
+    ///     // Mutate the values directly in memory.
+    ///     for i in 0..length {
+    ///         ptr::write(ptr.as_ptr().add(i), 4 + i as i32);
+    ///     }
+    ///
+    ///     // Rebuild the vector.
+    ///     TypedProjVec::from_parts_proj_in(ptr, length, capacity, proj_alloc)
+    /// };
+    ///
+    /// assert_eq!(result.as_slice(), expected.as_slice());
+    /// assert_eq!(result.len(), expected.len());
+    /// assert_eq!(result.capacity(), expected.capacity());
+    /// # assert!(!result.is_empty());
+    /// # assert_eq!(result.len(), length);
+    /// # assert_eq!(result.capacity(), capacity);
+    /// # assert!(result.len() <= result.capacity());
+    /// # assert!(!expected.is_empty());
+    /// # assert_eq!(expected.len(), length);
+    /// # assert_eq!(expected.capacity(), capacity);
+    /// # assert!(expected.len() <= expected.capacity());
+    ///
+    /// let mut result = result;
+    /// let new_capacity = 16;
+    ///
+    /// // It is safe to work further with the vector since it satisfies the required invariants.
+    /// for _ in 0..(new_capacity - length) {
+    ///     result.push(i32::MAX);
+    /// }
+    ///
+    /// let expected = TypedProjVec::from([
+    ///     4,        5,        6,        i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX,
+    ///     i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX,
+    /// ]);
+    ///
+    /// assert_eq!(result.as_slice(), expected.as_slice());
+    /// assert_eq!(result.len(), expected.len());
+    /// assert!(result.len() <= result.capacity());
+    /// # assert_eq!(result.len(), new_capacity);
+    /// # assert!(result.capacity() >= new_capacity);
+    /// ```
+    ///
+    /// Using memory that was allocated outside an [`TypedProjVec`].
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::alloc::Allocator;
+    /// # use std::alloc::Global;
+    /// # use std::alloc::Layout;
+    /// # use std::ptr::NonNull;
+    /// #
+    /// let value = 1_000_000;
+    /// let layout = Layout::array::<u32>(16).unwrap();
+    /// let proj_alloc = TypedProjAlloc::new(Global);
+    /// let length = 1;
+    /// let capacity = 16;
+    /// let proj_vec = unsafe {
+    ///     let mut memory: NonNull<u32> = proj_alloc.allocate(layout).unwrap().cast::<u32>();
+    ///     memory.write(value);
+    ///
+    ///     TypedProjVec::from_parts_proj_in(memory, length, capacity, proj_alloc)
+    /// };
+    ///
+    /// assert_eq!(proj_vec.as_slice(), &[value]);
+    /// assert_eq!(proj_vec.len(), length);
+    /// assert_eq!(proj_vec.capacity(), capacity);
+    /// # assert!(!proj_vec.is_empty());
+    ///
+    /// // It is safe to work further with the vector since it satisfies the required invariants.
+    /// let mut result = proj_vec;
+    /// for _ in 0..(capacity - length) {
+    ///     result.push(u32::MAX);
+    /// }
+    ///
+    /// let expected = TypedProjVec::from([
+    ///     value,     u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX,
+    ///     u32::MAX,  u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX,
+    /// ]);
+    ///
+    /// assert_eq!(result.as_slice(), expected.as_slice());
+    /// assert_eq!(result.len(), result.capacity());
+    /// # assert_eq!(result.len(), capacity);
+    /// # assert_eq!(result.capacity(), capacity);
+    /// ```
+    ///
+    /// [`dealloc`]: std::alloc::Allocator::dealloc
     #[inline]
     pub unsafe fn from_parts_proj_in(ptr: NonNull<T>, length: usize, capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self {
         let inner = unsafe {
@@ -83,6 +469,23 @@ where
         Self { inner, }
     }
 
+    /// Constructs a new empty [`TypedProjVec`] using a specific memory allocator.
+    ///
+    /// The vector will not allocate until elements are pushed into it. In particular, the
+    /// vector has zero capacity until elements are pushed into it.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_vec: TypedProjVec::<i32, Global> = TypedProjVec::new_in(Global);
+    ///
+    /// assert!(proj_vec.is_empty());
+    /// assert_eq!(proj_vec.capacity(), 0);
+    /// ```
     #[inline]
     #[must_use]
     #[track_caller]
@@ -92,6 +495,41 @@ where
         Self { inner, }
     }
 
+    /// Constructs a new empty [`TypedProjVec`] using a specific memory allocator and a
+    /// specific capacity.
+    ///
+    /// The vector will be able to hold at least `capacity` elements without reallocating. The
+    /// method _can_ allocate more than `capacity` elements. If `capacity` is zero, the
+    /// constructor does not allocate memory, i.e. it is equivalent to [`new_in`] when `capacity` is
+    /// zero.
+    ///
+    /// Note that while the returned vector will have a **capacity** of at least `capacity`, it will
+    /// have a **length** of zero, because no elements have been pushed to the vector yet.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the new capacity exceeds `isize::MAX` _bytes_.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let capacity = 32;
+    /// let proj_vec: TypedProjVec<i32, Global> = TypedProjVec::with_capacity_in(capacity, Global);
+    ///
+    /// assert!(proj_vec.capacity() >= capacity);
+    /// assert!(proj_vec.is_empty());
+    ///
+    /// let empty_vec: TypedProjVec<i32, Global> = TypedProjVec::with_capacity_in(0, Global);
+    ///
+    /// assert_eq!(empty_vec.capacity(), 0);
+    /// assert!(empty_vec.is_empty());
+    /// ```
+    ///
+    /// [`new_in`]: TypedProjVec::new_in
     #[inline]
     #[must_use]
     #[track_caller]
@@ -101,6 +539,46 @@ where
         Self { inner, }
     }
 
+    /// Constructs a new empty [`TypedProjVec`] using a specific memory allocator and a
+    /// specific capacity.
+    ///
+    /// The vector will be able to hold at least `capacity` elements without reallocating. The
+    /// method _can_ allocate more than `capacity` elements. If `capacity` is zero, the
+    /// constructor does not allocate memory, i.e. it is equivalent to [`new_in`] when `capacity` is
+    /// zero.
+    ///
+    /// Note that while the returned vector will have a **capacity** of at least `capacity`, it will
+    /// have a **length** of zero, because no elements have been pushed to the vector yet.
+    ///
+    /// # Errors
+    ///
+    /// This method returns an error if the capacity `capacity` exceeds `isize::MAX` bytes, or if the
+    /// allocator reports an allocation failure.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let capacity = 32;
+    /// let proj_vec: Result<TypedProjVec<i32, Global>, _> = TypedProjVec::try_with_capacity_in(capacity, Global);
+    ///
+    /// assert!(proj_vec.is_ok());
+    ///
+    /// let proj_vec = proj_vec.unwrap();
+    ///
+    /// assert!(proj_vec.capacity() >= capacity);
+    /// assert!(proj_vec.is_empty());
+    ///
+    /// let empty_vec: TypedProjVec<i32, Global> = TypedProjVec::try_with_capacity_in(0, Global).unwrap();
+    ///
+    /// assert_eq!(empty_vec.capacity(), 0);
+    /// assert!(empty_vec.is_empty());
+    /// ```
+    ///
+    /// [`new_in`]: TypedProjVec::new_in
     #[inline]
     pub fn try_with_capacity_in(capacity: usize, alloc: A) -> Result<Self, TryReserveError> {
         let inner = TypedProjVecInner::try_with_capacity_in(capacity, alloc)?;
@@ -108,6 +586,147 @@ where
         Ok(Self { inner, })
     }
 
+    /// Constructs an [`TypedProjVec`] directly from a pointer, a length, a capacity, and a
+    /// memory allocator.
+    ///
+    /// # Safety
+    ///
+    /// This method is highly unsafe. A safe use of it must satisfy the following invariants:
+    ///
+    /// * The pointer `ptr` must be non-null.
+    /// * The allocation referred to by `ptr` must have been allocated using the supplied
+    ///   allocator.
+    /// * The element type `T` must have the same alignment that `ptr` was allocated with.
+    ///   The type `T` cannot have a less strict alignment is not sufficient; the alignment really
+    ///   must be equal to satisfy the [`dealloc`] requirement that memory must be allocated and
+    ///   deallocated with the same layout.
+    /// * The allocation size in bytes (`mem::size_of::<T>() * capacity`) must
+    ///   be the same size as the pointer was allocated with. Similar to alignment, [`dealloc`] must
+    ///   be called with the same layout `size`.
+    /// * The length `length` of the elements inside the allocation must be less than or equal to
+    ///   the capacity `capacity`.
+    /// * The first `length` values must be properly initialized values of type `T`.
+    /// * `capacity` must be the capacity that the pointer was allocated with.
+    /// * The allocated size in bytes must be no larger than `isize::MAX`.
+    ///   See the safety documentation of [`pointer::offset`].
+    ///
+    /// These requirements always hold for any `ptr` that has been allocated via [`TypedProjVec`].
+    ///
+    /// The ownership of `ptr` is effectively transferred to the
+    /// [`TypedProjVec`] which may then deallocate, reallocate or change the
+    /// contents of memory pointed to by the pointer at will. The caller must ensure
+    /// that nothing else uses the pointer `ptr` after calling this method.
+    ///
+    /// # Examples
+    ///
+    /// Using memory that was allocated by an [`TypedProjVec`].
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// # use std::ptr;
+    /// # use std::mem;
+    /// #
+    /// let proj_vec = TypedProjVec::from([1, 2, 3]);
+    ///
+    /// // Prevent running `opaque_vec`'s destructor to completely control the allocation.
+    /// let mut proj_vec = mem::ManuallyDrop::new(proj_vec);
+    ///
+    /// // Destructure `opaque_vec` into its constituent parts.
+    /// let ptr: *mut i32 = proj_vec.as_mut_ptr();
+    /// let length = proj_vec.len();
+    /// let capacity = proj_vec.capacity();
+    /// let alloc: Global = Global;
+    ///
+    /// let expected = TypedProjVec::from([4, 5, 6]);
+    /// let result = unsafe {
+    ///     // Mutate the values directly in memory.
+    ///     for i in 0..length {
+    ///         ptr::write(ptr.add(i), 4 + i as i32);
+    ///     }
+    ///
+    ///     // Rebuild the vector.
+    ///     TypedProjVec::from_raw_parts_in(ptr, length, capacity, alloc)
+    /// };
+    ///
+    /// assert_eq!(result.as_slice(), expected.as_slice());
+    /// assert_eq!(result.len(), expected.len());
+    /// assert_eq!(result.capacity(), expected.capacity());
+    /// # assert!(!result.is_empty());
+    /// # assert_eq!(result.len(), length);
+    /// # assert_eq!(result.capacity(), capacity);
+    /// # assert!(result.len() <= result.capacity());
+    /// # assert!(!expected.is_empty());
+    /// # assert_eq!(expected.len(), length);
+    /// # assert_eq!(expected.capacity(), capacity);
+    /// # assert!(expected.len() <= expected.capacity());
+    ///
+    /// let mut result = result;
+    /// let new_capacity = 16;
+    ///
+    /// // It is safe to work further with the vector since it satisfies the required invariants.
+    /// for _ in 0..(new_capacity - length) {
+    ///     result.push(i32::MAX);
+    /// }
+    ///
+    /// let expected = TypedProjVec::from([
+    ///     4,        5,        6,        i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX,
+    ///     i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX,
+    /// ]);
+    ///
+    /// assert_eq!(result.as_slice(), expected.as_slice());
+    /// assert_eq!(result.len(), expected.len());
+    /// assert!(result.len() <= result.capacity());
+    /// # assert_eq!(result.len(), new_capacity);
+    /// # assert!(result.capacity() >= new_capacity);
+    /// ```
+    ///
+    /// Using memory that was allocated outside an [`TypedProjVec`].
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Allocator;
+    /// # use std::alloc::Global;
+    /// # use std::alloc::Layout;
+    /// # use std::ptr::NonNull;
+    /// #
+    /// let value = 1_000_000;
+    /// let layout = Layout::array::<u32>(16).unwrap();
+    /// let alloc: Global = Global;
+    /// let length = 1;
+    /// let capacity = 16;
+    /// let proj_vec = unsafe {
+    ///     let mut memory: NonNull<u32> = alloc.allocate(layout).unwrap().cast::<u32>();
+    ///     memory.write(value);
+    ///
+    ///     TypedProjVec::from_raw_parts_in(memory.as_mut() as *mut u32, length, capacity, alloc)
+    /// };
+    ///
+    /// assert_eq!(proj_vec.as_slice(), &[value]);
+    /// assert_eq!(proj_vec.len(), length);
+    /// assert_eq!(proj_vec.capacity(), capacity);
+    /// # assert!(!proj_vec.is_empty());
+    ///
+    /// // It is safe to work further with the vector since it satisfies the required invariants.
+    /// let mut result = proj_vec;
+    /// for _ in 0..(capacity - length) {
+    ///     result.push(u32::MAX);
+    /// }
+    ///
+    /// let expected = TypedProjVec::from([
+    ///     value,     u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX,
+    ///     u32::MAX,  u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX,
+    /// ]);
+    ///
+    /// assert_eq!(result.as_slice(), expected.as_slice());
+    /// assert_eq!(result.len(), result.capacity());
+    /// # assert_eq!(result.len(), capacity);
+    /// # assert_eq!(result.capacity(), capacity);
+    /// ```
+    ///
+    /// [`dealloc`]: std::alloc::Allocator::dealloc
     #[inline]
     pub unsafe fn from_raw_parts_in(ptr: *mut T, length: usize, capacity: usize, alloc: A) -> Self {
         let inner = unsafe {
@@ -117,6 +736,148 @@ where
         Self { inner, }
     }
 
+    /// Constructs an [`TypedProjVec`] directly from a pointer, a length, a capacity, and a
+    /// memory allocator.
+    ///
+    /// # Safety
+    ///
+    /// This method is highly unsafe. A safe use of it must satisfy the following invariants:
+    ///
+    /// * The pointer `ptr` must be non-null.
+    /// * The allocation referred to by `ptr` must have been allocated using the supplied
+    ///   allocator.
+    /// * The element type `T` must have the same alignment that `ptr` was allocated with.
+    ///   The type `T` cannot have a less strict alignment is not sufficient; the alignment really
+    ///   must be equal to satisfy the [`dealloc`] requirement that memory must be allocated and
+    ///   deallocated with the same layout.
+    /// * The allocation size in bytes (`mem::size_of::<T>() * capacity`) must
+    ///   be the same size as the pointer was allocated with. Similar to alignment, [`dealloc`] must
+    ///   be called with the same layout `size`.
+    /// * The length `length` of the elements inside the allocation must be less than or equal to
+    ///   the capacity `capacity`.
+    /// * The first `length` values must be properly initialized values of type `T`.
+    /// * `capacity` must be the capacity that the pointer was allocated with.
+    /// * The allocated size in bytes must be no larger than `isize::MAX`.
+    ///   See the safety documentation of [`pointer::offset`].
+    ///
+    /// These requirements always hold for any `ptr` that has been allocated via [`TypedProjVec`].
+    ///
+    /// The ownership of `ptr` is effectively transferred to the
+    /// [`TypedProjVec`] which may then deallocate, reallocate or change the
+    /// contents of memory pointed to by the pointer at will. The caller must ensure
+    /// that nothing else uses the pointer `ptr` after calling this method.
+    ///
+    /// # Examples
+    ///
+    /// Using memory that was allocated by an [`TypedProjVec`].
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// # use std::ptr::NonNull;
+    /// # use std::ptr;
+    /// # use std::mem;
+    /// #
+    /// let proj_vec = TypedProjVec::from([1, 2, 3]);
+    ///
+    /// // Prevent running `opaque_vec`'s destructor to completely control the allocation.
+    /// let mut proj_vec = mem::ManuallyDrop::new(proj_vec);
+    ///
+    /// // Destructure `opaque_vec` into its constituent parts.
+    /// let ptr: NonNull<i32> = proj_vec.as_non_null();
+    /// let length = proj_vec.len();
+    /// let capacity = proj_vec.capacity();
+    /// let alloc: Global = Global;
+    ///
+    /// let expected = TypedProjVec::from([4, 5, 6]);
+    /// let result = unsafe {
+    ///     // Mutate the values directly in memory.
+    ///     for i in 0..length {
+    ///         ptr::write(ptr.as_ptr().add(i), 4 + i as i32);
+    ///     }
+    ///
+    ///     // Rebuild the vector.
+    ///     TypedProjVec::from_parts_in(ptr, length, capacity, alloc)
+    /// };
+    ///
+    /// assert_eq!(result.as_slice(), expected.as_slice());
+    /// assert_eq!(result.len(), expected.len());
+    /// assert_eq!(result.capacity(), expected.capacity());
+    /// # assert!(!result.is_empty());
+    /// # assert_eq!(result.len(), length);
+    /// # assert_eq!(result.capacity(), capacity);
+    /// # assert!(result.len() <= result.capacity());
+    /// # assert!(!expected.is_empty());
+    /// # assert_eq!(expected.len(), length);
+    /// # assert_eq!(expected.capacity(), capacity);
+    /// # assert!(expected.len() <= expected.capacity());
+    ///
+    /// let mut result = result;
+    /// let new_capacity = 16;
+    ///
+    /// // It is safe to work further with the vector since it satisfies the required invariants.
+    /// for _ in 0..(new_capacity - length) {
+    ///     result.push(i32::MAX);
+    /// }
+    ///
+    /// let expected = TypedProjVec::from([
+    ///     4,        5,        6,        i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX,
+    ///     i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX,
+    /// ]);
+    ///
+    /// assert_eq!(result.as_slice(), expected.as_slice());
+    /// assert_eq!(result.len(), expected.len());
+    /// assert!(result.len() <= result.capacity());
+    /// # assert_eq!(result.len(), new_capacity);
+    /// # assert!(result.capacity() >= new_capacity);
+    /// ```
+    ///
+    /// Using memory that was allocated outside an [`TypedProjVec`].
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Allocator;
+    /// # use std::alloc::Global;
+    /// # use std::alloc::Layout;
+    /// # use std::ptr::NonNull;
+    /// #
+    /// let value = 1_000_000;
+    /// let layout = Layout::array::<u32>(16).unwrap();
+    /// let alloc: Global = Global;
+    /// let length = 1;
+    /// let capacity = 16;
+    /// let proj_vec = unsafe {
+    ///     let mut memory: NonNull<u32> = alloc.allocate(layout).unwrap().cast::<u32>();
+    ///     memory.write(value);
+    ///
+    ///     TypedProjVec::from_parts_in(memory, length, capacity, alloc)
+    /// };
+    ///
+    /// assert_eq!(proj_vec.as_slice(), &[value]);
+    /// assert_eq!(proj_vec.len(), length);
+    /// assert_eq!(proj_vec.capacity(), capacity);
+    /// # assert!(!proj_vec.is_empty());
+    ///
+    /// // It is safe to work further with the vector since it satisfies the required invariants.
+    /// let mut result = proj_vec;
+    /// for _ in 0..(capacity - length) {
+    ///     result.push(u32::MAX);
+    /// }
+    ///
+    /// let expected = TypedProjVec::from([
+    ///     value,     u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX,
+    ///     u32::MAX,  u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX,
+    /// ]);
+    ///
+    /// assert_eq!(result.as_slice(), expected.as_slice());
+    /// assert_eq!(result.len(), result.capacity());
+    /// # assert_eq!(result.len(), capacity);
+    /// # assert_eq!(result.capacity(), capacity);
+    /// ```
+    ///
+    /// [`dealloc`]: std::alloc::Allocator::dealloc
     #[inline]
     pub unsafe fn from_parts_in(ptr: NonNull<T>, length: usize, capacity: usize, alloc: A) -> Self {
         let inner = unsafe {
@@ -131,6 +892,23 @@ impl<T> TypedProjVec<T, alloc::Global>
 where
     T: any::Any,
 {
+    /// Constructs a new empty [`OpaqueVec`].
+    ///
+    /// The vector will not allocate until elements are pushed into it. In particular, the
+    /// vector has zero capacity until elements are pushed into it.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_vec: TypedProjVec<i32> = TypedProjVec::new();
+    ///
+    /// assert!(proj_vec.is_empty());
+    /// assert_eq!(proj_vec.capacity(), 0);
+    /// ```
     #[inline]
     #[must_use]
     #[track_caller]
@@ -140,6 +918,40 @@ where
         Self { inner, }
     }
 
+    /// Constructs a new empty [`TypedProjVec`] using a specific capacity.
+    ///
+    /// The vector will be able to hold at least `capacity` elements without reallocating. The
+    /// method _can_ allocate more than `capacity` elements. If `capacity` is zero, the
+    /// constructor does not allocate memory, i.e. it is equivalent to [`new`] when `capacity` is
+    /// zero.
+    ///
+    /// Note that while the returned vector will have a **capacity** of at least `capacity`, it will
+    /// have a **length** of zero, because no elements have been pushed to the vector yet.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the new capacity exceeds `isize::MAX` _bytes_.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let capacity = 32;
+    /// let proj_vec: TypedProjVec<i32> = TypedProjVec::with_capacity(capacity);
+    ///
+    /// assert!(proj_vec.capacity() >= capacity);
+    /// assert!(proj_vec.is_empty());
+    ///
+    /// let empty_vec: TypedProjVec<i32> = TypedProjVec::with_capacity(0);
+    ///
+    /// assert_eq!(empty_vec.capacity(), 0);
+    /// assert!(empty_vec.is_empty());
+    /// ```
+    ///
+    /// [`new`]: TypedProjVec::new
     #[inline]
     #[must_use]
     #[track_caller]
@@ -149,6 +961,45 @@ where
         Self { inner, }
     }
 
+    /// Constructs a new empty [`TypedProjVec`] using a specific capacity.
+    ///
+    /// The vector will be able to hold at least `capacity` elements without reallocating. The
+    /// method _can_ allocate more than `capacity` elements. If `capacity` is zero, the
+    /// constructor does not allocate memory, i.e. it is equivalent to [`new`] when `capacity` is
+    /// zero.
+    ///
+    /// Note that while the returned vector will have a **capacity** of at least `capacity`, it will
+    /// have a **length** of zero, because no elements have been pushed to the vector yet.
+    ///
+    /// # Errors
+    ///
+    /// This method returns an error if the capacity `capacity` exceeds `isize::MAX` bytes, or if the
+    /// allocator reports an allocation failure.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let capacity = 32;
+    /// let proj_vec: Result<TypedProjVec<i32>, _> = TypedProjVec::try_with_capacity(capacity);
+    ///
+    /// assert!(proj_vec.is_ok());
+    ///
+    /// let proj_vec = proj_vec.unwrap();
+    ///
+    /// assert!(proj_vec.capacity() >= capacity);
+    /// assert!(proj_vec.is_empty());
+    ///
+    /// let empty_vec: TypedProjVec<i32> = TypedProjVec::try_with_capacity(0).unwrap();
+    ///
+    /// assert_eq!(empty_vec.capacity(), 0);
+    /// assert!(empty_vec.is_empty());
+    /// ```
+    ///
+    /// [`new`]: TypedProjVec::new
     #[inline]
     pub fn try_with_capacity(capacity: usize) -> Result<Self, TryReserveError> {
         let inner = TypedProjVecInner::try_with_capacity(capacity)?;
@@ -156,6 +1007,143 @@ where
         Ok(Self { inner, })
     }
 
+    /// Constructs an [`TypedProjVec`] directly from a pointer, a length, and a capacity.
+    ///
+    /// # Safety
+    ///
+    /// This method is highly unsafe. A safe use of it must satisfy the following invariants:
+    ///
+    /// * The pointer `ptr` must be non-null.
+    /// * The allocation referred to by `ptr` must have been allocated using the global allocator.
+    /// * The element type `T` must have the same alignment that `ptr` was allocated with.
+    ///   The type `T` cannot have a less strict alignment is not sufficient; the alignment really
+    ///   must be equal to satisfy the [`dealloc`] requirement that memory must be allocated and
+    ///   deallocated with the same layout.
+    /// * The allocation size in bytes (`mem::size_of::<T>() * capacity`) must
+    ///   be the same size as the pointer was allocated with. Similar to alignment, [`dealloc`] must
+    ///   be called with the same layout `size`.
+    /// * The length `length` of the elements inside the allocation must be less than or equal to
+    ///   the capacity `capacity`.
+    /// * The first `length` values must be properly initialized values of type `T`.
+    /// * `capacity` must be the capacity that the pointer was allocated with.
+    /// * The allocated size in bytes must be no larger than `isize::MAX`.
+    ///   See the safety documentation of [`pointer::offset`].
+    ///
+    /// These requirements always hold for any `ptr` that has been allocated via [`TypedProjVec`].
+    ///
+    /// The ownership of `ptr` is effectively transferred to the
+    /// [`TypedProjVec`] which may then deallocate, reallocate or change the
+    /// contents of memory pointed to by the pointer at will. The caller must ensure
+    /// that nothing else uses the pointer `ptr` after calling this method.
+    ///
+    /// # Examples
+    ///
+    /// Using memory that was allocated by an [`TypedProjVec`].
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// # use std::ptr;
+    /// # use std::mem;
+    /// #
+    /// let proj_vec = TypedProjVec::from([1, 2, 3]);
+    ///
+    /// // Prevent running `opaque_vec`'s destructor to completely control the allocation.
+    /// let mut proj_vec = mem::ManuallyDrop::new(proj_vec);
+    ///
+    /// // Destructure `opaque_vec` into its constituent parts.
+    /// let ptr: *mut i32 = proj_vec.as_mut_ptr();
+    /// let length = proj_vec.len();
+    /// let capacity = proj_vec.capacity();
+    ///
+    /// let expected = TypedProjVec::from([4, 5, 6]);
+    /// let result = unsafe {
+    ///     // Mutate the values directly in memory.
+    ///     for i in 0..length {
+    ///         ptr::write(ptr.add(i), 4 + i as i32);
+    ///     }
+    ///
+    ///     // Rebuild the vector.
+    ///     TypedProjVec::from_raw_parts(ptr, length, capacity)
+    /// };
+    ///
+    /// assert_eq!(result.as_slice(), expected.as_slice());
+    /// assert_eq!(result.len(), expected.len());
+    /// assert_eq!(result.capacity(), expected.capacity());
+    /// # assert!(!result.is_empty());
+    /// # assert_eq!(result.len(), length);
+    /// # assert_eq!(result.capacity(), capacity);
+    /// # assert!(result.len() <= result.capacity());
+    /// # assert!(!expected.is_empty());
+    /// # assert_eq!(expected.len(), length);
+    /// # assert_eq!(expected.capacity(), capacity);
+    /// # assert!(expected.len() <= expected.capacity());
+    ///
+    /// let mut result = result;
+    /// let new_capacity = 16;
+    ///
+    /// // It is safe to work further with the vector since it satisfies the required invariants.
+    /// for _ in 0..(new_capacity - length) {
+    ///     result.push(i32::MAX);
+    /// }
+    ///
+    /// let expected = TypedProjVec::from([
+    ///     4,        5,        6,        i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX,
+    ///     i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX,
+    /// ]);
+    ///
+    /// assert_eq!(result.as_slice(), expected.as_slice());
+    /// assert_eq!(result.len(), expected.len());
+    /// assert!(result.len() <= result.capacity());
+    /// # assert_eq!(result.len(), new_capacity);
+    /// # assert!(result.capacity() >= new_capacity);
+    /// ```
+    ///
+    /// Using memory that was allocated outside an [`TypedProjVec`].
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Allocator;
+    /// # use std::alloc::Global;
+    /// # use std::alloc::Layout;
+    /// # use std::ptr::NonNull;
+    /// #
+    /// let value = 1_000_000;
+    /// let layout = Layout::array::<u32>(16).unwrap();
+    /// let length = 1;
+    /// let capacity = 16;
+    /// let proj_vec = unsafe {
+    ///     let mut memory: NonNull<u32> = Global.allocate(layout).unwrap().cast::<u32>();
+    ///     memory.write(value);
+    ///
+    ///     TypedProjVec::from_raw_parts(memory.as_mut() as *mut u32, length, capacity)
+    /// };
+    ///
+    /// assert_eq!(proj_vec.as_slice(), &[value]);
+    /// assert_eq!(proj_vec.len(), length);
+    /// assert_eq!(proj_vec.capacity(), capacity);
+    /// # assert!(!proj_vec.is_empty());
+    ///
+    /// // It is safe to work further with the vector since it satisfies the required invariants.
+    /// let mut result = proj_vec;
+    /// for _ in 0..(capacity - length) {
+    ///     result.push(u32::MAX);
+    /// }
+    ///
+    /// let expected = TypedProjVec::from([
+    ///     value,     u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX,
+    ///     u32::MAX,  u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX,
+    /// ]);
+    ///
+    /// assert_eq!(result.as_slice(), expected.as_slice());
+    /// assert_eq!(result.len(), result.capacity());
+    /// # assert_eq!(result.len(), capacity);
+    /// # assert_eq!(result.capacity(), capacity);
+    /// ```
+    ///
+    /// [`dealloc`]: std::alloc::Allocator::dealloc
     #[inline]
     pub unsafe fn from_raw_parts(ptr: *mut T, length: usize, capacity: usize) -> Self {
         let inner = unsafe {
@@ -165,6 +1153,144 @@ where
         Self { inner, }
     }
 
+    /// Constructs an [`TypedProjVec`] directly from a pointer, a length, and a capacity.
+    ///
+    /// # Safety
+    ///
+    /// This method is highly unsafe. A safe use of it must satisfy the following invariants:
+    ///
+    /// * The pointer `ptr` must be non-null.
+    /// * The allocation referred to by `ptr` must have been allocated using the global allocator.
+    /// * The element type `T` must have the same alignment that `ptr` was allocated with.
+    ///   The type `T` cannot have a less strict alignment is not sufficient; the alignment really
+    ///   must be equal to satisfy the [`dealloc`] requirement that memory must be allocated and
+    ///   deallocated with the same layout.
+    /// * The allocation size in bytes (`mem::size_of::<T>() * capacity`) must
+    ///   be the same size as the pointer was allocated with. Similar to alignment, [`dealloc`] must
+    ///   be called with the same layout `size`.
+    /// * The length `length` of the elements inside the allocation must be less than or equal to
+    ///   the capacity `capacity`.
+    /// * The first `length` values must be properly initialized values of type `T`.
+    /// * `capacity` must be the capacity that the pointer was allocated with.
+    /// * The allocated size in bytes must be no larger than `isize::MAX`.
+    ///   See the safety documentation of [`pointer::offset`].
+    ///
+    /// These requirements always hold for any `ptr` that has been allocated via [`TypedProjVec`].
+    ///
+    /// The ownership of `ptr` is effectively transferred to the
+    /// [`TypedProjVec`] which may then deallocate, reallocate or change the
+    /// contents of memory pointed to by the pointer at will. The caller must ensure
+    /// that nothing else uses the pointer `ptr` after calling this method.
+    ///
+    /// # Examples
+    ///
+    /// Using memory that was allocated by an [`TypedProjVec`].
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// # use std::ptr::NonNull;
+    /// # use std::ptr;
+    /// # use std::mem;
+    /// #
+    /// let proj_vec = TypedProjVec::from([1, 2, 3]);
+    ///
+    /// // Prevent running `opaque_vec`'s destructor to completely control the allocation.
+    /// let mut proj_vec = mem::ManuallyDrop::new(proj_vec);
+    ///
+    /// // Destructure `opaque_vec` into its constituent parts.
+    /// let ptr: NonNull<i32> = proj_vec.as_non_null();
+    /// let length = proj_vec.len();
+    /// let capacity = proj_vec.capacity();
+    ///
+    /// let expected = TypedProjVec::from([4, 5, 6]);
+    /// let result = unsafe {
+    ///     // Mutate the values directly in memory.
+    ///     for i in 0..length {
+    ///         ptr::write(ptr.as_ptr().add(i), 4 + i as i32);
+    ///     }
+    ///
+    ///     // Rebuild the vector.
+    ///     TypedProjVec::from_parts(ptr, length, capacity)
+    /// };
+    ///
+    /// assert_eq!(result.as_slice(), expected.as_slice());
+    /// assert_eq!(result.len(), expected.len());
+    /// assert_eq!(result.capacity(), expected.capacity());
+    /// # assert!(!result.is_empty());
+    /// # assert_eq!(result.len(), length);
+    /// # assert_eq!(result.capacity(), capacity);
+    /// # assert!(result.len() <= result.capacity());
+    /// # assert!(!expected.is_empty());
+    /// # assert_eq!(expected.len(), length);
+    /// # assert_eq!(expected.capacity(), capacity);
+    /// # assert!(expected.len() <= expected.capacity());
+    ///
+    /// let mut result = result;
+    /// let new_capacity = 16;
+    ///
+    /// // It is safe to work further with the vector since it satisfies the required invariants.
+    /// for _ in 0..(new_capacity - length) {
+    ///     result.push(i32::MAX);
+    /// }
+    ///
+    /// let expected = TypedProjVec::from([
+    ///     4,        5,        6,        i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX,
+    ///     i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX,
+    /// ]);
+    ///
+    /// assert_eq!(result.as_slice(), expected.as_slice());
+    /// assert_eq!(result.len(), expected.len());
+    /// assert!(result.len() <= result.capacity());
+    /// # assert_eq!(result.len(), new_capacity);
+    /// # assert!(result.capacity() >= new_capacity);
+    /// ```
+    ///
+    /// Using memory that was allocated outside an [`TypedProjVec`].
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Allocator;
+    /// # use std::alloc::Global;
+    /// # use std::alloc::Layout;
+    /// # use std::ptr::NonNull;
+    /// #
+    /// let value = 1_000_000;
+    /// let layout = Layout::array::<u32>(16).unwrap();
+    /// let length = 1;
+    /// let capacity = 16;
+    /// let proj_vec = unsafe {
+    ///     let mut memory: NonNull<u32> = Global.allocate(layout).unwrap().cast::<u32>();
+    ///     memory.write(value);
+    ///
+    ///     TypedProjVec::from_parts(memory, length, capacity)
+    /// };
+    ///
+    /// assert_eq!(proj_vec.as_slice(), &[value]);
+    /// assert_eq!(proj_vec.len(), length);
+    /// assert_eq!(proj_vec.capacity(), capacity);
+    /// # assert!(!proj_vec.is_empty());
+    ///
+    /// // It is safe to work further with the vector since it satisfies the required invariants.
+    /// let mut result = proj_vec;
+    /// for _ in 0..(capacity - length) {
+    ///     result.push(u32::MAX);
+    /// }
+    ///
+    /// let expected = TypedProjVec::from([
+    ///     value,     u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX,
+    ///     u32::MAX,  u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX,
+    /// ]);
+    ///
+    /// assert_eq!(result.as_slice(), expected.as_slice());
+    /// assert_eq!(result.len(), result.capacity());
+    /// # assert_eq!(result.len(), capacity);
+    /// # assert_eq!(result.capacity(), capacity);
+    /// ```
+    ///
+    /// [`dealloc`]: std::alloc::Allocator::dealloc
     #[inline]
     pub unsafe fn from_parts(ptr: NonNull<T>, length: usize, capacity: usize) -> Self {
         let inner = unsafe {
@@ -180,16 +1306,86 @@ where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
+    /// Returns the capacity of an [`TypedProjVec`].
+    ///
+    /// The **capacity** of an [`TypedProjVec`] is the number of elements the vector can hold
+    /// without reallocating memory.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::alloc::Global;
+    /// #
+    /// let capacity = 32;
+    /// let mut proj_vec = TypedProjVec::with_capacity_in(capacity, Global);
+    ///
+    /// assert!(proj_vec.capacity() >= capacity);
+    /// assert_eq!(proj_vec.len(), 0);
+    ///
+    /// for i in 0..capacity {
+    ///     proj_vec.push(i as i32);
+    /// }
+    ///
+    /// assert!(proj_vec.capacity() >= capacity);
+    /// assert_eq!(proj_vec.len(), capacity);
+    /// ```
     #[inline]
     pub const fn capacity(&self) -> usize {
         self.inner.capacity()
     }
 
+    /// Determine whether an [`TypedProjVec`] is empty or not.
+    ///
+    /// An [`TypedProjVec`] is **empty** if it contains no elements, i.e.
+    /// its length is zero.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_vec: TypedProjVec<i32, Global> = TypedProjVec::with_capacity_in(1, Global);
+    ///
+    /// assert!(proj_vec.is_empty());
+    ///
+    /// proj_vec.push(1);
+    ///
+    /// assert!(!proj_vec.is_empty());
+    /// ```
     #[inline]
     pub const fn is_empty(&self) -> bool {
         self.inner.is_empty()
     }
 
+    /// Returns the length of an [`TypedProjVec`].
+    ///
+    /// The **length** of an [`TypedProjVec`] is the number of elements stored inside it.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::alloc::Global;
+    /// #
+    /// let len = 32;
+    /// let mut proj_vec: TypedProjVec<i32, Global> = TypedProjVec::with_capacity_in(len, Global);
+    ///
+    /// assert_eq!(proj_vec.len(), 0);
+    ///
+    /// for i in 0..len {
+    ///     proj_vec.push(i as i32);
+    /// }
+    ///
+    /// assert_eq!(proj_vec.len(), len);
+    /// ```
     #[inline]
     pub const fn len(&self) -> usize {
         self.inner.len()
@@ -201,6 +1397,22 @@ where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
+    /// Returns a reference to the type-projected memory allocator from the vector.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_vec: TypedProjVec<i32> = TypedProjVec::new();
+    ///
+    /// assert!(proj_vec.is_empty());
+    ///
+    /// let alloc: &TypedProjAlloc<Global> = proj_vec.allocator();
+    /// ```
     #[inline]
     pub fn allocator(&self) -> &TypedProjAlloc<A> {
         self.inner.allocator()
@@ -212,6 +1424,137 @@ where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
+    /// Forces the length of and [`TypedProjVec`] to be set to `new_len`.
+    ///
+    /// This is a low-level operation that does not maintain the invariants of the [`TypedProjVec`].
+    /// Normally one changes the length of the collection using operations such as [`truncate`],
+    /// [`extend`], [`resize`], or [`clear`].
+    ///
+    /// Note that reducing the length of an [`TypedProjVec`] using this method will not drop the truncated
+    /// elements. If those elements own heap-allocated memory or other resources (such as `Box`, `Vec`,
+    /// or custom types with destructors), this will result in a memory leak.
+    ///
+    /// # Safety
+    ///
+    /// This method is safe to call if the following conditions hold:
+    /// * The length `new_len` is less than or equal to `self.capacity()`.
+    /// * The elements in the subslice `self.len()..new_len` must be initialized.
+    ///
+    /// # Examples
+    ///
+    /// Safely reducing the length of an [`TypedProjVec`] with this method.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// # use std::ptr;
+    /// #
+    /// struct DropCounter {}
+    ///
+    /// static mut DROP_COUNT: u32 = 0;
+    ///
+    /// impl Drop for DropCounter {
+    ///     fn drop(&mut self) {
+    ///         unsafe { DROP_COUNT += 1; }
+    ///     }
+    /// }
+    ///
+    /// let capacity = 4;
+    /// let mut proj_vec = TypedProjVec::with_capacity(capacity);
+    ///
+    /// proj_vec.push(Box::new(DropCounter {}));
+    /// proj_vec.push(Box::new(DropCounter {}));
+    /// proj_vec.push(Box::new(DropCounter {}));
+    ///
+    /// assert_eq!(proj_vec.len(), 3);
+    /// assert!(proj_vec.capacity() >= capacity);
+    /// unsafe {
+    ///     let ptr = proj_vec.as_mut_ptr();
+    ///     // Read, then drop the last two elements.
+    ///     let _: Box<DropCounter> = ptr::read(ptr.add(2));
+    ///     let _: Box<DropCounter> = ptr::read(ptr.add(1));
+    ///     proj_vec.set_len(1);
+    /// }
+    ///
+    /// assert_eq!(proj_vec.len(), 1);
+    /// assert!(proj_vec.capacity() >= capacity);
+    ///
+    /// // No data leaks because we dropped then shrank the length.
+    /// assert_eq!(unsafe { DROP_COUNT }, 2);
+    /// ```
+    ///
+    /// Safely extending the length of an [`TypedProjVec`] with this method without leaking memory.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// # use std::ptr;
+    /// #
+    /// struct DropCounter {}
+    ///
+    /// static mut DROP_COUNT: u32 = 0;
+    ///
+    /// impl Drop for DropCounter {
+    ///     fn drop(&mut self) {
+    ///         unsafe { DROP_COUNT += 1; }
+    ///     }
+    /// }
+    ///
+    /// let capacity = 4;
+    /// let mut proj_vec = TypedProjVec::with_capacity(capacity);
+    ///
+    /// assert_eq!(proj_vec.len(), 0);
+    /// assert!(proj_vec.capacity() >= capacity);
+    /// unsafe {
+    ///     let ptr: *mut Box<DropCounter> = proj_vec.as_mut_ptr();
+    ///     // Write the elements into the allocation directly.
+    ///     ptr::write(ptr.add(0), Box::new(DropCounter {}));
+    ///     ptr::write(ptr.add(1), Box::new(DropCounter {}));
+    ///     ptr::write(ptr.add(2), Box::new(DropCounter {}));
+    ///     proj_vec.set_len(3);
+    /// }
+    ///
+    /// assert_eq!(proj_vec.len(), 3);
+    /// assert!(proj_vec.capacity() >= capacity);
+    ///
+    /// // Not data leaks after writing directly into the allocation.
+    /// assert_eq!(unsafe { DROP_COUNT }, 0);
+    /// ```
+    ///
+    /// Safely extending the length of an [`TypedProjVec`] with this method.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// # use std::ptr;
+    /// #
+    /// let capacity = 4;
+    /// let mut proj_vec = TypedProjVec::with_capacity(capacity);
+    ///
+    /// assert_eq!(proj_vec.len(), 0);
+    /// assert!(proj_vec.capacity() >= capacity);
+    /// unsafe {
+    ///     let ptr: *mut i32 = proj_vec.as_mut_ptr();
+    ///     // Write the elements into the allocation directly.
+    ///     ptr::write(ptr.add(0), 1);
+    ///     ptr::write(ptr.add(1), 2);
+    ///     ptr::write(ptr.add(2), 3);
+    ///     proj_vec.set_len(3);
+    /// }
+    ///
+    /// assert_eq!(proj_vec.len(), 3);
+    /// assert!(proj_vec.capacity() >= capacity);
+    ///
+    /// assert_eq!(proj_vec.as_slice(), &[1, 2, 3]);
+    /// ```
+    ///
+    /// [`truncate`]: TypedProjVec::truncate
+    /// [`resize`]: TypedProjVec::resize
+    /// [`extend`]: Extend::extend
+    /// [`clear`]: TypedProjVec::clear
     #[inline]
     pub unsafe fn set_len(&mut self, new_len: usize) {
         unsafe {
@@ -219,6 +1562,34 @@ where
         }
     }
 
+    /// Returns a reference to an element or subslice of an [`TypedProjVec`], if it exists at the
+    /// given index or inside the given subslice.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if one of the following conditions holds:
+    /// * If `index` is a scalar index, and `index` is out of bounds.
+    /// * If `index` is a slice range, and a subslice of `index` falls out of bounds.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_vec = TypedProjVec::from([10, 40, 30]);
+    ///
+    /// unsafe {
+    ///     assert_eq!(proj_vec.get_unchecked(0), &10);
+    ///     assert_eq!(proj_vec.get_unchecked(1), &40);
+    ///     assert_eq!(proj_vec.get_unchecked(2), &30);
+    ///
+    ///     assert_eq!(proj_vec.get_unchecked(0..2), &[10, 40][..]);
+    ///     assert_eq!(proj_vec.get_unchecked(1..3), &[40, 30][..]);
+    ///     assert_eq!(proj_vec.get_unchecked(..), &[10, 40, 30][..]);
+    /// }
+    /// ```
     #[inline]
     #[must_use]
     pub unsafe fn get_unchecked<I>(&self, index: I) -> &<I as slice::SliceIndex<[T]>>::Output
@@ -230,6 +1601,34 @@ where
         }
     }
 
+    /// Returns a mutable reference to an element or subslice of an [`TypedProjVec`], if it exists at the
+    /// given index or inside the given subslice.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if one of the following conditions holds:
+    /// * If `index` is a scalar index, and `index` is out of bounds.
+    /// * If `index` is a slice range, and a subslice of `index` falls out of bounds.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_vec = TypedProjVec::from([10, 40, 30]);
+    ///
+    /// unsafe {
+    ///     assert_eq!(proj_vec.get_mut_unchecked(0), &10);
+    ///     assert_eq!(proj_vec.get_mut_unchecked(1), &40);
+    ///     assert_eq!(proj_vec.get_mut_unchecked(2), &30);
+    ///
+    ///     assert_eq!(proj_vec.get_mut_unchecked(0..2), &[10, 40][..]);
+    ///     assert_eq!(proj_vec.get_mut_unchecked(1..3), &[40, 30][..]);
+    ///     assert_eq!(proj_vec.get_mut_unchecked(..), &[10, 40, 30][..]);
+    /// }
+    /// ```
     #[inline]
     #[must_use]
     pub unsafe fn get_mut_unchecked<I>(&mut self, index: I) -> &mut <I as slice::SliceIndex<[T]>>::Output
@@ -241,6 +1640,33 @@ where
         }
     }
 
+    /// Returns a reference to an element or subslice of an [`TypedProjVec`], if it exists at the
+    /// given index or inside the given subslice.
+    ///
+    /// The method returns `None` from `self` under the following conditions:
+    /// * If `index` is a scalar index, and `index` is out of bounds.
+    /// * If `index` is a slice range, and a subslice of `index` falls out of bounds.
+    /// The method returns some value or range of values otherwise.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_vec = TypedProjVec::from([10, 40, 30]);
+    ///
+    /// assert_eq!(proj_vec.get(0), Some(&10));
+    /// assert_eq!(proj_vec.get(1), Some(&40));
+    /// assert_eq!(proj_vec.get(2), Some(&30));
+    /// assert_eq!(proj_vec.get(3), None);
+    ///
+    /// assert_eq!(proj_vec.get(0..2), Some(&[10, 40][..]));
+    /// assert_eq!(proj_vec.get(1..3), Some(&[40, 30][..]));
+    /// assert_eq!(proj_vec.get(..), Some(&[10, 40, 30][..]));
+    /// assert_eq!(proj_vec.get(0..4), None);
+    /// ```
     #[inline]
     #[must_use]
     pub fn get<I>(&self, index: I) -> Option<&<I as slice::SliceIndex<[T]>>::Output>
@@ -250,6 +1676,33 @@ where
         self.inner.get(index)
     }
 
+    /// Returns a mutable reference to an element or subslice of an [`TypedProjVec`], if it exists at the
+    /// given index or inside the given subslice.
+    ///
+    /// The method returns `None` from `self` under the following conditions:
+    /// * If `index` is a scalar index, and `index` is out of bounds.
+    /// * If `index` is a slice range, and a subslice of `index` falls out of bounds.
+    /// The method returns some value or range of values otherwise.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_vec = TypedProjVec::from([10, 40, 30]);
+    ///
+    /// assert_eq!(opaque_vec.get_mut(0), Some(&mut 10));
+    /// assert_eq!(opaque_vec.get_mut(1), Some(&mut 40));
+    /// assert_eq!(opaque_vec.get_mut(2), Some(&mut 30));
+    /// assert_eq!(opaque_vec.get_mut(3), None);
+    ///
+    /// assert_eq!(opaque_vec.get_mut(0..2), Some(&mut [10, 40][..]));
+    /// assert_eq!(opaque_vec.get_mut(1..3), Some(&mut [40, 30][..]));
+    /// assert_eq!(opaque_vec.get_mut(..), Some(&mut [10, 40, 30][..]));
+    /// assert_eq!(opaque_vec.get_mut(0..4), None);
+    /// ```
     #[inline]
     #[must_use]
     pub fn get_mut<I>(&mut self, index: I) -> Option<&mut <I as slice::SliceIndex<[T]>>::Output>
@@ -259,42 +1712,327 @@ where
         self.inner.get_mut(index)
     }
 
+    /// Appends a new element to the end of an [`TypedProjVec`].
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the new capacity exceeds `isize::MAX` _bytes_.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_vec = TypedProjVec::from([1, 2]);
+    /// proj_vec.push(3);
+    ///
+    /// assert_eq!(proj_vec.as_slice(), &[1, 2, 3]);
+    /// ```
     #[inline]
     #[track_caller]
     pub fn push(&mut self, value: T) {
         self.inner.push(value);
     }
 
+    /// Returns the last element in an [`TypedProjVec`] if the vector is non-empty,
+    /// and returns `None` if the collection is empty.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_vec = TypedProjVec::from([1, 2, 3]);
+    ///
+    /// assert!(!proj_vec.is_empty());
+    ///
+    /// assert_eq!(proj_vec.pop(), Some(3));
+    /// assert_eq!(proj_vec.pop(), Some(2));
+    /// assert_eq!(proj_vec.pop(), Some(1));
+    ///
+    /// assert!(proj_vec.is_empty());
+    ///
+    /// assert_eq!(proj_vec.pop(), None);
+    /// ```
     #[inline]
     pub fn pop(&mut self) -> Option<T> {
         self.inner.pop()
     }
 
+    /// Appends an element to an [`TypedProjVec`] if there is sufficient spare capacity. Otherwise,
+    /// an error is returned with the element.
+    ///
+    /// Unlike [`push`], this method will not reallocate when there's insufficient
+    /// capacity. The caller should use [`reserve`] or [`try_reserve`] to ensure that
+    /// there is enough capacity.
+    ///
+    /// # Example
+    ///
+    /// Pushing elements to the vector within the capacity of the vector.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let min_capacity = 4;
+    /// let mut proj_vec = TypedProjVec::with_capacity(min_capacity);
+    ///
+    /// for i in 0..min_capacity {
+    ///     let result = proj_vec.push_within_capacity((i + 1) as i32);
+    ///     assert!(result.is_ok());
+    /// }
+    /// assert!(proj_vec.capacity() >= min_capacity);
+    /// assert_eq!(proj_vec.len(), min_capacity);
+    /// assert_eq!(proj_vec.as_slice(), &[1, 2, 3, 4]);
+    /// ```
+    ///
+    /// Trying to push elements past the capacity of the vector.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let min_capacity = 4;
+    /// let mut proj_vec = TypedProjVec::with_capacity(min_capacity);
+    ///
+    /// assert!(proj_vec.capacity() >= min_capacity);
+    /// let actual_capacity = proj_vec.capacity();
+    /// for i in 0..actual_capacity {
+    ///     let result = proj_vec.push_within_capacity((i + 1) as i32);
+    ///     assert!(result.is_ok());
+    ///     assert_eq!(proj_vec.capacity(), actual_capacity);
+    /// }
+    ///
+    /// let result = proj_vec.push_within_capacity(i32::MAX);
+    /// assert!(result.is_err());
+    /// assert_eq!(proj_vec.capacity(), actual_capacity);
+    /// ```
+    ///
+    /// [`push`]: TypedProjVec::push
+    /// [`reserve`]: TypedProjVec::reserve
+    /// [`try_reserve`]: TypedProjVec::try_reserve
     #[inline]
     pub fn push_within_capacity(&mut self, value: T) -> Result<(), T> {
         self.inner.push_within_capacity(value)
     }
 
+    /// Inserts a new value into an [`TypedProjVec`], replacing the old value.
+    ///
+    /// This method behaves with respect to `index` as follows:
+    /// * If `index < self.len()`, it replaces the existing value at `index`.
+    /// * If `index == self.len()`, it pushes `value` to the end of the collection.
+    /// * If `index > self.len()`, it panics.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the index `index` is larger than the length of the collection.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_vec = TypedProjVec::new();
+    ///
+    /// assert!(proj_vec.is_empty());
+    ///
+    /// proj_vec.replace_insert(0, 1);
+    ///
+    /// assert_eq!(proj_vec.len(), 1);
+    /// assert_eq!(proj_vec.as_slice(), &[1]);
+    ///
+    /// proj_vec.replace_insert(0, 2);
+    ///
+    /// assert_eq!(proj_vec.len(), 1);
+    /// assert_eq!(proj_vec.as_slice(), &[2]);
+    /// ```
     #[track_caller]
     pub fn replace_insert(&mut self, index: usize, value: T) {
         self.inner.replace_insert(index, value);
     }
 
+    /// Inserts a new value into an [`TypedProjVec`], shifting the old value and all values after
+    /// it to the right in the collection..
+    ///
+    /// This method behaves with respect to `index` as follows:
+    /// * If `index < self.len()`, it shifts the current value at `index` and all successive values
+    ///   in the collection to the right in the collection, reallocating if needed.
+    /// * If `index == self.len()`, it pushes `value` to the end of the collection.
+    /// * If `index > self.len()`, it panics.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the index `index` is larger than the length of the collection.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_vec = TypedProjVec::new();
+    ///
+    /// assert!(proj_vec.is_empty());
+    ///
+    /// proj_vec.shift_insert(0, 1);
+    ///
+    /// assert_eq!(proj_vec.len(), 1);
+    /// assert_eq!(proj_vec.as_slice(), &[1]);
+    ///
+    /// proj_vec.shift_insert(0, 2);
+    ///
+    /// assert_eq!(proj_vec.len(), 2);
+    /// assert_eq!(proj_vec.as_slice(), &[2, 1]);
+    /// ```
     #[track_caller]
     pub fn shift_insert(&mut self, index: usize, value: T) {
         self.inner.shift_insert(index, value);
     }
 
+    /// Removes a value from an [`TypedProjVec`], moving the last value in the collection to the
+    /// index where the removed value occupies the collection.
+    ///
+    /// This method behaves with respect to `index` as follows:
+    /// * If `index < self.len() - 1`, it moves the last value in the collection to the slot at
+    ///   `index`, leaving the rest of the values in place.
+    /// * If `index == self.len() - 1`, it removes the value from end of the collection with no
+    ///   reordering of the remaining values in the collection.
+    /// * If `index >= self.len()`, it panics.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the index `index` is larger than the length of the collection. In
+    /// particular, the method panics when `self` is empty.
+    ///
+    /// # Example
+    ///
+    /// Showing how swap removal happens.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_vec = TypedProjVec::from([1, 2, 3, i32::MAX]);
+    /// {
+    ///     let mut cloned = proj_vec.clone();
+    ///     cloned.swap_remove(3);
+    ///     assert_eq!(cloned.as_slice(), &[1, 2, 3]);
+    /// }
+    /// {
+    ///     let mut cloned = proj_vec.clone();
+    ///     cloned.swap_remove(2);
+    ///     assert_eq!(cloned.as_slice(), &[1, 2, i32::MAX]);
+    /// }
+    /// {
+    ///     let mut cloned = proj_vec.clone();
+    ///     cloned.swap_remove(1);
+    ///     assert_eq!(cloned.as_slice(), &[1, i32::MAX, 3]);
+    /// }
+    /// {
+    ///     let mut cloned = proj_vec.clone();
+    ///     cloned.swap_remove(0);
+    ///     assert_eq!(cloned.as_slice(), &[i32::MAX, 2, 3]);
+    /// }
+    /// ```
     #[track_caller]
     pub fn swap_remove(&mut self, index: usize) -> T {
         self.inner.swap_remove(index)
     }
 
+    /// Removes a value from an [`TypedProjVec`], shifting every successive value in the collection to
+    /// the left one index to fill where the removed value occupies the collection.
+    ///
+    /// This method behaves with respect to `index` as follows:
+    /// * If `index < self.len()`, it moves the every successive value in the collection to
+    ///   the slot at `index` to the left one unit. Every value preceding the slot at `index` remains
+    ///   in the same location. In particular, the method acts like a [`pop`] when the last value in
+    ///   the collection is shift-removed, because the sub-collection of successor values is empty.
+    /// * If `index >= self.len()`, it panics.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the index `index` is larger than the length of the collection. In
+    /// particular, the method panics when `self` is empty.
+    ///
+    /// # Example
+    ///
+    /// Showing how shift removal happens.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_vec = TypedProjVec::from([1, 2, 3, i32::MAX]);
+    /// {
+    ///     let mut cloned = proj_vec.clone();
+    ///     cloned.swap_remove(3);
+    ///     assert_eq!(cloned.as_slice(), &[1, 2, 3]);
+    /// }
+    /// {
+    ///     let mut cloned = proj_vec.clone();
+    ///     cloned.swap_remove(2);
+    ///     assert_eq!(cloned.as_slice(), &[1, 2, i32::MAX]);
+    /// }
+    /// {
+    ///     let mut cloned = proj_vec.clone();
+    ///     cloned.swap_remove(1);
+    ///     assert_eq!(cloned.as_slice(), &[1, i32::MAX, 3]);
+    /// }
+    /// {
+    ///     let mut cloned = proj_vec.clone();
+    ///     cloned.swap_remove(0);
+    ///     assert_eq!(cloned.as_slice(), &[i32::MAX, 2, 3]);
+    /// }
+    /// ```
+    ///
+    /// [`pop`]: TypedProjVec::pop
     #[track_caller]
     pub fn shift_remove(&mut self, index: usize) -> T {
         self.inner.shift_remove(index)
     }
 
+    /// Determines whether an [`TypedProjVec`] contains a value.
+    ///
+    /// The method returns `true` if `self` contains the value `value`. Returns `false` otherwise.
+    /// In particular, the method always returns `false` when `self` is empty.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_vec = TypedProjVec::from([92, 8, 40, 9, 8, 34, 59, 34, 5]);
+    ///
+    /// assert!(proj_vec.contains(&92));
+    /// assert!(proj_vec.contains(&8));
+    /// assert!(proj_vec.contains(&40));
+    /// assert!(proj_vec.contains(&9));
+    /// assert!(proj_vec.contains(&34));
+    /// assert!(proj_vec.contains(&5));
+    ///
+    /// assert!(!proj_vec.contains(&100));
+    /// assert!(!proj_vec.contains(&91));
+    /// assert!(!proj_vec.contains(&93));
+    /// assert!(!proj_vec.contains(&7));
+    /// assert!(!proj_vec.contains(&10));
+    /// assert!(!proj_vec.contains(&33));
+    /// assert!(!proj_vec.contains(&35));
+    /// assert!(!proj_vec.contains(&4));
+    /// assert!(!proj_vec.contains(&6));
+    /// ```
     pub fn contains(&self, value: &T) -> bool
     where
         T: PartialEq,
@@ -302,20 +2040,181 @@ where
         self.inner.contains(value)
     }
 
+    /// Constructs an iterator over the elements of the [`TypedProjVec`].
+    ///
+    /// The iterator will yield all elements in the collection from start to end.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_vec = TypedProjVec::from([92, 8, 40, 9, 8, 34]);
+    ///
+    /// let mut iterator = proj_vec.iter();
+    /// assert_eq!(iterator.next(), Some(&92));
+    /// assert_eq!(iterator.next(), Some(&8));
+    /// assert_eq!(iterator.next(), Some(&40));
+    /// assert_eq!(iterator.next(), Some(&9));
+    /// assert_eq!(iterator.next(), Some(&8));
+    /// assert_eq!(iterator.next(), Some(&34));
+    /// assert_eq!(iterator.next(), None);
+    ///
+    /// // Every successive call to `iterator.next()` should yield a `None` value.
+    /// for _ in 0..100 {
+    ///     assert!(iterator.next().is_none());
+    /// }
+    /// ```
     pub fn iter(&self) -> slice::Iter<'_, T> {
         self.inner.iter()
     }
 
+    /// Constructs a mutable iterator over the elements of the [`TypedProjVec`].
+    ///
+    /// The iterator will yield all elements in the collection from start to end.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_vec = TypedProjVec::from([92, 8, 40, 9, 8, 34]);
+    ///
+    /// let mut iterator = proj_vec.iter_mut();
+    /// assert_eq!(iterator.next(), Some(&mut 92));
+    /// assert_eq!(iterator.next(), Some(&mut 8));
+    /// assert_eq!(iterator.next(), Some(&mut 40));
+    /// assert_eq!(iterator.next(), Some(&mut 9));
+    /// assert_eq!(iterator.next(), Some(&mut 8));
+    /// assert_eq!(iterator.next(), Some(&mut 34));
+    /// assert_eq!(iterator.next(), None);
+    ///
+    /// // Every successive call to `iterator.next()` should yield a `None` value.
+    /// for _ in 0..100 {
+    ///     assert!(iterator.next().is_none());
+    /// }
+    /// ```
     pub fn iter_mut(&mut self) -> slice::IterMut<'_, T> {
         self.inner.iter_mut()
     }
 
+    /// Appends one [`TypedProjVec`] to another [`TypedProjVec`], emptying the latter collection.
+    ///
+    /// This method drains `other` into `self`, i.e. every element of `other` will be appended
+    /// to `self`, and `other` will be empty after the operation finishes.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the new capacity exceeds `isize::MAX` _bytes_.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut result = TypedProjVec::from([1, 2, 3, 4]);
+    /// let mut appended = TypedProjVec::from([5, 6, 7, 8, 9]);
+    /// let expected = TypedProjVec::from([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    ///
+    /// result.append(&mut appended);
+    ///
+    /// assert_eq!(result.as_slice(), expected.as_slice());
+    /// # assert_eq!(result.len(), 9);
+    /// ```
     #[inline]
     #[track_caller]
     pub fn append(&mut self, other: &mut Self) {
         self.inner.append(&mut other.inner)
     }
 
+    /// Removes the subslice indicated by the given range from the vector,
+    /// returning a double-ended iterator over the removed subslice.
+    ///
+    /// If the iterator is dropped before being fully consumed,
+    /// it drops the remaining removed elements.
+    ///
+    /// The returned iterator keeps a mutable borrow on the vector to optimize
+    /// its implementation.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the range of the subslice falls outside the bounds of the collection.
+    /// That is, if the starting point of the subslice being removed starts after the end of `self`,
+    /// or if the ending point is larger than the length of the vector.
+    ///
+    /// # Leaking
+    ///
+    /// If the returned iterator goes out of scope without being dropped (due to
+    /// [`mem::forget`], for example), the vector may have lost and leaked
+    /// elements arbitrarily, including elements outside the range.
+    ///
+    /// # Examples
+    ///
+    /// Draining part of an [`TypedProjVec`].
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_vec: TypedProjVec<i32> = TypedProjVec::from([1, 2, 3, 4, 5, 6]);
+    ///
+    /// assert_eq!(proj_vec.len(), 6);
+    ///
+    /// let drained_vec: TypedProjVec<i32> = proj_vec.drain(2..).collect();
+    ///
+    /// assert_eq!(proj_vec.len(), 2);
+    /// assert_eq!(drained_vec.len(), 4);
+    ///
+    /// assert_eq!(proj_vec.as_slice(), &[1, 2]);
+    /// assert_eq!(drained_vec.as_slice(), &[3, 4, 5, 6]);
+    /// ```
+    ///
+    /// Draining an entire [`TypedProjVec`].
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_vec: TypedProjVec<i32> = TypedProjVec::from([1, 2, 3, 4, 5, 6]);
+    ///
+    /// assert_eq!(proj_vec.len(), 6);
+    ///
+    /// let drained_vec: TypedProjVec<i32> = proj_vec.drain(..).collect();
+    ///
+    /// assert_eq!(proj_vec.len(), 0);
+    /// assert_eq!(drained_vec.len(), 6);
+    ///
+    /// assert_eq!(proj_vec.as_slice(), &[]);
+    /// assert_eq!(drained_vec.as_slice(), &[1, 2, 3, 4, 5, 6]);
+    /// ```
+    ///
+    /// Draining no part of an [`TypedProjVec`].
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_vec: TypedProjVec<i32> = TypedProjVec::from([1, 2, 3, 4, 5, 6]);
+    ///
+    /// assert_eq!(proj_vec.len(), 6);
+    ///
+    /// let drained_vec: TypedProjVec<i32> = proj_vec.drain(0..0).collect();
+    ///
+    /// assert_eq!(proj_vec.len(), 6);
+    /// assert_eq!(drained_vec.len(), 0);
+    ///
+    /// assert_eq!(proj_vec.as_slice(), &[1, 2, 3, 4, 5, 6]);
+    /// assert_eq!(drained_vec.as_slice(), &[]);
+    /// ```
     pub fn drain<R>(&mut self, range: R) -> Drain<'_, T, A>
     where
         R: ops::RangeBounds<usize>,
@@ -323,49 +2222,477 @@ where
         self.inner.drain(range)
     }
 
+    /// Returns a raw pointer to the vector's buffer, or a dangling raw pointer
+    /// valid for zero sized reads if the vector didn't allocate.
+    ///
+    /// The caller must ensure that the vector outlives the pointer this
+    /// function returns, or else it will end up dangling.
+    /// Modifying the vector may cause its buffer to be reallocated,
+    /// which would also make any pointers to it invalid.
+    ///
+    /// The caller must also ensure that the memory the pointer (non-transitively) points to
+    /// is never written to (except inside an `UnsafeCell`) using this pointer or any pointer
+    /// derived from it. If you need to mutate the contents of the slice, use
+    /// [`as_mut_ptr`].
+    ///
+    /// This method guarantees that for the purpose of the aliasing model, this method
+    /// does not materialize a reference to the underlying slice, and thus the returned pointer
+    /// will remain valid when mixed with other calls to [`as_ptr`], [`as_mut_ptr`],
+    /// and [`as_non_null`].
+    ///
+    /// Note that calling other methods that materialize mutable references to the slice,
+    /// or mutable references to specific elements you are planning on accessing through this pointer,
+    /// as well as writing to those elements, may still invalidate this pointer.
+    /// See the second example below for how this guarantee can be used.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_vec = TypedProjVec::from([1, 2, 4, 8]);
+    /// let ptr = proj_vec.as_ptr();
+    ///
+    /// unsafe {
+    ///     for i in 0..proj_vec.len() {
+    ///         assert_eq!(*ptr.add(i), 1 << i);
+    ///     }
+    /// }
+    ///
+    /// assert_eq!(proj_vec.as_slice(), &[1, 2, 4, 8]);
+    /// ```
+    ///
+    /// Due to the aliasing guarantee, the following code is legal:
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_vec = TypedProjVec::from([0, 1, 2]);
+    ///
+    /// unsafe {
+    ///     let ptr1 = proj_vec.as_ptr();
+    ///     let _ = ptr1.read();
+    ///     let ptr2 = proj_vec.as_mut_ptr().offset(2);
+    ///     ptr2.write(2);
+    ///     // Notably, the write to `ptr2` did **not** invalidate `ptr1`
+    ///     // because it mutated a different element:
+    ///     let _ = ptr1.read();
+    /// }
+    /// ```
+    ///
+    /// [`as_mut_ptr`]: TypedProjVec::as_mut_ptr
+    /// [`as_ptr`]: TypedProjVec::as_ptr
+    /// [`as_non_null`]: TypedProjVec::as_non_null
     #[inline]
     pub fn as_ptr(&self) -> *const T {
         self.inner.as_ptr()
     }
 
+    /// Returns a raw mutable pointer to the vector's buffer, or a dangling
+    /// raw pointer valid for zero sized reads if the vector didn't allocate.
+    ///
+    /// The caller must ensure that the vector outlives the pointer this
+    /// function returns, or else it will end up dangling.
+    /// Modifying the vector may cause its buffer to be reallocated,
+    /// which would also make any pointers to it invalid.
+    ///
+    /// This method guarantees that for the purpose of the aliasing model, this method
+    /// does not materialize a reference to the underlying slice, and thus the returned pointer
+    /// will remain valid when mixed with other calls to [`as_ptr`], [`as_mut_ptr`],
+    /// and [`as_non_null`].
+    /// Note that calling other methods that materialize references to the slice,
+    /// or references to specific elements you are planning on accessing through this pointer,
+    /// may still invalidate this pointer.
+    /// See the second example below for how this guarantee can be used.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// // Allocate vector big enough for 4 elements.
+    /// let length = 4;
+    /// let mut proj_vec: TypedProjVec<i32> = TypedProjVec::with_capacity(length);
+    /// let ptr = proj_vec.as_mut_ptr();
+    ///
+    /// // Initialize elements via raw pointer writes, then set the length.
+    /// unsafe {
+    ///     for i in 0..length {
+    ///         *ptr.add(i) = (i + 1) as i32;
+    ///     }
+    ///     proj_vec.set_len(length);
+    /// }
+    ///
+    /// assert_eq!(proj_vec.as_slice(), &[1, 2, 3, 4]);
+    /// ```
+    ///
+    /// Due to the aliasing guarantee, the following code is legal:
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_vec: TypedProjVec<i32> = TypedProjVec::with_capacity(4);
+    /// proj_vec.push(0);
+    ///
+    /// unsafe {
+    ///     let ptr1 = proj_vec.as_mut_ptr();
+    ///     ptr1.write(1);
+    ///     let ptr2 = proj_vec.as_mut_ptr();
+    ///     ptr2.write(2);
+    ///     // Notably, the write to `ptr2` did **not** invalidate `ptr1`:
+    ///     ptr1.write(3);
+    /// }
+    /// ```
+    ///
+    /// [`as_mut_ptr`]: TypedProjVec::as_mut_ptr
+    /// [`as_ptr`]: TypedProjVec::as_ptr
+    /// [`as_non_null`]: TypedProjVec::as_non_null
     #[inline]
     pub fn as_mut_ptr(&mut self) -> *mut T {
         self.inner.as_mut_ptr()
     }
 
+    /// Returns a [`NonNull`] pointer to the vector's buffer, or a dangling
+    /// [`NonNull`] pointer valid for zero sized reads if the vector didn't allocate.
+    ///
+    /// The caller must ensure that the vector outlives the pointer this
+    /// function returns, or else it will end up dangling.
+    /// Modifying the vector may cause its buffer to be reallocated,
+    /// which would also make any pointers to it invalid.
+    ///
+    /// This method guarantees that for the purpose of the aliasing model, this method
+    /// does not materialize a reference to the underlying slice, and thus the returned pointer
+    /// will remain valid when mixed with other calls to [`as_ptr`], [`as_mut_ptr`],
+    /// and [`as_non_null`].
+    /// Note that calling other methods that materialize references to the slice,
+    /// or references to specific elements you are planning on accessing through this pointer,
+    /// may still invalidate this pointer.
+    /// See the second example below for how this guarantee can be used.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// // Allocate vector big enough for 4 elements.
+    /// let length = 4;
+    /// let mut proj_vec = TypedProjVec::with_capacity(length);
+    /// let ptr = proj_vec.as_non_null();
+    ///
+    /// // Initialize elements via raw pointer writes, then set length.
+    /// unsafe {
+    ///     for i in 0..length {
+    ///         ptr.add(i).write((i + 1) as i32);
+    ///     }
+    ///     proj_vec.set_len(length);
+    /// }
+    ///
+    /// assert_eq!(proj_vec.as_slice(), &[1, 2, 3, 4]);
+    /// ```
+    ///
+    /// Due to the aliasing guarantee, the following code is legal:
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_vec = TypedProjVec::with_capacity(4);
+    ///
+    /// unsafe {
+    ///     let ptr1 = proj_vec.as_non_null();
+    ///     ptr1.write(1);
+    ///     let ptr2 = proj_vec.as_non_null();
+    ///     ptr2.write(2);
+    ///     // Notably, the write to `ptr2` did **not** invalidate `ptr1`:
+    ///     ptr1.write(3);
+    /// }
+    /// ```
+    ///
+    /// [`as_mut_ptr`]: TypedProjVec::as_mut_ptr
+    /// [`as_ptr`]: TypedProjVec::as_ptr
+    /// [`as_non_null`]: TypedProjVec::as_non_null
     #[inline]
     pub fn as_non_null(&mut self) -> NonNull<T> {
         self.inner.as_non_null()
     }
 
+    /// Returns an immutable slice of the elements of the [`TypedProjVec`].
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let array: [i32; 3] = [9, 28, 37];
+    /// let proj_vec = TypedProjVec::from(array);
+    ///
+    /// let expected = array.as_slice();
+    /// let result = proj_vec.as_slice();
+    ///
+    /// assert_eq!(result, expected);
+    /// assert_eq!(result.len(), proj_vec.len());
+    /// ```
     pub fn as_slice(&self) -> &[T] {
         self.inner.as_slice()
     }
 
+    /// Returns n mutable slice of the elements of the [`TypedProjVec`].
+    ///
+    /// # Examples
+    ///
+    /// Getting a mutable slice of an [`TypedProjVec`].
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut array: [i32; 3] = [9, 28, 37];
+    /// let mut proj_vec = TypedProjVec::from(array);
+    ///
+    /// let expected = array.as_mut_slice();
+    /// let result = proj_vec.as_mut_slice();
+    ///
+    /// assert_eq!(result, expected);
+    /// assert_eq!(result.len(), proj_vec.len());
+    /// ```
+    ///
+    /// Getting and mutating a mutable slice of an [`TypedProjVec`].
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut array: [i32; 3] = [9, 28, 37];
+    /// let mut proj_vec = TypedProjVec::from(array);
+    /// {
+    ///     let slice = proj_vec.as_mut_slice();
+    ///     for i in 0..slice.len() {
+    ///         slice[i] = 2 * slice[i];
+    ///     }
+    /// }
+    ///
+    /// let expected_array = [18, 56, 74];
+    /// let expected = expected_array.as_slice();
+    /// let result = proj_vec.as_slice();
+    ///
+    /// assert_eq!(result, expected);
+    /// assert_eq!(result.len(), proj_vec.len());
+    /// ```
     pub fn as_mut_slice(&mut self) -> &mut [T] {
         self.inner.as_mut_slice()
     }
 
+    /// Decomposes an [`TypedProjVec`] with the global allocator into its constituent parts:
+    /// `(pointer, length, capacity)`.
+    ///
+    /// This method returns a pointer to the memory allocation containing the vector, the
+    /// length of the vector inside the allocation, and the capacity of the vector (the
+    /// length in elements of the memory allocation). These are the same arguments in the same
+    /// order as the arguments to [`from_raw_parts`].
+    ///
+    /// After decomposing the vector, the user must ensure that they properly manage the
+    /// memory allocation pointed to by the raw pointer. The primary way to do this is to convert
+    /// the pointer into another data structure such as a [`Vec`], [`TypedProjVec`], or [`OpaqueVec`].
+    ///
+    /// [`from_raw_parts`]: TypedProjVec::from_raw_parts
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let array: [i32; 3] = [-1, 0, 1];
+    /// let proj_vec = TypedProjVec::from(array);
+    ///
+    /// assert_eq!(proj_vec.as_slice(), &[-1, 0, 1]);
+    ///
+    /// let (ptr, length, capacity) = proj_vec.into_raw_parts();
+    /// let reinterpreted = unsafe {
+    ///     let ptr = ptr as *mut u32;
+    ///     TypedProjVec::from_raw_parts(ptr, length, capacity)
+    /// };
+    ///
+    /// assert_eq!(reinterpreted.as_slice(), &[4294967295, 0, 1]);
+    /// ```
     #[must_use]
     pub fn into_raw_parts(self) -> (*mut T, usize, usize) {
         self.inner.into_raw_parts()
     }
 
+    /// Decomposes an [`TypedProjVec`] with the global allocator into its constituent parts:
+    /// `(non-null pointer, length, capacity)`.
+    ///
+    /// This method returns a [`NonNull`] pointer to the memory allocation containing the vector, the
+    /// length of the vector inside the allocation, and the capacity of the vector (the
+    /// length in elements of the memory allocation). These are the same arguments in the same
+    /// order as the arguments to [`from_parts`].
+    ///
+    /// After decomposing the vector, the user must ensure that they properly manage the
+    /// memory allocation pointed to by the raw pointer. The primary way to do this is to convert
+    /// the pointer into another data structure such as a [`Vec`], [`TypedProjVec`], or [`OpaqueVec`].
+    ///
+    /// [`from_parts`]: TypedProjVec::from_parts
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let array: [i32; 3] = [-1, 0, 1];
+    /// let proj_vec = TypedProjVec::from(array);
+    ///
+    /// assert_eq!(proj_vec.as_slice(), &[-1, 0, 1]);
+    ///
+    /// let (ptr, length, capacity) = proj_vec.into_parts();
+    /// let reinterpreted = unsafe {
+    ///     let ptr = ptr.cast::<u32>();
+    ///     TypedProjVec::from_parts(ptr, length, capacity)
+    /// };
+    ///
+    /// assert_eq!(reinterpreted.as_slice(), &[4294967295, 0, 1]);
+    /// ```
     #[must_use]
     pub fn into_parts(self) -> (NonNull<T>, usize, usize) {
         self.inner.into_parts()
     }
 
+    /// Decomposes an [`TypedProjVec`] with any memory allocator into its constituent parts:
+    /// `(pointer, length, capacity, allocator)`.
+    ///
+    /// This method returns a pointer to the memory allocation containing the vector, the
+    /// length of the vector inside the allocation, the capacity of the vector (the
+    /// length in elements of the memory allocation), and the underlying memory allocator that
+    /// manages the memory allocation. These are the same arguments in the same order as the
+    /// arguments to [`from_raw_parts_proj_in`].
+    ///
+    /// After decomposing the vector, the user must ensure that they properly manage the
+    /// memory allocation pointed to by the raw pointer. The primary way to do this is to convert
+    /// the pointer into another data structure such as a [`Vec`], [`TypedProjVec`], or [`OpaqueVec`].
+    ///
+    /// [`from_raw_parts_proj_in`]: TypedProjVec::from_raw_parts_proj_in
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let array: [i32; 3] = [-1, 0, 1];
+    /// let proj_vec = TypedProjVec::from(array);
+    ///
+    /// assert_eq!(proj_vec.as_slice(), &[-1, 0, 1]);
+    ///
+    /// let (ptr, length, capacity, proj_alloc) = proj_vec.into_raw_parts_with_alloc();
+    /// let reinterpreted = unsafe {
+    ///     let ptr = ptr as *mut u32;
+    ///     TypedProjVec::from_raw_parts_proj_in(ptr, length, capacity, proj_alloc)
+    /// };
+    ///
+    /// assert_eq!(reinterpreted.as_slice(), &[4294967295, 0, 1]);
+    /// ```
     #[must_use]
     pub fn into_raw_parts_with_alloc(self) -> (*mut T, usize, usize, TypedProjAlloc<A>) {
         self.inner.into_raw_parts_with_alloc()
     }
 
+    /// Decomposes an [`TypedProjVec`] with the global allocator into its constituent parts:
+    /// `(non-null pointer, length, capacity)`.
+    ///
+    /// This method returns a [`NonNull`] pointer to the memory allocation containing the vector, the
+    /// length of the vector inside the allocation, and the capacity of the vector (the
+    /// length in elements of the memory allocation). These are the same arguments in the same
+    /// order as the arguments to [`from_parts_proj_in`].
+    ///
+    /// After decomposing the vector, the user must ensure that they properly manage the
+    /// memory allocation pointed to by the raw pointer. The primary way to do this is to convert
+    /// the pointer into another data structure such as a [`Vec`], [`TypedProjVec`], or [`OpaqueVec`].
+    ///
+    /// [`from_parts_proj_in`]: TypedProjVec::from_parts_proj_in
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let array: [i32; 3] = [-1, 0, 1];
+    /// let proj_vec = TypedProjVec::from(array);
+    ///
+    /// assert_eq!(proj_vec.as_slice(), &[-1, 0, 1]);
+    ///
+    /// let (ptr, length, capacity, proj_alloc) = proj_vec.into_parts_with_alloc();
+    /// let reinterpreted = unsafe {
+    ///     let ptr = ptr.cast::<u32>();
+    ///     TypedProjVec::from_parts_proj_in(ptr, length, capacity, proj_alloc)
+    /// };
+    ///
+    /// assert_eq!(reinterpreted.as_slice(), &[4294967295, 0, 1]);
+    /// ```
     #[must_use]
     pub fn into_parts_with_alloc(self) -> (NonNull<T>, usize, usize, TypedProjAlloc<A>) {
         self.inner.into_parts_with_alloc()
     }
 
+    /// Converts an [`TypedProjVec`] into [`Box<[T]>`][owned slice].
+    ///
+    /// Before doing the conversion, this method discards excess capacity like [`shrink_to_fit`].
+    ///
+    /// [owned slice]: Box
+    /// [`shrink_to_fit`]: TypedProjVec::shrink_to_fit
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_vec = {
+    ///     let mut _proj_vec = TypedProjVec::with_capacity(10);
+    ///     _proj_vec.push(1);
+    ///     _proj_vec.push(2);
+    ///     _proj_vec.push(3);
+    ///     _proj_vec
+    /// };
+    ///
+    /// assert_eq!(proj_vec.len(), 3);
+    /// assert_eq!(proj_vec.capacity(), 10);
+    /// assert_eq!(proj_vec.as_slice(), &[1, 2, 3]);
+    ///
+    /// let boxed_slice: Box<[i32], TypedProjAlloc<Global>> = proj_vec.into_boxed_slice();
+    ///
+    /// assert_eq!(boxed_slice.len(), 3);
+    /// assert_eq!(boxed_slice.as_ref(), &[1, 2, 3]);
+    ///
+    /// let new_proj_vec = TypedProjVec::from(boxed_slice);
+    ///
+    /// // Converting to a boxed slice removed any excess capacity from the vector.
+    /// assert_eq!(new_proj_vec.len(), 3);
+    /// assert_eq!(new_proj_vec.capacity(), 3);
+    /// assert_eq!(new_proj_vec.as_slice(), &[1, 2, 3]);
+    /// ```
     #[track_caller]
     pub fn into_boxed_slice(self) -> Box<[T], TypedProjAlloc<A>> {
         self.inner.into_boxed_slice()
@@ -377,6 +2704,47 @@ where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
+    /// Splits an [`TypedProjVec`] into two [`TypedProjVec`]s at the given index.
+    ///
+    /// This method returns a newly allocated [`TypedProjVec`] consisting of every element from
+    /// the original [`TypedProjVec`] in the range `[at, len)`. The original [`TypedProjVec`] will
+    /// consist of the elements in the range `[0, at)` with its capacity unchanged.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if `at > self.len()`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let length = 6;
+    /// let capacity = 10;
+    /// let mut proj_vec = {
+    ///     let mut _proj_vec = TypedProjVec::with_capacity(capacity);
+    ///     for i in 1..(length + 1) {
+    ///         _proj_vec.push(i as i32);
+    ///     }
+    ///     _proj_vec
+    /// };
+    ///
+    /// assert_eq!(proj_vec.len(), length);
+    /// assert!(proj_vec.capacity() >= capacity);
+    /// assert_eq!(proj_vec.as_slice(), &[1, 2, 3, 4, 5, 6]);
+    ///
+    /// let old_capacity = proj_vec.capacity();
+    /// let split_vec = proj_vec.split_off(4);
+    ///
+    /// assert_eq!(proj_vec.len(), 4);
+    /// assert_eq!(proj_vec.capacity(), old_capacity);
+    /// assert_eq!(proj_vec.as_slice(), &[1, 2, 3, 4]);
+    ///
+    /// assert_eq!(split_vec.len(), 2);
+    /// assert_eq!(split_vec.as_slice(), &[5, 6]);
+    /// ```
     #[inline]
     #[must_use = "use `.truncate()` if you don't need the other half"]
     #[track_caller]
@@ -389,6 +2757,68 @@ where
         Self { inner, }
     }
 
+    /// Resizes the [`TypedProjVec`] in-place so that is length equals `new_len`.
+    ///
+    /// If the length `new_len` is greater than the length `len`, the [`TypedProjVec`] is extended
+    /// by the difference, with each additional slot filled with the result of calling
+    /// the closure `f`. The return values from `f` will end up in the `Vec` in the order
+    /// they have been generated.
+    ///
+    /// If `new_len` is less than `len`, the [`TypedProjVec`] is truncated, so the result is
+    /// similar to calling [`truncate`].
+    ///
+    /// This method uses a closure to create new values on every push. To clone a given value,
+    /// use [`resize`]. To use a data type's default value to generate values, use the
+    /// [`Default::default`] method.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the new capacity exceeds `isize::MAX` _bytes_.
+    ///
+    /// # Examples
+    ///
+    /// Resizing to the same size does not change the collection.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let length = 3;
+    /// let mut proj_vec = {
+    ///     let mut _proj_vec = TypedProjVec::with_capacity(10);
+    ///     for i in 1..(length + 1) {
+    ///         _proj_vec.push(i as i32);
+    ///     }
+    ///     _proj_vec.push(0);
+    ///     _proj_vec.push(0);
+    ///     _proj_vec
+    /// };
+    ///
+    /// assert_eq!(proj_vec.as_slice(), &[1, 2, 3, 0, 0]);
+    ///
+    /// proj_vec.resize_with(5, Default::default);
+    ///
+    /// assert_eq!(proj_vec.as_slice(), &[1, 2, 3, 0, 0]);
+    /// ```
+    ///
+    /// Resizing a collection to a larger collection.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_vec = TypedProjVec::new();
+    ///
+    /// let mut p = 1;
+    /// proj_vec.resize_with(4, || { p *= 2; p });
+    ///
+    /// assert_eq!(proj_vec.as_slice(), &[2, 4, 8, 16]);
+    /// ```
+    ///
+    /// [`truncate`]: TypedProjVec::truncate
+    /// [`resize`]: TypedProjVec::resize
     #[track_caller]
     pub fn resize_with<F>(&mut self, new_len: usize, f: F)
     where
@@ -397,40 +2827,298 @@ where
         self.inner.resize_with(new_len, f)
     }
 
+    /// Returns the remaining spare capacity of the [`TypedProjVec`] as a slice of
+    /// [`MaybeUninit<T>`].
+    ///
+    /// The returned slice can be used to fill the [`TypedProjVec`] with data before marking the
+    /// data as initialized using the [`set_len`] method.
+    ///
+    /// [`set_len`]: TypedProjVec::set_len
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_vec = TypedProjVec::with_capacity(10);
+    ///
+    /// // Fill in the first 3 elements.
+    /// let uninit = proj_vec.spare_capacity_mut();
+    /// uninit[0].write(1);
+    /// uninit[1].write(2);
+    /// uninit[2].write(3);
+    ///
+    /// // Mark the first 3 elements of the vector as being initialized.
+    /// unsafe {
+    ///     proj_vec.set_len(3);
+    /// }
+    ///
+    /// assert_eq!(proj_vec.as_slice(), &[1, 2, 3]);
+    /// ```
     #[inline]
     pub fn spare_capacity_mut(&mut self) -> &mut [MaybeUninit<T>] {
         self.inner.spare_capacity_mut()
     }
 
+    /// Attempts to reserve capacity for **at least** `additional` more elements to be inserted
+    /// in the given [`TypedProjVec`].
+    ///
+    /// The collection may reserve more space to speculatively avoid frequent reallocations.
+    /// After calling this method, the capacity will be greater than or equal to
+    /// `self.len() + additional` if it returns `Ok(())`. This method does nothing if the collection
+    /// capacity is already sufficient. This method preserves the contents even if an error occurs.
+    ///
+    /// # Errors
+    ///
+    /// This method returns an error if the capacity overflows, or the allocator reports a failure.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_vec = TypedProjVec::new();
+    ///
+    /// let data: [i32; 6] = [1, 2, 3, 4, 5, 6];
+    /// let result = proj_vec.try_reserve(10);
+    ///
+    /// assert!(result.is_ok());
+    ///
+    /// proj_vec.extend(data.iter().map(|&value| value * 2 + 5));
+    ///
+    /// let expected = [7, 9, 11, 13, 15, 17];
+    ///
+    /// assert_eq!(proj_vec.as_slice(), expected.as_slice());
+    /// ```
     pub fn try_reserve(&mut self, additional: usize) -> Result<(), TryReserveError> {
         self.inner.try_reserve(additional)
     }
 
+    /// Attempts to reserve capacity for **at least** `additional` more elements to be inserted
+    /// in the given [`TypedProjVec`].
+    ///
+    /// Unlike [`try_reserve`], this will not deliberately over-allocate to speculatively avoid frequent
+    /// allocations. After calling `reserve_exact`, the capacity of `self` will be greater than or
+    /// equal to `self.len() + additional`. This method does nothing if the capacity is already
+    /// sufficient.
+    ///
+    /// [`reserve`]: TypedProjVec::reserve
+    ///
+    /// # Errors
+    ///
+    /// This method returns an error if the capacity overflows, or the allocator reports a failure.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_vec = TypedProjVec::new();
+    ///
+    /// let data: [i32; 6] = [1, 2, 3, 4, 5, 6];
+    /// let result = proj_vec.try_reserve_exact(10);
+    ///
+    /// assert!(result.is_ok());
+    ///
+    /// proj_vec.extend(data.iter().map(|&value| value * 2 + 5));
+    ///
+    /// let expected = [7, 9, 11, 13, 15, 17];
+    ///
+    /// assert_eq!(proj_vec.as_slice(), expected.as_slice());
+    /// ```
     pub fn try_reserve_exact(&mut self, additional: usize) -> Result<(), TryReserveError> {
         self.inner.try_reserve_exact(additional)
     }
 
+    /// Attempts to reserve capacity for **at least** `additional` more elements to be inserted
+    /// in the given [`TypedProjVec`].
+    ///
+    /// The collection may reserve more space to speculatively avoid frequent reallocations.
+    /// After calling this method, the capacity will be greater than or equal to
+    /// `self.len() + additional` if it returns. This method does nothing if the collection
+    /// capacity is already sufficient. This method preserves the contents even if a panic occurs.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if one of the following conditions occurs:
+    /// * If the capacity of the vector overflows.
+    /// * If the allocator reports a failure.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_vec = TypedProjVec::new();
+    ///
+    /// let data: [i32; 6] = [1, 2, 3, 4, 5, 6];
+    /// let result = proj_vec.try_reserve(10);
+    ///
+    /// assert!(result.is_ok());
+    ///
+    /// proj_vec.extend(data.iter().map(|&value| value * 2 + 5));
+    ///
+    /// let expected = [7, 9, 11, 13, 15, 17];
+    ///
+    /// assert_eq!(proj_vec.as_slice(), expected.as_slice());
+    /// ```
     #[track_caller]
     pub fn reserve(&mut self, additional: usize) {
         self.inner.reserve(additional);
     }
 
+    /// Attempts to reserve capacity for **at least** `additional` more elements to be inserted
+    /// in the given [`TypedProjVec`].
+    ///
+    /// Unlike [`reserve`], this will not deliberately over-allocate to speculatively avoid frequent
+    /// allocations. After calling `reserve_exact`, the capacity of `self` will be greater than or
+    /// equal to `self.len() + additional`. This method does nothing if the capacity is already
+    /// sufficient.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if one of the following conditions occurs:
+    /// * If the capacity of the vector overflows.
+    /// * If the allocator reports a failure.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_vec = OpaqueVec::new::<i32>();
+    /// #
+    /// # assert!(proj_vec.has_element_type::<i32>());
+    /// # assert!(proj_vec.has_allocator_type::<Global>());
+    /// #
+    /// let data: [i32; 6] = [1, 2, 3, 4, 5, 6];
+    /// let result = proj_vec.try_reserve_exact::<i32, Global>(10);
+    ///
+    /// assert!(result.is_ok());
+    ///
+    /// proj_vec.extend::<_, i32, Global>(data.iter().map(|&value| value * 2 + 5));
+    ///
+    /// let expected = [7, 9, 11, 13, 15, 17];
+    ///
+    /// assert_eq!(proj_vec.as_slice::<i32, Global>(), expected.as_slice());
+    /// ```
     #[track_caller]
     pub fn reserve_exact(&mut self, additional: usize) {
         self.inner.reserve_exact(additional);
     }
 
+    /// Shrinks the capacity of the [`TypedProjVec`] as much as possible.
+    ///
+    /// The behavior of this method depends on the allocator, which may either shrink the
+    /// [`TypedProjVec`] in-place or reallocate. The resulting vector might still have some excess
+    /// capacity, just as is the case for [`with_capacity`]. See [`Allocator::shrink`] for more
+    /// details.
+    ///
+    /// [`with_capacity`]: TypedProjVec::with_capacity
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_vec = TypedProjVec::with_capacity(10);
+    ///
+    /// proj_vec.extend([1, 2, 3]);
+    ///
+    /// assert!(proj_vec.capacity() >= 10);
+    ///
+    /// proj_vec.shrink_to_fit();
+    ///
+    /// assert!(proj_vec.capacity() >= 3);
+    /// ```
     #[track_caller]
     #[inline]
     pub fn shrink_to_fit(&mut self) {
         self.inner.shrink_to_fit();
     }
 
+    /// Shrinks the capacity of the [`TypedProjVec`] to a lower bound.
+    ///
+    /// The behavior of this method depends on the allocator, which may either shrink the
+    /// [`TypedProjVec`] in-place or reallocate. The resulting vector might still have some excess
+    /// capacity, just as is the case for [`with_capacity`]. See [`Allocator::shrink`] for more
+    /// details.
+    ///
+    /// The capacity will remain at least as large as both the length
+    /// and the supplied capacity `min_capacity`. In particular, after calling this method,
+    /// the capacity of `self` satisfies
+    ///
+    /// ```text
+    /// self.capacity() >= max(self.len(), min_capacity).
+    /// ```
+    ///
+    /// If the current capacity of the [`TypedProjVec`] is less than the lower bound, the method does
+    /// nothing.
+    ///
+    /// [`with_capacity`]: TypedProjVec::with_capacity
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_vec = TypedProjVec::with_capacity(10);
+    ///
+    /// proj_vec.extend([1, 2, 3]);
+    ///
+    /// assert!(proj_vec.capacity() >= 10);
+    ///
+    /// proj_vec.shrink_to(4);
+    ///
+    /// assert!(proj_vec.capacity() >= 4);
+    ///
+    /// proj_vec.shrink_to(0);
+    ///
+    /// assert!(proj_vec.capacity() >= 3);
+    /// ```
     #[track_caller]
     pub fn shrink_to(&mut self, min_capacity: usize) {
         self.inner.shrink_to(min_capacity);
     }
 
+    /// Removes all values from the [`TypedProjVec`].
+    ///
+    /// After calling this method, the collection will be empty. This method does not change the
+    /// allocated capacity of the [`TypedProjVec`].
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_vec = TypedProjVec::with_capacity(10);
+    ///
+    /// proj_vec.extend([1, 2, 3]);
+    ///
+    /// assert_eq!(proj_vec.len(), 3);
+    ///
+    /// let old_capacity = proj_vec.capacity();
+    /// proj_vec.clear();
+    ///
+    /// assert_eq!(proj_vec.len(), 0);
+    /// assert_eq!(proj_vec.capacity(), old_capacity);
+    /// ```
     pub fn clear(&mut self) {
         self.inner.clear();
     }
@@ -441,6 +3129,61 @@ where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
+    /// Creates a splicing iterator that replaces the specified range in the [`TypedProjVec`]
+    /// with the given `replace_with` iterator and yields the removed items.
+    /// The argument `replace_with` does not need to be the same length as `range`.
+    ///
+    /// The `range` argument is removed even if the `Splice` iterator is not consumed before it is
+    /// dropped.
+    ///
+    /// It is unspecified how many elements are removed from the [`TypedProjVec`]
+    /// if the `Splice` value is leaked.
+    ///
+    /// The input iterator `replace_with` is only consumed when the `Splice` value is dropped.
+    ///
+    /// This is optimal if:
+    ///
+    /// * The tail (elements in the vector after `range`) is empty,
+    /// * or `replace_with` yields fewer or equal elements than `range`’s length
+    /// * or the lower bound of its `size_hint()` is exact.
+    ///
+    /// Otherwise, a temporary [`TypedProjVec`] is allocated and the tail is moved twice.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the starting point is greater than the end point or if the end point
+    /// is greater than the length of the vector.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::{IntoIter, TypedProjVec};
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_vec = TypedProjVec::from([1, 2, 3, 4]);
+    /// let new = TypedProjVec::from([7, 8, 9]);
+    /// let proj_vec2: TypedProjVec<i32> = proj_vec.splice(1..3, new.into_iter()).collect();
+    ///
+    /// assert_eq!(proj_vec.as_slice(), &[1, 7, 8, 9, 4]);
+    /// assert_eq!(proj_vec2.as_slice(), &[2, 3]);
+    /// ```
+    ///
+    /// Using `splice` to insert new items into a vector efficiently at a specific position
+    /// indicated by an empty range.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::{IntoIter, TypedProjVec};
+    /// # use std::alloc::Global;
+    /// # use std::slice;
+    /// #
+    /// let mut proj_vec = TypedProjVec::from([1, 5]);
+    /// let new = TypedProjVec::from([2, 3, 4]);
+    /// let splice: TypedProjVec<i32> = proj_vec.splice(1..1, new.into_iter()).collect();
+    ///
+    /// assert_eq!(proj_vec.as_slice(), &[1, 2, 3, 4, 5]);
+    /// ```
     #[inline]
     pub fn splice<R, I>(&mut self, range: R, replace_with: I) -> Splice<'_, I::IntoIter, A>
     where
@@ -450,6 +3193,92 @@ where
         self.inner.splice::<R, I>(range, replace_with)
     }
 
+    /// Creates an iterator which uses a closure to determine if an element in the range should be removed.
+    ///
+    /// If the closure returns `true`, the element is removed from the vector
+    /// and yielded. If the closure returns `false`, or panics, the element
+    /// remains in the vector and will not be yielded.
+    ///
+    /// Only elements that fall in the provided range are considered for extraction, but any elements
+    /// after the range will still have to be moved if any element has been extracted.
+    ///
+    /// If the returned [`ExtractIf`] is not exhausted, e.g. because it is dropped without iterating
+    /// or the iteration short-circuits, then the remaining elements will be retained.
+    /// Use [`retain_mut`] with a negated predicate if you do not need the returned iterator.
+    ///
+    /// [`retain_mut`]: TypedProjVec::retain_mut
+    ///
+    /// Using this method is equivalent to the following code:
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::{IntoIter, TypedProjVec};
+    /// # use std::alloc::Global;
+    /// #
+    /// # let some_predicate = |x: &mut i32| { *x % 2 == 1 };
+    /// # let mut proj_vec = TypedProjVec::from([0, 1, 2, 3, 4, 5, 6]);
+    /// # let mut proj_vec2 = proj_vec.clone();
+    ///
+    /// # let range = 1..5;
+    /// let mut i = range.start;
+    /// let end_items = proj_vec.len() - range.end;
+    /// # let mut extracted = TypedProjVec::new();
+    ///
+    /// while i < proj_vec.len() - end_items {
+    ///     if some_predicate(proj_vec.get_mut(i).unwrap()) {
+    ///         let val = proj_vec.shift_remove(i);
+    /// #         extracted.push(val);
+    ///         // your code here
+    ///     } else {
+    ///         i += 1;
+    ///     }
+    /// }
+    ///
+    /// # let extracted2: TypedProjVec<i32> = proj_vec2.extract_if(range, some_predicate).collect();
+    /// # assert_eq!(proj_vec.as_slice(), proj_vec2.as_slice());
+    /// # assert_eq!(extracted.as_slice(), extracted2.as_slice());
+    /// ```
+    ///
+    /// But `extract_if` is easier to use. `extract_if` is also more efficient,
+    /// because it can backshift the elements of the array in bulk.
+    ///
+    /// The iterator also lets you mutate the value of each element in the
+    /// closure, regardless of whether you choose to keep or remove it.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if `range` is out of bounds.
+    ///
+    /// # Examples
+    ///
+    /// Splitting a vector into even and odd values, reusing the original vector.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::{IntoIter, TypedProjVec};
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut numbers = TypedProjVec::from([1, 2, 3, 4, 5, 6, 8, 9, 11, 13, 14, 15]);
+    /// let evens: TypedProjVec<i32> = numbers.extract_if(.., |x| *x % 2 == 0).collect();
+    /// let odds = numbers;
+    ///
+    /// assert_eq!(evens.as_slice(), &[2, 4, 6, 8, 14]);
+    /// assert_eq!(odds.as_slice(), &[1, 3, 5, 9, 11, 13, 15]);
+    /// ```
+    ///
+    /// Using the range argument to only process a part of the vector.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::{IntoIter, TypedProjVec};
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut items = TypedProjVec::from([0, 0, 0, 0, 0, 0, 0, 1, 2, 1, 2, 1, 2]);
+    /// let ones: TypedProjVec<i32> = items.extract_if(7.., |x| *x == 1).collect();
+    ///
+    /// assert_eq!(items.as_slice(), &[0, 0, 0, 0, 0, 0, 0, 2, 2, 2]);
+    /// assert_eq!(ones.len(), 3);
+    /// ```
     pub fn extract_if<F, R>(&mut self, range: R, filter: F) -> ExtractIf<'_, T, F, A>
     where
         T: any::Any,
@@ -478,6 +3307,26 @@ where
     }
     */
 
+    /// Appends all elements from a slice to the [`TypedProjVec`].
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let array: [i32; 6] = [1, 2, 3, 4, 5, 6];
+    /// let extension: [i32; 4] = [7, 8, 9, 10];
+    /// let combined: [i32; 10] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    /// let expected = TypedProjVec::from(combined);
+    ///
+    /// let mut result = TypedProjVec::from(array);
+    /// result.extend_from_slice(&extension);
+    ///
+    /// assert_eq!(result.len(), array.len() + extension.len());
+    /// assert_eq!(result.as_slice(), expected.as_slice());
+    /// ```
     #[track_caller]
     pub fn extend_from_slice(&mut self, other: &[T])
     where
@@ -486,6 +3335,102 @@ where
         self.inner.extend_from_slice(other);
     }
 
+    /// Resizes the [`TypedProjVec`] in-place so that `len` is equal to `new_len`.
+    ///
+    /// If `new_len > len`, the [`TypedProjVec`] is extended by the
+    /// difference, with each additional slot filled with `value`.
+    /// If `new_len < len`, the [`TypedProjVec`] is truncated.
+    ///
+    /// If you need more flexibility (or want to rely on [`Default`] instead of
+    /// [`Clone`]), use [`TypedProjVec::resize_with`].
+    /// If you only need to resize to a smaller size, use [`TypedProjVec::truncate`].
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the new capacity exceeds `isize::MAX` _bytes_.
+    ///
+    /// # Examples
+    ///
+    /// Extending an [`TypedProjVec`] with a default value.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_vec = TypedProjVec::from([
+    ///     "spam",
+    ///     "eggs",
+    ///     "sausage",
+    ///     "spam",
+    ///     "baked beans",
+    ///     "spam",
+    ///     "Lobster Thermidor aux Crevettes with a Mornay sauce, garnished with truffle pâté, brandy, with a fried egg on top, and spam",
+    ///     "bacon",
+    /// ]);
+    /// proj_vec.resize(14, "spam");
+    ///
+    /// assert_eq!(proj_vec.len(), 14);
+    ///
+    /// let expected = TypedProjVec::from([
+    ///     "spam",
+    ///     "eggs",
+    ///     "sausage",
+    ///     "spam",
+    ///     "baked beans",
+    ///     "spam",
+    ///     "Lobster Thermidor aux Crevettes with a Mornay sauce, garnished with truffle pâté, brandy, with a fried egg on top, and spam",
+    ///     "bacon",
+    ///     "spam",
+    ///     "spam",
+    ///     "spam",
+    ///     "spam",
+    ///     "spam",
+    ///     "spam",
+    /// ]);
+    ///
+    /// assert_eq!(proj_vec.as_slice(), expected.as_slice());
+    /// ```
+    ///
+    /// Shrinking an [`TypedProjVec`] with a default value.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_vec = TypedProjVec::from([
+    ///     "spam",
+    ///     "eggs",
+    ///     "sausage",
+    ///     "spam",
+    ///     "baked beans",
+    ///     "spam",
+    ///     "Lobster Thermidor aux Crevettes with a Mornay sauce, garnished with truffle pâté, brandy, with a fried egg on top, and spam",
+    ///     "bacon",
+    ///     "spam",
+    ///     "spam",
+    ///     "spam",
+    ///     "spam",
+    ///     "spam",
+    ///     "spam",
+    /// ]);
+    /// let expected = TypedProjVec::from([
+    ///     "spam",
+    ///     "eggs",
+    ///     "sausage",
+    ///     "spam",
+    ///     "baked beans",
+    ///     "spam",
+    ///     "Lobster Thermidor aux Crevettes with a Mornay sauce, garnished with truffle pâté, brandy, with a fried egg on top, and spam",
+    ///     "bacon",
+    /// ]);
+    ///
+    /// proj_vec.resize(8, "I DON'T WANT SPAM!");
+    ///
+    /// assert_eq!(proj_vec.len(), 8);
+    /// assert_eq!(proj_vec.as_slice(), expected.as_slice());
+    /// ```
     #[track_caller]
     pub fn resize(&mut self, new_len: usize, value: T)
     where
@@ -494,6 +3439,79 @@ where
         self.inner.resize(new_len, value);
     }
 
+    /// Shorten an [`TypedProjVec`] to the supplied length, dropping the remaining elements.
+    ///
+    /// This method keeps the first `len` elements, and drops the rest of the elements, so that
+    /// the length after calling this method is at most `len`. This method does nothing if
+    /// `self.len() <= len`.
+    ///
+    /// # Examples
+    ///
+    /// Truncating a [`TypedProjVec`] when `len < self.len()`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_vec = TypedProjVec::from([1, 2, 3, 4, 5, 6]);
+    /// proj_vec.truncate(2);
+    ///
+    /// assert_eq!(proj_vec.len(), 2);
+    /// assert_eq!(proj_vec.as_slice(), &[1, 2]);
+    /// ```
+    ///
+    /// No truncation occurs when `len == self.len()`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let array: [i32; 6] = [1, 2, 3, 4, 5, 6];
+    /// let mut proj_vec = TypedProjVec::from(array);
+    /// proj_vec.truncate(6);
+    ///
+    /// assert_eq!(proj_vec.len(), 6);
+    /// assert_eq!(proj_vec.as_slice(), &array);
+    /// ```
+    ///
+    /// No truncation occurs when `len > self.len()`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let array: [i32; 6] = [1, 2, 3, 4, 5, 6];
+    /// let mut proj_vec = TypedProjVec::from(array);
+    /// proj_vec.truncate(7);
+    ///
+    /// assert_eq!(proj_vec.len(), 6);
+    /// assert_eq!(proj_vec.as_slice(), &array);
+    ///
+    /// proj_vec.truncate(10000);
+    ///
+    /// assert_eq!(proj_vec.len(), 6);
+    /// assert_eq!(proj_vec.as_slice(), &array);
+    /// ```
+    ///
+    /// Truncating when `len == 0` is equivalent to calling the [`clear`] method.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_vec = TypedProjVec::from([1, 2, 3, 4, 5, 6]);
+    /// proj_vec.truncate(0);
+    ///
+    /// assert_eq!(proj_vec.len(), 0);
+    /// assert_eq!(proj_vec.as_slice(), &[]);
+    /// ```
+    ///
+    /// [`clear`]: TypedProjVec::clear
+    /// [`drain`]: TypedProjVec::drain
     #[inline]
     pub fn truncate(&mut self, len: usize) {
         self.inner.truncate(len);
@@ -505,6 +3523,25 @@ where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
+    /// Retains only the elements in the [`TypedProjVec`] that satisfy the supplied predicate.
+    ///
+    /// This method removes all elements from the collection for which the predicate returns
+    /// `false`. In particular, for each element `e` in the collection, it removes `e` provided
+    /// that `f(&e) == false`. This method operates in place, and preserves the order of the
+    /// retained elements.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_vec = TypedProjVec::from([1, 2, 3, 4, 5, 6]);
+    /// proj_vec.retain(|&x| x % 2 == 0);
+    ///
+    /// assert_eq!(proj_vec.as_slice(), &[2, 4, 6]);
+    /// ```
     pub fn retain<F>(&mut self, mut f: F)
     where
         F: FnMut(&T) -> bool,
@@ -512,6 +3549,31 @@ where
         self.inner.retain(|elem| f(elem));
     }
 
+    /// Retains only the elements in the [`TypedProjVec`] that satisfy the supplied predicate passing
+    /// a mutable reference to it.
+    ///
+    /// This method removes all elements from the collection for which the predicate returns
+    /// `false`. In particular, for each element `e` in the collection, it removes `e` provided
+    /// that `f(&e) == false`. This method operates in place, and preserves the order of the
+    /// retained elements.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_vec = TypedProjVec::from([1, 2, 3, 4, 5, 6]);
+    /// proj_vec.retain_mut(|x| if *x <= 3 {
+    ///     *x += 1;
+    ///     true
+    /// } else {
+    ///     false
+    /// });
+    ///
+    /// assert_eq!(proj_vec.as_slice(), &[2, 3, 4]);
+    /// ```
     pub fn retain_mut<F>(&mut self, f: F)
     where
         F: FnMut(&mut T) -> bool,
@@ -519,6 +3581,92 @@ where
         self.inner.retain_mut(f)
     }
 
+    /// Removes consecutive repeated elements in the [`TypedProjVec`] according to the
+    /// [`PartialEq`] trait implementation.
+    ///
+    /// This method removes all duplicates if the collection is sorted.
+    ///
+    /// # Examples
+    ///
+    /// Deduplicating an unsorted [`TypedProjVec`].
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_vec = TypedProjVec::from([1, 2, 3, 2, 2, 2, 6, 4, 4]);
+    /// proj_vec.dedup();
+    ///
+    /// assert_eq!(proj_vec.as_slice(), &[1, 2, 3, 2, 6, 4]);
+    /// ```
+    ///
+    /// Deduplicating a sorted [`TypedProjVec`] with duplicate values.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_vec = TypedProjVec::from([1, 2, 3, 3, 3, 3, 4, 4, 4, 5]);
+    /// proj_vec.dedup();
+    ///
+    /// assert_eq!(proj_vec.as_slice(), &[1, 2, 3, 4, 5]);
+    /// ```
+    ///
+    /// Deduplicating a sorted [`TypedProjVec`] with no duplicate values does nothing.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_vec = TypedProjVec::from( [1, 2, 3, 4, 5]);
+    /// proj_vec.dedup();
+    ///
+    /// assert_eq!(proj_vec.as_slice(), &[1, 2, 3, 4, 5]);
+    /// ```
+    #[inline]
+    pub fn dedup(&mut self)
+    where
+        T: PartialEq,
+    {
+        self.inner.dedup()
+    }
+
+    /// Removes all but the first of consecutive elements in the [`TypedProjVec`] that resolve to
+    /// the same key.
+    ///
+    /// This removes all duplicates if the collection is sorted (since each duplicate value
+    /// trivially resolves to the same key).
+    ///
+    /// # Examples
+    ///
+    /// Deduplicating an unsorted [`TypedProjVec`] by key.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_vec = TypedProjVec::from([10, 20, 21, 30, 20]);
+    /// proj_vec.dedup_by_key(|i| *i / 10);
+    ///
+    /// assert_eq!(proj_vec.as_slice(), &[10, 20, 30, 20]);
+    /// ```
+    ///
+    /// Deduplicating a sorted [`TypedProjVec`] by key with duplicate values.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_vec = TypedProjVec::from([10, 20, 20, 21, 30, 30, 30, 40]);
+    /// proj_vec.dedup_by_key(|i| *i / 10);
+    ///
+    /// assert_eq!(proj_vec.as_slice(), &[10, 20, 30, 40]);
+    /// ```
     #[inline]
     pub fn dedup_by_key<F, K>(&mut self, key: F)
     where
@@ -528,19 +3676,59 @@ where
         self.inner.dedup_by_key(key)
     }
 
+    /// Removes all but the first of consecutive elements in the vector satisfying a given equality
+    /// relation.
+    ///
+    /// The `same_bucket` function is passed references to two elements from the collection and
+    /// must determine if the elements compare equal. The elements are passed in opposite order
+    /// from their order in the slice, so if `same_bucket(a, b)` returns `true`, `a` is removed.
+    ///
+    /// This method removes all duplicates if the collection is sorted.
+    ///
+    /// # Examples
+    ///
+    /// Deduplicating an unsorted [`TypedProjVec`].
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_vec = TypedProjVec::from([
+    ///     "foo",
+    ///     "bar", "Bar",
+    ///     "baz",
+    ///     "bar",
+    ///     "quux", "Quux", "QuuX"
+    /// ]);
+    /// opaque_vec.dedup_by(|a, b| a.eq_ignore_ascii_case(b));
+    ///
+    /// assert_eq!(opaque_vec.as_slice(), &["foo", "bar", "baz", "bar", "quux"]);
+    /// ```
+    ///
+    /// Deduplicating a sorted [`TypedProjVec`] with duplicate values.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_vec = TypedProjVec::from([
+    ///     "foo",
+    ///     "bar", "Bar", "bar",
+    ///     "baz", "Baz", "BaZ",
+    ///     "quux", "Quux", "QuuX",
+    ///     "garply"
+    /// ]);
+    /// opaque_vec.dedup_by(|a, b| a.eq_ignore_ascii_case(b));
+    ///
+    /// assert_eq!(opaque_vec.as_slice(), &["foo", "bar", "baz", "quux", "garply"]);
+    /// ```
     pub fn dedup_by<F>(&mut self, same_bucket: F)
     where
         F: FnMut(&mut T, &mut T) -> bool,
     {
         self.inner.dedup_by(same_bucket)
-    }
-
-    #[inline]
-    pub fn dedup(&mut self)
-    where
-        T: PartialEq,
-    {
-        self.inner.dedup()
     }
 }
 
@@ -1139,6 +4327,16 @@ impl OpaqueVec {
         self.inner.allocator_type_id() == any::TypeId::of::<A>()
     }
 
+    /// Assert the concrete types underlying a type-erased data type.
+    ///
+    /// This method's main use case is ensuring the type safety of an operation before projecting
+    /// into the type-projected counterpart of the type-erased vector.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the elements of `self` and the [`TypeId`]
+    /// of the memory allocator of `self` do not match the requested element type `T` and
+    /// allocator type `A`, respectively.
     #[inline]
     #[track_caller]
     fn assert_type_safety<T, A>(&self)
@@ -1827,7 +5025,7 @@ impl OpaqueVec {
     /// assert!(empty_vec.is_empty());
     /// ```
     ///
-    /// [`new_in`]: OpaqueVec::new_in`
+    /// [`new_in`]: OpaqueVec::new_in
     #[inline]
     #[must_use]
     #[track_caller]
@@ -2965,10 +6163,10 @@ impl OpaqueVec {
     /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &[1, 2, 3]);
     /// ```
     ///
-    /// [`truncate`]: Vec::truncate
-    /// [`resize`]: Vec::resize
-    /// [`extend`]: Extend::extend
-    /// [`clear`]: Vec::clear
+    /// [`truncate`]: OpaqueVec::truncate
+    /// [`resize`]: OpaqueVec::resize
+    /// [`extend`]: OpaqueVec::extend
+    /// [`clear`]: OpaqueVec::clear
     #[inline]
     pub unsafe fn set_len<T, A>(&mut self, new_len: usize)
     where
@@ -3185,7 +6383,6 @@ impl OpaqueVec {
     /// * The [`TypeId`] of the elements of `self` and the [`TypeId`] of the memory allocator of
     ///   `self` do not match the requested element type `T` and allocator type `A`, respectively.
     /// * The new capacity exceeds `isize::MAX` _bytes_ if the [`OpaqueVec`] reallocates.
-    /// Otherwise, the method succeeds.
     ///
     /// # Example
     ///
@@ -3217,7 +6414,7 @@ impl OpaqueVec {
     }
 
     /// Returns the last element in an [`OpaqueVec`] if the vector is non-empty,
-    /// and `None` if it is empty.
+    /// and returns `None` if the collection is empty.
     ///
     /// # Panics
     ///
@@ -3259,8 +6456,8 @@ impl OpaqueVec {
         proj_self.pop()
     }
 
-    /// Appends an element to an [`OpaqueVec`] if there is sufficient spare capacity. Otherwise, an
-    /// error is returned with the element.
+    /// Appends an element to an [`OpaqueVec`] if there is sufficient spare capacity. Otherwise,
+    /// an error is returned with the element.
     ///
     /// Unlike [`push`], this method will not reallocate when there's insufficient
     /// capacity. The caller should use [`reserve`] or [`try_reserve`] to ensure that
@@ -3287,7 +6484,7 @@ impl OpaqueVec {
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
     /// #
-    /// for i in 0..min_capacity{
+    /// for i in 0..min_capacity {
     ///     let result = opaque_vec.push_within_capacity::<i32, Global>((i + 1) as i32);
     ///     assert!(result.is_ok());
     /// }
@@ -3385,8 +6582,8 @@ impl OpaqueVec {
         proj_self.replace_insert(index, value);
     }
 
-    /// Inserts a new value into an [`OpaqueVec`], shifting the old value and all values after it to
-    /// the right in the collection..
+    /// Inserts a new value into an [`OpaqueVec`], shifting the old value and all values after
+    /// it to the right in the collection..
     ///
     /// This method behaves with respect to `index` as follows:
     /// * If `index < self.len()`, it shifts the current value at `index` and all successive values
@@ -3436,8 +6633,8 @@ impl OpaqueVec {
         proj_self.shift_insert(index, value);
     }
 
-    /// Removes a value from an [`OpaqueVec`], moving the last value in the collection to the index
-    /// where the removed value occupies the collection.
+    /// Removes a value from an [`OpaqueVec`], moving the last value in the collection to the
+    /// index where the removed value occupies the collection.
     ///
     /// This method behaves with respect to `index` as follows:
     /// * If `index < self.len() - 1`, it moves the last value in the collection to the slot at
@@ -3784,11 +6981,13 @@ impl OpaqueVec {
     ///
     /// # Panics
     ///
-    /// This method panics if the [`TypeId`] of the elements of `self` and the [`TypeId`]
-    /// of the memory allocator of `self` do not match the requested element type `T` and
-    /// allocator type `A`, respectively. Similarly, the method panics if the [`TypeId`] of
-    /// the elements of `self` and `other` do not match, or the [`TypeId`] of the allocators of
-    /// `self` and `other` do not match.
+    /// This method panics under one of the following conditions:
+    /// * if the [`TypeId`] of the elements of `self` and the [`TypeId`] of the memory allocator
+    ///   of `self` do not match the requested element type `T` and allocator type `A`,
+    ///   respectively. Similarly, the method panics if the [`TypeId`] of the elements of `self`
+    ///   and `other` do not match, or the [`TypeId`] of the allocators of `self` and `other` do
+    ///   not match.
+    /// * If the new capacity exceeds `isize::MAX` _bytes_.
     ///
     /// # Example
     ///
@@ -4356,14 +7555,12 @@ impl OpaqueVec {
     /// # use crate::opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
-    /// let mut array: [i32; 3] = [9, 28, 37];
-    /// let mut opaque_vec = OpaqueVec::from(array);
+    /// let array: [i32; 3] = [-1, 0, 1];
+    /// let opaque_vec = OpaqueVec::from(array);
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
     /// #
-    /// let array: [i32; 3] = [-1, 0, 1];
-    /// let opaque_vec = OpaqueVec::from(array);
     ///
     /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &[-1, 0, 1]);
     ///
@@ -4412,14 +7609,12 @@ impl OpaqueVec {
     /// # use crate::opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
-    /// let mut array: [i32; 3] = [9, 28, 37];
-    /// let mut opaque_vec = OpaqueVec::from(array);
+    /// let array: [i32; 3] = [-1, 0, 1];
+    /// let opaque_vec = OpaqueVec::from(array);
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
     /// #
-    /// let array: [i32; 3] = [-1, 0, 1];
-    /// let opaque_vec = OpaqueVec::from(array);
     ///
     /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &[-1, 0, 1]);
     ///
@@ -4469,14 +7664,12 @@ impl OpaqueVec {
     /// # use crate::opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
-    /// let mut array: [i32; 3] = [9, 28, 37];
-    /// let mut opaque_vec = OpaqueVec::from(array);
+    /// let array: [i32; 3] = [-1, 0, 1];
+    /// let opaque_vec = OpaqueVec::from(array);
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
     /// #
-    /// let array: [i32; 3] = [-1, 0, 1];
-    /// let opaque_vec = OpaqueVec::from(array);
     ///
     /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &[-1, 0, 1]);
     ///
@@ -4526,14 +7719,12 @@ impl OpaqueVec {
     /// # use crate::opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
-    /// let mut array: [i32; 3] = [9, 28, 37];
-    /// let mut opaque_vec = OpaqueVec::from(array);
+    /// let array: [i32; 3] = [-1, 0, 1];
+    /// let opaque_vec = OpaqueVec::from(array);
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
     /// #
-    /// let array: [i32; 3] = [-1, 0, 1];
-    /// let opaque_vec = OpaqueVec::from(array);
     ///
     /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &[-1, 0, 1]);
     ///
@@ -4761,10 +7952,11 @@ impl OpaqueVec {
         proj_self.resize_with(new_len, f)
     }
 
-    /// Returns the remaining spare capacity of the [`OpaqueVec`] as a slice of [`MaybeUninit<T>`].
+    /// Returns the remaining spare capacity of the [`OpaqueVec`] as a slice of
+    /// [`MaybeUninit<T>`].
     ///
-    /// The returned slice can be used to fill the [`OpaqueVec`] with data before marking the data
-    /// as initialized using the [`set_len`] method.
+    /// The returned slice can be used to fill the [`OpaqueVec`] with data before marking the
+    /// data as initialized using the [`set_len`] method.
     ///
     /// [`set_len`]: OpaqueVec::set_len
     ///
@@ -4812,7 +8004,7 @@ impl OpaqueVec {
     }
 
     /// Attempts to reserve capacity for **at least** `additional` more elements to be inserted
-    /// in the given `OpaqueVec`.
+    /// in the given [`OpaqueVec`].
     ///
     /// The collection may reserve more space to speculatively avoid frequent reallocations.
     /// After calling this method, the capacity will be greater than or equal to
@@ -4863,12 +8055,14 @@ impl OpaqueVec {
     }
 
     /// Attempts to reserve capacity for **at least** `additional` more elements to be inserted
-    /// in the given `OpaqueVec`.
+    /// in the given [`OpaqueVec`].
     ///
-    /// The collection may reserve more space to speculatively avoid frequent reallocations.
-    /// After calling this method, the capacity will be greater than or equal to
-    /// `self.len() + additional` if it returns `Ok(())`. This method does nothing if the collection
-    /// capacity is already sufficient. This method preserves the contents even if an error occurs.
+    /// Unlike [`reserve`], this will not deliberately over-allocate to speculatively avoid frequent
+    /// allocations. After calling `reserve_exact`, the capacity of `self` will be greater than or
+    /// equal to `self.len() + additional`. This method does nothing if the capacity is already
+    /// sufficient.
+    ///
+    /// [`reserve`]: OpaqueVec::reserve
     ///
     /// # Errors
     ///
@@ -4914,7 +8108,7 @@ impl OpaqueVec {
     }
 
     /// Attempts to reserve capacity for **at least** `additional` more elements to be inserted
-    /// in the given `OpaqueVec`.
+    /// in the given [`OpaqueVec`].
     ///
     /// The collection may reserve more space to speculatively avoid frequent reallocations.
     /// After calling this method, the capacity will be greater than or equal to
@@ -4964,16 +8158,12 @@ impl OpaqueVec {
     }
 
     /// Attempts to reserve capacity for **at least** `additional` more elements to be inserted
-    /// in the given `OpaqueVec`.
+    /// in the given [`OpaqueVec`].
     ///
     /// The collection may reserve more space to speculatively avoid frequent reallocations.
     /// After calling this method, the capacity will be greater than or equal to
     /// `self.len() + additional` if it returns. This method does nothing if the collection
     /// capacity is already sufficient. This method preserves the contents even if a panic occurs.
-    ///
-    /// # Errors
-    ///
-    /// This method returns an error if the capacity overflows, or the allocator reports a failure.
     ///
     /// # Panics
     ///
@@ -5224,8 +8414,7 @@ impl OpaqueVec {
     /// let opaque_vec2: OpaqueVec = opaque_vec.splice::<_, _, i32, Global>(
     ///         1..3,
     ///         new.into_iter::<i32, Global>()
-    ///     )
-    ///     .collect();
+    ///     ).collect();
     /// #
     /// # assert!(opaque_vec2.has_element_type::<i32>());
     /// # assert!(opaque_vec2.has_allocator_type::<Global>());
@@ -5263,8 +8452,7 @@ impl OpaqueVec {
     /// let splice: OpaqueVec = opaque_vec.splice::<_, _, i32, Global>(
     ///         1..1,
     ///         new.into_iter::<i32, Global>()
-    ///     )
-    ///     .collect();
+    ///     ).collect();
     ///
     /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &[1, 2, 3, 4, 5]);
     /// ```
@@ -5294,7 +8482,7 @@ impl OpaqueVec {
     /// or the iteration short-circuits, then the remaining elements will be retained.
     /// Use [`retain_mut`] with a negated predicate if you do not need the returned iterator.
     ///
-    /// [`retain_mut`]: Vec::retain_mut
+    /// [`retain_mut`]: OpaqueVec::retain_mut
     ///
     /// Using this method is equivalent to the following code:
     ///
@@ -5712,8 +8900,8 @@ impl OpaqueVec {
     /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &[]);
     /// ```
     ///
-    /// [`clear`]: Vec::clear
-    /// [`drain`]: Vec::drain
+    /// [`clear`]: OpaqueVec::clear
+    /// [`drain`]: OpaqueVec::drain
     #[inline]
     pub fn truncate<T, A>(&mut self, len: usize)
     where
@@ -5903,8 +9091,8 @@ impl OpaqueVec {
         proj_self.dedup();
     }
 
-    /// Removes all but the first of consecutive elements in the [`OpaqueVec`] that resolve to the
-    /// same key.
+    /// Removes all but the first of consecutive elements in the [`OpaqueVec`] that resolve to
+    /// the same key.
     ///
     /// This removes all duplicates if the collection is sorted (since each duplicate value
     /// trivially resolves to the same key).
@@ -5988,7 +9176,12 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// let mut opaque_vec = {
-    ///     let array: [&'static str; 8] = ["foo", "bar", "Bar", "baz", "bar", "quux", "Quux", "QuuX"];
+    ///     let array: [&'static str; 8] = [
+    ///         "foo",
+    ///         "bar", "Bar",
+    ///         "baz", "bar",
+    ///         "quux", "Quux", "QuuX"
+    ///     ];
     ///     OpaqueVec::from(array)
     /// };
     ///
@@ -6005,7 +9198,14 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// let mut opaque_vec = {
-    ///     let array: [&'static str; 11] = ["foo", "bar", "Bar", "bar", "baz", "Baz", "BaZ", "quux", "Quux", "QuuX", "garply"];
+    ///     let array: [&'static str; 11] = [
+    ///         "foo",
+    ///         "bar", "Bar",
+    ///         "bar",
+    ///         "baz", "Baz", "BaZ",
+    ///         "quux", "Quux", "QuuX",
+    ///         "garply"
+    ///     ];
     ///     OpaqueVec::from(array)
     /// };
     ///
