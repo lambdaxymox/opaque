@@ -110,6 +110,46 @@ where
     }
 }
 
+impl<T, A> Drain<'_, T, A>
+where
+    T: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    pub(crate) unsafe fn fill<I: Iterator<Item = T>>(&mut self, replace_with: &mut I) -> bool {
+        let vec = unsafe { self.vec.as_mut() };
+        let range_start = vec.len();
+        let range_end = self.tail_start;
+        let range_slice = unsafe { slice::from_raw_parts_mut(vec.as_mut_ptr().add(range_start), range_end - range_start) };
+
+        for place in range_slice {
+            if let Some(new_item) = replace_with.next() {
+                unsafe {
+                    core::ptr::write(place, new_item);
+                    vec.set_len(vec.len() + 1);
+                }
+            } else {
+                return false;
+            }
+        }
+
+        true
+    }
+
+    #[track_caller]
+    pub(crate) unsafe fn move_tail(&mut self, additional: usize) {
+        let vec = unsafe { self.vec.as_mut() };
+        vec.reserve(additional);
+
+        let new_tail_start = self.tail_start + additional;
+        unsafe {
+            let src = vec.as_ptr().add(self.tail_start);
+            let dst = vec.as_mut_ptr().add(new_tail_start);
+            core::ptr::copy(src, dst, self.tail_len);
+        }
+        self.tail_start = new_tail_start;
+    }
+}
+
 impl<'a, T, A> AsRef<[T]> for Drain<'a, T, A>
 where
     T: any::Any,

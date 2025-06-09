@@ -859,7 +859,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[inline]
-    pub fn clear(&mut self) {
+    pub(crate) fn clear(&mut self) {
         debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
         debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
 

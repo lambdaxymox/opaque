@@ -46,7 +46,7 @@ where
         Self { iter }
     }
 
-    pub fn as_slice(&self) -> &Slice<K, V> {
+    pub(crate) fn as_slice(&self) -> &Slice<K, V> {
         Slice::from_slice(self.iter.as_slice())
     }
 }
@@ -548,33 +548,33 @@ impl<K, V> Slice<K, V> {
         &self.entries
     }
 
-    pub const fn new<'a>() -> &'a Self {
+    pub(crate) const fn new<'a>() -> &'a Self {
         Self::from_slice(&[])
     }
 
-    pub const fn new_mut<'a>() -> &'a mut Self {
+    pub(crate) const fn new_mut<'a>() -> &'a mut Self {
         Self::from_slice_mut(&mut [])
     }
 
     #[inline]
-    pub const fn len(&self) -> usize {
+    pub(crate) const fn len(&self) -> usize {
         self.entries.len()
     }
 
     #[inline]
-    pub const fn is_empty(&self) -> bool {
+    pub(crate) const fn is_empty(&self) -> bool {
         self.entries.is_empty()
     }
 
-    pub fn get_index(&self, index: usize) -> Option<(&K, &V)> {
+    pub(crate) fn get_index(&self, index: usize) -> Option<(&K, &V)> {
         self.entries.get(index).map(Bucket::refs)
     }
 
-    pub fn get_index_mut(&mut self, index: usize) -> Option<(&K, &mut V)> {
+    pub(crate) fn get_index_mut(&mut self, index: usize) -> Option<(&K, &mut V)> {
         self.entries.get_mut(index).map(Bucket::ref_mut)
     }
 
-    pub fn get_range<R>(&self, range: R) -> Option<&Self>
+    pub(crate) fn get_range<R>(&self, range: R) -> Option<&Self>
     where
         R: ops::RangeBounds<usize>,
     {
@@ -583,7 +583,7 @@ impl<K, V> Slice<K, V> {
         self.entries.get(range).map(Slice::from_slice)
     }
 
-    pub fn get_range_mut<R>(&mut self, range: R) -> Option<&mut Self>
+    pub(crate) fn get_range_mut<R>(&mut self, range: R) -> Option<&mut Self>
     where
         R: ops::RangeBounds<usize>,
     {
@@ -592,34 +592,34 @@ impl<K, V> Slice<K, V> {
         self.entries.get_mut(range).map(Slice::from_slice_mut)
     }
 
-    pub fn first(&self) -> Option<(&K, &V)> {
+    pub(crate) fn first(&self) -> Option<(&K, &V)> {
         self.entries.first().map(Bucket::refs)
     }
 
-    pub fn first_mut(&mut self) -> Option<(&K, &mut V)> {
+    pub(crate) fn first_mut(&mut self) -> Option<(&K, &mut V)> {
         self.entries.first_mut().map(Bucket::ref_mut)
     }
 
-    pub fn last(&self) -> Option<(&K, &V)> {
+    pub(crate) fn last(&self) -> Option<(&K, &V)> {
         self.entries.last().map(Bucket::refs)
     }
 
-    pub fn last_mut(&mut self) -> Option<(&K, &mut V)> {
+    pub(crate) fn last_mut(&mut self) -> Option<(&K, &mut V)> {
         self.entries.last_mut().map(Bucket::ref_mut)
     }
 
-    pub fn split_at(&self, index: usize) -> (&Self, &Self) {
+    pub(crate) fn split_at(&self, index: usize) -> (&Self, &Self) {
         let (first, second) = self.entries.split_at(index);
         (Self::from_slice(first), Self::from_slice(second))
     }
 
-    pub fn split_at_mut(&mut self, index: usize) -> (&mut Self, &mut Self) {
+    pub(crate) fn split_at_mut(&mut self, index: usize) -> (&mut Self, &mut Self) {
         let (first, second) = self.entries.split_at_mut(index);
 
         (Self::from_slice_mut(first), Self::from_slice_mut(second))
     }
 
-    pub fn split_first(&self) -> Option<((&K, &V), &Self)> {
+    pub(crate) fn split_first(&self) -> Option<((&K, &V), &Self)> {
         if let [first, rest @ ..] = &self.entries {
             Some((first.refs(), Self::from_slice(rest)))
         } else {
@@ -627,7 +627,7 @@ impl<K, V> Slice<K, V> {
         }
     }
 
-    pub fn split_first_mut(&mut self) -> Option<((&K, &mut V), &mut Self)> {
+    pub(crate) fn split_first_mut(&mut self) -> Option<((&K, &mut V), &mut Self)> {
         if let [first, rest @ ..] = &mut self.entries {
             Some((first.ref_mut(), Self::from_slice_mut(rest)))
         } else {
@@ -635,7 +635,7 @@ impl<K, V> Slice<K, V> {
         }
     }
 
-    pub fn split_last(&self) -> Option<((&K, &V), &Self)> {
+    pub(crate) fn split_last(&self) -> Option<((&K, &V), &Self)> {
         if let [rest @ .., last] = &self.entries {
             Some((last.refs(), Self::from_slice(rest)))
         } else {
@@ -643,7 +643,7 @@ impl<K, V> Slice<K, V> {
         }
     }
 
-    pub fn split_last_mut(&mut self) -> Option<((&K, &mut V), &mut Self)> {
+    pub(crate) fn split_last_mut(&mut self) -> Option<((&K, &mut V), &mut Self)> {
         if let [rest @ .., last] = &mut self.entries {
             Some((last.ref_mut(), Self::from_slice_mut(rest)))
         } else {
@@ -651,19 +651,19 @@ impl<K, V> Slice<K, V> {
         }
     }
 
-    pub fn iter(&self) -> Iter<'_, K, V> {
+    pub(crate) fn iter(&self) -> Iter<'_, K, V> {
         Iter::new(&self.entries)
     }
 
-    pub fn iter_mut(&mut self) -> IterMut<'_, K, V> {
+    pub(crate) fn iter_mut(&mut self) -> IterMut<'_, K, V> {
         IterMut::new(&mut self.entries)
     }
 
-    pub fn keys(&self) -> Keys<'_, K, V> {
+    pub(crate) fn keys(&self) -> Keys<'_, K, V> {
         Keys::new(&self.entries)
     }
 
-    pub fn into_keys<A>(self: Box<Self, TypedProjAlloc<A>>) -> IntoKeys<K, V, A>
+    pub(crate) fn into_keys<A>(self: Box<Self, TypedProjAlloc<A>>) -> IntoKeys<K, V, A>
     where
         K: any::Any,
         V: any::Any,
@@ -672,15 +672,15 @@ impl<K, V> Slice<K, V> {
         IntoKeys::new(self.into_entries())
     }
 
-    pub fn values(&self) -> Values<'_, K, V> {
+    pub(crate) fn values(&self) -> Values<'_, K, V> {
         Values::new(&self.entries)
     }
 
-    pub fn values_mut(&mut self) -> ValuesMut<'_, K, V> {
+    pub(crate) fn values_mut(&mut self) -> ValuesMut<'_, K, V> {
         ValuesMut::new(&mut self.entries)
     }
 
-    pub fn into_values<A>(self: Box<Self, TypedProjAlloc<A>>) -> IntoValues<K, V, A>
+    pub(crate) fn into_values<A>(self: Box<Self, TypedProjAlloc<A>>) -> IntoValues<K, V, A>
     where
         K: any::Any,
         V: any::Any,
@@ -689,7 +689,7 @@ impl<K, V> Slice<K, V> {
         IntoValues::new(self.into_entries())
     }
 
-    pub fn binary_search_keys(&self, x: &K) -> Result<usize, usize>
+    pub(crate) fn binary_search_keys(&self, x: &K) -> Result<usize, usize>
     where
         K: Ord,
     {
@@ -697,7 +697,7 @@ impl<K, V> Slice<K, V> {
     }
 
     #[inline]
-    pub fn binary_search_by<F>(&self, mut f: F) -> Result<usize, usize>
+    pub(crate) fn binary_search_by<F>(&self, mut f: F) -> Result<usize, usize>
     where
         F: FnMut(&K, &V) -> cmp::Ordering,
     {
@@ -705,7 +705,7 @@ impl<K, V> Slice<K, V> {
     }
 
     #[inline]
-    pub fn binary_search_by_key<B, F>(&self, b: &B, mut f: F) -> Result<usize, usize>
+    pub(crate) fn binary_search_by_key<B, F>(&self, b: &B, mut f: F) -> Result<usize, usize>
     where
         F: FnMut(&K, &V) -> B,
         B: Ord,
@@ -714,7 +714,7 @@ impl<K, V> Slice<K, V> {
     }
 
     #[must_use]
-    pub fn partition_point<P>(&self, mut pred: P) -> usize
+    pub(crate) fn partition_point<P>(&self, mut pred: P) -> usize
     where
         P: FnMut(&K, &V) -> bool,
     {
@@ -960,7 +960,7 @@ impl<'a, K, V> Iter<'a, K, V> {
         Self { iter: entries.iter() }
     }
 
-    pub fn as_slice(&self) -> &Slice<K, V> {
+    pub(crate) fn as_slice(&self) -> &Slice<K, V> {
         Slice::from_slice(self.iter.as_slice())
     }
 }
@@ -1023,11 +1023,11 @@ impl<'a, K, V> IterMut<'a, K, V> {
         Self { iter: entries.iter_mut() }
     }
 
-    pub fn as_slice_mut(&'a mut self) -> &'a mut Slice<K, V> {
+    pub(crate) fn as_slice_mut(&'a mut self) -> &'a mut Slice<K, V> {
         Slice::from_slice_mut(self.iter.as_mut_slice())
     }
 
-    pub fn into_slice_mut(self) -> &'a mut Slice<K, V> {
+    pub(crate) fn into_slice_mut(self) -> &'a mut Slice<K, V> {
         Slice::from_slice_mut(self.iter.into_slice())
     }
 }
@@ -1097,11 +1097,11 @@ where
         }
     }
 
-    pub fn as_slice(&self) -> &Slice<K, V> {
+    pub(crate) fn as_slice(&self) -> &Slice<K, V> {
         Slice::from_slice(self.iter.as_slice())
     }
 
-    pub fn as_mut_slice(&mut self) -> &mut Slice<K, V> {
+    pub(crate) fn as_mut_slice(&mut self) -> &mut Slice<K, V> {
         Slice::from_slice_mut(self.iter.as_mut_slice())
     }
 }
@@ -2533,14 +2533,14 @@ where
     V: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    pub fn index(&self) -> usize {
+    pub(crate) fn index(&self) -> usize {
         match *self {
             Entry::Occupied(ref entry) => entry.index(),
             Entry::Vacant(ref entry) => entry.index(),
         }
     }
 
-    pub fn insert_entry(self, value: V) -> OccupiedEntry<'a, K, V, A> {
+    pub(crate) fn insert_entry(self, value: V) -> OccupiedEntry<'a, K, V, A> {
         match self {
             Entry::Occupied(mut entry) => {
                 entry.insert(value);
@@ -2550,14 +2550,14 @@ where
         }
     }
 
-    pub fn or_insert(self, default: V) -> &'a mut V {
+    pub(crate) fn or_insert(self, default: V) -> &'a mut V {
         match self {
             Entry::Occupied(entry) => entry.into_mut(),
             Entry::Vacant(entry) => entry.insert(default),
         }
     }
 
-    pub fn or_insert_with<F>(self, call: F) -> &'a mut V
+    pub(crate) fn or_insert_with<F>(self, call: F) -> &'a mut V
     where
         F: FnOnce() -> V,
     {
@@ -2567,7 +2567,7 @@ where
         }
     }
 
-    pub fn or_insert_with_key<F>(self, call: F) -> &'a mut V
+    pub(crate) fn or_insert_with_key<F>(self, call: F) -> &'a mut V
     where
         F: FnOnce(&K) -> V,
     {
@@ -2580,14 +2580,14 @@ where
         }
     }
 
-    pub fn key(&self) -> &K {
+    pub(crate) fn key(&self) -> &K {
         match *self {
             Entry::Occupied(ref entry) => entry.key(),
             Entry::Vacant(ref entry) => entry.key(),
         }
     }
 
-    pub fn and_modify<F>(mut self, f: F) -> Self
+    pub(crate) fn and_modify<F>(mut self, f: F) -> Self
     where
         F: FnOnce(&mut V),
     {
@@ -2597,7 +2597,7 @@ where
         self
     }
 
-    pub fn or_default(self) -> &'a mut V
+    pub(crate) fn or_default(self) -> &'a mut V
     where
         V: Default,
     {
@@ -2648,7 +2648,7 @@ where
     }
 
     #[inline]
-    pub fn index(&self) -> usize {
+    pub(crate) fn index(&self) -> usize {
         *self.index.get()
     }
 
@@ -2657,7 +2657,7 @@ where
         RefMut::new(self.index.into_table(), self.entries)
     }
 
-    pub fn key(&self) -> &K {
+    pub(crate) fn key(&self) -> &K {
         &self.entries.as_slice()[self.index()].key
     }
 
@@ -2669,17 +2669,17 @@ where
     }
     */
 
-    pub fn get(&self) -> &V {
+    pub(crate) fn get(&self) -> &V {
         &self.entries.as_slice()[self.index()].value
     }
 
-    pub fn get_mut(&mut self) -> &mut V {
+    pub(crate) fn get_mut(&mut self) -> &mut V {
         let index = self.index();
 
         &mut self.entries.as_mut_slice()[index].value
     }
 
-    pub fn into_mut(self) -> &'a mut V {
+    pub(crate) fn into_mut(self) -> &'a mut V {
         let index = self.index();
 
         &mut self.entries.as_mut_slice()[index].value
@@ -2693,35 +2693,35 @@ where
     }
     */
 
-    pub fn insert(&mut self, value: V) -> V {
+    pub(crate) fn insert(&mut self, value: V) -> V {
         mem::replace(self.get_mut(), value)
     }
 
-    pub fn swap_remove(self) -> V {
+    pub(crate) fn swap_remove(self) -> V {
         self.swap_remove_entry().1
     }
 
-    pub fn shift_remove(self) -> V {
+    pub(crate) fn shift_remove(self) -> V {
         self.shift_remove_entry().1
     }
 
-    pub fn swap_remove_entry(self) -> (K, V) {
+    pub(crate) fn swap_remove_entry(self) -> (K, V) {
         let (index, entry) = self.index.remove();
         RefMut::<'_, K, V, A>::new(entry.into_table(), self.entries).swap_remove_finish(index)
     }
 
-    pub fn shift_remove_entry(self) -> (K, V) {
+    pub(crate) fn shift_remove_entry(self) -> (K, V) {
         let (index, entry) = self.index.remove();
         RefMut::<'_, K, V, A>::new(entry.into_table(), self.entries).shift_remove_finish(index)
     }
 
     #[track_caller]
-    pub fn move_index(self, to: usize) {
+    pub(crate) fn move_index(self, to: usize) {
         let index = self.index();
         self.into_ref_mut().move_index(index, to);
     }
 
-    pub fn swap_indices(self, other: usize) {
+    pub(crate) fn swap_indices(self, other: usize) {
         let index = self.index();
         self.into_ref_mut().swap_indices(index, other);
     }
@@ -2779,11 +2779,11 @@ where
     V: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    pub fn index(&self) -> usize {
+    pub(crate) fn index(&self) -> usize {
         self.map.indices.len()
     }
 
-    pub fn key(&self) -> &K {
+    pub(crate) fn key(&self) -> &K {
         &self.key
     }
 
@@ -2793,21 +2793,21 @@ where
     }
     */
 
-    pub fn into_key(self) -> K {
+    pub(crate) fn into_key(self) -> K {
         self.key
     }
 
-    pub fn insert(self, value: V) -> &'a mut V {
+    pub(crate) fn insert(self, value: V) -> &'a mut V {
         self.insert_entry(value).into_mut()
     }
 
-    pub fn insert_entry(self, value: V) -> OccupiedEntry<'a, K, V, A> {
+    pub(crate) fn insert_entry(self, value: V) -> OccupiedEntry<'a, K, V, A> {
         let Self { map, hash, key } = self;
 
         map.insert_unique(hash, key, value)
     }
 
-    pub fn insert_sorted(self, value: V) -> (usize, &'a mut V)
+    pub(crate) fn insert_sorted(self, value: V) -> (usize, &'a mut V)
     where
         K: Ord,
     {
@@ -2817,7 +2817,7 @@ where
         (i, self.shift_insert(i, value))
     }
 
-    pub fn shift_insert(mut self, index: usize, value: V) -> &'a mut V {
+    pub(crate) fn shift_insert(mut self, index: usize, value: V) -> &'a mut V {
         self.map.shift_insert_unique(index, self.hash, self.key, value);
 
         &mut self.map.entries.as_mut_slice()[index].value
@@ -2862,11 +2862,11 @@ where
     }
 
     #[inline]
-    pub fn index(&self) -> usize {
+    pub(crate) fn index(&self) -> usize {
         self.index
     }
 
-    pub fn key(&self) -> &K {
+    pub(crate) fn key(&self) -> &K {
         &self.map.entries.as_slice()[self.index].key
     }
 
@@ -2876,44 +2876,44 @@ where
     }
     */
 
-    pub fn get(&self) -> &V {
+    pub(crate) fn get(&self) -> &V {
         &self.map.entries.as_slice()[self.index].value
     }
 
-    pub fn get_mut(&mut self) -> &mut V {
+    pub(crate) fn get_mut(&mut self) -> &mut V {
         &mut self.map.entries.as_mut_slice()[self.index].value
     }
 
-    pub fn insert(&mut self, value: V) -> V {
+    pub(crate) fn insert(&mut self, value: V) -> V {
         mem::replace(self.get_mut(), value)
     }
 
-    pub fn into_mut(self) -> &'a mut V {
+    pub(crate) fn into_mut(self) -> &'a mut V {
         &mut self.map.entries.as_mut_slice()[self.index].value
     }
 
-    pub fn swap_remove_entry(mut self) -> (K, V) {
+    pub(crate) fn swap_remove_entry(mut self) -> (K, V) {
         self.map.swap_remove_index(self.index).unwrap()
     }
 
-    pub fn shift_remove_entry(mut self) -> (K, V) {
+    pub(crate) fn shift_remove_entry(mut self) -> (K, V) {
         self.map.shift_remove_index(self.index).unwrap()
     }
 
-    pub fn swap_remove(self) -> V {
+    pub(crate) fn swap_remove(self) -> V {
         self.swap_remove_entry().1
     }
 
-    pub fn shift_remove(self) -> V {
+    pub(crate) fn shift_remove(self) -> V {
         self.shift_remove_entry().1
     }
 
     #[track_caller]
-    pub fn move_index(mut self, to: usize) {
+    pub(crate) fn move_index(mut self, to: usize) {
         self.map.move_index(self.index, to);
     }
 
-    pub fn swap_indices(mut self, other: usize) {
+    pub(crate) fn swap_indices(mut self, other: usize) {
         self.map.swap_indices(self.index, other);
     }
 }
@@ -3075,7 +3075,7 @@ where
     V: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    pub fn new_proj_in(proj_alloc: TypedProjAlloc<A>) -> Self {
+    pub(crate) fn new_proj_in(proj_alloc: TypedProjAlloc<A>) -> Self {
         let proj_inner = TypedProjIndexMapCore::<K, V, A>::new_proj_in(proj_alloc);
         let proj_build_hasher = TypedProjBuildHasher::new(hash::RandomState::new());
 
@@ -3085,7 +3085,7 @@ where
         }
     }
 
-    pub fn with_capacity_proj_in(capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self {
+    pub(crate) fn with_capacity_proj_in(capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self {
         let proj_inner = TypedProjIndexMapCore::<K, V, A>::with_capacity_proj_in(capacity, proj_alloc);
         let proj_build_hasher = TypedProjBuildHasher::new(hash::RandomState::new());
 
@@ -3105,7 +3105,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[inline]
-    pub fn with_hasher_in(build_hasher: S, alloc: A) -> Self {
+    pub(crate) fn with_hasher_in(build_hasher: S, alloc: A) -> Self {
         let proj_inner = TypedProjIndexMapCore::<K, V, A>::new_in(alloc);
         let proj_build_hasher = TypedProjBuildHasher::new(build_hasher);
 
@@ -3116,7 +3116,7 @@ where
     }
 
     #[inline]
-    pub fn with_capacity_and_hasher_in(capacity: usize, build_hasher: S, alloc: A) -> Self {
+    pub(crate) fn with_capacity_and_hasher_in(capacity: usize, build_hasher: S, alloc: A) -> Self {
         if capacity == 0 {
             Self::with_hasher_in(build_hasher, alloc)
         } else {
@@ -3138,7 +3138,7 @@ where
     V: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    pub fn new_in(alloc: A) -> Self {
+    pub(crate) fn new_in(alloc: A) -> Self {
         let proj_inner = TypedProjIndexMapCore::<K, V, A>::new_in(alloc);
         let proj_build_hasher = TypedProjBuildHasher::<hash::RandomState>::new(hash::RandomState::default());
 
@@ -3148,7 +3148,7 @@ where
         }
     }
 
-    pub fn with_capacity_in(capacity: usize, alloc: A) -> Self {
+    pub(crate) fn with_capacity_in(capacity: usize, alloc: A) -> Self {
         let proj_inner = TypedProjIndexMapCore::<K, V, A>::with_capacity_in(capacity, alloc);
         let proj_build_hasher = TypedProjBuildHasher::<hash::RandomState>::new(hash::RandomState::default());
 
@@ -3167,12 +3167,12 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
 {
     #[inline]
-    pub fn with_hasher(build_hasher: S) -> Self {
+    pub(crate) fn with_hasher(build_hasher: S) -> Self {
         Self::with_hasher_in(build_hasher, alloc::Global)
     }
 
     #[inline]
-    pub fn with_capacity_and_hasher(capacity: usize, build_hasher: S) -> Self {
+    pub(crate) fn with_capacity_and_hasher(capacity: usize, build_hasher: S) -> Self {
         Self::with_capacity_and_hasher_in(capacity, build_hasher, alloc::Global)
     }
 }
@@ -3184,12 +3184,12 @@ where
     V: any::Any,
 {
     #[inline]
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self::new_in(alloc::Global)
     }
 
     #[inline]
-    pub fn with_capacity(capacity: usize) -> Self {
+    pub(crate) fn with_capacity(capacity: usize) -> Self {
         Self::with_capacity_in(capacity, alloc::Global)
     }
 }
@@ -3203,17 +3203,17 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[inline]
-    pub fn capacity(&self) -> usize {
+    pub(crate) fn capacity(&self) -> usize {
         self.inner.capacity()
     }
 
     #[inline]
-    pub fn len(&self) -> usize {
+    pub(crate) fn len(&self) -> usize {
         self.inner.len()
     }
 
     #[inline]
-    pub fn is_empty(&self) -> bool {
+    pub(crate) fn is_empty(&self) -> bool {
         self.len() == 0
     }
 }
@@ -3227,7 +3227,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[inline]
-    pub const fn hasher(&self) -> &TypedProjBuildHasher<S> {
+    pub(crate) const fn hasher(&self) -> &TypedProjBuildHasher<S> {
         &self.build_hasher
     }
 
@@ -3268,7 +3268,7 @@ where
         self.inner.replace_full(hash, key, value)
     }
 
-    pub fn get_index_of<Q>(&self, key: &Q) -> Option<usize>
+    pub(crate) fn get_index_of<Q>(&self, key: &Q) -> Option<usize>
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
@@ -3287,7 +3287,7 @@ where
         }
     }
 
-    pub fn contains_key<Q>(&self, key: &Q) -> bool
+    pub(crate) fn contains_key<Q>(&self, key: &Q) -> bool
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
@@ -3299,7 +3299,7 @@ where
         self.get_index_of::<Q>(key).is_some()
     }
 
-    pub fn get<Q>(&self, key: &Q) -> Option<&V>
+    pub(crate) fn get<Q>(&self, key: &Q) -> Option<&V>
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
@@ -3316,7 +3316,7 @@ where
         }
     }
 
-    pub fn get_key_value<Q>(&self, key: &Q) -> Option<(&K, &V)>
+    pub(crate) fn get_key_value<Q>(&self, key: &Q) -> Option<(&K, &V)>
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
@@ -3333,7 +3333,7 @@ where
         }
     }
 
-    pub fn get_full<Q>(&self, key: &Q) -> Option<(usize, &K, &V)>
+    pub(crate) fn get_full<Q>(&self, key: &Q) -> Option<(usize, &K, &V)>
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
@@ -3350,7 +3350,7 @@ where
         }
     }
 
-    pub fn get_mut<Q>(&mut self, key: &Q) -> Option<&mut V>
+    pub(crate) fn get_mut<Q>(&mut self, key: &Q) -> Option<&mut V>
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
@@ -3367,7 +3367,7 @@ where
         }
     }
 
-    pub fn get_full_mut<Q>(&mut self, key: &Q) -> Option<(usize, &K, &mut V)>
+    pub(crate) fn get_full_mut<Q>(&mut self, key: &Q) -> Option<(usize, &K, &mut V)>
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
@@ -3385,7 +3385,7 @@ where
         }
     }
 
-    pub fn keys(&self) -> Keys<'_, K, V> {
+    pub(crate) fn keys(&self) -> Keys<'_, K, V> {
         debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
         debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
         debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
@@ -3394,7 +3394,7 @@ where
         Keys::new(self.as_entries())
     }
 
-    pub fn into_keys(self) -> IntoKeys<K, V, A> {
+    pub(crate) fn into_keys(self) -> IntoKeys<K, V, A> {
         debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
         debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
         debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
@@ -3403,7 +3403,7 @@ where
         IntoKeys::new(self.into_entries())
     }
 
-    pub fn iter(&self) -> Iter<'_, K, V> {
+    pub(crate) fn iter(&self) -> Iter<'_, K, V> {
         debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
         debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
         debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
@@ -3412,7 +3412,7 @@ where
         Iter::new(self.as_entries())
     }
 
-    pub fn iter_mut(&mut self) -> IterMut<'_, K, V> {
+    pub(crate) fn iter_mut(&mut self) -> IterMut<'_, K, V> {
         debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
         debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
         debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
@@ -3421,7 +3421,7 @@ where
         IterMut::new(self.as_entries_mut())
     }
 
-    pub fn values(&self) -> Values<'_, K, V> {
+    pub(crate) fn values(&self) -> Values<'_, K, V> {
         debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
         debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
         debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
@@ -3430,7 +3430,7 @@ where
         Values::new(self.as_entries())
     }
 
-    pub fn values_mut(&mut self) -> ValuesMut<'_, K, V> {
+    pub(crate) fn values_mut(&mut self) -> ValuesMut<'_, K, V> {
         debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
         debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
         debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
@@ -3439,7 +3439,7 @@ where
         ValuesMut::new(self.as_entries_mut())
     }
 
-    pub fn into_values(self) -> IntoValues<K, V, A> {
+    pub(crate) fn into_values(self) -> IntoValues<K, V, A> {
         debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
         debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
         debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
@@ -3448,7 +3448,7 @@ where
         IntoValues::new(self.into_entries())
     }
 
-    pub fn clear(&mut self) {
+    pub(crate) fn clear(&mut self) {
         debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
         debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
         debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
@@ -3457,7 +3457,7 @@ where
         self.inner.clear();
     }
 
-    pub fn truncate(&mut self, len: usize) {
+    pub(crate) fn truncate(&mut self, len: usize) {
         debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
         debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
         debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
@@ -3467,7 +3467,7 @@ where
     }
 
     #[track_caller]
-    pub fn drain<R>(&mut self, range: R) -> Drain<'_, K, V, A>
+    pub(crate) fn drain<R>(&mut self, range: R) -> Drain<'_, K, V, A>
     where
         R: ops::RangeBounds<usize>,
     {
@@ -3480,7 +3480,7 @@ where
     }
 
     #[track_caller]
-    pub fn split_off(&mut self, at: usize) -> Self
+    pub(crate) fn split_off(&mut self, at: usize) -> Self
     where
         S: Clone,
         A: Clone,
@@ -3497,7 +3497,7 @@ where
     }
 
 
-    pub fn swap_remove<Q>(&mut self, key: &Q) -> Option<V>
+    pub(crate) fn swap_remove<Q>(&mut self, key: &Q) -> Option<V>
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
@@ -3513,7 +3513,7 @@ where
         self.swap_remove_full::<Q>(key).map(third)
     }
 
-    pub fn swap_remove_entry<Q>(&mut self, key: &Q) -> Option<(K, V)>
+    pub(crate) fn swap_remove_entry<Q>(&mut self, key: &Q) -> Option<(K, V)>
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
@@ -3528,7 +3528,7 @@ where
         }
     }
 
-    pub fn swap_remove_full<Q>(&mut self, key: &Q) -> Option<(usize, K, V)>
+    pub(crate) fn swap_remove_full<Q>(&mut self, key: &Q) -> Option<(usize, K, V)>
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
@@ -3550,7 +3550,7 @@ where
         }
     }
 
-    pub fn shift_remove<Q>(&mut self, key: &Q) -> Option<V>
+    pub(crate) fn shift_remove<Q>(&mut self, key: &Q) -> Option<V>
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
@@ -3566,7 +3566,7 @@ where
         self.shift_remove_full::<Q>(key).map(third)
     }
 
-    pub fn shift_remove_entry<Q>(&mut self, key: &Q) -> Option<(K, V)>
+    pub(crate) fn shift_remove_entry<Q>(&mut self, key: &Q) -> Option<(K, V)>
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
@@ -3581,7 +3581,7 @@ where
         }
     }
 
-    pub fn shift_remove_full<Q>(&mut self, key: &Q) -> Option<(usize, K, V)>
+    pub(crate) fn shift_remove_full<Q>(&mut self, key: &Q) -> Option<(usize, K, V)>
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
@@ -3604,7 +3604,7 @@ where
         }
     }
 
-    pub fn as_slice(&self) -> &'_ Slice<K, V> {
+    pub(crate) fn as_slice(&self) -> &'_ Slice<K, V> {
         debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
         debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
         debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
@@ -3613,7 +3613,7 @@ where
         Slice::from_slice(self.as_entries())
     }
 
-    pub fn as_mut_slice(&mut self) -> &mut Slice<K, V> {
+    pub(crate) fn as_mut_slice(&mut self) -> &mut Slice<K, V> {
         debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
         debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
         debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
@@ -3631,7 +3631,7 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    pub fn insert(&mut self, key: K, value: V) -> Option<V>
+    pub(crate) fn insert(&mut self, key: K, value: V) -> Option<V>
     where
         K: Eq + hash::Hash,
     {
@@ -3643,7 +3643,7 @@ where
         self.insert_full(key, value).1
     }
 
-    pub fn insert_full(&mut self, key: K, value: V) -> (usize, Option<V>)
+    pub(crate) fn insert_full(&mut self, key: K, value: V) -> (usize, Option<V>)
     where
         K: Eq + hash::Hash,
     {
@@ -3657,7 +3657,7 @@ where
         self.inner.insert_full(hash, key, value)
     }
 
-    pub fn insert_sorted(&mut self, key: K, value: V) -> (usize, Option<V>)
+    pub(crate) fn insert_sorted(&mut self, key: K, value: V) -> (usize, Option<V>)
     where
         K: Eq + hash::Hash + Ord,
     {
@@ -3678,7 +3678,7 @@ where
     }
 
     #[track_caller]
-    pub fn insert_before(&mut self, mut index: usize, key: K, value: V) -> (usize, Option<V>)
+    pub(crate) fn insert_before(&mut self, mut index: usize, key: K, value: V) -> (usize, Option<V>)
     where
         K: Eq + hash::Hash,
     {
@@ -3716,7 +3716,7 @@ where
     }
 
     #[track_caller]
-    pub fn shift_insert(&mut self, index: usize, key: K, value: V) -> Option<V>
+    pub(crate) fn shift_insert(&mut self, index: usize, key: K, value: V) -> Option<V>
     where
         K: Eq + hash::Hash,
     {
@@ -3748,7 +3748,7 @@ where
         }
     }
 
-    pub fn entry(&mut self, key: K) -> Entry<'_, K, V, A>
+    pub(crate) fn entry(&mut self, key: K) -> Entry<'_, K, V, A>
     where
         K: Eq + hash::Hash,
     {
@@ -3763,7 +3763,7 @@ where
     }
 
     #[track_caller]
-    pub fn splice<R, I>(&mut self, range: R, replace_with: I) -> Splice<'_, I::IntoIter, K, V, S, A>
+    pub(crate) fn splice<R, I>(&mut self, range: R, replace_with: I) -> Splice<'_, I::IntoIter, K, V, S, A>
     where
         K: Eq + hash::Hash,
         A: Clone,
@@ -3787,7 +3787,7 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    pub fn append<S2, A2>(&mut self, other: &mut TypedProjIndexMapInner<K, V, S2, A2>)
+    pub(crate) fn append<S2, A2>(&mut self, other: &mut TypedProjIndexMapInner<K, V, S2, A2>)
     where
         K: Eq + hash::Hash,
         S2: any::Any + hash::BuildHasher + Send + Sync,
@@ -3909,7 +3909,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[doc(alias = "pop_last")]
-    pub fn pop(&mut self) -> Option<(K, V)> {
+    pub(crate) fn pop(&mut self) -> Option<(K, V)> {
         debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
         debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
         debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
@@ -3918,7 +3918,7 @@ where
         self.inner.pop()
     }
 
-    pub fn retain<F>(&mut self, mut keep: F)
+    pub(crate) fn retain<F>(&mut self, mut keep: F)
     where
         F: FnMut(&K, &mut V) -> bool,
     {
@@ -3930,7 +3930,7 @@ where
         self.inner.retain_in_order::<_>(move |k, v| keep(k, v));
     }
 
-    pub fn sort_keys(&mut self)
+    pub(crate) fn sort_keys(&mut self)
     where
         K: Ord,
     {
@@ -3944,7 +3944,7 @@ where
         });
     }
 
-    pub fn sort_by<F>(&mut self, mut cmp: F)
+    pub(crate) fn sort_by<F>(&mut self, mut cmp: F)
     where
         F: FnMut(&K, &V, &K, &V) -> cmp::Ordering,
     {
@@ -3958,7 +3958,7 @@ where
         });
     }
 
-    pub fn sorted_by<F>(self, mut cmp: F) -> IntoIter<K, V, A>
+    pub(crate) fn sorted_by<F>(self, mut cmp: F) -> IntoIter<K, V, A>
     where
         F: FnMut(&K, &V, &K, &V) -> cmp::Ordering,
     {
@@ -3975,7 +3975,7 @@ where
         IntoIter::new(entries)
     }
 
-    pub fn sort_unstable_keys(&mut self)
+    pub(crate) fn sort_unstable_keys(&mut self)
     where
         K: Ord,
     {
@@ -3989,7 +3989,7 @@ where
         });
     }
 
-    pub fn sort_unstable_by<F>(&mut self, mut cmp: F)
+    pub(crate) fn sort_unstable_by<F>(&mut self, mut cmp: F)
     where
         F: FnMut(&K, &V, &K, &V) -> cmp::Ordering,
     {
@@ -4004,7 +4004,7 @@ where
     }
 
     #[inline]
-    pub fn sorted_unstable_by<F>(self, mut cmp: F) -> IntoIter<K, V, A>
+    pub(crate) fn sorted_unstable_by<F>(self, mut cmp: F) -> IntoIter<K, V, A>
     where
         F: FnMut(&K, &V, &K, &V) -> cmp::Ordering,
     {
@@ -4021,7 +4021,7 @@ where
         IntoIter::new(entries)
     }
 
-    pub fn sort_by_cached_key<T, F>(&mut self, mut sort_key: F)
+    pub(crate) fn sort_by_cached_key<T, F>(&mut self, mut sort_key: F)
     where
         T: Ord,
         F: FnMut(&K, &V) -> T,
@@ -4036,7 +4036,7 @@ where
         });
     }
 
-    pub fn binary_search_keys(&self, key: &K) -> Result<usize, usize>
+    pub(crate) fn binary_search_keys(&self, key: &K) -> Result<usize, usize>
     where
         K: Ord,
     {
@@ -4049,7 +4049,7 @@ where
     }
 
     #[inline]
-    pub fn binary_search_by<F>(&self, f: F) -> Result<usize, usize>
+    pub(crate) fn binary_search_by<F>(&self, f: F) -> Result<usize, usize>
     where
         F: FnMut(&K, &V) -> cmp::Ordering,
     {
@@ -4062,7 +4062,7 @@ where
     }
 
     #[inline]
-    pub fn binary_search_by_key<B, F>(&self, b: &B, f: F) -> Result<usize, usize>
+    pub(crate) fn binary_search_by_key<B, F>(&self, b: &B, f: F) -> Result<usize, usize>
     where
         F: FnMut(&K, &V) -> B,
         B: Ord,
@@ -4076,7 +4076,7 @@ where
     }
 
     #[must_use]
-    pub fn partition_point<P>(&self, pred: P) -> usize
+    pub(crate) fn partition_point<P>(&self, pred: P) -> usize
     where
         P: FnMut(&K, &V) -> bool,
     {
@@ -4088,7 +4088,7 @@ where
         self.as_slice().partition_point(pred)
     }
 
-    pub fn reverse(&mut self) {
+    pub(crate) fn reverse(&mut self) {
         debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
         debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
         debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
@@ -4097,7 +4097,7 @@ where
         self.inner.reverse();
     }
 
-    pub fn reserve(&mut self, additional: usize) {
+    pub(crate) fn reserve(&mut self, additional: usize) {
         debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
         debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
         debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
@@ -4106,7 +4106,7 @@ where
         self.inner.reserve(additional);
     }
 
-    pub fn reserve_exact(&mut self, additional: usize) {
+    pub(crate) fn reserve_exact(&mut self, additional: usize) {
         debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
         debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
         debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
@@ -4115,7 +4115,7 @@ where
         self.inner.reserve_exact(additional);
     }
 
-    pub fn try_reserve(&mut self, additional: usize) -> Result<(), TryReserveError> {
+    pub(crate) fn try_reserve(&mut self, additional: usize) -> Result<(), TryReserveError> {
         debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
         debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
         debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
@@ -4124,7 +4124,7 @@ where
         self.inner.try_reserve(additional)
     }
 
-    pub fn try_reserve_exact(&mut self, additional: usize) -> Result<(), TryReserveError> {
+    pub(crate) fn try_reserve_exact(&mut self, additional: usize) -> Result<(), TryReserveError> {
         debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
         debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
         debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
@@ -4133,7 +4133,7 @@ where
         self.inner.try_reserve_exact(additional)
     }
 
-    pub fn shrink_to_fit(&mut self) {
+    pub(crate) fn shrink_to_fit(&mut self) {
         debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
         debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
         debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
@@ -4142,7 +4142,7 @@ where
         self.inner.shrink_to_fit();
     }
 
-    pub fn shrink_to(&mut self, min_capacity: usize) {
+    pub(crate) fn shrink_to(&mut self, min_capacity: usize) {
         debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
         debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
         debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
@@ -4151,7 +4151,7 @@ where
         self.inner.shrink_to(min_capacity);
     }
 
-    pub fn into_boxed_slice(self) -> Box<Slice<K, V>, TypedProjAlloc<A>> {
+    pub(crate) fn into_boxed_slice(self) -> Box<Slice<K, V>, TypedProjAlloc<A>> {
         debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
         debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
         debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
@@ -4160,7 +4160,7 @@ where
         Slice::from_boxed_slice(self.into_entries().into_boxed_slice())
     }
 
-    pub fn get_index(&self, index: usize) -> Option<(&K, &V)> {
+    pub(crate) fn get_index(&self, index: usize) -> Option<(&K, &V)> {
         debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
         debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
         debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
@@ -4169,7 +4169,7 @@ where
         self.as_entries().get(index).map(Bucket::refs)
     }
 
-    pub fn get_index_mut(&mut self, index: usize) -> Option<(&K, &mut V)> {
+    pub(crate) fn get_index_mut(&mut self, index: usize) -> Option<(&K, &mut V)> {
         debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
         debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
         debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
@@ -4178,7 +4178,7 @@ where
         self.as_entries_mut().get_mut(index).map(Bucket::ref_mut)
     }
 
-    pub fn get_index_entry(&mut self, index: usize) -> Option<IndexedEntry<'_, K, V, A>>
+    pub(crate) fn get_index_entry(&mut self, index: usize) -> Option<IndexedEntry<'_, K, V, A>>
     where
         K: Ord,
     {
@@ -4194,7 +4194,7 @@ where
         Some(IndexedEntry::new(&mut self.inner, index))
     }
 
-    pub fn get_range<R>(&self, range: R) -> Option<&Slice<K, V>>
+    pub(crate) fn get_range<R>(&self, range: R) -> Option<&Slice<K, V>>
     where
         R: ops::RangeBounds<usize>,
     {
@@ -4208,7 +4208,7 @@ where
         entries.get(range).map(Slice::from_slice)
     }
 
-    pub fn get_range_mut<R>(&mut self, range: R) -> Option<&mut Slice<K, V>>
+    pub(crate) fn get_range_mut<R>(&mut self, range: R) -> Option<&mut Slice<K, V>>
     where
         R: ops::RangeBounds<usize>,
     {
@@ -4223,7 +4223,7 @@ where
     }
 
     #[doc(alias = "first_key_value")] // like `BTreeMap`
-    pub fn first(&self) -> Option<(&K, &V)> {
+    pub(crate) fn first(&self) -> Option<(&K, &V)> {
         debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
         debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
         debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
@@ -4232,7 +4232,7 @@ where
         self.as_entries().first().map(Bucket::refs)
     }
 
-    pub fn first_mut(&mut self) -> Option<(&K, &mut V)> {
+    pub(crate) fn first_mut(&mut self) -> Option<(&K, &mut V)> {
         debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
         debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
         debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
@@ -4241,7 +4241,7 @@ where
         self.as_entries_mut().first_mut().map(Bucket::ref_mut)
     }
 
-    pub fn first_entry(&mut self) -> Option<IndexedEntry<'_, K, V, A>>
+    pub(crate) fn first_entry(&mut self) -> Option<IndexedEntry<'_, K, V, A>>
     where
         K: Ord,
     {
@@ -4254,7 +4254,7 @@ where
     }
 
     #[doc(alias = "last_key_value")] // like `BTreeMap`
-    pub fn last(&self) -> Option<(&K, &V)> {
+    pub(crate) fn last(&self) -> Option<(&K, &V)> {
         debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
         debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
         debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
@@ -4263,7 +4263,7 @@ where
         self.as_entries().last().map(Bucket::refs)
     }
 
-    pub fn last_mut(&mut self) -> Option<(&K, &mut V)> {
+    pub(crate) fn last_mut(&mut self) -> Option<(&K, &mut V)> {
         debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
         debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
         debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
@@ -4272,7 +4272,7 @@ where
         self.as_entries_mut().last_mut().map(Bucket::ref_mut)
     }
 
-    pub fn last_entry(&mut self) -> Option<IndexedEntry<'_, K, V, A>>
+    pub(crate) fn last_entry(&mut self) -> Option<IndexedEntry<'_, K, V, A>>
     where
         K: Ord,
     {
@@ -4284,7 +4284,7 @@ where
         self.get_index_entry(self.len().checked_sub(1)?)
     }
 
-    pub fn swap_remove_index(&mut self, index: usize) -> Option<(K, V)> {
+    pub(crate) fn swap_remove_index(&mut self, index: usize) -> Option<(K, V)> {
         debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
         debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
         debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
@@ -4293,7 +4293,7 @@ where
         self.inner.swap_remove_index(index)
     }
 
-    pub fn shift_remove_index(&mut self, index: usize) -> Option<(K, V)> {
+    pub(crate) fn shift_remove_index(&mut self, index: usize) -> Option<(K, V)> {
         debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
         debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
         debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
@@ -4303,7 +4303,7 @@ where
     }
 
     #[track_caller]
-    pub fn move_index(&mut self, from: usize, to: usize) {
+    pub(crate) fn move_index(&mut self, from: usize, to: usize) {
         debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
         debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
         debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
@@ -4313,7 +4313,7 @@ where
     }
 
     #[track_caller]
-    pub fn swap_indices(&mut self, a: usize, b: usize) {
+    pub(crate) fn swap_indices(&mut self, a: usize, b: usize) {
         debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
         debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
         debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
@@ -4331,29 +4331,29 @@ pub(crate) struct OpaqueIndexMapInner {
 
 impl OpaqueIndexMapInner {
     #[inline]
-    pub const fn key_type_id(&self) -> any::TypeId {
+    pub(crate) const fn key_type_id(&self) -> any::TypeId {
         self.inner.key_type_id()
     }
 
     #[inline]
-    pub const fn value_type_id(&self) -> any::TypeId {
+    pub(crate) const fn value_type_id(&self) -> any::TypeId {
         self.inner.value_type_id()
     }
 
     #[inline]
-    pub const fn build_hasher_type_id(&self) -> any::TypeId {
+    pub(crate) const fn build_hasher_type_id(&self) -> any::TypeId {
         self.build_hasher.build_hasher_type_id()
     }
 
     #[inline]
-    pub const fn allocator_type_id(&self) -> any::TypeId {
+    pub(crate) const fn allocator_type_id(&self) -> any::TypeId {
         self.inner.allocator_type_id()
     }
 }
 
 impl OpaqueIndexMapInner {
     #[inline(always)]
-    pub fn as_proj<K, V, S, A>(&self) -> &TypedProjIndexMapInner<K, V, S, A>
+    pub(crate) fn as_proj<K, V, S, A>(&self) -> &TypedProjIndexMapInner<K, V, S, A>
     where
         K: any::Any,
         V: any::Any,
@@ -4370,7 +4370,7 @@ impl OpaqueIndexMapInner {
     }
 
     #[inline(always)]
-    pub fn as_proj_mut<K, V, S, A>(&mut self) -> &mut TypedProjIndexMapInner<K, V, S, A>
+    pub(crate) fn as_proj_mut<K, V, S, A>(&mut self) -> &mut TypedProjIndexMapInner<K, V, S, A>
     where
         K: any::Any,
         V: any::Any,
@@ -4387,7 +4387,7 @@ impl OpaqueIndexMapInner {
     }
 
     #[inline(always)]
-    pub fn into_proj<K, V, S, A>(self) -> TypedProjIndexMapInner<K, V, S, A>
+    pub(crate) fn into_proj<K, V, S, A>(self) -> TypedProjIndexMapInner<K, V, S, A>
     where
         K: any::Any,
         V: any::Any,
@@ -4410,7 +4410,7 @@ impl OpaqueIndexMapInner {
     }
 
     #[inline(always)]
-    pub fn from_proj<K, V, S, A>(proj_self: TypedProjIndexMapInner<K, V, S, A>) -> Self
+    pub(crate) fn from_proj<K, V, S, A>(proj_self: TypedProjIndexMapInner<K, V, S, A>) -> Self
     where
         K: any::Any,
         V: any::Any,
