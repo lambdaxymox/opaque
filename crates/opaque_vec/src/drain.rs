@@ -140,7 +140,8 @@ where
     #[track_caller]
     pub(crate) unsafe fn move_tail(&mut self, additional: usize) {
         let vec = unsafe { self.vec.as_mut() };
-        vec.reserve(additional);
+        let len = self.tail_start + self.tail_len;
+        vec.reserve_with_length(len, additional);
 
         let new_tail_start = self.tail_start + additional;
         unsafe {

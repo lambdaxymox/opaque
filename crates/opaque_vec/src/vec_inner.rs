@@ -1330,6 +1330,21 @@ where
     }
 }
 
+impl<T, A> TypedProjVecInner<T, A>
+where
+    T: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    #[inline]
+    #[track_caller]
+    pub(crate) fn reserve_with_length(&mut self, length: usize, additional: usize) {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
+        self.data.reserve(length, additional);
+    }
+}
+
 impl<T, A> Extend<T> for TypedProjVecInner<T, A>
 where
     T: any::Any,

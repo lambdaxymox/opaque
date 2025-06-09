@@ -629,7 +629,7 @@ impl RawVecMemory {
 
         Ok(())
     }
-
+    
     #[inline]
     #[track_caller]
     fn reserve(&mut self, len: usize, additional: usize, element_layout: alloc::Layout) {
