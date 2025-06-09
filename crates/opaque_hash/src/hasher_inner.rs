@@ -28,6 +28,16 @@ where
     H: any::Any + hash::Hasher + Send + Sync,
 {
     #[inline]
+    pub(crate) const fn hasher_type_id(&self) -> any::TypeId {
+        self.hasher_type_id
+    }
+}
+
+impl<H> TypedProjHasherInner<H>
+where
+    H: any::Any + hash::Hasher + Send + Sync,
+{
+    #[inline]
     pub(crate) fn new(hasher: H) -> Self {
         let boxed_hasher = Box::new(hasher);
         let type_id = any::TypeId::of::<H>();
@@ -52,7 +62,7 @@ where
 
     #[inline]
     pub(crate) fn hasher_assuming_type(&self) -> &H {
-        debug_assert_eq!(self.hasher_type_id, any::TypeId::of::<H>());
+        debug_assert_eq!(self.hasher_type_id(), any::TypeId::of::<H>());
 
         let any_hasher = self.hasher.as_ref() as &dyn any::Any;
         any_hasher.downcast_ref::<H>().unwrap()
@@ -60,7 +70,7 @@ where
 
     #[inline]
     pub(crate) fn into_boxed_hasher_assuming_type(self) -> Box<H> {
-        debug_assert_eq!(self.hasher_type_id, any::TypeId::of::<H>());
+        debug_assert_eq!(self.hasher_type_id(), any::TypeId::of::<H>());
 
         let boxed_hasher = unsafe {
             let unboxed_hasher = Box::into_raw(self.hasher);
@@ -77,7 +87,7 @@ where
 {
     #[inline]
     fn clone(&self) -> TypedProjHasherInner<H> {
-        debug_assert_eq!(self.hasher_type_id, any::TypeId::of::<H>());
+        debug_assert_eq!(self.hasher_type_id(), any::TypeId::of::<H>());
 
         let any_hasher = self.hasher.as_ref() as &dyn any::Any;
         let alloc_ref = any_hasher
@@ -150,7 +160,7 @@ impl OpaqueHasherInner {
     where
         H: any::Any + hash::Hasher + Send + Sync,
     {
-        debug_assert_eq!(self.hasher_type_id, any::TypeId::of::<H>());
+        debug_assert_eq!(self.hasher_type_id(), any::TypeId::of::<H>());
 
         unsafe { &*(self as *const OpaqueHasherInner as *const TypedProjHasherInner<H>) }
     }
@@ -160,7 +170,7 @@ impl OpaqueHasherInner {
     where
         H: any::Any + hash::Hasher + Send + Sync,
     {
-        debug_assert_eq!(self.hasher_type_id, any::TypeId::of::<H>());
+        debug_assert_eq!(self.hasher_type_id(), any::TypeId::of::<H>());
 
         unsafe { &mut *(self as *mut OpaqueHasherInner as *mut TypedProjHasherInner<H>) }
     }
@@ -170,7 +180,7 @@ impl OpaqueHasherInner {
     where
         H: any::Any + hash::Hasher + Send + Sync,
     {
-        debug_assert_eq!(self.hasher_type_id, any::TypeId::of::<H>());
+        debug_assert_eq!(self.hasher_type_id(), any::TypeId::of::<H>());
 
         TypedProjHasherInner {
             hasher: self.hasher,

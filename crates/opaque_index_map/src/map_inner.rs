@@ -1685,6 +1685,28 @@ where
     V: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
+    #[inline]
+    pub(crate) const fn key_type_id(&self) -> any::TypeId {
+        self.key_type_id
+    }
+
+    #[inline]
+    pub(crate) const fn value_type_id(&self) -> any::TypeId {
+        self.value_type_id
+    }
+
+    #[inline]
+    pub(crate) const fn allocator_type_id(&self) -> any::TypeId {
+        self.allocator_type_id
+    }
+}
+
+impl<K, V, A> TypedProjIndexMapCore<K, V, A>
+where
+    K: any::Any,
+    V: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
     pub(crate) fn new_proj_in(alloc: TypedProjAlloc<A>) -> Self {
         let indices = hashbrown::HashTable::new();
         let entries = TypedProjVec::new_proj_in(alloc);
@@ -1805,6 +1827,10 @@ where
 {
     #[inline]
     pub(crate) fn allocator(&self) -> &TypedProjAlloc<A> {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.entries.allocator()
     }
 }
@@ -1821,11 +1847,19 @@ where
     }
 
     pub(crate) fn clear(&mut self) {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.indices.clear();
         self.entries.clear();
     }
 
     pub(crate) fn truncate(&mut self, len: usize) {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         if len < self.len() {
             self.erase_indices(len, self.entries.len());
             self.entries.truncate(len);
@@ -1837,6 +1871,10 @@ where
     where
         R: ops::RangeBounds<usize>,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         let range = range_ops::simplify_range(range, self.entries.len());
         self.erase_indices(range.start, range.end);
 
@@ -1848,6 +1886,10 @@ where
     where
         A: Clone,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         let len = self.entries.len();
         assert!(
             at <= len,
@@ -1880,6 +1922,10 @@ where
         A: Clone,
         R: ops::RangeBounds<usize>,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         let range = range_ops::simplify_range(range, self.len());
         self.erase_indices(range.start, self.entries.len());
         let entries = self.entries.split_off(range.end);
@@ -1906,6 +1952,10 @@ where
     }
 
     pub(crate) fn append_unchecked(&mut self, other: &mut Self) {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.reserve(other.len());
         insert_bulk_no_grow(&mut self.indices, other.entries.as_slice());
         self.entries.append(&mut other.entries);
@@ -1913,6 +1963,10 @@ where
     }
 
     pub(crate) fn reserve(&mut self, additional: usize) {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.indices.reserve(additional, get_hash(self.entries.as_slice()));
         // Only grow entries if necessary, since we also round up capacity.
         if additional > self.entries.capacity() - self.entries.len() {
@@ -1921,11 +1975,19 @@ where
     }
 
     pub(crate) fn reserve_exact(&mut self, additional: usize) {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.indices.reserve(additional, get_hash(self.entries.as_slice()));
         self.entries.reserve_exact(additional);
     }
 
     pub(crate) fn try_reserve(&mut self, additional: usize) -> Result<(), TryReserveError> {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         fn from_hashbrown(error: hashbrown::TryReserveError) -> TryReserveError {
             let kind = match error {
                 hashbrown::TryReserveError::CapacityOverflow => TryReserveErrorKind::CapacityOverflow,
@@ -1965,6 +2027,10 @@ where
     }
 
     pub(crate) fn try_reserve_exact(&mut self, additional: usize) -> Result<(), TryReserveError> {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         fn from_hashbrown(error: hashbrown::TryReserveError) -> TryReserveError {
             let kind = match error {
                 hashbrown::TryReserveError::CapacityOverflow => TryReserveErrorKind::CapacityOverflow,
@@ -1982,16 +2048,28 @@ where
     }
 
     pub(crate) fn shrink_to_fit(&mut self) {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.shrink_to(0);
     }
 
     pub(crate) fn shrink_to(&mut self, min_capacity: usize) {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.indices
             .shrink_to(min_capacity, get_hash(self.entries.as_slice()));
         self.entries.shrink_to(min_capacity);
     }
 
     pub(crate) fn pop(&mut self) -> Option<(K, V)> {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         if let Some(entry) = self.entries.pop() {
             let last = self.entries.len();
             erase_index(&mut self.indices, entry.hash, last);
@@ -2005,6 +2083,10 @@ where
     where
         Q: ?Sized + Equivalent<K>,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         let eq = equivalent(key, self.entries.as_slice());
 
         self.indices.find(hash.get(), eq).copied()
@@ -2024,6 +2106,10 @@ where
     where
         K: Eq,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         let eq = equivalent(&key, self.entries.as_slice());
         let hasher = get_hash(self.entries.as_slice());
         match self.indices.entry(hash.get(), eq, hasher) {
@@ -2048,6 +2134,10 @@ where
     where
         K: Eq,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         let eq = equivalent(&key, &self.entries);
         let hasher = get_hash(&self.entries);
         match self.indices.entry(hash.get(), eq, hasher) {
@@ -2074,6 +2164,10 @@ where
     where
         Q: ?Sized + Equivalent<K>,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         let eq = equivalent(key, self.entries.as_slice());
         match self.indices.find_entry(hash.get(), eq) {
             Ok(entry) => {
@@ -2087,18 +2181,30 @@ where
 
     #[inline]
     pub(crate) fn shift_remove_index(&mut self, index: usize) -> Option<(K, V)> {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.borrow_mut().shift_remove_index(index)
     }
 
     #[inline]
     #[track_caller]
     pub(crate) fn move_index(&mut self, from: usize, to: usize) {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.borrow_mut().move_index(from, to);
     }
 
     #[inline]
     #[track_caller]
     pub(crate) fn swap_indices(&mut self, a: usize, b: usize) {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.borrow_mut().swap_indices(a, b);
     }
 
@@ -2106,6 +2212,10 @@ where
     where
         Q: ?Sized + Equivalent<K>,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         let eq = equivalent(key, self.entries.as_slice());
         match self.indices.find_entry(hash.get(), eq) {
             Ok(entry) => {
@@ -2119,6 +2229,10 @@ where
 
     #[inline]
     pub(crate) fn swap_remove_index(&mut self, index: usize) -> Option<(K, V)> {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.borrow_mut().swap_remove_index(index)
     }
 
@@ -2172,6 +2286,10 @@ where
     where
         F: FnMut(&mut K, &mut V) -> bool,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.entries
             .retain_mut(|entry: &mut Bucket<K, V>| keep(&mut entry.key, &mut entry.value));
 
@@ -2186,6 +2304,10 @@ where
     }
 
     pub(crate) fn reverse(&mut self) {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.entries.reverse();
 
         // No need to save hash indices, can easily calculate what they should
@@ -2235,6 +2357,10 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     pub(crate) fn entry(&mut self, hash: HashValue, key: K) -> Entry<'_, K, V, A> {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         let entries = &mut self.entries;
         let eq = equivalent(&key, entries.as_slice());
         match self.indices.find_entry(hash.get(), eq) {
@@ -2258,6 +2384,10 @@ where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     fn clone(&self) -> Self {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         let cloned_indices = self.indices.clone();
         let cloned_entries = self.entries.clone();
         let cloned_key_type_id = self.key_type_id;
@@ -2312,9 +2442,9 @@ impl OpaqueIndexMapCore {
         V: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        debug_assert_eq!(self.key_type_id, any::TypeId::of::<K>());
-        debug_assert_eq!(self.value_type_id, any::TypeId::of::<V>());
-        debug_assert_eq!(self.allocator_type_id, any::TypeId::of::<A>());
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
 
         unsafe { &*(self as *const OpaqueIndexMapCore as *const TypedProjIndexMapCore<K, V, A>) }
     }
@@ -2326,9 +2456,9 @@ impl OpaqueIndexMapCore {
         V: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        debug_assert_eq!(self.key_type_id, any::TypeId::of::<K>());
-        debug_assert_eq!(self.value_type_id, any::TypeId::of::<V>());
-        debug_assert_eq!(self.allocator_type_id, any::TypeId::of::<A>());
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
 
         unsafe { &mut *(self as *mut OpaqueIndexMapCore as *mut TypedProjIndexMapCore<K, V, A>) }
     }
@@ -2340,9 +2470,9 @@ impl OpaqueIndexMapCore {
         V: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        debug_assert_eq!(self.key_type_id, any::TypeId::of::<K>());
-        debug_assert_eq!(self.value_type_id, any::TypeId::of::<V>());
-        debug_assert_eq!(self.allocator_type_id, any::TypeId::of::<A>());
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
 
         TypedProjIndexMapCore {
             indices: self.indices,
@@ -2854,6 +2984,35 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[inline]
+    pub(crate) const fn key_type_id(&self) -> any::TypeId {
+        self.inner.key_type_id()
+    }
+
+    #[inline]
+    pub(crate) const fn value_type_id(&self) -> any::TypeId {
+        self.inner.value_type_id()
+    }
+
+    #[inline]
+    pub(crate) const fn build_hasher_type_id(&self) -> any::TypeId {
+        self.build_hasher.build_hasher_type_id()
+    }
+
+    #[inline]
+    pub(crate) const fn allocator_type_id(&self) -> any::TypeId {
+        self.inner.allocator_type_id()
+    }
+}
+
+impl<K, V, S, A> TypedProjIndexMapInner<K, V, S, A>
+where
+    K: any::Any,
+    V: any::Any,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    #[inline]
     pub(crate) fn into_entries(self) -> TypedProjVec<Bucket<K, V>, A> {
         self.inner.into_entries()
     }
@@ -2885,7 +3044,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[inline]
-    pub fn with_hasher_proj_in(proj_build_hasher: TypedProjBuildHasher<S>, proj_alloc: TypedProjAlloc<A>) -> Self {
+    pub(crate) fn with_hasher_proj_in(proj_build_hasher: TypedProjBuildHasher<S>, proj_alloc: TypedProjAlloc<A>) -> Self {
         let proj_inner = TypedProjIndexMapCore::<K, V, A>::new_proj_in(proj_alloc);
 
         Self {
@@ -2895,7 +3054,7 @@ where
     }
 
     #[inline]
-    pub fn with_capacity_and_hasher_proj_in(capacity: usize, proj_build_hasher: TypedProjBuildHasher<S>, proj_alloc: TypedProjAlloc<A>) -> Self {
+    pub(crate) fn with_capacity_and_hasher_proj_in(capacity: usize, proj_build_hasher: TypedProjBuildHasher<S>, proj_alloc: TypedProjAlloc<A>) -> Self {
         if capacity == 0 {
             Self::with_hasher_proj_in(proj_build_hasher, proj_alloc)
         } else {
@@ -3100,6 +3259,11 @@ where
     where
         K: hash::Hash + Eq,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         let hash = self.hash(&key);
         self.inner.replace_full(hash, key, value)
     }
@@ -3108,6 +3272,11 @@ where
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         match self.as_entries() {
             [] => None,
             [x] => key.equivalent(&x.key).then_some(0),
@@ -3122,6 +3291,11 @@ where
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.get_index_of::<Q>(key).is_some()
     }
 
@@ -3129,6 +3303,11 @@ where
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         if let Some(index) = self.get_index_of::<Q>(key) {
             let entry = &self.as_entries()[index];
             Some(&entry.value)
@@ -3141,6 +3320,11 @@ where
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         if let Some(i) = self.get_index_of::<Q>(key) {
             let entry = &self.as_entries()[i];
             Some((&entry.key, &entry.value))
@@ -3153,6 +3337,11 @@ where
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         if let Some(i) = self.get_index_of::<Q>(key) {
             let entry = &self.as_entries()[i];
             Some((i, &entry.key, &entry.value))
@@ -3165,6 +3354,11 @@ where
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         if let Some(i) = self.get_index_of::<Q>(key) {
             let entry = &mut self.as_entries_mut()[i];
             Some(&mut entry.value)
@@ -3177,6 +3371,11 @@ where
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         if let Some(i) = self.get_index_of::<Q>(key) {
             let entry = &mut self.as_entries_mut()[i];
 
@@ -3187,38 +3386,83 @@ where
     }
 
     pub fn keys(&self) -> Keys<'_, K, V> {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         Keys::new(self.as_entries())
     }
 
     pub fn into_keys(self) -> IntoKeys<K, V, A> {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         IntoKeys::new(self.into_entries())
     }
 
     pub fn iter(&self) -> Iter<'_, K, V> {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         Iter::new(self.as_entries())
     }
 
     pub fn iter_mut(&mut self) -> IterMut<'_, K, V> {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         IterMut::new(self.as_entries_mut())
     }
 
     pub fn values(&self) -> Values<'_, K, V> {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         Values::new(self.as_entries())
     }
 
     pub fn values_mut(&mut self) -> ValuesMut<'_, K, V> {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         ValuesMut::new(self.as_entries_mut())
     }
 
     pub fn into_values(self) -> IntoValues<K, V, A> {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         IntoValues::new(self.into_entries())
     }
 
     pub fn clear(&mut self) {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.inner.clear();
     }
 
     pub fn truncate(&mut self, len: usize) {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.inner.truncate(len);
     }
 
@@ -3227,6 +3471,11 @@ where
     where
         R: ops::RangeBounds<usize>,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         Drain::new(self.inner.drain::<R>(range))
     }
 
@@ -3236,6 +3485,11 @@ where
         S: Clone,
         A: Clone,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         Self {
             inner: self.inner.split_off(at),
             build_hasher: self.build_hasher.clone(),
@@ -3247,6 +3501,11 @@ where
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         fn third<A, B, C>(triple: (A, B, C)) -> C {
             triple.2
         }
@@ -3258,6 +3517,11 @@ where
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         match self.swap_remove_full::<Q>(key) {
             Some((_, key, value)) => Some((key, value)),
             None => None,
@@ -3268,6 +3532,11 @@ where
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         match self.as_entries() {
             [x] if key.equivalent(&x.key) => {
                 let (k, v) = self.inner.pop()?;
@@ -3285,6 +3554,11 @@ where
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         fn third<A, B, C>(triple: (A, B, C)) -> C {
             triple.2
         }
@@ -3296,6 +3570,11 @@ where
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         match self.shift_remove_full::<Q>(key) {
             Some((_, key, value)) => Some((key, value)),
             None => None,
@@ -3306,6 +3585,11 @@ where
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         match self.as_entries() {
             [x] if key.equivalent(&x.key) => {
                 let (k, v) = self.inner.pop()?;
@@ -3321,10 +3605,20 @@ where
     }
 
     pub fn as_slice(&self) -> &'_ Slice<K, V> {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         Slice::from_slice(self.as_entries())
     }
 
     pub fn as_mut_slice(&mut self) -> &mut Slice<K, V> {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         Slice::from_slice_mut(self.as_entries_mut())
     }
 }
@@ -3341,6 +3635,11 @@ where
     where
         K: Eq + hash::Hash,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.insert_full(key, value).1
     }
 
@@ -3348,6 +3647,11 @@ where
     where
         K: Eq + hash::Hash,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         let hash = self.hash(&key);
 
         self.inner.insert_full(hash, key, value)
@@ -3357,6 +3661,11 @@ where
     where
         K: Eq + hash::Hash + Ord,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         match self.binary_search_keys(&key) {
             Ok(i) => {
                 let destination = self.get_index_mut(i).unwrap().1;
@@ -3373,6 +3682,11 @@ where
     where
         K: Eq + hash::Hash,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         let len = self.len();
 
         assert!(
@@ -3406,6 +3720,11 @@ where
     where
         K: Eq + hash::Hash,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         let len = self.len();
         match self.entry(key) {
             Entry::Occupied(mut entry) => {
@@ -3433,6 +3752,11 @@ where
     where
         K: Eq + hash::Hash,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         let hash = self.hash(&key);
 
         self.inner.entry(hash, key)
@@ -3446,6 +3770,11 @@ where
         R: ops::RangeBounds<usize>,
         I: IntoIterator<Item=(K, V)>,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         Splice::new(self, range, replace_with.into_iter())
     }
 }
@@ -3465,6 +3794,11 @@ where
         S2::Hasher: any::Any + hash::Hasher + Send + Sync,
         A2: any::Any + alloc::Allocator + Send + Sync,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.extend(other.drain::<_>(..));
     }
 }
@@ -3491,6 +3825,11 @@ where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     fn clone(&self) -> Self {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         let cloned_inner = self.inner.clone();
         let cloned_builder_hasher = self.build_hasher.clone();
 
@@ -3517,6 +3856,11 @@ where
     where
         I: IntoIterator<Item = (K, V)>,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         // (Note: this is a copy of `std`/`hashbrown`'s reservation logic.)
         // Keys may be already present or show multiple times in the iterator.
         // Reserve the entire hint lower bound if the map is empty.
@@ -3547,6 +3891,11 @@ where
     where
         I: IntoIterator<Item = (&'a K, &'a V)>,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.extend(iterable.into_iter().map(|(&key, &value)| (key, value)));
     }
 }
@@ -3559,8 +3908,13 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    #[doc(alias = "pop_last")] // like `BTreeMap`
+    #[doc(alias = "pop_last")]
     pub fn pop(&mut self) -> Option<(K, V)> {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.inner.pop()
     }
 
@@ -3568,6 +3922,11 @@ where
     where
         F: FnMut(&K, &mut V) -> bool,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.inner.retain_in_order::<_>(move |k, v| keep(k, v));
     }
 
@@ -3575,6 +3934,11 @@ where
     where
         K: Ord,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.with_entries::<_>(move |entries| {
             entries.sort_by(move |a, b| K::cmp(&a.key, &b.key));
         });
@@ -3584,6 +3948,11 @@ where
     where
         F: FnMut(&K, &V, &K, &V) -> cmp::Ordering,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.with_entries::<_>(move |entries| {
             entries.sort_by(move |a, b| cmp(&a.key, &a.value, &b.key, &b.value));
         });
@@ -3593,6 +3962,11 @@ where
     where
         F: FnMut(&K, &V, &K, &V) -> cmp::Ordering,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         let mut entries = self.into_entries();
         entries
             .as_mut_slice()
@@ -3605,6 +3979,11 @@ where
     where
         K: Ord,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.with_entries::<_>(move |entries| {
             entries.sort_unstable_by(move |a, b| K::cmp(&a.key, &b.key));
         });
@@ -3614,6 +3993,11 @@ where
     where
         F: FnMut(&K, &V, &K, &V) -> cmp::Ordering,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.with_entries::<_>(move |entries| {
             entries.sort_unstable_by(move |a, b| cmp(&a.key, &a.value, &b.key, &b.value));
         });
@@ -3624,6 +4008,11 @@ where
     where
         F: FnMut(&K, &V, &K, &V) -> cmp::Ordering,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         let mut entries = self.into_entries();
         entries
             .as_mut_slice()
@@ -3637,6 +4026,11 @@ where
         T: Ord,
         F: FnMut(&K, &V) -> T,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.with_entries::<_>(move |entries| {
             entries.sort_by_cached_key(move |a| sort_key(&a.key, &a.value));
         });
@@ -3646,6 +4040,11 @@ where
     where
         K: Ord,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.as_slice().binary_search_keys(key)
     }
 
@@ -3654,6 +4053,11 @@ where
     where
         F: FnMut(&K, &V) -> cmp::Ordering,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.as_slice().binary_search_by(f)
     }
 
@@ -3663,6 +4067,11 @@ where
         F: FnMut(&K, &V) -> B,
         B: Ord,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.as_slice().binary_search_by_key(b, f)
     }
 
@@ -3671,46 +4080,101 @@ where
     where
         P: FnMut(&K, &V) -> bool,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.as_slice().partition_point(pred)
     }
 
     pub fn reverse(&mut self) {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.inner.reverse();
     }
 
     pub fn reserve(&mut self, additional: usize) {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.inner.reserve(additional);
     }
 
     pub fn reserve_exact(&mut self, additional: usize) {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.inner.reserve_exact(additional);
     }
 
     pub fn try_reserve(&mut self, additional: usize) -> Result<(), TryReserveError> {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.inner.try_reserve(additional)
     }
 
     pub fn try_reserve_exact(&mut self, additional: usize) -> Result<(), TryReserveError> {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.inner.try_reserve_exact(additional)
     }
 
     pub fn shrink_to_fit(&mut self) {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.inner.shrink_to_fit();
     }
 
     pub fn shrink_to(&mut self, min_capacity: usize) {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.inner.shrink_to(min_capacity);
     }
 
     pub fn into_boxed_slice(self) -> Box<Slice<K, V>, TypedProjAlloc<A>> {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         Slice::from_boxed_slice(self.into_entries().into_boxed_slice())
     }
 
     pub fn get_index(&self, index: usize) -> Option<(&K, &V)> {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.as_entries().get(index).map(Bucket::refs)
     }
 
     pub fn get_index_mut(&mut self, index: usize) -> Option<(&K, &mut V)> {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.as_entries_mut().get_mut(index).map(Bucket::ref_mut)
     }
 
@@ -3718,6 +4182,11 @@ where
     where
         K: Ord,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         if index >= self.len() {
             return None;
         }
@@ -3729,6 +4198,11 @@ where
     where
         R: ops::RangeBounds<usize>,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         let entries = self.as_entries();
         let range = range_ops::try_simplify_range(range, entries.len())?;
         entries.get(range).map(Slice::from_slice)
@@ -3738,6 +4212,11 @@ where
     where
         R: ops::RangeBounds<usize>,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         let entries = self.as_entries_mut();
         let range = range_ops::try_simplify_range(range, entries.len())?;
         entries.get_mut(range).map(Slice::from_slice_mut)
@@ -3745,10 +4224,20 @@ where
 
     #[doc(alias = "first_key_value")] // like `BTreeMap`
     pub fn first(&self) -> Option<(&K, &V)> {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.as_entries().first().map(Bucket::refs)
     }
 
     pub fn first_mut(&mut self) -> Option<(&K, &mut V)> {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.as_entries_mut().first_mut().map(Bucket::ref_mut)
     }
 
@@ -3756,15 +4245,30 @@ where
     where
         K: Ord,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.get_index_entry(0)
     }
 
     #[doc(alias = "last_key_value")] // like `BTreeMap`
     pub fn last(&self) -> Option<(&K, &V)> {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.as_entries().last().map(Bucket::refs)
     }
 
     pub fn last_mut(&mut self) -> Option<(&K, &mut V)> {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.as_entries_mut().last_mut().map(Bucket::ref_mut)
     }
 
@@ -3772,24 +4276,49 @@ where
     where
         K: Ord,
     {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.get_index_entry(self.len().checked_sub(1)?)
     }
 
     pub fn swap_remove_index(&mut self, index: usize) -> Option<(K, V)> {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.inner.swap_remove_index(index)
     }
 
     pub fn shift_remove_index(&mut self, index: usize) -> Option<(K, V)> {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.inner.shift_remove_index(index)
     }
 
     #[track_caller]
     pub fn move_index(&mut self, from: usize, to: usize) {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.inner.move_index(from, to)
     }
 
     #[track_caller]
     pub fn swap_indices(&mut self, a: usize, b: usize) {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+        
         self.inner.swap_indices(a, b)
     }
 }

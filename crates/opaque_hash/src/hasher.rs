@@ -24,6 +24,16 @@ where
     H: any::Any + hash::Hasher + Send + Sync,
 {
     #[inline]
+    pub const fn hasher_type_id(&self) -> any::TypeId {
+        self.inner.hasher_type_id()
+    }
+}
+
+impl<H> TypedProjHasher<H>
+where
+    H: any::Any + hash::Hasher + Send + Sync,
+{
+    #[inline]
     pub fn new(hasher: H) -> Self {
         let inner = TypedProjHasherInner::new(hasher);
 

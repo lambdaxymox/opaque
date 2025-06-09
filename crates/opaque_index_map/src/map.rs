@@ -1681,6 +1681,35 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[inline]
+    pub const fn key_type_id(&self) -> any::TypeId {
+        self.inner.key_type_id()
+    }
+
+    #[inline]
+    pub const fn value_type_id(&self) -> any::TypeId {
+        self.inner.value_type_id()
+    }
+
+    #[inline]
+    pub const fn build_hasher_type_id(&self) -> any::TypeId {
+        self.inner.build_hasher_type_id()
+    }
+
+    #[inline]
+    pub const fn allocator_type_id(&self) -> any::TypeId {
+        self.inner.allocator_type_id()
+    }
+}
+
+impl<K, V, S, A> TypedProjIndexMap<K, V, S, A>
+where
+    K: any::Any,
+    V: any::Any,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    #[inline]
     pub fn with_hasher_proj_in(proj_build_hasher: TypedProjBuildHasher<S>, proj_alloc: TypedProjAlloc<A>) -> Self {
         let proj_inner = TypedProjIndexMapInner::<K, V, S, A>::with_hasher_proj_in(proj_build_hasher, proj_alloc);
 
@@ -2642,7 +2671,7 @@ impl OpaqueIndexMap {
     }
 
     #[inline]
-    pub const fn build_hasher_type_id<S>(&self) -> any::TypeId {
+    pub const fn build_hasher_type_id(&self) -> any::TypeId {
         self.inner.build_hasher_type_id()
     }
 
@@ -2650,7 +2679,9 @@ impl OpaqueIndexMap {
     pub const fn allocator_type_id(&self) -> any::TypeId {
         self.inner.allocator_type_id()
     }
+}
 
+impl OpaqueIndexMap {
     #[inline]
     pub fn has_key_type<K>(&self) -> bool
     where

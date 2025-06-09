@@ -57,6 +57,22 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[inline]
+    pub(crate) const fn element_type_id(&self) -> any::TypeId {
+        self.element_type_id
+    }
+
+    #[inline]
+    pub(crate) const fn allocator_type_id(&self) -> any::TypeId {
+        self.allocator_type_id
+    }
+}
+
+impl<T, A> TypedProjVecInner<T, A>
+where
+    T: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    #[inline]
     #[must_use]
     #[track_caller]
     pub(crate) fn new_proj_in(proj_alloc: TypedProjAlloc<A>) -> Self {
@@ -227,6 +243,9 @@ where
 {
     #[inline]
     pub(crate) fn allocator(&self) -> &TypedProjAlloc<A> {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.data.allocator()
     }
 }
@@ -238,6 +257,9 @@ where
 {
     #[inline]
     pub(crate) unsafe fn set_len(&mut self, new_len: usize) {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         debug_assert!(new_len <= self.capacity());
 
         self.length = new_len;
@@ -245,11 +267,17 @@ where
 
     #[inline]
     pub(crate) fn iter(&self) -> slice::Iter<'_, T> {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.as_slice().iter()
     }
 
     #[inline]
     pub(crate) fn iter_mut(&mut self) -> slice::IterMut<'_, T> {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.as_mut_slice().iter_mut()
     }
 
@@ -259,6 +287,9 @@ where
     where
         I: slice::SliceIndex<[T]>,
     {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         unsafe {
             self.as_slice().get_unchecked(index)
         }
@@ -270,6 +301,9 @@ where
     where
         I: slice::SliceIndex<[T]>,
     {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         unsafe {
             self.as_mut_slice().get_unchecked_mut(index)
         }
@@ -278,6 +312,9 @@ where
     #[inline]
     #[track_caller]
     pub(crate) fn push(&mut self, value: T) {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         let length = self.len();
 
         if length == self.data.capacity() {
@@ -293,6 +330,9 @@ where
 
     #[inline]
     pub(crate) fn pop(&mut self) -> Option<T> {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         if self.len() == 0 {
             None
         } else {
@@ -309,6 +349,9 @@ where
 
     #[inline]
     pub(crate) fn replace_insert(&mut self, index: usize, value: T) {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         #[cold]
         #[track_caller]
         #[optimize(size)]
@@ -346,6 +389,9 @@ where
 
     #[inline]
     pub(crate) fn shift_insert(&mut self, index: usize, value: T) {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         #[cold]
         #[track_caller]
         #[optimize(size)]
@@ -378,6 +424,9 @@ where
 
     #[inline]
     pub(crate) fn swap_remove(&mut self, index: usize) -> T {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         #[cold]
         #[track_caller]
         #[optimize(size)]
@@ -404,6 +453,9 @@ where
 
     #[inline]
     pub(crate) fn shift_remove(&mut self, index: usize) -> T {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         #[cold]
         #[track_caller]
         #[optimize(size)]
@@ -439,6 +491,9 @@ where
     where
         T: PartialEq,
     {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.as_slice().contains(value)
     }
 
@@ -449,7 +504,7 @@ where
 
     #[inline]
     pub(crate) const fn as_mut_ptr(&mut self) -> *mut T {
-        self.data.ptr() as *mut T
+        self.data.ptr()
     }
 
     #[inline]
@@ -459,7 +514,7 @@ where
     }
 
     #[inline]
-    pub(crate) fn as_slice(&self) -> &[T] {
+    pub(crate) const fn as_slice(&self) -> &[T] {
         unsafe {
             let data_ptr = self.as_ptr();
             let len = self.len();
@@ -469,7 +524,7 @@ where
     }
 
     #[inline]
-    pub(crate) fn as_mut_slice(&mut self) -> &mut [T] {
+    pub(crate) const fn as_mut_slice(&mut self) -> &mut [T] {
         unsafe {
             let data_ptr = self.as_mut_ptr();
             let len = self.len();
@@ -481,6 +536,9 @@ where
     #[inline]
     #[must_use]
     pub(crate) fn into_raw_parts(self) -> (*mut T, usize, usize) {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         let mut me = ManuallyDrop::new(self);
         let ptr = me.as_mut_ptr();
         let len = me.len();
@@ -492,6 +550,9 @@ where
     #[inline]
     #[must_use]
     pub(crate) fn into_parts(self) -> (NonNull<T>, usize, usize) {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         let mut me = ManuallyDrop::new(self);
 
         // SAFETY: An `OpaqueVec` always has a non-null pointer.
@@ -508,6 +569,9 @@ where
     where
         A: alloc::Allocator,
     {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         let mut me = ManuallyDrop::new(self);
         let ptr = me.as_mut_ptr();
         let len = me.len();
@@ -523,6 +587,9 @@ where
     where
         A: alloc::Allocator,
     {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         let mut me = ManuallyDrop::new(self);
 
         // SAFETY: An `OpaqueVec` always has a non-null pointer.
@@ -536,6 +603,9 @@ where
 
     #[inline]
     pub(crate) fn spare_capacity_mut(&mut self) -> &mut [MaybeUninit<T>] {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         unsafe {
             let ptr = self.as_mut_ptr().add(self.len()) as *mut MaybeUninit<T>;
             let len = self.capacity() - self.len();
@@ -549,6 +619,9 @@ where
         A: alloc::Allocator,
         R: ops::RangeBounds<usize>,
     {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         // Memory safety
         //
         // When the Drain is first created, it shortens the length of
@@ -583,6 +656,9 @@ where
     where
         I: slice::SliceIndex<[T]>,
     {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.as_slice().get(index)
     }
 
@@ -592,11 +668,17 @@ where
     where
         I: slice::SliceIndex<[T]>,
     {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.as_mut_slice().get_mut(index)
     }
 
     #[inline]
     pub(crate) fn push_within_capacity(&mut self, value: T) -> Result<(), T> {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         if self.len() == self.capacity() {
             return Err(value);
         }
@@ -609,6 +691,9 @@ where
     #[inline]
     #[track_caller]
     unsafe fn append_elements(&mut self, other: *const [T]) {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         let count = other.len();
         self.reserve(count);
         let length = self.len();
@@ -622,6 +707,9 @@ where
     #[inline]
     #[track_caller]
     pub(crate) fn append(&mut self, other: &mut Self) {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         unsafe {
             self.append_elements(other.as_slice() as _);
             other.set_len(0);
@@ -634,6 +722,9 @@ where
     where
         A: alloc::Allocator,
     {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         unsafe {
             self.shrink_to_fit();
             let mut me = ManuallyDrop::new(self);
@@ -651,6 +742,9 @@ where
     where
         A: alloc::Allocator + Clone,
     {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         #[cold]
         #[track_caller]
         #[optimize(size)]
@@ -688,6 +782,9 @@ where
         A: alloc::Allocator,
         F: FnMut() -> T,
     {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         let len = self.len();
         if new_len > len {
             self.extend::<_>(core::iter::repeat_with(f).take(new_len - len));
@@ -704,35 +801,53 @@ where
 {
     #[inline]
     pub(crate) fn try_reserve(&mut self, additional: usize) -> Result<(), TryReserveError> {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.data.try_reserve(self.len(), additional)
     }
 
     #[inline]
     pub(crate) fn try_reserve_exact(&mut self, additional: usize) -> Result<(), TryReserveError> {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.data.try_reserve_exact(self.len(), additional)
     }
 
     #[inline]
     #[track_caller]
     pub(crate) fn reserve(&mut self, additional: usize) {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.data.reserve(self.len(), additional);
     }
 
     #[inline]
     #[track_caller]
     pub(crate) fn reserve_exact(&mut self, additional: usize) {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.data.reserve_exact(self.len(), additional);
     }
 
     #[inline]
     #[track_caller]
     pub(crate) fn shrink_to_fit(&mut self) {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.data.shrink_to_fit(self.capacity());
     }
 
     #[inline]
     #[track_caller]
     pub(crate) fn shrink_to(&mut self, min_capacity: usize) {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         if self.capacity() > min_capacity {
             self.data.shrink_to_fit(cmp::max(self.len(), min_capacity));
         }
@@ -745,6 +860,9 @@ where
 {
     #[inline]
     pub fn clear(&mut self) {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         let elements: *mut [T] = self.as_mut_slice();
 
         unsafe {
@@ -764,6 +882,9 @@ where
     where
         T: Clone,
     {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         struct SetLenOnDrop<'a> {
             len: &'a mut usize,
             local_len: usize,
@@ -829,6 +950,9 @@ where
         T: Clone,
         I: Iterator<Item = T>,
     {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         for item in iterator {
             self.push(item);
         }
@@ -839,6 +963,9 @@ where
     where
         T: Clone,
     {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.extend_from_iter::<_>(other.iter().cloned())
     }
 
@@ -847,6 +974,9 @@ where
     where
         T: Clone,
     {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         let len = self.len();
 
         if new_len > len {
@@ -866,6 +996,9 @@ where
     where
         F: FnMut(&T) -> bool,
     {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.retain_mut::<_>(|elem| f(elem));
     }
 
@@ -874,6 +1007,9 @@ where
         A: alloc::Allocator,
         F: FnMut(&mut T) -> bool,
     {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         let original_len = self.len();
 
         if original_len == 0 {
@@ -985,6 +1121,9 @@ where
     where
         F: FnMut(&mut T, &mut T) -> bool,
     {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         let len = self.len();
         if len <= 1 {
             return;
@@ -1126,6 +1265,9 @@ where
         F: FnMut(&mut T) -> K,
         K: PartialEq,
     {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.dedup_by::<_>(|a, b| key(a) == key(b))
     }
 
@@ -1134,6 +1276,9 @@ where
     where
         T: PartialEq,
     {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         self.dedup_by(|a, b| a == b)
     }
 }
@@ -1146,25 +1291,32 @@ where
     #[inline]
     pub(crate) fn splice<R, I>(&mut self, range: R, replace_with: I) -> Splice<'_, I::IntoIter, A>
     where
-        A: alloc::Allocator,
         R: ops::RangeBounds<usize>,
         I: IntoIterator<Item=T>,
     {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         Splice::new(self.drain(range), replace_with.into_iter())
     }
 
     #[inline]
     pub(crate) fn extract_if<F, R>(&mut self, range: R, filter: F) -> ExtractIf<'_, T, F, A>
     where
-        A: alloc::Allocator,
         F: FnMut(&mut T) -> bool,
         R: ops::RangeBounds<usize>,
     {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         ExtractIf::new(self, filter, range)
     }
 
     #[inline]
     pub(crate) fn truncate(&mut self, len: usize) {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+        
         if len > self.len() {
             return;
         }
@@ -1187,6 +1339,9 @@ where
     where
         I: IntoIterator<Item = T>,
     {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         for item in iter.into_iter() {
             self.push(item);
         }
@@ -1202,6 +1357,9 @@ where
     where
         I: IntoIterator<Item = &'a T>,
     {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         for item in iter.into_iter() {
             self.push(*item);
         }
@@ -1300,6 +1458,9 @@ where
 {
     #[inline]
     fn clone(&self) -> Self {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
         let cloned_alloc = self.allocator().clone();
 
         Self::from_slice_proj_in(self.as_slice(), cloned_alloc)
@@ -1446,14 +1607,26 @@ pub(crate) struct OpaqueVecInner {
 }
 
 impl OpaqueVecInner {
+    #[inline]
+    pub(crate) const fn element_type_id(&self) -> any::TypeId {
+        self.element_type_id
+    }
+
+    #[inline]
+    pub(crate) const fn allocator_type_id(&self) -> any::TypeId {
+        self.allocator_type_id
+    }
+}
+
+impl OpaqueVecInner {
     #[inline(always)]
     pub(crate) fn as_proj_assuming_type<T, A>(&self) -> &TypedProjVecInner<T, A>
     where
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        debug_assert_eq!(self.element_type_id, any::TypeId::of::<T>());
-        debug_assert_eq!(self.allocator_type_id, any::TypeId::of::<A>());
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
 
         unsafe { &*(self as *const OpaqueVecInner as *const TypedProjVecInner<T, A>) }
     }
@@ -1464,8 +1637,8 @@ impl OpaqueVecInner {
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        debug_assert_eq!(self.element_type_id, any::TypeId::of::<T>());
-        debug_assert_eq!(self.allocator_type_id, any::TypeId::of::<A>());
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
 
         unsafe { &mut *(self as *mut OpaqueVecInner as *mut TypedProjVecInner<T, A>) }
     }
@@ -1476,8 +1649,8 @@ impl OpaqueVecInner {
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        debug_assert_eq!(self.element_type_id, any::TypeId::of::<T>());
-        debug_assert_eq!(self.allocator_type_id, any::TypeId::of::<A>());
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
 
         unsafe { mem::transmute(self) }
     }
@@ -1489,18 +1662,6 @@ impl OpaqueVecInner {
         A: any::Any + alloc::Allocator + Send + Sync,
     {
         unsafe { mem::transmute(proj_self) }
-    }
-}
-
-impl OpaqueVecInner {
-    #[inline]
-    pub(crate) const fn element_type_id(&self) -> any::TypeId {
-        self.element_type_id
-    }
-
-    #[inline]
-    pub(crate) const fn allocator_type_id(&self) -> any::TypeId {
-        self.allocator_type_id
     }
 }
 

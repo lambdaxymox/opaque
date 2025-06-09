@@ -27,6 +27,22 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
 {
     #[inline]
+    pub const fn build_hasher_type_id(&self) -> any::TypeId {
+        self.inner.build_hasher_type_id()
+    }
+
+    #[inline]
+    pub const fn hasher_type_id(&self) -> any::TypeId {
+        self.inner.hasher_type_id()
+    }
+}
+
+impl<S> TypedProjBuildHasher<S>
+where
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+{
+    #[inline]
     pub fn new(build_hasher: S) -> Self {
         let inner = TypedProjBuildHasherInner::new(build_hasher);
 

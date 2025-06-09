@@ -23,6 +23,15 @@ impl<A> TypedProjAllocInner<A>
 where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
+    pub(crate) fn allocator_type_id(&self) -> any::TypeId {
+        self.alloc_type_id
+    }
+}
+
+impl<A> TypedProjAllocInner<A>
+where
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
     #[inline]
     pub(crate) fn new(alloc: A) -> Self {
         let boxed_alloc = Box::new(alloc);
@@ -48,7 +57,7 @@ where
 
     #[inline]
     pub(crate) fn allocator(&self) -> &A {
-        debug_assert_eq!(self.alloc_type_id, any::TypeId::of::<A>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
 
         let any_alloc = (&*self.alloc) as &dyn any::Any;
 
@@ -56,7 +65,7 @@ where
     }
 
     pub(crate) fn into_boxed_alloc(self) -> Box<A> {
-        debug_assert_eq!(self.alloc_type_id, any::TypeId::of::<A>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
 
         let any_alloc: Box<dyn any::Any> = self.alloc;
 
@@ -111,7 +120,7 @@ impl OpaqueAllocInner {
     where
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        debug_assert_eq!(self.alloc_type_id, any::TypeId::of::<A>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
 
         unsafe { &*(self as *const OpaqueAllocInner as *const TypedProjAllocInner<A>) }
     }
@@ -121,7 +130,7 @@ impl OpaqueAllocInner {
     where
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        debug_assert_eq!(self.alloc_type_id, any::TypeId::of::<A>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
 
         unsafe { &mut *(self as *mut OpaqueAllocInner as *mut TypedProjAllocInner<A>) }
     }
@@ -131,7 +140,7 @@ impl OpaqueAllocInner {
     where
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        debug_assert_eq!(self.alloc_type_id, any::TypeId::of::<A>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
 
         TypedProjAllocInner {
             alloc: self.alloc,

@@ -26,6 +26,22 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
 {
     #[inline]
+    pub(crate) const fn build_hasher_type_id(&self) -> any::TypeId {
+        self.build_hasher_type_id
+    }
+
+    #[inline]
+    pub(crate) const fn hasher_type_id(&self) -> any::TypeId {
+        self.hasher_type_id
+    }
+}
+
+impl<S> TypedProjBuildHasherInner<S>
+where
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+{
+    #[inline]
     pub(crate) fn new(build_hasher: S) -> Self {
         let boxed_build_hasher = Box::new(build_hasher);
         let build_hasher_type_id = any::TypeId::of::<S>();
@@ -53,16 +69,16 @@ where
     }
 
     pub(crate) fn get_build_hasher(&self) -> &S {
-        debug_assert_eq!(self.build_hasher_type_id, any::TypeId::of::<S>());
-        debug_assert_eq!(self.hasher_type_id, any::TypeId::of::<S::Hasher>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.hasher_type_id(), any::TypeId::of::<S::Hasher>());
 
         let any_build_hasher = self.build_hasher.as_ref();
         any_build_hasher.downcast_ref::<S>().unwrap()
     }
 
     pub(crate) fn into_boxed_build_hasher(self) -> Box<S> {
-        debug_assert_eq!(self.build_hasher_type_id, any::TypeId::of::<S>());
-        debug_assert_eq!(self.hasher_type_id, any::TypeId::of::<S::Hasher>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.hasher_type_id(), any::TypeId::of::<S::Hasher>());
 
         let boxed_build_hasher = unsafe {
             let unboxed_build_hasher = Box::into_raw(self.build_hasher);
@@ -79,8 +95,8 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
 {
     pub(crate) fn build_hasher(&self) -> S::Hasher {
-        debug_assert_eq!(self.build_hasher_type_id, any::TypeId::of::<S>());
-        debug_assert_eq!(self.hasher_type_id, any::TypeId::of::<S::Hasher>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.hasher_type_id(), any::TypeId::of::<S::Hasher>());
 
         let build_hasher = self.build_hasher.downcast_ref::<S>().unwrap();
 
@@ -94,8 +110,8 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
 {
     fn clone(&self) -> Self {
-        debug_assert_eq!(self.build_hasher_type_id, any::TypeId::of::<S>());
-        debug_assert_eq!(self.hasher_type_id, any::TypeId::of::<S::Hasher>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.hasher_type_id(), any::TypeId::of::<S::Hasher>());
 
         let build_hasher_ref = self.build_hasher.downcast_ref::<S>().unwrap();
         let cloned_build_hasher = Box::new(build_hasher_ref.clone());
@@ -163,8 +179,8 @@ impl OpaqueBuildHasherInner {
         S: any::Any + hash::BuildHasher + Send + Sync,
         S::Hasher: any::Any + hash::Hasher + Send + Sync,
     {
-        debug_assert_eq!(self.build_hasher_type_id, any::TypeId::of::<S>());
-        debug_assert_eq!(self.hasher_type_id, any::TypeId::of::<S::Hasher>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.hasher_type_id(), any::TypeId::of::<S::Hasher>());
 
         unsafe { &*(self as *const OpaqueBuildHasherInner as *const TypedProjBuildHasherInner<S>) }
     }
@@ -175,8 +191,8 @@ impl OpaqueBuildHasherInner {
         S: any::Any + hash::BuildHasher + Send + Sync,
         S::Hasher: any::Any + hash::Hasher + Send + Sync,
     {
-        debug_assert_eq!(self.build_hasher_type_id, any::TypeId::of::<S>());
-        debug_assert_eq!(self.hasher_type_id, any::TypeId::of::<S::Hasher>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.hasher_type_id(), any::TypeId::of::<S::Hasher>());
 
         unsafe { &mut *(self as *mut OpaqueBuildHasherInner as *mut TypedProjBuildHasherInner<S>) }
     }
@@ -187,8 +203,8 @@ impl OpaqueBuildHasherInner {
         S: any::Any + hash::BuildHasher + Send + Sync,
         S::Hasher: any::Any + hash::Hasher + Send + Sync,
     {
-        debug_assert_eq!(self.build_hasher_type_id, any::TypeId::of::<S>());
-        debug_assert_eq!(self.hasher_type_id, any::TypeId::of::<S::Hasher>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.hasher_type_id(), any::TypeId::of::<S::Hasher>());
 
         let boxed_build_hasher = unsafe {
             let unboxed_build_hasher = Box::into_raw(self.build_hasher);

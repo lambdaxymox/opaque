@@ -244,6 +244,54 @@ where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
+    /// Returns the [`TypeId`] of the elements of contained in an [`TypedProjVec`].
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// # use std::any::TypeId;
+    /// #
+    /// let proj_vec: TypedProjVec<i32, Global> = TypedProjVec::new_in(Global);
+    /// let expected = TypeId::of::<i32>();
+    /// let result = proj_vec.element_type_id();
+    ///
+    /// assert_eq!(result, expected);
+    /// ```
+    #[inline]
+    pub const fn element_type_id(&self) -> any::TypeId {
+        self.inner.element_type_id()
+    }
+
+    /// Returns the [`TypeId`] of the memory allocator of an [`TypedProjVec`].
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// # use std::any::TypeId;
+    /// #
+    /// let proj_vec: TypedProjVec<i32, Global> = TypedProjVec::new_in(Global);
+    /// let expected = TypeId::of::<Global>();
+    /// let result = proj_vec.allocator_type_id();
+    ///
+    /// assert_eq!(result, expected);
+    /// ```
+    #[inline]
+    pub const fn allocator_type_id(&self) -> any::TypeId {
+        self.inner.allocator_type_id()
+    }
+}
+
+impl<T, A> TypedProjVec<T, A>
+where
+    T: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
     /// Constructs a new empty [`TypedProjVec`] using a specific type-projected memory allocator.
     ///
     /// The vector will not allocate until elements are pushed into it. In particular, the
