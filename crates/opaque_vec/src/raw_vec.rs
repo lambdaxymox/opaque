@@ -272,12 +272,16 @@ where
     #[inline]
     #[track_caller]
     pub(crate) fn reserve(&mut self, len: usize, additional: usize) {
+        debug_assert_eq!(self.inner.allocator_type_id(), any::TypeId::of::<A>());
+
         self.inner.reserve(len, additional, alloc::Layout::new::<T>())
     }
 
     #[inline(never)]
     #[track_caller]
     pub(crate) fn grow_one(&mut self) {
+        debug_assert_eq!(self.inner.allocator_type_id(), any::TypeId::of::<A>());
+
         self.inner.grow_one(alloc::Layout::new::<T>())
     }
 
@@ -286,11 +290,15 @@ where
         len: usize,
         additional: usize,
     ) -> Result<(), TryReserveError> {
+        debug_assert_eq!(self.inner.allocator_type_id(), any::TypeId::of::<A>());
+
         self.inner.try_reserve(len, additional, alloc::Layout::new::<T>())
     }
 
     #[track_caller]
     pub(crate) fn reserve_exact(&mut self, len: usize, additional: usize) {
+        debug_assert_eq!(self.inner.allocator_type_id(), any::TypeId::of::<A>());
+
         self.inner.reserve_exact(len, additional, alloc::Layout::new::<T>())
     }
 
@@ -299,12 +307,16 @@ where
         len: usize,
         additional: usize,
     ) -> Result<(), TryReserveError> {
+        debug_assert_eq!(self.inner.allocator_type_id(), any::TypeId::of::<A>());
+
         self.inner.try_reserve_exact(len, additional, alloc::Layout::new::<T>())
     }
 
     #[track_caller]
     #[inline]
     pub(crate) fn shrink_to_fit(&mut self, capacity: usize) {
+        debug_assert_eq!(self.inner.allocator_type_id(), any::TypeId::of::<A>());
+
         self.inner.shrink_to_fit(capacity, alloc::Layout::new::<T>())
     }
 }
@@ -581,6 +593,8 @@ impl RawVecMemory {
 impl RawVecMemory {
     #[inline]
     fn current_memory(&self, element_layout: alloc::Layout) -> Option<(NonNull<u8>, alloc::Layout)> {
+        debug_assert_eq!(self.element_layout(), element_layout);
+
         if element_layout.size() == 0 || self.capacity.as_inner() == 0 {
             None
         } else {
@@ -603,6 +617,8 @@ impl RawVecMemory {
         additional: usize,
         element_layout: alloc::Layout,
     ) -> Result<(), TryReserveError> {
+        debug_assert_eq!(self.element_layout(), element_layout);
+
         if self.needs_to_grow(len, additional, element_layout) {
             self.grow_amortized(len, additional, element_layout)?;
         }
@@ -619,6 +635,8 @@ impl RawVecMemory {
         additional: usize,
         element_layout: alloc::Layout,
     ) -> Result<(), TryReserveError> {
+        debug_assert_eq!(self.element_layout(), element_layout);
+
         if self.needs_to_grow(len, additional, element_layout) {
             self.grow_exact(len, additional, element_layout)?;
         }
@@ -629,10 +647,12 @@ impl RawVecMemory {
 
         Ok(())
     }
-    
+
     #[inline]
     #[track_caller]
     fn reserve(&mut self, len: usize, additional: usize, element_layout: alloc::Layout) {
+        debug_assert_eq!(self.element_layout(), element_layout);
+
         // Callers expect this function to be very cheap when there is already sufficient capacity.
         // Therefore, we move all the resizing and error-handling logic from grow_amortized and
         // handle_reserve behind a call, while making sure that this function is likely to be
@@ -651,6 +671,8 @@ impl RawVecMemory {
 
     #[track_caller]
     fn reserve_exact(&mut self, len: usize, additional: usize, element_layout: alloc::Layout) {
+        debug_assert_eq!(self.element_layout(), element_layout);
+
         if let Err(err) = self.try_reserve_exact(len, additional, element_layout) {
             handle_error(err);
         }
@@ -659,6 +681,8 @@ impl RawVecMemory {
     #[inline]
     #[track_caller]
     fn shrink_to_fit(&mut self, capacity: usize, element_layout: alloc::Layout) {
+        debug_assert_eq!(self.element_layout(), element_layout);
+
         if let Err(err) = self.shrink(capacity, element_layout) {
             handle_error(err);
         }
@@ -666,6 +690,8 @@ impl RawVecMemory {
 
     #[inline]
     fn needs_to_grow(&self, len: usize, additional: usize, element_layout: alloc::Layout) -> bool {
+        debug_assert_eq!(self.element_layout(), element_layout);
+
         additional > self.capacity(element_layout.size()).wrapping_sub(len)
     }
 
@@ -679,6 +705,8 @@ impl RawVecMemory {
     }
 
     fn grow_amortized(&mut self, length: usize, additional: usize, element_layout: alloc::Layout) -> Result<(), TryReserveError> {
+        debug_assert_eq!(self.element_layout(), element_layout);
+
         // This is ensured by the calling contexts.
         debug_assert!(additional > 0);
 
@@ -711,6 +739,8 @@ impl RawVecMemory {
     }
 
     fn grow_exact(&mut self, len: usize, additional: usize, element_layout: alloc::Layout) -> Result<(), TryReserveError> {
+        debug_assert_eq!(self.element_layout(), element_layout);
+
         if element_layout.size() == 0 {
             // Since we return a capacity of `usize::MAX` when the type size is
             // 0, getting to here necessarily means the `RawVec` is overfull.
@@ -735,6 +765,8 @@ impl RawVecMemory {
     #[inline]
     #[track_caller]
     fn grow_one(&mut self, element_layout: alloc::Layout) {
+        debug_assert_eq!(self.element_layout(), element_layout);
+
         if let Err(err) = self.grow_amortized(self.capacity.as_inner(), 1, element_layout) {
             match err.kind() {
                 TryReserveErrorKind::CapacityOverflow => capacity_overflow(),
@@ -754,6 +786,8 @@ impl RawVecMemory {
     /// # Safety
     /// `capacity <= self.capacity()`
     unsafe fn shrink_unchecked(&mut self, capacity: usize, element_layout: alloc::Layout) -> Result<(), TryReserveError> {
+        debug_assert_eq!(self.element_layout(), element_layout);
+
         use std::alloc::Allocator;
 
         let (ptr, layout) = if let Some(mem) = self.current_memory(element_layout) {
@@ -790,6 +824,8 @@ impl RawVecMemory {
 
     #[inline]
     fn shrink(&mut self, capacity: usize, element_layout: alloc::Layout) -> Result<(), TryReserveError> {
+        debug_assert_eq!(self.element_layout(), element_layout);
+
         assert!(
             capacity <= self.capacity(element_layout.size()),
             "Tried to shrink to a larger capacity"
@@ -806,6 +842,8 @@ impl RawVecMemory {
     /// Ideally this function would take `self` by move, but it cannot because it exists to be
     /// called from a `Drop` impl.
     unsafe fn deallocate(&mut self, element_layout: alloc::Layout) {
+        debug_assert_eq!(self.element_layout(), element_layout);
+
         if let Some((ptr, layout)) = self.current_memory(element_layout) {
             unsafe {
                 alloc::Allocator::deallocate(&mut self.alloc, ptr, layout);
