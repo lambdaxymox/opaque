@@ -1,4 +1,5 @@
 #![deny(unsafe_op_in_unsafe_fn)]
+#![deny(private_interfaces)]
 #![feature(allocator_api)]
 #![feature(slice_range)]
 #![feature(slice_iter_mut_as_mut_slice)]

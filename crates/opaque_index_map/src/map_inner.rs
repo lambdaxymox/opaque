@@ -1328,7 +1328,7 @@ where
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]
-struct HashValue {
+pub(crate) struct HashValue {
     value: usize,
 }
 
