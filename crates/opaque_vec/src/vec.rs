@@ -7,7 +7,6 @@ use crate::vec_inner::{OpaqueVecInner, TypedProjVecInner};
 use core::any;
 use core::cmp;
 use core::hash;
-use core::mem;
 use core::ops;
 use core::slice;
 use core::fmt;
@@ -20,7 +19,6 @@ use alloc_crate::alloc;
 use alloc_crate::borrow;
 use alloc_crate::boxed::Box;
 use alloc_crate::vec::Vec;
-use std::ops::Index;
 use opaque_alloc::TypedProjAlloc;
 use opaque_error::TryReserveError;
 
@@ -687,7 +685,7 @@ where
     /// # use crate::opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
-    /// let proj_vec: TypedProjVec::<i32, Global> = TypedProjVec::new_in(Global);
+    /// let proj_vec: TypedProjVec<i32, Global> = TypedProjVec::new_in(Global);
     ///
     /// assert!(proj_vec.is_empty());
     /// assert_eq!(proj_vec.capacity(), 0);
@@ -2431,10 +2429,9 @@ where
     /// Returns a raw pointer to the vector's buffer, or a dangling raw pointer
     /// valid for zero sized reads if the vector didn't allocate.
     ///
-    /// The caller must ensure that the vector outlives the pointer this
-    /// function returns, or else it will end up dangling.
-    /// Modifying the vector may cause its buffer to be reallocated,
-    /// which would also make any pointers to it invalid.
+    /// The caller must ensure that the vector outlives the pointer this function returns, or else
+    /// it will end up dangling. Modifying the vector may cause its underlying buffer to be reallocated,
+    /// which would also invalidate any existing pointers to its elements.
     ///
     /// The caller must also ensure that the memory the pointer (non-transitively) points to
     /// is never written to (except inside an `UnsafeCell`) using this pointer or any pointer
@@ -2484,7 +2481,7 @@ where
     ///     let _ = ptr1.read();
     ///     let ptr2 = proj_vec.as_mut_ptr().offset(2);
     ///     ptr2.write(2);
-    ///     // Notably, the write to `ptr2` did **not** invalidate `ptr1`
+    ///     // Notably, writing to `ptr2` did **not** invalidate `ptr1`
     ///     // because it mutated a different element:
     ///     let _ = ptr1.read();
     /// }
@@ -2501,10 +2498,9 @@ where
     /// Returns a raw mutable pointer to the vector's buffer, or a dangling
     /// raw pointer valid for zero sized reads if the vector didn't allocate.
     ///
-    /// The caller must ensure that the vector outlives the pointer this
-    /// function returns, or else it will end up dangling.
-    /// Modifying the vector may cause its buffer to be reallocated,
-    /// which would also make any pointers to it invalid.
+    /// The caller must ensure that the vector outlives the pointer this function returns, or else
+    /// it will end up dangling. Modifying the vector may cause its underlying buffer to be reallocated,
+    /// which would also invalidate any existing pointers to its elements.
     ///
     /// This method guarantees that for the purpose of the aliasing model, this method
     /// does not materialize a reference to the underlying slice, and thus the returned pointer
@@ -2553,7 +2549,7 @@ where
     ///     ptr1.write(1);
     ///     let ptr2 = proj_vec.as_mut_ptr();
     ///     ptr2.write(2);
-    ///     // Notably, the write to `ptr2` did **not** invalidate `ptr1`:
+    ///     // Notably, writing to `ptr2` did **not** invalidate `ptr1`:
     ///     ptr1.write(3);
     /// }
     /// ```
@@ -2569,10 +2565,9 @@ where
     /// Returns a [`NonNull`] pointer to the vector's buffer, or a dangling
     /// [`NonNull`] pointer valid for zero sized reads if the vector didn't allocate.
     ///
-    /// The caller must ensure that the vector outlives the pointer this
-    /// function returns, or else it will end up dangling.
-    /// Modifying the vector may cause its buffer to be reallocated,
-    /// which would also make any pointers to it invalid.
+    /// The caller must ensure that the vector outlives the pointer this function returns, or else
+    /// it will end up dangling. Modifying the vector may cause its underlying buffer to be reallocated,
+    /// which would also invalidate any existing pointers to its elements.
     ///
     /// This method guarantees that for the purpose of the aliasing model, this method
     /// does not materialize a reference to the underlying slice, and thus the returned pointer
@@ -2620,7 +2615,7 @@ where
     ///     ptr1.write(1);
     ///     let ptr2 = proj_vec.as_non_null();
     ///     ptr2.write(2);
-    ///     // Notably, the write to `ptr2` did **not** invalidate `ptr1`:
+    ///     // Notably, writing to `ptr2` did **not** invalidate `ptr1`:
     ///     ptr1.write(3);
     /// }
     /// ```
@@ -2994,7 +2989,7 @@ where
     /// let mut proj_vec = {
     ///     let mut _proj_vec = TypedProjVec::with_capacity(10);
     ///     for i in 1..(length + 1) {
-    ///         _proj_vec.push(i as i32);
+    ///         _proj_vec.push(i);
     ///     }
     ///     _proj_vec.push(0);
     ///     _proj_vec.push(0);
@@ -7373,10 +7368,9 @@ impl OpaqueVec {
     /// Returns a raw pointer to the vector's buffer, or a dangling raw pointer
     /// valid for zero sized reads if the vector didn't allocate.
     ///
-    /// The caller must ensure that the vector outlives the pointer this
-    /// function returns, or else it will end up dangling.
-    /// Modifying the vector may cause its buffer to be reallocated,
-    /// which would also make any pointers to it invalid.
+    /// The caller must ensure that the vector outlives the pointer this function returns, or else
+    /// it will end up dangling. Modifying the vector may cause its underlying buffer to be reallocated,
+    /// which would also invalidate any existing pointers to its elements.
     ///
     /// The caller must also ensure that the memory the pointer (non-transitively) points to
     /// is never written to (except inside an `UnsafeCell`) using this pointer or any pointer
@@ -7445,7 +7439,7 @@ impl OpaqueVec {
     ///     let _ = ptr1.read();
     ///     let ptr2 = opaque_vec.as_mut_ptr::<i32, Global>().offset(2);
     ///     ptr2.write(2);
-    ///     // Notably, the write to `ptr2` did **not** invalidate `ptr1`
+    ///     // Notably, writing to `ptr2` did **not** invalidate `ptr1`
     ///     // because it mutated a different element:
     ///     let _ = ptr1.read();
     /// }
@@ -7468,10 +7462,9 @@ impl OpaqueVec {
     /// Returns a raw mutable pointer to the vector's buffer, or a dangling
     /// raw pointer valid for zero sized reads if the vector didn't allocate.
     ///
-    /// The caller must ensure that the vector outlives the pointer this
-    /// function returns, or else it will end up dangling.
-    /// Modifying the vector may cause its buffer to be reallocated,
-    /// which would also make any pointers to it invalid.
+    /// The caller must ensure that the vector outlives the pointer this function returns, or else
+    /// it will end up dangling. Modifying the vector may cause its underlying buffer to be reallocated,
+    /// which would also invalidate any existing pointers to its elements.
     ///
     /// This method guarantees that for the purpose of the aliasing model, this method
     /// does not materialize a reference to the underlying slice, and thus the returned pointer
@@ -7534,7 +7527,7 @@ impl OpaqueVec {
     ///     ptr1.write(1);
     ///     let ptr2 = opaque_vec.as_mut_ptr::<i32, Global>();
     ///     ptr2.write(2);
-    ///     // Notably, the write to `ptr2` did **not** invalidate `ptr1`:
+    ///     // Notably, writing to `ptr2` did **not** invalidate `ptr1`:
     ///     ptr1.write(3);
     /// }
     /// ```
@@ -7556,10 +7549,9 @@ impl OpaqueVec {
     /// Returns a [`NonNull`] pointer to the vector's buffer, or a dangling
     /// [`NonNull`] pointer valid for zero sized reads if the vector didn't allocate.
     ///
-    /// The caller must ensure that the vector outlives the pointer this
-    /// function returns, or else it will end up dangling.
-    /// Modifying the vector may cause its buffer to be reallocated,
-    /// which would also make any pointers to it invalid.
+    /// The caller must ensure that the vector outlives the pointer this function returns, or else
+    /// it will end up dangling. Modifying the vector may cause its underlying buffer to be reallocated,
+    /// which would also invalidate any existing pointers to its elements.
     ///
     /// This method guarantees that for the purpose of the aliasing model, this method
     /// does not materialize a reference to the underlying slice, and thus the returned pointer
@@ -7614,7 +7606,7 @@ impl OpaqueVec {
     ///     ptr1.write(1);
     ///     let ptr2 = opaque_vec.as_non_null::<i32, Global>();
     ///     ptr2.write(2);
-    ///     // Notably, the write to `ptr2` did **not** invalidate `ptr1`:
+    ///     // Notably, writing to `ptr2` did **not** invalidate `ptr1`:
     ///     ptr1.write(3);
     /// }
     /// ```
@@ -8112,7 +8104,7 @@ impl OpaqueVec {
     /// let mut opaque_vec = {
     ///     let mut _opaque_vec = OpaqueVec::with_capacity::<i32>(10);
     ///     for i in 1..(length + 1) {
-    ///         _opaque_vec.push::<i32, Global>(i as i32);
+    ///         _opaque_vec.push::<i32, Global>(i);
     ///     }
     ///     _opaque_vec.push::<i32, Global>(0);
     ///     _opaque_vec.push::<i32, Global>(0);
@@ -9024,7 +9016,7 @@ impl OpaqueVec {
     ///
     /// # Examples
     ///
-    /// Truncating a [`OpaaueVec`] when `len < self.len()`.
+    /// Truncating a [`OpaqueVec`] when `len < self.len()`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
