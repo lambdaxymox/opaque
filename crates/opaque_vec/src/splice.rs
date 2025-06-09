@@ -1,10 +1,57 @@
 use core::any;
-use core::slice;
 use alloc_crate::alloc;
 use alloc_crate::vec::Vec;
 
-use crate::Drain;
+use crate::drain::Drain;
 
+/// An iterator that drains a slice of a vector, then splices a new slice in place of the drained
+/// slice.
+///
+/// # Examples
+///
+/// Using a splicing iterator on a [`TypedProjVec`].
+///
+/// ```
+/// # #![feature(allocator_api)]
+/// # use opaque_vec::TypedProjVec;
+/// # use std::alloc::Global;
+/// #
+/// let mut result = TypedProjVec::from([1, 2, 3, 4, 5]);
+/// let splice_data: [i32; 5] = [7, 8, 9, 10, 11];
+/// let expected = TypedProjVec::from([1, 7, 8, 9, 10, 11, 5]);
+/// result.splice(1..4, splice_data);
+///
+/// assert_eq!(result, expected);
+/// ```
+///
+/// Using a splicing iterator on an [`OpaqueVec`].
+///
+/// ```
+/// # #![feature(allocator_api)]
+/// # use opaque_vec::OpaqueVec;
+/// # use std::alloc::Global;
+/// #
+/// let mut result = {
+///     let array: [i32; 5] = [1, 2, 3, 4, 5];
+///     OpaqueVec::from(array)
+/// };
+/// #
+/// # assert!(result.has_element_type::<i32>());
+/// # assert!(result.has_allocator_type::<Global>());
+/// #
+/// let splice_data: [i32; 5] = [7, 8, 9, 10, 11];
+/// let expected = {
+///     let array: [i32; 7] = [1, 7, 8, 9, 10, 11, 5];
+///     OpaqueVec::from(array)
+/// };
+/// #
+/// # assert!(expected.has_element_type::<i32>());
+/// # assert!(expected.has_allocator_type::<Global>());
+/// #
+/// result.splice::<_, _, i32, Global>(1..4, splice_data);
+///
+/// assert_eq!(result.as_slice::<i32, Global>(), expected.as_slice::<i32, Global>());
+/// ```
 #[derive(Debug)]
 pub struct Splice<'a, I, A = alloc::Global>
 where
@@ -22,6 +69,7 @@ where
     <I as Iterator>::Item: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync + 'a,
 {
+    /// Construct a new splicing iterator.
     #[inline]
     pub(crate) const fn new(drain: Drain<'a, I::Item, A>, replace_with: I) -> Self {
         Self { drain, replace_with }
@@ -90,7 +138,7 @@ where
             if !self.drain.fill(&mut self.replace_with) {
                 return;
             }
-            
+
             // There may be more elements. Use the lower bound as an estimate.
             // FIXME: Is the upper bound a better guess? Or something else?
             let (lower_bound, _upper_bound) = self.replace_with.size_hint();

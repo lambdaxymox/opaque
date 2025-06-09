@@ -1683,8 +1683,8 @@ where
     /// [`extend`], [`resize`], or [`clear`].
     ///
     /// Note that reducing the length of an [`TypedProjVec`] using this method will not drop the truncated
-    /// elements. If those elements own heap-allocated memory or other resources (such as `Box`, `Vec`,
-    /// or custom types with destructors), this will result in a memory leak.
+    /// elements. If those elements own heap-allocated memory or other resources, this will result in
+    /// a memory leak.
     ///
     /// # Safety
     ///
@@ -2112,7 +2112,7 @@ where
     }
 
     /// Inserts a new value into an [`TypedProjVec`], shifting the old value and all values after
-    /// it to the right in the collection..
+    /// it to the right in the collection.
     ///
     /// This method behaves with respect to `index` as follows:
     /// * If `index < self.len()`, it shifts the current value at `index` and all successive values
@@ -6280,8 +6280,8 @@ impl OpaqueVec {
     /// [`extend`], [`resize`], or [`clear`].
     ///
     /// Note that reducing the length of an [`OpaqueVec`] using this method will not drop the truncated
-    /// elements. If those elements own heap-allocated memory or other resources (such as `Box`, `Vec`,
-    /// or custom types with destructors), this will result in a memory leak.
+    /// elements. If those elements own heap-allocated memory or other resources, this will result in
+    /// a memory leak.
     ///
     /// # Safety
     ///
@@ -6835,7 +6835,7 @@ impl OpaqueVec {
     }
 
     /// Inserts a new value into an [`OpaqueVec`], shifting the old value and all values after
-    /// it to the right in the collection..
+    /// it to the right in the collection.
     ///
     /// This method behaves with respect to `index` as follows:
     /// * If `index < self.len()`, it shifts the current value at `index` and all successive values

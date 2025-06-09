@@ -8,6 +8,58 @@ use alloc_crate::alloc;
 
 use opaque_alloc::TypedProjAlloc;
 
+/// An iterator that extracts the elements of a vector that satisfy a predicate.
+///
+/// # Examples
+///
+/// Using an extracting iterator on a [`TypedProjVec`].
+///
+/// ```
+/// # #![feature(allocator_api)]
+/// # use opaque_vec::TypedProjVec;
+/// # use std::alloc::Global;
+/// #
+/// fn is_even(value: &mut i32) -> bool {
+///     *value % 2 == 0
+/// }
+///
+/// let mut vec: TypedProjVec<i32> = TypedProjVec::from([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+/// let iter = vec.extract_if(.., is_even);
+/// let extracted: TypedProjVec<i32> = iter.collect();
+///
+/// assert_eq!(extracted.as_slice(), &[2, 4, 6, 8, 10]);
+/// assert_eq!(vec.as_slice(), &[1, 3, 5, 7, 9]);
+/// ```
+///
+/// Using an extracting iterator on an [`OpaqueVec`].
+///
+/// ```
+/// # #![feature(allocator_api)]
+/// # use opaque_vec::OpaqueVec;
+/// # use std::alloc::Global;
+/// #
+/// fn is_even(value: &mut i32) -> bool {
+///     *value % 2 == 0
+/// }
+///
+/// let mut vec = {
+///     let array: [i32; 10] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+///     OpaqueVec::from(array)
+/// };
+/// #
+/// # assert!(vec.has_element_type::<i32>());
+/// # assert!(vec.has_allocator_type::<Global>());
+/// #
+/// let iter = vec.extract_if::<_, _, i32, Global>(.., is_even);
+/// let extracted: OpaqueVec = iter.collect();
+/// #
+/// # assert!(extracted.has_element_type::<i32>());
+/// # assert!(extracted.has_allocator_type::<Global>());
+/// #
+///
+/// assert_eq!(extracted.as_slice::<i32, Global>(), &[2, 4, 6, 8, 10]);
+/// assert_eq!(vec.as_slice::<i32, Global>(), &[1, 3, 5, 7, 9]);
+/// ```
 #[must_use = "iterators are lazy and do nothing unless consumed"]
 pub struct ExtractIf<'a, T, F, A = alloc::Global>
 where
@@ -32,6 +84,7 @@ where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
+    /// Construct a new extraction iterator.
     #[inline]
     pub(crate) fn new<R>(vec: &'a mut TypedProjVecInner<T, A>, pred: F, range: R) -> Self
     where
@@ -55,6 +108,52 @@ where
         }
     }
 
+    /// Get the underlying allocator of the extracting iterator.
+    ///
+    /// # Examples
+    ///
+    /// Getting the allocator from the extracting iterator of a [`TypedProjVec`].
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::alloc::Global;
+    /// #
+    /// fn is_even(value: &mut i32) -> bool {
+    ///     *value % 2 == 0
+    /// }
+    ///
+    /// let mut vec: TypedProjVec<i32> = TypedProjVec::from([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    /// let iter = vec.extract_if(.., is_even);
+    ///
+    /// let alloc: &TypedProjAlloc<Global> = iter.allocator();
+    /// ```
+    ///
+    /// Getting the allocator from the extracting iterator of an [`OpaqueVec`].
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::alloc::Global;
+    /// #
+    /// fn is_even(value: &mut i32) -> bool {
+    ///     *value % 2 == 0
+    /// }
+    ///
+    /// let mut vec = {
+    ///     let array: [i32; 5] = [1, 2, 3, 4, 5];
+    ///     OpaqueVec::from(array)
+    /// };
+    /// #
+    /// # assert!(vec.has_element_type::<i32>());
+    /// # assert!(vec.has_allocator_type::<Global>());
+    /// #
+    /// let iter = vec.extract_if::<_, _, i32, Global>(.., is_even);
+    ///
+    /// let alloc: &TypedProjAlloc<Global> = iter.allocator();
+    /// ```
     #[inline]
     pub fn allocator(&self) -> &TypedProjAlloc<A> {
         self.vec.allocator()

@@ -8,8 +8,48 @@ use core::ptr::NonNull;
 use core::slice;
 use alloc_crate::alloc;
 use std::ptr;
+
 use opaque_alloc::TypedProjAlloc;
 
+/// A draining iterator for [`TypedProjVec`] and [`OpaqueVec`].
+///
+/// # Examples
+///
+/// Using a draining iterator on a [`TypedProjVec`].
+///
+/// ```
+/// # #![feature(allocator_api)]
+/// # use opaque_vec::TypedProjVec;
+/// # use std::alloc::Global;
+/// #
+/// let mut result = TypedProjVec::from([1, i32::MAX, i32::MAX, i32::MAX, 2, 3]);
+/// let expected = TypedProjVec::from([1, 2, 3]);
+/// result.drain(1..4);
+///
+/// assert_eq!(result, expected);
+/// ```
+///
+/// Using a draining iterator on an [`OpaqueVec`].
+///
+/// ```
+/// # #![feature(allocator_api)]
+/// # use opaque_vec::OpaqueVec;
+/// # use std::alloc::Global;
+/// #
+/// let mut result = OpaqueVec::from([1, i32::MAX, i32::MAX, i32::MAX, 2, 3]);
+/// #
+/// # assert!(result.has_element_type::<i32>());
+/// # assert!(result.has_allocator_type::<Global>());
+/// #
+/// let expected = OpaqueVec::from([1, 2, 3]);
+/// #
+/// # assert!(expected.has_element_type::<i32>());
+/// # assert!(expected.has_allocator_type::<Global>());
+/// #
+/// result.drain::<_, i32, Global>(1..4);
+///
+/// assert_eq!(result.as_slice::<i32, Global>(), expected.as_slice::<i32, Global>());
+/// ```
 pub struct Drain<'a, T, A = alloc::Global>
 where
     T: any::Any,
@@ -39,6 +79,7 @@ where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
+    /// Construct a new draining iterator from its constituent components.
     #[inline]
     pub(crate) const fn from_parts(tail_start: usize, tail_len: usize, iter: slice::Iter<'a, T>, vec: NonNull<TypedProjVecInner<T, A>>) -> Self {
         Self {
@@ -54,12 +95,104 @@ where
         self.iter.as_slice()
     }
 
+    /// Get the underlying type-projected memory allocator for the [`Drain`].
+    ///
+    /// # Examples
+    ///
+    /// using a draining iterator on a [`TypedProjVec`].
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut result = TypedProjVec::from([1, i32::MAX, i32::MAX, i32::MAX, 2, 3]);
+    /// let iter = result.drain(1..4);
+    ///
+    /// let alloc: &TypedProjAlloc<Global> = iter.allocator();
+    /// ```
+    ///
+    /// Using a draining iterator on an [`OpaqueVec`].
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut result = OpaqueVec::from([1, i32::MAX, i32::MAX, i32::MAX, 2, 3]);
+    /// #
+    /// # assert!(result.has_element_type::<i32>());
+    /// # assert!(result.has_allocator_type::<Global>());
+    /// #
+    /// let iter = result.drain::<_, i32, Global>(1..4);
+    ///
+    /// let alloc: &TypedProjAlloc<Global> = iter.allocator();
+    /// ```
     #[must_use]
     #[inline]
     pub fn allocator(&self) -> &TypedProjAlloc<A> {
         unsafe { self.vec.as_ref().allocator() }
     }
 
+    /// Keep the unyielded elements from the draining iterator.
+    ///
+    /// # Examples
+    ///
+    /// Using a draining iterator on a [`TypedProjVec`].
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut vec = TypedProjVec::from([
+    ///     "spam",
+    ///     "eggs",
+    ///     "bacon",
+    ///     "baked beans",
+    ///     "spam",
+    /// ]);
+    /// let mut iter = vec.drain(1..4);
+    ///
+    /// assert_eq!(iter.next(), Some("eggs"));
+    /// assert_eq!(iter.next(), Some("bacon"));
+    /// assert_eq!(iter.next(), Some("baked beans"));
+    ///
+    /// iter.keep_rest();
+    ///
+    /// assert_eq!(vec.as_slice(), &["spam", "spam"]);
+    /// ```
+    ///
+    /// Using a draining iterator on an [`OpaqueVec`].
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut vec = OpaqueVec::from([
+    ///     "spam",
+    ///     "eggs",
+    ///     "bacon",
+    ///     "baked beans",
+    ///     "spam",
+    /// ]);
+    /// #
+    /// # assert!(vec.has_element_type::<&'static str>());
+    /// # assert!(vec.has_allocator_type::<Global>());
+    /// #
+    /// let mut iter = vec.drain::<_, &'static str, Global>(1..4);
+    ///
+    /// assert_eq!(iter.next(), Some("eggs"));
+    /// assert_eq!(iter.next(), Some("bacon"));
+    /// assert_eq!(iter.next(), Some("baked beans"));
+    ///
+    /// iter.keep_rest();
+    ///
+    /// assert_eq!(vec.as_slice::<&'static str, Global>(), &["spam", "spam"]);
+    /// ```
     pub fn keep_rest(self) {
         // At this moment layout looks like this:
         //
@@ -276,7 +409,7 @@ where
 
         unsafe {
             // drop_ptr comes from a slice::Iter which only gives us a &[T] but for drop_in_place
-            // a pointer with mutable provenance is necessary. Therefore we must reconstruct
+            // a pointer with mutable provenance is necessary. Therefore, we must reconstruct
             // it from the original vec but also avoid creating a &mut to the front since that could
             // invalidate raw pointers to it which some unsafe code might rely on.
             let vec_ptr = vec.as_mut().as_mut_ptr();

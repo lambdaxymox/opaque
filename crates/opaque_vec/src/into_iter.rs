@@ -17,6 +17,52 @@ const fn assuming_non_null<T>(item: *const T) -> NonNull<T> {
     unsafe { NonNull::new_unchecked(item as *mut T) }
 }
 
+/// An iterator that moves elements out of a collection.
+///
+/// # Examples
+///
+/// Using a moving iterator on a [`TypedProjVec`].
+///
+/// ```
+/// # #![feature(allocator_api)]
+/// # use opaque_vec::TypedProjVec;
+/// # use std::alloc::Global;
+/// #
+/// let mut vec: TypedProjVec<i32> = TypedProjVec::from([1, 2, 3, 4, 5]);
+///
+/// assert_eq!(vec.len(), 5);
+///
+/// let mut result: TypedProjVec<i32> = vec.into_iter().collect();
+///
+/// assert_eq!(result.as_slice(), &[1, 2, 3, 4, 5]);
+/// ```
+///
+/// Using a moving iterator on an [`OpaqueVec`].
+///
+/// ```
+/// # #![feature(allocator_api)]
+/// # use opaque_vec::OpaqueVec;
+/// # use std::alloc::Global;
+/// #
+/// let mut vec = {
+///     let array: [i32; 5] = [1, 2, 3, 4, 5];
+///     OpaqueVec::from(array)
+/// };
+/// #
+/// # assert!(vec.has_element_type::<i32>());
+/// # assert!(vec.has_allocator_type::<Global>());
+/// #
+///
+/// assert_eq!(vec.len(), 5);
+///
+/// let mut result: OpaqueVec = vec.into_iter::<i32, Global>().collect();
+/// #
+/// # assert!(result.has_element_type::<i32>());
+/// # assert!(result.has_allocator_type::<Global>());
+/// #
+///
+/// assert_eq!(result.as_slice::<i32, Global>(), &[1, 2, 3, 4, 5]);
+/// ```
 pub struct IntoIter<T, A = alloc::Global>
 where
     T: any::Any,
@@ -50,11 +96,68 @@ where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
+    /// Construct a new moving iterator from its constituent components.
     #[inline]
     pub(crate) const unsafe fn from_parts(buf: NonNull<T>, cap: usize, alloc: ManuallyDrop<TypedProjAlloc<A>>, ptr: NonNull<T>, end: *const T) -> Self {
         Self { buf, cap, alloc, ptr, end, }
     }
 
+    /// Returns the remaining items in the moving iterator as a slice.
+    ///
+    /// # Examples
+    ///
+    /// Using a moving iterator on a [`TypedProjVec`].
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let vec: TypedProjVec<i32> = TypedProjVec::from([1, 2, 3, 4, 5]);
+    /// let mut iter = vec.into_iter();
+    ///
+    /// assert_eq!(iter.as_slice(), &[1, 2, 3, 4, 5]);
+    /// iter.next();
+    /// assert_eq!(iter.as_slice(), &[2, 3, 4 ,5]);
+    /// iter.next();
+    /// assert_eq!(iter.as_slice(), &[3, 4, 5]);
+    /// iter.next();
+    /// assert_eq!(iter.as_slice(), &[4, 5]);
+    /// iter.next();
+    /// assert_eq!(iter.as_slice(), &[5]);
+    /// iter.next();
+    /// assert_eq!(iter.as_slice(), &[]);
+    /// ```
+    ///
+    /// Using a moving iterator on an [`OpaqueVec`].
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let vec = {
+    ///     let array: [i32; 5] = [1, 2, 3, 4, 5];
+    ///     OpaqueVec::from(array)
+    /// };
+    /// #
+    /// # assert!(vec.has_element_type::<i32>());
+    /// # assert!(vec.has_allocator_type::<Global>());
+    /// #
+    /// let mut iter = vec.into_iter::<i32, Global>();
+    ///
+    /// assert_eq!(iter.as_slice(), &[1, 2, 3, 4, 5]);
+    /// iter.next();
+    /// assert_eq!(iter.as_slice(), &[2, 3, 4 ,5]);
+    /// iter.next();
+    /// assert_eq!(iter.as_slice(), &[3, 4, 5]);
+    /// iter.next();
+    /// assert_eq!(iter.as_slice(), &[4, 5]);
+    /// iter.next();
+    /// assert_eq!(iter.as_slice(), &[5]);
+    /// iter.next();
+    /// assert_eq!(iter.as_slice(), &[]);
+    /// ```
     pub fn as_slice(&self) -> &[T] {
         unsafe { slice::from_raw_parts(self.ptr.as_ptr(), self.len()) }
     }
@@ -63,10 +166,104 @@ where
         core::ptr::slice_from_raw_parts_mut(self.ptr.as_ptr(), self.len())
     }
 
+    /// Returns the remaining items in the moving iterator as a mutable slice.
+    ///
+    /// # Examples
+    ///
+    /// Using a moving iterator on a [`TypedProjVec`].
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let vec: TypedProjVec<i32> = TypedProjVec::from([1, 2, 3, 4, 5]);
+    /// let mut iter = vec.into_iter();
+    ///
+    /// assert_eq!(iter.as_mut_slice(), &[1, 2, 3, 4, 5]);
+    /// iter.next();
+    /// assert_eq!(iter.as_mut_slice(), &[2, 3, 4 ,5]);
+    /// iter.next();
+    /// assert_eq!(iter.as_mut_slice(), &[3, 4, 5]);
+    /// iter.next();
+    /// assert_eq!(iter.as_mut_slice(), &[4, 5]);
+    /// iter.next();
+    /// assert_eq!(iter.as_mut_slice(), &[5]);
+    /// iter.next();
+    /// assert_eq!(iter.as_mut_slice(), &[]);
+    /// ```
+    ///
+    /// Using a moving iterator on an [`OpaqueVec`].
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let vec = {
+    ///     let array: [i32; 5] = [1, 2, 3, 4, 5];
+    ///     OpaqueVec::from(array)
+    /// };
+    /// #
+    /// # assert!(vec.has_element_type::<i32>());
+    /// # assert!(vec.has_allocator_type::<Global>());
+    /// #
+    /// let mut iter = vec.into_iter::<i32, Global>();
+    ///
+    /// assert_eq!(iter.as_mut_slice(), &[1, 2, 3, 4, 5]);
+    /// iter.next();
+    /// assert_eq!(iter.as_mut_slice(), &[2, 3, 4 ,5]);
+    /// iter.next();
+    /// assert_eq!(iter.as_mut_slice(), &[3, 4, 5]);
+    /// iter.next();
+    /// assert_eq!(iter.as_mut_slice(), &[4, 5]);
+    /// iter.next();
+    /// assert_eq!(iter.as_mut_slice(), &[5]);
+    /// iter.next();
+    /// assert_eq!(iter.as_mut_slice(), &[]);
+    /// ```
     pub fn as_mut_slice(&mut self) -> &mut [T] {
         unsafe { &mut *self.as_raw_mut_slice() }
     }
 
+    /// Returns the underlying memory allocator of the moving iterator.
+    ///
+    /// # Examples
+    ///
+    /// Using a moving iterator on a [`TypedProjVec`].
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::alloc::Global;
+    /// #
+    /// let vec: TypedProjVec<i32> = TypedProjVec::from([1, 2, 3, 4, 5]);
+    /// let mut iter = vec.into_iter();
+    ///
+    /// let alloc: &TypedProjAlloc<Global> = iter.allocator();
+    /// ```
+    ///
+    /// Using a moving iterator on an [`OpaqueVec`].
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::alloc::Global;
+    /// #
+    /// let vec = {
+    ///     let array: [i32; 5] = [1, 2, 3, 4, 5];
+    ///     OpaqueVec::from(array)
+    /// };
+    /// #
+    /// # assert!(vec.has_element_type::<i32>());
+    /// # assert!(vec.has_allocator_type::<Global>());
+    /// #
+    /// let mut iter = vec.into_iter::<i32, Global>();
+    ///
+    /// let alloc: &TypedProjAlloc<Global> = iter.allocator();
+    /// ```
     #[inline]
     pub fn allocator(&self) -> &TypedProjAlloc<A> {
         &self.alloc
@@ -180,7 +377,7 @@ where
         }
 
         if len < N {
-            // Safety: `len` indicates that this many elements are available and we just checked that
+            // Safety: `len` indicates that this many elements are available, and we just checked that
             // it fits into the array.
             unsafe {
                 core::ptr::copy_nonoverlapping(self.ptr.as_ptr(), raw_ary.as_mut_ptr() as *mut T, len);
