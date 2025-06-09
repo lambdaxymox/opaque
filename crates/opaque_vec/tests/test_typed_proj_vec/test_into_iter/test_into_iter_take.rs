@@ -1,39 +1,35 @@
-use opaque_vec::OpaqueVec;
+use opaque_vec::TypedProjVec;
 
 use core::any;
 use core::fmt;
 use std::alloc;
 
-use opaque_vec_testing as ovt;
-use crate::common;
-
-fn run_test_opaque_vec_drain_entire_vec<T, A>(values: &[T], alloc: A)
+fn run_test_typed_proj_vec_into_iter_take<T, A>(values: &[T], count: usize, alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let mut vec = common::opaque_vec::from_slice_in(values, alloc.clone());
-    let expected = vec.clone::<T, A>();
-    let result = {
-        let mut _result = OpaqueVec::new_in::<T, A>(alloc.clone());
-        for value in vec.drain::<_, T, A>(..) {
-            _result.push::<T, A>(value);
-        }
+    let mut vec = TypedProjVec::new_in(alloc.clone());
+    vec.extend(values.iter().cloned());
 
-        _result
-    };
+    let mut expected = TypedProjVec::new_in(alloc.clone());
+    for value in values.iter().cloned().take(count) {
+        expected.push(value);
+    }
 
-    assert_eq!(result.as_slice::<T, A>(), expected.as_slice::<T, A>());
+    let mut result = TypedProjVec::new_in(alloc.clone());
+    result.extend(vec.into_iter().take(count));
+
+    assert_eq!(result, expected);
 }
 
-fn run_test_opaque_vec_drain_entire_vec_values<T, A>(values: &[T], alloc: A)
+fn run_test_typed_proj_vec_into_iter_take_values<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let iter = ovt::PrefixGenerator::new(values);
-    for slice in iter {
-        run_test_opaque_vec_drain_entire_vec(slice, alloc.clone());
+    for count in 0..values.len() {
+        run_test_typed_proj_vec_into_iter_take(values, count, alloc.clone());
     }
 }
 
@@ -43,24 +39,24 @@ macro_rules! generate_tests {
             use super::*;
 
             #[test]
-            fn test_opaque_vec_drain_entire_vec_empty() {
+            fn test_typed_proj_vec_into_iter_take_empty() {
                 let values: [$typ; 0] = [];
                 let alloc = alloc::Global;
-                run_test_opaque_vec_drain_entire_vec(&values, alloc);
+                run_test_typed_proj_vec_into_iter_take_values(&values, alloc);
             }
 
             #[test]
-            fn test_opaque_vec_drain_entire_vec_range_values() {
+            fn test_typed_proj_vec_into_iter_take_range_values() {
                 let values = opaque_vec_testing::range_values::<$typ, $max_vec_size>($range_spec);
                 let alloc = alloc::Global;
-                run_test_opaque_vec_drain_entire_vec_values(&values, alloc);
+                run_test_typed_proj_vec_into_iter_take_values(&values, alloc);
             }
 
             #[test]
-            fn test_opaque_vec_drain_entire_vec_alternating_values() {
+            fn test_typed_proj_vec_into_iter_take_alternating_values() {
                 let values = opaque_vec_testing::alternating_values::<$typ, $max_vec_size>($alt_spec);
                 let alloc = alloc::Global;
-                run_test_opaque_vec_drain_entire_vec_values(&values, alloc);
+                run_test_typed_proj_vec_into_iter_take_values(&values, alloc);
             }
         }
     };

@@ -20,7 +20,7 @@ where
     vec
 }
 
-fn run_test_typed_proj_vec_drain_partial_vec<T, A>(values: &[T], drain_value: T, count: usize, index: usize, alloc: A)
+fn run_test_opaque_vec_drain_partial_vec<T, A>(values: &[T], drain_value: T, count: usize, index: usize, alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
@@ -41,14 +41,14 @@ where
     assert_eq!(drained_result.as_slice::<T, A>(), drained_expected.as_slice::<T, A>());
 }
 
-fn run_test_typed_proj_vec_drain_partial_vec_values<T, A>(values: &[T], drain_value: T, max_count: usize, alloc: A)
+fn run_test_opaque_vec_drain_partial_vec_values<T, A>(values: &[T], drain_value: T, max_count: usize, alloc: A)
 where
     T: any::Any + PartialEq + Clone + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     for i in 0..values.len() {
         for count in 0..max_count {
-            run_test_typed_proj_vec_drain_partial_vec(values, drain_value.clone(), count, i, alloc.clone());
+            run_test_opaque_vec_drain_partial_vec(values, drain_value.clone(), count, i, alloc.clone());
         }
     }
 }
@@ -59,21 +59,21 @@ macro_rules! generate_tests {
             use super::*;
 
             #[test]
-            fn test_typed_proj_vec_drain_partial_vec_range_values() {
+            fn test_opaque_vec_drain_partial_vec_range_values() {
                 let values = opaque_vec_testing::range_values::<$typ, $max_vec_size>($range_spec);
                 let drain_value: $typ = $drain_value;
                 let max_count = $max_count;
                 let alloc = alloc::Global;
-                run_test_typed_proj_vec_drain_partial_vec_values(&values, drain_value, max_count, alloc);
+                run_test_opaque_vec_drain_partial_vec_values(&values, drain_value, max_count, alloc);
             }
 
             #[test]
-            fn test_typed_proj_vec_drain_partial_vec_alternating_values() {
+            fn test_opaque_vec_drain_partial_vec_alternating_values() {
                 let values = opaque_vec_testing::alternating_values::<$typ, $max_vec_size>($alt_spec);
                 let drain_value: $typ = $drain_value;
                 let max_count = $max_count;
                 let alloc = alloc::Global;
-                run_test_typed_proj_vec_drain_partial_vec_values(&values, drain_value, max_count, alloc);
+                run_test_opaque_vec_drain_partial_vec_values(&values, drain_value, max_count, alloc);
             }
         }
     };

@@ -1,0 +1,104 @@
+use core::any;
+use std::alloc;
+use std::cell::RefCell;
+use std::rc::Rc;
+
+use opaque_vec::TypedProjVec;
+
+#[derive(Clone, Debug)]
+struct DropCounter {
+    count: Rc<RefCell<usize>>,
+}
+
+impl DropCounter {
+    #[inline]
+    const fn new(count: Rc<RefCell<usize>>) -> Self {
+        Self { count }
+    }
+
+    fn increment(&mut self) {
+        *self.count.borrow_mut() += 1;
+    }
+
+    fn drop_count(&self) -> usize {
+        self.count.borrow().clone()
+    }
+}
+
+impl Drop for DropCounter {
+    fn drop(&mut self) {
+        self.increment();
+    }
+}
+
+fn create_drop_counter_vec_in<A>(len: usize, alloc: A) -> (DropCounter, TypedProjVec<DropCounter, A>)
+where
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
+{
+    let drop_counter = DropCounter::new(Rc::new(RefCell::new(0)));
+    let mut vec = TypedProjVec::with_capacity_in(len, alloc);
+    for i in 0..len {
+        vec.push(drop_counter.clone());
+    }
+
+    (drop_counter, vec)
+}
+
+fn run_test_typed_proj_vec_into_iter_drop<A>(length: usize, alloc: A)
+where
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
+{
+    let (drop_counter, vec) = create_drop_counter_vec_in(length, alloc);
+    let _ = vec.into_iter();
+
+    let expected = length;
+    let result = drop_counter.drop_count();
+
+    assert_eq!(result, expected);
+}
+
+fn run_test_typed_proj_vec_into_iter_take_then_drop<A>(length: usize, take_count: usize, alloc: A)
+where
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
+{
+    let (drop_counter, vec) = create_drop_counter_vec_in(length, alloc.clone());
+    let mut taken_vec = TypedProjVec::with_capacity_in(take_count, alloc.clone());
+    {
+        let mut iter = vec.into_iter();
+
+        assert_eq!(drop_counter.drop_count(), 0);
+
+        let mut i = 0;
+        while i < take_count {
+            taken_vec.push(iter.next());
+            i += 1;
+        }
+    }
+
+    let expected = length - take_count;
+    let result = drop_counter.drop_count();
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn test_typed_proj_vec_into_iter_drop() {
+    let max_length = 128;
+    let alloc = alloc::Global;
+    for length in 0..max_length {
+        for take_count in 0..length {
+            run_test_typed_proj_vec_into_iter_drop(length, alloc.clone());
+        }
+    }
+}
+
+#[test]
+fn test_typed_proj_vec_into_iter_take_then_drop() {
+    let max_length = 128;
+    let alloc = alloc::Global;
+    for length in 0..max_length {
+        for take_count in 0..length {
+            run_test_typed_proj_vec_into_iter_take_then_drop(length, take_count, alloc.clone());
+        }
+    }
+}

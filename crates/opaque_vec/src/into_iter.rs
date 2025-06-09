@@ -1,3 +1,4 @@
+use crate::raw_vec::TypedProjRawVec;
 use crate::vec_inner::TypedProjVecInner;
 
 use core::any;
@@ -375,7 +376,7 @@ where
                 unsafe {
                     // `IntoIter::alloc` is not used anymore after this and will be dropped by RawVec
                     let alloc = ManuallyDrop::take(&mut self.inner.alloc);
-                    let _ = TypedProjVecInner::from_raw_parts_in(self.inner.buf.as_ptr(), self.inner.len(), self.inner.cap, alloc);
+                    let _ = TypedProjRawVec::from_non_null_in(self.inner.buf, self.inner.cap, alloc);
                 }
             }
         }

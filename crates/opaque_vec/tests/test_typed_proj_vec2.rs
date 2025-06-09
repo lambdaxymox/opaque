@@ -669,6 +669,144 @@ fn test_vec_into_iter_clone6() {
 }
 
 #[test]
+fn test_vec_into_iter_partial0() {
+    let vec = TypedProjVec::from([
+        String::from("foo"),
+        String::from("bar"),
+        String::from("baz"),
+        String::from("quux"),
+        String::from("quuz"),
+        String::from("garply"),
+    ]);
+    let expected = TypedProjVec::from([]);
+    let mut result = TypedProjVec::new();
+    for value in vec.clone().into_iter().take(0) {
+        result.push(value);
+    }
+
+    assert_eq!(result, expected);
+}
+
+
+#[test]
+fn test_vec_into_iter_partial1() {
+    let vec = TypedProjVec::from([
+        String::from("foo"),
+        String::from("bar"),
+        String::from("baz"),
+        String::from("quux"),
+        String::from("quuz"),
+        String::from("garply"),
+    ]);
+    let expected = TypedProjVec::from([
+        String::from("foo"),
+    ]);
+    let mut result = TypedProjVec::new();
+    for value in vec.clone().into_iter().take(1) {
+        result.push(value);
+    }
+
+    assert_eq!(result, expected);
+}
+
+
+#[test]
+fn test_vec_into_iter_partial2() {
+    let vec = TypedProjVec::from([
+        String::from("foo"),
+        String::from("bar"),
+        String::from("baz"),
+        String::from("quux"),
+        String::from("quuz"),
+        String::from("garply"),
+    ]);
+    let expected = TypedProjVec::from([
+        String::from("foo"),
+        String::from("bar"),
+    ]);
+    let mut result = TypedProjVec::new();
+    for value in vec.clone().into_iter().take(2) {
+        result.push(value);
+    }
+
+    assert_eq!(result, expected);
+}
+
+
+#[test]
+fn test_vec_into_iter_partial3() {
+    let vec = TypedProjVec::from([
+        String::from("foo"),
+        String::from("bar"),
+        String::from("baz"),
+        String::from("quux"),
+        String::from("quuz"),
+        String::from("garply"),
+    ]);
+    let expected = TypedProjVec::from([
+        String::from("foo"),
+        String::from("bar"),
+        String::from("baz"),
+    ]);
+    let mut result = TypedProjVec::new();
+    for value in vec.clone().into_iter().take(3) {
+        result.push(value);
+    }
+
+    assert_eq!(result, expected);
+}
+
+
+#[test]
+fn test_vec_into_iter_partial4() {
+    let vec = TypedProjVec::from([
+        String::from("foo"),
+        String::from("bar"),
+        String::from("baz"),
+        String::from("quux"),
+        String::from("quuz"),
+        String::from("garply"),
+    ]);
+    let expected = TypedProjVec::from([
+        String::from("foo"),
+        String::from("bar"),
+        String::from("baz"),
+        String::from("quux"),
+    ]);
+    let mut result = TypedProjVec::new();
+    for value in vec.clone().into_iter().take(4) {
+        result.push(value);
+    }
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn test_vec_into_iter_partial5() {
+    let vec = TypedProjVec::from([
+        String::from("foo"),
+        String::from("bar"),
+        String::from("baz"),
+        String::from("quux"),
+        String::from("quuz"),
+        String::from("garply"),
+    ]);
+    let expected = TypedProjVec::from([
+        String::from("foo"),
+        String::from("bar"),
+        String::from("baz"),
+        String::from("quux"),
+        String::from("quuz"),
+    ]);
+    let mut result = TypedProjVec::new();
+    for value in vec.clone().into_iter().take(5) {
+        result.push(value);
+    }
+
+    assert_eq!(result, expected);
+}
+
+#[test]
 fn test_vec_drain_empty() {
     let mut vec: TypedProjVec<i32> = TypedProjVec::from([]);
     let expected = TypedProjVec::new();

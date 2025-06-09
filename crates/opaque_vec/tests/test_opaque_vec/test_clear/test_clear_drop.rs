@@ -44,7 +44,7 @@ where
     (drop_counter, vec)
 }
 
-fn run_test_typed_proj_vec_clear<A>(length: usize, alloc: A)
+fn run_test_opaque_vec_clear<A>(length: usize, alloc: A)
 where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
@@ -57,10 +57,10 @@ where
 }
 
 #[test]
-fn test_typed_proj_vec_clear_range() {
+fn test_opaque_vec_clear_range() {
     let max_length = 128;
     let alloc = alloc::Global;
     for length in 0..max_length {
-        run_test_typed_proj_vec_clear(length, alloc.clone());
+        run_test_opaque_vec_clear(length, alloc.clone());
     }
 }

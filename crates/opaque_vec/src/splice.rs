@@ -90,7 +90,7 @@ where
             if !self.drain.fill(&mut self.replace_with) {
                 return;
             }
-
+            
             // There may be more elements. Use the lower bound as an estimate.
             // FIXME: Is the upper bound a better guess? Or something else?
             let (lower_bound, _upper_bound) = self.replace_with.size_hint();
