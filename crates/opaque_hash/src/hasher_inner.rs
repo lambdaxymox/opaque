@@ -200,3 +200,126 @@ impl hash::Hasher for OpaqueHasherInner {
         self.hasher.write(bytes)
     }
 }
+
+mod dummy {
+    use super::*;
+
+    #[allow(dead_code)]
+    pub(super) struct DummyHasher {
+        _do_not_construct: marker::PhantomData<()>,
+    }
+
+    impl hash::Hasher for DummyHasher {
+        #[inline]
+        fn finish(&self) -> u64 {
+            panic!("[`DummyHasher::finish`] should never actually be called. Its purpose is to test struct layouts.");
+        }
+
+        #[inline]
+        fn write(&mut self, _bytes: &[u8]) {
+            panic!("[`DummyHasher::write`] should never actually be called. Its purpose is to test struct layouts.");
+        }
+    }
+
+    #[allow(dead_code)]
+    pub(super) struct DummyBuildHasher {
+        _do_not_construct: marker::PhantomData<()>,
+    }
+
+    impl hash::BuildHasher for DummyBuildHasher {
+        type Hasher = DummyHasher;
+        fn build_hasher(&self) -> Self::Hasher {
+            panic!("[`DummyBuildHasher::build_hasher`] should never actually be called. Its purpose is to test struct layouts.");
+        }
+    }
+}
+
+#[cfg(test)]
+mod hasher_inner_layout_tests {
+    use super::*;
+    use std::hash;
+
+    fn run_test_opaque_hasher_match_sizes<H>()
+    where
+        H: any::Any + hash::Hasher + Send + Sync,
+    {
+        let expected = core::mem::size_of::<TypedProjHasherInner<H>>();
+        let result = core::mem::size_of::<OpaqueHasherInner>();
+
+        assert_eq!(result, expected, "Opaque and Typed Projected data types size mismatch");
+    }
+
+    fn run_test_opaque_hasher_match_alignments<H>()
+    where
+        H: any::Any + hash::Hasher + Send + Sync,
+    {
+        let expected = core::mem::align_of::<TypedProjHasherInner<H>>();
+        let result = core::mem::align_of::<OpaqueHasherInner>();
+
+        assert_eq!(result, expected, "Opaque and Typed Projected data types alignment mismatch");
+    }
+
+    fn run_test_opaque_hasher_match_offsets<H>()
+    where
+        H: any::Any + hash::Hasher + Send + Sync,
+    {
+        assert_eq!(
+            core::mem::offset_of!(TypedProjHasherInner<H>, hasher),
+            core::mem::offset_of!(OpaqueHasherInner, hasher),
+            "Opaque and Typed Projected data types offsets mismatch"
+        );
+        assert_eq!(
+            core::mem::offset_of!(TypedProjHasherInner<H>, hasher_type_id),
+            core::mem::offset_of!(OpaqueHasherInner, hasher_type_id),
+            "Opaque and Typed Projected data types offsets mismatch"
+        );
+    }
+
+    macro_rules! layout_tests {
+        ($module_name:ident, $hasher_typ:ty) => {
+            mod $module_name {
+                use super::*;
+
+                #[test]
+                fn test_hasher_layout_match_sizes() {
+                    run_test_opaque_hasher_match_sizes::<$hasher_typ>();
+                }
+
+                #[test]
+                fn test_hasher_layout_match_alignments() {
+                    run_test_opaque_hasher_match_alignments::<$hasher_typ>();
+                }
+
+                #[test]
+                fn test_hasher_layout_match_offsets() {
+                    run_test_opaque_hasher_match_offsets::<$hasher_typ>();
+                }
+            }
+        };
+    }
+
+    #[cfg(feature = "std")]
+    layout_tests!(default_hasher, hash::DefaultHasher);
+
+    layout_tests!(dummy_hasher, dummy::DummyHasher);
+}
+
+#[cfg(test)]
+mod assert_send_sync {
+    use super::*;
+
+    #[cfg(feature = "std")]
+    #[test]
+    fn test_assert_send_sync1() {
+        fn assert_send_sync<T: Send + Sync>() {}
+
+        assert_send_sync::<TypedProjHasherInner<hash::DefaultHasher>>();
+    }
+
+    #[test]
+    fn test_assert_send_sync2() {
+        fn assert_send_sync<T: Send + Sync>() {}
+
+        assert_send_sync::<TypedProjHasherInner<dummy::DummyHasher>>();
+    }
+}
