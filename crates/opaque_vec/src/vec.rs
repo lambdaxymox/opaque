@@ -20,12 +20,133 @@ use alloc_crate::alloc;
 use alloc_crate::borrow;
 use alloc_crate::boxed::Box;
 use alloc_crate::vec::Vec;
-
+use std::ops::Index;
 use opaque_alloc::TypedProjAlloc;
 use opaque_error::TryReserveError;
 
-/// A type-projected contiguous growable array type. This is similar to the [`Vec`] data type
-/// from [`std`], except that the generic parameters can be type-erased.
+/// A type-projected contiguous growable array type.
+///
+/// Similar to [`std::Vec`], but supports type-erasure of generic parameters.
+/// The main difference is that a `TypedProjVec` can be converted to an `OpaqueVec`
+/// in constant **O(1)** time, hiding its element type and allocator at runtime.
+///
+/// A type-erasable vector is parameterized by the following parameters:
+/// * a pointer to a memory allocation,
+/// * capacity--the number of elements the vector can store without reallocating, or equivalently,
+///   the size of the memory allocation in units of elements.
+/// * length--the number of elements currently stored in the vector,
+/// * element type id
+/// * allocator type id
+///
+/// # Why Type Erasure And Type Projection?
+///
+/// This allows for more flexible and dynamic data handling, especially when working with
+/// collections of unknown or dynamic types. Type-erasable collections allow for more efficient
+/// runtime dynamic typing, since one has more control over the memory layout of the collection,
+/// even for erased types. Some applications of this include implementing heterogeneous data
+/// structures, plugin systems, and managing foreign function interface data. There are two data
+/// types that are dual to each other: [`TypedProjVec`] and [`OpaqueVec`]. The structure of both
+/// data types are equivalent to the following data structures:
+///
+/// ```
+/// # #![feature(allocator_api)]
+/// # use std::any;
+/// # use std::alloc;
+/// # use std::marker;
+/// #
+/// # use std::alloc::{AllocError, Allocator, Layout};
+/// # use std::ptr::NonNull;
+/// #
+/// struct BoxedAllocator(Box<dyn alloc::Allocator>);
+/// #
+/// # unsafe impl Allocator for BoxedAllocator {
+/// #    fn allocate(&self, layout: Layout) -> Result<NonNull<[u8]>, AllocError> {
+/// #        self.0.allocate(layout)
+/// #    }
+/// #
+/// #    unsafe fn deallocate(&self, ptr: NonNull<u8>, layout: Layout) {
+/// #        unsafe {
+/// #            self.0.deallocate(ptr, layout)
+/// #        }
+/// #    }
+/// # }
+/// #
+///
+/// #[repr(C)]
+/// struct MyTypeProjectedVec<T, A>
+/// where
+///     T: any::Any,
+///     A: any::Any + alloc::Allocator,
+/// {
+///     data: Vec<Box<dyn any::Any>, BoxedAllocator>,
+///     element_type_id: any::TypeId,
+///     allocator_type_id: any::TypeId,
+///     /// The zero-sized marker type tracks the actual data types inside the [`Vec`] when
+///     /// the type-erased vector is type-projected.
+///     _marker: marker::PhantomData<(T, A)>,
+/// }
+///
+/// #[repr(C)]
+/// struct MyTypeErasedVec {
+///     data: Vec<Box<dyn any::Any>, BoxedAllocator>,
+///     element_type_id: any::TypeId,
+///     allocator_type_id: any::TypeId,
+/// }
+///
+/// # use core::mem;
+/// #
+/// # assert_eq!(mem::size_of::<MyTypeProjectedVec<i32, alloc::Global>>(), mem::size_of::<MyTypeErasedVec>());
+/// # assert_eq!(mem::align_of::<MyTypeProjectedVec<i32, alloc::Global>>(), mem::align_of::<MyTypeErasedVec>());
+/// # assert_eq!(mem::size_of::<MyTypeProjectedVec<String, alloc::Global>>(), mem::size_of::<MyTypeErasedVec>());
+/// # assert_eq!(mem::align_of::<MyTypeProjectedVec<String, alloc::Global>>(), mem::align_of::<MyTypeErasedVec>());
+/// ```
+///
+/// By laying out both data types identically, we can project the underlying types in **O(1)**-time,
+/// and erase the underlying types in **O(1)**-time, though the conversion is often zero-cost.
+///
+/// ## Example
+///
+/// ```
+/// # #![feature(allocator_api)]
+/// # use crate::opaque_vec::{TypedProjVec, OpaqueVec};
+/// # use std::alloc::Global;
+/// #
+/// let mut proj_vec: TypedProjVec<i32, Global> = TypedProjVec::new();
+/// proj_vec.push(42);
+///
+/// assert_eq!(proj_vec.get(0), Some(&42));
+///
+/// let opaque_vec: OpaqueVec = OpaqueVec::from_proj(proj_vec);
+///
+/// assert!(opaque_vec.has_element_type::<i32>());
+/// assert!(opaque_vec.has_allocator_type::<Global>());
+///
+/// assert_eq!(opaque_vec.get::<i32, Global>(0), Some(&42));
+/// ```
+///
+/// ## See Also
+/// - [`OpaqueVec`]: The type-erased counterpart of this vector.
+///
+/// # Tradeoffs Compared To [`Vec`]
+///
+/// There are some tradeoffs to gaining type-erasability and type-projectability. The projected and
+/// erased vectors have identical memory layout to ensure that type projection and type erasure are
+/// both **O(1)**-operations. Thus, the underlying memory allocator must be stored in the equivalent
+/// of a [`Box`], which carries a small performance penalty. Moreover, the vectors must carry extra
+/// metadata about the types of the elements and the allocator through their respective [`TypeId`]'s.
+/// Boxing the allocator imposed a small performance penalty at runtime, and the extra metadata makes
+/// the container itself a little bigger in memory, though this is very minor. This also puts a slight
+/// restriction on what kinds of data types can be held inside the collections: the underlying memory
+/// allocator and the underlying elements must both implements [`any::Any`], i.e. they must have
+/// `'static` lifetimes. Both restrictions are fairly small, but they do exist.
+///
+/// # Capacity And Reallocation
+///
+/// The **capacity** of a vector is the number of elements that can be stored in the vector inside
+/// the same allocation. That is, it is the number of elements the vector can store without reallocating
+/// memory. This should not be confused with the **length** of the vector, which is the number of
+/// elements currently stored in the vector. The length of a vector is always less than or equal to
+/// its capacity.
 #[repr(transparent)]
 pub struct TypedProjVec<T, A = alloc::Global>
 where
@@ -4231,8 +4352,11 @@ where
     }
 }
 
-/// A type-erased contiguous growable array type. This is similar to the [`Vec`] data type
-/// from [`std`] except that the concrete type of the generic parameters are type-erased.
+/// A type-erased contiguous growable array type.
+///
+/// Similar to [`std::Vec`], but supports type-projection of generic parameters.
+///
+/// For more information, see [`TypedProjVec`].
 #[repr(transparent)]
 pub struct OpaqueVec {
     inner: OpaqueVecInner,
