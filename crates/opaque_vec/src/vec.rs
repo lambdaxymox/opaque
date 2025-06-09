@@ -79,8 +79,8 @@ use opaque_error::TryReserveError;
 ///     data: Vec<Box<dyn any::Any>, BoxedAllocator>,
 ///     element_type_id: any::TypeId,
 ///     allocator_type_id: any::TypeId,
-///     /// The zero-sized marker type tracks the actual data types inside the [`Vec`] when
-///     /// the type-erased vector is type-projected.
+///     /// The zero-sized marker type tracks the actual data types inside the collection at compile
+///     /// time when the type-erased vector is type-projected.
 ///     _marker: marker::PhantomData<(T, A)>,
 /// }
 ///
@@ -129,14 +129,15 @@ use opaque_error::TryReserveError;
 ///
 /// There are some tradeoffs to gaining type-erasability and type-projectability. The projected and
 /// erased vectors have identical memory layout to ensure that type projection and type erasure are
-/// both **O(1)**-operations. Thus, the underlying memory allocator must be stored in the equivalent
-/// of a [`Box`], which carries a small performance penalty. Moreover, the vectors must carry extra
-/// metadata about the types of the elements and the allocator through their respective [`TypeId`]'s.
-/// Boxing the allocator imposed a small performance penalty at runtime, and the extra metadata makes
-/// the container itself a little bigger in memory, though this is very minor. This also puts a slight
+/// both **O(1)**-time operations. This also ensures that projecting or erasing references is a zero-cost
+/// operation. Thus, the underlying memory allocator must be stored in the equivalent of a [`Box`],
+/// which carries a small performance penalty. Moreover, the vectors must carry extra metadata about
+/// the types of the elements and the allocator through their respective [`TypeId`]'s. Boxing the
+/// allocator imposed a small performance penalty at runtime, and the extra metadata makes the
+/// container itself a little bigger in memory, though this is very minor. This also puts a slight
 /// restriction on what kinds of data types can be held inside the collections: the underlying memory
-/// allocator and the underlying elements must both implements [`any::Any`], i.e. they must have
-/// `'static` lifetimes. Both restrictions are fairly small, but they do exist.
+/// allocator and the underlying elements must both implement [`any::Any`], i.e. they must have
+/// `'static` lifetimes.
 ///
 /// # Capacity And Reallocation
 ///
@@ -4631,6 +4632,10 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// let opaque_vec = OpaqueVec::new_in::<i32, Global>(Global);
+    /// #
+    /// # assert!(opaque_vec.has_element_type::<i32>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    /// #
     /// let proj_vec: &TypedProjVec<i32, Global> = opaque_vec.as_proj::<i32, Global>();
     /// ```
     #[inline]
@@ -4661,6 +4666,10 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// let mut opaque_vec = OpaqueVec::new_in::<i32, Global>(Global);
+    /// #
+    /// # assert!(opaque_vec.has_element_type::<i32>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    /// #
     /// let proj_vec: &mut TypedProjVec<i32, Global> = opaque_vec.as_proj_mut::<i32, Global>();
     /// ```
     #[inline]
@@ -4674,8 +4683,7 @@ impl OpaqueVec {
         unsafe { &mut *(self as *mut OpaqueVec as *mut TypedProjVec<T, A>) }
     }
 
-    /// Projects a type-erased [`OpaqueVec`] value into a type-projected
-    /// [`TypedProjVec`] value.
+    /// Projects a type-erased [`OpaqueVec`] value into a type-projected [`TypedProjVec`] value.
     ///
     /// # Panics
     ///
@@ -4691,6 +4699,10 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// let opaque_vec = OpaqueVec::new_in::<i32, Global>(Global);
+    /// #
+    /// # assert!(opaque_vec.has_element_type::<i32>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    /// #
     /// let proj_vec: TypedProjVec<i32, Global> = opaque_vec.into_proj::<i32, Global>();
     /// ```
     #[inline]
@@ -4706,8 +4718,7 @@ impl OpaqueVec {
         }
     }
 
-    /// Erases the type-projected [`TypedProjVec`] value into a type-erased
-    /// [`OpaqueVec`] value.
+    /// Erases the type-projected [`TypedProjVec`] value into a type-erased [`OpaqueVec`] value.
     ///
     /// Unlike the type projection methods [`as_proj`], [`as_proj_mut`], and [`into_proj`], this
     /// method never panics.
@@ -4721,6 +4732,10 @@ impl OpaqueVec {
     /// #
     /// let proj_vec: TypedProjVec<i32, Global> = TypedProjVec::new_in(Global);
     /// let opaque_vec: OpaqueVec = OpaqueVec::from_proj(proj_vec);
+    /// #
+    /// # assert!(opaque_vec.has_element_type::<i32>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    /// #
     /// ```
     ///
     /// [`as_proj`]: OpaqueVec::as_proj,

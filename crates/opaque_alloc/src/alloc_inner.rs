@@ -23,7 +23,7 @@ impl<A> TypedProjAllocInner<A>
 where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    pub(crate) fn allocator_type_id(&self) -> any::TypeId {
+    pub(crate) const fn allocator_type_id(&self) -> any::TypeId {
         self.alloc_type_id
     }
 }
@@ -261,4 +261,23 @@ mod alloc_inner_layout_tests {
 
     layout_tests!(global, alloc::Global);
     layout_tests!(dummy_alloc, dummy::DummyAlloc);
+}
+
+#[cfg(test)]
+mod assert_send_sync {
+    use super::*;
+
+    #[test]
+    fn test_assert_send_sync1() {
+        fn assert_send_sync<T: Send + Sync>() {}
+
+        assert_send_sync::<TypedProjAllocInner<alloc::Global>>();
+    }
+
+    #[test]
+    fn test_assert_send_sync2() {
+        fn assert_send_sync<T: Send + Sync>() {}
+
+        assert_send_sync::<TypedProjAllocInner<dummy::DummyAlloc>>();
+    }
 }

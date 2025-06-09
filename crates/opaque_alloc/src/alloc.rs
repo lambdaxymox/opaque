@@ -7,6 +7,65 @@ use core::ptr::NonNull;
 use alloc_crate::alloc;
 use alloc_crate::boxed::Box;
 
+/// A type-projected memory allocator.
+///
+/// Wrapping the memory allocator like this allows us to type-erase and type-project allocators
+/// as **O(1)**-time operations. When passing references to type-projected or type-erased allocators
+/// around, type-erasure and type-projection are zero-cost operations, since they have identical
+/// layout.
+///
+/// For a given allocator type `A`, the [`TypedProjAlloc<A>`] and [`OpaqueAlloc`] data types also
+/// implement the [`Allocator`] trait, so we can allocate memory with it just as well as the
+/// underlying allocator of type `A`.
+///
+/// # Type Erasure And Type Projection
+///
+/// This allows for more flexible and dynamic data handling, especially when working with
+/// collections of unknown or dynamic types. Some applications of this include implementing
+/// heterogeneous data structures, plugin systems, and managing foreign function interface data. There
+/// are two data types that are dual to each other: [`TypedProjAlloc`] and [`OpaqueAlloc`].
+///
+/// # Tradeoffs Compared To A Non-Projected Allocator
+///
+/// There are some tradeoffs to gaining type-erasability and type-projectability. The projected and
+/// erased allocators have identical memory layout to ensure that type projection and type erasure are
+/// both **O(1)**-time operations. Thus, the underlying memory allocator must be stored in the equivalent
+/// of a [`Box`], which carries a small performance penalty. Moreover, the allocators must carry extra
+/// metadata about the type of the underlying allocator through its [`TypeId`]. Boxing the allocator
+/// imposes a small performance penalty at runtime, and the extra metadata makes the allocator itself
+/// a little bigger in memory, though this is very minor. This also puts a slight restriction on what
+/// kinds of memory allocators can be held inside the container: the underlying memory
+/// allocator be [`any::Any`], i.e. it must have a `'static` lifetime.
+///
+/// # Examples
+///
+/// Using a [`TypedProjAlloc`].
+///
+/// ```
+/// # #![feature(allocator_api)]
+/// # use opaque_alloc::TypedProjAlloc;
+/// # use std::any::TypeId;
+/// # use std::alloc::Global;
+/// #
+/// let proj_alloc = TypedProjAlloc::new(Global);
+///
+/// assert_eq!(proj_alloc.allocator_type_id(), TypeId::of::<Global>());
+/// ```
+///
+/// Using an [`OpaqueAlloc`].
+///
+/// ```
+/// # #![feature(allocator_api)]
+/// # use opaque_alloc::OpaqueAlloc;
+/// # use std::any::TypeId;
+/// # use std::alloc::Global;
+/// #
+/// let opaque_alloc = OpaqueAlloc::new::<Global>(Global);
+///
+/// assert_eq!(opaque_alloc.allocator_type_id(), TypeId::of::<Global>());
+/// ```
+///
+/// [`Allocator`]: std::alloc::Allocator
 #[repr(transparent)]
 pub struct TypedProjAlloc<A>
 where
@@ -19,6 +78,48 @@ impl<A> TypedProjAlloc<A>
 where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
+    /// Returns the [`TypeId`] of the underlying memory allocator.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_alloc = TypedProjAlloc::new(Global);
+    ///
+    /// let expected = TypeId::of::<Global>();
+    /// let result = proj_alloc.allocator_type_id();
+    ///
+    /// assert_eq!(result, expected);
+    /// ```
+    #[inline]
+    pub const fn allocator_type_id(&self) -> any::TypeId {
+        self.inner.allocator_type_id()
+    }
+}
+
+impl<A> TypedProjAlloc<A>
+where
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    /// Constructs a new type-projected memory allocator.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_alloc = TypedProjAlloc::new(Global);
+    ///
+    /// assert_eq!(proj_alloc.allocator_type_id(), TypeId::of::<Global>());
+    /// assert_ne!(proj_alloc.allocator_type_id(), TypeId::of::<Box<Global>>());
+    /// ```
     #[inline]
     pub fn new(alloc: A) -> Self {
         let inner = TypedProjAllocInner::new(alloc);
@@ -26,6 +127,21 @@ where
         Self { inner, }
     }
 
+    /// Constructs a new type-projected memory allocator from a boxed memory allocator.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_alloc = TypedProjAlloc::from_boxed_alloc(Box::new(Global));
+    ///
+    /// assert_eq!(proj_alloc.allocator_type_id(), TypeId::of::<Global>());
+    /// assert_ne!(proj_alloc.allocator_type_id(), TypeId::of::<Box<Global>>());
+    /// ```
     #[inline]
     pub fn from_boxed_alloc(alloc: Box<A>) -> Self {
         let inner = TypedProjAllocInner::from_boxed_alloc(alloc);
@@ -33,10 +149,43 @@ where
         Self { inner, }
     }
 
+    /// Returns a reference to the underlying memory allocator.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_alloc = TypedProjAlloc::new(Global);
+    ///
+    /// let alloc: &Global = proj_alloc.allocator();
+    /// ```
     pub fn allocator(&self) -> &A {
         self.inner.allocator()
     }
 
+    /// Converts the type-projected allocator into a boxed memory allocator.
+    ///
+    /// The resulting boxed memory allocator cannot be type-projected and type-erased again
+    /// unless it is converted back via a method like [`TypedProjAlloc::from_boxed_alloc`].
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_alloc = TypedProjAlloc::new(Global);
+    /// let boxed_alloc: Box<Global> = proj_alloc.into_boxed_alloc();
+    ///
+    /// let new_proj_alloc = TypedProjAlloc::from_boxed_alloc(boxed_alloc);
+    ///
+    /// assert_eq!(new_proj_alloc.allocator_type_id(), TypeId::of::<Global>());
+    /// ```
     pub fn into_boxed_alloc(self) -> Box<A> {
         self.inner.into_boxed_alloc()
     }
@@ -97,25 +246,88 @@ where
     }
 }
 
+/// A type-erased memory allocator.
+///
+/// For more information, see [`TypedProjAlloc`].
 #[repr(transparent)]
 pub struct OpaqueAlloc {
     inner: OpaqueAllocInner,
 }
 
 impl OpaqueAlloc {
+    /// Returns the [`TypeId`] of the underlying memory allocator.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_alloc::OpaqueAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_alloc = OpaqueAlloc::new::<Global>(Global);
+    ///
+    /// let expected = TypeId::of::<Global>();
+    /// let result = opaque_alloc.allocator_type_id();
+    ///
+    /// assert_eq!(result, expected);
+    /// ```
     #[inline]
     pub const fn allocator_type_id(&self) -> any::TypeId {
         self.inner.allocator_type_id()
     }
+}
 
+impl OpaqueAlloc {
+    /// Determines whether the underlying memory allocator has the given allocator type.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_alloc::OpaqueAlloc;
+    /// # use std::any::{Any, TypeId};
+    /// # use std::alloc::{Allocator, AllocError, Layout, Global};
+    /// # use std::ptr::NonNull;
+    /// #
+    /// trait AnyAllocator: Any + Allocator + Send + Sync {}
+    ///
+    /// impl<A> AnyAllocator for A where A: Any + Allocator + Send + Sync {}
+    ///
+    /// struct BoxedAllocator(Box<dyn AnyAllocator>);
+    /// # unsafe impl Allocator for BoxedAllocator {
+    /// #     fn allocate(&self, layout: Layout) -> Result<NonNull<[u8]>, AllocError> {
+    /// #         self.0.allocate(layout)
+    /// #     }
+    /// #
+    /// #     unsafe fn deallocate(&self, ptr: NonNull<u8>, layout: Layout) {
+    /// #         self.0.deallocate(ptr, layout);
+    /// #     }
+    /// # }
+    /// #
+    ///
+    /// let opaque_alloc = OpaqueAlloc::new::<Global>(Global);
+    ///
+    /// assert!(opaque_alloc.has_allocator_type::<Global>());
+    /// assert!(!opaque_alloc.has_allocator_type::<BoxedAllocator>());
+    /// ```
     #[inline]
-    pub fn has_alloc_type<A>(&self) -> bool
+    pub fn has_allocator_type<A>(&self) -> bool
     where
         A: any::Any + alloc::Allocator + Send + Sync,
     {
         self.inner.allocator_type_id() == any::TypeId::of::<A>()
     }
 
+    /// Assert the concrete types underlying a type-erased data type.
+    ///
+    /// This method's main use case is ensuring the type safety of an operation before projecting
+    /// into the type-projected counterpart of the type-erased allocator.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the memory allocator of `self` do not match the
+    /// requested allocator type `A`.
     #[inline]
     #[track_caller]
     fn assert_type_safety<A>(&self)
@@ -129,13 +341,28 @@ impl OpaqueAlloc {
             panic!("Type mismatch. Need `{:?}`, got `{:?}`", type_id_self, type_id_other);
         }
 
-        if !self.has_alloc_type::<A>() {
+        if !self.has_allocator_type::<A>() {
             type_check_failed(self.inner.allocator_type_id(), any::TypeId::of::<A>());
         }
     }
 }
 
 impl OpaqueAlloc {
+    /// Constructs a new type-erased memory allocator.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_alloc::OpaqueAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_alloc = OpaqueAlloc::new(Global);
+    ///
+    /// assert_eq!(proj_alloc.allocator_type_id(), TypeId::of::<Global>());
+    /// assert_ne!(proj_alloc.allocator_type_id(), TypeId::of::<Box<Global>>());
+    /// ```
     #[inline]
     pub fn new<A>(alloc: A) -> Self
     where
@@ -146,6 +373,21 @@ impl OpaqueAlloc {
         Self::from_proj(proj_alloc)
     }
 
+    /// Constructs a new type-erased memory allocator from a boxed memory allocator.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_alloc::OpaqueAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_alloc = OpaqueAlloc::from_boxed_alloc(Box::new(Global));
+    ///
+    /// assert_eq!(opaque_alloc.allocator_type_id(), TypeId::of::<Global>());
+    /// assert_ne!(opaque_alloc.allocator_type_id(), TypeId::of::<Box<Global>>());
+    /// ```
     #[inline]
     pub fn from_boxed_alloc<A>(alloc: Box<A>) -> Self
     where
@@ -158,6 +400,27 @@ impl OpaqueAlloc {
 }
 
 impl OpaqueAlloc {
+    /// Projects the type-erased [`OpaqueAlloc`] reference into a type-projected
+    /// [`TypedProjAlloc`] reference.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the memory allocator of `self` do not match the
+    /// requested allocator type `A`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_alloc::{OpaqueAlloc, TypedProjAlloc};
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_alloc = OpaqueAlloc::new::<Global>(Global);
+    /// #
+    /// # assert!(opaque_alloc.has_allocator_type::<Global>());
+    /// #
+    /// let proj_alloc: &TypedProjAlloc<Global> = opaque_alloc.as_proj::<Global>();
+    /// ```
     #[inline]
     pub fn as_proj<A>(&self) -> &TypedProjAlloc<A>
     where
@@ -168,6 +431,27 @@ impl OpaqueAlloc {
         unsafe { &*(self as *const OpaqueAlloc as *const TypedProjAlloc<A>) }
     }
 
+    /// Projects the type-erased [`OpaqueAlloc`] mutable reference into a type-projected
+    /// [`TypedProjAlloc`] mutable reference.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the memory allocator of `self` do not match the
+    /// requested allocator type `A`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_alloc::{OpaqueAlloc, TypedProjAlloc};
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_alloc = OpaqueAlloc::new::<Global>(Global);
+    /// #
+    /// # assert!(opaque_alloc.has_allocator_type::<Global>());
+    /// #
+    /// let proj_alloc: &mut TypedProjAlloc<Global> = opaque_alloc.as_proj_mut::<Global>();
+    /// ```
     #[inline]
     pub fn as_proj_mut<A>(&mut self) -> &mut TypedProjAlloc<A>
     where
@@ -178,6 +462,26 @@ impl OpaqueAlloc {
         unsafe { &mut *(self as *mut OpaqueAlloc as *mut TypedProjAlloc<A>) }
     }
 
+    /// Projects the type-erased [`OpaqueAlloc`] value into a type-projected [`TypedProjAlloc`] value.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the memory allocator of `self` do not match the
+    /// requested allocator type `A`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_alloc::{OpaqueAlloc, TypedProjAlloc};
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_alloc = OpaqueAlloc::new::<Global>(Global);
+    /// #
+    /// # assert!(opaque_alloc.has_allocator_type::<Global>());
+    /// #
+    /// let proj_alloc: TypedProjAlloc<Global> = opaque_alloc.into_proj::<Global>();
+    /// ```
     #[inline]
     pub fn into_proj<A>(self) -> TypedProjAlloc<A>
     where
@@ -190,6 +494,28 @@ impl OpaqueAlloc {
         }
     }
 
+    /// Erases the type-projected [`TypedProjAlloc`] value into a type-erased [`OpaqueAlloc`] value.
+    ///
+    /// Unlike the type projection methods [`as_proj`], [`as_proj_mut`], and [`into_proj`], this
+    /// method never panics.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_alloc::{OpaqueAlloc, TypedProjAlloc};
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_alloc: TypedProjAlloc<Global> = TypedProjAlloc::new(Global);
+    /// let opaque_alloc: OpaqueAlloc = OpaqueAlloc::from_proj(proj_alloc);
+    /// #
+    /// # assert!(opaque_alloc.has_allocator_type::<Global>());
+    /// #
+    /// ```
+    ///
+    /// [`as_proj`]: OpaqueAlloc::as_proj,
+    /// [`as_proj_mut`]: OpaqueAlloc::as_proj_mut
+    /// [`into_proj`]: OpaqueAlloc::into_proj
     #[inline]
     pub fn from_proj<A>(proj_self: TypedProjAlloc<A>) -> Self
     where
