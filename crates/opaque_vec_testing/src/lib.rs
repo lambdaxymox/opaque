@@ -8,7 +8,9 @@ extern crate std;
 
 use core::any;
 use core::fmt;
-use core::ops;
+use core::mem::MaybeUninit;
+use alloc_crate::boxed::Box;
+use std::string::{String, ToString};
 
 pub struct PrefixGenerator<'a, T> {
     current_index: usize,
@@ -54,25 +56,54 @@ where
 }
 
 #[derive(Clone)]
+pub struct StringRangeFrom {
+    start: isize,
+    current: isize,
+}
+
+impl StringRangeFrom {
+    #[inline]
+    pub const fn new(start: isize) -> Self {
+        Self { start, current: start, }
+    }
+}
+
+impl Iterator for StringRangeFrom {
+    type Item = String;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let result = self.current.to_string();
+        self.current += 1;
+
+        Some(result)
+    }
+}
+
 pub struct RangeValuesSpec<T> {
-    start: T,
+    iter: Box<dyn Iterator<Item = T>>,
 }
 
 impl<T> RangeValuesSpec<T> {
     #[inline]
-    pub const fn new(start: T) -> Self {
-        Self { start }
+    pub fn new(iter: Box<dyn Iterator<Item = T>>) -> Self {
+        Self { iter, }
     }
 }
 
-pub fn range_values<T, const N: usize>(spec: RangeValuesSpec<T>) -> [T; N]
+pub fn range_values<T, const N: usize>(mut spec: RangeValuesSpec<T>) -> [T; N]
 where
-    T: any::Any + Copy + PartialEq + Clone + fmt::Debug + TryFrom<usize> + ops::Add<Output = T>,
-    <T as TryFrom<usize>>::Error: fmt::Debug,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
 {
-    let mut array = [spec.start; N];
+    let mut array: [MaybeUninit<T>; N] = unsafe {  MaybeUninit::uninit().assume_init() };
     for i in 0..N {
-        array[i] = spec.start + T::try_from(i).unwrap();
+        array[i] = MaybeUninit::new(T::default().clone());
+    }
+
+    // SAFETY: Transmuting the array is safe because all the entries in the array were initialized
+    // to `T::default()`.
+    let mut array: [T; N] = unsafe { std::mem::transmute_copy(&array) };
+    for i in 0..N {
+        array[i] = spec.iter.next().unwrap();
     }
 
     array
@@ -93,12 +124,18 @@ impl<T> AlternatingValuesSpec<T> {
 
 pub fn alternating_values<T, const N: usize>(spec: AlternatingValuesSpec<T>) -> [T; N]
 where
-    T: any::Any + Copy + PartialEq + Clone + fmt::Debug + TryFrom<usize> + ops::Add<Output = T>,
-    <T as TryFrom<usize>>::Error: fmt::Debug,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
 {
-    let mut array = [spec.this; N];
+    let mut array: [MaybeUninit<T>; N] = unsafe {  MaybeUninit::uninit().assume_init() };
     for i in 0..N {
-        let value = if i % 2 == 0 { spec.this } else { spec.that };
+        array[i] = MaybeUninit::new(T::default().clone());
+    }
+
+    // SAFETY: Transmuting the array is safe because all the entries in the array were initialized
+    // to `T::default()`.
+    let mut array: [T; N] = unsafe { std::mem::transmute_copy(&array) };
+    for i in 0..N {
+        let value = if i % 2 == 0 { spec.this.clone() } else { spec.that.clone() };
         array[i] = value;
     }
 
@@ -119,8 +156,51 @@ impl<T> ConstantValuesSpec<T> {
 
 pub fn constant_values<T, const N: usize>(spec: ConstantValuesSpec<T>) -> [T; N]
 where
-    T: any::Any + Copy + PartialEq + Clone + fmt::Debug + TryFrom<usize> + ops::Add<Output = T>,
-    <T as TryFrom<usize>>::Error: fmt::Debug,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
 {
-    [spec.constant; N]
+    let mut array: [MaybeUninit<T>; N] = unsafe {  MaybeUninit::uninit().assume_init() };
+    for i in 0..N {
+        array[i] = MaybeUninit::new(T::default().clone());
+    }
+
+    // SAFETY: Transmuting the array is safe because all the entries in the array were initialized
+    // to `T::default()`.
+    let mut array: [T; N] = unsafe { std::mem::transmute_copy(&array) };
+    for i in 0..N {
+        array[i] = spec.constant.clone();
+    }
+
+    array
+}
+
+
+#[derive(Clone)]
+pub struct RepeatableValuesSpec<T, const N: usize> {
+    values: [T; N],
+}
+
+impl<T, const N: usize> RepeatableValuesSpec<T, N> {
+    #[inline]
+    pub const fn new(values: [T; N]) -> Self {
+        Self { values }
+    }
+}
+
+pub fn repeat_values<T, const N: usize, const M: usize>(spec: RepeatableValuesSpec<T, N>) -> [T; M]
+where
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
+{
+    let mut array: [MaybeUninit<T>; M] = unsafe {  MaybeUninit::uninit().assume_init() };
+    for i in 0..M {
+        array[i] = MaybeUninit::new(T::default().clone());
+    }
+
+    // SAFETY: Transmuting the array is safe because all the entries in the array were initialized
+    // to `T::default()`.
+    let mut array: [T; M] = unsafe { std::mem::transmute_copy(&array) };
+    for i in 0..M {
+        array[i] = spec.values[i % N].clone();
+    }
+
+    array
 }

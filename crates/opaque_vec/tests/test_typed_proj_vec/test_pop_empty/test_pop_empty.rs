@@ -3,11 +3,12 @@ use crate::common;
 use opaque_vec::TypedProjVec;
 
 use core::any;
+use core::fmt;
 use std::alloc;
 
 fn run_test_typed_proj_vec_pop_empty1<T, A>(alloc: A)
 where
-    T: any::Any,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let mut vec = TypedProjVec::<T, A>::new_in(alloc);
@@ -17,7 +18,7 @@ where
 
 fn run_test_typed_proj_vec_pop_empty2<T, A>(alloc: A)
 where
-    T: any::Any,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let mut vec = TypedProjVec::<T, A>::new_in(alloc);
@@ -29,7 +30,7 @@ where
 
 fn run_test_typed_proj_vec_pop_empty_is_empty1<T, A>(alloc: A)
 where
-    T: any::Any,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let mut vec = TypedProjVec::<T, A>::new_in(alloc);
@@ -43,7 +44,7 @@ where
 
 fn run_test_typed_proj_vec_pop_empty_is_empty2<T, A>(alloc: A)
 where
-    T: any::Any,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let mut vec = TypedProjVec::<T, A>::new_in(alloc);

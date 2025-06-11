@@ -2,13 +2,14 @@ use opaque_vec::OpaqueVec;
 
 use core::any;
 use core::fmt;
+use core::ops;
 use std::alloc;
 
 use opaque_vec_testing as ovt;
 
 fn run_test_opaque_vec_shift_insert_contains_same_index1<T, A>(value: T, alloc: A)
 where
-    T: any::Any + PartialEq + Clone + fmt::Debug,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let mut vec = OpaqueVec::new_in::<T, A>(alloc);
@@ -22,7 +23,7 @@ where
 
 fn run_test_opaque_vec_shift_insert_contains_same_index2<T, A>(values: &[T], alloc: A)
 where
-    T: any::Any + PartialEq + Clone + fmt::Debug,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let mut vec = OpaqueVec::new_in::<T, A>(alloc);
@@ -41,7 +42,7 @@ where
 
 fn run_test_opaque_vec_shift_insert_contains_same_index2_values<T, A>(values: &[T], alloc: A)
 where
-    T: any::Any + PartialEq + Clone + fmt::Debug,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let iter = ovt::PrefixGenerator::new(values);
@@ -51,8 +52,8 @@ where
 }
 
 macro_rules! generate_tests {
-    ($typ:ident, $max_array_size:expr, $single_value:expr, $range_spec:expr, $alt_spec:expr) => {
-        mod $typ {
+    ($module_name:ident, $typ:ty, $max_array_size:expr, $single_value:expr, $range_spec:expr, $alt_spec:expr) => {
+        mod $module_name {
             use super::*;
 
             #[test]
@@ -81,36 +82,41 @@ macro_rules! generate_tests {
 
 generate_tests!(
     u8,
+    u8,
     128,
     u8::MAX,
-    opaque_vec_testing::RangeValuesSpec::new(0),
+    opaque_vec_testing::RangeValuesSpec::new(Box::new(ops::RangeFrom { start: 0 })),
     opaque_vec_testing::AlternatingValuesSpec::new(u8::MIN, u8::MAX)
 );
 generate_tests!(
     u16,
+    u16,
     128,
     u16::MAX,
-    opaque_vec_testing::RangeValuesSpec::new(0),
+    opaque_vec_testing::RangeValuesSpec::new(Box::new(ops::RangeFrom { start: 0 })),
     opaque_vec_testing::AlternatingValuesSpec::new(u16::MIN, u16::MAX)
 );
 generate_tests!(
     u32,
+    u32,
     128,
     u32::MAX,
-    opaque_vec_testing::RangeValuesSpec::new(0),
+    opaque_vec_testing::RangeValuesSpec::new(Box::new(ops::RangeFrom { start: 0 })),
     opaque_vec_testing::AlternatingValuesSpec::new(u32::MIN, u32::MAX)
 );
 generate_tests!(
     u64,
+    u64,
     128,
     u64::MAX,
-    opaque_vec_testing::RangeValuesSpec::new(0),
+    opaque_vec_testing::RangeValuesSpec::new(Box::new(ops::RangeFrom { start: 0 })),
     opaque_vec_testing::AlternatingValuesSpec::new(u64::MIN, u64::MAX)
 );
 generate_tests!(
     usize,
+    usize,
     128,
     usize::MAX,
-    opaque_vec_testing::RangeValuesSpec::new(0),
+    opaque_vec_testing::RangeValuesSpec::new(Box::new(ops::RangeFrom { start: 0 })),
     opaque_vec_testing::AlternatingValuesSpec::new(usize::MIN, usize::MAX)
 );

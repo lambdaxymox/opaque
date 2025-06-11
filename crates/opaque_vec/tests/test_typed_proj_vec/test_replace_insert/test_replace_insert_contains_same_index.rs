@@ -6,7 +6,7 @@ use std::alloc;
 
 fn run_test_typed_proj_vec_replace_insert_contains_same_index1<T, A>(value: T, alloc: A)
 where
-    T: any::Any + PartialEq + Clone + fmt::Debug,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let mut vec = TypedProjVec::new_in(alloc);
@@ -20,7 +20,7 @@ where
 
 fn run_test_typed_proj_vec_replace_insert_contains_same_index2<T, A>(initial_value: T, value: T, alloc: A)
 where
-    T: any::Any + PartialEq + Clone + fmt::Debug,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let mut vec = TypedProjVec::new_in(alloc);
@@ -36,8 +36,8 @@ where
 }
 
 macro_rules! generate_tests {
-    ($typ:ident, $initial_value:expr, $value:expr) => {
-        mod $typ {
+    ($module_name:ident, $typ:ty, $initial_value:expr, $value:expr) => {
+        mod $module_name {
             use super::*;
 
             #[test]
@@ -58,8 +58,8 @@ macro_rules! generate_tests {
     };
 }
 
-generate_tests!(u8, u8::MIN, u8::MAX);
-generate_tests!(u16, u16::MIN, u16::MAX);
-generate_tests!(u32, u32::MIN, u32::MAX);
-generate_tests!(u64, u64::MIN, u64::MAX);
-generate_tests!(usize, usize::MIN, usize::MAX);
+generate_tests!(u8, u8, u8::MIN, u8::MAX);
+generate_tests!(u16, u16, u16::MIN, u16::MAX);
+generate_tests!(u32, u32, u32::MIN, u32::MAX);
+generate_tests!(u64, u64, u64::MIN, u64::MAX);
+generate_tests!(usize, usize, usize::MIN, usize::MAX);

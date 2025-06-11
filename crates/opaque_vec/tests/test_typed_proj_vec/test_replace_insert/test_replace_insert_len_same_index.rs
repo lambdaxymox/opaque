@@ -1,11 +1,12 @@
 use opaque_vec::TypedProjVec;
 
 use core::any;
+use core::fmt;
 use std::alloc;
 
 fn run_test_typed_proj_vec_replace_insert_len_same_index<T, A>(value: T, alloc: A)
 where
-    T: any::Any + PartialEq + Clone,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let mut vec = TypedProjVec::new_in(alloc);
@@ -20,8 +21,8 @@ where
 }
 
 macro_rules! generate_tests {
-    ($typ:ident, $value:expr) => {
-        mod $typ {
+    ($module_name:ident, $typ:ty, $value:expr) => {
+        mod $module_name {
             use super::*;
 
             #[test]
@@ -34,8 +35,8 @@ macro_rules! generate_tests {
     };
 }
 
-generate_tests!(u8, u8::MAX);
-generate_tests!(u16, u16::MAX);
-generate_tests!(u32, u32::MAX);
-generate_tests!(u64, u64::MAX);
-generate_tests!(usize, usize::MAX);
+generate_tests!(u8, u8, u8::MAX);
+generate_tests!(u16, u16, u16::MAX);
+generate_tests!(u32, u32, u32::MAX);
+generate_tests!(u64, u64, u64::MAX);
+generate_tests!(usize, usize, usize::MAX);

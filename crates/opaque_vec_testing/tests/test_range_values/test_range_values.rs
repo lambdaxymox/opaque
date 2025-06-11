@@ -1,15 +1,15 @@
 use core::any;
 use core::fmt;
+use core::iter;
 use core::ops;
 
 use opaque_vec_testing as ovt;
 
 fn run_test_array_ranges<T, const N: usize>(start: T, expected: [T; N])
 where
-    T: any::Any + Copy + PartialEq + Clone + fmt::Debug + TryFrom<usize> + ops::Add<Output = T>,
-    <T as TryFrom<usize>>::Error: fmt::Debug,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug + iter::Step,
 {
-    let result = ovt::range_values(ovt::RangeValuesSpec::new(start));
+    let result = ovt::range_values(ovt::RangeValuesSpec::new(Box::new(ops::RangeFrom { start })));
 
     assert_eq!(result, expected);
 }
