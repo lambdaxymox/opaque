@@ -35,7 +35,7 @@ use alloc_crate::boxed::Box;
 /// imposes a small performance penalty at runtime, and the extra metadata makes the allocator itself
 /// a little bigger in memory, though this is very minor. This also puts a slight restriction on what
 /// kinds of memory allocators can be held inside the container: the underlying memory
-/// allocator be [`any::Any`], i.e. it must have a `'static` lifetime.
+/// allocator must be [`any::Any`], i.e. it must have a `'static` lifetime.
 ///
 /// # Examples
 ///
@@ -80,7 +80,7 @@ where
 {
     /// Returns the [`TypeId`] of the underlying memory allocator.
     ///
-    /// # Examples
+    /// # Example
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -128,6 +128,9 @@ where
     }
 
     /// Constructs a new type-projected memory allocator from a boxed memory allocator.
+    ///
+    /// The underlying type of the type-projected memory allocator will be the type of the memory
+    /// allocator held by the box.
     ///
     /// # Example
     ///
@@ -185,6 +188,7 @@ where
     /// let new_proj_alloc = TypedProjAlloc::from_boxed_alloc(boxed_alloc);
     ///
     /// assert_eq!(new_proj_alloc.allocator_type_id(), TypeId::of::<Global>());
+    /// assert_ne!(new_proj_alloc.allocator_type_id(), TypeId::of::<Box<Global>>());
     /// ```
     pub fn into_boxed_alloc(self) -> Box<A> {
         self.inner.into_boxed_alloc()
@@ -374,6 +378,9 @@ impl OpaqueAlloc {
     }
 
     /// Constructs a new type-erased memory allocator from a boxed memory allocator.
+    ///
+    /// The underlying type of the type-erased memory allocator will be the type of the memory
+    /// allocator held by the box.
     ///
     /// # Example
     ///

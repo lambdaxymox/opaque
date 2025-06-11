@@ -11,6 +11,61 @@ use std::hash;
 #[cfg(not(feature = "std"))]
 use core::hash;
 
+/// A type-projected hasher.
+///
+/// Wrapping the hasher like this allows us to type-erase and type-project hashers
+/// as **O(1)**-time operations. When passing references to type-projected or type-erased hashers
+/// around, type-erasure and type-projection are zero-cost operations, since they have identical
+/// layout.
+///
+/// For a given hasher type `H`, the [`TypedProjHasher<H>`] and [`OpaqueHasher`] data types also
+/// implement the [`Hasher`] trait, so we can calculate hashes with it just as well as the
+/// underlying hasher of type `H`.
+///
+/// # Type Erasure And Type Projection
+///
+/// This allows for more flexible and dynamic data handling, especially when working with
+/// collections of unknown or dynamic types. Some applications of this include implementing
+/// heterogeneous data structures, plugin systems, and managing foreign function interface data. There
+/// are two data types that are dual to each other: [`TypedProjHasher`] and [`OpaqueHasher`].
+///
+/// # Tradeoffs Compared To A Non-Projected Hasher
+///
+/// There are some tradeoffs to gaining type-erasability and type-projectability. The projected and
+/// erased hashers have identical memory layout to ensure that type projection and type erasure are
+/// both **O(1)**-time operations. Thus, the underlying hasher must be stored in the equivalent
+/// of a [`Box`], which carries a small performance penalty. Moreover, the hashers must carry extra
+/// metadata about the type of the underlying hasher through its [`TypeId`]. Boxing the hasher
+/// imposes a small performance penalty at runtime, and the extra metadata makes the hasher itself
+/// a little bigger in memory. This also puts a slight restriction on what kinds of hashers
+/// can be held inside the container: the underlying hasher must be [`any::Any`], i.e. it must have a
+/// `'static` lifetime.
+///
+/// # Examples
+///
+/// Using a [`TypedProjHasher`].
+///
+/// ```
+/// # use opaque_hash::TypedProjHasher;
+/// # use std::any::TypeId;
+/// # use std::hash::DefaultHasher;
+/// #
+/// let proj_hasher = TypedProjHasher::new(DefaultHasher::new());
+///
+/// assert_eq!(proj_hasher.hasher_type_id(), TypeId::of::<DefaultHasher>());
+/// ```
+///
+/// Using an [`OpaqueHasher`].
+///
+/// ```
+/// # use opaque_hash::OpaqueHasher;
+/// # use std::any::TypeId;
+/// # use std::hash::DefaultHasher;
+/// #
+/// let opaque_hasher = OpaqueHasher::new::<DefaultHasher>(DefaultHasher::new());
+///
+/// assert_eq!(opaque_hasher.hasher_type_id(), TypeId::of::<DefaultHasher>());
+/// ```
 #[repr(transparent)]
 pub struct TypedProjHasher<H>
 where
@@ -23,6 +78,19 @@ impl<H> TypedProjHasher<H>
 where
     H: any::Any + hash::Hasher + Send + Sync,
 {
+    /// Returns the [`TypeId`] of the underlying hasher.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use opaque_hash::TypedProjHasher;
+    /// # use std::any::TypeId;
+    /// # use std::hash::DefaultHasher;
+    /// #
+    /// let proj_hasher = TypedProjHasher::new(DefaultHasher::new());
+    ///
+    /// assert_eq!(proj_hasher.hasher_type_id(), TypeId::of::<DefaultHasher>());
+    /// ```
     #[inline]
     pub const fn hasher_type_id(&self) -> any::TypeId {
         self.inner.hasher_type_id()
@@ -33,6 +101,20 @@ impl<H> TypedProjHasher<H>
 where
     H: any::Any + hash::Hasher + Send + Sync,
 {
+    /// Constructs a new type-projected hasher.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use opaque_hash::TypedProjHasher;
+    /// # use std::any::TypeId;
+    /// # use std::hash::DefaultHasher;
+    /// #
+    /// let proj_hasher = TypedProjHasher::new(DefaultHasher::new());
+    ///
+    /// assert_eq!(proj_hasher.hasher_type_id(), TypeId::of::<DefaultHasher>());
+    /// assert_ne!(proj_hasher.hasher_type_id(), TypeId::of::<Box<DefaultHasher>>());
+    /// ```
     #[inline]
     pub fn new(hasher: H) -> Self {
         let inner = TypedProjHasherInner::new(hasher);
@@ -40,6 +122,30 @@ where
         Self { inner, }
     }
 
+    /// Constructs a new type-projected hasher from a boxed hasher.
+    ///
+    /// The underlying type of the type-projected hasher will be the type of the hasher held by
+    /// the box.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use opaque_hash::TypedProjHasher;
+    /// # use std::any::TypeId;
+    /// # use std::hash::DefaultHasher;
+    /// #
+    /// let proj_hasher = TypedProjHasher::from_boxed_hasher(Box::new(DefaultHasher::new()));
+    ///
+    /// assert_eq!(proj_hasher.hasher_type_id(), TypeId::of::<DefaultHasher>());
+    /// assert_ne!(proj_hasher.hasher_type_id(), TypeId::of::<Box<DefaultHasher>>());
+    ///
+    /// // In contrast, a type-projected hasher constructed using `new` will have the boxed hasher
+    /// // as the underlying hasher type.
+    /// let proj_boxed_hasher = TypedProjHasher::new(Box::new(DefaultHasher::new()));
+    ///
+    /// assert_eq!(proj_boxed_hasher.hasher_type_id(), TypeId::of::<Box<DefaultHasher>>());
+    /// assert_ne!(proj_boxed_hasher.hasher_type_id(), TypeId::of::<DefaultHasher>());
+    /// ```
     #[inline]
     pub fn from_boxed_hasher(hasher: Box<H>) -> Self {
         let inner = TypedProjHasherInner::from_boxed_hasher(hasher);
@@ -47,10 +153,40 @@ where
         Self { inner, }
     }
 
+    /// Returns a reference to the underlying hasher.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use opaque_hash::TypedProjHasher;
+    /// # use std::any::TypeId;
+    /// # use std::hash::DefaultHasher;
+    /// #
+    /// let proj_hasher = TypedProjHasher::new(DefaultHasher::new());
+    ///
+    /// let hasher: &DefaultHasher = proj_hasher.hasher();
+    /// ```
     pub fn hasher(&self) -> &H {
         self.inner.hasher_assuming_type()
     }
 
+    /// Converts the type-projected hasher into a boxed hasher.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use opaque_hash::TypedProjHasher;
+    /// # use std::any::TypeId;
+    /// # use std::hash::DefaultHasher;
+    /// #
+    /// let proj_hasher = TypedProjHasher::new(DefaultHasher::new());
+    /// let boxed_hasher: Box<DefaultHasher> = proj_hasher.into_boxed_hasher();
+    ///
+    /// let new_proj_hasher = TypedProjHasher::from_boxed_hasher(boxed_hasher);
+    ///
+    /// assert_eq!(new_proj_hasher.hasher_type_id(), TypeId::of::<DefaultHasher>());
+    /// assert_ne!(new_proj_hasher.hasher_type_id(), TypeId::of::<Box<DefaultHasher>>());
+    /// ```
     pub fn into_boxed_hasher(self) -> Box<H> {
         self.inner.into_boxed_hasher_assuming_type()
     }
@@ -110,17 +246,48 @@ where
     }
 }
 
+/// A type-erased hasher.
+///
+/// For more information, see [`OpaqueHasher`].
 #[repr(transparent)]
 pub struct OpaqueHasher {
     inner: OpaqueHasherInner,
 }
 
 impl OpaqueHasher {
+    /// Returns the [`TypeId`] of the underlying hasher.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use opaque_hash::OpaqueHasher;
+    /// # use std::any::TypeId;
+    /// # use std::hash::DefaultHasher;
+    /// #
+    /// let opaque_hasher = OpaqueHasher::new::<DefaultHasher>(DefaultHasher::new());
+    ///
+    /// assert_eq!(opaque_hasher.hasher_type_id(), TypeId::of::<DefaultHasher>());
+    /// ```
     #[inline]
     pub const fn hasher_type_id(&self) -> any::TypeId {
         self.inner.hasher_type_id()
     }
+}
 
+impl OpaqueHasher {
+    /// Determines whether the underlying hasher has the given hasher type.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use opaque_hash::OpaqueHasher;
+    /// # use std::any::TypeId;
+    /// # use std::hash::DefaultHasher;
+    /// #
+    /// let opaque_hasher = OpaqueHasher::new::<DefaultHasher>(DefaultHasher::new());
+    ///
+    /// assert!(opaque_hasher.has_hasher_type::<DefaultHasher>());
+    /// ```
     #[inline]
     pub fn has_hasher_type<H>(&self) -> bool
     where
@@ -129,6 +296,15 @@ impl OpaqueHasher {
         self.inner.hasher_type_id() == any::TypeId::of::<H>()
     }
 
+    /// Assert the concrete types underlying a type-erased data type.
+    ///
+    /// This method's main use case is ensuring the type safety of an operation before projecting
+    /// into the type-projected counterpart of the type-erased hasher.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the hasher of `self` do not match the requested hasher
+    /// type `H`.
     #[inline]
     #[track_caller]
     fn assert_type_safety<H>(&self)
@@ -149,28 +325,86 @@ impl OpaqueHasher {
 }
 
 impl OpaqueHasher {
+    /// Constructs a new type-erased hasher.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use opaque_hash::OpaqueHasher;
+    /// # use std::any::TypeId;
+    /// # use std::hash::DefaultHasher;
+    /// #
+    /// let opaque_hasher = OpaqueHasher::new::<DefaultHasher>(DefaultHasher::new());
+    ///
+    /// assert_eq!(opaque_hasher.hasher_type_id(), TypeId::of::<DefaultHasher>());
+    /// assert_ne!(opaque_hasher.hasher_type_id(), TypeId::of::<Box<DefaultHasher>>());
+    /// ```
     #[inline]
     pub fn new<H>(hasher: H) -> Self
     where
         H: any::Any + hash::Hasher + Send + Sync,
     {
-        let proj_alloc = TypedProjHasher::<H>::new(hasher);
+        let proj_hasher = TypedProjHasher::<H>::new(hasher);
 
-        Self::from_proj(proj_alloc)
+        Self::from_proj(proj_hasher)
     }
 
+    /// Constructs a new type-erased hasher from a boxed hasher.
+    ///
+    /// The underlying type of the type-erased hasher will be the type of the hasher held by
+    /// the box.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use opaque_hash::OpaqueHasher;
+    /// # use std::any::TypeId;
+    /// # use std::hash::DefaultHasher;
+    /// #
+    /// let opaque_hasher = OpaqueHasher::from_boxed_hasher(Box::new(DefaultHasher::new()));
+    ///
+    /// assert_eq!(opaque_hasher.hasher_type_id(), TypeId::of::<DefaultHasher>());
+    /// assert_ne!(opaque_hasher.hasher_type_id(), TypeId::of::<Box<DefaultHasher>>());
+    ///
+    /// // In contrast, a type-projected hasher constructed using `new` will have the boxed hasher
+    /// // as the underlying hasher type.
+    /// let opaque_boxed_hasher = OpaqueHasher::new(Box::new(DefaultHasher::new()));
+    ///
+    /// assert_eq!(opaque_boxed_hasher.hasher_type_id(), TypeId::of::<Box<DefaultHasher>>());
+    /// assert_ne!(opaque_boxed_hasher.hasher_type_id(), TypeId::of::<DefaultHasher>());
+    /// ```
     #[inline]
     pub fn from_boxed_hasher<H>(hasher: Box<H>) -> Self
     where
         H: any::Any + hash::Hasher + Send + Sync,
     {
-        let proj_alloc = TypedProjHasher::<H>::from_boxed_hasher(hasher);
+        let proj_hasher = TypedProjHasher::<H>::from_boxed_hasher(hasher);
 
-        Self::from_proj(proj_alloc)
+        Self::from_proj(proj_hasher)
     }
 }
 
 impl OpaqueHasher {
+    /// Projects the type-erased [`OpaqueHasher`] reference into a type-projected
+    /// [`TypedProjHasher`] reference.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the hasher of `self` do not match the requested
+    /// hasher type `H`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use opaque_hash::{OpaqueHasher, TypedProjHasher};
+    /// # use std::hash::DefaultHasher;
+    /// #
+    /// let opaque_hasher = OpaqueHasher::new::<DefaultHasher>(DefaultHasher::new());
+    /// #
+    /// # assert!(opaque_hasher.has_hasher_type::<DefaultHasher>());
+    /// #
+    /// let proj_hasher: &TypedProjHasher<DefaultHasher> = opaque_hasher.as_proj::<DefaultHasher>();
+    /// ```
     #[inline]
     pub fn as_proj<H>(&self) -> &TypedProjHasher<H>
     where
@@ -181,6 +415,26 @@ impl OpaqueHasher {
         unsafe { &*(self as *const OpaqueHasher as *const TypedProjHasher<H>) }
     }
 
+    /// Projects the type-erased [`OpaqueHasher`] mutable reference into a type-projected
+    /// [`TypedProjHasher`] mutable reference.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the hasher of `self` do not match the requested
+    /// hasher type `H`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use opaque_hash::{OpaqueHasher, TypedProjHasher};
+    /// # use std::hash::DefaultHasher;
+    /// #
+    /// let mut opaque_hasher = OpaqueHasher::new::<DefaultHasher>(DefaultHasher::new());
+    /// #
+    /// # assert!(opaque_hasher.has_hasher_type::<DefaultHasher>());
+    /// #
+    /// let proj_hasher: &mut TypedProjHasher<DefaultHasher> = opaque_hasher.as_proj_mut::<DefaultHasher>();
+    /// ```
     #[inline]
     pub fn as_proj_mut<H>(&mut self) -> &mut TypedProjHasher<H>
     where
@@ -191,6 +445,26 @@ impl OpaqueHasher {
         unsafe { &mut *(self as *mut OpaqueHasher as *mut TypedProjHasher<H>) }
     }
 
+    /// Projects the type-erased [`OpaqueHasher`] value into a type-projected
+    /// [`TypedProjHasher`] value.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the hasher of `self` do not match the requested
+    /// hasher type `H`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use opaque_hash::{OpaqueHasher, TypedProjHasher};
+    /// # use std::hash::DefaultHasher;
+    /// #
+    /// let opaque_hasher = OpaqueHasher::new::<DefaultHasher>(DefaultHasher::new());
+    /// #
+    /// # assert!(opaque_hasher.has_hasher_type::<DefaultHasher>());
+    /// #
+    /// let proj_hasher: TypedProjHasher<DefaultHasher> = opaque_hasher.into_proj::<DefaultHasher>();
+    /// ```
     #[inline]
     pub fn into_proj<H>(self) -> TypedProjHasher<H>
     where
@@ -203,6 +477,27 @@ impl OpaqueHasher {
         }
     }
 
+    /// Erases the type-projected [`TypedProjHasher`] value into a type-erased [`OpaqueHasher`] value.
+    ///
+    /// Unlike the type projection methods [`as_proj`], [`as_proj_mut`], and [`into_proj`], this
+    /// method never panics.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use opaque_hash::{OpaqueHasher, TypedProjHasher};
+    /// # use std::hash::DefaultHasher;
+    /// #
+    /// let proj_hasher: TypedProjHasher<DefaultHasher> = TypedProjHasher::new(DefaultHasher::new());
+    /// let opaque_hasher: OpaqueHasher = OpaqueHasher::from_proj(proj_hasher);
+    /// #
+    /// # assert!(opaque_hasher.has_hasher_type::<DefaultHasher>());
+    /// #
+    /// ```
+    ///
+    /// [`as_proj`]: OpaqueHasher::as_proj,
+    /// [`as_proj_mut`]: OpaqueHasher::as_proj_mut
+    /// [`into_proj`]: OpaqueHasher::into_proj
     #[inline]
     pub fn from_proj<H>(proj_self: TypedProjHasher<H>) -> Self
     where
