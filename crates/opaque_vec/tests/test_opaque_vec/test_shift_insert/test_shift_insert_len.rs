@@ -7,34 +7,30 @@ use std::alloc;
 
 use opaque_vec_testing as ovt;
 
-fn run_test_opaque_vec_shift_insert_contains<T, A>(values: &[T], alloc: A)
+fn run_test_opaque_vec_shift_insert_len<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let mut vec = OpaqueVec::new_in::<T, A>(alloc);
-
-    for value in values.iter() {
-        assert!(!vec.contains::<T, A>(value));
-    }
-
     for (i, value) in values.iter().cloned().enumerate() {
         vec.shift_insert::<T, A>(i, value);
     }
 
-    for value in values.iter() {
-        assert!(vec.contains::<T, A>(value));
-    }
+    let expected = values.len();
+    let result = vec.len();
+
+    assert_eq!(result, expected);
 }
 
-fn run_test_opaque_vec_shift_insert_contains_values<T, A>(values: &[T], alloc: A)
+fn run_test_opaque_vec_shift_insert_len_values<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {
-        run_test_opaque_vec_shift_insert_contains(slice, alloc.clone());
+        run_test_opaque_vec_shift_insert_len(slice, alloc.clone());
     }
 }
 
@@ -44,17 +40,17 @@ macro_rules! generate_tests {
             use super::*;
 
             #[test]
-            fn test_opaque_vec_shift_insert_contains_range_values() {
+            fn test_opaque_vec_shift_insert_len_range_values() {
                 let values = opaque_vec_testing::range_values::<$typ, $max_array_size>($range_spec);
                 let alloc = alloc::Global;
-                run_test_opaque_vec_shift_insert_contains_values(&values, alloc);
+                run_test_opaque_vec_shift_insert_len_values(&values, alloc);
             }
 
             #[test]
-            fn test_opaque_vec_shift_insert_contains_alternating_values() {
+            fn test_opaque_vec_shift_insert_len_alternating_values() {
                 let values = opaque_vec_testing::alternating_values::<$typ, $max_array_size>($alt_spec);
                 let alloc = alloc::Global;
-                run_test_opaque_vec_shift_insert_contains_values(&values, alloc);
+                run_test_opaque_vec_shift_insert_len_values(&values, alloc);
             }
         }
     };
@@ -94,4 +90,11 @@ generate_tests!(
     128,
     opaque_vec_testing::RangeValuesSpec::new(Box::new(ops::RangeFrom { start: 0 })),
     opaque_vec_testing::AlternatingValuesSpec::new(usize::MIN, usize::MAX)
+);
+generate_tests!(
+    string,
+    String,
+    128,
+    opaque_vec_testing::RangeValuesSpec::new(Box::new(ovt::StringRangeFrom::new(0))),
+    opaque_vec_testing::AlternatingValuesSpec::new(String::from("foo"), String::from("bar"))
 );

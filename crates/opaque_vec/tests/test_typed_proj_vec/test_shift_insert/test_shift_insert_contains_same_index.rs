@@ -120,3 +120,11 @@ generate_tests!(
     opaque_vec_testing::RangeValuesSpec::new(Box::new(ops::RangeFrom { start: 0 })),
     opaque_vec_testing::AlternatingValuesSpec::new(usize::MIN, usize::MAX)
 );
+generate_tests!(
+    string,
+    String,
+    128,
+    usize::MAX.to_string(),
+    opaque_vec_testing::RangeValuesSpec::new(Box::new(ovt::StringRangeFrom::new(0))),
+    opaque_vec_testing::AlternatingValuesSpec::new(String::from("foo"), String::from("bar"))
+);

@@ -35,7 +35,7 @@ macro_rules! generate_tests {
             #[test]
             fn test_typed_proj_vec_from_iter_slice_empty() {
                 let values: [$typ; 0] = [];
-                let vec = TypedProjVec::from_iter(values);
+                let vec = TypedProjVec::from_iter(values.clone());
 
                 let expected = values.as_slice();
                 let result = vec.as_slice();
@@ -92,4 +92,11 @@ generate_tests!(
     128,
     opaque_vec_testing::RangeValuesSpec::new(Box::new(ops::RangeFrom { start: 0 })),
     opaque_vec_testing::AlternatingValuesSpec::new(usize::MIN, usize::MAX)
+);
+generate_tests!(
+    string,
+    String,
+    128,
+    opaque_vec_testing::RangeValuesSpec::new(Box::new(ovt::StringRangeFrom::new(0))),
+    opaque_vec_testing::AlternatingValuesSpec::new(String::from("foo"), String::from("bar"))
 );

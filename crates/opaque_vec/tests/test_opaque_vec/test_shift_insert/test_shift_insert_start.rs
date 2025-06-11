@@ -7,74 +7,69 @@ use std::alloc;
 
 use opaque_vec_testing as ovt;
 
-fn run_test_opaque_vec_shift_insert_contains_same_index1<T, A>(value: T, alloc: A)
+fn expected<T, A>(values: &[T], alloc: A) -> OpaqueVec
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let mut vec = OpaqueVec::new_in::<T, A>(alloc);
-
-    assert!(!vec.contains::<T, A>(&value));
-
-    vec.shift_insert::<T, A>(0, value.clone());
-
-    assert!(vec.contains::<T, A>(&value));
+    OpaqueVec::from_iter(values.iter().rev().cloned())
 }
 
-fn run_test_opaque_vec_shift_insert_contains_same_index2<T, A>(values: &[T], alloc: A)
+fn result<T, A>(values: &[T], alloc: A) -> OpaqueVec
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let mut vec = OpaqueVec::new_in::<T, A>(alloc);
-    for value in values.iter() {
-        assert!(!vec.contains::<T, A>(&value));
-    }
-
     for value in values.iter().cloned() {
         vec.shift_insert::<T, A>(0, value);
     }
 
-    for value in values.iter() {
-        assert!(vec.contains::<T, A>(&value));
-    }
+    vec
 }
 
-fn run_test_opaque_vec_shift_insert_contains_same_index2_values<T, A>(values: &[T], alloc: A)
+fn run_test_opaque_vec_shift_insert_start<T, A>(values: &[T], alloc: A)
+where
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
+{
+    let expected_vec = expected(values, alloc.clone());
+    let result_vec = result(values, alloc.clone());
+
+    let expected = expected_vec.as_slice::<T, A>();
+    let result = result_vec.as_slice::<T, A>();
+
+    assert_eq!(result, expected);
+}
+
+fn run_test_opaque_vec_shift_insert_start_values<T, A>(values: &[T], alloc: A)
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let iter = ovt::PrefixGenerator::new(values);
     for slice in iter {
-        run_test_opaque_vec_shift_insert_contains_same_index2(slice, alloc.clone());
+        run_test_opaque_vec_shift_insert_start(slice, alloc.clone());
     }
 }
 
 macro_rules! generate_tests {
-    ($module_name:ident, $typ:ty, $max_array_size:expr, $single_value:expr, $range_spec:expr, $alt_spec:expr) => {
+    ($module_name:ident, $typ:ty, $max_array_size:expr, $range_spec:expr, $alt_spec:expr) => {
         mod $module_name {
             use super::*;
 
             #[test]
-            fn test_opaque_vec_shift_insert_contains_same_index1() {
-                let single_value: $typ = $single_value;
-                let alloc = alloc::Global;
-                run_test_opaque_vec_shift_insert_contains_same_index1(single_value, alloc);
-            }
-
-            #[test]
-            fn test_opaque_vec_shift_insert_contains_same_index2_range_values() {
+            fn test_opaque_vec_shift_insert_start_range_values() {
                 let values = opaque_vec_testing::range_values::<$typ, $max_array_size>($range_spec);
                 let alloc = alloc::Global;
-                run_test_opaque_vec_shift_insert_contains_same_index2_values(&values, alloc);
+                run_test_opaque_vec_shift_insert_start_values(&values, alloc);
             }
 
             #[test]
-            fn test_opaque_vec_shift_insert_contains_same_index2_alternating_values() {
+            fn test_opaque_vec_shift_insert_start_alternating_values() {
                 let values = opaque_vec_testing::alternating_values::<$typ, $max_array_size>($alt_spec);
                 let alloc = alloc::Global;
-                run_test_opaque_vec_shift_insert_contains_same_index2_values(&values, alloc);
+                run_test_opaque_vec_shift_insert_start_values(&values, alloc);
             }
         }
     };
@@ -84,7 +79,6 @@ generate_tests!(
     u8,
     u8,
     128,
-    u8::MAX,
     opaque_vec_testing::RangeValuesSpec::new(Box::new(ops::RangeFrom { start: 0 })),
     opaque_vec_testing::AlternatingValuesSpec::new(u8::MIN, u8::MAX)
 );
@@ -92,7 +86,6 @@ generate_tests!(
     u16,
     u16,
     128,
-    u16::MAX,
     opaque_vec_testing::RangeValuesSpec::new(Box::new(ops::RangeFrom { start: 0 })),
     opaque_vec_testing::AlternatingValuesSpec::new(u16::MIN, u16::MAX)
 );
@@ -100,7 +93,6 @@ generate_tests!(
     u32,
     u32,
     128,
-    u32::MAX,
     opaque_vec_testing::RangeValuesSpec::new(Box::new(ops::RangeFrom { start: 0 })),
     opaque_vec_testing::AlternatingValuesSpec::new(u32::MIN, u32::MAX)
 );
@@ -108,7 +100,6 @@ generate_tests!(
     u64,
     u64,
     128,
-    u64::MAX,
     opaque_vec_testing::RangeValuesSpec::new(Box::new(ops::RangeFrom { start: 0 })),
     opaque_vec_testing::AlternatingValuesSpec::new(u64::MIN, u64::MAX)
 );
@@ -116,7 +107,13 @@ generate_tests!(
     usize,
     usize,
     128,
-    usize::MAX,
     opaque_vec_testing::RangeValuesSpec::new(Box::new(ops::RangeFrom { start: 0 })),
     opaque_vec_testing::AlternatingValuesSpec::new(usize::MIN, usize::MAX)
+);
+generate_tests!(
+    string,
+    String,
+    128,
+    opaque_vec_testing::RangeValuesSpec::new(Box::new(ovt::StringRangeFrom::new(0))),
+    opaque_vec_testing::AlternatingValuesSpec::new(String::from("foo"), String::from("bar"))
 );

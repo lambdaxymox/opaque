@@ -5,6 +5,8 @@ use core::fmt;
 use core::ops;
 use std::alloc;
 
+use opaque_vec_testing as ovt;
+
 fn run_test_typed_proj_vec_into_iter_take<T, A>(values: &[T], count: usize, alloc: A)
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
@@ -97,4 +99,11 @@ generate_tests!(
     128,
     opaque_vec_testing::RangeValuesSpec::new(Box::new(ops::RangeFrom { start: 0 })),
     opaque_vec_testing::AlternatingValuesSpec::new(usize::MIN, usize::MAX)
+);
+generate_tests!(
+    string,
+    String,
+    128,
+    opaque_vec_testing::RangeValuesSpec::new(Box::new(ovt::StringRangeFrom::new(0))),
+    opaque_vec_testing::AlternatingValuesSpec::new(String::from("foo"), String::from("bar"))
 );

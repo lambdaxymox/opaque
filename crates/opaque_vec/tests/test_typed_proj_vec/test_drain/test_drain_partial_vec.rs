@@ -86,7 +86,7 @@ generate_tests!(
     128,
     u8::MAX,
     16,
-    opaque_vec_testing::RangeValuesSpec::new(Box::new(ops::RangeFrom { start: 0})),
+    opaque_vec_testing::RangeValuesSpec::new(Box::new(ops::RangeFrom { start: 0 })),
     opaque_vec_testing::AlternatingValuesSpec::new(u8::MIN, u8::MAX)
 );
 generate_tests!(
@@ -95,7 +95,7 @@ generate_tests!(
     128,
     u16::MAX,
     16,
-    opaque_vec_testing::RangeValuesSpec::new(Box::new(ops::RangeFrom { start: 0})),
+    opaque_vec_testing::RangeValuesSpec::new(Box::new(ops::RangeFrom { start: 0 })),
     opaque_vec_testing::AlternatingValuesSpec::new(u16::MIN, u16::MAX)
 );
 generate_tests!(
@@ -104,7 +104,7 @@ generate_tests!(
     128,
     u32::MAX,
     16,
-    opaque_vec_testing::RangeValuesSpec::new(Box::new(ops::RangeFrom { start: 0})),
+    opaque_vec_testing::RangeValuesSpec::new(Box::new(ops::RangeFrom { start: 0 })),
     opaque_vec_testing::AlternatingValuesSpec::new(u32::MIN, u32::MAX)
 );
 generate_tests!(
@@ -113,7 +113,7 @@ generate_tests!(
     128,
     u64::MAX,
     16,
-    opaque_vec_testing::RangeValuesSpec::new(Box::new(ops::RangeFrom { start: 0})),
+    opaque_vec_testing::RangeValuesSpec::new(Box::new(ops::RangeFrom { start: 0 })),
     opaque_vec_testing::AlternatingValuesSpec::new(u64::MIN, u64::MAX)
 );
 generate_tests!(
@@ -122,6 +122,15 @@ generate_tests!(
     128,
     usize::MAX,
     16,
-    opaque_vec_testing::RangeValuesSpec::new(Box::new(ops::RangeFrom { start: 0})),
+    opaque_vec_testing::RangeValuesSpec::new(Box::new(ops::RangeFrom { start: 0 })),
     opaque_vec_testing::AlternatingValuesSpec::new(usize::MIN, usize::MAX)
+);
+generate_tests!(
+    string,
+    String,
+    128,
+    usize::MAX.to_string(),
+    16,
+    opaque_vec_testing::RangeValuesSpec::new(Box::new(ovt::StringRangeFrom::new(0))),
+    opaque_vec_testing::AlternatingValuesSpec::new(String::from("foo"), String::from("bar"))
 );

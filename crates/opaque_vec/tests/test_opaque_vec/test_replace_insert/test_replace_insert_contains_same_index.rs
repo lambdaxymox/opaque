@@ -63,3 +63,4 @@ generate_tests!(u16, u16, u16::MIN, u16::MAX);
 generate_tests!(u32, u32, u32::MIN, u32::MAX);
 generate_tests!(u64, u64, u64::MIN, u64::MAX);
 generate_tests!(usize, usize, usize::MIN, usize::MAX);
+generate_tests!(string, String, String::from("foo"), String::from("bar"));

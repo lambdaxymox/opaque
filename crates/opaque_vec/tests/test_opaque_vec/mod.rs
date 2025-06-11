@@ -15,7 +15,7 @@ mod test_push;
 mod test_push_pop;
 mod test_reverse;
 mod test_replace_insert;
-mod test_shirt_insert;
+mod test_shift_insert;
 mod test_shift_remove;
 mod test_swap_remove;
 mod test_truncate;

@@ -40,3 +40,4 @@ generate_tests!(u16, u16, u16::MAX);
 generate_tests!(u32, u32, u32::MAX);
 generate_tests!(u64, u64, u64::MAX);
 generate_tests!(usize, usize, usize::MAX);
+generate_tests!(string, String, String::from("baz"));

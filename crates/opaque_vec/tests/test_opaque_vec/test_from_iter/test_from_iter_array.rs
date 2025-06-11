@@ -5,6 +5,8 @@ use core::fmt;
 use core::ops;
 use std::alloc;
 
+use opaque_vec_testing as ovt;
+
 fn run_test_opaque_vec_from_iter_array<const N: usize, T>(expected: [T; N])
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
@@ -88,4 +90,11 @@ generate_tests!(
     lengths = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 32, 64, 128 },
     opaque_vec_testing::RangeValuesSpec::new(Box::new(ops::RangeFrom { start: 0 })),
     opaque_vec_testing::AlternatingValuesSpec::new(usize::MIN, 0)
+);
+generate_tests!(
+    string,
+    String,
+    lengths = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 32, 64, 128 },
+    opaque_vec_testing::RangeValuesSpec::new(Box::new(ovt::StringRangeFrom::new(0))),
+    opaque_vec_testing::AlternatingValuesSpec::new(String::from("foo"), String::from("bar"))
 );
