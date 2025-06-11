@@ -31,13 +31,13 @@ where
     let vec1 = common::opaque_vec::from_slice_in(values, alloc);
     let vec2 = vec1.clone::<T, A>();
 
-    let disjoint_if_non_zst = if mem::size_of::<T>() != 0 {
+    let disjoint_if_non_empty_and_non_zst = if (vec1.len() != 0) && (mem::size_of::<T>() != 0) {
         vec1.as_ptr::<T, A>() != vec2.as_ptr::<T, A>()
     } else {
         true
     };
 
-    assert!(disjoint_if_non_zst);
+    assert!(disjoint_if_non_empty_and_non_zst);
 }
 
 fn run_test_opaque_vec_clone_occupy_disjoint_memory_regions<T, A>(values: &[T], alloc: A)
@@ -125,14 +125,14 @@ macro_rules! generate_tests {
             fn test_opaque_vec_clone_occupy_disjoint_memory_locations() {
                 let values = opaque_vec_testing::range_values::<$typ, $max_array_size>($range_spec);
                 let alloc = alloc::Global;
-                run_test_opaque_vec_clone_occupy_disjoint_memory_locations(&values, alloc);
+                run_test_opaque_vec_clone_occupy_disjoint_memory_locations_values(&values, alloc);
             }
 
             #[test]
             fn test_opaque_vec_clone_occupy_disjoint_memory_regions() {
                 let values = opaque_vec_testing::range_values::<$typ, $max_array_size>($range_spec);
                 let alloc = alloc::Global;
-                run_test_opaque_vec_clone_occupy_disjoint_memory_regions(&values, alloc);
+                run_test_opaque_vec_clone_occupy_disjoint_memory_regions_values(&values, alloc);
             }
         }
     };
