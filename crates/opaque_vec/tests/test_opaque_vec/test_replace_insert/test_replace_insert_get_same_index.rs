@@ -62,6 +62,7 @@ macro_rules! generate_tests {
     };
 }
 
+generate_tests!(unit, (), (), ());
 generate_tests!(u8, u8, u8::MIN, u8::MAX);
 generate_tests!(u16, u16, u16::MIN, u16::MAX);
 generate_tests!(u32, u32, u32::MIN, u32::MAX);

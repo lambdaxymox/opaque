@@ -2,6 +2,7 @@ use opaque_vec::OpaqueVec;
 
 use core::any;
 use core::fmt;
+use core::iter;
 use core::ops;
 use std::alloc;
 
@@ -45,6 +46,13 @@ macro_rules! generate_tests {
     };
 }
 
+generate_tests!(
+    unit,
+    (),
+    lengths = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 32, 64, 128 },
+    opaque_vec_testing::RangeValuesSpec::new(Box::new(iter::repeat(()))),
+    opaque_vec_testing::AlternatingValuesSpec::new((), ())
+);
 generate_tests!(
     u8,
     u8,

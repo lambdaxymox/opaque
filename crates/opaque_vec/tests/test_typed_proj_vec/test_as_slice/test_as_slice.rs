@@ -2,6 +2,7 @@ use crate::common;
 
 use core::any;
 use core::fmt;
+use core::iter;
 use core::ops;
 use std::alloc;
 
@@ -60,6 +61,13 @@ macro_rules! generate_tests {
     };
 }
 
+generate_tests!(
+    unit,
+    (),
+    128,
+    opaque_vec_testing::RangeValuesSpec::new(Box::new(iter::repeat(()))),
+    opaque_vec_testing::AlternatingValuesSpec::new((), ())
+);
 generate_tests!(
     u8,
     u8,

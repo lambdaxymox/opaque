@@ -9607,7 +9607,7 @@ impl OpaqueVec {
     /// Clones an [`OpaqueVec`].
     ///
     /// This method acts identically to an implementation of the [`Clone`] trait on a type-projected
-    /// vector [`TypedProjVec`], or a generics [`Vec`].
+    /// vector [`TypedProjVec`], or a generic [`Vec`].
     ///
     /// # Panics
     ///

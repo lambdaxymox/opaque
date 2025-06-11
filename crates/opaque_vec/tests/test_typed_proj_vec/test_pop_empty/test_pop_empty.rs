@@ -84,12 +84,13 @@ macro_rules! generate_tests {
             #[test]
             fn test_typed_proj_vec_pop_is_empty_is_empty2() {
                 let alloc = alloc::Global;
-                run_test_typed_proj_vec_pop_empty_is_empty2::<$typ, alloc::Global>(alloc); 
+                run_test_typed_proj_vec_pop_empty_is_empty2::<$typ, alloc::Global>(alloc);
             }
         }
     }
 }
 
+generate_tests!(unit, ());
 generate_tests!(u8, u8);
 generate_tests!(u16, u16);
 generate_tests!(u32, u32);

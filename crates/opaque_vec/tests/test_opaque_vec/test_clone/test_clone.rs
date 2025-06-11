@@ -2,6 +2,8 @@ use crate::common;
 
 use core::any;
 use core::fmt;
+use core::iter;
+use core::mem;
 use core::ops;
 use std::alloc;
 
@@ -29,7 +31,13 @@ where
     let vec1 = common::opaque_vec::from_slice_in(values, alloc);
     let vec2 = vec1.clone::<T, A>();
 
-    assert_ne!(vec1.as_ptr::<T, A>(), vec2.as_ptr::<T, A>());
+    let disjoint_if_non_zst = if mem::size_of::<T>() != 0 {
+        vec1.as_ptr::<T, A>() != vec2.as_ptr::<T, A>()
+    } else {
+        true
+    };
+
+    assert!(disjoint_if_non_zst);
 }
 
 fn run_test_opaque_vec_clone_occupy_disjoint_memory_regions<T, A>(values: &[T], alloc: A)
@@ -130,6 +138,13 @@ macro_rules! generate_tests {
     };
 }
 
+generate_tests!(
+    unit,
+    (),
+    128,
+    opaque_vec_testing::RangeValuesSpec::new(Box::new(iter::repeat(()))),
+    opaque_vec_testing::AlternatingValuesSpec::new((), ())
+);
 generate_tests!(
     u8,
     u8,

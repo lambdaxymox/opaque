@@ -90,6 +90,7 @@ macro_rules! generate_tests {
     }
 }
 
+generate_tests!(unit, ());
 generate_tests!(u8, u8);
 generate_tests!(u16, u16);
 generate_tests!(u32, u32);
