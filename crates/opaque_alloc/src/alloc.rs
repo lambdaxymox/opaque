@@ -285,6 +285,8 @@ impl OpaqueAlloc {
 impl OpaqueAlloc {
     /// Determines whether the underlying memory allocator has the given allocator type.
     ///
+    /// Returns `true` if `self` has the specified memory allocator type. Returns `false` otherwise.
+    ///
     /// # Example
     ///
     /// ```

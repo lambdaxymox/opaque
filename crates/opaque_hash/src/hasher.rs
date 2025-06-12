@@ -277,6 +277,8 @@ impl OpaqueHasher {
 impl OpaqueHasher {
     /// Determines whether the underlying hasher has the given hasher type.
     ///
+    /// Returns `true` if `self` has the specified hasher type. Returns `false` otherwise.
+    /// 
     /// # Example
     ///
     /// ```

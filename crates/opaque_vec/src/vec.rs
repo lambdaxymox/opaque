@@ -252,7 +252,9 @@ where
     ///
     /// This method panics if the new capacity exceeds `isize::MAX` _bytes_.
     ///
-    /// # Example
+    /// # Examples
+    ///
+    /// Creating a [`TypedProjVec`] with capacity `capacity > 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -262,15 +264,25 @@ where
     /// #
     /// let capacity = 32;
     /// let proj_alloc = TypedProjAlloc::new(Global);
-    /// let proj_vec: TypedProjVec<i32, Global> = TypedProjVec::with_capacity_proj_in(capacity, proj_alloc.clone());
+    /// let proj_vec: TypedProjVec<i32, Global> = TypedProjVec::with_capacity_proj_in(capacity, proj_alloc);
     ///
     /// assert!(proj_vec.capacity() >= capacity);
     /// assert!(proj_vec.is_empty());
+    /// ```
     ///
-    /// let empty_vec: TypedProjVec<i32, Global> = TypedProjVec::with_capacity_proj_in(0, proj_alloc.clone());
+    /// Creating a [`TypedProjVec`] with capacity `capacity == 0`.
     ///
-    /// assert_eq!(empty_vec.capacity(), 0);
-    /// assert!(empty_vec.is_empty());
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_alloc = TypedProjAlloc::new(Global);
+    /// let proj_vec: TypedProjVec<i32, Global> = TypedProjVec::with_capacity_proj_in(0, proj_alloc);
+    ///
+    /// assert_eq!(proj_vec.capacity(), 0);
+    /// assert!(proj_vec.is_empty());
     /// ```
     ///
     /// [`new_proj_in`]: TypedProjVec::new_proj_in
@@ -299,7 +311,9 @@ where
     /// This method returns an error if the capacity `capacity` exceeds `isize::MAX` bytes, or if the
     /// allocator reports an allocation failure.
     ///
-    /// # Example
+    /// # Examples
+    ///
+    /// Creating a [`TypedProjVec`] with capacity `capacity > 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -309,7 +323,7 @@ where
     /// #
     /// let capacity = 32;
     /// let proj_alloc = TypedProjAlloc::new(Global);
-    /// let proj_vec: Result<TypedProjVec<i32, Global>, _> = TypedProjVec::try_with_capacity_proj_in(capacity, proj_alloc.clone());
+    /// let proj_vec: Result<TypedProjVec<i32, Global>, _> = TypedProjVec::try_with_capacity_proj_in(capacity, proj_alloc);
     ///
     /// assert!(proj_vec.is_ok());
     ///
@@ -317,11 +331,25 @@ where
     ///
     /// assert!(proj_vec.capacity() >= capacity);
     /// assert!(proj_vec.is_empty());
+    /// ```
     ///
-    /// let empty_vec: TypedProjVec<i32, Global> = TypedProjVec::with_capacity_proj_in(0, proj_alloc.clone());
+    /// Creating a [`TypedProjVec`] with capacity `capacity == 0`.
     ///
-    /// assert_eq!(empty_vec.capacity(), 0);
-    /// assert!(empty_vec.is_empty());
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_alloc = TypedProjAlloc::new(Global);
+    /// let proj_vec: Result<TypedProjVec<i32, Global>, _> = TypedProjVec::try_with_capacity_proj_in(0, proj_alloc);
+    ///
+    /// assert!(proj_vec.is_ok());
+    ///
+    /// let proj_vec = proj_vec.unwrap();
+    ///
+    /// assert_eq!(proj_vec.capacity(), 0);
+    /// assert!(proj_vec.is_empty());
     /// ```
     ///
     /// [`new_proj_in`]: TypedProjVec::new_proj_in
@@ -678,7 +706,9 @@ where
     ///
     /// This method panics if the new capacity exceeds `isize::MAX` _bytes_.
     ///
-    /// # Example
+    /// # Examples
+    ///
+    /// Creating a [`TypedProjVec`] with capacity `capacity > 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -690,11 +720,19 @@ where
     ///
     /// assert!(proj_vec.capacity() >= capacity);
     /// assert!(proj_vec.is_empty());
+    /// ```
     ///
-    /// let empty_vec: TypedProjVec<i32, Global> = TypedProjVec::with_capacity_in(0, Global);
+    /// Creating a [`TypedProjVec`] with capacity `capacity == 0`.
     ///
-    /// assert_eq!(empty_vec.capacity(), 0);
-    /// assert!(empty_vec.is_empty());
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_vec: TypedProjVec<i32, Global> = TypedProjVec::with_capacity_in(0, Global);
+    ///
+    /// assert_eq!(proj_vec.capacity(), 0);
+    /// assert!(proj_vec.is_empty());
     /// ```
     ///
     /// [`new_in`]: TypedProjVec::new_in
@@ -723,7 +761,9 @@ where
     /// This method returns an error if the capacity `capacity` exceeds `isize::MAX` bytes, or if the
     /// allocator reports an allocation failure.
     ///
-    /// # Example
+    /// # Examples
+    ///
+    /// Creating a [`TypedProjVec`] with capacity `capacity > 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -739,11 +779,23 @@ where
     ///
     /// assert!(proj_vec.capacity() >= capacity);
     /// assert!(proj_vec.is_empty());
+    /// ```
     ///
-    /// let empty_vec: TypedProjVec<i32, Global> = TypedProjVec::try_with_capacity_in(0, Global).unwrap();
+    /// Creating a [`TypedProjVec`] with capacity `capacity == 0`.
     ///
-    /// assert_eq!(empty_vec.capacity(), 0);
-    /// assert!(empty_vec.is_empty());
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_vec: Result<TypedProjVec<i32, Global>, _> = TypedProjVec::try_with_capacity_in(0, Global);
+    ///
+    /// assert!(proj_vec.is_ok());
+    ///
+    /// let proj_vec = proj_vec.unwrap();
+    ///
+    /// assert_eq!(proj_vec.capacity(), 0);
+    /// assert!(proj_vec.is_empty());
     /// ```
     ///
     /// [`new_in`]: TypedProjVec::new_in
@@ -1100,7 +1152,9 @@ where
     ///
     /// This method panics if the new capacity exceeds `isize::MAX` _bytes_.
     ///
-    /// # Example
+    /// # Examples
+    ///
+    /// Creating a [`TypedProjVec`] with capacity `capacity > 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -1112,11 +1166,19 @@ where
     ///
     /// assert!(proj_vec.capacity() >= capacity);
     /// assert!(proj_vec.is_empty());
+    /// ```
     ///
-    /// let empty_vec: TypedProjVec<i32> = TypedProjVec::with_capacity(0);
+    /// Creating a [`TypedProjVec`] with capacity `capacity == 0`.
     ///
-    /// assert_eq!(empty_vec.capacity(), 0);
-    /// assert!(empty_vec.is_empty());
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_vec: TypedProjVec<i32> = TypedProjVec::with_capacity(0);
+    ///
+    /// assert_eq!(proj_vec.capacity(), 0);
+    /// assert!(proj_vec.is_empty());
     /// ```
     ///
     /// [`new`]: TypedProjVec::new
@@ -1144,7 +1206,9 @@ where
     /// This method returns an error if the capacity `capacity` exceeds `isize::MAX` bytes, or if the
     /// allocator reports an allocation failure.
     ///
-    /// # Example
+    /// # Examples
+    ///
+    /// Creating a [`TypedProjVec`] with capacity `capacity > 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -1160,11 +1224,23 @@ where
     ///
     /// assert!(proj_vec.capacity() >= capacity);
     /// assert!(proj_vec.is_empty());
+    /// ```
     ///
-    /// let empty_vec: TypedProjVec<i32> = TypedProjVec::try_with_capacity(0).unwrap();
+    /// Creating a [`TypedProjVec`] with capacity `capacity == 0`.
     ///
-    /// assert_eq!(empty_vec.capacity(), 0);
-    /// assert!(empty_vec.is_empty());
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_vec: Result<TypedProjVec<i32>, _> = TypedProjVec::try_with_capacity(0);
+    ///
+    /// assert!(proj_vec.is_ok());
+    ///
+    /// let proj_vec = proj_vec.unwrap();
+    ///
+    /// assert_eq!(proj_vec.capacity(), 0);
+    /// assert!(proj_vec.is_empty());
     /// ```
     ///
     /// [`new`]: TypedProjVec::new
@@ -4720,7 +4796,9 @@ impl OpaqueVec {
     ///
     /// This method panics if the new capacity exceeds `isize::MAX` _bytes_.
     ///
-    /// # Example
+    /// # Examples
+    ///
+    /// Creating an [`OpaqueVec`] with capacity `capacity > 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -4730,18 +4808,33 @@ impl OpaqueVec {
     /// #
     /// let capacity = 32;
     /// let proj_alloc = TypedProjAlloc::new(Global);
-    /// let opaque_vec = OpaqueVec::with_capacity_proj_in::<i32, Global>(capacity, proj_alloc.clone());
+    /// let opaque_vec = OpaqueVec::with_capacity_proj_in::<i32, Global>(capacity, proj_alloc);
     ///
     /// assert!(opaque_vec.has_element_type::<i32>());
     /// assert!(opaque_vec.has_allocator_type::<Global>());
     /// assert!(!opaque_vec.has_allocator_type::<TypedProjAlloc<Global>>());
+    ///
     /// assert!(opaque_vec.capacity() >= capacity);
     /// assert!(opaque_vec.is_empty());
+    /// ```
     ///
-    /// let empty_vec = OpaqueVec::with_capacity_proj_in::<i32, Global>(0, proj_alloc.clone());
+    /// Creating an [`OpaqueVec`] with capacity `capacity == 0`.
     ///
-    /// assert_eq!(empty_vec.capacity(), 0);
-    /// assert!(empty_vec.is_empty());
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_alloc = TypedProjAlloc::new(Global);
+    /// let opaque_vec = OpaqueVec::with_capacity_proj_in::<i32, Global>(0, proj_alloc);
+    ///
+    /// assert!(opaque_vec.has_element_type::<i32>());
+    /// assert!(opaque_vec.has_allocator_type::<Global>());
+    /// assert!(!opaque_vec.has_allocator_type::<TypedProjAlloc<Global>>());
+    ///
+    /// assert_eq!(opaque_vec.capacity(), 0);
+    /// assert!(opaque_vec.is_empty());
     /// ```
     ///
     /// [`new_proj_in`]: OpaqueVec::new_proj_in
@@ -4774,7 +4867,9 @@ impl OpaqueVec {
     /// This method returns an error if the capacity `capacity` exceeds `isize::MAX` bytes, or if the
     /// allocator reports an allocation failure.
     ///
-    /// # Example
+    /// # Examples
+    ///
+    /// Creating an [`OpaqueVec`] with capacity `capacity > 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -4784,7 +4879,7 @@ impl OpaqueVec {
     /// #
     /// let capacity = 32;
     /// let proj_alloc = TypedProjAlloc::new(Global);
-    /// let opaque_vec = OpaqueVec::try_with_capacity_proj_in::<i32, Global>(capacity, proj_alloc.clone());
+    /// let opaque_vec = OpaqueVec::try_with_capacity_proj_in::<i32, Global>(capacity, proj_alloc);
     ///
     /// assert!(opaque_vec.is_ok());
     ///
@@ -4793,13 +4888,32 @@ impl OpaqueVec {
     /// assert!(opaque_vec.has_element_type::<i32>());
     /// assert!(opaque_vec.has_allocator_type::<Global>());
     /// assert!(!opaque_vec.has_allocator_type::<TypedProjAlloc<Global>>());
+    ///
     /// assert!(opaque_vec.capacity() >= capacity);
     /// assert!(opaque_vec.is_empty());
+    /// ```
     ///
-    /// let empty_vec = OpaqueVec::with_capacity_proj_in::<i32, Global>(0, proj_alloc.clone());
+    /// Creating an [`OpaqueVec`] with capacity `capacity == 0`.
     ///
-    /// assert_eq!(empty_vec.capacity(), 0);
-    /// assert!(empty_vec.is_empty());
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_alloc = TypedProjAlloc::new(Global);
+    /// let opaque_vec = OpaqueVec::try_with_capacity_proj_in::<i32, Global>(0, proj_alloc);
+    ///
+    /// assert!(opaque_vec.is_ok());
+    ///
+    /// let opaque_vec = opaque_vec.unwrap();
+    ///
+    /// assert!(opaque_vec.has_element_type::<i32>());
+    /// assert!(opaque_vec.has_allocator_type::<Global>());
+    /// assert!(!opaque_vec.has_allocator_type::<TypedProjAlloc<Global>>());
+    ///
+    /// assert_eq!(opaque_vec.capacity(), 0);
+    /// assert!(opaque_vec.is_empty());
     /// ```
     ///
     /// [`new_proj_in`]: OpaqueVec::new_proj_in
@@ -5186,7 +5300,9 @@ impl OpaqueVec {
     ///
     /// This method panics if the new capacity exceeds `isize::MAX` _bytes_.
     ///
-    /// # Example
+    /// # Examples
+    ///
+    /// Creating an [`OpaqueVec`] with capacity `capacity > 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -5198,13 +5314,25 @@ impl OpaqueVec {
     ///
     /// assert!(opaque_vec.has_element_type::<i32>());
     /// assert!(opaque_vec.has_allocator_type::<Global>());
+    ///
     /// assert!(opaque_vec.capacity() >= capacity);
     /// assert!(opaque_vec.is_empty());
+    /// ```
     ///
-    /// let empty_vec = OpaqueVec::with_capacity_in::<i32, Global>(0, Global);
+    /// Creating an [`OpaqueVec`] with capacity `capacity == 0`.
     ///
-    /// assert_eq!(empty_vec.capacity(), 0);
-    /// assert!(empty_vec.is_empty());
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_vec = OpaqueVec::with_capacity_in::<i32, Global>(0, Global);
+    ///
+    /// assert!(opaque_vec.has_element_type::<i32>());
+    /// assert!(opaque_vec.has_allocator_type::<Global>());
+    ///
+    /// assert_eq!(opaque_vec.capacity(), 0);
+    /// assert!(opaque_vec.is_empty());
     /// ```
     ///
     /// [`new_in`]: OpaqueVec::new_in
@@ -5237,7 +5365,9 @@ impl OpaqueVec {
     /// This method returns an error if the capacity `capacity` exceeds `isize::MAX` bytes, or if the
     /// allocator reports an allocation failure.
     ///
-    /// # Example
+    /// # Examples
+    ///
+    /// Creating an [`OpaqueVec`] with capacity `capacity > 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -5253,13 +5383,29 @@ impl OpaqueVec {
     ///
     /// assert!(opaque_vec.has_element_type::<i32>());
     /// assert!(opaque_vec.has_allocator_type::<Global>());
+    ///
     /// assert!(opaque_vec.capacity() >= capacity);
     /// assert!(opaque_vec.is_empty());
+    /// ```
     ///
-    /// let empty_vec = OpaqueVec::try_with_capacity_in::<i32, Global>(0, Global).unwrap();
+    /// Creating an [`OpaqueVec`] with capacity `capacity == 0`.
     ///
-    /// assert_eq!(empty_vec.capacity(), 0);
-    /// assert!(empty_vec.is_empty());
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_vec = OpaqueVec::try_with_capacity_in::<i32, Global>(0, Global);
+    ///
+    /// assert!(opaque_vec.is_ok());
+    ///
+    /// let opaque_vec = opaque_vec.unwrap();
+    ///
+    /// assert!(opaque_vec.has_element_type::<i32>());
+    /// assert!(opaque_vec.has_allocator_type::<Global>());
+    ///
+    /// assert_eq!(opaque_vec.capacity(), 0);
+    /// assert!(opaque_vec.is_empty());
     /// ```
     ///
     /// [`new_in`]: OpaqueVec::new_in
@@ -5642,7 +5788,9 @@ impl OpaqueVec {
     ///
     /// This method panics if the new capacity exceeds `isize::MAX` _bytes_.
     ///
-    /// # Example
+    /// # Examples
+    ///
+    /// Creating an [`OpaqueVec`] with capacity `capacity > 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -5654,13 +5802,25 @@ impl OpaqueVec {
     ///
     /// assert!(opaque_vec.has_element_type::<i32>());
     /// assert!(opaque_vec.has_allocator_type::<Global>());
+    ///
     /// assert!(opaque_vec.capacity() >= capacity);
     /// assert!(opaque_vec.is_empty());
+    /// ```
     ///
-    /// let empty_vec = OpaqueVec::with_capacity::<i32>(0);
+    /// Creating an [`OpaqueVec`] with capacity `capacity == 0`.
     ///
-    /// assert_eq!(empty_vec.capacity(), 0);
-    /// assert!(empty_vec.is_empty());
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_vec = OpaqueVec::with_capacity::<i32>(0);
+    ///
+    /// assert!(opaque_vec.has_element_type::<i32>());
+    /// assert!(opaque_vec.has_allocator_type::<Global>());
+    ///
+    /// assert_eq!(opaque_vec.capacity(), 0);
+    /// assert!(opaque_vec.is_empty());
     /// ```
     ///
     /// [`new`]: OpaqueVec::new
@@ -5691,7 +5851,9 @@ impl OpaqueVec {
     /// This method returns an error if the capacity `capacity` exceeds `isize::MAX` bytes, or if the
     /// allocator reports an allocation failure.
     ///
-    /// # Example
+    /// # Examples
+    ///
+    /// Creating an [`OpaqueVec`] with capacity `capacity > 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -5707,13 +5869,29 @@ impl OpaqueVec {
     ///
     /// assert!(opaque_vec.has_element_type::<i32>());
     /// assert!(opaque_vec.has_allocator_type::<Global>());
+    ///
     /// assert!(opaque_vec.capacity() >= capacity);
     /// assert!(opaque_vec.is_empty());
+    /// ```
     ///
-    /// let empty_vec = OpaqueVec::try_with_capacity::<i32>(0).unwrap();
+    /// Creating an [`OpaqueVec`] with capacity `capacity == 0`.
     ///
-    /// assert_eq!(empty_vec.capacity(), 0);
-    /// assert!(empty_vec.is_empty());
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_vec = OpaqueVec::try_with_capacity::<i32>(0);
+    ///
+    /// assert!(opaque_vec.is_ok());
+    ///
+    /// let opaque_vec = opaque_vec.unwrap();
+    ///
+    /// assert!(opaque_vec.has_element_type::<i32>());
+    /// assert!(opaque_vec.has_allocator_type::<Global>());
+    ///
+    /// assert_eq!(opaque_vec.capacity(), 0);
+    /// assert!(opaque_vec.is_empty());
     /// ```
     ///
     /// [`new`]: OpaqueVec::new

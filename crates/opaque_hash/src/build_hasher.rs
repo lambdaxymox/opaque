@@ -371,6 +371,8 @@ impl OpaqueBuildHasher {
 impl OpaqueBuildHasher {
     /// Determines whether underlying the hash builder has the given hash builder type.
     ///
+    /// Returns `true` if `self` has the hash builder allocator type. Returns `false` otherwise.
+    ///
     /// # Example
     ///
     /// ```
@@ -391,6 +393,8 @@ impl OpaqueBuildHasher {
     }
 
     /// Determines whether underlying the hash builder has the given hasher type.
+    ///
+    /// Returns `true` if `self` returns the specified hasher type. Returns `false` otherwise.
     ///
     /// # Example
     ///
