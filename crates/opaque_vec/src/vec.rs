@@ -106,7 +106,7 @@ use opaque_error::TryReserveError;
 ///
 /// ```
 /// # #![feature(allocator_api)]
-/// # use crate::opaque_vec::{TypedProjVec, OpaqueVec};
+/// # use opaque_vec::{TypedProjVec, OpaqueVec};
 /// # use std::alloc::Global;
 /// #
 /// let mut proj_vec: TypedProjVec<i32, Global> = TypedProjVec::new();
@@ -166,7 +166,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// # use std::any::TypeId;
     /// #
@@ -187,7 +187,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// # use std::any::TypeId;
     /// #
@@ -217,7 +217,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::alloc::Global;
     /// #
@@ -258,7 +258,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::alloc::Global;
     /// #
@@ -274,7 +274,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::alloc::Global;
     /// #
@@ -317,7 +317,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::alloc::Global;
     /// #
@@ -337,7 +337,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::alloc::Global;
     /// #
@@ -397,7 +397,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::alloc::Global;
     /// # use std::ptr;
@@ -461,7 +461,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::alloc::Allocator;
     /// # use std::alloc::Global;
@@ -549,7 +549,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::alloc::Global;
     /// # use std::ptr::NonNull;
@@ -614,7 +614,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::alloc::Allocator;
     /// # use std::alloc::Global;
@@ -674,7 +674,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let proj_vec: TypedProjVec<i32, Global> = TypedProjVec::new_in(Global);
@@ -712,7 +712,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let capacity = 32;
@@ -726,7 +726,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let proj_vec: TypedProjVec<i32, Global> = TypedProjVec::with_capacity_in(0, Global);
@@ -767,7 +767,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let capacity = 32;
@@ -785,7 +785,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let proj_vec: Result<TypedProjVec<i32, Global>, _> = TypedProjVec::try_with_capacity_in(0, Global);
@@ -843,7 +843,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// # use std::ptr;
     /// # use std::mem;
@@ -906,7 +906,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Allocator;
     /// # use std::alloc::Global;
     /// # use std::alloc::Layout;
@@ -993,7 +993,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// # use std::ptr::NonNull;
     /// # use std::ptr;
@@ -1057,7 +1057,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Allocator;
     /// # use std::alloc::Global;
     /// # use std::alloc::Layout;
@@ -1121,7 +1121,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let proj_vec: TypedProjVec<i32> = TypedProjVec::new();
@@ -1158,7 +1158,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let capacity = 32;
@@ -1172,7 +1172,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let proj_vec: TypedProjVec<i32> = TypedProjVec::with_capacity(0);
@@ -1212,7 +1212,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let capacity = 32;
@@ -1230,7 +1230,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let proj_vec: Result<TypedProjVec<i32>, _> = TypedProjVec::try_with_capacity(0);
@@ -1286,7 +1286,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// # use std::ptr;
     /// # use std::mem;
@@ -1348,7 +1348,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Allocator;
     /// # use std::alloc::Global;
     /// # use std::alloc::Layout;
@@ -1432,7 +1432,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// # use std::ptr::NonNull;
     /// # use std::ptr;
@@ -1495,7 +1495,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Allocator;
     /// # use std::alloc::Global;
     /// # use std::alloc::Layout;
@@ -1559,7 +1559,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::alloc::Global;
     /// #
@@ -1590,7 +1590,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::alloc::Global;
     /// #
@@ -1615,7 +1615,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::alloc::Global;
     /// #
@@ -1647,7 +1647,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::alloc::Global;
     /// #
@@ -1690,7 +1690,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// # use std::ptr;
     /// #
@@ -1732,7 +1732,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// # use std::ptr;
     /// #
@@ -1771,7 +1771,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// # use std::ptr;
     /// #
@@ -1819,7 +1819,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let proj_vec = TypedProjVec::from([10, 40, 30]);
@@ -1858,7 +1858,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::from([10, 40, 30]);
@@ -1896,7 +1896,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let proj_vec = TypedProjVec::from([10, 40, 30]);
@@ -1932,7 +1932,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut opaque_vec = TypedProjVec::from([10, 40, 30]);
@@ -1966,7 +1966,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::from([1, 2]);
@@ -1987,7 +1987,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::from([1, 2, 3]);
@@ -2020,7 +2020,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let min_capacity = 4;
@@ -2039,7 +2039,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let min_capacity = 4;
@@ -2081,7 +2081,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::new();
@@ -2120,7 +2120,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::new();
@@ -2163,7 +2163,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let proj_vec = TypedProjVec::from([1, 2, 3, i32::MAX]);
@@ -2214,7 +2214,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let proj_vec = TypedProjVec::from([1, 2, 3, i32::MAX]);
@@ -2255,7 +2255,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let proj_vec = TypedProjVec::from([92, 8, 40, 9, 8, 34, 59, 34, 5]);
@@ -2292,7 +2292,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let proj_vec = TypedProjVec::from([92, 8, 40, 9, 8, 34]);
@@ -2323,7 +2323,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::from([92, 8, 40, 9, 8, 34]);
@@ -2359,7 +2359,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut result = TypedProjVec::from([1, 2, 3, 4]);
@@ -2404,7 +2404,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut proj_vec: TypedProjVec<i32> = TypedProjVec::from([1, 2, 3, 4, 5, 6]);
@@ -2424,7 +2424,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut proj_vec: TypedProjVec<i32> = TypedProjVec::from([1, 2, 3, 4, 5, 6]);
@@ -2444,7 +2444,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut proj_vec: TypedProjVec<i32> = TypedProjVec::from([1, 2, 3, 4, 5, 6]);
@@ -2492,7 +2492,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let proj_vec = TypedProjVec::from([1, 2, 4, 8]);
@@ -2511,7 +2511,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::from([0, 1, 2]);
@@ -2555,7 +2555,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// // Allocate vector big enough for 4 elements.
@@ -2578,7 +2578,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut proj_vec: TypedProjVec<i32> = TypedProjVec::with_capacity(4);
@@ -2622,7 +2622,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// // Allocate vector big enough for 4 elements.
@@ -2645,7 +2645,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::with_capacity(4);
@@ -2674,7 +2674,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let array: [i32; 3] = [9, 28, 37];
@@ -2698,7 +2698,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut array: [i32; 3] = [9, 28, 37];
@@ -2715,7 +2715,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut array: [i32; 3] = [9, 28, 37];
@@ -2756,7 +2756,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let array: [i32; 3] = [-1, 0, 1];
@@ -2795,7 +2795,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let array: [i32; 3] = [-1, 0, 1];
@@ -2835,7 +2835,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let array: [i32; 3] = [-1, 0, 1];
@@ -2874,7 +2874,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let array: [i32; 3] = [-1, 0, 1];
@@ -2906,7 +2906,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::alloc::Global;
     /// #
@@ -2959,7 +2959,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let length = 6;
@@ -3022,7 +3022,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let length = 3;
@@ -3047,7 +3047,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::new();
@@ -3080,7 +3080,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::with_capacity(10);
@@ -3119,7 +3119,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::new();
@@ -3157,7 +3157,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::new();
@@ -3195,7 +3195,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::new();
@@ -3234,7 +3234,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut proj_vec = OpaqueVec::new::<i32>();
@@ -3271,7 +3271,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::with_capacity(10);
@@ -3314,7 +3314,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::with_capacity(10);
@@ -3345,7 +3345,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::with_capacity(10);
@@ -3399,7 +3399,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::{IntoIter, TypedProjVec};
+    /// # use opaque_vec::{IntoIter, TypedProjVec};
     /// # use std::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::from([1, 2, 3, 4]);
@@ -3415,7 +3415,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::{IntoIter, TypedProjVec};
+    /// # use opaque_vec::{IntoIter, TypedProjVec};
     /// # use std::alloc::Global;
     /// # use std::slice;
     /// #
@@ -3453,7 +3453,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::{IntoIter, TypedProjVec};
+    /// # use opaque_vec::{IntoIter, TypedProjVec};
     /// # use std::alloc::Global;
     /// #
     /// # let some_predicate = |x: &mut i32| { *x % 2 == 1 };
@@ -3496,7 +3496,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::{IntoIter, TypedProjVec};
+    /// # use opaque_vec::{IntoIter, TypedProjVec};
     /// # use std::alloc::Global;
     /// #
     /// let mut numbers = TypedProjVec::from([1, 2, 3, 4, 5, 6, 8, 9, 11, 13, 14, 15]);
@@ -3511,7 +3511,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::{IntoIter, TypedProjVec};
+    /// # use opaque_vec::{IntoIter, TypedProjVec};
     /// # use std::alloc::Global;
     /// #
     /// let mut items = TypedProjVec::from([0, 0, 0, 0, 0, 0, 0, 1, 2, 1, 2, 1, 2]);
@@ -3554,7 +3554,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let array: [i32; 6] = [1, 2, 3, 4, 5, 6];
@@ -3596,7 +3596,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::from([
@@ -3637,7 +3637,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::from([
@@ -3692,7 +3692,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::from([1, 2, 3, 4, 5, 6]);
@@ -3706,7 +3706,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let array: [i32; 6] = [1, 2, 3, 4, 5, 6];
@@ -3721,7 +3721,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let array: [i32; 6] = [1, 2, 3, 4, 5, 6];
@@ -3741,7 +3741,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::from([1, 2, 3, 4, 5, 6]);
@@ -3775,7 +3775,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::from([1, 2, 3, 4, 5, 6]);
@@ -3802,7 +3802,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::from([1, 2, 3, 4, 5, 6]);
@@ -3833,7 +3833,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::from([1, 2, 3, 2, 2, 2, 6, 4, 4]);
@@ -3846,7 +3846,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::from([1, 2, 3, 3, 3, 3, 4, 4, 4, 5]);
@@ -3859,7 +3859,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::from( [1, 2, 3, 4, 5]);
@@ -3887,7 +3887,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::from([10, 20, 21, 30, 20]);
@@ -3900,7 +3900,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::from([10, 20, 20, 21, 30, 30, 30, 40]);
@@ -3932,7 +3932,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut opaque_vec = TypedProjVec::from([
@@ -3951,7 +3951,7 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut opaque_vec = TypedProjVec::from([
@@ -4489,7 +4489,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// # use std::any::TypeId;
     /// #
@@ -4510,7 +4510,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// # use std::any::TypeId;
     /// #
@@ -4533,7 +4533,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let opaque_vec = OpaqueVec::new_in::<i32, Global>(Global);
@@ -4556,7 +4556,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let opaque_vec = OpaqueVec::new_in::<i32, Global>(Global);
@@ -4619,7 +4619,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::{OpaqueVec, TypedProjVec};
+    /// # use opaque_vec::{OpaqueVec, TypedProjVec};
     /// # use std::alloc::Global;
     /// #
     /// let opaque_vec = OpaqueVec::new_in::<i32, Global>(Global);
@@ -4653,7 +4653,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::{OpaqueVec, TypedProjVec};
+    /// # use opaque_vec::{OpaqueVec, TypedProjVec};
     /// # use std::alloc::Global;
     /// #
     /// let mut opaque_vec = OpaqueVec::new_in::<i32, Global>(Global);
@@ -4686,7 +4686,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::{OpaqueVec, TypedProjVec};
+    /// # use opaque_vec::{OpaqueVec, TypedProjVec};
     /// # use std::alloc::Global;
     /// #
     /// let opaque_vec = OpaqueVec::new_in::<i32, Global>(Global);
@@ -4718,7 +4718,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::{OpaqueVec, TypedProjVec};
+    /// # use opaque_vec::{OpaqueVec, TypedProjVec};
     /// # use std::alloc::Global;
     /// #
     /// let proj_vec: TypedProjVec<i32, Global> = TypedProjVec::new_in(Global);
@@ -4754,7 +4754,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::alloc::Global;
     /// #
@@ -4802,7 +4802,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::alloc::Global;
     /// #
@@ -4822,7 +4822,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::alloc::Global;
     /// #
@@ -4873,7 +4873,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::alloc::Global;
     /// #
@@ -4897,7 +4897,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::alloc::Global;
     /// #
@@ -4965,7 +4965,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::alloc::Global;
     /// # use std::ptr;
@@ -5035,7 +5035,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::alloc::Allocator;
     /// # use std::alloc::Global;
@@ -5127,7 +5127,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::alloc::Global;
     /// # use std::ptr::NonNull;
@@ -5198,7 +5198,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::alloc::Allocator;
     /// # use std::alloc::Global;
@@ -5262,7 +5262,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let opaque_vec = OpaqueVec::new_in::<i32, Global>(Global);
@@ -5306,7 +5306,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let capacity = 32;
@@ -5323,7 +5323,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let opaque_vec = OpaqueVec::with_capacity_in::<i32, Global>(0, Global);
@@ -5371,7 +5371,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let capacity = 32;
@@ -5392,7 +5392,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let opaque_vec = OpaqueVec::try_with_capacity_in::<i32, Global>(0, Global);
@@ -5457,7 +5457,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// # use std::ptr;
     /// # use std::mem;
@@ -5526,7 +5526,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Allocator;
     /// # use std::alloc::Global;
     /// # use std::alloc::Layout;
@@ -5617,7 +5617,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// # use std::ptr::NonNull;
     /// # use std::ptr;
@@ -5687,7 +5687,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Allocator;
     /// # use std::alloc::Global;
     /// # use std::alloc::Layout;
@@ -5752,7 +5752,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let opaque_vec = OpaqueVec::new::<i32>();
@@ -5794,7 +5794,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let capacity = 32;
@@ -5811,7 +5811,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let opaque_vec = OpaqueVec::with_capacity::<i32>(0);
@@ -5857,7 +5857,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let capacity = 32;
@@ -5878,7 +5878,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let opaque_vec = OpaqueVec::try_with_capacity::<i32>(0);
@@ -5940,7 +5940,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// # use std::ptr;
     /// # use std::mem;
@@ -6008,7 +6008,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Allocator;
     /// # use std::alloc::Global;
     /// # use std::alloc::Layout;
@@ -6095,7 +6095,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// # use std::ptr::NonNull;
     /// # use std::ptr;
@@ -6164,7 +6164,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Allocator;
     /// # use std::alloc::Global;
     /// # use std::alloc::Layout;
@@ -6224,7 +6224,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::alloc::{Global, Layout};
     /// #
@@ -6259,7 +6259,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::alloc::Global;
     /// #
@@ -6292,7 +6292,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::alloc::Global;
     /// #
@@ -6319,7 +6319,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::alloc::Global;
     /// #
@@ -6355,7 +6355,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::alloc::Global;
     /// #
@@ -6409,7 +6409,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// # use std::ptr;
     /// #
@@ -6454,7 +6454,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// # use std::ptr;
     /// #
@@ -6496,7 +6496,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// # use std::ptr;
     /// #
@@ -6554,7 +6554,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let array: [i32; 3] = [10, 40, 30];
@@ -6602,7 +6602,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let array: [i32; 3] = [10, 40, 30];
@@ -6653,7 +6653,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let array: [i32; 3] = [10, 40, 30];
@@ -6703,7 +6703,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let array: [i32; 3] = [10, 40, 30];
@@ -6748,7 +6748,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let array: [i32; 2] = [1, 2];
@@ -6786,7 +6786,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let array: [i32; 3] = [1, 2, 3];
@@ -6835,7 +6835,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let min_capacity = 4;
@@ -6857,7 +6857,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let min_capacity = 4;
@@ -6911,7 +6911,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut opaque_vec = OpaqueVec::new::<i32>();
@@ -6962,7 +6962,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut opaque_vec = OpaqueVec::new::<i32>();
@@ -7017,7 +7017,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let array: [i32; 4] = [1, 2, 3, i32::MAX];
@@ -7082,7 +7082,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let array: [i32; 4] = [1, 2, 3, i32::MAX];
@@ -7140,7 +7140,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let array: [i32; 9] = [92, 8, 40, 9, 8, 34, 59, 34, 5];
@@ -7190,7 +7190,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let array: [i32; 6] = [92, 8, 40, 9, 8, 34];
@@ -7237,7 +7237,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let array: [i32; 6] = [92, 8, 40, 9, 8, 34];
@@ -7285,7 +7285,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let array: [&'static str; 10] = [
@@ -7353,7 +7353,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut result = {
@@ -7428,7 +7428,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut opaque_vec = {
@@ -7457,7 +7457,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut opaque_vec = {
@@ -7486,7 +7486,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut opaque_vec = {
@@ -7553,7 +7553,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let opaque_vec = {
@@ -7579,7 +7579,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut opaque_vec = {
@@ -7641,7 +7641,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// // Allocate vector big enough for 4 elements.
@@ -7668,7 +7668,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut opaque_vec = OpaqueVec::with_capacity::<i32>(4);
@@ -7722,7 +7722,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// // Allocate vector big enough for 4 elements.
@@ -7749,7 +7749,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut opaque_vec = OpaqueVec::with_capacity::<i32>(4);
@@ -7793,7 +7793,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let array: [i32; 3] = [9, 28, 37];
@@ -7832,7 +7832,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut array: [i32; 3] = [9, 28, 37];
@@ -7852,7 +7852,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut array: [i32; 3] = [9, 28, 37];
@@ -7909,7 +7909,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let array: [i32; 3] = [-1, 0, 1];
@@ -7963,7 +7963,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let array: [i32; 3] = [-1, 0, 1];
@@ -8018,7 +8018,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let array: [i32; 3] = [-1, 0, 1];
@@ -8073,7 +8073,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let array: [i32; 3] = [-1, 0, 1];
@@ -8121,7 +8121,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::alloc::Global;
     /// #
@@ -8182,7 +8182,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let length = 6;
@@ -8253,7 +8253,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let length = 3;
@@ -8281,7 +8281,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut opaque_vec = OpaqueVec::new::<i32>();
@@ -8327,7 +8327,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut opaque_vec = OpaqueVec::with_capacity::<i32>(10);
@@ -8382,7 +8382,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut opaque_vec = OpaqueVec::new::<i32>();
@@ -8435,7 +8435,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut opaque_vec = OpaqueVec::new::<i32>();
@@ -8484,7 +8484,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut opaque_vec = OpaqueVec::new::<i32>();
@@ -8534,7 +8534,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut opaque_vec = OpaqueVec::new::<i32>();
@@ -8583,7 +8583,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut opaque_vec = OpaqueVec::with_capacity::<i32>(10);
@@ -8641,7 +8641,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut opaque_vec = OpaqueVec::with_capacity::<i32>(10);
@@ -8687,7 +8687,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut opaque_vec = OpaqueVec::with_capacity::<i32>(10);
@@ -8749,7 +8749,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::{IntoIter, OpaqueVec};
+    /// # use opaque_vec::{IntoIter, OpaqueVec};
     /// # use std::alloc::Global;
     /// #
     /// let mut opaque_vec = {
@@ -8786,7 +8786,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::{IntoIter, OpaqueVec};
+    /// # use opaque_vec::{IntoIter, OpaqueVec};
     /// # use std::alloc::Global;
     /// # use std::slice;
     /// #
@@ -8845,7 +8845,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::{IntoIter, OpaqueVec};
+    /// # use opaque_vec::{IntoIter, OpaqueVec};
     /// # use std::alloc::Global;
     /// #
     /// # let some_predicate = |x: &mut i32| { *x % 2 == 1 };
@@ -8901,7 +8901,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::{IntoIter, OpaqueVec};
+    /// # use opaque_vec::{IntoIter, OpaqueVec};
     /// # use std::alloc::Global;
     /// #
     /// let mut numbers = {
@@ -8923,7 +8923,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::{IntoIter, OpaqueVec};
+    /// # use opaque_vec::{IntoIter, OpaqueVec};
     /// # use std::alloc::Global;
     /// #
     /// let mut items = {
@@ -8988,7 +8988,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let array: [i32; 6] = [1, 2, 3, 4, 5, 6];
@@ -9043,7 +9043,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut opaque_vec = {
@@ -9098,7 +9098,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut opaque_vec = {
@@ -9176,7 +9176,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut opaque_vec = {
@@ -9197,7 +9197,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let array: [i32; 6] = [1, 2, 3, 4, 5, 6];
@@ -9216,7 +9216,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let array: [i32; 6] = [1, 2, 3, 4, 5, 6];
@@ -9240,7 +9240,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut opaque_vec = {
@@ -9289,7 +9289,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut opaque_vec = {
@@ -9333,7 +9333,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut opaque_vec = {
@@ -9382,7 +9382,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut opaque_vec = {
@@ -9402,7 +9402,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut opaque_vec = {
@@ -9422,7 +9422,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut opaque_vec = {
@@ -9466,7 +9466,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut opaque_vec = {
@@ -9483,7 +9483,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut opaque_vec = {
@@ -9529,7 +9529,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut opaque_vec = {
@@ -9551,7 +9551,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let mut opaque_vec = {
@@ -9595,7 +9595,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let array: [i32; 6] = [1, 2, 3, 4, 5, 6];
@@ -9642,7 +9642,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let array: [i32; 6] = [1, 2, 3, 4, 5, 6];
@@ -9666,7 +9666,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let palindrome: [i32; 7] = [1, 2, 3, 4, 3, 2, 1];
@@ -9714,7 +9714,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let opaque_vec = OpaqueVec::new::<i32>();
@@ -9738,7 +9738,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_vec::OpaqueVec;
+    /// # use opaque_vec::OpaqueVec;
     /// # use std::alloc::Global;
     /// #
     /// let array: [i32; 6] = [1, 2, 3, 4, 5, 6];

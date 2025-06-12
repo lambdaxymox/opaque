@@ -421,7 +421,7 @@ impl OpaqueAlloc {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_alloc::{OpaqueAlloc, TypedProjAlloc};
+    /// # use opaque_alloc::{OpaqueAlloc, TypedProjAlloc};
     /// # use std::alloc::Global;
     /// #
     /// let opaque_alloc = OpaqueAlloc::new::<Global>(Global);
@@ -452,7 +452,7 @@ impl OpaqueAlloc {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_alloc::{OpaqueAlloc, TypedProjAlloc};
+    /// # use opaque_alloc::{OpaqueAlloc, TypedProjAlloc};
     /// # use std::alloc::Global;
     /// #
     /// let mut opaque_alloc = OpaqueAlloc::new::<Global>(Global);
@@ -482,7 +482,7 @@ impl OpaqueAlloc {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_alloc::{OpaqueAlloc, TypedProjAlloc};
+    /// # use opaque_alloc::{OpaqueAlloc, TypedProjAlloc};
     /// # use std::alloc::Global;
     /// #
     /// let opaque_alloc = OpaqueAlloc::new::<Global>(Global);
@@ -512,7 +512,7 @@ impl OpaqueAlloc {
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use crate::opaque_alloc::{OpaqueAlloc, TypedProjAlloc};
+    /// # use opaque_alloc::{OpaqueAlloc, TypedProjAlloc};
     /// # use std::alloc::Global;
     /// #
     /// let proj_alloc: TypedProjAlloc<Global> = TypedProjAlloc::new(Global);
