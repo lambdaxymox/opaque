@@ -160,7 +160,7 @@ where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    /// Returns the [`TypeId`] of the elements of contained in an [`TypedProjVec`].
+    /// Returns the [`TypeId`] of the elements of contained in a [`TypedProjVec`].
     ///
     /// # Example
     ///
@@ -181,7 +181,7 @@ where
         self.inner.element_type_id()
     }
 
-    /// Returns the [`TypeId`] of the memory allocator of an [`TypedProjVec`].
+    /// Returns the [`TypeId`] of the memory allocator of a [`TypedProjVec`].
     ///
     /// # Example
     ///
@@ -360,7 +360,7 @@ where
         Ok(Self { inner, })
     }
 
-    /// Constructs an [`TypedProjVec`] directly from a pointer, a length, a capacity, and a
+    /// Constructs a [`TypedProjVec`] directly from a pointer, a length, a capacity, and a
     /// type-projected allocator.
     ///
     /// # Safety
@@ -393,7 +393,7 @@ where
     ///
     /// # Examples
     ///
-    /// Using memory that was allocated by an [`TypedProjVec`].
+    /// Using memory that was allocated by a [`TypedProjVec`].
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -457,7 +457,7 @@ where
     /// # assert!(result.capacity() >= new_capacity);
     /// ```
     ///
-    /// Using memory that was allocated outside an [`TypedProjVec`].
+    /// Using memory that was allocated outside a [`TypedProjVec`].
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -512,7 +512,7 @@ where
         Self { inner, }
     }
 
-    /// Constructs an [`TypedProjVec`] directly from a non-null pointer, a length, a capacity, and a
+    /// Constructs a [`TypedProjVec`] directly from a non-null pointer, a length, a capacity, and a
     /// type-projected allocator.
     ///
     /// # Safety
@@ -545,7 +545,7 @@ where
     ///
     /// # Examples
     ///
-    /// Using memory that was allocated by an [`TypedProjVec`].
+    /// Using memory that was allocated by a [`TypedProjVec`].
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -610,7 +610,7 @@ where
     /// # assert!(result.capacity() >= new_capacity);
     /// ```
     ///
-    /// Using memory that was allocated outside an [`TypedProjVec`].
+    /// Using memory that was allocated outside a [`TypedProjVec`].
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -806,7 +806,7 @@ where
         Ok(Self { inner, })
     }
 
-    /// Constructs an [`TypedProjVec`] directly from a pointer, a length, a capacity, and a
+    /// Constructs a [`TypedProjVec`] directly from a pointer, a length, a capacity, and a
     /// memory allocator.
     ///
     /// # Safety
@@ -839,7 +839,7 @@ where
     ///
     /// # Examples
     ///
-    /// Using memory that was allocated by an [`TypedProjVec`].
+    /// Using memory that was allocated by a [`TypedProjVec`].
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -902,7 +902,7 @@ where
     /// # assert!(result.capacity() >= new_capacity);
     /// ```
     ///
-    /// Using memory that was allocated outside an [`TypedProjVec`].
+    /// Using memory that was allocated outside a [`TypedProjVec`].
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -956,7 +956,7 @@ where
         Self { inner, }
     }
 
-    /// Constructs an [`TypedProjVec`] directly from a pointer, a length, a capacity, and a
+    /// Constructs a [`TypedProjVec`] directly from a pointer, a length, a capacity, and a
     /// memory allocator.
     ///
     /// # Safety
@@ -989,7 +989,7 @@ where
     ///
     /// # Examples
     ///
-    /// Using memory that was allocated by an [`TypedProjVec`].
+    /// Using memory that was allocated by a [`TypedProjVec`].
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -1053,7 +1053,7 @@ where
     /// # assert!(result.capacity() >= new_capacity);
     /// ```
     ///
-    /// Using memory that was allocated outside an [`TypedProjVec`].
+    /// Using memory that was allocated outside a [`TypedProjVec`].
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -1251,7 +1251,7 @@ where
         Ok(Self { inner, })
     }
 
-    /// Constructs an [`TypedProjVec`] directly from a pointer, a length, and a capacity.
+    /// Constructs a [`TypedProjVec`] directly from a pointer, a length, and a capacity.
     ///
     /// # Safety
     ///
@@ -1282,7 +1282,7 @@ where
     ///
     /// # Examples
     ///
-    /// Using memory that was allocated by an [`TypedProjVec`].
+    /// Using memory that was allocated by a [`TypedProjVec`].
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -1344,7 +1344,7 @@ where
     /// # assert!(result.capacity() >= new_capacity);
     /// ```
     ///
-    /// Using memory that was allocated outside an [`TypedProjVec`].
+    /// Using memory that was allocated outside a [`TypedProjVec`].
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -1397,7 +1397,7 @@ where
         Self { inner, }
     }
 
-    /// Constructs an [`TypedProjVec`] directly from a pointer, a length, and a capacity.
+    /// Constructs a [`TypedProjVec`] directly from a pointer, a length, and a capacity.
     ///
     /// # Safety
     ///
@@ -1428,7 +1428,7 @@ where
     ///
     /// # Examples
     ///
-    /// Using memory that was allocated by an [`TypedProjVec`].
+    /// Using memory that was allocated by a [`TypedProjVec`].
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -1491,7 +1491,7 @@ where
     /// # assert!(result.capacity() >= new_capacity);
     /// ```
     ///
-    /// Using memory that was allocated outside an [`TypedProjVec`].
+    /// Using memory that was allocated outside a [`TypedProjVec`].
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -1550,9 +1550,9 @@ where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    /// Returns the capacity of an [`TypedProjVec`].
+    /// Returns the capacity of a [`TypedProjVec`].
     ///
-    /// The **capacity** of an [`TypedProjVec`] is the number of elements the vector can hold
+    /// The **capacity** of a [`TypedProjVec`] is the number of elements the vector can hold
     /// without reallocating memory.
     ///
     /// # Example
@@ -1581,7 +1581,7 @@ where
         self.inner.capacity()
     }
 
-    /// Determine whether an [`TypedProjVec`] is empty or not.
+    /// Determine whether a [`TypedProjVec`] is empty or not.
     ///
     /// An [`TypedProjVec`] is **empty** if it contains no elements, i.e.
     /// its length is zero.
@@ -1607,9 +1607,9 @@ where
         self.inner.is_empty()
     }
 
-    /// Returns the length of an [`TypedProjVec`].
+    /// Returns the length of a [`TypedProjVec`].
     ///
-    /// The **length** of an [`TypedProjVec`] is the number of elements stored inside it.
+    /// The **length** of a [`TypedProjVec`] is the number of elements stored inside it.
     ///
     /// # Example
     ///
@@ -1674,7 +1674,7 @@ where
     /// Normally one changes the length of the collection using operations such as [`truncate`],
     /// [`extend`], [`resize`], or [`clear`].
     ///
-    /// Note that reducing the length of an [`TypedProjVec`] using this method will not drop the truncated
+    /// Note that reducing the length of a [`TypedProjVec`] using this method will not drop the truncated
     /// elements. If those elements own heap-allocated memory or other resources, this will result in
     /// a memory leak.
     ///
@@ -1686,7 +1686,7 @@ where
     ///
     /// # Examples
     ///
-    /// Safely reducing the length of an [`TypedProjVec`] with this method.
+    /// Safely reducing the length of a [`TypedProjVec`] with this method.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -1728,7 +1728,7 @@ where
     /// assert_eq!(unsafe { DROP_COUNT }, 2);
     /// ```
     ///
-    /// Safely extending the length of an [`TypedProjVec`] with this method without leaking memory.
+    /// Safely extending the length of a [`TypedProjVec`] with this method without leaking memory.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -1767,7 +1767,7 @@ where
     /// assert_eq!(unsafe { DROP_COUNT }, 0);
     /// ```
     ///
-    /// Safely extending the length of an [`TypedProjVec`] with this method.
+    /// Safely extending the length of a [`TypedProjVec`] with this method.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -1806,7 +1806,7 @@ where
         }
     }
 
-    /// Returns a reference to an element or subslice of an [`TypedProjVec`], if it exists at the
+    /// Returns a reference to an element or subslice of a [`TypedProjVec`], if it exists at the
     /// given index or inside the given subslice.
     ///
     /// # Panics
@@ -1845,7 +1845,7 @@ where
         }
     }
 
-    /// Returns a mutable reference to an element or subslice of an [`TypedProjVec`], if it exists at the
+    /// Returns a mutable reference to an element or subslice of a [`TypedProjVec`], if it exists at the
     /// given index or inside the given subslice.
     ///
     /// # Panics
@@ -1884,7 +1884,7 @@ where
         }
     }
 
-    /// Returns a reference to an element or subslice of an [`TypedProjVec`], if it exists at the
+    /// Returns a reference to an element or subslice of a [`TypedProjVec`], if it exists at the
     /// given index or inside the given subslice.
     ///
     /// The method returns `None` from `self` under the following conditions:
@@ -1920,7 +1920,7 @@ where
         self.inner.get(index)
     }
 
-    /// Returns a mutable reference to an element or subslice of an [`TypedProjVec`], if it exists at the
+    /// Returns a mutable reference to an element or subslice of a [`TypedProjVec`], if it exists at the
     /// given index or inside the given subslice.
     ///
     /// The method returns `None` from `self` under the following conditions:
@@ -1956,7 +1956,7 @@ where
         self.inner.get_mut(index)
     }
 
-    /// Appends a new element to the end of an [`TypedProjVec`].
+    /// Appends a new element to the end of a [`TypedProjVec`].
     ///
     /// # Panics
     ///
@@ -1980,7 +1980,7 @@ where
         self.inner.push(value);
     }
 
-    /// Returns the last element in an [`TypedProjVec`] if the vector is non-empty,
+    /// Returns the last element in a [`TypedProjVec`] if the vector is non-empty,
     /// and returns `None` if the collection is empty.
     ///
     /// # Example
@@ -2007,7 +2007,7 @@ where
         self.inner.pop()
     }
 
-    /// Appends an element to an [`TypedProjVec`] if there is sufficient spare capacity. Otherwise,
+    /// Appends an element to a [`TypedProjVec`] if there is sufficient spare capacity. Otherwise,
     /// an error is returned with the element.
     ///
     /// Unlike [`push`], this method will not reallocate when there's insufficient
@@ -2066,7 +2066,7 @@ where
         self.inner.push_within_capacity(value)
     }
 
-    /// Inserts a new value into an [`TypedProjVec`], replacing the old value.
+    /// Inserts a new value into a [`TypedProjVec`], replacing the old value.
     ///
     /// This method behaves with respect to `index` as follows:
     /// * If `index < self.len()`, it replaces the existing value at `index`.
@@ -2103,7 +2103,7 @@ where
         self.inner.replace_insert(index, value);
     }
 
-    /// Inserts a new value into an [`TypedProjVec`], shifting the old value and all values after
+    /// Inserts a new value into a [`TypedProjVec`], shifting the old value and all values after
     /// it to the right in the collection.
     ///
     /// This method behaves with respect to `index` as follows:
@@ -2142,7 +2142,7 @@ where
         self.inner.shift_insert(index, value);
     }
 
-    /// Removes a value from an [`TypedProjVec`], moving the last value in the collection to the
+    /// Removes a value from a [`TypedProjVec`], moving the last value in the collection to the
     /// index where the removed value occupies the collection.
     ///
     /// This method behaves with respect to `index` as follows:
@@ -2193,7 +2193,7 @@ where
         self.inner.swap_remove(index)
     }
 
-    /// Removes a value from an [`TypedProjVec`], shifting every successive value in the collection to
+    /// Removes a value from a [`TypedProjVec`], shifting every successive value in the collection to
     /// the left one index to fill where the removed value occupies the collection.
     ///
     /// This method behaves with respect to `index` as follows:
@@ -2246,7 +2246,7 @@ where
         self.inner.shift_remove(index)
     }
 
-    /// Determines whether an [`TypedProjVec`] contains a value.
+    /// Determines whether a [`TypedProjVec`] contains a value.
     ///
     /// The method returns `true` if `self` contains the value `value`. Returns `false` otherwise.
     /// In particular, the method always returns `false` when `self` is empty.
@@ -2400,7 +2400,7 @@ where
     ///
     /// # Examples
     ///
-    /// Draining part of an [`TypedProjVec`].
+    /// Draining part of a [`TypedProjVec`].
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2440,7 +2440,7 @@ where
     /// assert_eq!(drained_vec.as_slice(), &[1, 2, 3, 4, 5, 6]);
     /// ```
     ///
-    /// Draining no part of an [`TypedProjVec`].
+    /// Draining no part of a [`TypedProjVec`].
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2694,7 +2694,7 @@ where
     ///
     /// # Examples
     ///
-    /// Getting a mutable slice of an [`TypedProjVec`].
+    /// Getting a mutable slice of a [`TypedProjVec`].
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2711,7 +2711,7 @@ where
     /// assert_eq!(result.len(), proj_vec.len());
     /// ```
     ///
-    /// Getting and mutating a mutable slice of an [`TypedProjVec`].
+    /// Getting and mutating a mutable slice of a [`TypedProjVec`].
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2738,7 +2738,7 @@ where
         self.inner.as_mut_slice()
     }
 
-    /// Decomposes an [`TypedProjVec`] with the global allocator into its constituent parts:
+    /// Decomposes a [`TypedProjVec`] with the global allocator into its constituent parts:
     /// `(pointer, length, capacity)`.
     ///
     /// This method returns a pointer to the memory allocation containing the vector, the
@@ -2777,7 +2777,7 @@ where
         self.inner.into_raw_parts()
     }
 
-    /// Decomposes an [`TypedProjVec`] with the global allocator into its constituent parts:
+    /// Decomposes a [`TypedProjVec`] with the global allocator into its constituent parts:
     /// `(non-null pointer, length, capacity)`.
     ///
     /// This method returns a [`NonNull`] pointer to the memory allocation containing the vector, the
@@ -2816,7 +2816,7 @@ where
         self.inner.into_parts()
     }
 
-    /// Decomposes an [`TypedProjVec`] with any memory allocator into its constituent parts:
+    /// Decomposes a [`TypedProjVec`] with any memory allocator into its constituent parts:
     /// `(pointer, length, capacity, allocator)`.
     ///
     /// This method returns a pointer to the memory allocation containing the vector, the
@@ -2856,7 +2856,7 @@ where
         self.inner.into_raw_parts_with_alloc()
     }
 
-    /// Decomposes an [`TypedProjVec`] with the global allocator into its constituent parts:
+    /// Decomposes a [`TypedProjVec`] with the global allocator into its constituent parts:
     /// `(non-null pointer, length, capacity)`.
     ///
     /// This method returns a [`NonNull`] pointer to the memory allocation containing the vector, the
@@ -2895,7 +2895,7 @@ where
         self.inner.into_parts_with_alloc()
     }
 
-    /// Converts an [`TypedProjVec`] into [`Box<[T]>`][owned slice].
+    /// Converts a [`TypedProjVec`] into [`Box<[T]>`][owned slice].
     ///
     /// Before doing the conversion, this method discards excess capacity like [`shrink_to_fit`].
     ///
@@ -2945,7 +2945,7 @@ where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    /// Splits an [`TypedProjVec`] into two [`TypedProjVec`]s at the given index.
+    /// Splits a [`TypedProjVec`] into two [`TypedProjVec`]s at the given index.
     ///
     /// This method returns a newly allocated [`TypedProjVec`] consisting of every element from
     /// the original [`TypedProjVec`] in the range `[at, len)`. The original [`TypedProjVec`] will
@@ -3592,7 +3592,7 @@ where
     ///
     /// # Examples
     ///
-    /// Extending an [`TypedProjVec`] with a default value.
+    /// Extending a [`TypedProjVec`] with a default value.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -3633,7 +3633,7 @@ where
     /// assert_eq!(proj_vec.as_slice(), expected.as_slice());
     /// ```
     ///
-    /// Shrinking an [`TypedProjVec`] with a default value.
+    /// Shrinking a [`TypedProjVec`] with a default value.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -3680,7 +3680,7 @@ where
         self.inner.resize(new_len, value);
     }
 
-    /// Shorten an [`TypedProjVec`] to the supplied length, dropping the remaining elements.
+    /// Shorten a [`TypedProjVec`] to the supplied length, dropping the remaining elements.
     ///
     /// This method keeps the first `len` elements, and drops the rest of the elements, so that
     /// the length after calling this method is at most `len`. This method does nothing if
@@ -4952,7 +4952,7 @@ impl OpaqueVec {
     /// * The allocated size in bytes must be no larger than `isize::MAX`.
     ///   See the safety documentation of [`pointer::offset`].
     ///
-    /// These requirements always hold for any `ptr` that has been allocated via [`OpaqueVec`].
+    /// These requirements always hold for any `ptr` that has been allocated vian [`OpaqueVec`].
     ///
     /// The ownership of `ptr` is effectively transferred to the
     /// [`OpaqueVec`] which may then deallocate, reallocate or change the
@@ -5114,7 +5114,7 @@ impl OpaqueVec {
     /// * The allocated size in bytes must be no larger than `isize::MAX`.
     ///   See the safety documentation of [`pointer::offset`].
     ///
-    /// These requirements always hold for any `ptr` that has been allocated via [`OpaqueVec`].
+    /// These requirements always hold for any `ptr` that has been allocated vian [`OpaqueVec`].
     ///
     /// The ownership of `ptr` is effectively transferred to the
     /// [`OpaqueVec`] which may then deallocate, reallocate or change the
@@ -5444,7 +5444,7 @@ impl OpaqueVec {
     /// * The allocated size in bytes must be no larger than `isize::MAX`.
     ///   See the safety documentation of [`pointer::offset`].
     ///
-    /// These requirements always hold for any `ptr` that has been allocated via [`OpaqueVec`].
+    /// These requirements always hold for any `ptr` that has been allocated vian [`OpaqueVec`].
     ///
     /// The ownership of `ptr` is effectively transferred to the
     /// [`OpaqueVec`] which may then deallocate, reallocate or change the
@@ -5604,7 +5604,7 @@ impl OpaqueVec {
     /// * The allocated size in bytes must be no larger than `isize::MAX`.
     ///   See the safety documentation of [`pointer::offset`].
     ///
-    /// These requirements always hold for any `ptr` that has been allocated via [`OpaqueVec`].
+    /// These requirements always hold for any `ptr` that has been allocated vian [`OpaqueVec`].
     ///
     /// The ownership of `ptr` is effectively transferred to the
     /// [`OpaqueVec`] which may then deallocate, reallocate or change the
@@ -5927,7 +5927,7 @@ impl OpaqueVec {
     /// * The allocated size in bytes must be no larger than `isize::MAX`.
     ///   See the safety documentation of [`pointer::offset`].
     ///
-    /// These requirements always hold for any `ptr` that has been allocated via [`OpaqueVec`].
+    /// These requirements always hold for any `ptr` that has been allocated vian [`OpaqueVec`].
     ///
     /// The ownership of `ptr` is effectively transferred to the
     /// [`OpaqueVec`] which may then deallocate, reallocate or change the
@@ -6082,7 +6082,7 @@ impl OpaqueVec {
     /// * The allocated size in bytes must be no larger than `isize::MAX`.
     ///   See the safety documentation of [`pointer::offset`].
     ///
-    /// These requirements always hold for any `ptr` that has been allocated via [`OpaqueVec`].
+    /// These requirements always hold for any `ptr` that has been allocated vian [`OpaqueVec`].
     ///
     /// The ownership of `ptr` is effectively transferred to the
     /// [`OpaqueVec`] which may then deallocate, reallocate or change the
@@ -9172,7 +9172,7 @@ impl OpaqueVec {
     ///
     /// # Examples
     ///
-    /// Truncating a [`OpaqueVec`] when `len < self.len()`.
+    /// Truncating an [`OpaqueVec`] when `len < self.len()`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
