@@ -226,13 +226,13 @@ where
     }
 
     #[inline]
-    pub(crate) const fn is_empty(&self) -> bool {
-        self.len() == 0
+    pub(crate) const fn len(&self) -> usize {
+        self.length
     }
 
     #[inline]
-    pub(crate) const fn len(&self) -> usize {
-        self.length
+    pub(crate) const fn is_empty(&self) -> bool {
+        self.len() == 0
     }
 }
 

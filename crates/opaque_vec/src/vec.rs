@@ -1564,7 +1564,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// let capacity = 32;
-    /// let mut proj_vec = TypedProjVec::with_capacity_in(capacity, Global);
+    /// let mut proj_vec: TypedProjVec<i32, Global> = TypedProjVec::with_capacity_in(capacity, Global);
     ///
     /// assert!(proj_vec.capacity() >= capacity);
     /// assert_eq!(proj_vec.len(), 0);
@@ -1579,32 +1579,6 @@ where
     #[inline]
     pub const fn capacity(&self) -> usize {
         self.inner.capacity()
-    }
-
-    /// Determine whether a [`TypedProjVec`] is empty or not.
-    ///
-    /// An [`TypedProjVec`] is **empty** if it contains no elements, i.e.
-    /// its length is zero.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// # #![feature(allocator_api)]
-    /// # use opaque_vec::TypedProjVec;
-    /// # use opaque_alloc::TypedProjAlloc;
-    /// # use std::alloc::Global;
-    /// #
-    /// let mut proj_vec: TypedProjVec<i32, Global> = TypedProjVec::with_capacity_in(1, Global);
-    ///
-    /// assert!(proj_vec.is_empty());
-    ///
-    /// proj_vec.push(1);
-    ///
-    /// assert!(!proj_vec.is_empty());
-    /// ```
-    #[inline]
-    pub const fn is_empty(&self) -> bool {
-        self.inner.is_empty()
     }
 
     /// Returns the length of a [`TypedProjVec`].
@@ -1633,6 +1607,31 @@ where
     #[inline]
     pub const fn len(&self) -> usize {
         self.inner.len()
+    }
+
+    /// Determine whether a [`TypedProjVec`] is empty or not.
+    ///
+    /// A [`TypedProjVec`] is **empty** if it contains no elements, i.e. its length is zero.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_vec: TypedProjVec<i32, Global> = TypedProjVec::with_capacity_in(1, Global);
+    ///
+    /// assert!(proj_vec.is_empty());
+    ///
+    /// proj_vec.push(1);
+    ///
+    /// assert!(!proj_vec.is_empty());
+    /// ```
+    #[inline]
+    pub const fn is_empty(&self) -> bool {
+        self.inner.is_empty()
     }
 }
 
@@ -6283,34 +6282,6 @@ impl OpaqueVec {
         self.inner.capacity()
     }
 
-    /// Determine whether an [`OpaqueVec`] is empty or not.
-    ///
-    /// An [`OpaqueVec`] is **empty** if it contains no elements, i.e.
-    /// its length is zero.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// # #![feature(allocator_api)]
-    /// # use opaque_vec::OpaqueVec;
-    /// # use opaque_alloc::TypedProjAlloc;
-    /// # use std::alloc::Global;
-    /// #
-    /// let mut opaque_vec = OpaqueVec::with_capacity_in::<i32, Global>(1, Global);
-    ///
-    /// # assert!(opaque_vec.has_element_type::<i32>());
-    /// # assert!(opaque_vec.has_allocator_type::<Global>());
-    /// assert!(opaque_vec.is_empty());
-    ///
-    /// opaque_vec.push::<i32, Global>(1);
-    ///
-    /// assert!(!opaque_vec.is_empty());
-    /// ```
-    #[inline]
-    pub const fn is_empty(&self) -> bool {
-        self.inner.is_empty()
-    }
-
     /// Returns the length of an [`OpaqueVec`].
     ///
     /// The **length** of an [`OpaqueVec`] is the number of elements stored inside it.
@@ -6339,6 +6310,33 @@ impl OpaqueVec {
     #[inline]
     pub const fn len(&self) -> usize {
         self.inner.len()
+    }
+
+    /// Determine whether an [`OpaqueVec`] is empty or not.
+    ///
+    /// An [`OpaqueVec`] is **empty** if it contains no elements, i.e. its length is zero.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_vec = OpaqueVec::with_capacity_in::<i32, Global>(1, Global);
+    ///
+    /// # assert!(opaque_vec.has_element_type::<i32>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    /// assert!(opaque_vec.is_empty());
+    ///
+    /// opaque_vec.push::<i32, Global>(1);
+    ///
+    /// assert!(!opaque_vec.is_empty());
+    /// ```
+    #[inline]
+    pub const fn is_empty(&self) -> bool {
+        self.inner.is_empty()
     }
 }
 
