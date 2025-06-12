@@ -37,26 +37,22 @@ where
 }
 
 #[derive(Clone)]
-pub struct StringRangeFrom {
-    start: isize,
-    current: isize,
+pub struct StringRangeInclusive {
+    range: ops::RangeInclusive<isize>,
 }
 
-impl StringRangeFrom {
+impl StringRangeInclusive {
     #[inline]
-    pub const fn new(start: isize) -> Self {
-        Self { start, current: start, }
+    pub const fn new(range: ops::RangeInclusive<isize>) -> Self {
+        Self { range, }
     }
 }
 
-impl Iterator for StringRangeFrom {
+impl Iterator for StringRangeInclusive {
     type Item = String;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let result = self.current.to_string();
-        self.current += 1;
-
-        Some(result)
+        self.range.next().map(|value| value.to_string())
     }
 }
 
@@ -82,7 +78,6 @@ where
 pub fn range_entries<T>(spec: RangeEntriesSpec<T>) -> Vec<T>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
-    ops::RangeInclusive<T>: DoubleEndedIterator<Item = T>,
 {
     Vec::from_iter(spec.values)
 }

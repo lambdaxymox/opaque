@@ -123,3 +123,17 @@ generate_tests!(
     range_spec = oimt::map::RangeEntriesSpec::new(Box::new(0..=127), Box::new(1..=128)),
     const_spec = oimt::map::ConstantKeyEntriesSpec::new(126, Box::new(1..=128))
 );
+generate_tests!(
+    string_i64,
+    key_type = String,
+    value_type = i64,
+    range_spec = oimt::map::RangeEntriesSpec::new(Box::new(oimt::map::StringRangeInclusive::new(0..=127)), Box::new(1..=128)),
+    const_spec = oimt::map::ConstantKeyEntriesSpec::new(String::from("foo"), Box::new(1..=128))
+);
+generate_tests!(
+    string_string,
+    key_type = String,
+    value_type = String,
+    range_spec = oimt::map::RangeEntriesSpec::new(Box::new(oimt::map::StringRangeInclusive::new(0..=127)), Box::new(oimt::map::StringRangeInclusive::new(1..=128))),
+    const_spec = oimt::map::ConstantKeyEntriesSpec::new(String::from("foo"), Box::new(oimt::map::StringRangeInclusive::new(1..=128)))
+);

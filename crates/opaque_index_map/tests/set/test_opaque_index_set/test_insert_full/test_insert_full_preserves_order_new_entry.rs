@@ -87,3 +87,9 @@ generate_tests!(
     new_entry = usize::MAX,
     range_spec = oimt::set::RangeEntriesSpec::new(Box::new(0..=127))
 );
+generate_tests!(
+    string,
+    value_type = String,
+    new_entry = isize::MAX.to_string(),
+    range_spec = oimt::set::RangeEntriesSpec::new(Box::new(oimt::set::StringRangeInclusive::new(0..=127)))
+);

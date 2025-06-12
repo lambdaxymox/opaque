@@ -116,4 +116,3 @@ generate_tests!(
     key_type = usize,
     value_type = i64
 );
-
