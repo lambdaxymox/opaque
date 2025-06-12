@@ -93,14 +93,14 @@ generate_tests!(
     key_type = u64,
     value_type = i64,
     new_entry = (u64::MAX, i64::MAX),
-    range_spec = oimt::map::RangeEntriesSpec::new(0..=127, 1..=128),
-    const_spec = oimt::map::ConstantKeyEntriesSpec::new(126, 1..=128)
+    range_spec = oimt::map::RangeEntriesSpec::new(Box::new(0..=127), Box::new(1..=128)),
+    const_spec = oimt::map::ConstantKeyEntriesSpec::new(126, Box::new(1..=128))
 );
 generate_tests!(
     usize_i64,
     key_type = usize,
     value_type = i64,
     new_entry = (usize::MAX, i64::MAX),
-    range_spec = oimt::map::RangeEntriesSpec::new(0..=127, 1..=128),
-    const_spec = oimt::map::ConstantKeyEntriesSpec::new(126, 1..=128)
+    range_spec = oimt::map::RangeEntriesSpec::new(Box::new(0..=127), Box::new(1..=128)),
+    const_spec = oimt::map::ConstantKeyEntriesSpec::new(126, Box::new(1..=128))
 );

@@ -3,6 +3,8 @@ use core::fmt;
 use core::hash;
 use core::ops;
 use alloc_crate::vec::Vec;
+use alloc_crate::boxed::Box;
+use alloc_crate::string::{ToString, String};
 
 pub struct PrefixGenerator<'a, K, V> {
     current_index: usize,
@@ -46,14 +48,37 @@ where
 }
 
 #[derive(Clone)]
+pub struct StringRangeFrom {
+    start: isize,
+    current: isize,
+}
+
+impl StringRangeFrom {
+    #[inline]
+    pub const fn new(start: isize) -> Self {
+        Self { start, current: start, }
+    }
+}
+
+impl Iterator for StringRangeFrom {
+    type Item = String;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let result = self.current.to_string();
+        self.current += 1;
+
+        Some(result)
+    }
+}
+
 pub struct RangeEntriesSpec<K, V> {
-    keys: ops::RangeInclusive<K>,
-    values: ops::RangeInclusive<V>,
+    keys: Box<dyn Iterator<Item = K>>,
+    values: Box<dyn Iterator<Item = V>>,
 }
 
 impl<K, V> RangeEntriesSpec<K, V> {
     #[inline]
-    pub const fn new(keys: ops::RangeInclusive<K>, values: ops::RangeInclusive<V>) -> Self {
+    pub const fn new(keys: Box<dyn Iterator<Item = K>>, values: Box<dyn Iterator<Item = V>>) -> Self {
         Self { keys, values }
     }
 }
@@ -62,21 +87,18 @@ pub fn range_entries<K, V>(spec: RangeEntriesSpec<K, V>) -> Vec<(K, V)>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
-    ops::RangeInclusive<K>: DoubleEndedIterator<Item = K>,
-    ops::RangeInclusive<V>: DoubleEndedIterator<Item = V>,
 {
     key_value_pairs(spec.keys, spec.values)
 }
 
-#[derive(Clone)]
 pub struct ConstantKeyEntriesSpec<K, V> {
     key: K,
-    values: ops::RangeInclusive<V>,
+    values: Box<dyn Iterator<Item = V>>,
 }
 
 impl<K, V> ConstantKeyEntriesSpec<K, V> {
     #[inline]
-    pub const fn new(key: K, values: ops::RangeInclusive<V>) -> Self {
+    pub const fn new(key: K, values: Box<dyn Iterator<Item = V>>) -> Self {
         Self { key, values }
     }
 }
@@ -85,10 +107,14 @@ pub fn constant_key_entries<K, V>(spec: ConstantKeyEntriesSpec<K, V>) -> Vec<(K,
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
-    ops::RangeInclusive<V>: DoubleEndedIterator<Item = V>,
 {
-    let keys = core::iter::repeat(spec.key).take(spec.values.clone().count());
-    key_value_pairs(keys, spec.values)
+    let mut result = Vec::new();
+    for value in spec.values {
+        let key = spec.key.clone();
+        result.push((key, value));
+    }
+
+    result
 }
 
 fn dedup_by_largest_index_per_key<K>(sorted_entries: &[(K, usize)]) -> Vec<(K, (usize, usize))>

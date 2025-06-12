@@ -69,10 +69,10 @@ macro_rules! generate_tests {
 generate_tests!(
     u64,
     value_type = u64,
-    range_spec = oimt::set::RangeEntriesSpec::new(0..=127)
+    range_spec = oimt::set::RangeEntriesSpec::new(Box::new(0..=127))
 );
 generate_tests!(
     usize,
     value_type = usize,
-    range_spec = oimt::set::RangeEntriesSpec::new(0..=127)
+    range_spec = oimt::set::RangeEntriesSpec::new(Box::new(0..=127))
 );

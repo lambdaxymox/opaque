@@ -3,6 +3,8 @@ use core::fmt;
 use core::hash;
 use core::ops;
 use alloc_crate::vec::Vec;
+use alloc_crate::boxed::Box;
+use alloc_crate::string::{ToString, String};
 
 pub struct PrefixGenerator<'a, T> {
     current_index: usize,
@@ -35,13 +37,36 @@ where
 }
 
 #[derive(Clone)]
+pub struct StringRangeFrom {
+    start: isize,
+    current: isize,
+}
+
+impl StringRangeFrom {
+    #[inline]
+    pub const fn new(start: isize) -> Self {
+        Self { start, current: start, }
+    }
+}
+
+impl Iterator for StringRangeFrom {
+    type Item = String;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let result = self.current.to_string();
+        self.current += 1;
+
+        Some(result)
+    }
+}
+
 pub struct RangeEntriesSpec<T> {
-    values: ops::RangeInclusive<T>,
+    values: Box<dyn Iterator<Item = T>>,
 }
 
 impl<T> RangeEntriesSpec<T> {
     #[inline]
-    pub const fn new(values: ops::RangeInclusive<T>) -> Self {
+    pub const fn new(values: Box<dyn Iterator<Item = T>>) -> Self {
         Self { values, }
     }
 }
