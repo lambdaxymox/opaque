@@ -4222,7 +4222,7 @@ where
         entries.get_mut(range).map(Slice::from_slice_mut)
     }
 
-    #[doc(alias = "first_key_value")] // like `BTreeMap`
+    #[doc(alias = "first_key_value")]
     pub(crate) fn first(&self) -> Option<(&K, &V)> {
         debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
         debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
@@ -4253,7 +4253,7 @@ where
         self.get_index_entry(0)
     }
 
-    #[doc(alias = "last_key_value")] // like `BTreeMap`
+    #[doc(alias = "last_key_value")]
     pub(crate) fn last(&self) -> Option<(&K, &V)> {
         debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
         debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());

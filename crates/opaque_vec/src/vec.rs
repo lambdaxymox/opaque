@@ -1609,7 +1609,7 @@ where
         self.inner.len()
     }
 
-    /// Determine whether a [`TypedProjVec`] is empty or not.
+    /// Determines whether a [`TypedProjVec`] is empty or not.
     ///
     /// A [`TypedProjVec`] is **empty** if it contains no elements, i.e. its length is zero.
     ///
@@ -3679,7 +3679,7 @@ where
         self.inner.resize(new_len, value);
     }
 
-    /// Shorten a [`TypedProjVec`] to the supplied length, dropping the remaining elements.
+    /// Shortens a [`TypedProjVec`] to the supplied length, dropping the remaining elements.
     ///
     /// This method keeps the first `len` elements, and drops the rest of the elements, so that
     /// the length after calling this method is at most `len`. This method does nothing if
@@ -6312,7 +6312,7 @@ impl OpaqueVec {
         self.inner.len()
     }
 
-    /// Determine whether an [`OpaqueVec`] is empty or not.
+    /// Determines whether an [`OpaqueVec`] is empty or not.
     ///
     /// An [`OpaqueVec`] is **empty** if it contains no elements, i.e. its length is zero.
     ///
@@ -9156,7 +9156,7 @@ impl OpaqueVec {
         proj_self.resize(new_len, value);
     }
 
-    /// Shorten an [`OpaqueVec`] to the supplied length, dropping the remaining elements.
+    /// Shortens an [`OpaqueVec`] to the supplied length, dropping the remaining elements.
     ///
     /// This method keeps the first `len` elements, and drops the rest of the elements, so that
     /// the length after calling this method is at most `len`. This method does nothing if

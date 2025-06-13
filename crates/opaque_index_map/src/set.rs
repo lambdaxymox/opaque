@@ -1645,7 +1645,7 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    #[doc(alias = "pop_last")] // like `BTreeSet`
+    #[doc(alias = "pop_last")]
     pub fn pop(&mut self) -> Option<T> {
         self.inner.pop().map(|(x, ())| x)
     }
@@ -2867,7 +2867,7 @@ impl OpaqueIndexSet {
 }
 
 impl OpaqueIndexSet {
-    #[doc(alias = "pop_last")] // like `BTreeSet`
+    #[doc(alias = "pop_last")]
     pub fn pop<T, S, A>(&mut self) -> Option<T>
     where
         T: any::Any,
