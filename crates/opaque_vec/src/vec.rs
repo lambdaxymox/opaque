@@ -9706,7 +9706,7 @@ impl OpaqueVec {
     /// of the memory allocator of `self` do not match the requested element type `T` and
     /// allocator type `A`, respectively.
     ///
-    /// Examples
+    /// # Examples
     ///
     /// Cloning an empty [`OpaqueVec`].
     ///
