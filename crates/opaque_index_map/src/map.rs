@@ -6962,6 +6962,13 @@ impl OpaqueIndexMap {
 impl OpaqueIndexMap {
     /// Returns a reference to the type-projected hash builder used by the index map.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
+    ///
     /// # Example
     ///
     /// ```
@@ -7000,6 +7007,13 @@ impl OpaqueIndexMap {
     }
 
     /// Returns a reference to the type-projected memory allocator from the index map.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
     ///
     /// # Example
     ///
@@ -7045,6 +7059,13 @@ impl OpaqueIndexMap {
     /// This method returns `Some(index)`, where `index` is the storage index of the key/value pair, if
     /// the key `key` exists in `self`. This method returns `None` if the key `key` does not exist inside
     /// `self`.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
     ///
     /// # Example
     ///
@@ -7094,6 +7115,13 @@ impl OpaqueIndexMap {
     /// This method returns `true` if the key `key` exists in `self`. This method returns `false` if
     /// the key `key` does not exist inside `self`.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
+    ///
     /// # Example
     ///
     /// ```
@@ -7142,6 +7170,13 @@ impl OpaqueIndexMap {
     ///
     /// This method returns `Some(&value)` where `value` is the value corresponding to the key `key`
     /// in `self`. This method returns `None` if the key `key` does not exist inside `self`.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
     ///
     /// # Example
     ///
@@ -7195,6 +7230,13 @@ impl OpaqueIndexMap {
     /// This method returns `None` if the equivalent key provided by the method argument does not exist
     /// inside `self`.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
+    ///
     /// # Example
     ///
     /// ```
@@ -7247,6 +7289,13 @@ impl OpaqueIndexMap {
     /// key provided by the method argument exists inside `self`. This method returns `None` if the
     /// equivalent key provided by the method argument does not exist inside `self`.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
+    ///
     /// # Example
     ///
     /// ```
@@ -7295,6 +7344,13 @@ impl OpaqueIndexMap {
     ///
     /// This method returns `Some(&mut value)` where `value` is the value corresponding to the key `key`
     /// in `self`. This method returns `None` if the key `key` does not exist inside `self`.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
     ///
     /// # Example
     ///
@@ -7348,6 +7404,13 @@ impl OpaqueIndexMap {
     /// key provided by the method argument exists inside `self`. This method returns `None` if the
     /// equivalent key provided by the method argument does not exist inside `self`.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
+    ///
     /// # Example
     ///
     /// ```
@@ -7394,6 +7457,13 @@ impl OpaqueIndexMap {
     /// Returns an iterator over the keys in the index map.
     ///
     /// The iterator returns the keys in the storage order of the key/value pairs inside the index map.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
     ///
     /// # Example
     ///
@@ -7450,6 +7520,13 @@ impl OpaqueIndexMap {
     ///
     /// The iterator returns the keys in the storage order of the key/value pairs inside the index map.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
+    ///
     /// # Example
     ///
     /// ```
@@ -7504,6 +7581,13 @@ impl OpaqueIndexMap {
     /// Returns an iterator over the keys/value pairs in the index map.
     ///
     /// The iterator returns the keys/values pairs in their storage order inside the index map.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
     ///
     /// # Example
     ///
@@ -7560,9 +7644,16 @@ impl OpaqueIndexMap {
     ///
     /// The iterator returns the keys/values pairs in their storage order inside the index map.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
-    /// Iterating over the entries of a [`OpaqueIndexMap`] without mutating them.
+    /// Iterating over the entries of an [`OpaqueIndexMap`] without mutating them.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -7601,7 +7692,7 @@ impl OpaqueIndexMap {
     /// }
     /// ```
     ///
-    /// Iterating over the entries of a [`OpaqueIndexMap`] while mutating them.
+    /// Iterating over the entries of an [`OpaqueIndexMap`] while mutating them.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -7660,6 +7751,13 @@ impl OpaqueIndexMap {
     ///
     /// The iterator returns the values in the storage order of the key/value pairs inside the index map.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
+    ///
     /// # Example
     ///
     /// ```
@@ -7714,9 +7812,16 @@ impl OpaqueIndexMap {
     ///
     /// The iterator returns the values in the storage order of the key/value pairs inside the index map.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
-    /// Iterating over the entries of a [`OpaqueIndexMap`] without mutating them.
+    /// Iterating over the entries of an [`OpaqueIndexMap`] without mutating them.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -7754,7 +7859,7 @@ impl OpaqueIndexMap {
     /// }
     /// ```
     ///
-    /// Iterating over the entries of a [`OpaqueIndexMap`] while mutating them.
+    /// Iterating over the entries of an [`OpaqueIndexMap`] while mutating them.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -7806,6 +7911,13 @@ impl OpaqueIndexMap {
     /// Returns a moving iterator over the values in the index map.
     ///
     /// The iterator returns the values in the storage order of the key/value pairs inside the index map.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
     ///
     /// # Example
     ///
@@ -7861,6 +7973,13 @@ impl OpaqueIndexMap {
     ///
     /// After calling this method, the collection will be empty. This method does not change the
     /// allocated capacity of the [`OpaqueIndexMap`].
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
     ///
     /// # Example
     ///
@@ -7918,9 +8037,16 @@ impl OpaqueIndexMap {
     /// this method drops every entry with storage index in the range `[len, self.len())`.
     /// This method does nothing when `self.len() <= len`.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
-    /// Truncating a [`OpaqueIndexMap`] when `len < self.len()`.
+    /// Truncating an [`OpaqueIndexMap`] when `len < self.len()`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -8122,9 +8248,14 @@ impl OpaqueIndexMap {
     ///
     /// # Panics
     ///
-    /// This method panics if the range of the subslice falls outside the bounds of the collection.
-    /// That is, if the starting point of the subslice being removed starts after the end of `self`,
-    /// or if the ending point is larger than the length of the index map.
+    /// This method panics under one of the following conditions:
+    /// * If the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    ///   `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    ///   allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    ///   type `S`, and allocator type `A`, respectively.
+    /// * If the range of the subslice falls outside the bounds of the collection.
+    ///   That is, if the starting point of the subslice being removed starts after the end of `self`,
+    ///   or if the ending point is larger than the length of the index map.
     ///
     /// # Leaking
     ///
@@ -8134,7 +8265,7 @@ impl OpaqueIndexMap {
     ///
     /// # Examples
     ///
-    /// Draining part of a [`OpaqueIndexMap`].
+    /// Draining part of an [`OpaqueIndexMap`].
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -8247,7 +8378,7 @@ impl OpaqueIndexMap {
     /// assert_eq!(drained_entries.as_slice(), expected_drained_entries.as_slice());
     /// ```
     ///
-    /// Draining no part of a [`OpaqueIndexMap`].
+    /// Draining no part of an [`OpaqueIndexMap`].
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -8317,7 +8448,7 @@ impl OpaqueIndexMap {
         proj_self.drain(range)
     }
 
-    /// Splits a [`OpaqueIndexMap`] into two [`OpaqueIndexMap`]s at the given index.
+    /// Splits an [`OpaqueIndexMap`] into two [`OpaqueIndexMap`]s at the given index.
     ///
     /// This method returns a newly allocated [`OpaqueIndexMap`] consisting of every entry from
     /// the original [`OpaqueIndexMap`] in the storage range `[at, len)`. The original
@@ -8326,7 +8457,12 @@ impl OpaqueIndexMap {
     ///
     /// # Panics
     ///
-    /// This method panics if `at > self.len()`.
+    /// This method panics under one of the following conditions:
+    /// * If the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    ///  `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    ///   allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    ///   type `S`, and allocator type `A`, respectively.
+    /// * If the splitting index `at > self.len()`.
     ///
     /// # Example
     ///
@@ -8411,7 +8547,7 @@ impl OpaqueIndexMap {
         Self::from_proj(proj_split)
     }
 
-    /// Removes an entry from a [`OpaqueIndexMap`], moving the last entry in storage order in the
+    /// Removes an entry from an [`OpaqueIndexMap`], moving the last entry in storage order in the
     /// collection to the index where the removed entry occupies the collection.
     ///
     /// This method behaves with respect to `key` as follows:
@@ -8422,6 +8558,13 @@ impl OpaqueIndexMap {
     ///   The method then returns `Some(value)`, where `value` is the value stored in the index map
     ///   corresponding to the key `key`.
     /// * If the key `key` does not exist in the index map, the method returns `None`.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
     ///
     /// # Example
     ///
@@ -8556,7 +8699,7 @@ impl OpaqueIndexMap {
         proj_self.swap_remove(key)
     }
 
-    /// Removes an entry from a [`OpaqueIndexMap`], moving the last entry in storage order in the
+    /// Removes an entry from an [`OpaqueIndexMap`], moving the last entry in storage order in the
     /// collection to the index where the removed entry occupies the collection.
     ///
     /// This method behaves with respect to `key` as follows:
@@ -8567,6 +8710,13 @@ impl OpaqueIndexMap {
     ///   The method then returns `Some((key, value))`, where `(key, value)` is the key/value pair
     ///   stored in the index map corresponding to the key `key`.
     /// * If the key `key` does not exist in the index map, the method returns `None`.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
     ///
     /// # Example
     ///
@@ -8701,7 +8851,7 @@ impl OpaqueIndexMap {
         proj_self.swap_remove_entry(key)
     }
 
-    /// Removes an entry from a [`OpaqueIndexMap`], moving the last entry in storage order in the
+    /// Removes an entry from an [`OpaqueIndexMap`], moving the last entry in storage order in the
     /// collection to the index where the removed entry occupies the collection.
     ///
     /// This method behaves with respect to `key` as follows:
@@ -8712,6 +8862,13 @@ impl OpaqueIndexMap {
     ///   The method then returns `Some((index, key, value))`, where `(key, value)` is the key/value
     ///   pair stored in the index map corresponding to the key `key`.
     /// * If the key `key` does not exist in the index map, the method returns `None`.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
     ///
     /// # Example
     ///
@@ -8846,7 +9003,7 @@ impl OpaqueIndexMap {
         proj_self.swap_remove_full(key)
     }
 
-    /// Removes an entry from a [`OpaqueIndexMap`], shifting every successive entry in the collection
+    /// Removes an entry from an [`OpaqueIndexMap`], shifting every successive entry in the collection
     /// in storage order to the left one index to fill where the removed entry occupies the collection.
     ///
     /// This method behaves with respect to `key` as follows:
@@ -8859,6 +9016,13 @@ impl OpaqueIndexMap {
     ///
     /// In particular, the method acts like a [`pop`] when the last value in the collection is
     /// shift-removed, because the sub-collection of successor entries in the entry storage is empty.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
     ///
     /// # Example
     ///
@@ -8995,7 +9159,7 @@ impl OpaqueIndexMap {
         proj_self.shift_remove(key)
     }
 
-    /// Removes an entry from a [`OpaqueIndexMap`], shifting every successive entry in the collection
+    /// Removes an entry from an [`OpaqueIndexMap`], shifting every successive entry in the collection
     /// in storage order to the left one index to fill where the removed entry occupies the collection.
     ///
     /// This method behaves with respect to `key` as follows:
@@ -9009,6 +9173,13 @@ impl OpaqueIndexMap {
     ///
     /// In particular, the method acts like a [`pop`] when the last value in the collection is
     /// shift-removed, because the sub-collection of successor entries in the entry storage is empty.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
     ///
     /// # Example
     ///
@@ -9145,7 +9316,7 @@ impl OpaqueIndexMap {
         proj_self.shift_remove_entry(key)
     }
 
-    /// Removes an entry from a [`OpaqueIndexMap`], shifting every successive entry in the collection
+    /// Removes an entry from an [`OpaqueIndexMap`], shifting every successive entry in the collection
     /// in storage order to the left one index to fill where the removed entry occupies the collection.
     ///
     /// This method behaves with respect to `key` as follows:
@@ -9159,6 +9330,13 @@ impl OpaqueIndexMap {
     ///
     /// In particular, the method acts like a [`pop`] when the last value in the collection is
     /// shift-removed, because the sub-collection of successor entries in the entry storage is empty.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
     ///
     /// # Example
     ///
@@ -9297,6 +9475,13 @@ impl OpaqueIndexMap {
 
     /// Returns a slice of all the key/value pairs in the index map.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
+    ///
     /// # Example
     ///
     /// ```
@@ -9344,6 +9529,13 @@ impl OpaqueIndexMap {
     }
 
     /// Returns a mutable slice of all the key/value pairs in the index map.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
     ///
     /// # Example
     ///
@@ -9403,6 +9595,13 @@ impl OpaqueIndexMap {
     ///   of the map, so the resulting entry is in last place in the storage order, and the method
     ///   returns `None`.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
+    ///
     /// # Example
     ///
     /// ```
@@ -9459,6 +9658,13 @@ impl OpaqueIndexMap {
     ///   of the map, so the resulting entry is in last place in the storage order, and the method
     ///   returns `(index, None)`, where `index` is the index of the last entry in the map in storage
     ///   order.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
     ///
     /// # Example
     ///
@@ -9546,6 +9752,13 @@ impl OpaqueIndexMap {
     /// [`sort_keys`]: OpaqueIndexMap::sort_keys
     /// [`sort_unstable_keys`]: OpaqueIndexMap::sort_unstable_keys
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
     /// Calling this method on an index map with a set of sorted keys yields the index of the
@@ -9632,7 +9845,7 @@ impl OpaqueIndexMap {
         proj_self.insert_sorted(key, value)
     }
 
-    /// Inserts an entry into a [`OpaqueIndexMap`] before the entry at the given index, or at the
+    /// Inserts an entry into an [`OpaqueIndexMap`] before the entry at the given index, or at the
     /// end of the index map.
     ///
     /// The index `index` must be in bounds. The index `index` is **in bounds** provided that
@@ -9659,7 +9872,12 @@ impl OpaqueIndexMap {
     ///
     /// # Panics
     ///
-    /// This method panics if the index `index` is out of bounds.
+    /// This method panics under one of the following conditions:
+    /// * If the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    ///   `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    ///   allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    ///   type `S`, and allocator type `A`, respectively.
+    /// * If the index `index` is out of bounds.
     ///
     /// # Examples
     ///
@@ -9855,7 +10073,7 @@ impl OpaqueIndexMap {
         proj_self.insert_before(index, key, value)
     }
 
-    /// Inserts an entry into a [`OpaqueIndexMap`] at the given storage index.
+    /// Inserts an entry into an [`OpaqueIndexMap`] at the given storage index.
     ///
     /// The index `index` must be in bounds. The index `index` is **in bounds** provided that one
     /// of the following conditions holds:
@@ -9886,7 +10104,12 @@ impl OpaqueIndexMap {
     ///
     /// # Panics
     ///
-    /// This method panics if the index `index` is out of bounds.
+    /// This method panics under one of the following conditions:
+    /// * If the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    ///   `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    ///   allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    ///   type `S`, and allocator type `A`, respectively.
+    /// * If the index `index` is out of bounds.
     ///
     /// # Examples
     ///
@@ -10048,6 +10271,13 @@ impl OpaqueIndexMap {
     /// The resulting entry can be queried or manipulated directly, instead of going through the
     /// index map to do it.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
+    ///
     /// # Example
     ///
     /// ```
@@ -10132,8 +10362,13 @@ impl OpaqueIndexMap {
     ///
     /// # Panics
     ///
-    /// This method panics if the starting point is greater than the end point or if the end point
-    /// is greater than the length of the index map.
+    /// This method panics under one of the following conditions:
+    /// * If the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    ///   `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    ///   allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    ///   type `S`, and allocator type `A`, respectively.
+    /// * If the starting point is greater than the end point or if the end point is greater than
+    ///   the length of the index map.
     ///
     /// # Examples
     ///
@@ -10254,6 +10489,13 @@ impl OpaqueIndexMap {
     /// that for keys that already exist in `self`, their value is updated in the current position.
     ///
     /// [`insert`]: TypedProjIndexMap::insert
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
     ///
     /// # Example
     ///
