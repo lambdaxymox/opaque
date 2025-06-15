@@ -101,7 +101,7 @@ where
 {
     /// Returns the [`TypeId`] of the underlying hash builder.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # use opaque_hash::TypedProjBuildHasher;
@@ -119,7 +119,7 @@ where
 
     /// Returns the [`TypeId`] of the hasher returned by the underlying hash builder.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # use opaque_hash::TypedProjBuildHasher;
@@ -143,7 +143,7 @@ where
 {
     /// Constructs a new type-projected hash builder.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # use opaque_hash::TypedProjBuildHasher;
@@ -187,7 +187,7 @@ where
 
     /// Returns a reference to the underlying hash builder.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # use opaque_hash::TypedProjBuildHasher;
@@ -204,7 +204,7 @@ where
 
     /// Converts the type-projected hash builder into a boxed hash builder.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # use opaque_hash::TypedProjBuildHasher;
@@ -245,7 +245,7 @@ where
     ///
     /// To get an unprojected hasher instead of a type-projected one, use [`build_hasher`] instead.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # use opaque_hash::{TypedProjBuildHasher, TypedProjHasher};
@@ -333,7 +333,7 @@ pub struct OpaqueBuildHasher {
 impl OpaqueBuildHasher {
     /// Returns the [`TypeId`] of the underlying hash builder.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # use opaque_hash::OpaqueBuildHasher;
@@ -351,7 +351,7 @@ impl OpaqueBuildHasher {
 
     /// Returns the [`TypeId`] of the hasher returned by the underlying hash builder.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # use opaque_hash::OpaqueBuildHasher;
@@ -373,7 +373,7 @@ impl OpaqueBuildHasher {
     ///
     /// Returns `true` if `self` has the hash builder allocator type. Returns `false` otherwise.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # use opaque_hash::OpaqueBuildHasher;
@@ -396,7 +396,7 @@ impl OpaqueBuildHasher {
     ///
     /// Returns `true` if `self` returns the specified hasher type. Returns `false` otherwise.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # use opaque_hash::OpaqueBuildHasher;
@@ -448,7 +448,7 @@ impl OpaqueBuildHasher {
 impl OpaqueBuildHasher {
     /// Constructs a new type-erased hash builder.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # use opaque_hash::OpaqueBuildHasher;
@@ -509,7 +509,7 @@ impl OpaqueBuildHasher {
     /// This method panics if the [`TypeId`] of the hash builder of `self` do not match the requested
     /// hash builder type `S`.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # use opaque_hash::{OpaqueBuildHasher, TypedProjBuildHasher};
@@ -541,7 +541,7 @@ impl OpaqueBuildHasher {
     /// This method panics if the [`TypeId`] of the hash builder of `self` do not match the requested
     /// hash builder type `S`.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # use opaque_hash::{OpaqueBuildHasher, TypedProjBuildHasher};
@@ -573,7 +573,7 @@ impl OpaqueBuildHasher {
     /// This method panics if the [`TypeId`] of the hash builder of `self` do not match the requested
     /// hash builder type `S`.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # use opaque_hash::{OpaqueBuildHasher, TypedProjBuildHasher};
@@ -605,7 +605,7 @@ impl OpaqueBuildHasher {
     /// Unlike the type projection methods [`as_proj`], [`as_proj_mut`], and [`into_proj`], this
     /// method never panics.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # use opaque_hash::{OpaqueBuildHasher, TypedProjBuildHasher};
@@ -642,7 +642,7 @@ impl OpaqueBuildHasher {
     ///
     /// To get a type-projected hasher instead of an unprojected one, use [`build_hasher_proj`] instead.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # use opaque_hash::{OpaqueBuildHasher, TypedProjBuildHasher};
@@ -674,7 +674,7 @@ impl OpaqueBuildHasher {
     ///
     /// To get an unprojected hasher instead of a type-projected one, use [`build_hasher`] instead.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # use opaque_hash::{OpaqueBuildHasher, TypedProjBuildHasher, TypedProjHasher};

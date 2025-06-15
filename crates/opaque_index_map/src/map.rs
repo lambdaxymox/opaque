@@ -16,7 +16,7 @@ use std::hash;
 
 #[cfg(not(feature = "std"))]
 use core::hash;
-use std::prelude::rust_2015::Vec;
+
 use opaque_alloc::TypedProjAlloc;
 use opaque_error::{
     TryReserveError,
@@ -1872,7 +1872,7 @@ where
 {
     /// Returns the [`TypeId`] of the keys contained in the [`TypedProjIndexMap`].
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -1892,7 +1892,7 @@ where
 
     /// Returns the [`TypeId`] of the values contained in the [`TypedProjIndexMap`].
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -1912,7 +1912,7 @@ where
 
     /// Returns the [`TypeId`] of the hash builder for the [`TypedProjIndexMap`].
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -1932,7 +1932,7 @@ where
 
     /// Returns the [`TypeId`] of the memory allocator for the [`TypedProjIndexMap`].
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -1966,7 +1966,7 @@ where
     /// not allocate memory until key/value pairs are inserted into it. The index map will have
     /// length zero until elements are inserted into it.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2078,7 +2078,7 @@ where
     /// not allocate memory until key/value pairs are inserted into it. The index map will have
     /// length zero until elements are inserted into it.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2176,7 +2176,7 @@ where
     /// not allocate memory until key/value pairs are inserted into it. The index map will have
     /// length zero until elements are inserted into it.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2281,7 +2281,7 @@ where
     /// not allocate memory until key/value pairs are inserted into it. The index map will have
     /// length zero until elements are inserted into it.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2375,7 +2375,7 @@ where
     /// not allocate memory until key/value pairs are inserted into it. The index map will have
     /// length zero until elements are inserted into it.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2462,7 +2462,7 @@ where
     /// not allocate memory until key/value pairs are inserted into it. The index map will have
     /// length zero until elements are inserted into it.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2556,7 +2556,7 @@ where
     /// The **capacity** of a [`TypedProjIndexMap`] is the number of key/value pairs the index map
     /// can hold without reallocating memory.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2592,7 +2592,7 @@ where
     ///
     /// The **length** of a [`TypedProjIndexMap`] is the number of key/value pairs stored inside it.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2626,7 +2626,7 @@ where
     ///
     /// A [`TypedProjIndexMap`] is **empty** if it contains no key/value pairs, i.e. its length is zero.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2664,7 +2664,7 @@ where
 {
     /// Returns a reference to the type-projected hash builder used by the index map.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2688,7 +2688,7 @@ where
 
     /// Returns a reference to the type-projected memory allocator from the index map.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2725,7 +2725,7 @@ where
     /// the key `key` exists in `self`. This method returns `None` if the key `key` does not exist inside
     /// `self`.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2760,7 +2760,7 @@ where
     /// This method returns `true` if the key `key` exists in `self`. This method returns `false` if
     /// the key `key` does not exist inside `self`.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2796,7 +2796,7 @@ where
     /// This method returns `Some(&value)` where `value` is the value corresponding to the key `key`
     /// in `self`. This method returns `None` if the key `key` does not exist inside `self`.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2835,7 +2835,7 @@ where
     /// This method returns `None` if the equivalent key provided by the method argument does not exist
     /// inside `self`.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2874,7 +2874,7 @@ where
     /// key provided by the method argument exists inside `self`. This method returns `None` if the
     /// equivalent key provided by the method argument does not exist inside `self`.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2910,7 +2910,7 @@ where
     /// This method returns `Some(&mut value)` where `value` is the value corresponding to the key `key`
     /// in `self`. This method returns `None` if the key `key` does not exist inside `self`.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2949,7 +2949,7 @@ where
     /// key provided by the method argument exists inside `self`. This method returns `None` if the
     /// equivalent key provided by the method argument does not exist inside `self`.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2983,7 +2983,7 @@ where
     ///
     /// The iterator returns the keys in the storage order of the key/value pairs inside the index map.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -3023,7 +3023,7 @@ where
     ///
     /// The iterator returns the keys in the storage order of the key/value pairs inside the index map.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -3063,7 +3063,7 @@ where
     ///
     /// The iterator returns the keys/values pairs in their storage order inside the index map.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -3182,7 +3182,7 @@ where
     ///
     /// The iterator returns the values in the storage order of the key/value pairs inside the index map.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -3299,7 +3299,7 @@ where
     ///
     /// The iterator returns the values in the storage order of the key/value pairs inside the index map.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -3339,7 +3339,7 @@ where
     /// After calling this method, the collection will be empty. This method does not change the
     /// allocated capacity of the [`TypedProjIndexMap`].
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -3728,7 +3728,7 @@ where
     ///
     /// This method panics if `at > self.len()`.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -3807,7 +3807,7 @@ where
     ///   corresponding to the key `key`.
     /// * If the key `key` does not exist in the index map, the method returns `None`.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// Showing how swap removal happens.
     ///
@@ -3891,7 +3891,7 @@ where
     ///   stored in the index map corresponding to the key `key`.
     /// * If the key `key` does not exist in the index map, the method returns `None`.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// Showing how swap removal happens.
     ///
@@ -3975,7 +3975,7 @@ where
     ///   pair stored in the index map corresponding to the key `key`.
     /// * If the key `key` does not exist in the index map, the method returns `None`.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// Showing how swap removal happens.
     ///
@@ -4061,7 +4061,7 @@ where
     /// In particular, the method acts like a [`pop`] when the last value in the collection is
     /// shift-removed, because the sub-collection of successor entries in the entry storage is empty.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// Showing how shift removal happens.
     ///
@@ -4150,7 +4150,7 @@ where
     /// In particular, the method acts like a [`pop`] when the last value in the collection is
     /// shift-removed, because the sub-collection of successor entries in the entry storage is empty.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// Showing how shift removal happens.
     ///
@@ -4239,7 +4239,7 @@ where
     /// In particular, the method acts like a [`pop`] when the last value in the collection is
     /// shift-removed, because the sub-collection of successor entries in the entry storage is empty.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// Showing how shift removal happens.
     ///
@@ -4315,7 +4315,7 @@ where
 
     /// Returns a slice of all the key/value pairs in the index map.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -4348,7 +4348,7 @@ where
 
     /// Returns a mutable slice of all the key/value pairs in the index map.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -4398,7 +4398,7 @@ where
     ///   of the map, so the resulting entry is in last place in the storage order, and the method
     ///   returns `None`.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -4443,7 +4443,7 @@ where
     ///   returns `(index, None)`, where `index` is the index of the last entry in the map in storage
     ///   order.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -4953,7 +4953,7 @@ where
     /// The resulting entry can be queried or manipulated directly, instead of going through the
     /// index map to do it.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -5134,7 +5134,7 @@ where
     ///
     /// [`insert`]: TypedProjIndexMap::insert
     ///
-    /// # Example
+    /// # Examples
     ///
     /// Appending one index map to another when they have no overlapping keys.
     ///
@@ -5234,7 +5234,7 @@ where
     ///
     /// This method preserves the order of the remaining elements in the collection.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// Popping from a nonempty index map.
     ///
@@ -5298,7 +5298,7 @@ where
     /// the storage order of the retained entries. Stated difference, this method keeps only those
     /// entries `e` for which `keep(&e)` returns `true`.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -5367,7 +5367,7 @@ where
     ///
     /// After this method completes, the index map will be in stable sorted order.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -5404,7 +5404,7 @@ where
     /// After this method completes, the index map will be in stable sorted order with the ordering
     /// defined by the comparison function.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -5441,7 +5441,7 @@ where
     /// The resulting moving iterator will return the entries of the index map in stable sorted order
     /// with the ordering defined by the comparison function.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -5484,7 +5484,7 @@ where
     ///
     /// After this method completes, the index map will be in unstable sorted order.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -5527,7 +5527,7 @@ where
     /// After this method completes, the index map will be in unstable sorted order with the ordering
     /// defined by the comparison function.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -5582,7 +5582,7 @@ where
     ///
     /// The resulting moving iterator will return the elements in unstable sorted order.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -5637,7 +5637,7 @@ where
     /// to remember the results of its evaluation. The order of calls to the function is
     /// unspecified. The sort is stable.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -5828,7 +5828,7 @@ where
     /// [`binary_search_by`]: TypedProjIndexMap::binary_search_by
     /// [`partition_point`]: TypedProjIndexMap::partition_point
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -5979,7 +5979,7 @@ where
 
     /// Reverses the storage order of the index map's entries in place.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -6026,7 +6026,7 @@ where
     /// * If the capacity of the index map overflows.
     /// * If the allocator reports a failure.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -6076,7 +6076,7 @@ where
     /// * If the capacity of the index map overflows.
     /// * If the allocator reports a failure.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -6122,7 +6122,7 @@ where
     ///
     /// This method returns an error if the capacity overflows, or the allocator reports a failure.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -6171,7 +6171,7 @@ where
     ///
     /// This method returns an error if the capacity overflows, or the allocator reports a failure.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -6215,7 +6215,7 @@ where
     ///
     /// [`with_capacity`]: TypedProjIndexMap::with_capacity
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -6261,7 +6261,7 @@ where
     ///
     /// [`with_capacity`]: TypedProjIndexMap::with_capacity
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -6298,7 +6298,7 @@ where
     /// [owned slice]: Box
     /// [`shrink_to_fit`]: TypedProjIndexMap::shrink_to_fit
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -6334,7 +6334,7 @@ where
     /// of the entry at index `index` in the map, and `value` is the value of the entry at index `index`.
     /// If `index >= self.len()`, this method returns `None`.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -6369,7 +6369,7 @@ where
     /// of the entry at index `index` in the map, and `value` is the value of the entry at index `index`.
     /// If `index >= self.len()`, this method returns `None`.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -6402,7 +6402,7 @@ where
     /// If `index < self.len()`, this method returns `Some(entry)`, where `entry` is the entry storage
     /// at the index `index` in the index map. If `index >= self.len()`, this method returns `None`.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -6452,7 +6452,7 @@ where
     /// slice of entries from the index map in the storage range `range`. if the range `range` is
     /// out of bounds, this method returns `None`.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -6496,7 +6496,7 @@ where
     /// slice of entries from the index map in the storage range `range`. if the range `range` is
     /// out of bounds, this method returns `None`.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -6879,7 +6879,7 @@ where
     ///   removed entry.
     /// * If `index >= self.len()`, the index `index` is out of bounds, so the method returns `None`.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -6916,7 +6916,7 @@ where
     /// * If `index >= self.len()`, the index `index` is out of bounds, so the method returns `None`.
     /// Note that when `self.len() == 1`, `self` is empty, so no shifting occurs.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -7015,7 +7015,7 @@ where
     ///
     /// This method panics if either `a` is out of bounds, or `b` is out of bounds.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -7355,7 +7355,7 @@ pub struct OpaqueIndexMap {
 impl OpaqueIndexMap {
     /// Returns the [`TypeId`] of the keys contained in the [`OpaqueIndexMap`].
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -7375,7 +7375,7 @@ impl OpaqueIndexMap {
 
     /// Returns the [`TypeId`] of the values contained in the [`OpaqueIndexMap`].
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -7395,7 +7395,7 @@ impl OpaqueIndexMap {
 
     /// Returns the [`TypeId`] of the hash builder for the [`OpaqueIndexMap`].
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -7415,7 +7415,7 @@ impl OpaqueIndexMap {
 
     /// Returns the [`TypeId`] of the memory allocator for the [`OpaqueIndexMap`].
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -7439,7 +7439,7 @@ impl OpaqueIndexMap {
     ///
     /// Returns `true` if `self` has the specified key type. Returns `false` otherwise.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -7464,7 +7464,7 @@ impl OpaqueIndexMap {
     ///
     /// Returns `true` if `self` has the specified value type. Returns `false` otherwise.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -7489,7 +7489,7 @@ impl OpaqueIndexMap {
     ///
     /// Returns `true` if `self` has the specified hash builder type. Returns `false` otherwise.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -7514,7 +7514,7 @@ impl OpaqueIndexMap {
     ///
     /// Returns `true` if `self` has the specified memory allocator type. Returns `false` otherwise.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -7591,7 +7591,7 @@ impl OpaqueIndexMap {
     /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
     /// type `S`, and allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -7635,7 +7635,7 @@ impl OpaqueIndexMap {
     /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
     /// type `S`, and allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -7679,7 +7679,7 @@ impl OpaqueIndexMap {
     /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
     /// type `S`, and allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -7720,7 +7720,7 @@ impl OpaqueIndexMap {
     /// Unlike the type projection methods [`as_proj`], [`as_proj_mut`], and [`into_proj`], this
     /// method never panics.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -7767,7 +7767,7 @@ impl OpaqueIndexMap {
     /// not allocate memory until key/value pairs are inserted into it. The index map will have
     /// length zero until elements are inserted into it.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -7895,7 +7895,7 @@ impl OpaqueIndexMap {
     /// not allocate memory until key/value pairs are inserted into it. The index map will have
     /// length zero until elements are inserted into it.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -8007,7 +8007,7 @@ impl OpaqueIndexMap {
     /// not allocate memory until key/value pairs are inserted into it. The index map will have
     /// length zero until elements are inserted into it.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -8127,7 +8127,7 @@ impl OpaqueIndexMap {
     /// not allocate memory until key/value pairs are inserted into it. The index map will have
     /// length zero until elements are inserted into it.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -8236,7 +8236,7 @@ impl OpaqueIndexMap {
     /// not allocate memory until key/value pairs are inserted into it. The index map will have
     /// length zero until elements are inserted into it.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -8349,7 +8349,7 @@ impl OpaqueIndexMap {
     /// not allocate memory until key/value pairs are inserted into it. The index map will have
     /// length zero until elements are inserted into it.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -8451,7 +8451,7 @@ impl OpaqueIndexMap {
     /// The **capacity** of an [`OpaqueIndexMap`] is the number of key/value pairs the index map
     /// can hold without reallocating memory.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -8493,7 +8493,7 @@ impl OpaqueIndexMap {
     ///
     /// The **length** of an [`OpaqueIndexMap`] is the number of key/value pairs stored inside it.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -8533,7 +8533,7 @@ impl OpaqueIndexMap {
     ///
     /// An [`OpaqueIndexMap`] is **empty** if it contains no key/value pairs, i.e. its length is zero.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -8577,7 +8577,7 @@ impl OpaqueIndexMap {
     /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
     /// type `S`, and allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -8623,7 +8623,7 @@ impl OpaqueIndexMap {
     /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
     /// type `S`, and allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -8675,7 +8675,7 @@ impl OpaqueIndexMap {
     /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
     /// type `S`, and allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -8730,7 +8730,7 @@ impl OpaqueIndexMap {
     /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
     /// type `S`, and allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -8786,7 +8786,7 @@ impl OpaqueIndexMap {
     /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
     /// type `S`, and allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -8845,7 +8845,7 @@ impl OpaqueIndexMap {
     /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
     /// type `S`, and allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -8904,7 +8904,7 @@ impl OpaqueIndexMap {
     /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
     /// type `S`, and allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -8960,7 +8960,7 @@ impl OpaqueIndexMap {
     /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
     /// type `S`, and allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -9019,7 +9019,7 @@ impl OpaqueIndexMap {
     /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
     /// type `S`, and allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -9073,7 +9073,7 @@ impl OpaqueIndexMap {
     /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
     /// type `S`, and allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -9135,7 +9135,7 @@ impl OpaqueIndexMap {
     /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
     /// type `S`, and allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -9197,7 +9197,7 @@ impl OpaqueIndexMap {
     /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
     /// type `S`, and allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -9366,7 +9366,7 @@ impl OpaqueIndexMap {
     /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
     /// type `S`, and allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -9527,7 +9527,7 @@ impl OpaqueIndexMap {
     /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
     /// type `S`, and allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -9589,7 +9589,7 @@ impl OpaqueIndexMap {
     /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
     /// type `S`, and allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -10072,7 +10072,7 @@ impl OpaqueIndexMap {
     ///   type `S`, and allocator type `A`, respectively.
     /// * If the splitting index `at > self.len()`.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -10174,7 +10174,7 @@ impl OpaqueIndexMap {
     /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
     /// type `S`, and allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// Showing how swap removal happens.
     ///
@@ -10326,7 +10326,7 @@ impl OpaqueIndexMap {
     /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
     /// type `S`, and allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// Showing how swap removal happens.
     ///
@@ -10478,7 +10478,7 @@ impl OpaqueIndexMap {
     /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
     /// type `S`, and allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// Showing how swap removal happens.
     ///
@@ -10632,7 +10632,7 @@ impl OpaqueIndexMap {
     /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
     /// type `S`, and allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// Showing how shift removal happens.
     ///
@@ -10789,7 +10789,7 @@ impl OpaqueIndexMap {
     /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
     /// type `S`, and allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// Showing how shift removal happens.
     ///
@@ -10946,7 +10946,7 @@ impl OpaqueIndexMap {
     /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
     /// type `S`, and allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// Showing how shift removal happens.
     ///
@@ -11090,7 +11090,7 @@ impl OpaqueIndexMap {
     /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
     /// type `S`, and allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -11145,7 +11145,7 @@ impl OpaqueIndexMap {
     /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
     /// type `S`, and allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -11210,7 +11210,7 @@ impl OpaqueIndexMap {
     /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
     /// type `S`, and allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -11274,7 +11274,7 @@ impl OpaqueIndexMap {
     /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
     /// type `S`, and allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -11886,7 +11886,7 @@ impl OpaqueIndexMap {
     /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
     /// type `S`, and allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -12105,7 +12105,7 @@ impl OpaqueIndexMap {
     /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
     /// type `S`, and allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// Appending one index map to another when they have no overlapping keys.
     ///

@@ -80,7 +80,7 @@ where
 {
     /// Returns the [`TypeId`] of the underlying memory allocator.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -107,7 +107,7 @@ where
 {
     /// Constructs a new type-projected memory allocator.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -132,7 +132,7 @@ where
     /// The underlying type of the type-projected memory allocator will be the type of the memory
     /// allocator held by the box.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -154,7 +154,7 @@ where
 
     /// Returns a reference to the underlying memory allocator.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -174,7 +174,7 @@ where
     /// The resulting boxed memory allocator cannot be type-projected and type-erased again
     /// unless it is converted back via a method like [`TypedProjAlloc::from_boxed_alloc`].
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -261,7 +261,7 @@ pub struct OpaqueAlloc {
 impl OpaqueAlloc {
     /// Returns the [`TypeId`] of the underlying memory allocator.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -287,7 +287,7 @@ impl OpaqueAlloc {
     ///
     /// Returns `true` if `self` has the specified memory allocator type. Returns `false` otherwise.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -356,7 +356,7 @@ impl OpaqueAlloc {
 impl OpaqueAlloc {
     /// Constructs a new type-erased memory allocator.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -384,7 +384,7 @@ impl OpaqueAlloc {
     /// The underlying type of the type-erased memory allocator will be the type of the memory
     /// allocator held by the box.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -417,7 +417,7 @@ impl OpaqueAlloc {
     /// This method panics if the [`TypeId`] of the memory allocator of `self` do not match the
     /// requested allocator type `A`.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -448,7 +448,7 @@ impl OpaqueAlloc {
     /// This method panics if the [`TypeId`] of the memory allocator of `self` do not match the
     /// requested allocator type `A`.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -478,7 +478,7 @@ impl OpaqueAlloc {
     /// This method panics if the [`TypeId`] of the memory allocator of `self` do not match the
     /// requested allocator type `A`.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -508,7 +508,7 @@ impl OpaqueAlloc {
     /// Unlike the type projection methods [`as_proj`], [`as_proj_mut`], and [`into_proj`], this
     /// method never panics.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]

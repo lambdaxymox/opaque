@@ -162,7 +162,7 @@ where
 {
     /// Returns the [`TypeId`] of the elements of contained in a [`TypedProjVec`].
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -183,7 +183,7 @@ where
 
     /// Returns the [`TypeId`] of the memory allocator of a [`TypedProjVec`].
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -213,7 +213,7 @@ where
     /// The vector will not allocate until elements are pushed into it. In particular, the
     /// vector has zero capacity until elements are pushed into it.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -670,7 +670,7 @@ where
     /// The vector will not allocate until elements are pushed into it. In particular, the
     /// vector has zero capacity until elements are pushed into it.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -1117,7 +1117,7 @@ where
     /// The vector will not allocate until elements are pushed into it. In particular, the
     /// vector has zero capacity until elements are pushed into it.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -1555,7 +1555,7 @@ where
     /// The **capacity** of a [`TypedProjVec`] is the number of elements the vector can hold
     /// without reallocating memory.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -1585,7 +1585,7 @@ where
     ///
     /// The **length** of a [`TypedProjVec`] is the number of elements stored inside it.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -1613,7 +1613,7 @@ where
     ///
     /// A [`TypedProjVec`] is **empty** if it contains no elements, i.e. its length is zero.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -1642,7 +1642,7 @@ where
 {
     /// Returns a reference to the type-projected memory allocator from the vector.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -1814,7 +1814,7 @@ where
     /// * If `index` is a scalar index, and `index` is out of bounds.
     /// * If `index` is a slice range, and a subslice of `index` falls out of bounds.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -1853,7 +1853,7 @@ where
     /// * If `index` is a scalar index, and `index` is out of bounds.
     /// * If `index` is a slice range, and a subslice of `index` falls out of bounds.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -1891,7 +1891,7 @@ where
     /// * If `index` is a slice range, and a subslice of `index` falls out of bounds.
     /// The method returns some value or range of values otherwise.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -1927,7 +1927,7 @@ where
     /// * If `index` is a slice range, and a subslice of `index` falls out of bounds.
     /// The method returns some value or range of values otherwise.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -1961,7 +1961,7 @@ where
     ///
     /// This method panics if the new capacity exceeds `isize::MAX` _bytes_.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -1982,7 +1982,7 @@ where
     /// Returns the last element in a [`TypedProjVec`] if the vector is non-empty,
     /// and returns `None` if the collection is empty.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2013,7 +2013,7 @@ where
     /// capacity. The caller should use [`reserve`] or [`try_reserve`] to ensure that
     /// there is enough capacity.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// Pushing elements to the vector within the capacity of the vector.
     ///
@@ -2076,7 +2076,7 @@ where
     ///
     /// This method panics if the index `index` is larger than the length of the collection.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2115,7 +2115,7 @@ where
     ///
     /// This method panics if the index `index` is larger than the length of the collection.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2156,7 +2156,7 @@ where
     /// This method panics if the index `index` is larger than the length of the collection. In
     /// particular, the method panics when `self` is empty.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// Showing how swap removal happens.
     ///
@@ -2207,7 +2207,7 @@ where
     /// This method panics if the index `index` is larger than the length of the collection. In
     /// particular, the method panics when `self` is empty.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// Showing how shift removal happens.
     ///
@@ -2250,7 +2250,7 @@ where
     /// The method returns `true` if `self` contains the value `value`. Returns `false` otherwise.
     /// In particular, the method always returns `false` when `self` is empty.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2287,7 +2287,7 @@ where
     ///
     /// The iterator will yield all elements in the collection from start to end.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2318,7 +2318,7 @@ where
     ///
     /// The iterator will yield all elements in the collection from start to end.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2354,7 +2354,7 @@ where
     ///
     /// This method panics if the new capacity exceeds `isize::MAX` _bytes_.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2669,7 +2669,7 @@ where
 
     /// Returns an immutable slice of the elements of the [`TypedProjVec`].
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2751,7 +2751,7 @@ where
     ///
     /// [`from_raw_parts`]: TypedProjVec::from_raw_parts
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2790,7 +2790,7 @@ where
     ///
     /// [`from_parts`]: TypedProjVec::from_parts
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2830,7 +2830,7 @@ where
     ///
     /// [`from_raw_parts_proj_in`]: TypedProjVec::from_raw_parts_proj_in
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2869,7 +2869,7 @@ where
     ///
     /// [`from_parts_proj_in`]: TypedProjVec::from_parts_proj_in
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2901,7 +2901,7 @@ where
     /// [owned slice]: Box
     /// [`shrink_to_fit`]: TypedProjVec::shrink_to_fit
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2954,7 +2954,7 @@ where
     ///
     /// This method panics if `at > self.len()`.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -3075,7 +3075,7 @@ where
     ///
     /// [`set_len`]: TypedProjVec::set_len
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -3114,7 +3114,7 @@ where
     ///
     /// This method returns an error if the capacity overflows, or the allocator reports a failure.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -3153,7 +3153,7 @@ where
     ///
     /// This method returns an error if the capacity overflows, or the allocator reports a failure.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -3192,7 +3192,7 @@ where
     /// * If the capacity of the vector overflows.
     /// * If the allocator reports a failure.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -3233,7 +3233,7 @@ where
     /// * If the capacity of the vector overflows.
     /// * If the allocator reports a failure.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -3267,7 +3267,7 @@ where
     ///
     /// [`with_capacity`]: TypedProjVec::with_capacity
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -3310,7 +3310,7 @@ where
     ///
     /// [`with_capacity`]: TypedProjVec::with_capacity
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -3341,7 +3341,7 @@ where
     /// After calling this method, the collection will be empty. This method does not change the
     /// allocated capacity of the [`TypedProjVec`].
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -3550,7 +3550,7 @@ where
 
     /// Appends all elements from a slice to the [`TypedProjVec`].
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -4485,7 +4485,7 @@ pub struct OpaqueVec {
 impl OpaqueVec {
     /// Returns the [`TypeId`] of the elements of contained in an [`OpaqueVec`].
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -4506,7 +4506,7 @@ impl OpaqueVec {
 
     /// Returns the [`TypeId`] of the memory allocator of an [`OpaqueVec`].
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -4529,7 +4529,7 @@ impl OpaqueVec {
     ///
     /// Returns `true` if `self` has the specified element type. Returns `false` otherwise.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -4552,7 +4552,7 @@ impl OpaqueVec {
     ///
     /// Returns `true` if `self` has the specified memory allocator type. Returns `false` otherwise.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -4615,7 +4615,7 @@ impl OpaqueVec {
     /// of the memory allocator of `self` do not match the requested element type `T` and
     /// allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -4649,7 +4649,7 @@ impl OpaqueVec {
     /// of the memory allocator of `self` do not match the requested element type `T` and
     /// allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -4682,7 +4682,7 @@ impl OpaqueVec {
     /// of the memory allocator of `self` do not match the requested element type `T` and
     /// allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -4714,7 +4714,7 @@ impl OpaqueVec {
     /// Unlike the type projection methods [`as_proj`], [`as_proj_mut`], and [`into_proj`], this
     /// method never panics.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -4750,7 +4750,7 @@ impl OpaqueVec {
     /// The vector will not allocate until elements are pushed into it. In particular, the
     /// vector has zero capacity until elements are pushed into it.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -5258,7 +5258,7 @@ impl OpaqueVec {
     /// The vector will not allocate until elements are pushed into it. In particular, the
     /// vector has zero capacity until elements are pushed into it.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -5748,7 +5748,7 @@ impl OpaqueVec {
     /// The vector will not allocate until elements are pushed into it. In particular, the
     /// vector has zero capacity until elements are pushed into it.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -6220,7 +6220,7 @@ impl OpaqueVec {
 impl OpaqueVec {
     /// Returns the memory layout of the elements inside an [`OpaqueVec`].
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -6255,7 +6255,7 @@ impl OpaqueVec {
     /// The **capacity** of an [`OpaqueVec`] is the number of elements the vector can hold
     /// without reallocating memory.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -6287,7 +6287,7 @@ impl OpaqueVec {
     ///
     /// The **length** of an [`OpaqueVec`] is the number of elements stored inside it.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -6317,7 +6317,7 @@ impl OpaqueVec {
     ///
     /// An [`OpaqueVec`] is **empty** if it contains no elements, i.e. its length is zero.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -6350,7 +6350,7 @@ impl OpaqueVec {
     /// of the memory allocator of `self` do not match the requested element type `T` and
     /// allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -6549,7 +6549,7 @@ impl OpaqueVec {
     /// * If `index` is a scalar index, and `index` is out of bounds.
     /// * If `index` is a slice range, and a subslice of `index` falls out of bounds.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -6597,7 +6597,7 @@ impl OpaqueVec {
     /// * If `index` is a scalar index, and `index` is out of bounds.
     /// * If `index` is a slice range, and a subslice of `index` falls out of bounds.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -6648,7 +6648,7 @@ impl OpaqueVec {
     /// of the memory allocator of `self` do not match the requested element type `T` and
     /// allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -6698,7 +6698,7 @@ impl OpaqueVec {
     /// of the memory allocator of `self` do not match the requested element type `T` and
     /// allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -6743,7 +6743,7 @@ impl OpaqueVec {
     ///   `self` do not match the requested element type `T` and allocator type `A`, respectively.
     /// * The new capacity exceeds `isize::MAX` _bytes_ if the [`OpaqueVec`] reallocates.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -6781,7 +6781,7 @@ impl OpaqueVec {
     /// of the memory allocator of `self` do not match the requested element type `T` and
     /// allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -6828,7 +6828,7 @@ impl OpaqueVec {
     /// of the memory allocator of `self` do not match the requested element type `T` and
     /// allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// Pushing elements to the vector within the capacity of the vector.
     ///
@@ -6906,7 +6906,7 @@ impl OpaqueVec {
     ///   of `self` do not match the requested element type `T` and allocator type `A`, respectively.
     /// * The index `index` is larger than the length of the collection.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -6957,7 +6957,7 @@ impl OpaqueVec {
     ///   of `self` do not match the requested element type `T` and allocator type `A`, respectively.
     /// * The index `index` is larger than the length of the collection.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -7010,7 +7010,7 @@ impl OpaqueVec {
     /// * The index `index` is larger than the length of the collection. In particular, the method
     ///   panics when `self` is empty.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// Showing how swap removal happens.
     ///
@@ -7075,7 +7075,7 @@ impl OpaqueVec {
     /// * The index `index` is larger than the length of the collection. In particular, the method
     ///   panics when `self` is empty.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// Showing how shift removal happens.
     ///
@@ -7135,7 +7135,7 @@ impl OpaqueVec {
     /// of the memory allocator of `self` do not match the requested element type `T` and
     /// allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -7185,7 +7185,7 @@ impl OpaqueVec {
     /// of the memory allocator of `self` do not match the requested element type `T` and
     /// allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -7232,7 +7232,7 @@ impl OpaqueVec {
     /// of the memory allocator of `self` do not match the requested element type `T` and
     /// allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -7348,7 +7348,7 @@ impl OpaqueVec {
     ///   not match.
     /// * If the new capacity exceeds `isize::MAX` _bytes_.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -7788,7 +7788,7 @@ impl OpaqueVec {
     /// of the memory allocator of `self` do not match the requested element type `T` and
     /// allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -7904,7 +7904,7 @@ impl OpaqueVec {
     /// of the memory allocator of `self` do not match the requested element type `T` and
     /// global allocator, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -7958,7 +7958,7 @@ impl OpaqueVec {
     /// of the memory allocator of `self` do not match the requested element type `T` and
     /// global allocator, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -8013,7 +8013,7 @@ impl OpaqueVec {
     /// of the memory allocator of `self` do not match the requested element type `T` and
     /// allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -8068,7 +8068,7 @@ impl OpaqueVec {
     /// of the memory allocator of `self` do not match the requested element type `T` and
     /// allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -8116,7 +8116,7 @@ impl OpaqueVec {
     /// of the memory allocator of `self` do not match the requested element type `T` and
     /// allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -8177,7 +8177,7 @@ impl OpaqueVec {
     ///   `self` do not match the requested element type `T` and allocator type `A`, respectively.
     /// * If `at > self.len()`.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -8322,7 +8322,7 @@ impl OpaqueVec {
     /// of the memory allocator of `self` do not match the requested element type `T` and
     /// allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -8377,7 +8377,7 @@ impl OpaqueVec {
     /// of the memory allocator of `self` do not match the requested element type `T` and
     /// allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -8431,7 +8431,7 @@ impl OpaqueVec {
     /// of the memory allocator of `self` do not match the requested element type `T` and
     /// allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -8481,7 +8481,7 @@ impl OpaqueVec {
     /// * If the capacity of the vector overflows.
     /// * If the allocator reports a failure.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -8533,7 +8533,7 @@ impl OpaqueVec {
     /// * If the capacity of the vector overflows.
     /// * If the allocator reports a failure.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -8582,7 +8582,7 @@ impl OpaqueVec {
     /// of the memory allocator of `self` do not match the requested element type `T` and
     /// allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -8640,7 +8640,7 @@ impl OpaqueVec {
     /// of the memory allocator of `self` do not match the requested element type `T` and
     /// allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -8686,7 +8686,7 @@ impl OpaqueVec {
     /// of the memory allocator of `self` do not match the requested element type `T` and
     /// allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -8987,7 +8987,7 @@ impl OpaqueVec {
     /// of the memory allocator of `self` do not match the requested element type `T` and
     /// allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -9594,7 +9594,7 @@ impl OpaqueVec {
     /// of the memory allocator of `self` do not match the requested element type `T` and
     /// allocator type `A`, respectively.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # #![feature(allocator_api)]

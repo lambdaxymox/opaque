@@ -80,7 +80,7 @@ where
 {
     /// Returns the [`TypeId`] of the underlying hasher.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # use opaque_hash::TypedProjHasher;
@@ -103,7 +103,7 @@ where
 {
     /// Constructs a new type-projected hasher.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # use opaque_hash::TypedProjHasher;
@@ -155,7 +155,7 @@ where
 
     /// Returns a reference to the underlying hasher.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # use opaque_hash::TypedProjHasher;
@@ -172,7 +172,7 @@ where
 
     /// Converts the type-projected hasher into a boxed hasher.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # use opaque_hash::TypedProjHasher;
@@ -257,7 +257,7 @@ pub struct OpaqueHasher {
 impl OpaqueHasher {
     /// Returns the [`TypeId`] of the underlying hasher.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # use opaque_hash::OpaqueHasher;
@@ -279,7 +279,7 @@ impl OpaqueHasher {
     ///
     /// Returns `true` if `self` has the specified hasher type. Returns `false` otherwise.
     /// 
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # use opaque_hash::OpaqueHasher;
@@ -329,7 +329,7 @@ impl OpaqueHasher {
 impl OpaqueHasher {
     /// Constructs a new type-erased hasher.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # use opaque_hash::OpaqueHasher;
@@ -395,7 +395,7 @@ impl OpaqueHasher {
     /// This method panics if the [`TypeId`] of the hasher of `self` do not match the requested
     /// hasher type `H`.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # use opaque_hash::{OpaqueHasher, TypedProjHasher};
@@ -425,7 +425,7 @@ impl OpaqueHasher {
     /// This method panics if the [`TypeId`] of the hasher of `self` do not match the requested
     /// hasher type `H`.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # use opaque_hash::{OpaqueHasher, TypedProjHasher};
@@ -455,7 +455,7 @@ impl OpaqueHasher {
     /// This method panics if the [`TypeId`] of the hasher of `self` do not match the requested
     /// hasher type `H`.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # use opaque_hash::{OpaqueHasher, TypedProjHasher};
@@ -484,7 +484,7 @@ impl OpaqueHasher {
     /// Unlike the type projection methods [`as_proj`], [`as_proj_mut`], and [`into_proj`], this
     /// method never panics.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// # use opaque_hash::{OpaqueHasher, TypedProjHasher};
