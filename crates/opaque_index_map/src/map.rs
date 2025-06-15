@@ -11648,6 +11648,12 @@ impl OpaqueIndexMap {
     ///     (6_isize, 'f'),
     ///     (7_isize, 'g'),
     /// ]);
+    /// #
+    /// # assert!(opaque_map.has_key_type::<isize>());
+    /// # assert!(opaque_map.has_value_type::<char>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
     /// let removed = opaque_map.insert_before::<isize, char, RandomState, Global>(3, isize::MAX, '*');
     /// let expected: TypedProjVec<(isize, char)> = TypedProjVec::from([
     ///     (1_isize, 'a'),
@@ -12246,20 +12252,26 @@ impl OpaqueIndexMap {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_map = OpaqueIndexMap::from([
+    /// let mut opaque_map = OpaqueIndexMap::from([
     ///     ("foo",  0_usize),
     ///     ("bar",  1_usize),
     ///     ("baz",  2_usize),
     ///     ("quux", 3_usize),
     /// ]);
+    /// #
+    /// # assert!(opaque_map.has_key_type::<&str>());
+    /// # assert!(opaque_map.has_value_type::<usize>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
     ///
-    /// assert_eq!(proj_map.len(), 4);
+    /// assert_eq!(opaque_map.len(), 4);
     ///
     /// let expected = Some(("quux", 3_usize));
-    /// let result = proj_map.pop::<&str, usize, RandomState, Global>();
+    /// let result = opaque_map.pop::<&str, usize, RandomState, Global>();
     ///
     /// assert_eq!(result, expected);
-    /// assert_eq!(proj_map.len(), 3);
+    /// assert_eq!(opaque_map.len(), 3);
     /// ```
     ///
     /// Popping from an empty index map.
@@ -12274,15 +12286,21 @@ impl OpaqueIndexMap {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_map = OpaqueIndexMap::new::<&str, usize>();
+    /// let mut opaque_map = OpaqueIndexMap::new::<&str, usize>();
+    /// #
+    /// # assert!(opaque_map.has_key_type::<&str>());
+    /// # assert!(opaque_map.has_value_type::<usize>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
     ///
-    /// assert!(proj_map.is_empty());
+    /// assert!(opaque_map.is_empty());
     ///
     /// let expected = None;
-    /// let result = proj_map.pop::<&str, usize, RandomState, Global>();
+    /// let result = opaque_map.pop::<&str, usize, RandomState, Global>();
     ///
     /// assert_eq!(result, expected);
-    /// assert!(proj_map.is_empty());
+    /// assert!(opaque_map.is_empty());
     /// ```
     #[doc(alias = "pop_last")]
     pub fn pop<K, V, S, A>(&mut self) -> Option<(K, V)>
@@ -12305,6 +12323,13 @@ impl OpaqueIndexMap {
     /// the storage order of the retained entries. Stated difference, this method keeps only those
     /// entries `e` for which `keep(&e)` returns `true`.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
     /// ```
@@ -12319,7 +12344,7 @@ impl OpaqueIndexMap {
     /// #
     /// fn is_odd(k: &&str, v: &mut usize) -> bool { k.len() % 2 != 0 }
     ///
-    /// let mut proj_map = OpaqueIndexMap::from([
+    /// let mut opaque_map = OpaqueIndexMap::from([
     ///     ("foo",    0_usize),
     ///     ("bar",    1_usize),
     ///     ("baz",    2_usize),
@@ -12330,7 +12355,13 @@ impl OpaqueIndexMap {
     ///     ("garply", 7_usize),
     ///     ("waldo",  8_usize),
     /// ]);
-    /// proj_map.retain::<_, &str, usize, RandomState, Global>(is_odd);
+    /// #
+    /// # assert!(opaque_map.has_key_type::<&str>());
+    /// # assert!(opaque_map.has_value_type::<usize>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
+    /// opaque_map.retain::<_, &str, usize, RandomState, Global>(is_odd);
     /// let expected = TypedProjVec::from([
     ///     ("foo",    0_usize),
     ///     ("bar",    1_usize),
@@ -12338,7 +12369,7 @@ impl OpaqueIndexMap {
     ///     ("corge",  5_usize),
     ///     ("waldo",  8_usize),
     /// ]);
-    /// let result: TypedProjVec<(&str, usize)> = proj_map
+    /// let result: TypedProjVec<(&str, usize)> = opaque_map
     ///     .iter::<&str, usize, RandomState, Global>()
     ///     .map(|(k, v)| (k.clone(), v.clone()))
     ///     .collect();
@@ -12381,6 +12412,13 @@ impl OpaqueIndexMap {
     ///
     /// After this method completes, the index map will be in stable sorted order.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
     /// ```
@@ -12393,17 +12431,23 @@ impl OpaqueIndexMap {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_map = OpaqueIndexMap::from([
+    /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (5_isize, 'e'),
     ///     (2_isize, 'b'),
     ///     (1_isize, 'a'),
     ///     (4_isize, 'd'),
     ///     (3_isize, 'c'),
     /// ]);
-    /// proj_map.sort_keys::<isize, char, RandomState, Global>();
+    /// #
+    /// # assert!(opaque_map.has_key_type::<isize>());
+    /// # assert!(opaque_map.has_value_type::<char>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
+    /// opaque_map.sort_keys::<isize, char, RandomState, Global>();
     /// let expected = [(1_isize, 'a'), (2_isize, 'b'), (3_isize, 'c'), (4_isize, 'd'), (5_isize, 'e')];
     ///
-    /// assert_eq!(proj_map.as_slice::<isize, char, RandomState, Global>(), expected.as_slice());
+    /// assert_eq!(opaque_map.as_slice::<isize, char, RandomState, Global>(), expected.as_slice());
     /// ```
     pub fn sort_keys<K, V, S, A>(&mut self)
     where
@@ -12424,6 +12468,13 @@ impl OpaqueIndexMap {
     /// After this method completes, the index map will be in stable sorted order with the ordering
     /// defined by the comparison function.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
     /// ```
@@ -12437,16 +12488,22 @@ impl OpaqueIndexMap {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_map = OpaqueIndexMap::from([
+    /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (1_usize, 'b'),
     ///     (0_usize, '*'),
     ///     (3_usize, 'c'),
     ///     (2_usize, 'a'),
     /// ]);
-    /// proj_map.sort_by::<_, usize, char, RandomState, Global>(|k1, v1, k2, v2| v1.cmp(&v2));
+    /// #
+    /// # assert!(opaque_map.has_key_type::<usize>());
+    /// # assert!(opaque_map.has_value_type::<char>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
+    /// opaque_map.sort_by::<_, usize, char, RandomState, Global>(|k1, v1, k2, v2| v1.cmp(&v2));
     /// let expected = [(0_usize, '*'), (2_usize, 'a'), (1_usize, 'b'), (3_usize, 'c')];
     ///
-    /// assert_eq!(proj_map.as_slice::<usize, char, RandomState, Global>(), expected.as_slice());
+    /// assert_eq!(opaque_map.as_slice::<usize, char, RandomState, Global>(), expected.as_slice());
     /// ```
     pub fn sort_by<F, K, V, S, A>(&mut self, cmp: F)
     where
@@ -12468,6 +12525,13 @@ impl OpaqueIndexMap {
     /// The resulting moving iterator will return the entries of the index map in stable sorted order
     /// with the ordering defined by the comparison function.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
     /// ```
@@ -12481,13 +12545,19 @@ impl OpaqueIndexMap {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_map = OpaqueIndexMap::from([
+    /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (1_usize, 'b'),
     ///     (0_usize, '*'),
     ///     (3_usize, 'c'),
     ///     (2_usize, 'a'),
     /// ]);
-    /// let result: TypedProjVec<(usize, char)> = proj_map
+    /// #
+    /// # assert!(opaque_map.has_key_type::<usize>());
+    /// # assert!(opaque_map.has_value_type::<char>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
+    /// let result: TypedProjVec<(usize, char)> = opaque_map
     ///     .sorted_by::<_, usize, char, RandomState, Global>(|k1, v1, k2, v2| v1.cmp(&v2))
     ///     .collect();
     /// let expected = TypedProjVec::from([
@@ -12518,6 +12588,13 @@ impl OpaqueIndexMap {
     ///
     /// After this method completes, the index map will be in unstable sorted order.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
     /// ```
@@ -12530,14 +12607,20 @@ impl OpaqueIndexMap {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_map = OpaqueIndexMap::from([
+    /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (5_isize, 'e'),
     ///     (2_isize, 'b'),
     ///     (1_isize, 'a'),
     ///     (4_isize, 'd'),
     ///     (3_isize, 'c'),
     /// ]);
-    /// proj_map.sort_unstable_keys::<isize, char, RandomState, Global>();
+    /// #
+    /// # assert!(opaque_map.has_key_type::<isize>());
+    /// # assert!(opaque_map.has_value_type::<char>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
+    /// opaque_map.sort_unstable_keys::<isize, char, RandomState, Global>();
     /// let expected = [
     ///     (1_isize, 'a'),
     ///     (2_isize, 'b'),
@@ -12546,7 +12629,7 @@ impl OpaqueIndexMap {
     ///     (5_isize, 'e'),
     /// ];
     ///
-    /// assert_eq!(proj_map.as_slice::<isize, char, RandomState, Global>(), expected.as_slice());
+    /// assert_eq!(opaque_map.as_slice::<isize, char, RandomState, Global>(), expected.as_slice());
     /// ```
     pub fn sort_unstable_keys<K, V, S, A>(&mut self)
     where
@@ -12567,6 +12650,13 @@ impl OpaqueIndexMap {
     /// After this method completes, the index map will be in unstable sorted order with the ordering
     /// defined by the comparison function.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
     /// ```
@@ -12580,7 +12670,7 @@ impl OpaqueIndexMap {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let proj_map = OpaqueIndexMap::from([
+    /// let opaque_map = OpaqueIndexMap::from([
     ///     (6_isize, 'a'),
     ///     (2_isize, 'b'),
     ///     (1_isize, 'a'),
@@ -12588,8 +12678,14 @@ impl OpaqueIndexMap {
     ///     (3_isize, 'b'),
     ///     (5_isize, 'b'),
     /// ]);
+    /// #
+    /// # assert!(opaque_map.has_key_type::<isize>());
+    /// # assert!(opaque_map.has_value_type::<char>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
     /// let result = {
-    ///     let mut _map = proj_map.clone::<isize, char, RandomState, Global>();
+    ///     let mut _map = opaque_map.clone::<isize, char, RandomState, Global>();
     ///     _map.sort_unstable_by::<_, isize, char, RandomState, Global>(|k1, v1, k2, v2| {
     ///         match v1.cmp(&v2) {
     ///             Ordering::Equal => k1.cmp(&k2),
@@ -12599,6 +12695,12 @@ impl OpaqueIndexMap {
     ///     });
     ///     _map
     /// };
+    /// #
+    /// # assert!(result.has_key_type::<isize>());
+    /// # assert!(result.has_value_type::<char>());
+    /// # assert!(result.has_build_hasher_type::<RandomState>());
+    /// # assert!(result.has_allocator_type::<Global>());
+    /// #
     /// let expected = [
     ///     (1_isize, 'a'),
     ///     (4_isize, 'a'),
@@ -12629,6 +12731,13 @@ impl OpaqueIndexMap {
     ///
     /// The resulting moving iterator will return the elements in unstable sorted order.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
     /// ```
@@ -12642,7 +12751,7 @@ impl OpaqueIndexMap {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let proj_map = OpaqueIndexMap::from([
+    /// let opaque_map = OpaqueIndexMap::from([
     ///     (6_isize, 'a'),
     ///     (2_isize, 'b'),
     ///     (1_isize, 'a'),
@@ -12650,7 +12759,13 @@ impl OpaqueIndexMap {
     ///     (3_isize, 'b'),
     ///     (5_isize, 'b'),
     /// ]);
-    /// let result: TypedProjVec<(isize, char)> = proj_map
+    /// #
+    /// # assert!(opaque_map.has_key_type::<isize>());
+    /// # assert!(opaque_map.has_value_type::<char>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
+    /// let result: TypedProjVec<(isize, char)> = opaque_map
     ///     .sorted_unstable_by::<_, isize, char, RandomState, Global>(|k1, v1, k2, v2| {
     ///         match v1.cmp(&v2) {
     ///             Ordering::Equal => k1.cmp(&k2),
@@ -12691,6 +12806,13 @@ impl OpaqueIndexMap {
     /// to remember the results of its evaluation. The order of calls to the function is
     /// unspecified. The sort is stable.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
     /// ```
@@ -12704,7 +12826,7 @@ impl OpaqueIndexMap {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_map = OpaqueIndexMap::from([
+    /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (0_usize,  4_i32),
     ///     (1_usize, -8_i32),
     ///     (2_usize, -1_i32),
@@ -12714,9 +12836,15 @@ impl OpaqueIndexMap {
     ///     (6_usize,  7_i32),
     ///     (7_usize,  100_i32),
     /// ]);
+    /// #
+    /// # assert!(opaque_map.has_key_type::<usize>());
+    /// # assert!(opaque_map.has_value_type::<i32>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
     ///
     /// // Strings are sorted by lexicographical order.
-    /// proj_map.sort_by_cached_key::<_, _, usize, i32, RandomState, Global>(|k, v| v.to_string());
+    /// opaque_map.sort_by_cached_key::<_, _, usize, i32, RandomState, Global>(|k, v| v.to_string());
     /// let expected = [
     ///     (2_usize, -1_i32),
     ///     (3_usize, -10_i32),
@@ -12728,7 +12856,7 @@ impl OpaqueIndexMap {
     ///     (6_usize,  7_i32),
     /// ];
     ///
-    /// assert_eq!(proj_map.as_slice::<usize, i32, RandomState, Global>(), expected.as_slice());
+    /// assert_eq!(opaque_map.as_slice::<usize, i32, RandomState, Global>(), expected.as_slice());
     /// ```
     pub fn sort_by_cached_key<T, F, K, V, S, A>(&mut self, mut sort_key: F)
     where
@@ -12754,6 +12882,13 @@ impl OpaqueIndexMap {
     /// the position in the storage where an entry with the key `key` could be inserted to maintain the
     /// sorted order.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
     /// Binary searching a sorted index map.
@@ -12769,9 +12904,15 @@ impl OpaqueIndexMap {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let proj_map = OpaqueIndexMap::from_iter((1_isize..=26_isize).zip('a'..='z'));
+    /// let opaque_map = OpaqueIndexMap::from_iter((1_isize..=26_isize).zip('a'..='z'));
+    /// #
+    /// # assert!(opaque_map.has_key_type::<isize>());
+    /// # assert!(opaque_map.has_value_type::<char>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
     /// for (i, (key, value)) in (1_isize..=26_isize).zip('a'..='z').enumerate() {
-    ///     let result = proj_map.binary_search_keys::<isize, char, RandomState, Global>(&key);
+    ///     let result = opaque_map.binary_search_keys::<isize, char, RandomState, Global>(&key);
     ///     assert_eq!(result, Ok(i));
     /// }
     /// ```
@@ -12806,6 +12947,13 @@ impl OpaqueIndexMap {
     /// of them could be returned. The index is chosen deterministically, but this method makes no
     /// guarantees as to how it picks that index.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
     /// Binary searching a sorted index map.
@@ -12821,16 +12969,22 @@ impl OpaqueIndexMap {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let proj_map = OpaqueIndexMap::from_iter((1_isize..=26_isize).zip('a'..='z'));
+    /// let opaque_map = OpaqueIndexMap::from_iter((1_isize..=26_isize).zip('a'..='z'));
+    /// #
+    /// # assert!(opaque_map.has_key_type::<isize>());
+    /// # assert!(opaque_map.has_value_type::<char>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
     /// let expected = Ok(23);
-    /// let result = proj_map.binary_search_by::<_, isize, char, RandomState, Global>(|k, v| v.cmp(&'x'));
+    /// let result = opaque_map.binary_search_by::<_, isize, char, RandomState, Global>(|k, v| v.cmp(&'x'));
     ///
     /// assert_eq!(result, expected);
     ///
     /// assert!('*' < 'a');
     ///
     /// let expected = Err(0);
-    /// let result = proj_map.binary_search_by::<_, isize, char, RandomState, Global>(|k, v| v.cmp(&'*'));
+    /// let result = opaque_map.binary_search_by::<_, isize, char, RandomState, Global>(|k, v| v.cmp(&'*'));
     ///
     /// assert_eq!(result, expected);
     /// ```
@@ -12848,23 +13002,29 @@ impl OpaqueIndexMap {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let proj_map = OpaqueIndexMap::from([
+    /// let opaque_map = OpaqueIndexMap::from([
     ///     (1_usize, 'a'), (2_usize, 'b'), (3_usize, 'c'),
     ///     (4_usize, 'd'), (5_usize, 'd'), (6_usize, 'd'),  (7_usize, 'd'),
     ///     (8_usize, 'e'), (9_usize, 'f'), (10_usize, 'g'), (11_usize, 'h'),
     /// ]);
+    /// #
+    /// # assert!(opaque_map.has_key_type::<usize>());
+    /// # assert!(opaque_map.has_value_type::<char>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
     ///
-    /// assert_eq!(proj_map.binary_search_by::<_, usize, char, RandomState, Global>(|&k, &v| v.cmp(&'a')), Ok(0));
-    /// assert_eq!(proj_map.binary_search_by::<_, usize, char, RandomState, Global>(|&k, &v| v.cmp(&'b')), Ok(1));
-    /// assert_eq!(proj_map.binary_search_by::<_, usize, char, RandomState, Global>(|&k, &v| v.cmp(&'c')), Ok(2));
+    /// assert_eq!(opaque_map.binary_search_by::<_, usize, char, RandomState, Global>(|&k, &v| v.cmp(&'a')), Ok(0));
+    /// assert_eq!(opaque_map.binary_search_by::<_, usize, char, RandomState, Global>(|&k, &v| v.cmp(&'b')), Ok(1));
+    /// assert_eq!(opaque_map.binary_search_by::<_, usize, char, RandomState, Global>(|&k, &v| v.cmp(&'c')), Ok(2));
     ///
-    /// let result = proj_map.binary_search_by::<_, usize, char, RandomState, Global>(|&k, &v| v.cmp(&'d'));
+    /// let result = opaque_map.binary_search_by::<_, usize, char, RandomState, Global>(|&k, &v| v.cmp(&'d'));
     /// assert!(match result { Ok(3..=6) => true, _ => false });
     ///
-    /// assert_eq!(proj_map.binary_search_by::<_, usize, char, RandomState, Global>(|&k, &v| v.cmp(&'e')), Ok(7));
-    /// assert_eq!(proj_map.binary_search_by::<_, usize, char, RandomState, Global>(|&k, &v| v.cmp(&'f')), Ok(8));
-    /// assert_eq!(proj_map.binary_search_by::<_, usize, char, RandomState, Global>(|&k, &v| v.cmp(&'g')), Ok(9));
-    /// assert_eq!(proj_map.binary_search_by::<_, usize, char, RandomState, Global>(|&k, &v| v.cmp(&'h')), Ok(10));
+    /// assert_eq!(opaque_map.binary_search_by::<_, usize, char, RandomState, Global>(|&k, &v| v.cmp(&'e')), Ok(7));
+    /// assert_eq!(opaque_map.binary_search_by::<_, usize, char, RandomState, Global>(|&k, &v| v.cmp(&'f')), Ok(8));
+    /// assert_eq!(opaque_map.binary_search_by::<_, usize, char, RandomState, Global>(|&k, &v| v.cmp(&'g')), Ok(9));
+    /// assert_eq!(opaque_map.binary_search_by::<_, usize, char, RandomState, Global>(|&k, &v| v.cmp(&'h')), Ok(10));
     /// ```
     #[inline]
     pub fn binary_search_by<F, K, V, S, A>(&self, f: F) -> Result<usize, usize>
@@ -12902,6 +13062,13 @@ impl OpaqueIndexMap {
     /// [`binary_search_by`]: OpaqueIndexMap::binary_search_by
     /// [`partition_point`]: OpaqueIndexMap::partition_point
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
     /// ```
@@ -12915,7 +13082,7 @@ impl OpaqueIndexMap {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let proj_map = OpaqueIndexMap::from([
+    /// let opaque_map = OpaqueIndexMap::from([
     ///     (0_usize,  0_isize),
     ///     (1_usize,  1_isize), (2_usize, 1_isize), (3_usize, 1_isize), (4_usize, 1_isize),
     ///     (5_usize,  2_isize),
@@ -12927,12 +13094,18 @@ impl OpaqueIndexMap {
     ///     (11_usize, 34_isize),
     ///     (12_usize, 55_isize),
     /// ]);
+    /// #
+    /// # assert!(opaque_map.has_key_type::<usize>());
+    /// # assert!(opaque_map.has_value_type::<isize>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
     ///
-    /// assert_eq!(proj_map.binary_search_by_key::<_, _, usize, isize, RandomState, Global>(&13, |&a, &b| b),  Ok(9));
-    /// assert_eq!(proj_map.binary_search_by_key::<_, _, usize, isize, RandomState, Global>(&4, |&a, &b| b),   Err(7));
-    /// assert_eq!(proj_map.binary_search_by_key::<_, _, usize, isize, RandomState, Global>(&100, |&a, &b| b), Err(13));
+    /// assert_eq!(opaque_map.binary_search_by_key::<_, _, usize, isize, RandomState, Global>(&13, |&a, &b| b),  Ok(9));
+    /// assert_eq!(opaque_map.binary_search_by_key::<_, _, usize, isize, RandomState, Global>(&4, |&a, &b| b),   Err(7));
+    /// assert_eq!(opaque_map.binary_search_by_key::<_, _, usize, isize, RandomState, Global>(&100, |&a, &b| b), Err(13));
     ///
-    /// let result = proj_map.binary_search_by_key::<_, _, usize, isize, RandomState, Global>(&1, |&a, &b| b);
+    /// let result = opaque_map.binary_search_by_key::<_, _, usize, isize, RandomState, Global>(&1, |&a, &b| b);
     ///
     /// assert!(match result { Ok(1..=4) => true, _ => false, });
     /// ```
@@ -12961,6 +13134,13 @@ impl OpaqueIndexMap {
     /// the end of the index map's storage. If the index map's storage order does not partition according
     /// to the predicate, the result is unspecified and meaningless.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
     /// Finding the partition point of a partitioned index map where not every entry matches the predicate.
@@ -12976,7 +13156,7 @@ impl OpaqueIndexMap {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let proj_map = OpaqueIndexMap::from([
+    /// let opaque_map = OpaqueIndexMap::from([
     ///     (0_usize, 1_isize),
     ///     (1_usize, 2_isize),
     ///     (2_usize, 2_isize),
@@ -12987,8 +13167,14 @@ impl OpaqueIndexMap {
     ///     (7_usize, 6_isize),
     ///     (8_usize, 9_isize),
     /// ]);
+    /// #
+    /// # assert!(opaque_map.has_key_type::<usize>());
+    /// # assert!(opaque_map.has_value_type::<isize>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
     ///
-    /// assert_eq!(proj_map.partition_point::<_, usize, isize, RandomState, Global>(|&k, &v| v < 5_isize), 4);
+    /// assert_eq!(opaque_map.partition_point::<_, usize, isize, RandomState, Global>(|&k, &v| v < 5_isize), 4);
     /// ```
     ///
     /// Finding the partition point of an index map where every entry matches the predicate.
@@ -13008,7 +13194,7 @@ impl OpaqueIndexMap {
     ///     n != 0 && (n & (n - 1)) == 0
     /// }
     ///
-    /// let proj_map = OpaqueIndexMap::from([
+    /// let opaque_map = OpaqueIndexMap::from([
     ///     (0_usize, 1_usize),
     ///     (1_usize, 2_usize),
     ///     (2_usize, 4_usize),
@@ -13017,8 +13203,14 @@ impl OpaqueIndexMap {
     ///     (5_usize, 32_usize),
     ///     (6_usize, 64_usize),
     /// ]);
+    /// #
+    /// # assert!(opaque_map.has_key_type::<usize>());
+    /// # assert!(opaque_map.has_value_type::<usize>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
     ///
-    /// assert_eq!(proj_map.partition_point::<_, usize, usize, RandomState, Global>(|&k, &v| is_power_of_two(v)), proj_map.len());
+    /// assert_eq!(opaque_map.partition_point::<_, usize, usize, RandomState, Global>(|&k, &v| is_power_of_two(v)), opaque_map.len());
     /// ```
     ///
     /// Finding the partition point of an index map where no entry matches the predicate.
@@ -13038,7 +13230,7 @@ impl OpaqueIndexMap {
     ///     n != 0 && (n & (n - 1)) == 0
     /// }
     ///
-    /// let proj_map = OpaqueIndexMap::from([
+    /// let opaque_map = OpaqueIndexMap::from([
     ///     (0_usize, 3_usize),
     ///     (1_usize, 5_usize),
     ///     (2_usize, 7_usize),
@@ -13047,8 +13239,14 @@ impl OpaqueIndexMap {
     ///     (5_usize, 17_usize),
     ///     (6_usize, 19_usize),
     /// ]);
+    /// #
+    /// # assert!(opaque_map.has_key_type::<usize>());
+    /// # assert!(opaque_map.has_value_type::<usize>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
     ///
-    /// assert_eq!(proj_map.partition_point::<_, usize, usize, RandomState, Global>(|&k, &v| is_power_of_two(v)), 0);
+    /// assert_eq!(opaque_map.partition_point::<_, usize, usize, RandomState, Global>(|&k, &v| is_power_of_two(v)), 0);
     /// ```
     #[must_use]
     pub fn partition_point<P, K, V, S, A>(&self, pred: P) -> usize
@@ -13067,6 +13265,13 @@ impl OpaqueIndexMap {
 
     /// Reverses the storage order of the index map's entries in place.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
     /// ```
@@ -13080,21 +13285,27 @@ impl OpaqueIndexMap {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_map = OpaqueIndexMap::from([
+    /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (0_usize, "foo"),
     ///     (1_usize, "bar"),
     ///     (2_usize, "baz"),
     ///     (3_usize, "quux"),
     /// ]);
+    /// #
+    /// # assert!(opaque_map.has_key_type::<usize>());
+    /// # assert!(opaque_map.has_value_type::<&str>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
     /// let expected = [
     ///     (3_usize, "quux"),
     ///     (2_usize, "baz"),
     ///     (1_usize, "bar"),
     ///     (0_usize, "foo"),
     /// ];
-    /// proj_map.reverse::<usize, &str, RandomState, Global>();
+    /// opaque_map.reverse::<usize, &str, RandomState, Global>();
     ///
-    /// assert_eq!(proj_map.as_slice::<usize, &str, RandomState, Global>(), expected.as_slice());
+    /// assert_eq!(opaque_map.as_slice::<usize, &str, RandomState, Global>(), expected.as_slice());
     /// ```
     pub fn reverse<K, V, S, A>(&mut self)
     where
@@ -13120,6 +13331,10 @@ impl OpaqueIndexMap {
     /// # Panics
     ///
     /// This method panics if one of the following conditions occurs:
+    /// * If the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    ///   `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    ///   allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    ///   type `S`, and allocator type `A`, respectively.
     /// * If the capacity of the index map overflows.
     /// * If the allocator reports a failure.
     ///
@@ -13136,7 +13351,7 @@ impl OpaqueIndexMap {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_map = OpaqueIndexMap::from([
+    /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (0_usize, 1_i32),
     ///     (1_usize, 2_i32),
     ///     (2_usize, 3_i32),
@@ -13144,14 +13359,20 @@ impl OpaqueIndexMap {
     ///     (4_usize, 5_i32),
     ///     (5_usize, 6_i32),
     /// ]);
-    /// proj_map.reserve::<usize, i32, RandomState, Global>(10);
+    /// #
+    /// # assert!(opaque_map.has_key_type::<usize>());
+    /// # assert!(opaque_map.has_value_type::<i32>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
+    /// opaque_map.reserve::<usize, i32, RandomState, Global>(10);
     ///
-    /// assert!(proj_map.capacity() >= proj_map.len() + 10);
+    /// assert!(opaque_map.capacity() >= opaque_map.len() + 10);
     ///
-    /// let old_capacity = proj_map.capacity();
-    /// proj_map.extend::<_, usize, i32, RandomState, Global>([(6_usize, 7_i32), (7_usize, 8_i32), (8_usize, 9_i32), (9_usize, 10_i32)]);
+    /// let old_capacity = opaque_map.capacity();
+    /// opaque_map.extend::<_, usize, i32, RandomState, Global>([(6_usize, 7_i32), (7_usize, 8_i32), (8_usize, 9_i32), (9_usize, 10_i32)]);
     ///
-    /// assert_eq!(proj_map.capacity(), old_capacity);
+    /// assert_eq!(opaque_map.capacity(), old_capacity);
     /// ```
     pub fn reserve<K, V, S, A>(&mut self, additional: usize)
     where
@@ -13179,6 +13400,10 @@ impl OpaqueIndexMap {
     /// # Panics
     ///
     /// This method panics if one of the following conditions occurs:
+    /// * If the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    ///   `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    ///   allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    ///   type `S`, and allocator type `A`, respectively.
     /// * If the capacity of the index map overflows.
     /// * If the allocator reports a failure.
     ///
@@ -13195,7 +13420,7 @@ impl OpaqueIndexMap {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_map = OpaqueIndexMap::from([
+    /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (0_usize, 1_i32),
     ///     (1_usize, 2_i32),
     ///     (2_usize, 3_i32),
@@ -13203,14 +13428,20 @@ impl OpaqueIndexMap {
     ///     (4_usize, 5_i32),
     ///     (5_usize, 6_i32),
     /// ]);
-    /// proj_map.reserve_exact::<usize, i32, RandomState, Global>(10);
+    /// #
+    /// # assert!(opaque_map.has_key_type::<usize>());
+    /// # assert!(opaque_map.has_value_type::<i32>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
+    /// opaque_map.reserve_exact::<usize, i32, RandomState, Global>(10);
     ///
-    /// assert!(proj_map.capacity() >= proj_map.len() + 10);
+    /// assert!(opaque_map.capacity() >= opaque_map.len() + 10);
     ///
-    /// let old_capacity = proj_map.capacity();
-    /// proj_map.extend::<_, usize, i32, RandomState, Global>([(6_usize, 7_i32), (7_usize, 8_i32), (8_usize, 9_i32), (9_usize, 10_i32)]);
+    /// let old_capacity = opaque_map.capacity();
+    /// opaque_map.extend::<_, usize, i32, RandomState, Global>([(6_usize, 7_i32), (7_usize, 8_i32), (8_usize, 9_i32), (9_usize, 10_i32)]);
     ///
-    /// assert_eq!(proj_map.capacity(), old_capacity);
+    /// assert_eq!(opaque_map.capacity(), old_capacity);
     /// ```
     pub fn reserve_exact<K, V, S, A>(&mut self, additional: usize)
     where
@@ -13237,6 +13468,13 @@ impl OpaqueIndexMap {
     ///
     /// This method returns an error if the capacity overflows, or the allocator reports a failure.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
     /// ```
@@ -13250,7 +13488,7 @@ impl OpaqueIndexMap {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_map = OpaqueIndexMap::from([
+    /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (0_usize, 1_i32),
     ///     (1_usize, 2_i32),
     ///     (2_usize, 3_i32),
@@ -13258,15 +13496,21 @@ impl OpaqueIndexMap {
     ///     (4_usize, 5_i32),
     ///     (5_usize, 6_i32),
     /// ]);
-    /// let result = proj_map.try_reserve::<usize, i32, RandomState, Global>(10);
+    /// #
+    /// # assert!(opaque_map.has_key_type::<usize>());
+    /// # assert!(opaque_map.has_value_type::<i32>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
+    /// let result = opaque_map.try_reserve::<usize, i32, RandomState, Global>(10);
     ///
     /// assert!(result.is_ok());
-    /// assert!(proj_map.capacity() >= proj_map.len() + 10);
+    /// assert!(opaque_map.capacity() >= opaque_map.len() + 10);
     ///
-    /// let old_capacity = proj_map.capacity();
-    /// proj_map.extend::<_, usize, i32, RandomState, Global>([(6_usize, 7_i32), (7_usize, 8_i32), (8_usize, 9_i32), (9_usize, 10_i32)]);
+    /// let old_capacity = opaque_map.capacity();
+    /// opaque_map.extend::<_, usize, i32, RandomState, Global>([(6_usize, 7_i32), (7_usize, 8_i32), (8_usize, 9_i32), (9_usize, 10_i32)]);
     ///
-    /// assert_eq!(proj_map.capacity(), old_capacity);
+    /// assert_eq!(opaque_map.capacity(), old_capacity);
     /// ```
     pub fn try_reserve<K, V, S, A>(&mut self, additional: usize) -> Result<(), TryReserveError>
     where
@@ -13295,6 +13539,13 @@ impl OpaqueIndexMap {
     ///
     /// This method returns an error if the capacity overflows, or the allocator reports a failure.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
     /// ```
@@ -13308,7 +13559,7 @@ impl OpaqueIndexMap {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_map = OpaqueIndexMap::from([
+    /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (0_usize, 1_i32),
     ///     (1_usize, 2_i32),
     ///     (2_usize, 3_i32),
@@ -13316,15 +13567,21 @@ impl OpaqueIndexMap {
     ///     (4_usize, 5_i32),
     ///     (5_usize, 6_i32),
     /// ]);
-    /// let result = proj_map.try_reserve_exact::<usize, i32, RandomState, Global>(10);
+    /// #
+    /// # assert!(opaque_map.has_key_type::<usize>());
+    /// # assert!(opaque_map.has_value_type::<i32>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
+    /// let result = opaque_map.try_reserve_exact::<usize, i32, RandomState, Global>(10);
     ///
     /// assert!(result.is_ok());
-    /// assert!(proj_map.capacity() >= proj_map.len() + 10);
+    /// assert!(opaque_map.capacity() >= opaque_map.len() + 10);
     ///
-    /// let old_capacity = proj_map.capacity();
-    /// proj_map.extend::<_, usize, i32, RandomState, Global>([(6_usize, 7_i32), (7_usize, 8_i32), (8_usize, 9_i32), (9_usize, 10_i32)]);
+    /// let old_capacity = opaque_map.capacity();
+    /// opaque_map.extend::<_, usize, i32, RandomState, Global>([(6_usize, 7_i32), (7_usize, 8_i32), (8_usize, 9_i32), (9_usize, 10_i32)]);
     ///
-    /// assert_eq!(proj_map.capacity(), old_capacity);
+    /// assert_eq!(opaque_map.capacity(), old_capacity);
     /// ```
     pub fn try_reserve_exact<K, V, S, A>(&mut self, additional: usize) -> Result<(), TryReserveError>
     where
@@ -13348,6 +13605,13 @@ impl OpaqueIndexMap {
     ///
     /// [`with_capacity`]: OpaqueIndexMap::with_capacity
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
     /// ```
@@ -13361,14 +13625,20 @@ impl OpaqueIndexMap {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_map = OpaqueIndexMap::with_capacity::<usize, i32>(10);
-    /// proj_map.extend::<_, usize, i32, RandomState, Global>([(0_usize, 1_i32), (1_usize, 2_i32), (2_usize, 3_i32)]);
+    /// let mut opaque_map = OpaqueIndexMap::with_capacity::<usize, i32>(10);
+    /// #
+    /// # assert!(opaque_map.has_key_type::<usize>());
+    /// # assert!(opaque_map.has_value_type::<i32>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
+    /// opaque_map.extend::<_, usize, i32, RandomState, Global>([(0_usize, 1_i32), (1_usize, 2_i32), (2_usize, 3_i32)]);
     ///
-    /// assert!(proj_map.capacity() >= 10);
+    /// assert!(opaque_map.capacity() >= 10);
     ///
-    /// proj_map.shrink_to_fit::<usize, i32, RandomState, Global>();
+    /// opaque_map.shrink_to_fit::<usize, i32, RandomState, Global>();
     ///
-    /// assert!(proj_map.capacity() >= 3);
+    /// assert!(opaque_map.capacity() >= 3);
     /// ```
     pub fn shrink_to_fit<K, V, S, A>(&mut self)
     where
@@ -13403,6 +13673,13 @@ impl OpaqueIndexMap {
     ///
     /// [`with_capacity`]: OpaqueIndexMap::with_capacity
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
     /// ```
@@ -13416,18 +13693,24 @@ impl OpaqueIndexMap {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_map = OpaqueIndexMap::with_capacity::<usize, i32>(10);
-    /// proj_map.extend::<_, usize, i32, RandomState, Global>([(0_usize, 1_i32), (1_usize, 2_i32), (2_usize, 3_i32)]);
+    /// let mut opaque_map = OpaqueIndexMap::with_capacity::<usize, i32>(10);
+    /// #
+    /// # assert!(opaque_map.has_key_type::<usize>());
+    /// # assert!(opaque_map.has_value_type::<i32>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
+    /// opaque_map.extend::<_, usize, i32, RandomState, Global>([(0_usize, 1_i32), (1_usize, 2_i32), (2_usize, 3_i32)]);
     ///
-    /// assert!(proj_map.capacity() >= 10);
+    /// assert!(opaque_map.capacity() >= 10);
     ///
-    /// proj_map.shrink_to::<usize, i32, RandomState, Global>(4);
+    /// opaque_map.shrink_to::<usize, i32, RandomState, Global>(4);
     ///
-    /// assert!(proj_map.capacity() >= 4);
+    /// assert!(opaque_map.capacity() >= 4);
     ///
-    /// proj_map.shrink_to::<usize, i32, RandomState, Global>(0);
+    /// opaque_map.shrink_to::<usize, i32, RandomState, Global>(0);
     ///
-    /// assert!(proj_map.capacity() >= 3);
+    /// assert!(opaque_map.capacity() >= 3);
     /// ```
     pub fn shrink_to<K, V, S, A>(&mut self, min_capacity: usize)
     where
@@ -13449,6 +13732,13 @@ impl OpaqueIndexMap {
     /// [owned slice]: Box
     /// [`shrink_to_fit`]: OpaqueIndexMap::shrink_to_fit
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
     /// ```
@@ -13462,14 +13752,20 @@ impl OpaqueIndexMap {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_map = OpaqueIndexMap::with_capacity::<usize, i32>(10);
-    /// proj_map.extend::<_, usize, i32, RandomState, Global>([(0_usize, 1_i32), (1_usize, 2_i32), (2_usize, 3_i32)]);
+    /// let mut opaque_map = OpaqueIndexMap::with_capacity::<usize, i32>(10);
+    /// #
+    /// # assert!(opaque_map.has_key_type::<usize>());
+    /// # assert!(opaque_map.has_value_type::<i32>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
+    /// opaque_map.extend::<_, usize, i32, RandomState, Global>([(0_usize, 1_i32), (1_usize, 2_i32), (2_usize, 3_i32)]);
     ///
-    /// assert_eq!(proj_map.len(), 3);
-    /// assert_eq!(proj_map.capacity(), 10);
-    /// assert_eq!(proj_map.as_slice::<usize, i32, RandomState, Global>(), &[(0_usize, 1_i32), (1_usize, 2_i32), (2_usize, 3_i32)]);
+    /// assert_eq!(opaque_map.len(), 3);
+    /// assert_eq!(opaque_map.capacity(), 10);
+    /// assert_eq!(opaque_map.as_slice::<usize, i32, RandomState, Global>(), &[(0_usize, 1_i32), (1_usize, 2_i32), (2_usize, 3_i32)]);
     ///
-    /// let boxed_slice: Box<Slice<usize, i32>, TypedProjAlloc<Global>> = proj_map.into_boxed_slice::<usize, i32, RandomState, Global>();
+    /// let boxed_slice: Box<Slice<usize, i32>, TypedProjAlloc<Global>> = opaque_map.into_boxed_slice::<usize, i32, RandomState, Global>();
     ///
     /// assert_eq!(boxed_slice.len(), 3);
     /// assert_eq!(boxed_slice.as_ref(), &[(0_usize, 1_i32), (1_usize, 2_i32), (2_usize, 3_i32)]);
@@ -13494,6 +13790,13 @@ impl OpaqueIndexMap {
     /// of the entry at index `index` in the map, and `value` is the value of the entry at index `index`.
     /// If `index >= self.len()`, this method returns `None`.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
     /// ```
@@ -13507,16 +13810,22 @@ impl OpaqueIndexMap {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let proj_map = OpaqueIndexMap::from([
+    /// let opaque_map = OpaqueIndexMap::from([
     ///     (1_usize, 10_i32),
     ///     (2_usize, 40_i32),
     ///     (3_usize, 30_i32),
     /// ]);
+    /// #
+    /// # assert!(opaque_map.has_key_type::<usize>());
+    /// # assert!(opaque_map.has_value_type::<i32>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
     ///
-    /// assert_eq!(proj_map.get_index::<usize, i32, RandomState, Global>(0), Some((&1_usize, &10_i32)));
-    /// assert_eq!(proj_map.get_index::<usize, i32, RandomState, Global>(1), Some((&2_usize, &40_i32)));
-    /// assert_eq!(proj_map.get_index::<usize, i32, RandomState, Global>(2), Some((&3_usize, &30_i32)));
-    /// assert_eq!(proj_map.get_index::<usize, i32, RandomState, Global>(3), None);
+    /// assert_eq!(opaque_map.get_index::<usize, i32, RandomState, Global>(0), Some((&1_usize, &10_i32)));
+    /// assert_eq!(opaque_map.get_index::<usize, i32, RandomState, Global>(1), Some((&2_usize, &40_i32)));
+    /// assert_eq!(opaque_map.get_index::<usize, i32, RandomState, Global>(2), Some((&3_usize, &30_i32)));
+    /// assert_eq!(opaque_map.get_index::<usize, i32, RandomState, Global>(3), None);
     /// ```
     pub fn get_index<K, V, S, A>(&self, index: usize) -> Option<(&K, &V)>
     where
@@ -13538,6 +13847,13 @@ impl OpaqueIndexMap {
     /// of the entry at index `index` in the map, and `value` is the value of the entry at index `index`.
     /// If `index >= self.len()`, this method returns `None`.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
     /// ```
@@ -13551,16 +13867,22 @@ impl OpaqueIndexMap {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_map = OpaqueIndexMap::from([
+    /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (1_usize, 10_i32),
     ///     (2_usize, 40_i32),
     ///     (3_usize, 30_i32),
     /// ]);
+    /// #
+    /// # assert!(opaque_map.has_key_type::<usize>());
+    /// # assert!(opaque_map.has_value_type::<i32>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
     ///
-    /// assert_eq!(proj_map.get_index_mut::<usize, i32, RandomState, Global>(0), Some((&1_usize, &mut 10_i32)));
-    /// assert_eq!(proj_map.get_index_mut::<usize, i32, RandomState, Global>(1), Some((&2_usize, &mut 40_i32)));
-    /// assert_eq!(proj_map.get_index_mut::<usize, i32, RandomState, Global>(2), Some((&3_usize, &mut 30_i32)));
-    /// assert_eq!(proj_map.get_index_mut::<usize, i32, RandomState, Global>(3), None);
+    /// assert_eq!(opaque_map.get_index_mut::<usize, i32, RandomState, Global>(0), Some((&1_usize, &mut 10_i32)));
+    /// assert_eq!(opaque_map.get_index_mut::<usize, i32, RandomState, Global>(1), Some((&2_usize, &mut 40_i32)));
+    /// assert_eq!(opaque_map.get_index_mut::<usize, i32, RandomState, Global>(2), Some((&3_usize, &mut 30_i32)));
+    /// assert_eq!(opaque_map.get_index_mut::<usize, i32, RandomState, Global>(3), None);
     /// ```
     pub fn get_index_mut<K, V, S, A>(&mut self, index: usize) -> Option<(&K, &mut V)>
     where
@@ -13580,6 +13902,13 @@ impl OpaqueIndexMap {
     /// If `index < self.len()`, this method returns `Some(entry)`, where `entry` is the entry storage
     /// at the index `index` in the index map. If `index >= self.len()`, this method returns `None`.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
     /// ```
@@ -13593,29 +13922,35 @@ impl OpaqueIndexMap {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_map = OpaqueIndexMap::from([
+    /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (1_usize, 10_i32),
     ///     (2_usize, 40_i32),
     ///     (3_usize, 30_i32),
     /// ]);
+    /// #
+    /// # assert!(opaque_map.has_key_type::<usize>());
+    /// # assert!(opaque_map.has_value_type::<i32>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
     ///
-    /// assert!(proj_map.get_index_entry::<usize, i32, RandomState, Global>(0).is_some());
-    /// assert!(proj_map.get_index_entry::<usize, i32, RandomState, Global>(1).is_some());
-    /// assert!(proj_map.get_index_entry::<usize, i32, RandomState, Global>(2).is_some());
+    /// assert!(opaque_map.get_index_entry::<usize, i32, RandomState, Global>(0).is_some());
+    /// assert!(opaque_map.get_index_entry::<usize, i32, RandomState, Global>(1).is_some());
+    /// assert!(opaque_map.get_index_entry::<usize, i32, RandomState, Global>(2).is_some());
     ///
-    /// assert_eq!(proj_map.get_index_entry::<usize, i32, RandomState, Global>(0).unwrap().key(), &1_usize);
-    /// assert_eq!(proj_map.get_index_entry::<usize, i32, RandomState, Global>(0).unwrap().index(), 0);
-    /// assert_eq!(proj_map.get_index_entry::<usize, i32, RandomState, Global>(0).unwrap().get(), &10_i32);
+    /// assert_eq!(opaque_map.get_index_entry::<usize, i32, RandomState, Global>(0).unwrap().key(), &1_usize);
+    /// assert_eq!(opaque_map.get_index_entry::<usize, i32, RandomState, Global>(0).unwrap().index(), 0);
+    /// assert_eq!(opaque_map.get_index_entry::<usize, i32, RandomState, Global>(0).unwrap().get(), &10_i32);
     ///
-    /// assert_eq!(proj_map.get_index_entry::<usize, i32, RandomState, Global>(1).unwrap().key(), &2_usize);
-    /// assert_eq!(proj_map.get_index_entry::<usize, i32, RandomState, Global>(1).unwrap().index(), 1);
-    /// assert_eq!(proj_map.get_index_entry::<usize, i32, RandomState, Global>(1).unwrap().get(), &40_i32);
+    /// assert_eq!(opaque_map.get_index_entry::<usize, i32, RandomState, Global>(1).unwrap().key(), &2_usize);
+    /// assert_eq!(opaque_map.get_index_entry::<usize, i32, RandomState, Global>(1).unwrap().index(), 1);
+    /// assert_eq!(opaque_map.get_index_entry::<usize, i32, RandomState, Global>(1).unwrap().get(), &40_i32);
     ///
-    /// assert_eq!(proj_map.get_index_entry::<usize, i32, RandomState, Global>(2).unwrap().key(), &3_usize);
-    /// assert_eq!(proj_map.get_index_entry::<usize, i32, RandomState, Global>(2).unwrap().index(), 2);
-    /// assert_eq!(proj_map.get_index_entry::<usize, i32, RandomState, Global>(2).unwrap().get(), &30_i32);
+    /// assert_eq!(opaque_map.get_index_entry::<usize, i32, RandomState, Global>(2).unwrap().key(), &3_usize);
+    /// assert_eq!(opaque_map.get_index_entry::<usize, i32, RandomState, Global>(2).unwrap().index(), 2);
+    /// assert_eq!(opaque_map.get_index_entry::<usize, i32, RandomState, Global>(2).unwrap().get(), &30_i32);
     ///
-    /// assert!(proj_map.get_index_entry::<usize, i32, RandomState, Global>(3).is_none());
+    /// assert!(opaque_map.get_index_entry::<usize, i32, RandomState, Global>(3).is_none());
     /// ```
     pub fn get_index_entry<K, V, S, A>(&mut self, index: usize) -> Option<IndexedEntry<'_, K, V, A>>
     where
@@ -13636,6 +13971,13 @@ impl OpaqueIndexMap {
     /// slice of entries from the index map in the storage range `range`. if the range `range` is
     /// out of bounds, this method returns `None`.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
     /// ```
@@ -13649,14 +13991,19 @@ impl OpaqueIndexMap {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let proj_map = OpaqueIndexMap::from([
+    /// let opaque_map = OpaqueIndexMap::from([
     ///     (1_usize, 10_i32),
     ///     (2_usize, 40_i32),
     ///     (3_usize, 30_i32),
     ///     (4_usize, 60_i32),
     /// ]);
-    ///
-    /// let maybe_slice = proj_map.get_range::<_, usize, i32, RandomState, Global>(1..);
+    /// #
+    /// # assert!(opaque_map.has_key_type::<usize>());
+    /// # assert!(opaque_map.has_value_type::<i32>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
+    /// let maybe_slice = opaque_map.get_range::<_, usize, i32, RandomState, Global>(1..);
     ///
     /// assert!(maybe_slice.is_some());
     ///
@@ -13687,6 +14034,13 @@ impl OpaqueIndexMap {
     /// slice of entries from the index map in the storage range `range`. if the range `range` is
     /// out of bounds, this method returns `None`.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
     /// ```
@@ -13700,14 +14054,19 @@ impl OpaqueIndexMap {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_map = OpaqueIndexMap::from([
+    /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (1_usize, 10_i32),
     ///     (2_usize, 40_i32),
     ///     (3_usize, 30_i32),
     ///     (4_usize, 60_i32),
     /// ]);
-    ///
-    /// let maybe_slice = proj_map.get_range_mut::<_, usize, i32, RandomState, Global>(1..);
+    /// #
+    /// # assert!(opaque_map.has_key_type::<usize>());
+    /// # assert!(opaque_map.has_value_type::<i32>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
+    /// let maybe_slice = opaque_map.get_range_mut::<_, usize, i32, RandomState, Global>(1..);
     ///
     /// assert!(maybe_slice.is_some());
     ///
@@ -13739,6 +14098,13 @@ impl OpaqueIndexMap {
     /// key of the first entry in the index map, and `value` is the value of the first entry in the
     /// index map. If the index map is empty, this method returns `None`.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
     /// Getting the first entry of a non-empty index map.
@@ -13753,13 +14119,19 @@ impl OpaqueIndexMap {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let proj_map = OpaqueIndexMap::from([
+    /// let opaque_map = OpaqueIndexMap::from([
     ///     (String::from("foo"),  1_usize),
     ///     (String::from("bar"),  2_usize),
     ///     (String::from("baz"),  3_usize),
     ///     (String::from("quux"), 4_usize),
     /// ]);
-    /// let result = proj_map.first::<String, usize, RandomState, Global>();
+    /// #
+    /// # assert!(opaque_map.has_key_type::<String>());
+    /// # assert!(opaque_map.has_value_type::<usize>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
+    /// let result = opaque_map.first::<String, usize, RandomState, Global>();
     ///
     /// assert_eq!(result, Some((&String::from("foo"), &1_usize)));
     /// ```
@@ -13776,8 +14148,14 @@ impl OpaqueIndexMap {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let proj_map = OpaqueIndexMap::new::<String, usize>();
-    /// let maybe_entry = proj_map.first::<String, usize, RandomState, Global>();
+    /// let opaque_map = OpaqueIndexMap::new::<String, usize>();
+    /// #
+    /// # assert!(opaque_map.has_key_type::<String>());
+    /// # assert!(opaque_map.has_value_type::<usize>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
+    /// let maybe_entry = opaque_map.first::<String, usize, RandomState, Global>();
     ///
     /// assert!(maybe_entry.is_none());
     /// ```
@@ -13802,6 +14180,13 @@ impl OpaqueIndexMap {
     /// key of the first entry in the index map, and `value` is the value of the first entry in the
     /// index map. If the index map is empty, this method returns `None`.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
     /// Getting the first entry of a non-empty index map.
@@ -13816,13 +14201,19 @@ impl OpaqueIndexMap {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_map = OpaqueIndexMap::from([
+    /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (String::from("foo"),  1_usize),
     ///     (String::from("bar"),  2_usize),
     ///     (String::from("baz"),  3_usize),
     ///     (String::from("quux"), 4_usize),
     /// ]);
-    /// let result = proj_map.first_mut::<String, usize, RandomState, Global>();
+    /// #
+    /// # assert!(opaque_map.has_key_type::<String>());
+    /// # assert!(opaque_map.has_value_type::<usize>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
+    /// let result = opaque_map.first_mut::<String, usize, RandomState, Global>();
     ///
     /// assert_eq!(result, Some((&String::from("foo"), &mut 1_usize)));
     /// ```
@@ -13839,8 +14230,14 @@ impl OpaqueIndexMap {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_map = OpaqueIndexMap::new::<String, usize>();
-    /// let maybe_entry = proj_map.first_mut::<String, usize, RandomState, Global>();
+    /// let mut opaque_map = OpaqueIndexMap::new::<String, usize>();
+    /// #
+    /// # assert!(opaque_map.has_key_type::<String>());
+    /// # assert!(opaque_map.has_value_type::<usize>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
+    /// let maybe_entry = opaque_map.first_mut::<String, usize, RandomState, Global>();
     ///
     /// assert!(maybe_entry.is_none());
     /// ```
@@ -13862,6 +14259,13 @@ impl OpaqueIndexMap {
     /// If the index map is nonempty, this method returns `Some(entry)` where `entry` is the first
     /// entry in the index map. If the index map is empty, this method returns `None`.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
     /// Getting the first entry of a non-empty index map.
@@ -13876,13 +14280,19 @@ impl OpaqueIndexMap {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_map = OpaqueIndexMap::from([
+    /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (String::from("foo"),  1_usize),
     ///     (String::from("bar"),  2_usize),
     ///     (String::from("baz"),  3_usize),
     ///     (String::from("quux"), 4_usize),
     /// ]);
-    /// let maybe_entry = proj_map.first_entry::<String, usize, RandomState, Global>();
+    /// #
+    /// # assert!(opaque_map.has_key_type::<String>());
+    /// # assert!(opaque_map.has_value_type::<usize>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
+    /// let maybe_entry = opaque_map.first_entry::<String, usize, RandomState, Global>();
     ///
     /// assert!(maybe_entry.is_some());
     ///
@@ -13905,8 +14315,14 @@ impl OpaqueIndexMap {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_map = OpaqueIndexMap::new::<String, usize>();
-    /// let entry = proj_map.first_entry::<String, usize, RandomState, Global>();
+    /// let mut opaque_map = OpaqueIndexMap::new::<String, usize>();
+    /// #
+    /// # assert!(opaque_map.has_key_type::<String>());
+    /// # assert!(opaque_map.has_value_type::<usize>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
+    /// let entry = opaque_map.first_entry::<String, usize, RandomState, Global>();
     ///
     /// assert!(entry.is_none());
     /// ```
@@ -13930,6 +14346,13 @@ impl OpaqueIndexMap {
     /// key of the last entry in the index map, and `value` is the value of the last entry in the
     /// index map. If the index map is empty, this method returns `None`.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
     /// Getting the last entry of a non-empty index map.
@@ -13944,13 +14367,19 @@ impl OpaqueIndexMap {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let proj_map = OpaqueIndexMap::from([
+    /// let opaque_map = OpaqueIndexMap::from([
     ///     (String::from("foo"),  1_usize),
     ///     (String::from("bar"),  2_usize),
     ///     (String::from("baz"),  3_usize),
     ///     (String::from("quux"), 4_usize),
     /// ]);
-    /// let result = proj_map.last::<String, usize, RandomState, Global>();
+    /// #
+    /// # assert!(opaque_map.has_key_type::<String>());
+    /// # assert!(opaque_map.has_value_type::<usize>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
+    /// let result = opaque_map.last::<String, usize, RandomState, Global>();
     ///
     /// assert_eq!(result, Some((&String::from("quux"), &4_usize)));
     /// ```
@@ -13967,8 +14396,14 @@ impl OpaqueIndexMap {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let proj_map = OpaqueIndexMap::new::<String, usize>();
-    /// let maybe_entry = proj_map.last::<String, usize, RandomState, Global>();
+    /// let opaque_map = OpaqueIndexMap::new::<String, usize>();
+    /// #
+    /// # assert!(opaque_map.has_key_type::<String>());
+    /// # assert!(opaque_map.has_value_type::<usize>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
+    /// let maybe_entry = opaque_map.last::<String, usize, RandomState, Global>();
     ///
     /// assert!(maybe_entry.is_none());
     /// ```
@@ -13993,6 +14428,13 @@ impl OpaqueIndexMap {
     /// key of the last entry in the index map, and `value` is the value of the last entry in the
     /// index map. If the index map is empty, this method returns `None`.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
     /// Getting the last entry of a non-empty index map.
@@ -14007,13 +14449,19 @@ impl OpaqueIndexMap {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_map = OpaqueIndexMap::from([
+    /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (String::from("foo"),  1_usize),
     ///     (String::from("bar"),  2_usize),
     ///     (String::from("baz"),  3_usize),
     ///     (String::from("quux"), 4_usize),
     /// ]);
-    /// let result = proj_map.last_mut::<String, usize, RandomState, Global>();
+    /// #
+    /// # assert!(opaque_map.has_key_type::<String>());
+    /// # assert!(opaque_map.has_value_type::<usize>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
+    /// let result = opaque_map.last_mut::<String, usize, RandomState, Global>();
     ///
     /// assert_eq!(result, Some((&String::from("quux"), &mut 4_usize)));
     /// ```
@@ -14030,8 +14478,14 @@ impl OpaqueIndexMap {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_map = OpaqueIndexMap::new::<String, usize>();
-    /// let maybe_entry = proj_map.last_mut::<String, usize, RandomState, Global>();
+    /// let mut opaque_map = OpaqueIndexMap::new::<String, usize>();
+    /// #
+    /// # assert!(opaque_map.has_key_type::<String>());
+    /// # assert!(opaque_map.has_value_type::<usize>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
+    /// let maybe_entry = opaque_map.last_mut::<String, usize, RandomState, Global>();
     ///
     /// assert!(maybe_entry.is_none());
     /// ```
@@ -14053,6 +14507,13 @@ impl OpaqueIndexMap {
     /// If the index map is nonempty, this method returns `Some(entry)` where `entry` is the last
     /// entry in the index map. If the index map is empty, this method returns `None`.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
     /// Getting the last entry of a non-empty index map.
@@ -14067,13 +14528,19 @@ impl OpaqueIndexMap {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_map = OpaqueIndexMap::from([
+    /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (String::from("foo"),  1_usize),
     ///     (String::from("bar"),  2_usize),
     ///     (String::from("baz"),  3_usize),
     ///     (String::from("quux"), 4_usize),
     /// ]);
-    /// let maybe_entry = proj_map.last_entry::<String, usize, RandomState, Global>();
+    /// #
+    /// # assert!(opaque_map.has_key_type::<String>());
+    /// # assert!(opaque_map.has_value_type::<usize>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
+    /// let maybe_entry = opaque_map.last_entry::<String, usize, RandomState, Global>();
     ///
     /// assert!(maybe_entry.is_some());
     ///
@@ -14096,8 +14563,14 @@ impl OpaqueIndexMap {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_map = OpaqueIndexMap::new::<String, usize>();
-    /// let entry = proj_map.last_entry::<String, usize, RandomState, Global>();
+    /// let mut opaque_map = OpaqueIndexMap::new::<String, usize>();
+    /// #
+    /// # assert!(opaque_map.has_key_type::<String>());
+    /// # assert!(opaque_map.has_value_type::<usize>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
+    /// let entry = opaque_map.last_entry::<String, usize, RandomState, Global>();
     ///
     /// assert!(entry.is_none());
     /// ```
@@ -14125,6 +14598,13 @@ impl OpaqueIndexMap {
     ///   removed entry.
     /// * If `index >= self.len()`, the index `index` is out of bounds, so the method returns `None`.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
     /// ```
@@ -14137,17 +14617,23 @@ impl OpaqueIndexMap {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_map = OpaqueIndexMap::from([
+    /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (0_usize, ()),
     ///     (1_usize, ()),
     ///     (2_usize, ()),
     ///     (3_usize, ()),
     /// ]);
-    /// let removed = proj_map.swap_remove_index::<usize, (), RandomState, Global>(1);
+    /// #
+    /// # assert!(opaque_map.has_key_type::<usize>());
+    /// # assert!(opaque_map.has_value_type::<()>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
+    /// let removed = opaque_map.swap_remove_index::<usize, (), RandomState, Global>(1);
     /// let expected = [(0_usize, ()), (3_usize, ()), (2_usize, ())];
     ///
     /// assert_eq!(removed, Some((1_usize, ())));
-    /// assert_eq!(proj_map.as_slice::<usize, (), RandomState, Global>(), expected.as_slice());
+    /// assert_eq!(opaque_map.as_slice::<usize, (), RandomState, Global>(), expected.as_slice());
     /// ```
     pub fn swap_remove_index<K, V, S, A>(&mut self, index: usize) -> Option<(K, V)>
     where
@@ -14171,6 +14657,13 @@ impl OpaqueIndexMap {
     /// * If `index >= self.len()`, the index `index` is out of bounds, so the method returns `None`.
     /// Note that when `self.len() == 1`, `self` is empty, so no shifting occurs.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
     /// ```
@@ -14183,17 +14676,23 @@ impl OpaqueIndexMap {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_map = OpaqueIndexMap::from([
+    /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (0_usize, ()),
     ///     (1_usize, ()),
     ///     (2_usize, ()),
     ///     (3_usize, ()),
     /// ]);
-    /// let removed = proj_map.shift_remove_index::<usize, (), RandomState, Global>(1);
+    /// #
+    /// # assert!(opaque_map.has_key_type::<usize>());
+    /// # assert!(opaque_map.has_value_type::<()>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
+    /// let removed = opaque_map.shift_remove_index::<usize, (), RandomState, Global>(1);
     /// let expected = [(0_usize, ()), (2_usize, ()), (3_usize, ())];
     ///
     /// assert_eq!(removed, Some((1_usize, ())));
-    /// assert_eq!(proj_map.as_slice::<usize, (), RandomState, Global>(), expected.as_slice());
+    /// assert_eq!(opaque_map.as_slice::<usize, (), RandomState, Global>(), expected.as_slice());
     /// ```
     pub fn shift_remove_index<K, V, S, A>(&mut self, index: usize) -> Option<(K, V)>
     where
@@ -14217,7 +14716,12 @@ impl OpaqueIndexMap {
     ///
     /// # Panics
     ///
-    /// This method panics if `from` or `to` are out of bounds.
+    /// This method panics if one of the following conditions occurs:
+    /// * If the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    ///   `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    ///   allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    ///   type `S`, and allocator type `A`, respectively.
+    /// * If `from` or `to` are out of bounds.
     ///
     /// # Examples
     ///
@@ -14233,16 +14737,22 @@ impl OpaqueIndexMap {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_map = OpaqueIndexMap::from([
+    /// let mut opaque_map = OpaqueIndexMap::from([
     ///     ("foo",    0_usize),
     ///     ("bar",    1_usize),
     ///     ("baz",    2_usize),
     ///     ("quux",   3_usize),
     /// ]);
-    /// proj_map.move_index::<&str, usize, RandomState, Global>(0, 3);
+    /// #
+    /// # assert!(opaque_map.has_key_type::<&str>());
+    /// # assert!(opaque_map.has_value_type::<usize>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
+    /// opaque_map.move_index::<&str, usize, RandomState, Global>(0, 3);
     /// let expected = [("bar", 1_usize), ("baz", 2_usize), ("quux", 3_usize), ("foo", 0_usize)];
     ///
-    /// assert_eq!(proj_map.as_slice::<&str, usize, RandomState, Global>(), expected.as_slice());
+    /// assert_eq!(opaque_map.as_slice::<&str, usize, RandomState, Global>(), expected.as_slice());
     /// ```
     ///
     /// Moving an index where `from > to`.
@@ -14257,16 +14767,22 @@ impl OpaqueIndexMap {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_map = OpaqueIndexMap::from([
+    /// let mut opaque_map = OpaqueIndexMap::from([
     ///     ("foo",    0_usize),
     ///     ("bar",    1_usize),
     ///     ("baz",    2_usize),
     ///     ("quux",   3_usize),
     /// ]);
-    /// proj_map.move_index::<&str, usize, RandomState, Global>(3, 0);
+    /// #
+    /// # assert!(opaque_map.has_key_type::<&str>());
+    /// # assert!(opaque_map.has_value_type::<usize>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
+    /// opaque_map.move_index::<&str, usize, RandomState, Global>(3, 0);
     /// let expected = [("quux", 3_usize), ("foo", 0_usize), ("bar", 1_usize), ("baz", 2_usize)];
     ///
-    /// assert_eq!(proj_map.as_slice::<&str, usize, RandomState, Global>(), expected.as_slice());
+    /// assert_eq!(opaque_map.as_slice::<&str, usize, RandomState, Global>(), expected.as_slice());
     /// ```
     #[track_caller]
     pub fn move_index<K, V, S, A>(&mut self, from: usize, to: usize)
@@ -14286,7 +14802,12 @@ impl OpaqueIndexMap {
     ///
     /// # Panics
     ///
-    /// This method panics if either `a` is out of bounds, or `b` is out of bounds.
+    /// This method panics if one of the following conditions occurs:
+    /// * If the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    ///   `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    ///   allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    ///   type `S`, and allocator type `A`, respectively.
+    /// * If either `a` is out of bounds, or `b` is out of bounds.
     ///
     /// # Examples
     ///
@@ -14300,16 +14821,22 @@ impl OpaqueIndexMap {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_map = OpaqueIndexMap::from([
+    /// let mut opaque_map = OpaqueIndexMap::from([
     ///     ("foo",    0_usize),
     ///     ("bar",    1_usize),
     ///     ("baz",    2_usize),
     ///     ("quux",   3_usize),
     /// ]);
-    /// proj_map.swap_indices::<&str, usize, RandomState, Global>(0, 3);
+    /// #
+    /// # assert!(opaque_map.has_key_type::<&str>());
+    /// # assert!(opaque_map.has_value_type::<usize>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
+    /// opaque_map.swap_indices::<&str, usize, RandomState, Global>(0, 3);
     /// let expected = [("quux", 3_usize), ("bar", 1_usize), ("baz", 2_usize), ("foo", 0_usize)];
     ///
-    /// assert_eq!(proj_map.as_slice::<&str, usize, RandomState, Global>(), expected.as_slice());
+    /// assert_eq!(opaque_map.as_slice::<&str, usize, RandomState, Global>(), expected.as_slice());
     /// ```
     #[track_caller]
     pub fn swap_indices<K, V, S, A>(&mut self, a: usize, b: usize)
