@@ -2894,7 +2894,7 @@ where
         self.inner.into_parts_with_alloc()
     }
 
-    /// Converts a [`TypedProjVec`] into [`Box<[T]>`][owned slice].
+    /// Converts a [`TypedProjVec`] into a [`Box<[T]>`][owned slice].
     ///
     /// Before doing the conversion, this method discards excess capacity like [`shrink_to_fit`].
     ///
@@ -3127,6 +3127,7 @@ where
     /// let result = proj_vec.try_reserve(10);
     ///
     /// assert!(result.is_ok());
+    /// assert!(proj_vec.capacity() >= proj_vec.len() + 10);
     ///
     /// proj_vec.extend(data.iter().map(|&value| value * 2 + 5));
     ///
@@ -3146,7 +3147,7 @@ where
     /// equal to `self.len() + additional`. This method does nothing if the capacity is already
     /// sufficient.
     ///
-    /// [`reserve`]: TypedProjVec::reserve
+    /// [`try_reserve`]: TypedProjVec::try_reserve
     ///
     /// # Errors
     ///
@@ -3165,6 +3166,7 @@ where
     /// let result = proj_vec.try_reserve_exact(10);
     ///
     /// assert!(result.is_ok());
+    /// assert!(proj_vec.capacity() >= proj_vec.len() + 10);
     ///
     /// proj_vec.extend(data.iter().map(|&value| value * 2 + 5));
     ///
@@ -3200,9 +3202,9 @@ where
     /// let mut proj_vec = TypedProjVec::new();
     ///
     /// let data: [i32; 6] = [1, 2, 3, 4, 5, 6];
-    /// let result = proj_vec.try_reserve(10);
+    /// proj_vec.reserve(10);
     ///
-    /// assert!(result.is_ok());
+    /// assert!(proj_vec.capacity() >= proj_vec.len() + 10);
     ///
     /// proj_vec.extend(data.iter().map(|&value| value * 2 + 5));
     ///
@@ -3223,6 +3225,8 @@ where
     /// equal to `self.len() + additional`. This method does nothing if the capacity is already
     /// sufficient.
     ///
+    /// [`reserve`]: TypedProjVec::reserve
+    ///
     /// # Panics
     ///
     /// This method panics if one of the following conditions occurs:
@@ -3233,24 +3237,21 @@ where
     ///
     /// ```
     /// # #![feature(allocator_api)]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypedProjVec;
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_vec = OpaqueVec::new::<i32>();
-    /// #
-    /// # assert!(proj_vec.has_element_type::<i32>());
-    /// # assert!(proj_vec.has_allocator_type::<Global>());
-    /// #
+    /// let mut proj_vec = TypedProjVec::new();
+    ///
     /// let data: [i32; 6] = [1, 2, 3, 4, 5, 6];
-    /// let result = proj_vec.try_reserve_exact::<i32, Global>(10);
+    /// proj_vec.reserve_exact(10);
     ///
-    /// assert!(result.is_ok());
+    /// assert!(proj_vec.capacity() >= proj_vec.len() + 10);
     ///
-    /// proj_vec.extend::<_, i32, Global>(data.iter().map(|&value| value * 2 + 5));
+    /// proj_vec.extend(data.iter().map(|&value| value * 2 + 5));
     ///
     /// let expected = [7, 9, 11, 13, 15, 17];
     ///
-    /// assert_eq!(proj_vec.as_slice::<i32, Global>(), expected.as_slice());
+    /// assert_eq!(proj_vec.as_slice(), expected.as_slice());
     /// ```
     #[track_caller]
     pub fn reserve_exact(&mut self, additional: usize) {
@@ -8102,7 +8103,7 @@ impl OpaqueVec {
         proj_self.into_parts_with_alloc()
     }
 
-    /// Converts an [`OpaqueVec`] into [`Box<[T]>`][owned slice].
+    /// Converts an [`OpaqueVec`] into a [`Box<[T]>`][owned slice].
     ///
     /// Before doing the conversion, this method discards excess capacity like [`shrink_to_fit`].
     ///
@@ -8392,6 +8393,7 @@ impl OpaqueVec {
     /// let result = opaque_vec.try_reserve::<i32, Global>(10);
     ///
     /// assert!(result.is_ok());
+    /// assert!(opaque_vec.capacity() >= opaque_vec.len() + 10);
     ///
     /// opaque_vec.extend::<_, i32, Global>(data.iter().map(|&value| value * 2 + 5));
     ///
@@ -8412,12 +8414,12 @@ impl OpaqueVec {
     /// Attempts to reserve capacity for **at least** `additional` more elements to be inserted
     /// in the given [`OpaqueVec`].
     ///
-    /// Unlike [`reserve`], this will not deliberately over-allocate to speculatively avoid frequent
+    /// Unlike [`try_reserve`], this will not deliberately over-allocate to speculatively avoid frequent
     /// allocations. After calling `reserve_exact`, the capacity of `self` will be greater than or
     /// equal to `self.len() + additional`. This method does nothing if the capacity is already
     /// sufficient.
     ///
-    /// [`reserve`]: OpaqueVec::reserve
+    /// [`try_reserve`]: OpaqueVec::try_reserve
     ///
     /// # Errors
     ///
@@ -8445,6 +8447,7 @@ impl OpaqueVec {
     /// let result = opaque_vec.try_reserve_exact::<i32, Global>(10);
     ///
     /// assert!(result.is_ok());
+    /// assert!(opaque_vec.capacity() >= opaque_vec.len() + 10);
     ///
     /// opaque_vec.extend::<_, i32, Global>(data.iter().map(|&value| value * 2 + 5));
     ///
@@ -8491,9 +8494,9 @@ impl OpaqueVec {
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
     /// #
     /// let data: [i32; 6] = [1, 2, 3, 4, 5, 6];
-    /// let result = opaque_vec.try_reserve::<i32, Global>(10);
+    /// opaque_vec.reserve::<i32, Global>(10);
     ///
-    /// assert!(result.is_ok());
+    /// assert!(opaque_vec.capacity() >= opaque_vec.len() + 10);
     ///
     /// opaque_vec.extend::<_, i32, Global>(data.iter().map(|&value| value * 2 + 5));
     ///
@@ -8515,10 +8518,12 @@ impl OpaqueVec {
     /// Attempts to reserve capacity for **at least** `additional` more elements to be inserted
     /// in the given [`OpaqueVec`].
     ///
-    /// The collection may reserve more space to speculatively avoid frequent reallocations.
-    /// After calling this method, the capacity will be greater than or equal to
-    /// `self.len() + additional` if it returns. This method does nothing if the collection
-    /// capacity is already sufficient. This method preserves the contents even if a panic occurs.
+    /// Unlike [`reserve`], this will not deliberately over-allocate to speculatively avoid frequent
+    /// allocations. After calling `reserve_exact`, the capacity of `self` will be greater than or
+    /// equal to `self.len() + additional`. This method does nothing if the capacity is already
+    /// sufficient.
+    ///
+    /// [`reserve`]: OpaqueVec::reserve
     ///
     /// # Panics
     ///
@@ -8541,9 +8546,9 @@ impl OpaqueVec {
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
     /// #
     /// let data: [i32; 6] = [1, 2, 3, 4, 5, 6];
-    /// let result = opaque_vec.try_reserve_exact::<i32, Global>(10);
+    /// opaque_vec.reserve_exact::<i32, Global>(10);
     ///
-    /// assert!(result.is_ok());
+    /// assert!(opaque_vec.capacity() >= opaque_vec.len() + 10);
     ///
     /// opaque_vec.extend::<_, i32, Global>(data.iter().map(|&value| value * 2 + 5));
     ///
