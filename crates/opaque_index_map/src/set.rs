@@ -1876,11 +1876,9 @@ where
     }
 }
 
-impl<T, S, const N: usize> From<[T; N]> for TypedProjIndexSet<T, S, alloc::Global>
+impl<T, const N: usize> From<[T; N]> for TypedProjIndexSet<T, hash::RandomState, alloc::Global>
 where
     T: any::Any + hash::Hash + Eq,
-    S: any::Any + hash::BuildHasher + Send + Sync + Default,
-    S::Hasher: any::Any + hash::Hasher + Send + Sync,
 {
     fn from(arr: [T; N]) -> Self {
         Self::from_iter(arr)
