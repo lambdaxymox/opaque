@@ -490,8 +490,8 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let iter = self.iter.as_slice().iter().map(|tuple| tuple.0);
-        formatter.debug_list().entries(iter).finish()
+        let iterator = self.iter.as_slice().iter().map(|tuple| tuple.0);
+        formatter.debug_list().entries(iterator).finish()
     }
 }
 
@@ -578,8 +578,8 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let iter = self.iter.as_slice().iter().map(|tuple| tuple.0);
-        formatter.debug_list().entries(iter).finish()
+        let iterator = self.iter.as_slice().iter().map(|tuple| tuple.0);
+        formatter.debug_list().entries(iterator).finish()
     }
 }
 
@@ -1867,10 +1867,10 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
 {
     fn from_iter<I: IntoIterator<Item = T>>(iterable: I) -> Self {
-        let iter = iterable.into_iter();
-        let (low, _) = iter.size_hint();
+        let iterator = iterable.into_iter();
+        let (low, _) = iterator.size_hint();
         let mut set = Self::with_capacity_and_hasher_in(low, S::default(), alloc::Global::default());
-        set.extend(iter);
+        set.extend(iterator);
 
         set
     }
@@ -1893,8 +1893,8 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn extend<I: IntoIterator<Item = T>>(&mut self, iterable: I) {
-        let iter = iterable.into_iter().map(|x| (x, ()));
-        self.inner.extend(iter);
+        let iterator = iterable.into_iter().map(|x| (x, ()));
+        self.inner.extend(iterator);
     }
 }
 
@@ -1906,8 +1906,8 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn extend<I: IntoIterator<Item = &'a T>>(&mut self, iterable: I) {
-        let iter = iterable.into_iter().copied();
-        self.extend(iter);
+        let iterator = iterable.into_iter().copied();
+        self.extend(iterator);
     }
 }
 
@@ -1998,10 +1998,10 @@ where
     type Output = TypedProjIndexSet<T, S1, A>;
 
     fn bitand(self, other: &TypedProjIndexSet<T, S2, A>) -> Self::Output {
-        let iter = self.intersection(other).cloned();
+        let iterator = self.intersection(other).cloned();
         let capacity = Ord::max(self.len(), other.len());
         let mut set = TypedProjIndexSet::with_capacity_and_hasher_in(capacity, S1::default(), A::default());
-        set.extend(iter);
+        set.extend(iterator);
 
         set
     }
@@ -2019,10 +2019,10 @@ where
     type Output = TypedProjIndexSet<T, S1, A>;
 
     fn bitor(self, other: &TypedProjIndexSet<T, S2, A>) -> Self::Output {
-        let iter = self.union(other).cloned();
+        let iterator = self.union(other).cloned();
         let capacity = Ord::max(self.len(), other.len());
         let mut set = TypedProjIndexSet::with_capacity_and_hasher_in(capacity, S1::default(), A::default());
-        set.extend(iter);
+        set.extend(iterator);
 
         set
     }
@@ -2040,10 +2040,10 @@ where
     type Output = TypedProjIndexSet<T, S1, A>;
 
     fn bitxor(self, other: &TypedProjIndexSet<T, S2, A>) -> Self::Output {
-        let iter = self.symmetric_difference(other).cloned();
+        let iterator = self.symmetric_difference(other).cloned();
         let capacity = Ord::max(self.len(), other.len());
         let mut set = TypedProjIndexSet::with_capacity_and_hasher_in(capacity, S1::default(), A::default());
-        set.extend(iter);
+        set.extend(iterator);
 
         set
     }
@@ -2061,10 +2061,10 @@ where
     type Output = TypedProjIndexSet<T, S1, A>;
 
     fn sub(self, other: &TypedProjIndexSet<T, S2, A>) -> Self::Output {
-        let iter = self.difference(other).cloned();
+        let iterator = self.difference(other).cloned();
         let capacity = Ord::max(self.len(), other.len());
         let mut set = TypedProjIndexSet::with_capacity_and_hasher_in(capacity, S1::default(), A::default());
-        set.extend(iter);
+        set.extend(iterator);
 
         set
     }

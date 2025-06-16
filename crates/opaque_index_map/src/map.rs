@@ -21,9 +21,72 @@ use opaque_alloc::TypedProjAlloc;
 use opaque_error::{
     TryReserveError,
 };
-use opaque_hash::{TypedProjBuildHasher};
-use opaque_vec::{OpaqueVec, TypedProjVec};
+use opaque_hash::TypedProjBuildHasher;
+use opaque_vec::TypedProjVec;
 
+/// A draining iterator over the entries of a [`TypedProjIndexMap`] or [`OpaqueIndexMap`].
+///
+/// # Examples
+///
+/// Using a draining iterator on a type-projected index map.
+///
+/// ```
+/// # #![feature(allocator_api)]
+/// # use opaque_index_map::TypedProjIndexMap;
+/// # use opaque_hash::TypedProjBuildHasher;
+/// # use opaque_alloc::TypedProjAlloc;
+/// # use opaque_vec::TypedProjVec;
+/// # use std::any::TypeId;
+/// # use std::hash::RandomState;
+/// # use std::alloc::Global;
+/// #
+/// let mut result = TypedProjIndexMap::from([
+///     (0_usize, 1_i32),
+///     (1_usize, i32::MAX),
+///     (2_usize, i32::MAX),
+///     (3_usize, i32::MAX),
+///     (4_usize, 2_i32),
+///     (5_usize, 3_i32)
+/// ]);
+/// let expected = TypedProjVec::from([
+///     (0_usize, 1_i32),
+///     (4_usize, 2_i32),
+///     (5_usize, 3_i32),
+/// ]);
+/// result.drain(1..4);
+///
+/// assert_eq!(result.as_slice(), expected.as_slice());
+/// ```
+///
+/// Using a draining iterator on a type-erased index map.
+///
+/// ```
+/// # #![feature(allocator_api)]
+/// # use opaque_index_map::OpaqueIndexMap;
+/// # use opaque_hash::TypedProjBuildHasher;
+/// # use opaque_alloc::TypedProjAlloc;
+/// # use opaque_vec::TypedProjVec;
+/// # use std::any::TypeId;
+/// # use std::hash::RandomState;
+/// # use std::alloc::Global;
+/// #
+/// let mut result = OpaqueIndexMap::from([
+///     (0_usize, 1_i32),
+///     (1_usize, i32::MAX),
+///     (2_usize, i32::MAX),
+///     (3_usize, i32::MAX),
+///     (4_usize, 2_i32),
+///     (5_usize, 3_i32)
+/// ]);
+/// let expected = TypedProjVec::from([
+///     (0_usize, 1_i32),
+///     (4_usize, 2_i32),
+///     (5_usize, 3_i32),
+/// ]);
+/// result.drain::<_, usize, i32, RandomState, Global>(1..4);
+///
+/// assert_eq!(result.as_slice::<usize, i32, RandomState, Global>(), expected.as_slice());
+/// ```
 pub struct Drain<'a, K, V, A = alloc::Global>
 where
     K: any::Any,
@@ -39,10 +102,80 @@ where
     V: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
+    /// Constructs new draining iterator from an inner draining iterator.
     const fn new(iter: map_inner::Drain<'a, K, V, A>) -> Self {
         Self { iter }
     }
 
+    /// Returns a slice of the remaining entries in the draining iterator.
+    ///
+    /// # Examples
+    ///
+    /// Getting a slice of remaining elements from a draining iterator of a type-projected index map.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map = TypedProjIndexMap::from([
+    ///     (0_usize, "spam"),
+    ///     (1_usize, "eggs"),
+    ///     (2_usize, "bacon"),
+    ///     (3_usize, "baked beans"),
+    ///     (4_usize, "spam"),
+    /// ]);
+    /// let mut drain = map.drain(..);
+    /// assert_eq!(drain.as_slice(), &[(0_usize, "spam"), (1_usize, "eggs"), (2_usize, "bacon"), (3_usize, "baked beans"), (4_usize, "spam")]);
+    /// let _ = drain.next().unwrap();
+    /// assert_eq!(drain.as_slice(), &[(1_usize, "eggs"), (2_usize, "bacon"), (3_usize, "baked beans"), (4_usize, "spam")]);
+    /// let _ = drain.next().unwrap();
+    /// assert_eq!(drain.as_slice(), &[(2_usize, "bacon"), (3_usize, "baked beans"), (4_usize, "spam")]);
+    /// let _ = drain.next().unwrap();
+    /// assert_eq!(drain.as_slice(), &[(3_usize, "baked beans"), (4_usize, "spam")]);
+    /// let _ = drain.next().unwrap();
+    /// assert_eq!(drain.as_slice(), &[(4_usize, "spam")]);
+    /// let _ = drain.next().unwrap();
+    /// assert!(drain.as_slice().is_empty());
+    /// ```
+    ///
+    /// Getting a slice of remaining elements from a draining iterator of a type-erased index map.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map = OpaqueIndexMap::from([
+    ///     (0_usize, "spam"),
+    ///     (1_usize, "eggs"),
+    ///     (2_usize, "bacon"),
+    ///     (3_usize, "baked beans"),
+    ///     (4_usize, "spam"),
+    /// ]);
+    /// let mut drain = map.drain::<_, usize, &str, RandomState, Global>(..);
+    /// assert_eq!(drain.as_slice(), &[(0_usize, "spam"), (1_usize, "eggs"), (2_usize, "bacon"), (3_usize, "baked beans"), (4_usize, "spam")]);
+    /// let _ = drain.next().unwrap();
+    /// assert_eq!(drain.as_slice(), &[(1_usize, "eggs"), (2_usize, "bacon"), (3_usize, "baked beans"), (4_usize, "spam")]);
+    /// let _ = drain.next().unwrap();
+    /// assert_eq!(drain.as_slice(), &[(2_usize, "bacon"), (3_usize, "baked beans"), (4_usize, "spam")]);
+    /// let _ = drain.next().unwrap();
+    /// assert_eq!(drain.as_slice(), &[(3_usize, "baked beans"), (4_usize, "spam")]);
+    /// let _ = drain.next().unwrap();
+    /// assert_eq!(drain.as_slice(), &[(4_usize, "spam")]);
+    /// let _ = drain.next().unwrap();
+    /// assert!(drain.as_slice().is_empty());
+    /// ```
     pub fn as_slice(&self) -> &Slice<K, V> {
         Slice::from_slice(self.iter.as_slice())
     }
@@ -106,11 +239,71 @@ where
     }
 }
 
+/// An iterator over the keys of the entries of the index map.
+///
+/// This iterator returns the keys in the storage order of the entries in the index map.
+///
+/// # Examples
+///
+/// Using a key iterator on a type-projected index map.
+///
+/// ```
+/// # #![feature(allocator_api)]
+/// # use opaque_index_map::TypedProjIndexMap;
+/// # use opaque_hash::TypedProjBuildHasher;
+/// # use opaque_alloc::TypedProjAlloc;
+/// # use opaque_vec::TypedProjVec;
+/// # use std::any::TypeId;
+/// # use std::hash::RandomState;
+/// # use std::alloc::Global;
+/// #
+/// let map = TypedProjIndexMap::from([
+///     ("foo",  1_i32),
+///     ("bar",  2_i32),
+///     ("baz",  3_i32),
+///     ("quux", 4_i32),
+/// ]);
+/// let expected = TypedProjVec::from(["foo", "bar", "baz", "quux"]);
+/// let result: TypedProjVec<&str> = map
+///     .keys()
+///     .cloned()
+///     .collect();
+///
+/// assert_eq!(result, expected);
+/// ```
+///
+/// Using a key iterator on a type-erased index map.
+///
+/// ```
+/// # #![feature(allocator_api)]
+/// # use opaque_index_map::OpaqueIndexMap;
+/// # use opaque_hash::TypedProjBuildHasher;
+/// # use opaque_alloc::TypedProjAlloc;
+/// # use opaque_vec::TypedProjVec;
+/// # use std::any::TypeId;
+/// # use std::hash::RandomState;
+/// # use std::alloc::Global;
+/// #
+/// let map = OpaqueIndexMap::from([
+///     ("foo",  1_i32),
+///     ("bar",  2_i32),
+///     ("baz",  3_i32),
+///     ("quux", 4_i32),
+/// ]);
+/// let expected = TypedProjVec::from(["foo", "bar", "baz", "quux"]);
+/// let result: TypedProjVec<&str> = map
+///     .keys::<&str, i32, RandomState, Global>()
+///     .cloned()
+///     .collect();
+///
+/// assert_eq!(result, expected);
+/// ```
 pub struct Keys<'a, K, V> {
     iter: map_inner::Keys<'a, K, V>,
 }
 
 impl<'a, K, V> Keys<'a, K, V> {
+    /// Constructs a new key iterator.
     fn new(iter: map_inner::Keys<'a, K, V>) -> Self {
         Self { iter, }
     }
@@ -165,6 +358,63 @@ impl<'a, K, V> ops::Index<usize> for Keys<'a, K, V> {
     }
 }
 
+/// A moving iterator over the keys of the entries of the index map.
+///
+/// This iterator returns the keys in the storage order of the entries in the index map.
+///
+/// # Examples
+///
+/// Using a moving key iterator on a type-projected index map.
+///
+/// ```
+/// # #![feature(allocator_api)]
+/// # use opaque_index_map::TypedProjIndexMap;
+/// # use opaque_hash::TypedProjBuildHasher;
+/// # use opaque_alloc::TypedProjAlloc;
+/// # use opaque_vec::TypedProjVec;
+/// # use std::any::TypeId;
+/// # use std::hash::RandomState;
+/// # use std::alloc::Global;
+/// #
+/// let map = TypedProjIndexMap::from([
+///     ("foo",  1_i32),
+///     ("bar",  2_i32),
+///     ("baz",  3_i32),
+///     ("quux", 4_i32),
+/// ]);
+/// let expected = TypedProjVec::from(["foo", "bar", "baz", "quux"]);
+/// let result: TypedProjVec<&str> = map
+///     .into_keys()
+///     .collect();
+///
+/// assert_eq!(result, expected);
+/// ```
+///
+/// Using a moving key iterator on a type-erased index map.
+///
+/// ```
+/// # #![feature(allocator_api)]
+/// # use opaque_index_map::OpaqueIndexMap;
+/// # use opaque_hash::TypedProjBuildHasher;
+/// # use opaque_alloc::TypedProjAlloc;
+/// # use opaque_vec::TypedProjVec;
+/// # use std::any::TypeId;
+/// # use std::hash::RandomState;
+/// # use std::alloc::Global;
+/// #
+/// let map = OpaqueIndexMap::from([
+///     ("foo",  1_i32),
+///     ("bar",  2_i32),
+///     ("baz",  3_i32),
+///     ("quux", 4_i32),
+/// ]);
+/// let expected = TypedProjVec::from(["foo", "bar", "baz", "quux"]);
+/// let result: TypedProjVec<&str> = map
+///     .into_keys::<&str, i32, RandomState, Global>()
+///     .collect();
+///
+/// assert_eq!(result, expected);
+/// ```
 pub struct IntoKeys<K, V, A = alloc::Global>
 where
     K: any::Any,
@@ -180,6 +430,7 @@ where
     V: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
+    /// Constructs a new moving key iterator.
     fn new(iter: map_inner::IntoKeys<K, V, A>) -> Self {
         Self { iter, }
     }
@@ -256,11 +507,71 @@ where
     }
 }
 
+/// An iterator over the values of the entries of the index map.
+///
+/// This iterator returns the values in the storage order of the entries in the index map.
+///
+/// # Examples
+///
+/// Using a value iterator on a type-projected index map.
+///
+/// ```
+/// # #![feature(allocator_api)]
+/// # use opaque_index_map::TypedProjIndexMap;
+/// # use opaque_hash::TypedProjBuildHasher;
+/// # use opaque_alloc::TypedProjAlloc;
+/// # use opaque_vec::TypedProjVec;
+/// # use std::any::TypeId;
+/// # use std::hash::RandomState;
+/// # use std::alloc::Global;
+/// #
+/// let map = TypedProjIndexMap::from([
+///     ("foo",  1_i32),
+///     ("bar",  2_i32),
+///     ("baz",  3_i32),
+///     ("quux", 4_i32),
+/// ]);
+/// let expected = TypedProjVec::from([1_i32, 2_i32, 3_i32, 4_i32]);
+/// let result: TypedProjVec<i32> = map
+///     .values()
+///     .cloned()
+///     .collect();
+///
+/// assert_eq!(result, expected);
+/// ```
+///
+/// Using a value iterator on a type-erased index map.
+///
+/// ```
+/// # #![feature(allocator_api)]
+/// # use opaque_index_map::OpaqueIndexMap;
+/// # use opaque_hash::TypedProjBuildHasher;
+/// # use opaque_alloc::TypedProjAlloc;
+/// # use opaque_vec::TypedProjVec;
+/// # use std::any::TypeId;
+/// # use std::hash::RandomState;
+/// # use std::alloc::Global;
+/// #
+/// let map = OpaqueIndexMap::from([
+///     ("foo",  1_i32),
+///     ("bar",  2_i32),
+///     ("baz",  3_i32),
+///     ("quux", 4_i32),
+/// ]);
+/// let expected = TypedProjVec::from([1_i32, 2_i32, 3_i32, 4_i32]);
+/// let result: TypedProjVec<i32> = map
+///     .values::<&str, i32, RandomState, Global>()
+///     .cloned()
+///     .collect();
+///
+/// assert_eq!(result, expected);
+/// ```
 pub struct Values<'a, K, V> {
     iter: map_inner::Values<'a, K, V>,
 }
 
 impl<'a, K, V> Values<'a, K, V> {
+    /// Construct a new value iterator.
     #[inline]
     const fn new(iter: map_inner::Values<'a, K, V>) -> Self {
         Self { iter, }
@@ -314,11 +625,95 @@ impl<K, V> Default for Values<'_, K, V> {
     }
 }
 
+/// A mutable iterator over the values of the entries of the index map.
+///
+/// This iterator returns the values in the storage order of the entries in the index map.
+///
+/// # Examples
+///
+/// Using a value iterator on a type-projected index map.
+///
+/// ```
+/// # #![feature(allocator_api)]
+/// # use opaque_index_map::TypedProjIndexMap;
+/// # use opaque_hash::TypedProjBuildHasher;
+/// # use opaque_alloc::TypedProjAlloc;
+/// # use opaque_vec::TypedProjVec;
+/// # use std::any::TypeId;
+/// # use std::hash::RandomState;
+/// # use std::alloc::Global;
+/// #
+/// let mut map = TypedProjIndexMap::from([
+///     ("foo",  1_i32),
+///     ("bar",  2_i32),
+///     ("baz",  3_i32),
+///     ("quux", 4_i32),
+/// ]);
+/// let expected = TypedProjVec::from([1_i32, 2_i32, 3_i32, 4_i32]);
+/// let result: TypedProjVec<i32> = map
+///     .values_mut()
+///     .map(|v| v.clone())
+///     .collect();
+///
+/// assert_eq!(result, expected);
+///
+/// for value in map.values_mut() {
+///     *value *= 2_i32;
+/// }
+///
+/// let expected_mutated = TypedProjVec::from([2_i32, 4_i32, 6_i32, 8_i32]);
+/// let result_mutated: TypedProjVec<i32> = map
+///     .values_mut()
+///     .map(|v| v.clone())
+///     .collect();
+///
+/// assert_eq!(result_mutated, expected_mutated);
+/// ```
+///
+/// Using a value iterator on a type-erased index map.
+///
+/// ```
+/// # #![feature(allocator_api)]
+/// # use opaque_index_map::OpaqueIndexMap;
+/// # use opaque_hash::TypedProjBuildHasher;
+/// # use opaque_alloc::TypedProjAlloc;
+/// # use opaque_vec::TypedProjVec;
+/// # use std::any::TypeId;
+/// # use std::hash::RandomState;
+/// # use std::alloc::Global;
+/// #
+/// let mut map = OpaqueIndexMap::from([
+///     ("foo",  1_i32),
+///     ("bar",  2_i32),
+///     ("baz",  3_i32),
+///     ("quux", 4_i32),
+/// ]);
+/// let expected = TypedProjVec::from([1_i32, 2_i32, 3_i32, 4_i32]);
+/// let result: TypedProjVec<i32> = map
+///     .values_mut::<&str, i32, RandomState, Global>()
+///     .map(|v| v.clone())
+///     .collect();
+///
+/// assert_eq!(result, expected);
+///
+/// for value in map.values_mut::<&str, i32, RandomState, Global>() {
+///     *value *= 2_i32;
+/// }
+///
+/// let expected_mutated = TypedProjVec::from([2_i32, 4_i32, 6_i32, 8_i32]);
+/// let result_mutated: TypedProjVec<i32> = map
+///     .values_mut::<&str, i32, RandomState, Global>()
+///     .map(|v| v.clone())
+///     .collect();
+///
+/// assert_eq!(result_mutated, expected_mutated);
+/// ```
 pub struct ValuesMut<'a, K, V> {
     iter: map_inner::ValuesMut<'a, K, V>,
 }
 
 impl<'a, K, V> ValuesMut<'a, K, V> {
+    /// Constructs a new mutable value iterator.
     #[inline]
     const fn new(iter: map_inner::ValuesMut<'a, K, V>) -> Self {
         Self { iter, }
@@ -366,6 +761,63 @@ impl<K, V> Default for ValuesMut<'_, K, V> {
     }
 }
 
+/// A moving iterator over the values of the entries of the index map.
+///
+/// This iterator returns the values in the storage order of the entries in the index map.
+///
+/// # Examples
+///
+/// Using a moving value iterator on a type-projected index map.
+///
+/// ```
+/// # #![feature(allocator_api)]
+/// # use opaque_index_map::TypedProjIndexMap;
+/// # use opaque_hash::TypedProjBuildHasher;
+/// # use opaque_alloc::TypedProjAlloc;
+/// # use opaque_vec::TypedProjVec;
+/// # use std::any::TypeId;
+/// # use std::hash::RandomState;
+/// # use std::alloc::Global;
+/// #
+/// let map = TypedProjIndexMap::from([
+///     ("foo",  1_i32),
+///     ("bar",  2_i32),
+///     ("baz",  3_i32),
+///     ("quux", 4_i32),
+/// ]);
+/// let expected = TypedProjVec::from([1_i32, 2_i32, 3_i32, 4_i32]);
+/// let result: TypedProjVec<i32> = map
+///     .into_values()
+///     .collect();
+///
+/// assert_eq!(result, expected);
+/// ```
+///
+/// Using a moving value iterator on a type-erased index map.
+///
+/// ```
+/// # #![feature(allocator_api)]
+/// # use opaque_index_map::OpaqueIndexMap;
+/// # use opaque_hash::TypedProjBuildHasher;
+/// # use opaque_alloc::TypedProjAlloc;
+/// # use opaque_vec::TypedProjVec;
+/// # use std::any::TypeId;
+/// # use std::hash::RandomState;
+/// # use std::alloc::Global;
+/// #
+/// let map = OpaqueIndexMap::from([
+///     ("foo",  1_i32),
+///     ("bar",  2_i32),
+///     ("baz",  3_i32),
+///     ("quux", 4_i32),
+/// ]);
+/// let expected = TypedProjVec::from([1_i32, 2_i32, 3_i32, 4_i32]);
+/// let result: TypedProjVec<i32> = map
+///     .into_values::<&str, i32, RandomState, Global>()
+///     .collect();
+///
+/// assert_eq!(result, expected);
+/// ```
 pub struct IntoValues<K, V, A = alloc::Global>
 where
     K: any::Any,
@@ -381,6 +833,7 @@ where
     V: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
+    /// Constructs a new moving value iterator.
     #[inline]
     const fn new(iter: map_inner::IntoValues<K, V, A>) -> Self {
         Self { iter, }
@@ -458,17 +911,20 @@ where
     }
 }
 
+
 #[repr(transparent)]
 pub struct Slice<K, V> {
     entries: map_inner::Slice<K, V>,
 }
 
 impl<K, V> Slice<K, V> {
+    /// Constructs a new index map slice from an inner index map slice.
     #[inline]
     pub(crate) const fn from_slice(entries: &map_inner::Slice<K, V>) -> &Self {
         unsafe { &*(entries as *const map_inner::Slice<K, V> as *const Self) }
     }
 
+    /// Constructs a new mutable index map slice from a mutable inner index map slice.
     #[inline]
     pub(crate) const fn from_slice_mut(entries: &mut map_inner::Slice<K, V>) -> &mut Self {
         unsafe { &mut *(entries as *mut map_inner::Slice<K, V> as *mut Self) }
@@ -512,32 +968,383 @@ impl<K, V> Slice<K, V> {
         boxed_slice
     }
 
+    /// Constructs a new empty index map slice.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::map::Slice;
+    /// #
+    /// let slice: &Slice<usize, isize> = Slice::new();
+    ///
+    /// assert!(slice.is_empty());
+    /// ```
     pub const fn new<'a>() -> &'a Self {
         Self::from_slice(map_inner::Slice::new())
     }
 
+    /// Constructs a new empty index map slice.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::map::Slice;
+    /// #
+    /// let mut slice: &mut Slice<usize, isize> = Slice::new_mut();
+    ///
+    /// assert!(slice.is_empty());
+    /// ```
     pub fn new_mut<'a>() -> &'a mut Self {
         Self::from_slice_mut(map_inner::Slice::new_mut())
     }
 
+    /// Returns the length of the index map slice.
+    ///
+    /// The **length** of an index map slice is the number of entries in the slice.
+    ///
+    /// # Examples
+    ///
+    /// Getting a slice of the entries of a type-projected index map.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let map = TypedProjIndexMap::from([
+    ///     (0_usize, 1_i32),
+    ///     (1_usize, 2_i32),
+    ///     (2_usize, 3_i32),
+    ///     (3_usize, 4_i32),
+    ///     (4_usize, 5_i32),
+    ///     (5_usize, 6_i32),
+    /// ]);
+    /// let slice = map.as_slice();
+    ///
+    /// assert_eq!(slice.len(), 6);
+    /// ```
+    ///
+    /// Getting a slice of the entries of a type-erased index map.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let map = OpaqueIndexMap::from([
+    ///     (0_usize, 1_i32),
+    ///     (1_usize, 2_i32),
+    ///     (2_usize, 3_i32),
+    ///     (3_usize, 4_i32),
+    ///     (4_usize, 5_i32),
+    ///     (5_usize, 6_i32),
+    /// ]);
+    /// let slice = map.as_slice::<usize, i32, RandomState, Global>();
+    ///
+    /// assert_eq!(slice.len(), 6);
+    /// ```
     #[inline]
     pub const fn len(&self) -> usize {
         self.entries.len()
     }
 
+    /// Determines whether an index map slice is empty.
+    ///
+    /// An index map slice is **empty** if it has no entries, i.e. its length is zero.
+    ///
+    /// # Examples
+    ///
+    /// Getting a slice of the entries of a type-projected index map.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let map = TypedProjIndexMap::from([
+    ///     (0_usize, 1_i32),
+    ///     (1_usize, 2_i32),
+    ///     (2_usize, 3_i32),
+    ///     (3_usize, 4_i32),
+    ///     (4_usize, 5_i32),
+    ///     (5_usize, 6_i32),
+    /// ]);
+    /// let slice = map.as_slice();
+    ///
+    /// assert!(!slice.is_empty());
+    /// assert!(slice[1..1].is_empty());
+    /// ```
+    ///
+    /// Getting a slice of the entries of a type-erased index map.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let map = OpaqueIndexMap::from([
+    ///     (0_usize, 1_i32),
+    ///     (1_usize, 2_i32),
+    ///     (2_usize, 3_i32),
+    ///     (3_usize, 4_i32),
+    ///     (4_usize, 5_i32),
+    ///     (5_usize, 6_i32),
+    /// ]);
+    /// let slice = map.as_slice::<usize, i32, RandomState, Global>();
+    ///
+    /// assert!(!slice.is_empty());
+    /// assert!(slice[1..1].is_empty());
+    /// ```
     #[inline]
     pub const fn is_empty(&self) -> bool {
         self.entries.is_empty()
     }
 
+    /// Returns a (key reference, value reference) pair corresponding to the key/value pair stored at
+    /// a given index in the index map slice, if it exists.
+    ///
+    /// If `index < self.len()`, this method returns `Some((&key, &value))`, where `key` is the key
+    /// of the entry at index `index` in the map, and `value` is the value of the entry at index `index`.
+    /// If `index >= self.len()`, this method returns `None`.
+    ///
+    /// # Examples
+    ///
+    /// Getting entries from a type-projected index map slice by index.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let map = TypedProjIndexMap::from([
+    ///     (1_usize, 10_i32),
+    ///     (2_usize, 40_i32),
+    ///     (3_usize, 30_i32),
+    ///
+    /// ]);
+    /// let slice = map.as_slice();
+    ///
+    /// assert_eq!(slice.get_index(0), Some((&1_usize, &10_i32)));
+    /// assert_eq!(slice.get_index(1), Some((&2_usize, &40_i32)));
+    /// assert_eq!(slice.get_index(2), Some((&3_usize, &30_i32)));
+    /// assert_eq!(slice.get_index(3), None);
+    /// ```
+    ///
+    /// Getting entries from a type-erased index map slice by index.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let map = OpaqueIndexMap::from([
+    ///     (1_usize, 10_i32),
+    ///     (2_usize, 40_i32),
+    ///     (3_usize, 30_i32),
+    ///
+    /// ]);
+    /// let slice = map.as_slice::<usize, i32, RandomState, Global>();
+    ///
+    /// assert_eq!(slice.get_index(0), Some((&1_usize, &10_i32)));
+    /// assert_eq!(slice.get_index(1), Some((&2_usize, &40_i32)));
+    /// assert_eq!(slice.get_index(2), Some((&3_usize, &30_i32)));
+    /// assert_eq!(slice.get_index(3), None);
+    /// ```
     pub fn get_index(&self, index: usize) -> Option<(&K, &V)> {
         self.entries.get_index(index)
     }
 
+    /// Returns a (key reference, mutable value reference) pair corresponding to the key/value pair stored at
+    /// a given index in the index map slice, if it exists.
+    ///
+    /// If `index < self.len()`, this method returns `Some((&key, &value))`, where `key` is the key
+    /// of the entry at index `index` in the map, and `value` is the value of the entry at index `index`.
+    /// If `index >= self.len()`, this method returns `None`.
+    ///
+    /// # Examples
+    ///
+    /// Getting entries from a type-projected index map slice by index.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map = TypedProjIndexMap::from([
+    ///     (1_usize, 10_i32),
+    ///     (2_usize, 40_i32),
+    ///     (3_usize, 30_i32),
+    ///
+    /// ]);
+    /// let slice = map.as_mut_slice();
+    ///
+    /// assert_eq!(slice.get_index_mut(0), Some((&1_usize, &mut 10_i32)));
+    /// assert_eq!(slice.get_index_mut(1), Some((&2_usize, &mut 40_i32)));
+    /// assert_eq!(slice.get_index_mut(2), Some((&3_usize, &mut 30_i32)));
+    /// assert_eq!(slice.get_index_mut(3), None);
+    /// ```
+    ///
+    /// Getting entries from a type-erased index map slice by index.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map = OpaqueIndexMap::from([
+    ///     (1_usize, 10_i32),
+    ///     (2_usize, 40_i32),
+    ///     (3_usize, 30_i32),
+    ///
+    /// ]);
+    /// let slice = map.as_mut_slice::<usize, i32, RandomState, Global>();
+    ///
+    /// assert_eq!(slice.get_index_mut(0), Some((&1_usize, &mut 10_i32)));
+    /// assert_eq!(slice.get_index_mut(1), Some((&2_usize, &mut 40_i32)));
+    /// assert_eq!(slice.get_index_mut(2), Some((&3_usize, &mut 30_i32)));
+    /// assert_eq!(slice.get_index_mut(3), None);
+    /// ```
     pub fn get_index_mut(&mut self, index: usize) -> Option<(&K, &mut V)> {
         self.entries.get_index_mut(index)
     }
 
+    /// Returns a subslice of entries in the index map slice from the given storage range in the map.
+    ///
+    /// If the range `range` is in bounds, this method returns `Some(&slice)`, where `slice` is the
+    /// slice of entries from the index map slice in the storage range `range`. if the range `range` is
+    /// out of bounds, this method returns `None`.
+    ///
+    /// # Examples
+    ///
+    /// Subslicing a slice from a type-projected index map.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let map = TypedProjIndexMap::from([
+    ///     (1_usize, 10_i32),
+    ///     (2_usize, 40_i32),
+    ///     (3_usize, 30_i32),
+    ///     (4_usize, 60_i32),
+    /// ]);
+    ///
+    /// let maybe_slice = map.get_range(1..);
+    ///
+    /// assert!(maybe_slice.is_some());
+    ///
+    /// let slice = maybe_slice.unwrap();
+    ///
+    /// assert_eq!(slice.len(), 3);
+    /// assert_eq!(slice[0], 40_i32);
+    /// assert_eq!(slice[1], 30_i32);
+    /// assert_eq!(slice[2], 60_i32);
+    ///
+    /// let maybe_subslice = slice.get_range(1..);
+    ///
+    /// assert!(maybe_subslice.is_some());
+    ///
+    /// let subslice = maybe_subslice.unwrap();
+    ///
+    /// assert_eq!(subslice.len(), 2);
+    /// assert_eq!(subslice[0], 30_i32);
+    /// assert_eq!(subslice[1], 60_i32);
+    /// ```
+    ///
+    /// Subslicing a slice from a type-erased index map.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let map = OpaqueIndexMap::from([
+    ///     (1_usize, 10_i32),
+    ///     (2_usize, 40_i32),
+    ///     (3_usize, 30_i32),
+    ///     (4_usize, 60_i32),
+    /// ]);
+    ///
+    /// let maybe_slice = map.get_range::<_, usize, i32, RandomState, Global>(1..);
+    ///
+    /// assert!(maybe_slice.is_some());
+    ///
+    /// let slice = maybe_slice.unwrap();
+    ///
+    /// assert_eq!(slice.len(), 3);
+    /// assert_eq!(slice[0], 40_i32);
+    /// assert_eq!(slice[1], 30_i32);
+    /// assert_eq!(slice[2], 60_i32);
+    ///
+    /// let maybe_subslice = slice.get_range(1..);
+    ///
+    /// assert!(maybe_subslice.is_some());
+    ///
+    /// let subslice = maybe_subslice.unwrap();
+    ///
+    /// assert_eq!(subslice.len(), 2);
+    /// assert_eq!(subslice[0], 30_i32);
+    /// assert_eq!(subslice[1], 60_i32);
+    /// ```
     pub fn get_range<R>(&self, range: R) -> Option<&Self>
     where
         R: ops::RangeBounds<usize>,
@@ -545,6 +1352,98 @@ impl<K, V> Slice<K, V> {
         self.entries.get_range(range).map(Slice::from_slice)
     }
 
+    /// Returns a mutable subslice of entries in the index map slice from the given storage range
+    /// in the map.
+    ///
+    /// If the range `range` is in bounds, this method returns `Some(&mut slice)`, where `slice` is the
+    /// slice of entries from the index map slice in the storage range `range`. if the range `range` is
+    /// out of bounds, this method returns `None`.
+    ///
+    /// # Examples
+    ///
+    /// Subslicing a slice from a type-projected index map.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map = TypedProjIndexMap::from([
+    ///     (1_usize, 10_i32),
+    ///     (2_usize, 40_i32),
+    ///     (3_usize, 30_i32),
+    ///     (4_usize, 60_i32),
+    /// ]);
+    ///
+    /// let maybe_slice = map.get_range_mut(1..);
+    ///
+    /// assert!(maybe_slice.is_some());
+    ///
+    /// let slice = maybe_slice.unwrap();
+    ///
+    /// assert_eq!(slice.len(), 3);
+    /// assert_eq!(slice[0], 40_i32);
+    /// assert_eq!(slice[1], 30_i32);
+    /// assert_eq!(slice[2], 60_i32);
+    ///
+    /// let maybe_subslice = slice.get_range_mut(1..);
+    ///
+    /// assert!(maybe_subslice.is_some());
+    ///
+    /// let subslice = maybe_subslice.unwrap();
+    ///
+    /// assert_eq!(subslice.len(), 2);
+    /// assert_eq!(subslice[0], 30_i32);
+    /// assert_eq!(subslice[1], 60_i32);
+    /// ```
+    ///
+    /// Subslicing a slice from a type-erased index map.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map = OpaqueIndexMap::from([
+    ///     (1_usize, 10_i32),
+    ///     (2_usize, 40_i32),
+    ///     (3_usize, 30_i32),
+    ///     (4_usize, 60_i32),
+    /// ]);
+    ///
+    /// let maybe_slice = map.get_range_mut::<_, usize, i32, RandomState, Global>(1..);
+    ///
+    /// assert!(maybe_slice.is_some());
+    ///
+    /// let slice = maybe_slice.unwrap();
+    ///
+    /// assert_eq!(slice.len(), 3);
+    /// assert_eq!(slice[0], 40_i32);
+    /// assert_eq!(slice[1], 30_i32);
+    /// assert_eq!(slice[2], 60_i32);
+    ///
+    /// let maybe_subslice = slice.get_range_mut(1..);
+    ///
+    /// assert!(maybe_subslice.is_some());
+    ///
+    /// let subslice = maybe_subslice.unwrap();
+    ///
+    /// assert_eq!(subslice.len(), 2);
+    /// assert_eq!(subslice[0], 30_i32);
+    /// assert_eq!(subslice[1], 60_i32);
+    /// ```
     pub fn get_range_mut<R>(&mut self, range: R) -> Option<&mut Self>
     where
         R: ops::RangeBounds<usize>,
@@ -552,46 +1451,711 @@ impl<K, V> Slice<K, V> {
         self.entries.get_range_mut(range).map(Slice::from_slice_mut)
     }
 
+    /// Returns a reference to the first entry in the index map slice as a
+    /// (key reference, value reference) pair, if it exists.
+    ///
+    /// If the index map slice is nonempty, this method returns `Some((&key, &value))` where `key` is
+    /// the key of the first entry in the index map, and `value` is the value of the first entry in
+    /// the index map slice. If the index map slice is empty, this method returns `None`.
+    ///
+    /// # Examples
+    ///
+    /// Getting the first entry of a non-empty type-projected index map slice.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let map = TypedProjIndexMap::from([
+    ///     (String::from("foo"),  1_usize),
+    ///     (String::from("bar"),  2_usize),
+    ///     (String::from("baz"),  3_usize),
+    ///     (String::from("quux"), 4_usize),
+    /// ]);
+    /// let slice = map.as_slice();
+    /// let result = slice.first();
+    ///
+    /// assert_eq!(result, Some((&String::from("foo"), &1_usize)));
+    /// ```
+    ///
+    /// Getting the first entry from an empty typed-projected index map slice.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let map: TypedProjIndexMap<String, usize> = TypedProjIndexMap::new();
+    /// let slice = map.as_slice();
+    /// let maybe_entry = slice.first();
+    ///
+    /// assert!(maybe_entry.is_none());
+    /// ```
+    ///
+    /// Getting the first entry of a non-empty type-erased index map slice.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let map = OpaqueIndexMap::from([
+    ///     (String::from("foo"),  1_usize),
+    ///     (String::from("bar"),  2_usize),
+    ///     (String::from("baz"),  3_usize),
+    ///     (String::from("quux"), 4_usize),
+    /// ]);
+    /// let slice = map.as_slice::<String, usize, RandomState, Global>();
+    /// let result = slice.first();
+    ///
+    /// assert_eq!(result, Some((&String::from("foo"), &1_usize)));
+    /// ```
+    ///
+    /// Getting the first entry from an empty typed-erased index map slice.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let map = OpaqueIndexMap::new::<String, usize>();
+    /// let slice = map.as_slice::<String, usize, RandomState, Global>();
+    /// let maybe_entry = slice.first();
+    ///
+    /// assert!(maybe_entry.is_none());
+    /// ```
     pub fn first(&self) -> Option<(&K, &V)> {
         self.entries.first()
     }
 
+    /// Returns a mutable reference to the first entry in the index map slice as a
+    /// (key reference, mutable value reference) pair, if it exists.
+    ///
+    /// If the index map slice is nonempty, this method returns `Some((&key, &mut value))` where `key` is
+    /// the key of the first entry in the index map slice, and `value` is the value of the first entry in
+    /// the index map slice. If the index map slice is empty, this method returns `None`.
+    ///
+    /// # Examples
+    ///
+    /// Getting the first entry of a non-empty type-projected index map slice.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map = TypedProjIndexMap::from([
+    ///     (String::from("foo"),  1_usize),
+    ///     (String::from("bar"),  2_usize),
+    ///     (String::from("baz"),  3_usize),
+    ///     (String::from("quux"), 4_usize),
+    /// ]);
+    /// let slice = map.as_mut_slice();
+    /// let result = slice.first_mut();
+    ///
+    /// assert_eq!(result, Some((&String::from("foo"), &mut 1_usize)));
+    /// ```
+    ///
+    /// Getting the first entry from an empty typed-projected index map slice.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map: TypedProjIndexMap<String, usize> = TypedProjIndexMap::new();
+    /// let slice = map.as_mut_slice();
+    /// let maybe_entry = slice.first_mut();
+    ///
+    /// assert!(maybe_entry.is_none());
+    /// ```
+    ///
+    /// Getting the first entry of a non-empty type-erased index map slice.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map = OpaqueIndexMap::from([
+    ///     (String::from("foo"),  1_usize),
+    ///     (String::from("bar"),  2_usize),
+    ///     (String::from("baz"),  3_usize),
+    ///     (String::from("quux"), 4_usize),
+    /// ]);
+    /// let slice = map.as_mut_slice::<String, usize, RandomState, Global>();
+    /// let result = slice.first_mut();
+    ///
+    /// assert_eq!(result, Some((&String::from("foo"), &mut 1_usize)));
+    /// ```
+    ///
+    /// Getting the first entry from an empty typed-erased index map slice.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map = OpaqueIndexMap::new::<String, usize>();
+    /// let slice = map.as_mut_slice::<String, usize, RandomState, Global>();
+    /// let maybe_entry = slice.first_mut();
+    ///
+    /// assert!(maybe_entry.is_none());
+    /// ```
     pub fn first_mut(&mut self) -> Option<(&K, &mut V)> {
         self.entries.first_mut()
     }
 
+    /// Returns a reference to the last entry in the index map slice as a
+    /// (key reference, value reference) pair, if it exists.
+    ///
+    /// If the index map slice is nonempty, this method returns `Some((&key, &value))` where `key` is
+    /// the key of the last entry in the index map slice, and `value` is the value of the last entry in
+    /// the index map slice. If the index map slice is empty, this method returns `None`.
+    ///
+    /// # Examples
+    ///
+    /// Getting the last entry of a non-empty type-projected index map slice.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let map = TypedProjIndexMap::from([
+    ///     (String::from("foo"),  1_usize),
+    ///     (String::from("bar"),  2_usize),
+    ///     (String::from("baz"),  3_usize),
+    ///     (String::from("quux"), 4_usize),
+    /// ]);
+    /// let slice = map.as_slice();
+    /// let result = slice.last();
+    ///
+    /// assert_eq!(result, Some((&String::from("quux"), &4_usize)));
+    /// ```
+    ///
+    /// Getting the last entry from an empty typed-projected index map slice.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let map: TypedProjIndexMap<String, usize> = TypedProjIndexMap::new();
+    /// let slice = map.as_slice();
+    /// let maybe_entry = slice.last();
+    ///
+    /// assert!(maybe_entry.is_none());
+    /// ```
+    ///
+    /// Getting the last entry of a non-empty type-erased index map slice.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let map = OpaqueIndexMap::from([
+    ///     (String::from("foo"),  1_usize),
+    ///     (String::from("bar"),  2_usize),
+    ///     (String::from("baz"),  3_usize),
+    ///     (String::from("quux"), 4_usize),
+    /// ]);
+    /// let slice = map.as_slice::<String, usize, RandomState, Global>();
+    /// let result = slice.last();
+    ///
+    /// assert_eq!(result, Some((&String::from("quux"), &4_usize)));
+    /// ```
+    ///
+    /// Getting the last entry from an empty typed-erased index map slice.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let map = OpaqueIndexMap::new::<String, usize>();
+    /// let slice = map.as_slice::<String, usize, RandomState, Global>();
+    /// let maybe_entry = slice.last();
+    ///
+    /// assert!(maybe_entry.is_none());
+    /// ```
     pub fn last(&self) -> Option<(&K, &V)> {
         self.entries.last()
     }
 
+    /// Returns a reference to the last entry in the index map slice as a
+    /// (key reference, mutable value reference) pair, if it exists.
+    ///
+    /// If the index map slice is nonempty, this method returns `Some((&key, &value))` where `key` is
+    /// the key of the last entry in the index map slice, and `value` is the value of the last entry in
+    /// the index map slice. If the index map slice is empty, this method returns `None`.
+    ///
+    /// # Examples
+    ///
+    /// Getting the last entry of a non-empty type-projected index map slice.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map = TypedProjIndexMap::from([
+    ///     (String::from("foo"),  1_usize),
+    ///     (String::from("bar"),  2_usize),
+    ///     (String::from("baz"),  3_usize),
+    ///     (String::from("quux"), 4_usize),
+    /// ]);
+    /// let slice = map.as_mut_slice();
+    /// let result = slice.last_mut();
+    ///
+    /// assert_eq!(result, Some((&String::from("quux"), &mut 4_usize)));
+    /// ```
+    ///
+    /// Getting the last entry from an empty typed-projected index map slice.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map: TypedProjIndexMap<String, usize> = TypedProjIndexMap::new();
+    /// let slice = map.as_mut_slice();
+    /// let maybe_entry = slice.last_mut();
+    ///
+    /// assert!(maybe_entry.is_none());
+    /// ```
+    ///
+    /// Getting the last entry of a non-empty type-erased index map slice.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map = OpaqueIndexMap::from([
+    ///     (String::from("foo"),  1_usize),
+    ///     (String::from("bar"),  2_usize),
+    ///     (String::from("baz"),  3_usize),
+    ///     (String::from("quux"), 4_usize),
+    /// ]);
+    /// let slice = map.as_mut_slice::<String, usize, RandomState, Global>();
+    /// let result = slice.last_mut();
+    ///
+    /// assert_eq!(result, Some((&String::from("quux"), &mut 4_usize)));
+    /// ```
+    ///
+    /// Getting the last entry from an empty typed-erased index map slice.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map = OpaqueIndexMap::new::<String, usize>();
+    /// let slice = map.as_mut_slice::<String, usize, RandomState, Global>();
+    /// let maybe_entry = slice.last_mut();
+    ///
+    /// assert!(maybe_entry.is_none());
+    /// ```
     pub fn last_mut(&mut self) -> Option<(&K, &mut V)> {
         self.entries.last_mut()
     }
 
+    /// Divides an index map slice in two slices at the given index.
+    ///
+    /// # Examples
+    ///
+    /// Splitting a slice from a type-projected index map.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let map = TypedProjIndexMap::from([
+    ///     (0_usize, 1_i32),
+    ///     (1_usize, 2_i32),
+    ///     (2_usize, 3_i32),
+    ///     (3_usize, 4_i32),
+    ///     (4_usize, 5_i32),
+    /// ]);
+    /// let (prefix, suffix) = map.as_slice().split_at(2);
+    ///
+    /// assert_eq!(prefix, &[(0_usize, 1_i32), (1_usize, 2_i32)]);
+    /// assert_eq!(suffix, &[(2_usize, 3_i32), (3_usize, 4_i32), (4_usize, 5_i32)]);
+    /// ```
+    ///
+    /// Splitting a slice from a type-erased index map.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let map = OpaqueIndexMap::from([
+    ///     (0_usize, 1_i32),
+    ///     (1_usize, 2_i32),
+    ///     (2_usize, 3_i32),
+    ///     (3_usize, 4_i32),
+    ///     (4_usize, 5_i32),
+    /// ]);
+    /// let (prefix, suffix) = map.as_slice::<usize, i32, RandomState, Global>().split_at(2);
+    ///
+    /// assert_eq!(prefix, &[(0_usize, 1_i32), (1_usize, 2_i32)]);
+    /// assert_eq!(suffix, &[(2_usize, 3_i32), (3_usize, 4_i32), (4_usize, 5_i32)]);
+    /// ```
     pub fn split_at(&self, index: usize) -> (&Self, &Self) {
         let (first, second) = self.entries.split_at(index);
 
         (Self::from_slice(first), Self::from_slice(second))
     }
 
+    /// Divides a mutable index map slice in two mutable slices at the given index.
+    ///
+    /// # Examples
+    ///
+    /// Splitting a slice from a type-projected index map.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map = TypedProjIndexMap::from([
+    ///     (0_usize, 1_i32),
+    ///     (1_usize, 2_i32),
+    ///     (2_usize, 3_i32),
+    ///     (3_usize, 4_i32),
+    ///     (4_usize, 5_i32),
+    /// ]);
+    /// let (prefix, suffix) = map.as_mut_slice().split_at_mut(2);
+    ///
+    /// assert_eq!(prefix, &[(0_usize, 1_i32), (1_usize, 2_i32)]);
+    /// assert_eq!(suffix, &[(2_usize, 3_i32), (3_usize, 4_i32), (4_usize, 5_i32)]);
+    /// ```
+    ///
+    /// Splitting a slice from a type-erased index map.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map = OpaqueIndexMap::from([
+    ///     (0_usize, 1_i32),
+    ///     (1_usize, 2_i32),
+    ///     (2_usize, 3_i32),
+    ///     (3_usize, 4_i32),
+    ///     (4_usize, 5_i32),
+    /// ]);
+    /// let (prefix, suffix) = map.as_mut_slice::<usize, i32, RandomState, Global>() .split_at_mut(2);
+    ///
+    /// assert_eq!(prefix, &[(0_usize, 1_i32), (1_usize, 2_i32)]);
+    /// assert_eq!(suffix, &[(2_usize, 3_i32), (3_usize, 4_i32), (4_usize, 5_i32)]);
+    /// ```
     pub fn split_at_mut(&mut self, index: usize) -> (&mut Self, &mut Self) {
         let (first, second) = self.entries.split_at_mut(index);
 
         (Self::from_slice_mut(first), Self::from_slice_mut(second))
     }
 
+    /// Divides an index map slice into the first entry and the remainder of the original slice.
+    ///
+    /// # Examples
+    ///
+    /// Splitting a type-projected index map slice.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let map = TypedProjIndexMap::from([
+    ///     (0_usize, 1_i32),
+    ///     (1_usize, 2_i32),
+    ///     (2_usize, 3_i32),
+    ///     (3_usize, 4_i32),
+    ///     (4_usize, 5_i32),
+    /// ]);
+    /// let result = map.as_slice().split_first();
+    ///
+    /// assert!(result.is_some());
+    ///
+    /// let (head, tail) = result.unwrap();
+    ///
+    /// assert_eq!(head, (&0_usize, &1_i32));
+    /// assert_eq!(tail, &[(1_usize, 2_i32), (2_usize, 3_i32), (3_usize, 4_i32), (4_usize, 5_i32)]);
+    /// ```
+    ///
+    /// Splitting a type-erased index map slice.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let map = OpaqueIndexMap::from([
+    ///     (0_usize, 1_i32),
+    ///     (1_usize, 2_i32),
+    ///     (2_usize, 3_i32),
+    ///     (3_usize, 4_i32),
+    ///     (4_usize, 5_i32),
+    /// ]);
+    /// let result = map.as_slice::<usize, i32, RandomState, Global>().split_first();
+    ///
+    /// assert!(result.is_some());
+    ///
+    /// let (head, tail) = result.unwrap();
+    ///
+    /// assert_eq!(head, (&0_usize, &1_i32));
+    /// assert_eq!(tail, &[(1_usize, 2_i32), (2_usize, 3_i32), (3_usize, 4_i32), (4_usize, 5_i32)]);
+    /// ```
     pub fn split_first(&self) -> Option<((&K, &V), &Self)> {
         let (split, slice) = self.entries.split_first()?;
 
         Some((split, Self::from_slice(slice)))
     }
 
+    /// Divides a mutable index map slice into the first entry and the remainder of the original slice.
+    ///
+    /// # Examples
+    ///
+    /// Splitting a type-projected index map slice.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map = TypedProjIndexMap::from([
+    ///     (0_usize, 1_i32),
+    ///     (1_usize, 2_i32),
+    ///     (2_usize, 3_i32),
+    ///     (3_usize, 4_i32),
+    ///     (4_usize, 5_i32),
+    /// ]);
+    /// let result = map.as_mut_slice().split_first_mut();
+    ///
+    /// assert!(result.is_some());
+    ///
+    /// let (head, tail) = result.unwrap();
+    ///
+    /// assert_eq!(head, (&0_usize, &mut 1_i32));
+    /// assert_eq!(tail, &[(1_usize, 2_i32), (2_usize, 3_i32), (3_usize, 4_i32), (4_usize, 5_i32)]);
+    /// ```
+    ///
+    /// Splitting a type-erased index map slice.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map = OpaqueIndexMap::from([
+    ///     (0_usize, 1_i32),
+    ///     (1_usize, 2_i32),
+    ///     (2_usize, 3_i32),
+    ///     (3_usize, 4_i32),
+    ///     (4_usize, 5_i32),
+    /// ]);
+    /// let result = map.as_mut_slice::<usize, i32, RandomState, Global>().split_first_mut();
+    ///
+    /// assert!(result.is_some());
+    ///
+    /// let (head, tail) = result.unwrap();
+    ///
+    /// assert_eq!(head, (&0_usize, &mut 1_i32));
+    /// assert_eq!(tail, &[(1_usize, 2_i32), (2_usize, 3_i32), (3_usize, 4_i32), (4_usize, 5_i32)]);
+    /// ```
     pub fn split_first_mut(&mut self) -> Option<((&K, &mut V), &mut Self)> {
         let (split, slice) = self.entries.split_first_mut()?;
 
         Some((split, Self::from_slice_mut(slice)))
     }
 
+    /// Divides an index map slice into the last entry and a prefix of the original slice.
+    ///
+    /// # Examples
+    ///
+    /// Splitting a type-projected index map slice.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let map = TypedProjIndexMap::from([
+    ///     (0_usize, 1_i32),
+    ///     (1_usize, 2_i32),
+    ///     (2_usize, 3_i32),
+    ///     (3_usize, 4_i32),
+    ///     (4_usize, 5_i32),
+    /// ]);
+    /// let result = map.as_slice().split_last();
+    ///
+    /// assert!(result.is_some());
+    ///
+    /// let (last, prefix) = result.unwrap();
+    ///
+    /// assert_eq!(last, (&4_usize, &5_i32));
+    /// assert_eq!(prefix, &[(0_usize, 1_i32), (1_usize, 2_i32), (2_usize, 3_i32), (3_usize, 4_i32)]);
+    /// ```
+    ///
+    /// Splitting a type-erased index map slice.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let map = OpaqueIndexMap::from([
+    ///     (0_usize, 1_i32),
+    ///     (1_usize, 2_i32),
+    ///     (2_usize, 3_i32),
+    ///     (3_usize, 4_i32),
+    ///     (4_usize, 5_i32),
+    /// ]);
+    /// let result = map.as_slice::<usize, i32, RandomState, Global>().split_last();
+    ///
+    /// assert!(result.is_some());
+    ///
+    /// let (last, prefix) = result.unwrap();
+    ///
+    /// assert_eq!(last, (&4_usize, &5_i32));
+    /// assert_eq!(prefix, &[(0_usize, 1_i32), (1_usize, 2_i32), (2_usize, 3_i32), (3_usize, 4_i32)]);
+    /// ```
     pub fn split_last(&self) -> Option<((&K, &V), &Self)> {
         let (split, slice) = self.entries.split_last()?;
 
@@ -599,24 +2163,240 @@ impl<K, V> Slice<K, V> {
 
     }
 
+    /// Divides a mutable index map slice into the last entry and a prefix of the original slice.
+    ///
+    /// # Examples
+    ///
+    /// Splitting a type-projected index map slice.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map = TypedProjIndexMap::from([
+    ///     (0_usize, 1_i32),
+    ///     (1_usize, 2_i32),
+    ///     (2_usize, 3_i32),
+    ///     (3_usize, 4_i32),
+    ///     (4_usize, 5_i32),
+    /// ]);
+    /// let result = map.as_mut_slice().split_last_mut();
+    ///
+    /// assert!(result.is_some());
+    ///
+    /// let (last, prefix) = result.unwrap();
+    ///
+    /// assert_eq!(last, (&4_usize, &mut 5_i32));
+    /// assert_eq!(prefix, &[(0_usize, 1_i32), (1_usize, 2_i32), (2_usize, 3_i32), (3_usize, 4_i32)]);
+    /// ```
+    ///
+    /// Splitting a type-erased index map slice.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map = OpaqueIndexMap::from([
+    ///     (0_usize, 1_i32),
+    ///     (1_usize, 2_i32),
+    ///     (2_usize, 3_i32),
+    ///     (3_usize, 4_i32),
+    ///     (4_usize, 5_i32),
+    /// ]);
+    /// let result = map.as_mut_slice::<usize, i32, RandomState, Global>().split_last_mut();
+    ///
+    /// assert!(result.is_some());
+    ///
+    /// let (last, prefix) = result.unwrap();
+    ///
+    /// assert_eq!(last, (&4_usize, &mut 5_i32));
+    /// assert_eq!(prefix, &[(0_usize, 1_i32), (1_usize, 2_i32), (2_usize, 3_i32), (3_usize, 4_i32)]);
+    /// ```
     pub fn split_last_mut(&mut self) -> Option<((&K, &mut V), &mut Self)> {
         let (split, slice) = self.entries.split_last_mut()?;
 
         Some((split, Slice::from_slice_mut(slice)))
     }
 
+    /// Returns an iterator over the entries in the index map slice.
+    ///
+    /// The iterator returns the entries in their storage order in the index map slice.
+    ///
+    /// # Examples
+    ///
+    /// Iterating over the entries of an index map slice.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let map = TypedProjIndexMap::from([
+    ///     (0_usize, 2_f32),
+    ///     (1_usize, 3_f32),
+    ///     (2_usize, 4_f32),
+    /// ]);
+    /// let slice = map.as_slice();
+    /// let entries: TypedProjVec<(usize, f32)> = slice
+    ///     .iter()
+    ///     .map(|(k, v)| (k.clone(), v.clone()))
+    ///     .collect();
+    ///
+    /// assert_eq!(entries.as_slice(), &[(0_usize, 2_f32), (1_usize, 3_f32), (2_usize, 4_f32)]);
+    /// ```
     pub fn iter(&self) -> Iter<'_, K, V> {
         Iter::new(self.entries.iter())
     }
 
+    /// Returns a mutable iterator over the entries in the index map slice.
+    ///
+    /// The iterator returns the entries in their storage order in the index map slice.
+    ///
+    /// # Examples
+    ///
+    /// Iterating over the entries of an index map slice.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map = TypedProjIndexMap::from([
+    ///     (0_usize, 2_f32),
+    ///     (1_usize, 3_f32),
+    ///     (2_usize, 4_f32),
+    /// ]);
+    /// let slice = map.as_mut_slice();
+    /// let entries: TypedProjVec<(usize, f32)> = slice
+    ///     .iter_mut()
+    ///     .map(|(k, v)| (k.clone(), v.clone()))
+    ///     .collect();
+    ///
+    /// assert_eq!(entries.as_slice(), &[(0_usize, 2_f32), (1_usize, 3_f32), (2_usize, 4_f32)]);
+    /// ```
+    ///
+    /// Iterating over the entries of an index map slice while mutating them.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map = TypedProjIndexMap::from([
+    ///     (0_usize, 2_f32),
+    ///     (1_usize, 3_f32),
+    ///     (2_usize, 4_f32),
+    /// ]);
+    /// let slice = map.as_mut_slice();
+    /// let entries: TypedProjVec<(usize, f32)> = slice
+    ///     .iter_mut()
+    ///     .map(|(k, v)| (k.clone(), v.clone()))
+    ///     .collect();
+    ///
+    /// assert_eq!(entries.as_slice(), &[(0_usize, 2_f32), (1_usize, 3_f32), (2_usize, 4_f32)]);
+    ///
+    /// for (key, value) in map.iter_mut() {
+    ///     *value *= 2_f32;
+    /// }
+    ///
+    /// let new_entries: TypedProjVec<(usize, f32)> = map
+    ///     .iter_mut()
+    ///     .map(|(k, v)| (k.clone(), v.clone()))
+    ///     .collect();
+    ///
+    /// assert_eq!(new_entries.as_slice(), &[(0_usize, 4_f32), (1_usize, 6_f32), (2_usize, 8_f32)]);
+    /// ```
     pub fn iter_mut(&mut self) -> IterMut<'_, K, V> {
         IterMut::new(self.entries.iter_mut())
     }
 
+    /// Returns an iterator over the keys in the index map slice.
+    ///
+    /// The iterator returns the keys in the storage order of the entries in the index map slice.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let map: TypedProjIndexMap<usize, f64> = TypedProjIndexMap::from([
+    ///     (1_usize, 2_f64),
+    ///     (2_usize, 3_f64),
+    ///     (3_usize, 4_f64),
+    /// ]);
+    /// let slice = map.as_slice();
+    /// let keys: TypedProjVec<usize> = slice
+    ///     .keys()
+    ///     .cloned()
+    ///     .collect();
+    ///
+    /// assert_eq!(keys.as_slice(), &[1_usize, 2_usize, 3_usize]);
+    /// ```
     pub fn keys(&self) -> Keys<'_, K, V> {
         Keys::new(self.entries.keys())
     }
 
+    /// Returns a moving iterator over the keys in the index map slice.
+    ///
+    /// The iterator returns the keys in the storage order of the entries in the index map slice.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let map: TypedProjIndexMap<usize, f64> = TypedProjIndexMap::from([
+    ///     (1_usize, 2_f64),
+    ///     (2_usize, 3_f64),
+    ///     (3_usize, 4_f64),
+    /// ]);
+    /// let boxed_slice = map.into_boxed_slice();
+    ///
+    /// let keys: TypedProjVec<usize> = boxed_slice.into_keys().collect();
+    ///
+    /// assert_eq!(keys.as_slice(), &[1_usize, 2_usize, 3_usize]);
+    /// ```
     pub fn into_keys<A>(self: Box<Self, TypedProjAlloc<A>>) -> IntoKeys<K, V, A>
     where
         K: any::Any,
@@ -626,14 +2406,141 @@ impl<K, V> Slice<K, V> {
         IntoKeys::new(self.into_boxed_slice().into_keys())
     }
 
+    /// Returns an iterator over the values in the index map slice.
+    ///
+    /// The iterator returns the values in the storage order of the entries in the index map slice.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let map: TypedProjIndexMap<usize, f64> = TypedProjIndexMap::from([
+    ///     (1_usize, 2_f64),
+    ///     (2_usize, 3_f64),
+    ///     (3_usize, 4_f64),
+    /// ]);
+    /// let slice = map.as_slice();
+    ///
+    /// let values: TypedProjVec<f64> = slice
+    ///     .values()
+    ///     .cloned()
+    ///     .collect();
+    ///
+    /// assert_eq!(values.as_slice(), &[2_f64, 3_f64, 4_f64]);
+    /// ```
     pub fn values(&self) -> Values<'_, K, V> {
         Values::new(self.entries.values())
     }
 
+    /// Returns a mutable iterator over the values in the index map slice.
+    ///
+    /// The iterator returns the values in the storage order of the entries in the index map slice.
+    ///
+    /// # Examples
+    ///
+    /// Iterating over the entries of a type-projected index map without mutating them.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map: TypedProjIndexMap<usize, f64> = TypedProjIndexMap::from([
+    ///     (1_usize, 2_f64),
+    ///     (2_usize, 3_f64),
+    ///     (3_usize, 4_f64),
+    /// ]);
+    /// let slice = map.as_mut_slice();
+    ///
+    /// let values: TypedProjVec<f64> = slice
+    ///     .values_mut()
+    ///     .map(|v| v.clone())
+    ///     .collect();
+    ///
+    /// assert_eq!(values.as_slice(), &[2_f64, 3_f64, 4_f64]);
+    /// ```
+    ///
+    /// Iterating over the entries of a type-projected index map while mutating them.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map: TypedProjIndexMap<usize, f64> = TypedProjIndexMap::from([
+    ///     (1_usize, 2_f64),
+    ///     (2_usize, 3_f64),
+    ///     (3_usize, 4_f64),
+    /// ]);
+    /// let slice = map.as_mut_slice();
+    ///
+    /// let values: TypedProjVec<f64> = slice
+    ///     .values_mut()
+    ///     .map(|v| v.clone())
+    ///     .collect();
+    ///
+    /// assert_eq!(values.as_slice(), &[2_f64, 3_f64, 4_f64]);
+    ///
+    /// for value in slice.values_mut() {
+    ///     *value *= 2_f64;
+    /// }
+    ///
+    /// let new_values: TypedProjVec<f64> = slice
+    ///     .values_mut()
+    ///     .map(|v| v.clone())
+    ///     .collect();
+    ///
+    /// assert_eq!(new_values.as_slice(), &[4_f64, 6_f64, 8_f64]);
+    /// ```
     pub fn values_mut(&mut self) -> ValuesMut<'_, K, V> {
         ValuesMut::new(self.entries.values_mut())
     }
 
+    /// Returns a moving iterator over the values in the index map slice.
+    ///
+    /// The iterator returns the values in the storage order of the entries in the index map slice.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let map: TypedProjIndexMap<usize, f64> = TypedProjIndexMap::from([
+    ///     (1_usize, 2_f64),
+    ///     (2_usize, 3_f64),
+    ///     (3_usize, 4_f64),
+    /// ]);
+    /// let boxed_slice = map.into_boxed_slice();
+    ///
+    /// let values: TypedProjVec<f64> = boxed_slice.into_values().collect();
+    ///
+    /// assert_eq!(values.as_slice(), &[2_f64, 3_f64, 4_f64]);
+    /// ```
     pub fn into_values<A>(self: Box<Self, TypedProjAlloc<A>>) -> IntoValues<K, V, A>
     where
         K: any::Any,
@@ -643,13 +2550,124 @@ impl<K, V> Slice<K, V> {
         IntoValues::new(self.into_boxed_slice().into_values())
     }
 
-    pub fn binary_search_keys(&self, x: &K) -> Result<usize, usize>
+    /// Binary searches a sorted index map slice for the given key. If the index map slice is unsorted,
+    /// the returned result is unspecified and meaningless.
+    ///
+    /// If the entry with the key `key` is found in the slice, then this method returns `Ok(index)`, where
+    /// `index` is the storage index of the entry with key `key` in the slice. If the entry with the key
+    /// `key` is not found in the map, then this method returns `Err(new_index)` where `new_index` is
+    /// the position in the storage where an entry with the key `key` could be inserted to maintain the
+    /// sorted order.
+    ///
+    /// # Examples
+    ///
+    /// Binary searching a sorted index map slice.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let map: TypedProjIndexMap<isize, char> = TypedProjIndexMap::from_iter((1_isize..=26_isize).zip('a'..='z'));
+    /// let slice = map.as_slice();
+    /// for (i, (key, value)) in (1_isize..=26_isize).zip('a'..='z').enumerate() {
+    ///     let result = slice.binary_search_keys(&key);
+    ///     assert_eq!(result, Ok(i));
+    /// }
+    /// ```
+    pub fn binary_search_keys(&self, key: &K) -> Result<usize, usize>
     where
         K: Ord,
     {
-        self.entries.binary_search_keys(x)
+        self.entries.binary_search_keys(key)
     }
 
+    /// Binary searches a sorted index map slice using a given comparator function. If the index map
+    /// slice is unsorted, the returned result is unspecified and meaningless.
+    ///
+    /// The comparator function should return an order code that indicates whether its argument is
+    /// `Less`, `Equal` or `Greater` than the desired target.
+    ///
+    /// If the index map slice is not in sorted order or if the comparator function does not implement
+    /// an order consistent with the sorted order of the underlying index map slice, the returned result
+    /// is unspecified and meaningless.
+    ///
+    /// If an entry satisfying the comparator is found in the slice, then this method returns `Ok(index)`,
+    /// where `index` is the storage index of the entry found in the slice. If an entry satisfying the
+    /// comparator is not found in the slice, then this method returns `Err(new_index)` where `new_index`
+    /// is the position in the storage where an entry with the key `key` could be inserted to maintain
+    /// the sorted order. If multiple entries in the index map satisfy the comparator, then any one
+    /// of them could be returned. The index is chosen deterministically, but this method makes no
+    /// guarantees as to how it picks that index.
+    ///
+    /// # Examples
+    ///
+    /// Binary searching a sorted index map slice.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let map: TypedProjIndexMap<isize, char> = TypedProjIndexMap::from_iter((1_isize..=26_isize).zip('a'..='z'));
+    /// let slice = map.as_slice();
+    /// let expected = Ok(23);
+    /// let result = slice.binary_search_by(|k, v| v.cmp(&'x'));
+    ///
+    /// assert_eq!(result, expected);
+    ///
+    /// assert!('*' < 'a');
+    ///
+    /// let expected = Err(0);
+    /// let result = slice.binary_search_by(|k, v| v.cmp(&'*'));
+    ///
+    /// assert_eq!(result, expected);
+    /// ```
+    ///
+    /// Binary searching a sorted index map slice with repeating values.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let map = TypedProjIndexMap::from([
+    ///     (1_usize, 'a'), (2_usize, 'b'), (3_usize, 'c'),
+    ///     (4_usize, 'd'), (5_usize, 'd'), (6_usize, 'd'),  (7_usize, 'd'),
+    ///     (8_usize, 'e'), (9_usize, 'f'), (10_usize, 'g'), (11_usize, 'h'),
+    /// ]);
+    /// let slice = map.as_slice();
+    ///
+    /// assert_eq!(slice.binary_search_by(|&k, &v| v.cmp(&'a')), Ok(0));
+    /// assert_eq!(slice.binary_search_by(|&k, &v| v.cmp(&'b')), Ok(1));
+    /// assert_eq!(slice.binary_search_by(|&k, &v| v.cmp(&'c')), Ok(2));
+    ///
+    /// let result = slice.binary_search_by(|&k, &v| v.cmp(&'d'));
+    /// assert!(match result { Ok(3..=6) => true, _ => false });
+    ///
+    /// assert_eq!(slice.binary_search_by(|&k, &v| v.cmp(&'e')), Ok(7));
+    /// assert_eq!(slice.binary_search_by(|&k, &v| v.cmp(&'f')), Ok(8));
+    /// assert_eq!(slice.binary_search_by(|&k, &v| v.cmp(&'g')), Ok(9));
+    /// assert_eq!(slice.binary_search_by(|&k, &v| v.cmp(&'h')), Ok(10));
+    /// ```
     #[inline]
     pub fn binary_search_by<F>(&self, f: F) -> Result<usize, usize>
     where
@@ -658,6 +2676,62 @@ impl<K, V> Slice<K, V> {
         self.entries.binary_search_by(f)
     }
 
+    /// Binary searches the index map slice with a key extraction function.
+    ///
+    /// This method assumes that the index map slice is in sorted order by the key, for instance by
+    /// sorting the index map with [`sort_by_key`] using the same key extraction function. If the index
+    /// map slice is not sorted by the key, the returned result is unspecified and meaningless.
+    ///
+    /// If an entry matching the key is found in the slice, then this method returns `Ok(index)`,
+    /// where `index` is the storage index of the entry found in the slice. If an entry matching the
+    /// key is not found in the slice, then this method returns `Err(new_index)` where `new_index`
+    /// is the position in the slice where an entry with the matching key could be inserted to maintain
+    /// the sorted order. If multiple entries in the index map slice match the key, then any one of
+    /// them could be returned. The index is chosen deterministically, but this method makes no
+    /// guarantees as to how it picks that index.
+    ///
+    /// See also [`binary_search`], [`binary_search_by`], and [`partition_point`].
+    ///
+    /// [`sort_by_key`]: TypedProjIndexMap::sort_by_key
+    /// [`binary_search`]: Slice::binary_search
+    /// [`binary_search_by`]: Slice::binary_search_by
+    /// [`partition_point`]: Slice::partition_point
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let map = TypedProjIndexMap::from([
+    ///     (0_usize,  0_isize),
+    ///     (1_usize,  1_isize), (2_usize, 1_isize), (3_usize, 1_isize), (4_usize, 1_isize),
+    ///     (5_usize,  2_isize),
+    ///     (6_usize,  3_isize),
+    ///     (7_usize,  5_isize),
+    ///     (8_usize,  8_isize),
+    ///     (9_usize,  13_isize),
+    ///     (10_usize, 21_isize),
+    ///     (11_usize, 34_isize),
+    ///     (12_usize, 55_isize),
+    /// ]);
+    /// let slice = map.as_slice();
+    ///
+    /// assert_eq!(slice.binary_search_by_key(&13, |&a, &b| b),  Ok(9));
+    /// assert_eq!(slice.binary_search_by_key(&4, |&a, &b| b),   Err(7));
+    /// assert_eq!(slice.binary_search_by_key(&100, |&a, &b| b), Err(13));
+    ///
+    /// let result = slice.binary_search_by_key(&1, |&a, &b| b);
+    ///
+    /// assert!(match result { Ok(1..=4) => true, _ => false, });
+    /// ```
     #[inline]
     pub fn binary_search_by_key<B, F>(&self, b: &B, f: F) -> Result<usize, usize>
     where
@@ -667,6 +2741,107 @@ impl<K, V> Slice<K, V> {
         self.entries.binary_search_by_key(b, f)
     }
 
+    /// Returns the index of the partition point of a sorted index map slice according to the given predicate
+    /// (the index of the first element of the second partition).
+    ///
+    /// This method assumes that the storage order of the entries in the index map slice is partitioned
+    /// according to the predicate. That is, all entries for which the predicate returns `true` are
+    /// at the start of the slice, and all entries for which the predicate returns `false` are at
+    /// the end of the slice. If the index map slice's storage order does not partition according
+    /// to the predicate, the result is unspecified and meaningless.
+    ///
+    /// # Examples
+    ///
+    /// Finding the partition point of a partitioned index map slice where not every entry matches the predicate.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let map = TypedProjIndexMap::from([
+    ///     (0_usize, 1_isize),
+    ///     (1_usize, 2_isize),
+    ///     (2_usize, 2_isize),
+    ///     (3_usize, 3_isize),
+    ///     (4_usize, 5_isize),
+    ///     (5_usize, 5_isize),
+    ///     (6_usize, 5_isize),
+    ///     (7_usize, 6_isize),
+    ///     (8_usize, 9_isize),
+    /// ]);
+    /// let slice = map.as_slice();
+    ///
+    /// assert_eq!(slice.partition_point(|&k, &v| v < 5_isize), 4);
+    /// ```
+    ///
+    /// Finding the partition point of an index map slice where every entry matches the predicate.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// fn is_power_of_two(n: usize) -> bool {
+    ///     n != 0 && (n & (n - 1)) == 0
+    /// }
+    ///
+    /// let map = TypedProjIndexMap::from([
+    ///     (0_usize, 1_usize),
+    ///     (1_usize, 2_usize),
+    ///     (2_usize, 4_usize),
+    ///     (3_usize, 8_usize),
+    ///     (4_usize, 16_usize),
+    ///     (5_usize, 32_usize),
+    ///     (6_usize, 64_usize),
+    /// ]);
+    /// let slice = map.as_slice();
+    ///
+    /// assert_eq!(slice.partition_point(|&k, &v| is_power_of_two(v)), slice.len());
+    /// ```
+    ///
+    /// Finding the partition point of an index map slice where no entry matches the predicate.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// fn is_power_of_two(n: usize) -> bool {
+    ///     n != 0 && (n & (n - 1)) == 0
+    /// }
+    ///
+    /// let map = TypedProjIndexMap::from([
+    ///     (0_usize, 3_usize),
+    ///     (1_usize, 5_usize),
+    ///     (2_usize, 7_usize),
+    ///     (3_usize, 11_usize),
+    ///     (4_usize, 13_usize),
+    ///     (5_usize, 17_usize),
+    ///     (6_usize, 19_usize),
+    /// ]);
+    /// let slice = map.as_slice();
+    ///
+    /// assert_eq!(slice.partition_point(|&k, &v| is_power_of_two(v)), 0);
+    /// ```
     #[must_use]
     pub fn partition_point<P>(&self, pred: P) -> usize
     where
@@ -900,17 +3075,143 @@ impl_index_for_index_map_slice!(
     (ops::Bound<usize>, ops::Bound<usize>)
 );
 
-
+/// An immutable iterator over the entries of an index map.
+///
+/// # Examples
+///
+/// Iterating over the entries of a type-projected index map.
+///
+/// ```
+/// # #![feature(allocator_api)]
+/// # use opaque_index_map::TypedProjIndexMap;
+/// # use opaque_hash::TypedProjBuildHasher;
+/// # use opaque_alloc::TypedProjAlloc;
+/// # use opaque_vec::TypedProjVec;
+/// # use std::any::TypeId;
+/// # use std::cmp::Ordering;
+/// # use std::hash::RandomState;
+/// # use std::alloc::Global;
+/// #
+/// let map = TypedProjIndexMap::from([
+///     (0_usize, 1_i32),
+///     (1_usize, 2_i32),
+///     (2_usize, 3_i32),
+///     (3_usize, 4_i32),
+/// ]);
+/// let mut iterator = map.iter();
+///
+/// assert_eq!(iterator.next(), Some((&0_usize, &1_i32)));
+/// assert_eq!(iterator.next(), Some((&1_usize, &2_i32)));
+/// assert_eq!(iterator.next(), Some((&2_usize, &3_i32)));
+/// assert_eq!(iterator.next(), Some((&3_usize, &4_i32)));
+/// assert_eq!(iterator.next(), None);
+/// ```
+///
+/// Iterating over the entries of a type-erased index map.
+///
+/// ```
+/// # #![feature(allocator_api)]
+/// # use opaque_index_map::OpaqueIndexMap;
+/// # use opaque_hash::TypedProjBuildHasher;
+/// # use opaque_alloc::TypedProjAlloc;
+/// # use opaque_vec::TypedProjVec;
+/// # use std::any::TypeId;
+/// # use std::cmp::Ordering;
+/// # use std::hash::RandomState;
+/// # use std::alloc::Global;
+/// #
+/// let map = OpaqueIndexMap::from([
+///     (0_usize, 1_i32),
+///     (1_usize, 2_i32),
+///     (2_usize, 3_i32),
+///     (3_usize, 4_i32),
+/// ]);
+/// let mut iterator = map.iter::<usize, i32, RandomState, Global>();
+///
+/// assert_eq!(iterator.next(), Some((&0_usize, &1_i32)));
+/// assert_eq!(iterator.next(), Some((&1_usize, &2_i32)));
+/// assert_eq!(iterator.next(), Some((&2_usize, &3_i32)));
+/// assert_eq!(iterator.next(), Some((&3_usize, &4_i32)));
+/// assert_eq!(iterator.next(), None);
+/// ```
 pub struct Iter<'a, K, V> {
     iter: map_inner::Iter<'a, K, V>,
 }
 
 impl<'a, K, V> Iter<'a, K, V> {
+    /// Constructs a new index map iterator from an inner index map iterator.
     #[inline]
     fn new(iter: map_inner::Iter<'a, K, V>) -> Self {
         Self { iter, }
     }
 
+    /// Returns a slice of the remaining entries in the iterator.
+    ///
+    /// # Examples
+    ///
+    /// Slicing an iterator over a type-projected index map.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let map = TypedProjIndexMap::from([
+    ///     (0_usize, 1_i32),
+    ///     (1_usize, 2_i32),
+    ///     (2_usize, 3_i32),
+    ///     (3_usize, 4_i32),
+    /// ]);
+    /// let mut iterator = map.iter();
+    ///
+    /// assert_eq!(iterator.as_slice(), &[(0_usize, 1_i32), (1_usize, 2_i32), (2_usize, 3_i32), (3_usize, 4_i32)]);
+    /// let _ = iterator.next().unwrap();
+    /// assert_eq!(iterator.as_slice(), &[(1_usize, 2_i32), (2_usize, 3_i32), (3_usize, 4_i32)]);
+    /// let _ = iterator.next().unwrap();
+    /// assert_eq!(iterator.as_slice(), &[(2_usize, 3_i32), (3_usize, 4_i32)]);
+    /// let _ = iterator.next().unwrap();
+    /// assert_eq!(iterator.as_slice(), &[(3_usize, 4_i32)]);
+    /// let _ = iterator.next().unwrap();
+    /// assert!(iterator.as_slice().is_empty());
+    /// ```
+    ///
+    /// Slice an iterator over a type-erased index map.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let map = OpaqueIndexMap::from([
+    ///     (0_usize, 1_i32),
+    ///     (1_usize, 2_i32),
+    ///     (2_usize, 3_i32),
+    ///     (3_usize, 4_i32),
+    /// ]);
+    /// let mut iterator = map.iter::<usize, i32, RandomState, Global>();
+    ///
+    /// assert_eq!(iterator.as_slice(), &[(0_usize, 1_i32), (1_usize, 2_i32), (2_usize, 3_i32), (3_usize, 4_i32)]);
+    /// let _ = iterator.next().unwrap();
+    /// assert_eq!(iterator.as_slice(), &[(1_usize, 2_i32), (2_usize, 3_i32), (3_usize, 4_i32)]);
+    /// let _ = iterator.next().unwrap();
+    /// assert_eq!(iterator.as_slice(), &[(2_usize, 3_i32), (3_usize, 4_i32)]);
+    /// let _ = iterator.next().unwrap();
+    /// assert_eq!(iterator.as_slice(), &[(3_usize, 4_i32)]);
+    /// let _ = iterator.next().unwrap();
+    /// assert!(iterator.as_slice().is_empty());
+    /// ```
     pub fn as_slice(&self) -> &Slice<K, V> {
         Slice::from_slice(self.iter.as_slice())
     }
@@ -964,20 +3265,198 @@ impl<K, V> Default for Iter<'_, K, V> {
     }
 }
 
+/// A mutable iterator over the entries of an index map.
+///
+/// # Examples
+///
+/// Iterating over the entries of a type-projected index map.
+///
+/// ```
+/// # #![feature(allocator_api)]
+/// # use opaque_index_map::TypedProjIndexMap;
+/// # use opaque_hash::TypedProjBuildHasher;
+/// # use opaque_alloc::TypedProjAlloc;
+/// # use opaque_vec::TypedProjVec;
+/// # use std::any::TypeId;
+/// # use std::cmp::Ordering;
+/// # use std::hash::RandomState;
+/// # use std::alloc::Global;
+/// #
+/// let mut map = TypedProjIndexMap::from([
+///     (0_usize, 1_i32),
+///     (1_usize, 2_i32),
+///     (2_usize, 3_i32),
+///     (3_usize, 4_i32),
+/// ]);
+/// let mut iterator = map.iter_mut();
+///
+/// assert_eq!(iterator.next(), Some((&0_usize, &mut 1_i32)));
+/// assert_eq!(iterator.next(), Some((&1_usize, &mut 2_i32)));
+/// assert_eq!(iterator.next(), Some((&2_usize, &mut 3_i32)));
+/// assert_eq!(iterator.next(), Some((&3_usize, &mut 4_i32)));
+/// assert_eq!(iterator.next(), None);
+/// ```
+///
+/// Iterating over the entries of a type-erased index map.
+///
+/// ```
+/// # #![feature(allocator_api)]
+/// # use opaque_index_map::OpaqueIndexMap;
+/// # use opaque_hash::TypedProjBuildHasher;
+/// # use opaque_alloc::TypedProjAlloc;
+/// # use opaque_vec::TypedProjVec;
+/// # use std::any::TypeId;
+/// # use std::cmp::Ordering;
+/// # use std::hash::RandomState;
+/// # use std::alloc::Global;
+/// #
+/// let mut map = OpaqueIndexMap::from([
+///     (0_usize, 1_i32),
+///     (1_usize, 2_i32),
+///     (2_usize, 3_i32),
+///     (3_usize, 4_i32),
+/// ]);
+/// let mut iterator = map.iter_mut::<usize, i32, RandomState, Global>();
+///
+/// assert_eq!(iterator.next(), Some((&0_usize, &mut 1_i32)));
+/// assert_eq!(iterator.next(), Some((&1_usize, &mut 2_i32)));
+/// assert_eq!(iterator.next(), Some((&2_usize, &mut 3_i32)));
+/// assert_eq!(iterator.next(), Some((&3_usize, &mut 4_i32)));
+/// assert_eq!(iterator.next(), None);
+/// ```
 pub struct IterMut<'a, K, V> {
     iter: map_inner::IterMut<'a, K, V>,
 }
 
 impl<'a, K, V> IterMut<'a, K, V> {
+    /// Constructs a new mutable index map iterator from a mutable inner index map iterator.
     #[inline]
     const fn new(iter: map_inner::IterMut<'a, K, V>) -> Self {
         Self { iter, }
     }
 
+    /// Returns a mutable slice of the remaining entries in the iterator.
+    ///
+    /// # Examples
+    ///
+    /// Slicing an iterator over a type-projected index map.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map = TypedProjIndexMap::from([
+    ///     (0_usize, 1_i32),
+    ///     (1_usize, 2_i32),
+    ///     (2_usize, 3_i32),
+    ///     (3_usize, 4_i32),
+    /// ]);
+    /// let mut iterator = map.iter_mut();
+    ///
+    /// let _ = iterator.next().unwrap();
+    /// let _ = iterator.next().unwrap();
+    ///
+    /// assert_eq!(iterator.as_slice_mut(), &[(2_usize, 3_i32), (3_usize, 4_i32)]);
+    /// ```
+    ///
+    /// Slice an iterator over a type-erased index map.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map = OpaqueIndexMap::from([
+    ///     (0_usize, 1_i32),
+    ///     (1_usize, 2_i32),
+    ///     (2_usize, 3_i32),
+    ///     (3_usize, 4_i32),
+    /// ]);
+    /// let mut iterator = map.iter_mut::<usize, i32, RandomState, Global>();
+    ///
+    /// let _ = iterator.next().unwrap();
+    /// let _ = iterator.next().unwrap();
+    ///
+    /// assert_eq!(iterator.as_slice_mut(), &[(2_usize, 3_i32), (3_usize, 4_i32)]);
+    /// ```
     pub fn as_slice_mut(&'a mut self) -> &'a mut Slice<K, V> {
         Slice::from_slice_mut(self.iter.as_slice_mut())
     }
 
+    /// Converts a mutable iterator into a mutable slice of the remaining entries in the iterator.
+    ///
+    /// # Examples
+    ///
+    /// Slicing an iterator over a type-projected index map.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map = TypedProjIndexMap::from([
+    ///     (0_usize, 1_i32),
+    ///     (1_usize, 2_i32),
+    ///     (2_usize, 3_i32),
+    ///     (3_usize, 4_i32),
+    /// ]);
+    /// let mut iterator = map.iter_mut();
+    ///
+    /// let _ = iterator.next().unwrap();
+    /// let _ = iterator.next().unwrap();
+    ///
+    /// let slice = iterator.into_slice_mut();
+    ///
+    /// assert_eq!(slice, &[(2_usize, 3_i32), (3_usize, 4_i32)]);
+    /// ```
+    ///
+    /// Slice an iterator over a type-erased index map.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map = OpaqueIndexMap::from([
+    ///     (0_usize, 1_i32),
+    ///     (1_usize, 2_i32),
+    ///     (2_usize, 3_i32),
+    ///     (3_usize, 4_i32),
+    /// ]);
+    /// let mut iterator = map.iter_mut::<usize, i32, RandomState, Global>();
+    ///
+    /// let _ = iterator.next().unwrap();
+    /// let _ = iterator.next().unwrap();
+    ///
+    /// let slice = iterator.into_slice_mut();
+    ///
+    /// assert_eq!(slice, &[(2_usize, 3_i32), (3_usize, 4_i32)]);
+    /// ```
     pub fn into_slice_mut(self) -> &'a mut Slice<K, V> {
         Slice::from_slice_mut(self.iter.into_slice_mut())
     }
@@ -1025,6 +3504,65 @@ impl<K, V> Default for IterMut<'_, K, V> {
     }
 }
 
+/// A moving iterator over the entries of an index map.
+///
+/// # Examples
+///
+/// Moving the entries of a type-projected index map.
+///
+/// ```
+/// # #![feature(allocator_api)]
+/// # use opaque_index_map::TypedProjIndexMap;
+/// # use opaque_hash::TypedProjBuildHasher;
+/// # use opaque_alloc::TypedProjAlloc;
+/// # use opaque_vec::TypedProjVec;
+/// # use std::any::TypeId;
+/// # use std::cmp::Ordering;
+/// # use std::hash::RandomState;
+/// # use std::alloc::Global;
+/// #
+/// let map = TypedProjIndexMap::from([
+///     (0_usize, 1_i32),
+///     (1_usize, 2_i32),
+///     (2_usize, 3_i32),
+///     (3_usize, 4_i32),
+/// ]);
+/// let mut iterator = map.into_iter();
+///
+/// assert_eq!(iterator.next(), Some((0_usize, 1_i32)));
+/// assert_eq!(iterator.next(), Some((1_usize, 2_i32)));
+/// assert_eq!(iterator.next(), Some((2_usize, 3_i32)));
+/// assert_eq!(iterator.next(), Some((3_usize, 4_i32)));
+/// assert_eq!(iterator.next(), None);
+/// ```
+///
+/// Moving the entries of a type-erased index map.
+///
+/// ```
+/// # #![feature(allocator_api)]
+/// # use opaque_index_map::OpaqueIndexMap;
+/// # use opaque_hash::TypedProjBuildHasher;
+/// # use opaque_alloc::TypedProjAlloc;
+/// # use opaque_vec::TypedProjVec;
+/// # use std::any::TypeId;
+/// # use std::cmp::Ordering;
+/// # use std::hash::RandomState;
+/// # use std::alloc::Global;
+/// #
+/// let map = OpaqueIndexMap::from([
+///     (0_usize, 1_i32),
+///     (1_usize, 2_i32),
+///     (2_usize, 3_i32),
+///     (3_usize, 4_i32),
+/// ]);
+/// let mut iterator = map.into_iter::<usize, i32, RandomState, Global>();
+///
+/// assert_eq!(iterator.next(), Some((0_usize, 1_i32)));
+/// assert_eq!(iterator.next(), Some((1_usize, 2_i32)));
+/// assert_eq!(iterator.next(), Some((2_usize, 3_i32)));
+/// assert_eq!(iterator.next(), Some((3_usize, 4_i32)));
+/// assert_eq!(iterator.next(), None);
+/// ```
 #[derive(Clone)]
 pub struct IntoIter<K, V, A = alloc::Global>
 where
@@ -1041,15 +3579,150 @@ where
     V: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
+    /// Constructs new a moving iterator from an inner moving iterator.
     #[inline]
     const fn new(iter: map_inner::IntoIter<K, V, A>) -> Self {
         Self { iter, }
     }
 
+    /// Returns a slice of the remaining entries in the moving iterator.
+    ///
+    /// # Examples
+    ///
+    /// Slicing a moving iterator over a type-projected index map.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let map = TypedProjIndexMap::from([
+    ///     (0_usize, 1_i32),
+    ///     (1_usize, 2_i32),
+    ///     (2_usize, 3_i32),
+    ///     (3_usize, 4_i32),
+    /// ]);
+    /// let mut iterator = map.into_iter();
+    ///
+    /// assert_eq!(iterator.as_slice(), &[(0_usize, 1_i32), (1_usize, 2_i32), (2_usize, 3_i32), (3_usize, 4_i32)]);
+    /// let _ = iterator.next().unwrap();
+    /// assert_eq!(iterator.as_slice(), &[(1_usize, 2_i32), (2_usize, 3_i32), (3_usize, 4_i32)]);
+    /// let _ = iterator.next().unwrap();
+    /// assert_eq!(iterator.as_slice(), &[(2_usize, 3_i32), (3_usize, 4_i32)]);
+    /// let _ = iterator.next().unwrap();
+    /// assert_eq!(iterator.as_slice(), &[(3_usize, 4_i32)]);
+    /// let _ = iterator.next().unwrap();
+    /// assert!(iterator.as_slice().is_empty());
+    /// ```
+    ///
+    /// Slice a moving iterator over a type-erased index map.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let map = OpaqueIndexMap::from([
+    ///     (0_usize, 1_i32),
+    ///     (1_usize, 2_i32),
+    ///     (2_usize, 3_i32),
+    ///     (3_usize, 4_i32),
+    /// ]);
+    /// let mut iterator = map.into_iter::<usize, i32, RandomState, Global>();
+    ///
+    /// assert_eq!(iterator.as_slice(), &[(0_usize, 1_i32), (1_usize, 2_i32), (2_usize, 3_i32), (3_usize, 4_i32)]);
+    /// let _ = iterator.next().unwrap();
+    /// assert_eq!(iterator.as_slice(), &[(1_usize, 2_i32), (2_usize, 3_i32), (3_usize, 4_i32)]);
+    /// let _ = iterator.next().unwrap();
+    /// assert_eq!(iterator.as_slice(), &[(2_usize, 3_i32), (3_usize, 4_i32)]);
+    /// let _ = iterator.next().unwrap();
+    /// assert_eq!(iterator.as_slice(), &[(3_usize, 4_i32)]);
+    /// let _ = iterator.next().unwrap();
+    /// assert!(iterator.as_slice().is_empty());
+    /// ```
     pub fn as_slice(&self) -> &Slice<K, V> {
         Slice::from_slice(self.iter.as_slice())
     }
 
+    /// Returns a mutable slice of the remaining entries in the moving iterator.
+    ///
+    /// # Examples
+    ///
+    /// Slicing a moving iterator over a type-projected index map.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let map = TypedProjIndexMap::from([
+    ///     (0_usize, 1_i32),
+    ///     (1_usize, 2_i32),
+    ///     (2_usize, 3_i32),
+    ///     (3_usize, 4_i32),
+    /// ]);
+    /// let mut iterator = map.into_iter();
+    ///
+    /// assert_eq!(iterator.as_mut_slice(), &[(0_usize, 1_i32), (1_usize, 2_i32), (2_usize, 3_i32), (3_usize, 4_i32)]);
+    /// let _ = iterator.next().unwrap();
+    /// assert_eq!(iterator.as_mut_slice(), &[(1_usize, 2_i32), (2_usize, 3_i32), (3_usize, 4_i32)]);
+    /// let _ = iterator.next().unwrap();
+    /// assert_eq!(iterator.as_mut_slice(), &[(2_usize, 3_i32), (3_usize, 4_i32)]);
+    /// let _ = iterator.next().unwrap();
+    /// assert_eq!(iterator.as_mut_slice(), &[(3_usize, 4_i32)]);
+    /// let _ = iterator.next().unwrap();
+    /// assert!(iterator.as_mut_slice().is_empty());
+    /// ```
+    ///
+    /// Slice a moving iterator over a type-erased index map.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let map = OpaqueIndexMap::from([
+    ///     (0_usize, 1_i32),
+    ///     (1_usize, 2_i32),
+    ///     (2_usize, 3_i32),
+    ///     (3_usize, 4_i32),
+    /// ]);
+    /// let mut iterator = map.into_iter::<usize, i32, RandomState, Global>();
+    ///
+    /// assert_eq!(iterator.as_mut_slice(), &[(0_usize, 1_i32), (1_usize, 2_i32), (2_usize, 3_i32), (3_usize, 4_i32)]);
+    /// let _ = iterator.next().unwrap();
+    /// assert_eq!(iterator.as_mut_slice(), &[(1_usize, 2_i32), (2_usize, 3_i32), (3_usize, 4_i32)]);
+    /// let _ = iterator.next().unwrap();
+    /// assert_eq!(iterator.as_mut_slice(), &[(2_usize, 3_i32), (3_usize, 4_i32)]);
+    /// let _ = iterator.next().unwrap();
+    /// assert_eq!(iterator.as_mut_slice(), &[(3_usize, 4_i32)]);
+    /// let _ = iterator.next().unwrap();
+    /// assert!(iterator.as_mut_slice().is_empty());
+    /// ```
     pub fn as_mut_slice(&mut self) -> &mut Slice<K, V> {
         Slice::from_slice_mut(self.iter.as_mut_slice())
     }
@@ -1126,6 +3799,92 @@ where
     }
 }
 
+/// An iterator that drains a slice of an index map, then splices a new slice in place
+/// of the drained slice. If an entry in the new slice has the same key as an entry in the remaining
+/// entries of the index map, that entry is updated with the new value from the splicing iterator.
+///
+/// # Examples
+///
+/// Using a splicing iterator on a type-projected index map.
+///
+/// ```
+/// # #![feature(allocator_api)]
+/// # use opaque_index_map::TypedProjIndexMap;
+/// # use opaque_hash::TypedProjBuildHasher;
+/// # use opaque_alloc::TypedProjAlloc;
+/// # use opaque_vec::TypedProjVec;
+/// # use std::any::TypeId;
+/// # use std::cmp::Ordering;
+/// # use std::hash::RandomState;
+/// # use std::alloc::Global;
+/// #
+/// let map = TypedProjIndexMap::from([
+///     (0_usize, 1_i32),
+///     (1_usize, 2_i32),
+///     (2_usize, 3_i32),
+///     (3_usize, 4_i32),
+///     (4_usize, 5_i32),
+/// ]);
+/// let mut result = map.clone();
+/// let splice_data = [
+///     (4_usize, i32::MAX),
+///     (5_usize, 8_i32),
+///     (6_usize, 9_i32),
+///     (7_usize, 10_i32),
+///     (8_usize, 11_i32),
+/// ];
+/// let expected = TypedProjIndexMap::from([
+///     (0_usize, 1_i32),
+///     (5_usize, 8_i32),
+///     (6_usize, 9_i32),
+///     (7_usize, 10_i32),
+///     (8_usize, 11_i32),
+///     (4_usize, i32::MAX),
+/// ]);
+/// result.splice(1..4, splice_data);
+///
+/// assert_eq!(result.as_slice(), expected.as_slice());
+/// ```
+///
+/// Using a splicing iterator on a type-erased index map.
+/// ```
+/// # #![feature(allocator_api)]
+/// # use opaque_index_map::OpaqueIndexMap;
+/// # use opaque_hash::TypedProjBuildHasher;
+/// # use opaque_alloc::TypedProjAlloc;
+/// # use opaque_vec::TypedProjVec;
+/// # use std::any::TypeId;
+/// # use std::cmp::Ordering;
+/// # use std::hash::RandomState;
+/// # use std::alloc::Global;
+/// #
+/// let map = OpaqueIndexMap::from([
+///     (0_usize, 1_i32),
+///     (1_usize, 2_i32),
+///     (2_usize, 3_i32),
+///     (3_usize, 4_i32),
+///     (4_usize, 5_i32),
+/// ]);
+/// let mut result = map.clone::<usize, i32, RandomState, Global>();
+/// let splice_data = [
+///     (4_usize, i32::MAX),
+///     (5_usize, 8_i32),
+///     (6_usize, 9_i32),
+///     (7_usize, 10_i32),
+///     (8_usize, 11_i32),
+/// ];
+/// let expected = OpaqueIndexMap::from([
+///     (0_usize, 1_i32),
+///     (5_usize, 8_i32),
+///     (6_usize, 9_i32),
+///     (7_usize, 10_i32),
+///     (8_usize, 11_i32),
+///     (4_usize, i32::MAX),
+/// ]);
+/// result.splice::<_, _, usize, i32, RandomState, Global>(1..4, splice_data);
+///
+/// assert_eq!(result.as_slice::<usize, i32, RandomState, Global>(), expected.as_slice::<usize, i32, RandomState, Global>());
+/// ```
 #[cfg(feature = "std")]
 pub struct Splice<'a, I, K, V, S = hash::RandomState, A = alloc::Global>
 where
@@ -1161,6 +3920,7 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
+    /// Constructs a new splicing iterator.
     #[inline]
     const fn new<R>(inner: map_inner::Splice<'a, I, K, V, S, A>) -> Self
     where
@@ -2981,7 +5741,7 @@ where
 
     /// Returns an iterator over the keys in the index map.
     ///
-    /// The iterator returns the keys in the storage order of the key/value pairs inside the index map.
+    /// The iterator returns the keys in the storage order of the entries in the index map.
     ///
     /// # Examples
     ///
@@ -3021,7 +5781,7 @@ where
 
     /// Returns a moving iterator over the keys in the index map.
     ///
-    /// The iterator returns the keys in the storage order of the key/value pairs inside the index map.
+    /// The iterator returns the keys in the storage order of the entries in the index map.
     ///
     /// # Examples
     ///
@@ -3059,9 +5819,9 @@ where
         IntoKeys::new(self.inner.into_keys())
     }
 
-    /// Returns an iterator over the keys/value pairs in the index map.
+    /// Returns an iterator over the entries in the index map.
     ///
-    /// The iterator returns the keys/values pairs in their storage order inside the index map.
+    /// The iterator returns the entries in their storage order in the index map.
     ///
     /// # Examples
     ///
@@ -3101,7 +5861,7 @@ where
 
     /// Returns a mutable iterator over the keys/value pairs in the index map.
     ///
-    /// The iterator returns the keys/values pairs in their storage order inside the index map.
+    /// The iterator returns the entries in their storage order in the index map.
     ///
     /// # Examples
     ///
@@ -3180,7 +5940,7 @@ where
 
     /// Returns an iterator over the values in the index map.
     ///
-    /// The iterator returns the values in the storage order of the key/value pairs inside the index map.
+    /// The iterator returns the values in the storage order of the entries in the index map.
     ///
     /// # Examples
     ///
@@ -3219,7 +5979,7 @@ where
 
     /// Returns a mutable iterator over the values in the index map.
     ///
-    /// The iterator returns the values in the storage order of the key/value pairs inside the index map.
+    /// The iterator returns the values in the storage order of the entries in the index map.
     ///
     /// # Examples
     ///
@@ -3297,7 +6057,7 @@ where
 
     /// Returns a moving iterator over the values in the index map.
     ///
-    /// The iterator returns the values in the storage order of the key/value pairs inside the index map.
+    /// The iterator returns the values in the storage order of the entries in the index map.
     ///
     /// # Examples
     ///
@@ -3545,11 +6305,11 @@ where
     /// Removes the subslice indicated by the given range from the index map,
     /// returning a double-ended iterator over the removed subslice.
     ///
-    /// If the iterator is dropped before being fully consumed,
-    /// it drops the remaining removed elements.
+    /// If the iterator is dropped before being fully consumed, it drops the remaining removed
+    /// elements. The draining iterator shifts the remaining entries in the index map above the range
+    /// down to fill in the removed entries.
     ///
-    /// The returned iterator keeps a mutable borrow on the index map to optimize
-    /// its implementation.
+    /// The returned iterator keeps a mutable borrow on the index map to optimize its implementation.
     ///
     /// # Panics
     ///
@@ -5725,7 +8485,7 @@ where
     /// unsorted, the returned result is unspecified and meaningless.
     ///
     /// The comparator function should return an order code that indicates whether its argument is
-    /// `Less`, `Equal` or `Greater` the desired target.
+    /// `Less`, `Equal` or `Greater` than the desired target.
     ///
     /// If the index map is not in sorted order or if the comparator function does not implement an
     /// order consistent with the sorted order of the underlying index map, the returned result is
@@ -7232,10 +9992,10 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
 {
     fn from_iter<I: IntoIterator<Item = (K, V)>>(iterable: I) -> Self {
-        let iter = iterable.into_iter();
-        let (low, _) = iter.size_hint();
+        let iterator = iterable.into_iter();
+        let (low, _) = iterator.size_hint();
         let mut map = Self::with_capacity_and_hasher_in(low, S::default(), alloc::Global::default());
-        map.extend(iter);
+        map.extend(iterator);
 
         map
     }
@@ -9846,11 +12606,11 @@ impl OpaqueIndexMap {
     /// Removes the subslice indicated by the given range from the index map,
     /// returning a double-ended iterator over the removed subslice.
     ///
-    /// If the iterator is dropped before being fully consumed,
-    /// it drops the remaining removed elements.
+    /// If the iterator is dropped before being fully consumed, it drops the remaining removed
+    /// elements. The draining iterator shifts the remaining entries in the index map above the range
+    /// down to fill in the removed entries.
     ///
-    /// The returned iterator keeps a mutable borrow on the index map to optimize
-    /// its implementation.
+    /// The returned iterator keeps a mutable borrow on the index map to optimize its implementation.
     ///
     /// # Panics
     ///
@@ -12931,7 +15691,7 @@ impl OpaqueIndexMap {
     /// unsorted, the returned result is unspecified and meaningless.
     ///
     /// The comparator function should return an order code that indicates whether its argument is
-    /// `Less`, `Equal` or `Greater` the desired target.
+    /// `Less`, `Equal` or `Greater` than the desired target.
     ///
     /// If the index map is not in sorted order or if the comparator function does not implement an
     /// order consistent with the sorted order of the underlying index map, the returned result is
@@ -14965,10 +17725,13 @@ impl OpaqueIndexMap {
 }
 
 impl OpaqueIndexMap {
-    /// Clones a type-erased index map.
+    /// Extends a type-erased index map.
     ///
-    /// This method acts identically to an implementation of the [`Clone`] trait on a type-projected
+    /// This method acts identically to an implementation of the [`Extend`] trait on a type-projected
     /// index map [`OpaqueIndexMap`], or a generic [`HashMap`].
+    ///
+    /// If the key of any entry from the iterable has an equivalent key in `self`, the value of
+    /// the entry with the key `key` will be updated to the value from the iterator.
     ///
     /// # Panics
     ///
@@ -14979,7 +17742,7 @@ impl OpaqueIndexMap {
     ///
     /// # Examples
     ///
-    /// Cloning an empty type-erased index map.
+    /// Extending a type-erased index map without overlapping keys.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -15037,7 +17800,7 @@ impl OpaqueIndexMap {
     /// assert_eq!(result.as_slice::<usize, i32, RandomState, Global>(), expected.as_slice::<usize, i32, RandomState, Global>());
     /// ```
     #[inline]
-    pub fn extend<I, K, V, S, A>(&mut self, iter: I)
+    pub fn extend<I, K, V, S, A>(&mut self, iterable: I)
     where
         K: any::Any + hash::Hash + Eq,
         V: any::Any,
@@ -15048,7 +17811,74 @@ impl OpaqueIndexMap {
     {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
 
-        proj_self.extend(iter)
+        proj_self.extend(iterable)
+    }
+}
+
+impl OpaqueIndexMap {
+    /// Returns a moving iterator for the type-erased index map.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
+    ///
+    /// # Examples
+    ///
+    /// Iterating over a type-erased index map.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_map = OpaqueIndexMap::from([
+    ///     (0_usize, 1_i32),
+    ///     (1_usize, 2_i32),
+    ///     (2_usize, 3_i32),
+    ///     (3_usize, 4_i32),
+    ///     (4_usize, 5_i32),
+    ///     (5_usize, 6_i32),
+    /// ]);
+    /// #
+    /// # assert!(opaque_map.has_key_type::<usize>());
+    /// # assert!(opaque_map.has_value_type::<i32>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
+    /// let mut iterator = opaque_map.into_iter::<usize, i32, RandomState, Global>();
+    ///
+    /// assert_eq!(iterator.next(), Some((0_usize, 1_i32)));
+    /// assert_eq!(iterator.next(), Some((1_usize, 2_i32)));
+    /// assert_eq!(iterator.next(), Some((2_usize, 3_i32)));
+    /// assert_eq!(iterator.next(), Some((3_usize, 4_i32)));
+    /// assert_eq!(iterator.next(), Some((4_usize, 5_i32)));
+    /// assert_eq!(iterator.next(), Some((5_usize, 6_i32)));
+    /// assert_eq!(iterator.next(), None);
+    ///
+    /// for _ in 0..100 {
+    ///     assert_eq!(iterator.next(), None);
+    /// }
+    /// ```
+    #[inline]
+    pub fn into_iter<K, V, S, A>(self) -> IntoIter<K, V, A>
+    where
+        K: any::Any + hash::Hash + Eq,
+        V: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_self = self.into_proj::<K, V, S, A>();
+
+        proj_self.into_iter()
     }
 }
 

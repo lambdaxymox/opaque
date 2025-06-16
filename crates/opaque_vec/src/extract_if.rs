@@ -24,8 +24,8 @@ use opaque_alloc::TypedProjAlloc;
 /// }
 ///
 /// let mut vec: TypedProjVec<i32> = TypedProjVec::from([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
-/// let iter = vec.extract_if(.., is_even);
-/// let extracted: TypedProjVec<i32> = iter.collect();
+/// let iterator = vec.extract_if(.., is_even);
+/// let extracted: TypedProjVec<i32> = iterator.collect();
 ///
 /// assert_eq!(extracted.as_slice(), &[2, 4, 6, 8, 10]);
 /// assert_eq!(vec.as_slice(), &[1, 3, 5, 7, 9]);
@@ -50,8 +50,8 @@ use opaque_alloc::TypedProjAlloc;
 /// # assert!(vec.has_element_type::<i32>());
 /// # assert!(vec.has_allocator_type::<Global>());
 /// #
-/// let iter = vec.extract_if::<_, _, i32, Global>(.., is_even);
-/// let extracted: OpaqueVec = iter.collect();
+/// let iterator = vec.extract_if::<_, _, i32, Global>(.., is_even);
+/// let extracted: OpaqueVec = iterator.collect();
 /// #
 /// # assert!(extracted.has_element_type::<i32>());
 /// # assert!(extracted.has_allocator_type::<Global>());
@@ -125,9 +125,9 @@ where
     /// }
     ///
     /// let mut vec: TypedProjVec<i32> = TypedProjVec::from([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
-    /// let iter = vec.extract_if(.., is_even);
+    /// let iterator = vec.extract_if(.., is_even);
     ///
-    /// let alloc: &TypedProjAlloc<Global> = iter.allocator();
+    /// let alloc: &TypedProjAlloc<Global> = iterator.allocator();
     /// ```
     ///
     /// Getting the allocator from the extracting iterator of a type-erased vector.
@@ -150,9 +150,9 @@ where
     /// # assert!(vec.has_element_type::<i32>());
     /// # assert!(vec.has_allocator_type::<Global>());
     /// #
-    /// let iter = vec.extract_if::<_, _, i32, Global>(.., is_even);
+    /// let iterator = vec.extract_if::<_, _, i32, Global>(.., is_even);
     ///
-    /// let alloc: &TypedProjAlloc<Global> = iter.allocator();
+    /// let alloc: &TypedProjAlloc<Global> = iterator.allocator();
     /// ```
     #[inline]
     pub fn allocator(&self) -> &TypedProjAlloc<A> {

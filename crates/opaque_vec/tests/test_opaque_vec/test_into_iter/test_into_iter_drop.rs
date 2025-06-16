@@ -64,13 +64,13 @@ where
     let (drop_counter, vec) = create_drop_counter_vec_in(length, alloc.clone());
     let mut taken_vec = OpaqueVec::with_capacity_in::<Option<DropCounter>, A>(take_count, alloc.clone());
     {
-        let mut iter = vec.into_iter::<DropCounter, A>();
+        let mut iterator = vec.into_iter::<DropCounter, A>();
 
         assert_eq!(drop_counter.drop_count(), 0);
 
         let mut i = 0;
         while i < take_count {
-            taken_vec.push::<Option<DropCounter>, A>(iter.next());
+            taken_vec.push::<Option<DropCounter>, A>(iterator.next());
             i += 1;
         }
     }

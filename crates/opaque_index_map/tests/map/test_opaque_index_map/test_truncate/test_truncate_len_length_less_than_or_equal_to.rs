@@ -69,8 +69,8 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let iter = oimt::map::PrefixGenerator::new(entries);
-    for entries in iter {
+    let iterator = oimt::map::PrefixGenerator::new(entries);
+    for entries in iterator {
         run_test_opaque_index_map_truncate_len_length_less_than_or_equal_to(entries, build_hasher.clone(), alloc.clone());
     }
 }

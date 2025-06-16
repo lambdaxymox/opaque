@@ -118,14 +118,14 @@ where
     K: any::Any + Clone + Eq + hash::Hash,
 {
     let mut deduped_sorted_entries = Vec::new();
-    let mut iter = sorted_entries.iter().peekable();
-    while let Some((key, index)) = iter.next().cloned() {
+    let mut iterator = sorted_entries.iter().peekable();
+    while let Some((key, index)) = iterator.next().cloned() {
         let smallest_index = index;
         let mut largest_index = index;
-        while let Some((next_key, next_index)) = iter.peek() {
+        while let Some((next_key, next_index)) = iterator.peek() {
             if *next_key == key {
                 largest_index = *next_index;
-                iter.next();
+                iterator.next();
             } else {
                 break;
             }

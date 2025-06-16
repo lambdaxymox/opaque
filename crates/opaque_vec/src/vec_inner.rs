@@ -1350,14 +1350,14 @@ where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    fn extend<I>(&mut self, iter: I)
+    fn extend<I>(&mut self, iterable: I)
     where
         I: IntoIterator<Item = T>,
     {
         debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
         debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
 
-        for item in iter.into_iter() {
+        for item in iterable.into_iter() {
             self.push(item);
         }
     }
@@ -1368,14 +1368,14 @@ where
     T: any::Any + Copy,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    fn extend<I>(&mut self, iter: I)
+    fn extend<I>(&mut self, iterable: I)
     where
         I: IntoIterator<Item = &'a T>,
     {
         debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
         debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
 
-        for item in iter.into_iter() {
+        for item in iterable.into_iter() {
             self.push(*item);
         }
     }
@@ -1595,16 +1595,16 @@ where
 {
     #[inline]
     #[track_caller]
-    fn from_iter<I>(iter: I) -> TypedProjVecInner<T, alloc::Global>
+    fn from_iter<I>(iterable: I) -> TypedProjVecInner<T, alloc::Global>
     where
         I: IntoIterator<Item = T>,
     {
-        let iter = iter.into_iter();
-        let (lower, _) = iter.size_hint();
+        let iterator = iterable.into_iter();
+        let (lower, _) = iterator.size_hint();
 
         let mut vec = TypedProjVecInner::with_capacity(lower);
 
-        for item in iter {
+        for item in iterator {
             vec.push(item);
         }
 

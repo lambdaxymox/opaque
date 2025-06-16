@@ -48,8 +48,8 @@ where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let iter = ovt::PrefixGenerator::new(values);
-    for slice in iter {
+    let iterator = ovt::PrefixGenerator::new(values);
+    for slice in iterator {
         run_test_opaque_vec_shift_insert_start(slice, alloc.clone());
     }
 }

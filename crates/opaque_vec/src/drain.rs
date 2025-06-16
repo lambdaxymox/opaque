@@ -94,6 +94,8 @@ where
     ///
     /// # Examples
     ///
+    /// Getting a slice of remaining elements from a draining iterator of a type-projected vector.
+    ///
     /// ```
     /// # #![feature(allocator_api)]
     /// # use opaque_vec::TypedProjVec;
@@ -120,6 +122,35 @@ where
     /// let _ = drain.next().unwrap();
     /// assert!(drain.as_slice().is_empty());
     /// ```
+    ///
+    /// Getting a slice of remaining elements from a draining iterator of a type-erased vector.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut vec = OpaqueVec::from([
+    ///     "spam",
+    ///     "eggs",
+    ///     "bacon",
+    ///     "baked beans",
+    ///     "spam",
+    /// ]);
+    /// let mut drain = vec.drain::<_, &str, Global>(..);
+    /// assert_eq!(drain.as_slice(), &["spam", "eggs", "bacon", "baked beans", "spam"]);
+    /// let _ = drain.next().unwrap();
+    /// assert_eq!(drain.as_slice(), &["eggs", "bacon", "baked beans", "spam"]);
+    /// let _ = drain.next().unwrap();
+    /// assert_eq!(drain.as_slice(), &["bacon", "baked beans", "spam"]);
+    /// let _ = drain.next().unwrap();
+    /// assert_eq!(drain.as_slice(), &["baked beans", "spam"]);
+    /// let _ = drain.next().unwrap();
+    /// assert_eq!(drain.as_slice(), &["spam"]);
+    /// let _ = drain.next().unwrap();
+    /// assert!(drain.as_slice().is_empty());
+    /// ```
     #[must_use]
     pub fn as_slice(&self) -> &[T] {
         self.iter.as_slice()
@@ -129,7 +160,7 @@ where
     ///
     /// # Examples
     ///
-    /// using a draining iterator on a type-projected vector.
+    /// Using a draining iterator on a type-projected vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -138,9 +169,9 @@ where
     /// # use std::alloc::Global;
     /// #
     /// let mut result = TypedProjVec::from([1, i32::MAX, i32::MAX, i32::MAX, 2, 3]);
-    /// let iter = result.drain(1..4);
+    /// let iterator = result.drain(1..4);
     ///
-    /// let alloc: &TypedProjAlloc<Global> = iter.allocator();
+    /// let alloc: &TypedProjAlloc<Global> = iterator.allocator();
     /// ```
     ///
     /// Using a draining iterator on a type-erased vector.
@@ -156,9 +187,9 @@ where
     /// # assert!(result.has_element_type::<i32>());
     /// # assert!(result.has_allocator_type::<Global>());
     /// #
-    /// let iter = result.drain::<_, i32, Global>(1..4);
+    /// let iterator = result.drain::<_, i32, Global>(1..4);
     ///
-    /// let alloc: &TypedProjAlloc<Global> = iter.allocator();
+    /// let alloc: &TypedProjAlloc<Global> = iterator.allocator();
     /// ```
     #[must_use]
     #[inline]
@@ -184,13 +215,13 @@ where
     ///     "baked beans",
     ///     "spam",
     /// ]);
-    /// let mut iter = vec.drain(1..4);
+    /// let mut iterator = vec.drain(1..4);
     ///
-    /// assert_eq!(iter.next(), Some("eggs"));
-    /// assert_eq!(iter.next(), Some("bacon"));
-    /// assert_eq!(iter.next(), Some("baked beans"));
+    /// assert_eq!(iterator.next(), Some("eggs"));
+    /// assert_eq!(iterator.next(), Some("bacon"));
+    /// assert_eq!(iterator.next(), Some("baked beans"));
     ///
-    /// iter.keep_rest();
+    /// iterator.keep_rest();
     ///
     /// assert_eq!(vec.as_slice(), &["spam", "spam"]);
     /// ```
@@ -213,13 +244,13 @@ where
     /// # assert!(vec.has_element_type::<&'static str>());
     /// # assert!(vec.has_allocator_type::<Global>());
     /// #
-    /// let mut iter = vec.drain::<_, &'static str, Global>(1..4);
+    /// let mut iterator = vec.drain::<_, &'static str, Global>(1..4);
     ///
-    /// assert_eq!(iter.next(), Some("eggs"));
-    /// assert_eq!(iter.next(), Some("bacon"));
-    /// assert_eq!(iter.next(), Some("baked beans"));
+    /// assert_eq!(iterator.next(), Some("eggs"));
+    /// assert_eq!(iterator.next(), Some("bacon"));
+    /// assert_eq!(iterator.next(), Some("baked beans"));
     ///
-    /// iter.keep_rest();
+    /// iterator.keep_rest();
     ///
     /// assert_eq!(vec.as_slice::<&'static str, Global>(), &["spam", "spam"]);
     /// ```
@@ -406,8 +437,8 @@ where
             }
         }
 
-        let iter = core::mem::take(&mut self.iter);
-        let drop_len = iter.len();
+        let iterator = core::mem::take(&mut self.iter);
+        let drop_len = iterator.len();
 
         let mut vec = self.vec;
 
@@ -435,7 +466,7 @@ where
         // it also gets touched by vec::Splice which may turn it into a dangling pointer
         // which would make it and the vec pointer point to different allocations which would
         // lead to invalid pointer arithmetic below.
-        let drop_ptr = iter.as_slice().as_ptr();
+        let drop_ptr = iterator.as_slice().as_ptr();
 
         unsafe {
             // drop_ptr comes from a slice::Iter which only gives us a &[T] but for drop_in_place

@@ -4066,11 +4066,11 @@ where
 {
     #[inline]
     #[track_caller]
-    fn from_iter<I>(iter: I) -> TypedProjVec<T, alloc::Global>
+    fn from_iter<I>(iterable: I) -> TypedProjVec<T, alloc::Global>
     where
         I: IntoIterator<Item = T>,
     {
-        let inner = TypedProjVecInner::from_iter(iter);
+        let inner = TypedProjVecInner::from_iter(iterable);
 
         Self { inner, }
     }
@@ -4136,11 +4136,11 @@ where
 {
     #[inline]
     #[track_caller]
-    fn extend<I>(&mut self, iter: I)
+    fn extend<I>(&mut self, iterable: I)
     where
         I: IntoIterator<Item = T>,
     {
-        self.inner.extend(iter)
+        self.inner.extend(iterable)
     }
 
     /*
@@ -4176,11 +4176,11 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[track_caller]
-    fn extend<I>(&mut self, iter: I)
+    fn extend<I>(&mut self, iterable: I)
     where
         I: IntoIterator<Item = &'a T>,
     {
-        self.inner.extend(iter.into_iter().copied())
+        self.inner.extend(iterable.into_iter().copied())
     }
 
     /*
@@ -9619,7 +9619,7 @@ impl OpaqueVec {
     /// assert_eq!(result.as_slice::<i32, Global>(), expected.as_slice::<i32, Global>());
     /// ```
     #[inline]
-    pub fn extend<I, T, A>(&mut self, iter: I)
+    pub fn extend<I, T, A>(&mut self, iterable: I)
     where
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
@@ -9627,7 +9627,7 @@ impl OpaqueVec {
     {
         let proj_self = self.as_proj_mut::<T, A>();
 
-        proj_self.extend(iter);
+        proj_self.extend(iterable);
     }
 
     /// Mutably reverses a type-erased vector in place.
@@ -9897,11 +9897,11 @@ where
 {
     #[inline]
     #[track_caller]
-    fn from_iter<I>(iter: I) -> OpaqueVec
+    fn from_iter<I>(iterable: I) -> OpaqueVec
     where
         I: IntoIterator<Item = T>,
     {
-        let proj_vec = TypedProjVec::from_iter(iter);
+        let proj_vec = TypedProjVec::from_iter(iterable);
 
         Self::from_proj(proj_vec)
     }

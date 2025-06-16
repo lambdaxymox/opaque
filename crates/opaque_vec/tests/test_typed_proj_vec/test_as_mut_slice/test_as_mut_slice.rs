@@ -26,8 +26,8 @@ where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let iter = ovt::PrefixGenerator::new(values);
-    for slice in iter {
+    let iterator = ovt::PrefixGenerator::new(values);
+    for slice in iterator {
         let mut cloned_slice = Vec::from(slice);
         run_test_typed_proj_vec_as_mut_slice::<T, A>(&mut cloned_slice, alloc.clone());
     }

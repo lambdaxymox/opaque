@@ -59,8 +59,8 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let iter = oimt::map::PrefixGenerator::new(entries);
-    for entries in iter {
+    let iterator = oimt::map::PrefixGenerator::new(entries);
+    for entries in iterator {
         let mut cloned_entries = Vec::from(entries);
         run_test_typed_proj_index_map_insert_full_as_mut_slice(cloned_entries.as_mut(), build_hasher.clone(), alloc.clone());
     }

@@ -64,13 +64,13 @@ where
     let (drop_counter, vec) = create_drop_counter_vec_in(length, alloc.clone());
     let mut taken_vec = TypedProjVec::with_capacity_in(take_count, alloc.clone());
     {
-        let mut iter = vec.into_iter();
+        let mut iterator = vec.into_iter();
 
         assert_eq!(drop_counter.drop_count(), 0);
 
         let mut i = 0;
         while i < take_count {
-            taken_vec.push(iter.next());
+            taken_vec.push(iterator.next());
             i += 1;
         }
     }

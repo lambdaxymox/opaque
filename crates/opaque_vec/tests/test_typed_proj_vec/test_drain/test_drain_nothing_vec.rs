@@ -32,8 +32,8 @@ where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let iter = ovt::PrefixGenerator::new(values);
-    for slice in iter {
+    let itertor = ovt::PrefixGenerator::new(values);
+    for slice in itertor {
         for i in 0..slice.len() {
             run_test_typed_proj_vec_drain_nothing_vec(slice, i, alloc.clone());
         }

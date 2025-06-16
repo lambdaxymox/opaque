@@ -105,8 +105,8 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let iter = self.iter.as_slice().iter().map(Bucket::refs);
-        formatter.debug_list().entries(iter).finish()
+        let iterator = self.iter.as_slice().iter().map(Bucket::refs);
+        formatter.debug_list().entries(iterator).finish()
     }
 }
 
@@ -243,8 +243,8 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let iter = self.iter.as_slice().iter().map(Bucket::key_ref);
-        formatter.debug_list().entries(iter).finish()
+        let iterator = self.iter.as_slice().iter().map(Bucket::key_ref);
+        formatter.debug_list().entries(iterator).finish()
     }
 }
 
@@ -359,8 +359,8 @@ where
     V: fmt::Debug,
 {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let iter = self.iter.as_slice().iter().map(Bucket::value_ref);
-        formatter.debug_list().entries(iter).finish()
+        let iterator = self.iter.as_slice().iter().map(Bucket::value_ref);
+        formatter.debug_list().entries(iterator).finish()
     }
 }
 
@@ -444,8 +444,8 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let iter = self.iter.as_slice().iter().map(Bucket::value_ref);
-        formatter.debug_list().entries(iter).finish()
+        let iterator = self.iter.as_slice().iter().map(Bucket::value_ref);
+        formatter.debug_list().entries(iterator).finish()
     }
 }
 
@@ -689,11 +689,11 @@ impl<K, V> Slice<K, V> {
         IntoValues::new(self.into_entries())
     }
 
-    pub(crate) fn binary_search_keys(&self, x: &K) -> Result<usize, usize>
+    pub(crate) fn binary_search_keys(&self, key: &K) -> Result<usize, usize>
     where
         K: Ord,
     {
-        self.binary_search_by(|p, _| p.cmp(x))
+        self.binary_search_by(|p, _| p.cmp(key))
     }
 
     #[inline]
@@ -1064,8 +1064,8 @@ where
     V: fmt::Debug,
 {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let iter = self.iter.as_slice().iter().map(Bucket::refs);
-        formatter.debug_list().entries(iter).finish()
+        let iterator = self.iter.as_slice().iter().map(Bucket::refs);
+        formatter.debug_list().entries(iterator).finish()
     }
 }
 
@@ -1160,8 +1160,8 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let iter = self.iter.as_slice().iter().map(Bucket::refs);
-        formatter.debug_list().entries(iter).finish()
+        let iterator = self.iter.as_slice().iter().map(Bucket::refs);
+        formatter.debug_list().entries(iterator).finish()
     }
 }
 
@@ -3866,14 +3866,14 @@ where
         // Reserve the entire hint lower bound if the map is empty.
         // Otherwise, reserve half the hint (rounded up), so the map
         // will only resize twice in the worst case.
-        let iter = iterable.into_iter();
+        let iterator = iterable.into_iter();
         let reserve_count = if self.is_empty() {
-            iter.size_hint().0
+            iterator.size_hint().0
         } else {
-            (iter.size_hint().0 + 1) / 2
+            (iterator.size_hint().0 + 1) / 2
         };
         self.reserve(reserve_count);
-        iter.for_each(move |(k, v)| {
+        iterator.for_each(move |(k, v)| {
             self.insert(k, v);
         });
     }

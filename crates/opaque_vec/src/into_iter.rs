@@ -114,19 +114,19 @@ where
     /// # use std::alloc::Global;
     /// #
     /// let vec: TypedProjVec<i32> = TypedProjVec::from([1, 2, 3, 4, 5]);
-    /// let mut iter = vec.into_iter();
+    /// let mut iterator = vec.into_iter();
     ///
-    /// assert_eq!(iter.as_slice(), &[1, 2, 3, 4, 5]);
-    /// iter.next();
-    /// assert_eq!(iter.as_slice(), &[2, 3, 4 ,5]);
-    /// iter.next();
-    /// assert_eq!(iter.as_slice(), &[3, 4, 5]);
-    /// iter.next();
-    /// assert_eq!(iter.as_slice(), &[4, 5]);
-    /// iter.next();
-    /// assert_eq!(iter.as_slice(), &[5]);
-    /// iter.next();
-    /// assert_eq!(iter.as_slice(), &[]);
+    /// assert_eq!(iterator.as_slice(), &[1, 2, 3, 4, 5]);
+    /// iterator.next();
+    /// assert_eq!(iterator.as_slice(), &[2, 3, 4 ,5]);
+    /// iterator.next();
+    /// assert_eq!(iterator.as_slice(), &[3, 4, 5]);
+    /// iterator.next();
+    /// assert_eq!(iterator.as_slice(), &[4, 5]);
+    /// iterator.next();
+    /// assert_eq!(iterator.as_slice(), &[5]);
+    /// iterator.next();
+    /// assert_eq!(iterator.as_slice(), &[]);
     /// ```
     ///
     /// Using a moving iterator on a type-erased vector.
@@ -144,19 +144,19 @@ where
     /// # assert!(vec.has_element_type::<i32>());
     /// # assert!(vec.has_allocator_type::<Global>());
     /// #
-    /// let mut iter = vec.into_iter::<i32, Global>();
+    /// let mut iterator = vec.into_iter::<i32, Global>();
     ///
-    /// assert_eq!(iter.as_slice(), &[1, 2, 3, 4, 5]);
-    /// iter.next();
-    /// assert_eq!(iter.as_slice(), &[2, 3, 4 ,5]);
-    /// iter.next();
-    /// assert_eq!(iter.as_slice(), &[3, 4, 5]);
-    /// iter.next();
-    /// assert_eq!(iter.as_slice(), &[4, 5]);
-    /// iter.next();
-    /// assert_eq!(iter.as_slice(), &[5]);
-    /// iter.next();
-    /// assert_eq!(iter.as_slice(), &[]);
+    /// assert_eq!(iterator.as_slice(), &[1, 2, 3, 4, 5]);
+    /// iterator.next();
+    /// assert_eq!(iterator.as_slice(), &[2, 3, 4 ,5]);
+    /// iterator.next();
+    /// assert_eq!(iterator.as_slice(), &[3, 4, 5]);
+    /// iterator.next();
+    /// assert_eq!(iterator.as_slice(), &[4, 5]);
+    /// iterator.next();
+    /// assert_eq!(iterator.as_slice(), &[5]);
+    /// iterator.next();
+    /// assert_eq!(iterator.as_slice(), &[]);
     /// ```
     pub fn as_slice(&self) -> &[T] {
         unsafe { slice::from_raw_parts(self.ptr.as_ptr(), self.len()) }
@@ -178,19 +178,19 @@ where
     /// # use std::alloc::Global;
     /// #
     /// let vec: TypedProjVec<i32> = TypedProjVec::from([1, 2, 3, 4, 5]);
-    /// let mut iter = vec.into_iter();
+    /// let mut iterator = vec.into_iter();
     ///
-    /// assert_eq!(iter.as_mut_slice(), &[1, 2, 3, 4, 5]);
-    /// iter.next();
-    /// assert_eq!(iter.as_mut_slice(), &[2, 3, 4 ,5]);
-    /// iter.next();
-    /// assert_eq!(iter.as_mut_slice(), &[3, 4, 5]);
-    /// iter.next();
-    /// assert_eq!(iter.as_mut_slice(), &[4, 5]);
-    /// iter.next();
-    /// assert_eq!(iter.as_mut_slice(), &[5]);
-    /// iter.next();
-    /// assert_eq!(iter.as_mut_slice(), &[]);
+    /// assert_eq!(iterator.as_mut_slice(), &[1, 2, 3, 4, 5]);
+    /// iterator.next();
+    /// assert_eq!(iterator.as_mut_slice(), &[2, 3, 4 ,5]);
+    /// iterator.next();
+    /// assert_eq!(iterator.as_mut_slice(), &[3, 4, 5]);
+    /// iterator.next();
+    /// assert_eq!(iterator.as_mut_slice(), &[4, 5]);
+    /// iterator.next();
+    /// assert_eq!(iterator.as_mut_slice(), &[5]);
+    /// iterator.next();
+    /// assert_eq!(iterator.as_mut_slice(), &[]);
     /// ```
     ///
     /// Using a moving iterator on a type-erased vector.
@@ -208,19 +208,19 @@ where
     /// # assert!(vec.has_element_type::<i32>());
     /// # assert!(vec.has_allocator_type::<Global>());
     /// #
-    /// let mut iter = vec.into_iter::<i32, Global>();
+    /// let mut iterator = vec.into_iter::<i32, Global>();
     ///
-    /// assert_eq!(iter.as_mut_slice(), &[1, 2, 3, 4, 5]);
-    /// iter.next();
-    /// assert_eq!(iter.as_mut_slice(), &[2, 3, 4 ,5]);
-    /// iter.next();
-    /// assert_eq!(iter.as_mut_slice(), &[3, 4, 5]);
-    /// iter.next();
-    /// assert_eq!(iter.as_mut_slice(), &[4, 5]);
-    /// iter.next();
-    /// assert_eq!(iter.as_mut_slice(), &[5]);
-    /// iter.next();
-    /// assert_eq!(iter.as_mut_slice(), &[]);
+    /// assert_eq!(iterator.as_mut_slice(), &[1, 2, 3, 4, 5]);
+    /// iterator.next();
+    /// assert_eq!(iterator.as_mut_slice(), &[2, 3, 4 ,5]);
+    /// iterator.next();
+    /// assert_eq!(iterator.as_mut_slice(), &[3, 4, 5]);
+    /// iterator.next();
+    /// assert_eq!(iterator.as_mut_slice(), &[4, 5]);
+    /// iterator.next();
+    /// assert_eq!(iterator.as_mut_slice(), &[5]);
+    /// iterator.next();
+    /// assert_eq!(iterator.as_mut_slice(), &[]);
     /// ```
     pub fn as_mut_slice(&mut self) -> &mut [T] {
         unsafe { &mut *self.as_raw_mut_slice() }
@@ -239,9 +239,9 @@ where
     /// # use std::alloc::Global;
     /// #
     /// let vec: TypedProjVec<i32> = TypedProjVec::from([1, 2, 3, 4, 5]);
-    /// let mut iter = vec.into_iter();
+    /// let mut iterator = vec.into_iter();
     ///
-    /// let alloc: &TypedProjAlloc<Global> = iter.allocator();
+    /// let alloc: &TypedProjAlloc<Global> = iterator.allocator();
     /// ```
     ///
     /// Using a moving iterator on a type-erased vector.
@@ -260,9 +260,9 @@ where
     /// # assert!(vec.has_element_type::<i32>());
     /// # assert!(vec.has_allocator_type::<Global>());
     /// #
-    /// let mut iter = vec.into_iter::<i32, Global>();
+    /// let mut iterator = vec.into_iter::<i32, Global>();
     ///
-    /// let alloc: &TypedProjAlloc<Global> = iter.allocator();
+    /// let alloc: &TypedProjAlloc<Global> = iterator.allocator();
     /// ```
     #[inline]
     pub fn allocator(&self) -> &TypedProjAlloc<A> {

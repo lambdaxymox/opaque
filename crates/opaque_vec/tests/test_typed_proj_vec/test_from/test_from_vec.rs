@@ -40,8 +40,8 @@ where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let iter = ovt::PrefixGenerator::new(values);
-    for slice in iter {
+    let iterator = ovt::PrefixGenerator::new(values);
+    for slice in iterator {
         run_test_typed_proj_vec_from_boxed_slice(slice, alloc.clone());
     }
 }

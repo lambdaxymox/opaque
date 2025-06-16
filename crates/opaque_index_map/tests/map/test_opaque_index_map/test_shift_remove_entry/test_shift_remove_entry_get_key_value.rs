@@ -36,8 +36,8 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let iter = oimt::map::PrefixGenerator::new(entries);
-    for entries in iter {
+    let iterator = oimt::map::PrefixGenerator::new(entries);
+    for entries in iterator {
         run_test_opaque_index_map_shift_remove_entry_get_key_value(entries, build_hasher.clone(), alloc.clone());
     }
 }

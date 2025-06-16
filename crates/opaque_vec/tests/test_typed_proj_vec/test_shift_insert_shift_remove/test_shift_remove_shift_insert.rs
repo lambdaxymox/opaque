@@ -31,8 +31,8 @@ where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let iter = ovt::PrefixGenerator::new_only_nonempty(values);
-    for slice in iter {
+    let iterator = ovt::PrefixGenerator::new_only_nonempty(values);
+    for slice in iterator {
         run_test_typed_proj_vec_shift_remove_shift_insert(slice, alloc.clone());
     }
 }

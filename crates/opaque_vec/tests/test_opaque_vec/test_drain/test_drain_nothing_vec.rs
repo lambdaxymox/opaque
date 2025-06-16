@@ -30,8 +30,8 @@ where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let iter = ovt::PrefixGenerator::new(values);
-    for slice in iter {
+    let iterator = ovt::PrefixGenerator::new(values);
+    for slice in iterator {
         for i in 0..slice.len() {
             run_test_opaque_vec_drain_nothing_vec(slice, i, alloc.clone());
         }

@@ -30,8 +30,8 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let iter = oimt::set::PrefixGenerator::new(entries);
-    for entries in iter {
+    let iterator = oimt::set::PrefixGenerator::new(entries);
+    for entries in iterator {
         run_test_typed_proj_index_set_insert_get(entries, build_hasher.clone(), alloc.clone());
     }
 }

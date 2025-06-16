@@ -22,8 +22,8 @@ fn run_test_typed_proj_vec_from_slice_values<T>(values: &[T])
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
 {
-    let iter = ovt::PrefixGenerator::new(values);
-    for slice in iter {
+    let iterator = ovt::PrefixGenerator::new(values);
+    for slice in iterator {
         run_test_typed_proj_vec_from_slice(slice);
     }
 }
