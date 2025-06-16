@@ -39,7 +39,7 @@ use alloc_crate::boxed::Box;
 ///
 /// # Examples
 ///
-/// Using a [`TypedProjAlloc`].
+/// Using a type-projected allocator.
 ///
 /// ```
 /// # #![feature(allocator_api)]
@@ -52,7 +52,7 @@ use alloc_crate::boxed::Box;
 /// assert_eq!(proj_alloc.allocator_type_id(), TypeId::of::<Global>());
 /// ```
 ///
-/// Using an [`OpaqueAlloc`].
+/// Using a type-erased allocator.
 ///
 /// ```
 /// # #![feature(allocator_api)]
@@ -409,8 +409,7 @@ impl OpaqueAlloc {
 }
 
 impl OpaqueAlloc {
-    /// Projects the type-erased [`OpaqueAlloc`] reference into a type-projected
-    /// [`TypedProjAlloc`] reference.
+    /// Projects the type-erased allocator reference into a type-projected allocator reference.
     ///
     /// # Panics
     ///
@@ -440,8 +439,8 @@ impl OpaqueAlloc {
         unsafe { &*(self as *const OpaqueAlloc as *const TypedProjAlloc<A>) }
     }
 
-    /// Projects the type-erased [`OpaqueAlloc`] mutable reference into a type-projected
-    /// [`TypedProjAlloc`] mutable reference.
+    /// Projects the mutable type-erased allocator reference into a mutable type-projected
+    /// allocator reference.
     ///
     /// # Panics
     ///
@@ -471,7 +470,7 @@ impl OpaqueAlloc {
         unsafe { &mut *(self as *mut OpaqueAlloc as *mut TypedProjAlloc<A>) }
     }
 
-    /// Projects the type-erased [`OpaqueAlloc`] value into a type-projected [`TypedProjAlloc`] value.
+    /// Projects the type-erased allocator value into a type-projected allocator value.
     ///
     /// # Panics
     ///
@@ -503,7 +502,7 @@ impl OpaqueAlloc {
         }
     }
 
-    /// Erases the type-projected [`TypedProjAlloc`] value into a type-erased [`OpaqueAlloc`] value.
+    /// Erases the type-projected allocator value into a type-erased allocator value.
     ///
     /// Unlike the type projection methods [`as_proj`], [`as_proj_mut`], and [`into_proj`], this
     /// method never panics.

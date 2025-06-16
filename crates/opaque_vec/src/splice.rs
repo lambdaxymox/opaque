@@ -9,7 +9,7 @@ use crate::drain::Drain;
 ///
 /// # Examples
 ///
-/// Using a splicing iterator on a [`TypedProjVec`].
+/// Using a splicing iterator on a type-projected vector.
 ///
 /// ```
 /// # #![feature(allocator_api)]
@@ -24,7 +24,7 @@ use crate::drain::Drain;
 /// assert_eq!(result, expected);
 /// ```
 ///
-/// Using a splicing iterator on an [`OpaqueVec`].
+/// Using a splicing iterator on a type-erased vector.
 ///
 /// ```
 /// # #![feature(allocator_api)]

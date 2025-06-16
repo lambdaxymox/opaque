@@ -15,7 +15,7 @@ use opaque_alloc::TypedProjAlloc;
 ///
 /// # Examples
 ///
-/// Using a draining iterator on a [`TypedProjVec`].
+/// Using a draining iterator on a type-projected vector.
 ///
 /// ```
 /// # #![feature(allocator_api)]
@@ -29,7 +29,7 @@ use opaque_alloc::TypedProjAlloc;
 /// assert_eq!(result, expected);
 /// ```
 ///
-/// Using a draining iterator on an [`OpaqueVec`].
+/// Using a draining iterator on a type-erased vector.
 ///
 /// ```
 /// # #![feature(allocator_api)]
@@ -90,16 +90,46 @@ where
         }
     }
 
+    /// Returns a slice of the remaining items in the draining iterator.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut vec = TypedProjVec::from([
+    ///     "spam",
+    ///     "eggs",
+    ///     "bacon",
+    ///     "baked beans",
+    ///     "spam",
+    /// ]);
+    /// let mut drain = vec.drain(..);
+    /// assert_eq!(drain.as_slice(), &["spam", "eggs", "bacon", "baked beans", "spam"]);
+    /// let _ = drain.next().unwrap();
+    /// assert_eq!(drain.as_slice(), &["eggs", "bacon", "baked beans", "spam"]);
+    /// let _ = drain.next().unwrap();
+    /// assert_eq!(drain.as_slice(), &["bacon", "baked beans", "spam"]);
+    /// let _ = drain.next().unwrap();
+    /// assert_eq!(drain.as_slice(), &["baked beans", "spam"]);
+    /// let _ = drain.next().unwrap();
+    /// assert_eq!(drain.as_slice(), &["spam"]);
+    /// let _ = drain.next().unwrap();
+    /// assert!(drain.as_slice().is_empty());
+    /// ```
     #[must_use]
     pub fn as_slice(&self) -> &[T] {
         self.iter.as_slice()
     }
 
-    /// Get the underlying type-projected memory allocator for the [`Drain`].
+    /// Get the underlying type-projected memory allocator for the draining iterator.
     ///
     /// # Examples
     ///
-    /// using a draining iterator on a [`TypedProjVec`].
+    /// using a draining iterator on a type-projected vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -113,7 +143,7 @@ where
     /// let alloc: &TypedProjAlloc<Global> = iter.allocator();
     /// ```
     ///
-    /// Using a draining iterator on an [`OpaqueVec`].
+    /// Using a draining iterator on a type-erased vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -140,7 +170,7 @@ where
     ///
     /// # Examples
     ///
-    /// Using a draining iterator on a [`TypedProjVec`].
+    /// Using a draining iterator on a typed-projected vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -165,7 +195,7 @@ where
     /// assert_eq!(vec.as_slice(), &["spam", "spam"]);
     /// ```
     ///
-    /// Using a draining iterator on an [`OpaqueVec`].
+    /// Using a draining iterator on a type-erased vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]

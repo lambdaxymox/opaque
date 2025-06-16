@@ -12,7 +12,7 @@ use opaque_alloc::TypedProjAlloc;
 ///
 /// # Examples
 ///
-/// Using an extracting iterator on a [`TypedProjVec`].
+/// Using an extracting iterator on a type-projected vector.
 ///
 /// ```
 /// # #![feature(allocator_api)]
@@ -31,7 +31,7 @@ use opaque_alloc::TypedProjAlloc;
 /// assert_eq!(vec.as_slice(), &[1, 3, 5, 7, 9]);
 /// ```
 ///
-/// Using an extracting iterator on an [`OpaqueVec`].
+/// Using an extracting iterator on a type-erased vector.
 ///
 /// ```
 /// # #![feature(allocator_api)]
@@ -112,7 +112,7 @@ where
     ///
     /// # Examples
     ///
-    /// Getting the allocator from the extracting iterator of a [`TypedProjVec`].
+    /// Getting the allocator from the extracting iterator of a type-projected vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -130,7 +130,7 @@ where
     /// let alloc: &TypedProjAlloc<Global> = iter.allocator();
     /// ```
     ///
-    /// Getting the allocator from the extracting iterator of an [`OpaqueVec`].
+    /// Getting the allocator from the extracting iterator of a type-erased vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]

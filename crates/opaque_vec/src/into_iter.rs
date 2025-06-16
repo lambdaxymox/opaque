@@ -21,7 +21,7 @@ const fn assuming_non_null<T>(item: *const T) -> NonNull<T> {
 ///
 /// # Examples
 ///
-/// Using a moving iterator on a [`TypedProjVec`].
+/// Using a moving iterator on a type-projected vector.
 ///
 /// ```
 /// # #![feature(allocator_api)]
@@ -37,7 +37,7 @@ const fn assuming_non_null<T>(item: *const T) -> NonNull<T> {
 /// assert_eq!(result.as_slice(), &[1, 2, 3, 4, 5]);
 /// ```
 ///
-/// Using a moving iterator on an [`OpaqueVec`].
+/// Using a moving iterator on a type-erased vector.
 ///
 /// ```
 /// # #![feature(allocator_api)]
@@ -106,7 +106,7 @@ where
     ///
     /// # Examples
     ///
-    /// Using a moving iterator on a [`TypedProjVec`].
+    /// Using a moving iterator on a type-projected vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -129,7 +129,7 @@ where
     /// assert_eq!(iter.as_slice(), &[]);
     /// ```
     ///
-    /// Using a moving iterator on an [`OpaqueVec`].
+    /// Using a moving iterator on a type-erased vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -170,7 +170,7 @@ where
     ///
     /// # Examples
     ///
-    /// Using a moving iterator on a [`TypedProjVec`].
+    /// Using a moving iterator on a type-projected vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -193,7 +193,7 @@ where
     /// assert_eq!(iter.as_mut_slice(), &[]);
     /// ```
     ///
-    /// Using a moving iterator on an [`OpaqueVec`].
+    /// Using a moving iterator on a type-erased vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -230,7 +230,7 @@ where
     ///
     /// # Examples
     ///
-    /// Using a moving iterator on a [`TypedProjVec`].
+    /// Using a moving iterator on a type-projected vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -244,7 +244,7 @@ where
     /// let alloc: &TypedProjAlloc<Global> = iter.allocator();
     /// ```
     ///
-    /// Using a moving iterator on an [`OpaqueVec`].
+    /// Using a moving iterator on a type-erased vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]

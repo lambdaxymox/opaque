@@ -1506,7 +1506,7 @@ where
         self.inner.insert_sorted(value)
     }
 
-    pub fn shift_insert(mut self, index: usize, value: V) -> &'a mut V {
+    pub fn shift_insert(self, index: usize, value: V) -> &'a mut V {
         self.inner.shift_insert(index, value)
     }
 }
@@ -1682,7 +1682,7 @@ mod entry_assert_send_sync {
 ///
 /// # Examples
 ///
-/// Basic usage of a [`TypedProjIndexMap`].
+/// Basic usage of a type-projected index map.
 ///
 /// ```
 /// # use opaque_index_map::TypedProjIndexMap;
@@ -1870,7 +1870,7 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    /// Returns the [`TypeId`] of the keys contained in the [`TypedProjIndexMap`].
+    /// Returns the [`TypeId`] of the keys contained in the type-projected index map.
     ///
     /// # Examples
     ///
@@ -1890,7 +1890,7 @@ where
         self.inner.key_type_id()
     }
 
-    /// Returns the [`TypeId`] of the values contained in the [`TypedProjIndexMap`].
+    /// Returns the [`TypeId`] of the values contained in the type-projected index map.
     ///
     /// # Examples
     ///
@@ -1910,7 +1910,7 @@ where
         self.inner.value_type_id()
     }
 
-    /// Returns the [`TypeId`] of the hash builder for the [`TypedProjIndexMap`].
+    /// Returns the [`TypeId`] of the hash builder for the type-projected index map.
     ///
     /// # Examples
     ///
@@ -1930,7 +1930,7 @@ where
         self.inner.build_hasher_type_id()
     }
 
-    /// Returns the [`TypeId`] of the memory allocator for the [`TypedProjIndexMap`].
+    /// Returns the [`TypeId`] of the memory allocator for the type-projected index map.
     ///
     /// # Examples
     ///
@@ -2005,7 +2005,7 @@ where
     ///
     /// # Examples
     ///
-    /// Creating a [`TypedProjIndexMap`] with capacity `capacity > 0`.
+    /// Creating a type-projected index map with capacity `capacity > 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2029,7 +2029,7 @@ where
     /// assert!(proj_map.capacity() >= capacity);
     /// ```
     ///
-    /// Creating a [`TypedProjIndexMap`] with capacity `capacity == 0`.
+    /// Creating a type-projected index map with capacity `capacity == 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2111,7 +2111,7 @@ where
     ///
     /// # Examples
     ///
-    /// Creating a [`TypedProjIndexMap`] with capacity `capacity > 0`.
+    /// Creating a type-projected index map with capacity `capacity > 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2133,7 +2133,7 @@ where
     /// assert!(proj_map.capacity() >= capacity);
     /// ```
     ///
-    /// Creating a [`TypedProjIndexMap`] with capacity `capacity == 0`.
+    /// Creating a type-projected index map with capacity `capacity == 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2212,7 +2212,7 @@ where
     ///
     /// # Examples
     ///
-    /// Creating a [`TypedProjIndexMap`] with capacity `capacity > 0`.
+    /// Creating a type-projected index map with capacity `capacity > 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2234,7 +2234,7 @@ where
     /// assert!(proj_map.capacity() >= capacity);
     /// ```
     ///
-    /// Creating a [`TypedProjIndexMap`] with capacity `capacity == 0`.
+    /// Creating a type-projected index map with capacity `capacity == 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2313,7 +2313,7 @@ where
     ///
     /// # Examples
     ///
-    /// Creating a [`TypedProjIndexMap`] with capacity `capacity > 0`.
+    /// Creating a type-projected index map with capacity `capacity > 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2334,7 +2334,7 @@ where
     /// assert!(proj_map.capacity() >= capacity);
     /// ```
     ///
-    /// Creating a [`TypedProjIndexMap`] with capacity `capacity == 0`.
+    /// Creating a type-projected index map with capacity `capacity == 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2404,7 +2404,7 @@ where
     ///
     /// # Examples
     ///
-    /// Creating a [`TypedProjIndexMap`] with capacity `capacity > 0`.
+    /// Creating a type-projected index map with capacity `capacity > 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2425,7 +2425,7 @@ where
     /// assert!(proj_map.capacity() >= capacity);
     /// ```
     ///
-    /// Creating a [`TypedProjIndexMap`] with capacity `capacity == 0`.
+    /// Creating a type-projected index map with capacity `capacity == 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2495,7 +2495,7 @@ where
     ///
     /// # Examples
     ///
-    /// Creating a [`TypedProjIndexMap`] with capacity `capacity > 0`.
+    /// Creating a type-projected index map with capacity `capacity > 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2515,7 +2515,7 @@ where
     /// assert!(proj_map.capacity() >= capacity);
     /// ```
     ///
-    /// Creating a [`TypedProjIndexMap`] with capacity `capacity == 0`.
+    /// Creating a type-projected index map with capacity `capacity == 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2551,9 +2551,9 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    /// Returns the capacity of the [`TypedProjIndexMap`].
+    /// Returns the capacity of the type-projected index map.
     ///
-    /// The **capacity** of a [`TypedProjIndexMap`] is the number of key/value pairs the index map
+    /// The **capacity** of a type-projected index map is the number of key/value pairs the index map
     /// can hold without reallocating memory.
     ///
     /// # Examples
@@ -2588,9 +2588,9 @@ where
         self.inner.capacity()
     }
 
-    /// Returns the length of the [`TypedProjIndexMap`].
+    /// Returns the length of the type-projected index map.
     ///
-    /// The **length** of a [`TypedProjIndexMap`] is the number of key/value pairs stored inside it.
+    /// The **length** of a type-projected index map is the number of key/value pairs stored inside it.
     ///
     /// # Examples
     ///
@@ -2622,9 +2622,9 @@ where
         self.inner.len()
     }
 
-    /// Determines whether the [`TypedProjIndexMap`] is empty.
+    /// Determines whether the type-projected index map is empty.
     ///
-    /// A [`TypedProjIndexMap`] is **empty** if it contains no key/value pairs, i.e. its length is zero.
+    /// A type-projected index map is **empty** if it contains no key/value pairs, i.e. its length is zero.
     ///
     /// # Examples
     ///
@@ -3099,13 +3099,13 @@ where
         Iter::new(self.inner.iter())
     }
 
-    /// Returns an mutable iterator over the keys/value pairs in the index map.
+    /// Returns a mutable iterator over the keys/value pairs in the index map.
     ///
     /// The iterator returns the keys/values pairs in their storage order inside the index map.
     ///
     /// # Examples
     ///
-    /// Iterating over the entries of a [`TypedProjIndexMap`] without mutating them.
+    /// Iterating over the entries of a type-projected index map without mutating them.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -3138,7 +3138,7 @@ where
     /// }
     /// ```
     ///
-    /// Iterating over the entries of a [`TypedProjIndexMap`] while mutating them.
+    /// Iterating over the entries of a type-projected index map while mutating them.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -3223,7 +3223,7 @@ where
     ///
     /// # Examples
     ///
-    /// Iterating over the entries of a [`TypedProjIndexMap`] without mutating them.
+    /// Iterating over the entries of a type-projected index map without mutating them.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -3255,7 +3255,7 @@ where
     /// }
     /// ```
     ///
-    /// Iterating over the entries of a [`TypedProjIndexMap`] while mutating them.
+    /// Iterating over the entries of a type-projected index map while mutating them.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -3337,7 +3337,7 @@ where
     /// Removes all the entries from the index map.
     ///
     /// After calling this method, the collection will be empty. This method does not change the
-    /// allocated capacity of the [`TypedProjIndexMap`].
+    /// allocated capacity of the type-projected index map.
     ///
     /// # Examples
     ///
@@ -3384,7 +3384,7 @@ where
     ///
     /// # Examples
     ///
-    /// Truncating a [`TypedProjIndexMap`] when `len < self.len()`.
+    /// Truncating a type-projected index map when `len < self.len()`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -3565,7 +3565,7 @@ where
     ///
     /// # Examples
     ///
-    /// Draining part of a [`TypedProjIndexMap`].
+    /// Draining part of a type-projected index map.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -3614,7 +3614,7 @@ where
     /// assert_eq!(drained_entries.as_slice(), expected_drained_entries.as_slice());
     /// ```
     ///
-    /// Draining an entire [`TypedProjIndexMap`].
+    /// Draining an entire type-projected index map.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -3662,7 +3662,7 @@ where
     /// assert_eq!(drained_entries.as_slice(), expected_drained_entries.as_slice());
     /// ```
     ///
-    /// Draining no part of a [`TypedProjIndexMap`].
+    /// Draining no part of a type-projected index map.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -3717,11 +3717,11 @@ where
         Drain::new(self.inner.drain(range))
     }
 
-    /// Splits a [`TypedProjIndexMap`] into two [`TypedProjIndexMap`]s at the given index.
+    /// Splits a type-projected index map into two type-projected index maps at the given index.
     ///
-    /// This method returns a newly allocated [`TypedProjIndexMap`] consisting of every entry from
-    /// the original [`TypedProjIndexMap`] in the storage range `[at, len)`. The original
-    /// [`TypedProjIndexMap`] will consist of the entries in the range `[0, at)` with its capacity
+    /// This method returns a newly allocated type-projected index map consisting of every entry from
+    /// the original type-projected index map in the storage range `[at, len)`. The original
+    /// type-projected index map will consist of the entries in the range `[0, at)` with its capacity
     /// unchanged.
     ///
     /// # Panics
@@ -3795,7 +3795,7 @@ where
         }
     }
 
-    /// Removes an entry from a [`TypedProjIndexMap`], moving the last entry in storage order in the
+    /// Removes an entry from a type-projected index map, moving the last entry in storage order in the
     /// collection to the index where the removed entry occupies the collection.
     ///
     /// This method behaves with respect to `key` as follows:
@@ -3879,7 +3879,7 @@ where
         self.inner.swap_remove(key)
     }
 
-    /// Removes an entry from a [`TypedProjIndexMap`], moving the last entry in storage order in the
+    /// Removes an entry from a type-projected index map, moving the last entry in storage order in the
     /// collection to the index where the removed entry occupies the collection.
     ///
     /// This method behaves with respect to `key` as follows:
@@ -3963,7 +3963,7 @@ where
         self.inner.swap_remove_entry(key)
     }
 
-    /// Removes an entry from a [`TypedProjIndexMap`], moving the last entry in storage order in the
+    /// Removes an entry from a type-projected index map, moving the last entry in storage order in the
     /// collection to the index where the removed entry occupies the collection.
     ///
     /// This method behaves with respect to `key` as follows:
@@ -4047,7 +4047,7 @@ where
         self.inner.swap_remove_full(key)
     }
 
-    /// Removes an entry from a [`TypedProjIndexMap`], shifting every successive entry in the collection
+    /// Removes an entry from a type-projected index map, shifting every successive entry in the collection
     /// in storage order to the left one index to fill where the removed entry occupies the collection.
     ///
     /// This method behaves with respect to `key` as follows:
@@ -4135,7 +4135,7 @@ where
         self.inner.shift_remove(key)
     }
 
-    /// Removes an entry from a [`TypedProjIndexMap`], shifting every successive entry in the collection
+    /// Removes an entry from a type-projected index map, shifting every successive entry in the collection
     /// in storage order to the left one index to fill where the removed entry occupies the collection.
     ///
     /// This method behaves with respect to `key` as follows:
@@ -4224,7 +4224,7 @@ where
         self.inner.shift_remove_entry(key)
     }
 
-    /// Removes an entry from a [`TypedProjIndexMap`], shifting every successive entry in the collection
+    /// Removes an entry from a type-projected index map, shifting every successive entry in the collection
     /// in storage order to the left one index to fill where the removed entry occupies the collection.
     ///
     /// This method behaves with respect to `key` as follows:
@@ -4585,7 +4585,7 @@ where
         self.inner.insert_sorted(key, value)
     }
 
-    /// Inserts an entry into a [`TypedProjIndexMap`] before the entry at the given index, or at the
+    /// Inserts an entry into a type-projected index map before the entry at the given index, or at the
     /// end of the index map.
     ///
     /// The index `index` must be in bounds. The index `index` is **in bounds** provided that
@@ -4784,7 +4784,7 @@ where
         self.inner.insert_before(index, key, value)
     }
 
-    /// Inserts an entry into a [`TypedProjIndexMap`] at the given storage index.
+    /// Inserts an entry into a type-projected index map at the given storage index.
     ///
     /// The index `index` must be in bounds. The index `index` is **in bounds** provided that one
     /// of the following conditions holds:
@@ -5011,14 +5011,14 @@ where
         }
     }
 
-    /// Creates a splicing iterator that replaces the specified storage range in the [`TypedProjIndexMap`]
+    /// Creates a splicing iterator that replaces the specified storage range in the type-projected index map
     /// with the given `replace_with` iterator and yields the removed items. The argument
     /// `replace_with` does not need to be the same length as `range`.
     ///
     /// The `range` argument is removed even if the `Splice` iterator is not consumed before it is
     /// dropped.
     ///
-    /// It is unspecified how many elements are removed from the [`TypedProjIndexMap`]
+    /// It is unspecified how many elements are removed from the type-projected index map
     /// if the `Splice` value is leaked.
     ///
     /// The input iterator `replace_with` is only consumed when the `Splice` value is dropped.
@@ -6209,7 +6209,7 @@ where
     /// Shrinks the capacity of the index map as much as possible.
     ///
     /// The behavior of this method depends on the allocator, which may either shrink the
-    /// index map in-place or reallocate. The resulting index map might still have some excess
+    /// index map in place or reallocate. The resulting index map might still have some excess
     /// capacity, just as is the case for [`with_capacity`]. See [`Allocator::shrink`] for more
     /// details.
     ///
@@ -7353,7 +7353,7 @@ pub struct OpaqueIndexMap {
 }
 
 impl OpaqueIndexMap {
-    /// Returns the [`TypeId`] of the keys contained in the [`OpaqueIndexMap`].
+    /// Returns the [`TypeId`] of the keys contained in the type-erased index map.
     ///
     /// # Examples
     ///
@@ -7373,7 +7373,7 @@ impl OpaqueIndexMap {
         self.inner.key_type_id()
     }
 
-    /// Returns the [`TypeId`] of the values contained in the [`OpaqueIndexMap`].
+    /// Returns the [`TypeId`] of the values contained in the type-erased index map.
     ///
     /// # Examples
     ///
@@ -7393,7 +7393,7 @@ impl OpaqueIndexMap {
         self.inner.value_type_id()
     }
 
-    /// Returns the [`TypeId`] of the hash builder for the [`OpaqueIndexMap`].
+    /// Returns the [`TypeId`] of the hash builder for the type-erased index map.
     ///
     /// # Examples
     ///
@@ -7413,7 +7413,7 @@ impl OpaqueIndexMap {
         self.inner.build_hasher_type_id()
     }
 
-    /// Returns the [`TypeId`] of the memory allocator for the [`OpaqueIndexMap`].
+    /// Returns the [`TypeId`] of the memory allocator for the type-erased index map.
     ///
     /// # Examples
     ///
@@ -7435,7 +7435,7 @@ impl OpaqueIndexMap {
 }
 
 impl OpaqueIndexMap {
-    /// Determines whether the [`OpaqueIndexMap`] has the given key type.
+    /// Determines whether the type-erased index map has the given key type.
     ///
     /// Returns `true` if `self` has the specified key type. Returns `false` otherwise.
     ///
@@ -7460,7 +7460,7 @@ impl OpaqueIndexMap {
         self.inner.key_type_id() == any::TypeId::of::<K>()
     }
 
-    /// Determines whether the [`OpaqueIndexMap`] has the given value type.
+    /// Determines whether the type-erased index map has the given value type.
     ///
     /// Returns `true` if `self` has the specified value type. Returns `false` otherwise.
     ///
@@ -7485,7 +7485,7 @@ impl OpaqueIndexMap {
         self.inner.value_type_id() == any::TypeId::of::<V>()
     }
 
-    /// Determines whether the [`OpaqueIndexMap`] has the given hash builder type.
+    /// Determines whether the type-erased index map has the given hash builder type.
     ///
     /// Returns `true` if `self` has the specified hash builder type. Returns `false` otherwise.
     ///
@@ -7510,7 +7510,7 @@ impl OpaqueIndexMap {
         self.inner.build_hasher_type_id() == any::TypeId::of::<S>()
     }
 
-    /// Determines whether the [`OpaqueIndexMap`] has the given memory allocator type.
+    /// Determines whether the type-erased index map has the given memory allocator type.
     ///
     /// Returns `true` if `self` has the specified memory allocator type. Returns `false` otherwise.
     ///
@@ -7581,8 +7581,7 @@ impl OpaqueIndexMap {
 }
 
 impl OpaqueIndexMap {
-    /// Projects the type-erased [`OpaqueIndexMap`] reference into a type-projected
-    /// [`TypedProjIndexMap`] reference.
+    /// Projects the type-erased index map reference into a type-projected index map reference.
     ///
     /// # Panics
     ///
@@ -7625,8 +7624,8 @@ impl OpaqueIndexMap {
         unsafe { &*(self as *const OpaqueIndexMap as *const TypedProjIndexMap<K, V, S, A>) }
     }
 
-    /// Projects the type-erased [`OpaqueIndexMap`] mutable reference into a type-projected
-    /// [`TypedProjIndexMap`] mutable reference.
+    /// Projects the mutable type-erased index map reference into a mutable type-projected
+    /// index map reference.
     ///
     /// # Panics
     ///
@@ -7669,8 +7668,7 @@ impl OpaqueIndexMap {
         unsafe { &mut *(self as *mut OpaqueIndexMap as *mut TypedProjIndexMap<K, V, S, A>) }
     }
 
-    /// Projects the type-erased [`OpaqueIndexMap`] value into a type-projected
-    /// [`TypedProjIndexMap`] value.
+    /// Projects the type-erased index map value into a type-projected index map value.
     ///
     /// # Panics
     ///
@@ -7715,7 +7713,7 @@ impl OpaqueIndexMap {
         }
     }
 
-    /// Erases the type-projected [`TypedProjIndexMap`] value into a type-erased [`OpaqueIndexMap`] value.
+    /// Erases the type-projected index map value into a type-erased index map value.
     ///
     /// Unlike the type projection methods [`as_proj`], [`as_proj_mut`], and [`into_proj`], this
     /// method never panics.
@@ -7816,7 +7814,7 @@ impl OpaqueIndexMap {
     ///
     /// # Examples
     ///
-    /// Creating an [`OpaqueIndexMap`] with capacity `capacity > 0`.
+    /// Creating a type-erased index map with capacity `capacity > 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -7845,7 +7843,7 @@ impl OpaqueIndexMap {
     /// assert!(opaque_map.capacity() >= capacity);
     /// ```
     ///
-    /// Creating an [`OpaqueIndexMap`] with capacity `capacity == 0`.
+    /// Creating a type-erased index map with capacity `capacity == 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -7936,7 +7934,7 @@ impl OpaqueIndexMap {
     ///
     /// # Examples
     ///
-    /// Creating an [`OpaqueIndexMap`] with capacity `capacity > 0`.
+    /// Creating a type-erased index map with capacity `capacity > 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -7963,7 +7961,7 @@ impl OpaqueIndexMap {
     /// assert!(opaque_map.capacity() >= capacity);
     /// ```
     ///
-    /// Creating an [`OpaqueIndexMap`] with capacity `capacity == 0`.
+    /// Creating a type-erased index map with capacity `capacity == 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -8053,7 +8051,7 @@ impl OpaqueIndexMap {
     ///
     /// # Examples
     ///
-    /// Creating an [`OpaqueIndexMap`] with capacity `capacity > 0`.
+    /// Creating a type-erased index map with capacity `capacity > 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -8080,7 +8078,7 @@ impl OpaqueIndexMap {
     /// assert!(opaque_map.capacity() >= capacity);
     /// ```
     ///
-    /// Creating an [`OpaqueIndexMap`] with capacity `capacity == 0`.
+    /// Creating a type-erased index map with capacity `capacity == 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -8167,7 +8165,7 @@ impl OpaqueIndexMap {
     ///
     /// # Examples
     ///
-    /// Creating an [`OpaqueIndexMap`] with capacity `capacity > 0`.
+    /// Creating a type-erased index map with capacity `capacity > 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -8193,7 +8191,7 @@ impl OpaqueIndexMap {
     /// assert!(opaque_map.capacity() >= capacity);
     /// ```
     ///
-    /// Creating an [`OpaqueIndexMap`] with capacity `capacity == 0`.
+    /// Creating a type-erased index map with capacity `capacity == 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -8278,7 +8276,7 @@ impl OpaqueIndexMap {
     ///
     /// # Examples
     ///
-    /// Creating an [`OpaqueIndexMap`] with capacity `capacity > 0`.
+    /// Creating a type-erased index map with capacity `capacity > 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -8304,7 +8302,7 @@ impl OpaqueIndexMap {
     /// assert!(opaque_map.capacity() >= capacity);
     /// ```
     ///
-    /// Creating an [`OpaqueIndexMap`] with capacity `capacity == 0`.
+    /// Creating a type-erased index map with capacity `capacity == 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -8387,7 +8385,7 @@ impl OpaqueIndexMap {
     ///
     /// # Examples
     ///
-    /// Creating an [`OpaqueIndexMap`] with capacity `capacity > 0`.
+    /// Creating a type-erased index map with capacity `capacity > 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -8412,7 +8410,7 @@ impl OpaqueIndexMap {
     /// assert!(opaque_map.capacity() >= capacity);
     /// ```
     ///
-    /// Creating an [`OpaqueIndexMap`] with capacity `capacity == 0`.
+    /// Creating a type-erased index map with capacity `capacity == 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -8446,9 +8444,9 @@ impl OpaqueIndexMap {
 }
 
 impl OpaqueIndexMap {
-    /// Returns the capacity of the [`OpaqueIndexMap`].
+    /// Returns the capacity of the type-erased index map.
     ///
-    /// The **capacity** of an [`OpaqueIndexMap`] is the number of key/value pairs the index map
+    /// The **capacity** of a type-erased index map is the number of key/value pairs the index map
     /// can hold without reallocating memory.
     ///
     /// # Examples
@@ -8489,9 +8487,9 @@ impl OpaqueIndexMap {
         self.inner.capacity()
     }
 
-    /// Returns the length of the [`OpaqueIndexMap`].
+    /// Returns the length of the type-erased index map.
     ///
-    /// The **length** of an [`OpaqueIndexMap`] is the number of key/value pairs stored inside it.
+    /// The **length** of a type-erased index map is the number of key/value pairs stored inside it.
     ///
     /// # Examples
     ///
@@ -8529,9 +8527,9 @@ impl OpaqueIndexMap {
         self.inner.len()
     }
 
-    /// Determines whether the [`OpaqueIndexMap`] is empty.
+    /// Determines whether the type-erased index map is empty.
     ///
-    /// An [`OpaqueIndexMap`] is **empty** if it contains no key/value pairs, i.e. its length is zero.
+    /// A type-erased index map is **empty** if it contains no key/value pairs, i.e. its length is zero.
     ///
     /// # Examples
     ///
@@ -9248,7 +9246,7 @@ impl OpaqueIndexMap {
         proj_self.iter()
     }
 
-    /// Returns an mutable iterator over the keys/value pairs in the index map.
+    /// Returns a mutable iterator over the keys/value pairs in the index map.
     ///
     /// The iterator returns the keys/values pairs in their storage order inside the index map.
     ///
@@ -9261,7 +9259,7 @@ impl OpaqueIndexMap {
     ///
     /// # Examples
     ///
-    /// Iterating over the entries of an [`OpaqueIndexMap`] without mutating them.
+    /// Iterating over the entries of a type-erased index map without mutating them.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -9300,7 +9298,7 @@ impl OpaqueIndexMap {
     /// }
     /// ```
     ///
-    /// Iterating over the entries of an [`OpaqueIndexMap`] while mutating them.
+    /// Iterating over the entries of a type-erased index map while mutating them.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -9429,7 +9427,7 @@ impl OpaqueIndexMap {
     ///
     /// # Examples
     ///
-    /// Iterating over the entries of an [`OpaqueIndexMap`] without mutating them.
+    /// Iterating over the entries of a type-erased index map without mutating them.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -9467,7 +9465,7 @@ impl OpaqueIndexMap {
     /// }
     /// ```
     ///
-    /// Iterating over the entries of an [`OpaqueIndexMap`] while mutating them.
+    /// Iterating over the entries of a type-erased index map while mutating them.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -9580,7 +9578,7 @@ impl OpaqueIndexMap {
     /// Removes all the entries from the index map.
     ///
     /// After calling this method, the collection will be empty. This method does not change the
-    /// allocated capacity of the [`OpaqueIndexMap`].
+    /// allocated capacity of the type-erased index map.
     ///
     /// # Panics
     ///
@@ -9654,7 +9652,7 @@ impl OpaqueIndexMap {
     ///
     /// # Examples
     ///
-    /// Truncating an [`OpaqueIndexMap`] when `len < self.len()`.
+    /// Truncating a type-erased index map when `len < self.len()`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -9873,7 +9871,7 @@ impl OpaqueIndexMap {
     ///
     /// # Examples
     ///
-    /// Draining part of an [`OpaqueIndexMap`].
+    /// Draining part of a type-erased index map.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -9930,7 +9928,7 @@ impl OpaqueIndexMap {
     /// assert_eq!(drained_entries.as_slice(), expected_drained_entries.as_slice());
     /// ```
     ///
-    /// Draining an entire [`OpaqueIndexMap`].
+    /// Draining an entire type-erased index map.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -9986,7 +9984,7 @@ impl OpaqueIndexMap {
     /// assert_eq!(drained_entries.as_slice(), expected_drained_entries.as_slice());
     /// ```
     ///
-    /// Draining no part of an [`OpaqueIndexMap`].
+    /// Draining no part of a type-erased index map.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -10056,11 +10054,11 @@ impl OpaqueIndexMap {
         proj_self.drain(range)
     }
 
-    /// Splits an [`OpaqueIndexMap`] into two [`OpaqueIndexMap`]s at the given index.
+    /// Splits a type-erased index map into two type-erased index maps at the given index.
     ///
-    /// This method returns a newly allocated [`OpaqueIndexMap`] consisting of every entry from
-    /// the original [`OpaqueIndexMap`] in the storage range `[at, len)`. The original
-    /// [`OpaqueIndexMap`] will consist of the entries in the range `[0, at)` with its capacity
+    /// This method returns a newly allocated type-erased index map consisting of every entry from
+    /// the original type-erased index map in the storage range `[at, len)`. The original
+    /// type-erased index map will consist of the entries in the range `[0, at)` with its capacity
     /// unchanged.
     ///
     /// # Panics
@@ -10155,7 +10153,7 @@ impl OpaqueIndexMap {
         Self::from_proj(proj_split)
     }
 
-    /// Removes an entry from an [`OpaqueIndexMap`], moving the last entry in storage order in the
+    /// Removes an entry from a type-erased index map, moving the last entry in storage order in the
     /// collection to the index where the removed entry occupies the collection.
     ///
     /// This method behaves with respect to `key` as follows:
@@ -10307,7 +10305,7 @@ impl OpaqueIndexMap {
         proj_self.swap_remove(key)
     }
 
-    /// Removes an entry from an [`OpaqueIndexMap`], moving the last entry in storage order in the
+    /// Removes an entry from a type-erased index map, moving the last entry in storage order in the
     /// collection to the index where the removed entry occupies the collection.
     ///
     /// This method behaves with respect to `key` as follows:
@@ -10459,7 +10457,7 @@ impl OpaqueIndexMap {
         proj_self.swap_remove_entry(key)
     }
 
-    /// Removes an entry from an [`OpaqueIndexMap`], moving the last entry in storage order in the
+    /// Removes an entry from a type-erased index map, moving the last entry in storage order in the
     /// collection to the index where the removed entry occupies the collection.
     ///
     /// This method behaves with respect to `key` as follows:
@@ -10611,7 +10609,7 @@ impl OpaqueIndexMap {
         proj_self.swap_remove_full(key)
     }
 
-    /// Removes an entry from an [`OpaqueIndexMap`], shifting every successive entry in the collection
+    /// Removes an entry from a type-erased index map, shifting every successive entry in the collection
     /// in storage order to the left one index to fill where the removed entry occupies the collection.
     ///
     /// This method behaves with respect to `key` as follows:
@@ -10767,7 +10765,7 @@ impl OpaqueIndexMap {
         proj_self.shift_remove(key)
     }
 
-    /// Removes an entry from an [`OpaqueIndexMap`], shifting every successive entry in the collection
+    /// Removes an entry from a type-erased index map, shifting every successive entry in the collection
     /// in storage order to the left one index to fill where the removed entry occupies the collection.
     ///
     /// This method behaves with respect to `key` as follows:
@@ -10924,7 +10922,7 @@ impl OpaqueIndexMap {
         proj_self.shift_remove_entry(key)
     }
 
-    /// Removes an entry from an [`OpaqueIndexMap`], shifting every successive entry in the collection
+    /// Removes an entry from a type-erased index map, shifting every successive entry in the collection
     /// in storage order to the left one index to fill where the removed entry occupies the collection.
     ///
     /// This method behaves with respect to `key` as follows:
@@ -11453,7 +11451,7 @@ impl OpaqueIndexMap {
         proj_self.insert_sorted(key, value)
     }
 
-    /// Inserts an entry into an [`OpaqueIndexMap`] before the entry at the given index, or at the
+    /// Inserts an entry into a type-erased index map before the entry at the given index, or at the
     /// end of the index map.
     ///
     /// The index `index` must be in bounds. The index `index` is **in bounds** provided that
@@ -11687,7 +11685,7 @@ impl OpaqueIndexMap {
         proj_self.insert_before(index, key, value)
     }
 
-    /// Inserts an entry into an [`OpaqueIndexMap`] at the given storage index.
+    /// Inserts an entry into a type-erased index map at the given storage index.
     ///
     /// The index `index` must be in bounds. The index `index` is **in bounds** provided that one
     /// of the following conditions holds:
@@ -11959,14 +11957,14 @@ impl OpaqueIndexMap {
         proj_self.entry(key)
     }
 
-    /// Creates a splicing iterator that replaces the specified storage range in the [`OpaqueIndexMap`]
+    /// Creates a splicing iterator that replaces the specified storage range in the type-erased index map
     /// with the given `replace_with` iterator and yields the removed items. The argument
     /// `replace_with` does not need to be the same length as `range`.
     ///
     /// The `range` argument is removed even if the `Splice` iterator is not consumed before it is
     /// dropped.
     ///
-    /// It is unspecified how many elements are removed from the [`OpaqueIndexMap`]
+    /// It is unspecified how many elements are removed from the type-erased index map
     /// if the `Splice` value is leaked.
     ///
     /// The input iterator `replace_with` is only consumed when the `Splice` value is dropped.
@@ -13599,7 +13597,7 @@ impl OpaqueIndexMap {
     /// Shrinks the capacity of the index map as much as possible.
     ///
     /// The behavior of this method depends on the allocator, which may either shrink the
-    /// index map in-place or reallocate. The resulting index map might still have some excess
+    /// index map in place or reallocate. The resulting index map might still have some excess
     /// capacity, just as is the case for [`with_capacity`]. See [`Allocator::shrink`] for more
     /// details.
     ///
@@ -14854,7 +14852,7 @@ impl OpaqueIndexMap {
 }
 
 impl OpaqueIndexMap {
-    /// Clones an [`OpaqueIndexMap`].
+    /// Clones a type-erased index map.
     ///
     /// This method acts identically to an implementation of the [`Clone`] trait on a type-projected
     /// index map [`OpaqueIndexMap`], or a generic [`HashMap`].
@@ -14868,7 +14866,7 @@ impl OpaqueIndexMap {
     ///
     /// # Examples
     ///
-    /// Cloning an empty [`OpaqueIndexMap`].
+    /// Cloning an empty type-erased index map.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -14967,7 +14965,7 @@ impl OpaqueIndexMap {
 }
 
 impl OpaqueIndexMap {
-    /// Clones an [`OpaqueIndexMap`].
+    /// Clones a type-erased index map.
     ///
     /// This method acts identically to an implementation of the [`Clone`] trait on a type-projected
     /// index map [`OpaqueIndexMap`], or a generic [`HashMap`].
@@ -14981,7 +14979,7 @@ impl OpaqueIndexMap {
     ///
     /// # Examples
     ///
-    /// Cloning an empty [`OpaqueIndexMap`].
+    /// Cloning an empty type-erased index map.
     ///
     /// ```
     /// # #![feature(allocator_api)]

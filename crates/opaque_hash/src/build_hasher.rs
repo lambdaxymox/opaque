@@ -11,7 +11,6 @@ use std::hash;
 
 #[cfg(not(feature = "std"))]
 use core::hash;
-use crate::OpaqueHasher;
 
 /// A type-projected hash builder.
 ///
@@ -50,7 +49,7 @@ use crate::OpaqueHasher;
 ///
 /// # Examples
 ///
-/// Using a [`TypedProjBuildHasher`].
+/// Using a type-projected hash builder.
 ///
 /// ```
 /// # use opaque_hash::{TypedProjBuildHasher, TypedProjHasher};
@@ -68,7 +67,7 @@ use crate::OpaqueHasher;
 /// let proj_hasher: TypedProjHasher<DefaultHasher> = proj_build_hasher.build_hasher_proj();
 /// ```
 ///
-/// Using an [`OpaqueBuildHasher`].
+/// Using a type-erased hash builder.
 ///
 /// ```
 /// # use opaque_hash::{OpaqueBuildHasher, TypedProjHasher};
@@ -501,8 +500,7 @@ impl OpaqueBuildHasher {
 }
 
 impl OpaqueBuildHasher {
-    /// Projects the type-erased [`OpaqueBuildHasher`] reference into a type-projected
-    /// [`TypedProjBuildHasher`] reference.
+    /// Projects the type-erased hash builder reference into a type-projected hash builder reference.
     ///
     /// # Panics
     ///
@@ -533,8 +531,8 @@ impl OpaqueBuildHasher {
         unsafe { &*(self as *const OpaqueBuildHasher as *const TypedProjBuildHasher<S>) }
     }
 
-    /// Projects the type-erased [`OpaqueBuildHasher`] mutable reference into a type-projected
-    /// [`TypedProjBuildHasher`] mutable reference.
+    /// Projects the mutable type-erased hash builder reference into a type-projected mutable
+    /// hash builder reference.
     ///
     /// # Panics
     ///
@@ -565,8 +563,7 @@ impl OpaqueBuildHasher {
         unsafe { &mut *(self as *mut OpaqueBuildHasher as *mut TypedProjBuildHasher<S>) }
     }
 
-    /// Projects the type-erased [`OpaqueBuildHasher`] value into a type-projected
-    /// [`TypedProjBuildHasher`] value.
+    /// Projects the type-erased hash builder value into a type-projected hash builder value.
     ///
     /// # Panics
     ///
@@ -599,8 +596,7 @@ impl OpaqueBuildHasher {
         }
     }
 
-    /// Erases the type-projected [`TypedProjBuildHasher`] value into a type-erased
-    /// [`OpaqueBuildHasher`] value.
+    /// Erases the type-projected hash builder value into a type-erased hash builder value.
     ///
     /// Unlike the type projection methods [`as_proj`], [`as_proj_mut`], and [`into_proj`], this
     /// method never panics.

@@ -25,7 +25,7 @@ use opaque_error::TryReserveError;
 /// A type-projected contiguous growable array type.
 ///
 /// This type is similar to [`std::Vec`], but supports type-erasure of generic parameters.
-/// The main difference is that a `TypedProjVec` can be converted to an `OpaqueVec`
+/// The main difference is that a [`TypedProjVec`] can be converted to an [`OpaqueVec`]
 /// in constant **O(1)** time, hiding its element type and allocator at runtime.
 ///
 /// A type-erasable vector is parameterized by the following parameters:
@@ -160,7 +160,7 @@ where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    /// Returns the [`TypeId`] of the elements of contained in a [`TypedProjVec`].
+    /// Returns the [`TypeId`] of the elements contained in a type-projected vector.
     ///
     /// # Examples
     ///
@@ -181,7 +181,7 @@ where
         self.inner.element_type_id()
     }
 
-    /// Returns the [`TypeId`] of the memory allocator of a [`TypedProjVec`].
+    /// Returns the [`TypeId`] of the memory allocator of a type-projected vector.
     ///
     /// # Examples
     ///
@@ -208,7 +208,7 @@ where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    /// Constructs a new empty [`TypedProjVec`] using a specific type-projected memory allocator.
+    /// Constructs a new empty type-projected vector using a specific type-projected memory allocator.
     ///
     /// The vector will not allocate until elements are pushed into it. In particular, the
     /// vector has zero capacity until elements are pushed into it.
@@ -237,7 +237,7 @@ where
         Self { inner, }
     }
 
-    /// Constructs a new empty [`TypedProjVec`] using a specific type-projected memory allocator
+    /// Constructs a new empty type-projected vector using a specific type-projected memory allocator
     /// and a specific capacity.
     ///
     /// The vector will be able to hold at least `capacity` elements without reallocating. The
@@ -254,7 +254,7 @@ where
     ///
     /// # Examples
     ///
-    /// Creating a [`TypedProjVec`] with capacity `capacity > 0`.
+    /// Creating a type-projected vector with capacity `capacity > 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -270,7 +270,7 @@ where
     /// assert!(proj_vec.is_empty());
     /// ```
     ///
-    /// Creating a [`TypedProjVec`] with capacity `capacity == 0`.
+    /// Creating a type-projected vector with capacity `capacity == 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -295,7 +295,7 @@ where
         Self { inner, }
     }
 
-    /// Constructs a new empty [`TypedProjVec`] using a specific type-projected memory allocator
+    /// Constructs a new empty type-projected vector using a specific type-projected memory allocator
     /// and a specific capacity.
     ///
     /// The vector will be able to hold at least `capacity` elements without reallocating. The
@@ -313,7 +313,7 @@ where
     ///
     /// # Examples
     ///
-    /// Creating a [`TypedProjVec`] with capacity `capacity > 0`.
+    /// Creating a type-projected vector with capacity `capacity > 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -333,7 +333,7 @@ where
     /// assert!(proj_vec.is_empty());
     /// ```
     ///
-    /// Creating a [`TypedProjVec`] with capacity `capacity == 0`.
+    /// Creating a type-projected vector with capacity `capacity == 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -360,7 +360,7 @@ where
         Ok(Self { inner, })
     }
 
-    /// Constructs a [`TypedProjVec`] directly from a pointer, a length, a capacity, and a
+    /// Constructs a type-projected vector directly from a pointer, a length, a capacity, and a
     /// type-projected allocator.
     ///
     /// # Safety
@@ -384,16 +384,16 @@ where
     /// * The allocated size in bytes must be no larger than `isize::MAX`.
     ///   See the safety documentation of [`pointer::offset`].
     ///
-    /// These requirements always hold for any `ptr` that has been allocated via [`TypedProjVec`].
+    /// These requirements always hold for any `ptr` that has been allocated via a [`TypedProjVec`].
     ///
     /// The ownership of `ptr` is effectively transferred to the
-    /// [`TypedProjVec`] which may then deallocate, reallocate or change the
+    /// type-projected vector which may then deallocate, reallocate or change the
     /// contents of memory pointed to by the pointer at will. The caller must ensure
     /// that nothing else uses the pointer `ptr` after calling this method.
     ///
     /// # Examples
     ///
-    /// Using memory that was allocated by a [`TypedProjVec`].
+    /// Using memory that was allocated by a type-projected vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -457,7 +457,7 @@ where
     /// # assert!(result.capacity() >= new_capacity);
     /// ```
     ///
-    /// Using memory that was allocated outside a [`TypedProjVec`].
+    /// Using memory that was allocated outside a type-projected vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -512,7 +512,7 @@ where
         Self { inner, }
     }
 
-    /// Constructs a [`TypedProjVec`] directly from a non-null pointer, a length, a capacity, and a
+    /// Constructs a type-projected vector directly from a non-null pointer, a length, a capacity, and a
     /// type-projected allocator.
     ///
     /// # Safety
@@ -536,16 +536,16 @@ where
     /// * The allocated size in bytes must be no larger than `isize::MAX`.
     ///   See the safety documentation of [`pointer::offset`].
     ///
-    /// These requirements always hold for any `ptr` that has been allocated via [`TypedProjVec`].
+    /// These requirements always hold for any `ptr` that has been allocated via a [`TypedProjVec`].
     ///
     /// The ownership of `ptr` is effectively transferred to the
-    /// [`TypedProjVec`] which may then deallocate, reallocate or change the
+    /// type-projected vector which may then deallocate, reallocate or change the
     /// contents of memory pointed to by the pointer at will. The caller must ensure
     /// that nothing else uses the pointer `ptr` after calling this method.
     ///
     /// # Examples
     ///
-    /// Using memory that was allocated by a [`TypedProjVec`].
+    /// Using memory that was allocated by a type-projected vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -610,7 +610,7 @@ where
     /// # assert!(result.capacity() >= new_capacity);
     /// ```
     ///
-    /// Using memory that was allocated outside a [`TypedProjVec`].
+    /// Using memory that was allocated outside a type-projected vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -665,7 +665,7 @@ where
         Self { inner, }
     }
 
-    /// Constructs a new empty [`TypedProjVec`] using a specific memory allocator.
+    /// Constructs a new empty type-projected vector using a specific memory allocator.
     ///
     /// The vector will not allocate until elements are pushed into it. In particular, the
     /// vector has zero capacity until elements are pushed into it.
@@ -691,7 +691,7 @@ where
         Self { inner, }
     }
 
-    /// Constructs a new empty [`TypedProjVec`] using a specific memory allocator and a
+    /// Constructs a new empty type-projected vector using a specific memory allocator and a
     /// specific capacity.
     ///
     /// The vector will be able to hold at least `capacity` elements without reallocating. The
@@ -708,7 +708,7 @@ where
     ///
     /// # Examples
     ///
-    /// Creating a [`TypedProjVec`] with capacity `capacity > 0`.
+    /// Creating a type-projected vector with capacity `capacity > 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -722,7 +722,7 @@ where
     /// assert!(proj_vec.is_empty());
     /// ```
     ///
-    /// Creating a [`TypedProjVec`] with capacity `capacity == 0`.
+    /// Creating a type-projected vector with capacity `capacity == 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -745,7 +745,7 @@ where
         Self { inner, }
     }
 
-    /// Constructs a new empty [`TypedProjVec`] using a specific memory allocator and a
+    /// Constructs a new empty type-projected vector using a specific memory allocator and a
     /// specific capacity.
     ///
     /// The vector will be able to hold at least `capacity` elements without reallocating. The
@@ -763,7 +763,7 @@ where
     ///
     /// # Examples
     ///
-    /// Creating a [`TypedProjVec`] with capacity `capacity > 0`.
+    /// Creating a type-projected vector with capacity `capacity > 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -781,7 +781,7 @@ where
     /// assert!(proj_vec.is_empty());
     /// ```
     ///
-    /// Creating a [`TypedProjVec`] with capacity `capacity == 0`.
+    /// Creating a type-projected vector with capacity `capacity == 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -806,7 +806,7 @@ where
         Ok(Self { inner, })
     }
 
-    /// Constructs a [`TypedProjVec`] directly from a pointer, a length, a capacity, and a
+    /// Constructs a type-projected vector directly from a pointer, a length, a capacity, and a
     /// memory allocator.
     ///
     /// # Safety
@@ -830,16 +830,16 @@ where
     /// * The allocated size in bytes must be no larger than `isize::MAX`.
     ///   See the safety documentation of [`pointer::offset`].
     ///
-    /// These requirements always hold for any `ptr` that has been allocated via [`TypedProjVec`].
+    /// These requirements always hold for any `ptr` that has been allocated via a [`TypedProjVec`].
     ///
     /// The ownership of `ptr` is effectively transferred to the
-    /// [`TypedProjVec`] which may then deallocate, reallocate or change the
+    /// type-projected vector which may then deallocate, reallocate or change the
     /// contents of memory pointed to by the pointer at will. The caller must ensure
     /// that nothing else uses the pointer `ptr` after calling this method.
     ///
     /// # Examples
     ///
-    /// Using memory that was allocated by a [`TypedProjVec`].
+    /// Using memory that was allocated by a type-projected vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -902,7 +902,7 @@ where
     /// # assert!(result.capacity() >= new_capacity);
     /// ```
     ///
-    /// Using memory that was allocated outside a [`TypedProjVec`].
+    /// Using memory that was allocated outside a type-projected vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -956,7 +956,7 @@ where
         Self { inner, }
     }
 
-    /// Constructs a [`TypedProjVec`] directly from a pointer, a length, a capacity, and a
+    /// Constructs a type-projected vector directly from a pointer, a length, a capacity, and a
     /// memory allocator.
     ///
     /// # Safety
@@ -980,16 +980,16 @@ where
     /// * The allocated size in bytes must be no larger than `isize::MAX`.
     ///   See the safety documentation of [`pointer::offset`].
     ///
-    /// These requirements always hold for any `ptr` that has been allocated via [`TypedProjVec`].
+    /// These requirements always hold for any `ptr` that has been allocated via a [`TypedProjVec`].
     ///
     /// The ownership of `ptr` is effectively transferred to the
-    /// [`TypedProjVec`] which may then deallocate, reallocate or change the
+    /// type-projected vector which may then deallocate, reallocate or change the
     /// contents of memory pointed to by the pointer at will. The caller must ensure
     /// that nothing else uses the pointer `ptr` after calling this method.
     ///
     /// # Examples
     ///
-    /// Using memory that was allocated by a [`TypedProjVec`].
+    /// Using memory that was allocated by a type-projected vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -1053,7 +1053,7 @@ where
     /// # assert!(result.capacity() >= new_capacity);
     /// ```
     ///
-    /// Using memory that was allocated outside a [`TypedProjVec`].
+    /// Using memory that was allocated outside a type-projected vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -1112,7 +1112,7 @@ impl<T> TypedProjVec<T, alloc::Global>
 where
     T: any::Any,
 {
-    /// Constructs a new empty [`OpaqueVec`].
+    /// Constructs a new empty type-projected vector.
     ///
     /// The vector will not allocate until elements are pushed into it. In particular, the
     /// vector has zero capacity until elements are pushed into it.
@@ -1138,7 +1138,7 @@ where
         Self { inner, }
     }
 
-    /// Constructs a new empty [`TypedProjVec`] using a specific capacity.
+    /// Constructs a new empty type-projected vector using a specific capacity.
     ///
     /// The vector will be able to hold at least `capacity` elements without reallocating. The
     /// method _can_ allocate more than `capacity` elements. If `capacity` is zero, the
@@ -1154,7 +1154,7 @@ where
     ///
     /// # Examples
     ///
-    /// Creating a [`TypedProjVec`] with capacity `capacity > 0`.
+    /// Creating a type-projected vector with capacity `capacity > 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -1168,7 +1168,7 @@ where
     /// assert!(proj_vec.is_empty());
     /// ```
     ///
-    /// Creating a [`TypedProjVec`] with capacity `capacity == 0`.
+    /// Creating a type-projected vector with capacity `capacity == 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -1191,7 +1191,7 @@ where
         Self { inner, }
     }
 
-    /// Constructs a new empty [`TypedProjVec`] using a specific capacity.
+    /// Constructs a new empty type-projected vector using a specific capacity.
     ///
     /// The vector will be able to hold at least `capacity` elements without reallocating. The
     /// method _can_ allocate more than `capacity` elements. If `capacity` is zero, the
@@ -1208,7 +1208,7 @@ where
     ///
     /// # Examples
     ///
-    /// Creating a [`TypedProjVec`] with capacity `capacity > 0`.
+    /// Creating a type-projected vector with capacity `capacity > 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -1226,7 +1226,7 @@ where
     /// assert!(proj_vec.is_empty());
     /// ```
     ///
-    /// Creating a [`TypedProjVec`] with capacity `capacity == 0`.
+    /// Creating a type-projected vector with capacity `capacity == 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -1251,7 +1251,7 @@ where
         Ok(Self { inner, })
     }
 
-    /// Constructs a [`TypedProjVec`] directly from a pointer, a length, and a capacity.
+    /// Constructs a type-projected vector directly from a pointer, a length, and a capacity.
     ///
     /// # Safety
     ///
@@ -1273,16 +1273,16 @@ where
     /// * The allocated size in bytes must be no larger than `isize::MAX`.
     ///   See the safety documentation of [`pointer::offset`].
     ///
-    /// These requirements always hold for any `ptr` that has been allocated via [`TypedProjVec`].
+    /// These requirements always hold for any `ptr` that has been allocated via a [`TypedProjVec`].
     ///
     /// The ownership of `ptr` is effectively transferred to the
-    /// [`TypedProjVec`] which may then deallocate, reallocate or change the
+    /// type-projected vector which may then deallocate, reallocate or change the
     /// contents of memory pointed to by the pointer at will. The caller must ensure
     /// that nothing else uses the pointer `ptr` after calling this method.
     ///
     /// # Examples
     ///
-    /// Using memory that was allocated by a [`TypedProjVec`].
+    /// Using memory that was allocated by a type-projected vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -1344,7 +1344,7 @@ where
     /// # assert!(result.capacity() >= new_capacity);
     /// ```
     ///
-    /// Using memory that was allocated outside a [`TypedProjVec`].
+    /// Using memory that was allocated outside a type-projected vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -1397,7 +1397,7 @@ where
         Self { inner, }
     }
 
-    /// Constructs a [`TypedProjVec`] directly from a pointer, a length, and a capacity.
+    /// Constructs a type-projected vector directly from a pointer, a length, and a capacity.
     ///
     /// # Safety
     ///
@@ -1419,16 +1419,16 @@ where
     /// * The allocated size in bytes must be no larger than `isize::MAX`.
     ///   See the safety documentation of [`pointer::offset`].
     ///
-    /// These requirements always hold for any `ptr` that has been allocated via [`TypedProjVec`].
+    /// These requirements always hold for any `ptr` that has been allocated via a [`TypedProjVec`].
     ///
     /// The ownership of `ptr` is effectively transferred to the
-    /// [`TypedProjVec`] which may then deallocate, reallocate or change the
+    /// type-projected vector which may then deallocate, reallocate or change the
     /// contents of memory pointed to by the pointer at will. The caller must ensure
     /// that nothing else uses the pointer `ptr` after calling this method.
     ///
     /// # Examples
     ///
-    /// Using memory that was allocated by a [`TypedProjVec`].
+    /// Using memory that was allocated by a type-projected vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -1491,7 +1491,7 @@ where
     /// # assert!(result.capacity() >= new_capacity);
     /// ```
     ///
-    /// Using memory that was allocated outside a [`TypedProjVec`].
+    /// Using memory that was allocated outside a type-projected vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -1550,9 +1550,9 @@ where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    /// Returns the capacity of a [`TypedProjVec`].
+    /// Returns the capacity of a type-projected vector.
     ///
-    /// The **capacity** of a [`TypedProjVec`] is the number of elements the vector can hold
+    /// The **capacity** of a type-projected vector is the number of elements the vector can hold
     /// without reallocating memory.
     ///
     /// # Examples
@@ -1581,9 +1581,9 @@ where
         self.inner.capacity()
     }
 
-    /// Returns the length of a [`TypedProjVec`].
+    /// Returns the length of a type-projected vector.
     ///
-    /// The **length** of a [`TypedProjVec`] is the number of elements stored inside it.
+    /// The **length** of a type-projected vector is the number of elements stored inside it.
     ///
     /// # Examples
     ///
@@ -1609,9 +1609,9 @@ where
         self.inner.len()
     }
 
-    /// Determines whether a [`TypedProjVec`] is empty or not.
+    /// Determines whether a type-projected vector is empty or not.
     ///
-    /// A [`TypedProjVec`] is **empty** if it contains no elements, i.e. its length is zero.
+    /// A type-projected vector is **empty** if it contains no elements, i.e. its length is zero.
     ///
     /// # Examples
     ///
@@ -1667,13 +1667,13 @@ where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    /// Forces the length of and [`TypedProjVec`] to be set to `new_len`.
+    /// Forces the length of and type-projected vector to be set to `new_len`.
     ///
-    /// This is a low-level operation that does not maintain the invariants of the [`TypedProjVec`].
+    /// This is a low-level operation that does not maintain the invariants of the type-projected vector.
     /// Normally one changes the length of the collection using operations such as [`truncate`],
     /// [`extend`], [`resize`], or [`clear`].
     ///
-    /// Note that reducing the length of a [`TypedProjVec`] using this method will not drop the truncated
+    /// Note that reducing the length of a type-projected vector using this method will not drop the truncated
     /// elements. If those elements own heap-allocated memory or other resources, this will result in
     /// a memory leak.
     ///
@@ -1685,7 +1685,7 @@ where
     ///
     /// # Examples
     ///
-    /// Safely reducing the length of a [`TypedProjVec`] with this method.
+    /// Safely reducing the length of a type-projected vector with this method.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -1727,7 +1727,7 @@ where
     /// assert_eq!(unsafe { DROP_COUNT }, 2);
     /// ```
     ///
-    /// Safely extending the length of a [`TypedProjVec`] with this method without leaking memory.
+    /// Safely extending the length of a type-projected vector with this method without leaking memory.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -1766,7 +1766,7 @@ where
     /// assert_eq!(unsafe { DROP_COUNT }, 0);
     /// ```
     ///
-    /// Safely extending the length of a [`TypedProjVec`] with this method.
+    /// Safely extending the length of a type-projected vector with this method.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -1805,7 +1805,7 @@ where
         }
     }
 
-    /// Returns a reference to an element or subslice of a [`TypedProjVec`], if it exists at the
+    /// Returns a reference to an element or subslice of a type-projected vector, if it exists at the
     /// given index or inside the given subslice.
     ///
     /// # Panics
@@ -1844,7 +1844,7 @@ where
         }
     }
 
-    /// Returns a mutable reference to an element or subslice of a [`TypedProjVec`], if it exists at the
+    /// Returns a mutable reference to an element or subslice of a type-projected vector, if it exists at the
     /// given index or inside the given subslice.
     ///
     /// # Panics
@@ -1883,7 +1883,7 @@ where
         }
     }
 
-    /// Returns a reference to an element or subslice of a [`TypedProjVec`], if it exists at the
+    /// Returns a reference to an element or subslice of a type-projected vector, if it exists at the
     /// given index or inside the given subslice.
     ///
     /// The method returns `None` from `self` under the following conditions:
@@ -1919,7 +1919,7 @@ where
         self.inner.get(index)
     }
 
-    /// Returns a mutable reference to an element or subslice of a [`TypedProjVec`], if it exists at the
+    /// Returns a mutable reference to an element or subslice of a type-projected vector, if it exists at the
     /// given index or inside the given subslice.
     ///
     /// The method returns `None` from `self` under the following conditions:
@@ -1955,7 +1955,7 @@ where
         self.inner.get_mut(index)
     }
 
-    /// Appends a new element to the end of a [`TypedProjVec`].
+    /// Appends a new element to the end of a type-projected vector.
     ///
     /// # Panics
     ///
@@ -1979,7 +1979,7 @@ where
         self.inner.push(value);
     }
 
-    /// Returns the last element in a [`TypedProjVec`] if the vector is non-empty,
+    /// Returns the last element in a type-projected vector if the vector is non-empty,
     /// and returns `None` if the collection is empty.
     ///
     /// # Examples
@@ -2006,7 +2006,7 @@ where
         self.inner.pop()
     }
 
-    /// Appends an element to a [`TypedProjVec`] if there is sufficient spare capacity. Otherwise,
+    /// Appends an element to a type-projected vector if there is sufficient spare capacity. Otherwise,
     /// an error is returned with the element.
     ///
     /// Unlike [`push`], this method will not reallocate when there's insufficient
@@ -2065,7 +2065,7 @@ where
         self.inner.push_within_capacity(value)
     }
 
-    /// Inserts a new value into a [`TypedProjVec`], replacing the old value.
+    /// Inserts a new value into a type-projected vector, replacing the old value.
     ///
     /// This method behaves with respect to `index` as follows:
     /// * If `index < self.len()`, it replaces the existing value at `index`.
@@ -2102,7 +2102,7 @@ where
         self.inner.replace_insert(index, value);
     }
 
-    /// Inserts a new value into a [`TypedProjVec`], shifting the old value and all values after
+    /// Inserts a new value into a type-projected vector, shifting the old value and all values after
     /// it to the right in the collection.
     ///
     /// This method behaves with respect to `index` as follows:
@@ -2141,7 +2141,7 @@ where
         self.inner.shift_insert(index, value);
     }
 
-    /// Removes a value from a [`TypedProjVec`], moving the last value in the collection to the
+    /// Removes a value from a type-projected vector, moving the last value in the collection to the
     /// index where the removed value occupies the collection.
     ///
     /// This method behaves with respect to `index` as follows:
@@ -2192,7 +2192,7 @@ where
         self.inner.swap_remove(index)
     }
 
-    /// Removes a value from a [`TypedProjVec`], shifting every successive value in the collection to
+    /// Removes a value from a type-projected vector, shifting every successive value in the collection to
     /// the left one index to fill where the removed value occupies the collection.
     ///
     /// This method behaves with respect to `index` as follows:
@@ -2245,7 +2245,7 @@ where
         self.inner.shift_remove(index)
     }
 
-    /// Determines whether a [`TypedProjVec`] contains a value.
+    /// Determines whether a type-projected vector contains a value.
     ///
     /// The method returns `true` if `self` contains the value `value`. Returns `false` otherwise.
     /// In particular, the method always returns `false` when `self` is empty.
@@ -2283,7 +2283,7 @@ where
         self.inner.contains(value)
     }
 
-    /// Constructs an iterator over the elements of the [`TypedProjVec`].
+    /// Constructs an iterator over the elements of the type-projected vector.
     ///
     /// The iterator will yield all elements in the collection from start to end.
     ///
@@ -2314,7 +2314,7 @@ where
         self.inner.iter()
     }
 
-    /// Constructs a mutable iterator over the elements of the [`TypedProjVec`].
+    /// Constructs a mutable iterator over the elements of the type-projected vector.
     ///
     /// The iterator will yield all elements in the collection from start to end.
     ///
@@ -2345,7 +2345,7 @@ where
         self.inner.iter_mut()
     }
 
-    /// Appends one [`TypedProjVec`] to another [`TypedProjVec`], emptying the latter collection.
+    /// Appends one type-projected vector to another type-projected vector, emptying the latter collection.
     ///
     /// This method drains `other` into `self`, i.e. every element of `other` will be appended
     /// to `self`, and `other` will be empty after the operation finishes.
@@ -2399,7 +2399,7 @@ where
     ///
     /// # Examples
     ///
-    /// Draining part of a [`TypedProjVec`].
+    /// Draining part of a type-projected vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2419,7 +2419,7 @@ where
     /// assert_eq!(drained_vec.as_slice(), &[3, 4, 5, 6]);
     /// ```
     ///
-    /// Draining an entire [`TypedProjVec`].
+    /// Draining an entire type-projected vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2439,7 +2439,7 @@ where
     /// assert_eq!(drained_vec.as_slice(), &[1, 2, 3, 4, 5, 6]);
     /// ```
     ///
-    /// Draining no part of a [`TypedProjVec`].
+    /// Draining no part of a type-projected vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2667,7 +2667,7 @@ where
         self.inner.as_non_null()
     }
 
-    /// Returns an immutable slice of the elements of the [`TypedProjVec`].
+    /// Returns an immutable slice of the elements of the type-projected vector.
     ///
     /// # Examples
     ///
@@ -2689,11 +2689,11 @@ where
         self.inner.as_slice()
     }
 
-    /// Returns n mutable slice of the elements of the [`TypedProjVec`].
+    /// Returns n mutable slice of the elements of the type-projected vector.
     ///
     /// # Examples
     ///
-    /// Getting a mutable slice of a [`TypedProjVec`].
+    /// Getting a mutable slice of a type-projected vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2710,7 +2710,7 @@ where
     /// assert_eq!(result.len(), proj_vec.len());
     /// ```
     ///
-    /// Getting and mutating a mutable slice of a [`TypedProjVec`].
+    /// Getting and mutating a mutable slice of a type-projected vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2737,7 +2737,7 @@ where
         self.inner.as_mut_slice()
     }
 
-    /// Decomposes a [`TypedProjVec`] with the global allocator into its constituent parts:
+    /// Decomposes a type-projected vector with the global allocator into its constituent parts:
     /// `(pointer, length, capacity)`.
     ///
     /// This method returns a pointer to the memory allocation containing the vector, the
@@ -2776,7 +2776,7 @@ where
         self.inner.into_raw_parts()
     }
 
-    /// Decomposes a [`TypedProjVec`] with the global allocator into its constituent parts:
+    /// Decomposes a type-projected vector with the global allocator into its constituent parts:
     /// `(non-null pointer, length, capacity)`.
     ///
     /// This method returns a [`NonNull`] pointer to the memory allocation containing the vector, the
@@ -2815,7 +2815,7 @@ where
         self.inner.into_parts()
     }
 
-    /// Decomposes a [`TypedProjVec`] with any memory allocator into its constituent parts:
+    /// Decomposes a type-projected vector with any memory allocator into its constituent parts:
     /// `(pointer, length, capacity, allocator)`.
     ///
     /// This method returns a pointer to the memory allocation containing the vector, the
@@ -2855,7 +2855,7 @@ where
         self.inner.into_raw_parts_with_alloc()
     }
 
-    /// Decomposes a [`TypedProjVec`] with the global allocator into its constituent parts:
+    /// Decomposes a type-projected vector with the global allocator into its constituent parts:
     /// `(non-null pointer, length, capacity)`.
     ///
     /// This method returns a [`NonNull`] pointer to the memory allocation containing the vector, the
@@ -2894,7 +2894,7 @@ where
         self.inner.into_parts_with_alloc()
     }
 
-    /// Converts a [`TypedProjVec`] into a [`Box<[T]>`][owned slice].
+    /// Converts a type-projected vector into a [`Box<[T]>`][owned slice].
     ///
     /// Before doing the conversion, this method discards excess capacity like [`shrink_to_fit`].
     ///
@@ -2944,10 +2944,10 @@ where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    /// Splits a [`TypedProjVec`] into two [`TypedProjVec`]s at the given index.
+    /// Splits a type-projected vector into two type-projected vectors at the given index.
     ///
-    /// This method returns a newly allocated [`TypedProjVec`] consisting of every element from
-    /// the original [`TypedProjVec`] in the range `[at, len)`. The original [`TypedProjVec`] will
+    /// This method returns a newly allocated type-projected vector consisting of every element from
+    /// the original type-projected vector in the range `[at, len)`. The original type-projected vector will
     /// consist of the elements in the range `[0, at)` with its capacity unchanged.
     ///
     /// # Panics
@@ -2997,14 +2997,14 @@ where
         Self { inner, }
     }
 
-    /// Resizes the [`TypedProjVec`] in-place so that is length equals `new_len`.
+    /// Resizes the type-projected vector in place so that is length equals `new_len`.
     ///
-    /// If the length `new_len` is greater than the length `len`, the [`TypedProjVec`] is extended
+    /// If the length `new_len` is greater than the length `len`, the type-projected vector is extended
     /// by the difference, with each additional slot filled with the result of calling
     /// the closure `f`. The return values from `f` will end up in the `Vec` in the order
     /// they have been generated.
     ///
-    /// If `new_len` is less than `len`, the [`TypedProjVec`] is truncated, so the result is
+    /// If `new_len` is less than `len`, the type-projected vector is truncated, so the result is
     /// similar to calling [`truncate`].
     ///
     /// This method uses a closure to create new values on every push. To clone a given value,
@@ -3067,10 +3067,10 @@ where
         self.inner.resize_with(new_len, f)
     }
 
-    /// Returns the remaining spare capacity of the [`TypedProjVec`] as a slice of
+    /// Returns the remaining spare capacity of the type-projected vector as a slice of
     /// [`MaybeUninit<T>`].
     ///
-    /// The returned slice can be used to fill the [`TypedProjVec`] with data before marking the
+    /// The returned slice can be used to fill the type-projected vector with data before marking the
     /// data as initialized using the [`set_len`] method.
     ///
     /// [`set_len`]: TypedProjVec::set_len
@@ -3103,7 +3103,7 @@ where
     }
 
     /// Attempts to reserve capacity for **at least** `additional` more elements to be inserted
-    /// in the given [`TypedProjVec`].
+    /// in the given type-projected vector.
     ///
     /// The collection may reserve more space to speculatively avoid frequent reallocations.
     /// After calling this method, the capacity will be greater than or equal to
@@ -3140,7 +3140,7 @@ where
     }
 
     /// Attempts to reserve capacity for **at least** `additional` more elements to be inserted
-    /// in the given [`TypedProjVec`].
+    /// in the given type-projected vector.
     ///
     /// Unlike [`try_reserve`], this will not deliberately over-allocate to speculatively avoid frequent
     /// allocations. After calling `reserve_exact`, the capacity of `self` will be greater than or
@@ -3179,7 +3179,7 @@ where
     }
 
     /// Attempts to reserve capacity for **at least** `additional` more elements to be inserted
-    /// in the given [`TypedProjVec`].
+    /// in the given type-projected vector.
     ///
     /// The collection may reserve more space to speculatively avoid frequent reallocations.
     /// After calling this method, the capacity will be greater than or equal to
@@ -3218,7 +3218,7 @@ where
     }
 
     /// Attempts to reserve capacity for **at least** `additional` more elements to be inserted
-    /// in the given [`TypedProjVec`].
+    /// in the given type-projected vector.
     ///
     /// Unlike [`reserve`], this will not deliberately over-allocate to speculatively avoid frequent
     /// allocations. After calling `reserve_exact`, the capacity of `self` will be greater than or
@@ -3258,10 +3258,10 @@ where
         self.inner.reserve_exact(additional);
     }
 
-    /// Shrinks the capacity of the [`TypedProjVec`] as much as possible.
+    /// Shrinks the capacity of the type-projected vector as much as possible.
     ///
     /// The behavior of this method depends on the allocator, which may either shrink the
-    /// [`TypedProjVec`] in-place or reallocate. The resulting vector might still have some excess
+    /// type-projected vector in place or reallocate. The resulting vector might still have some excess
     /// capacity, just as is the case for [`with_capacity`]. See [`Allocator::shrink`] for more
     /// details.
     ///
@@ -3290,10 +3290,10 @@ where
         self.inner.shrink_to_fit();
     }
 
-    /// Shrinks the capacity of the [`TypedProjVec`] to a lower bound.
+    /// Shrinks the capacity of the type-projected vector to a lower bound.
     ///
     /// The behavior of this method depends on the allocator, which may either shrink the
-    /// [`TypedProjVec`] in-place or reallocate. The resulting vector might still have some excess
+    /// type-projected vector in place or reallocate. The resulting vector might still have some excess
     /// capacity, just as is the case for [`with_capacity`]. See [`Allocator::shrink`] for more
     /// details.
     ///
@@ -3305,7 +3305,7 @@ where
     /// self.capacity() >= max(self.len(), min_capacity).
     /// ```
     ///
-    /// If the current capacity of the [`TypedProjVec`] is less than the lower bound, the method does
+    /// If the current capacity of the type-projected vector is less than the lower bound, the method does
     /// nothing.
     ///
     /// [`with_capacity`]: TypedProjVec::with_capacity
@@ -3336,10 +3336,10 @@ where
         self.inner.shrink_to(min_capacity);
     }
 
-    /// Removes all values from the [`TypedProjVec`].
+    /// Removes all values from the type-projected vector.
     ///
     /// After calling this method, the collection will be empty. This method does not change the
-    /// allocated capacity of the [`TypedProjVec`].
+    /// allocated capacity of the type-projected vector.
     ///
     /// # Examples
     ///
@@ -3370,14 +3370,14 @@ where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    /// Creates a splicing iterator that replaces the specified range in the [`TypedProjVec`]
+    /// Creates a splicing iterator that replaces the specified range in the type-projected vector
     /// with the given `replace_with` iterator and yields the removed items.
     /// The argument `replace_with` does not need to be the same length as `range`.
     ///
     /// The `range` argument is removed even if the `Splice` iterator is not consumed before it is
     /// dropped.
     ///
-    /// It is unspecified how many elements are removed from the [`TypedProjVec`]
+    /// It is unspecified how many elements are removed from the type-projected vector
     /// if the `Splice` value is leaked.
     ///
     /// The input iterator `replace_with` is only consumed when the `Splice` value is dropped.
@@ -3388,7 +3388,7 @@ where
     /// * or `replace_with` yields fewer or equal elements than `range`’s length
     /// * or the lower bound of its `size_hint()` is exact.
     ///
-    /// Otherwise, a temporary [`TypedProjVec`] is allocated and the tail is moved twice.
+    /// Otherwise, a temporary type-projected vector is allocated and the tail is moved twice.
     ///
     /// # Panics
     ///
@@ -3548,7 +3548,7 @@ where
     }
     */
 
-    /// Appends all elements from a slice to the [`TypedProjVec`].
+    /// Appends all elements from a slice to the type-projected vector.
     ///
     /// # Examples
     ///
@@ -3576,11 +3576,11 @@ where
         self.inner.extend_from_slice(other);
     }
 
-    /// Resizes the [`TypedProjVec`] in-place so that `len` is equal to `new_len`.
+    /// Resizes the type-projected vector in place so that `len` is equal to `new_len`.
     ///
-    /// If `new_len > len`, the [`TypedProjVec`] is extended by the
+    /// If `new_len > len`, the type-projected vector is extended by the
     /// difference, with each additional slot filled with `value`.
-    /// If `new_len < len`, the [`TypedProjVec`] is truncated.
+    /// If `new_len < len`, the type-projected vector is truncated.
     ///
     /// If you need more flexibility (or want to rely on [`Default`] instead of
     /// [`Clone`]), use [`TypedProjVec::resize_with`].
@@ -3592,7 +3592,7 @@ where
     ///
     /// # Examples
     ///
-    /// Extending a [`TypedProjVec`] with a default value.
+    /// Extending a type-projected vector with a default value.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -3633,7 +3633,7 @@ where
     /// assert_eq!(proj_vec.as_slice(), expected.as_slice());
     /// ```
     ///
-    /// Shrinking a [`TypedProjVec`] with a default value.
+    /// Shrinking a type-projected vector with a default value.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -3680,7 +3680,7 @@ where
         self.inner.resize(new_len, value);
     }
 
-    /// Shortens a [`TypedProjVec`] to the supplied length, dropping the remaining elements.
+    /// Shortens a type-projected vector to the supplied length, dropping the remaining elements.
     ///
     /// This method keeps the first `len` elements, and drops the rest of the elements, so that
     /// the length after calling this method is at most `len`. This method does nothing if
@@ -3688,7 +3688,7 @@ where
     ///
     /// # Examples
     ///
-    /// Truncating a [`TypedProjVec`] when `len < self.len()`.
+    /// Truncating a type-projected vector when `len < self.len()`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -3764,7 +3764,7 @@ where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    /// Retains only the elements in the [`TypedProjVec`] that satisfy the supplied predicate.
+    /// Retains only the elements in the type-projected vector that satisfy the supplied predicate.
     ///
     /// This method removes all elements from the collection for which the predicate returns
     /// `false`. In particular, for each element `e` in the collection, it removes `e` provided
@@ -3790,7 +3790,7 @@ where
         self.inner.retain(|elem| f(elem));
     }
 
-    /// Retains only the elements in the [`TypedProjVec`] that satisfy the supplied predicate passing
+    /// Retains only the elements in the type-projected vector that satisfy the supplied predicate passing
     /// a mutable reference to it.
     ///
     /// This method removes all elements from the collection for which the predicate returns
@@ -3822,14 +3822,14 @@ where
         self.inner.retain_mut(f)
     }
 
-    /// Removes consecutive repeated elements in the [`TypedProjVec`] according to the
+    /// Removes consecutive repeated elements in the type-projected vector according to the
     /// [`PartialEq`] trait implementation.
     ///
     /// This method removes all duplicates if the collection is sorted.
     ///
     /// # Examples
     ///
-    /// Deduplicating an unsorted [`TypedProjVec`].
+    /// Deduplicating an unsorted type-projected vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -3842,7 +3842,7 @@ where
     /// assert_eq!(proj_vec.as_slice(), &[1, 2, 3, 2, 6, 4]);
     /// ```
     ///
-    /// Deduplicating a sorted [`TypedProjVec`] with duplicate values.
+    /// Deduplicating a sorted type-projected vector with duplicate values.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -3855,7 +3855,7 @@ where
     /// assert_eq!(proj_vec.as_slice(), &[1, 2, 3, 4, 5]);
     /// ```
     ///
-    /// Deduplicating a sorted [`TypedProjVec`] with no duplicate values does nothing.
+    /// Deduplicating a sorted type-projected vector with no duplicate values does nothing.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -3875,7 +3875,7 @@ where
         self.inner.dedup()
     }
 
-    /// Removes all but the first of consecutive elements in the [`TypedProjVec`] that resolve to
+    /// Removes all but the first of consecutive elements in the type-projected vector that resolve to
     /// the same key.
     ///
     /// This removes all duplicates if the collection is sorted (since each duplicate value
@@ -3883,7 +3883,7 @@ where
     ///
     /// # Examples
     ///
-    /// Deduplicating an unsorted [`TypedProjVec`] by key.
+    /// Deduplicating an unsorted type-projected vector by key.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -3896,7 +3896,7 @@ where
     /// assert_eq!(proj_vec.as_slice(), &[10, 20, 30, 20]);
     /// ```
     ///
-    /// Deduplicating a sorted [`TypedProjVec`] by key with duplicate values.
+    /// Deduplicating a sorted type-projected vector by key with duplicate values.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -3928,7 +3928,7 @@ where
     ///
     /// # Examples
     ///
-    /// Deduplicating an unsorted [`TypedProjVec`].
+    /// Deduplicating an unsorted type-projected vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -3947,7 +3947,7 @@ where
     /// assert_eq!(opaque_vec.as_slice(), &["foo", "bar", "baz", "bar", "quux"]);
     /// ```
     ///
-    /// Deduplicating a sorted [`TypedProjVec`] with duplicate values.
+    /// Deduplicating a sorted type-projected vector with duplicate values.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -4483,7 +4483,7 @@ pub struct OpaqueVec {
 }
 
 impl OpaqueVec {
-    /// Returns the [`TypeId`] of the elements of contained in an [`OpaqueVec`].
+    /// Returns the [`TypeId`] of the elements contained in a type-erased vector.
     ///
     /// # Examples
     ///
@@ -4504,7 +4504,7 @@ impl OpaqueVec {
         self.inner.element_type_id()
     }
 
-    /// Returns the [`TypeId`] of the memory allocator of an [`OpaqueVec`].
+    /// Returns the [`TypeId`] of the memory allocator of a type-erased vector.
     ///
     /// # Examples
     ///
@@ -4525,7 +4525,7 @@ impl OpaqueVec {
         self.inner.allocator_type_id()
     }
 
-    /// Determine whether an [`OpaqueVec`] has a specific element type.
+    /// Determine whether a type-erased vector has a specific element type.
     ///
     /// Returns `true` if `self` has the specified element type. Returns `false` otherwise.
     ///
@@ -4548,7 +4548,7 @@ impl OpaqueVec {
         self.inner.element_type_id() == any::TypeId::of::<T>()
     }
 
-    /// Determine whether an [`OpaqueVec`] has a specific memory allocator type.
+    /// Determine whether a type-erased vector has a specific memory allocator type.
     ///
     /// Returns `true` if `self` has the specified memory allocator type. Returns `false` otherwise.
     ///
@@ -4606,8 +4606,7 @@ impl OpaqueVec {
 }
 
 impl OpaqueVec {
-    /// Projects the type-erased [`OpaqueVec`] reference into a type-projected
-    /// [`TypedProjVec`] reference.
+    /// Projects the type-erased vector reference into a type-projected vector reference.
     ///
     /// # Panics
     ///
@@ -4640,8 +4639,8 @@ impl OpaqueVec {
         unsafe { &*(self as *const OpaqueVec as *const TypedProjVec<T, A>) }
     }
 
-    /// Projects the type-erased [`OpaqueVec`] mutable reference into a type-projected
-    /// [`TypedProjVec`] mutable reference.
+    /// Projects the mutable type-erased vector reference into a type-projected
+    /// mutable type-projected vector reference.
     ///
     /// # Panics
     ///
@@ -4674,7 +4673,7 @@ impl OpaqueVec {
         unsafe { &mut *(self as *mut OpaqueVec as *mut TypedProjVec<T, A>) }
     }
 
-    /// Projects a type-erased [`OpaqueVec`] value into a type-projected [`TypedProjVec`] value.
+    /// Projects a type-erased vector value into a type-projected vector value.
     ///
     /// # Panics
     ///
@@ -4709,7 +4708,7 @@ impl OpaqueVec {
         }
     }
 
-    /// Erases the type-projected [`TypedProjVec`] value into a type-erased [`OpaqueVec`] value.
+    /// Erases the type-projected vector value into a type-erased vector value.
     ///
     /// Unlike the type projection methods [`as_proj`], [`as_proj_mut`], and [`into_proj`], this
     /// method never panics.
@@ -4745,7 +4744,7 @@ impl OpaqueVec {
 }
 
 impl OpaqueVec {
-    /// Constructs a new empty [`OpaqueVec`] using a specific type-projected memory allocator.
+    /// Constructs a new empty type-erased vector using a specific type-projected memory allocator.
     ///
     /// The vector will not allocate until elements are pushed into it. In particular, the
     /// vector has zero capacity until elements are pushed into it.
@@ -4781,7 +4780,7 @@ impl OpaqueVec {
         Self::from_proj(proj_vec)
     }
 
-    /// Constructs a new empty [`OpaqueVec`] using a specific type-projected memory allocator
+    /// Constructs a new empty type-erased vector using a specific type-projected memory allocator
     /// and a specific capacity.
     ///
     /// The vector will be able to hold at least `capacity` elements without reallocating. The
@@ -4798,7 +4797,7 @@ impl OpaqueVec {
     ///
     /// # Examples
     ///
-    /// Creating an [`OpaqueVec`] with capacity `capacity > 0`.
+    /// Creating a type-erased vector with capacity `capacity > 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -4818,7 +4817,7 @@ impl OpaqueVec {
     /// assert!(opaque_vec.is_empty());
     /// ```
     ///
-    /// Creating an [`OpaqueVec`] with capacity `capacity == 0`.
+    /// Creating a type-erased vector with capacity `capacity == 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -4851,7 +4850,7 @@ impl OpaqueVec {
         Self::from_proj(proj_vec)
     }
 
-    /// Constructs a new empty [`OpaqueVec`] using a specific type-projected memory allocator
+    /// Constructs a new empty type-erased vector using a specific type-projected memory allocator
     /// and a specific capacity.
     ///
     /// The vector will be able to hold at least `capacity` elements without reallocating. The
@@ -4869,7 +4868,7 @@ impl OpaqueVec {
     ///
     /// # Examples
     ///
-    /// Creating an [`OpaqueVec`] with capacity `capacity > 0`.
+    /// Creating a type-erased vector with capacity `capacity > 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -4893,7 +4892,7 @@ impl OpaqueVec {
     /// assert!(opaque_vec.is_empty());
     /// ```
     ///
-    /// Creating an [`OpaqueVec`] with capacity `capacity == 0`.
+    /// Creating a type-erased vector with capacity `capacity == 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -4928,7 +4927,7 @@ impl OpaqueVec {
         Ok(Self::from_proj(proj_vec))
     }
 
-    /// Constructs an [`OpaqueVec`] directly from a pointer, a length, a capacity, and a
+    /// Constructs a type-erased vector directly from a pointer, a length, a capacity, and a
     /// type-projected allocator.
     ///
     /// # Safety
@@ -4952,16 +4951,16 @@ impl OpaqueVec {
     /// * The allocated size in bytes must be no larger than `isize::MAX`.
     ///   See the safety documentation of [`pointer::offset`].
     ///
-    /// These requirements always hold for any `ptr` that has been allocated vian [`OpaqueVec`].
+    /// These requirements always hold for any `ptr` that has been allocated via an [`OpaqueVec`].
     ///
     /// The ownership of `ptr` is effectively transferred to the
-    /// [`OpaqueVec`] which may then deallocate, reallocate or change the
+    /// type-erased vector which may then deallocate, reallocate or change the
     /// contents of memory pointed to by the pointer at will. The caller must ensure
     /// that nothing else uses the pointer `ptr` after calling this method.
     ///
     /// # Examples
     ///
-    /// Using memory that was allocated by an [`OpaqueVec`].
+    /// Using memory that was allocated by a type-erased vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -5031,7 +5030,7 @@ impl OpaqueVec {
     /// # assert!(result.capacity() >= new_capacity);
     /// ```
     ///
-    /// Using memory that was allocated outside an [`OpaqueVec`].
+    /// Using memory that was allocated outside a type-erased vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -5090,7 +5089,7 @@ impl OpaqueVec {
         Self::from_proj(proj_vec)
     }
 
-    /// Constructs an [`OpaqueVec`] directly from a non-null pointer, a length, a capacity, and a
+    /// Constructs a type-erased vector directly from a non-null pointer, a length, a capacity, and a
     /// type-projected allocator.
     ///
     /// # Safety
@@ -5114,16 +5113,16 @@ impl OpaqueVec {
     /// * The allocated size in bytes must be no larger than `isize::MAX`.
     ///   See the safety documentation of [`pointer::offset`].
     ///
-    /// These requirements always hold for any `ptr` that has been allocated vian [`OpaqueVec`].
+    /// These requirements always hold for any `ptr` that has been allocated via an [`OpaqueVec`].
     ///
     /// The ownership of `ptr` is effectively transferred to the
-    /// [`OpaqueVec`] which may then deallocate, reallocate or change the
+    /// type-erased vector which may then deallocate, reallocate or change the
     /// contents of memory pointed to by the pointer at will. The caller must ensure
     /// that nothing else uses the pointer `ptr` after calling this method.
     ///
     /// # Examples
     ///
-    /// Using memory that was allocated by an [`OpaqueVec`].
+    /// Using memory that was allocated by a type-erased vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -5194,7 +5193,7 @@ impl OpaqueVec {
     /// # assert!(result.capacity() >= new_capacity);
     /// ```
     ///
-    /// Using memory that was allocated outside an [`OpaqueVec`].
+    /// Using memory that was allocated outside a type-erased vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -5253,7 +5252,7 @@ impl OpaqueVec {
         Self::from_proj(proj_vec)
     }
 
-    /// Constructs a new empty [`OpaqueVec`] using a specific memory allocator.
+    /// Constructs a new empty type-erased vector using a specific memory allocator.
     ///
     /// The vector will not allocate until elements are pushed into it. In particular, the
     /// vector has zero capacity until elements are pushed into it.
@@ -5285,7 +5284,7 @@ impl OpaqueVec {
         Self::from_proj(proj_vec)
     }
 
-    /// Constructs a new empty [`OpaqueVec`] using a specific memory allocator and a
+    /// Constructs a new empty type-erased vector using a specific memory allocator and a
     /// specific capacity.
     ///
     /// The vector will be able to hold at least `capacity` elements without reallocating. The
@@ -5302,7 +5301,7 @@ impl OpaqueVec {
     ///
     /// # Examples
     ///
-    /// Creating an [`OpaqueVec`] with capacity `capacity > 0`.
+    /// Creating a type-erased vector with capacity `capacity > 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -5319,7 +5318,7 @@ impl OpaqueVec {
     /// assert!(opaque_vec.is_empty());
     /// ```
     ///
-    /// Creating an [`OpaqueVec`] with capacity `capacity == 0`.
+    /// Creating a type-erased vector with capacity `capacity == 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -5349,7 +5348,7 @@ impl OpaqueVec {
         Self::from_proj(proj_vec)
     }
 
-    /// Constructs a new empty [`OpaqueVec`] using a specific memory allocator and a
+    /// Constructs a new empty type-erased vector using a specific memory allocator and a
     /// specific capacity.
     ///
     /// The vector will be able to hold at least `capacity` elements without reallocating. The
@@ -5367,7 +5366,7 @@ impl OpaqueVec {
     ///
     /// # Examples
     ///
-    /// Creating an [`OpaqueVec`] with capacity `capacity > 0`.
+    /// Creating a type-erased vector with capacity `capacity > 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -5388,7 +5387,7 @@ impl OpaqueVec {
     /// assert!(opaque_vec.is_empty());
     /// ```
     ///
-    /// Creating an [`OpaqueVec`] with capacity `capacity == 0`.
+    /// Creating a type-erased vector with capacity `capacity == 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -5420,7 +5419,7 @@ impl OpaqueVec {
         Ok(Self::from_proj(proj_vec))
     }
 
-    /// Constructs an [`OpaqueVec`] directly from a pointer, a length, a capacity, and a
+    /// Constructs a type-erased vector directly from a pointer, a length, a capacity, and a
     /// memory allocator.
     ///
     /// # Safety
@@ -5444,16 +5443,16 @@ impl OpaqueVec {
     /// * The allocated size in bytes must be no larger than `isize::MAX`.
     ///   See the safety documentation of [`pointer::offset`].
     ///
-    /// These requirements always hold for any `ptr` that has been allocated vian [`OpaqueVec`].
+    /// These requirements always hold for any `ptr` that has been allocated via an [`OpaqueVec`].
     ///
     /// The ownership of `ptr` is effectively transferred to the
-    /// [`OpaqueVec`] which may then deallocate, reallocate or change the
+    /// type-erased vector which may then deallocate, reallocate or change the
     /// contents of memory pointed to by the pointer at will. The caller must ensure
     /// that nothing else uses the pointer `ptr` after calling this method.
     ///
     /// # Examples
     ///
-    /// Using memory that was allocated by an [`OpaqueVec`].
+    /// Using memory that was allocated by a type-erased vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -5522,7 +5521,7 @@ impl OpaqueVec {
     /// # assert!(result.capacity() >= new_capacity);
     /// ```
     ///
-    /// Using memory that was allocated outside an [`OpaqueVec`].
+    /// Using memory that was allocated outside a type-erased vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -5580,7 +5579,7 @@ impl OpaqueVec {
         Self::from_proj(proj_vec)
     }
 
-    /// Constructs an [`OpaqueVec`] directly from a pointer, a length, a capacity, and a
+    /// Constructs a type-erased vector directly from a pointer, a length, a capacity, and a
     /// memory allocator.
     ///
     /// # Safety
@@ -5604,16 +5603,16 @@ impl OpaqueVec {
     /// * The allocated size in bytes must be no larger than `isize::MAX`.
     ///   See the safety documentation of [`pointer::offset`].
     ///
-    /// These requirements always hold for any `ptr` that has been allocated vian [`OpaqueVec`].
+    /// These requirements always hold for any `ptr` that has been allocated via an [`OpaqueVec`].
     ///
     /// The ownership of `ptr` is effectively transferred to the
-    /// [`OpaqueVec`] which may then deallocate, reallocate or change the
+    /// type-erased vector which may then deallocate, reallocate or change the
     /// contents of memory pointed to by the pointer at will. The caller must ensure
     /// that nothing else uses the pointer `ptr` after calling this method.
     ///
     /// # Examples
     ///
-    /// Using memory that was allocated by an [`OpaqueVec`].
+    /// Using memory that was allocated by a type-erased vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -5683,7 +5682,7 @@ impl OpaqueVec {
     /// # assert!(result.capacity() >= new_capacity);
     /// ```
     ///
-    /// Using memory that was allocated outside an [`OpaqueVec`].
+    /// Using memory that was allocated outside a type-erased vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -5743,7 +5742,7 @@ impl OpaqueVec {
 }
 
 impl OpaqueVec {
-    /// Constructs a new empty [`OpaqueVec`].
+    /// Constructs a new empty type-erased vector.
     ///
     /// The vector will not allocate until elements are pushed into it. In particular, the
     /// vector has zero capacity until elements are pushed into it.
@@ -5774,7 +5773,7 @@ impl OpaqueVec {
         Self::from_proj(proj_vec)
     }
 
-    /// Constructs a new empty [`OpaqueVec`] using a specific capacity.
+    /// Constructs a new empty type-erased vector using a specific capacity.
     ///
     /// The vector will be able to hold at least `capacity` elements without reallocating. The
     /// method _can_ allocate more than `capacity` elements. If `capacity` is zero, the
@@ -5790,7 +5789,7 @@ impl OpaqueVec {
     ///
     /// # Examples
     ///
-    /// Creating an [`OpaqueVec`] with capacity `capacity > 0`.
+    /// Creating a type-erased vector with capacity `capacity > 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -5807,7 +5806,7 @@ impl OpaqueVec {
     /// assert!(opaque_vec.is_empty());
     /// ```
     ///
-    /// Creating an [`OpaqueVec`] with capacity `capacity == 0`.
+    /// Creating a type-erased vector with capacity `capacity == 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -5836,7 +5835,7 @@ impl OpaqueVec {
         Self::from_proj(proj_vec)
     }
 
-    /// Constructs a new empty [`OpaqueVec`] using a specific capacity.
+    /// Constructs a new empty type-erased vector using a specific capacity.
     ///
     /// The vector will be able to hold at least `capacity` elements without reallocating. The
     /// method _can_ allocate more than `capacity` elements. If `capacity` is zero, the
@@ -5853,7 +5852,7 @@ impl OpaqueVec {
     ///
     /// # Examples
     ///
-    /// Creating an [`OpaqueVec`] with capacity `capacity > 0`.
+    /// Creating a type-erased vector with capacity `capacity > 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -5874,7 +5873,7 @@ impl OpaqueVec {
     /// assert!(opaque_vec.is_empty());
     /// ```
     ///
-    /// Creating an [`OpaqueVec`] with capacity `capacity == 0`.
+    /// Creating a type-erased vector with capacity `capacity == 0`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -5905,7 +5904,7 @@ impl OpaqueVec {
         Ok(Self::from_proj(proj_vec))
     }
 
-    /// Constructs an [`OpaqueVec`] directly from a pointer, a length, and a capacity.
+    /// Constructs a type-erased vector directly from a pointer, a length, and a capacity.
     ///
     /// # Safety
     ///
@@ -5927,16 +5926,16 @@ impl OpaqueVec {
     /// * The allocated size in bytes must be no larger than `isize::MAX`.
     ///   See the safety documentation of [`pointer::offset`].
     ///
-    /// These requirements always hold for any `ptr` that has been allocated vian [`OpaqueVec`].
+    /// These requirements always hold for any `ptr` that has been allocated via an [`OpaqueVec`].
     ///
     /// The ownership of `ptr` is effectively transferred to the
-    /// [`OpaqueVec`] which may then deallocate, reallocate or change the
+    /// type-erased vector which may then deallocate, reallocate or change the
     /// contents of memory pointed to by the pointer at will. The caller must ensure
     /// that nothing else uses the pointer `ptr` after calling this method.
     ///
     /// # Examples
     ///
-    /// Using memory that was allocated by an [`OpaqueVec`].
+    /// Using memory that was allocated by a type-erased vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -6004,7 +6003,7 @@ impl OpaqueVec {
     /// # assert!(result.capacity() >= new_capacity);
     /// ```
     ///
-    /// Using memory that was allocated outside an [`OpaqueVec`].
+    /// Using memory that was allocated outside a type-erased vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -6060,7 +6059,7 @@ impl OpaqueVec {
         Self::from_proj(proj_vec)
     }
 
-    /// Constructs an [`OpaqueVec`] directly from a pointer, a length, and a capacity.
+    /// Constructs a type-erased vector directly from a pointer, a length, and a capacity.
     ///
     /// # Safety
     ///
@@ -6082,16 +6081,16 @@ impl OpaqueVec {
     /// * The allocated size in bytes must be no larger than `isize::MAX`.
     ///   See the safety documentation of [`pointer::offset`].
     ///
-    /// These requirements always hold for any `ptr` that has been allocated vian [`OpaqueVec`].
+    /// These requirements always hold for any `ptr` that has been allocated via an [`OpaqueVec`].
     ///
     /// The ownership of `ptr` is effectively transferred to the
-    /// [`OpaqueVec`] which may then deallocate, reallocate or change the
+    /// type-erased vector which may then deallocate, reallocate or change the
     /// contents of memory pointed to by the pointer at will. The caller must ensure
     /// that nothing else uses the pointer `ptr` after calling this method.
     ///
     /// # Examples
     ///
-    /// Using memory that was allocated by an [`OpaqueVec`].
+    /// Using memory that was allocated by a type-erased vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -6160,7 +6159,7 @@ impl OpaqueVec {
     /// # assert!(result.capacity() >= new_capacity);
     /// ```
     ///
-    /// Using memory that was allocated outside an [`OpaqueVec`].
+    /// Using memory that was allocated outside a type-erased vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -6218,7 +6217,7 @@ impl OpaqueVec {
 }
 
 impl OpaqueVec {
-    /// Returns the memory layout of the elements inside an [`OpaqueVec`].
+    /// Returns the memory layout of the elements inside a type-erased vector.
     ///
     /// # Examples
     ///
@@ -6250,9 +6249,9 @@ impl OpaqueVec {
         self.inner.element_layout()
     }
 
-    /// Returns the capacity of an [`OpaqueVec`].
+    /// Returns the capacity of a type-erased vector.
     ///
-    /// The **capacity** of an [`OpaqueVec`] is the number of elements the vector can hold
+    /// The **capacity** of a type-erased vector is the number of elements the vector can hold
     /// without reallocating memory.
     ///
     /// # Examples
@@ -6283,9 +6282,9 @@ impl OpaqueVec {
         self.inner.capacity()
     }
 
-    /// Returns the length of an [`OpaqueVec`].
+    /// Returns the length of a type-erased vector.
     ///
-    /// The **length** of an [`OpaqueVec`] is the number of elements stored inside it.
+    /// The **length** of a type-erased vector is the number of elements stored inside it.
     ///
     /// # Examples
     ///
@@ -6313,9 +6312,9 @@ impl OpaqueVec {
         self.inner.len()
     }
 
-    /// Determines whether an [`OpaqueVec`] is empty or not.
+    /// Determines whether a type-erased vector is empty or not.
     ///
-    /// An [`OpaqueVec`] is **empty** if it contains no elements, i.e. its length is zero.
+    /// A type-erased vector is **empty** if it contains no elements, i.e. its length is zero.
     ///
     /// # Examples
     ///
@@ -6380,13 +6379,13 @@ impl OpaqueVec {
 }
 
 impl OpaqueVec {
-    /// Forces the length of and [`OpaqueVec`] to be set to `new_len`.
+    /// Forces the length of and type-erased vector to be set to `new_len`.
     ///
-    /// This is a low-level operation that does not maintain the invariants of the [`OpaqueVec`].
+    /// This is a low-level operation that does not maintain the invariants of the type-erased vector.
     /// Normally one changes the length of the collection using operations such as [`truncate`],
     /// [`extend`], [`resize`], or [`clear`].
     ///
-    /// Note that reducing the length of an [`OpaqueVec`] using this method will not drop the truncated
+    /// Note that reducing the length of a type-erased vector using this method will not drop the truncated
     /// elements. If those elements own heap-allocated memory or other resources, this will result in
     /// a memory leak.
     ///
@@ -6404,7 +6403,7 @@ impl OpaqueVec {
     ///
     /// # Examples
     ///
-    /// Safely reducing the length of an [`OpaqueVec`] with this method.
+    /// Safely reducing the length of a type-erased vector with this method.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -6449,7 +6448,7 @@ impl OpaqueVec {
     /// assert_eq!(unsafe { DROP_COUNT }, 2);
     /// ```
     ///
-    /// Safely extending the length of an [`OpaqueVec`] with this method without leaking memory.
+    /// Safely extending the length of a type-erased vector with this method without leaking memory.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -6491,7 +6490,7 @@ impl OpaqueVec {
     /// assert_eq!(unsafe { DROP_COUNT }, 0);
     /// ```
     ///
-    /// Safely extending the length of an [`OpaqueVec`] with this method.
+    /// Safely extending the length of a type-erased vector with this method.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -6538,7 +6537,7 @@ impl OpaqueVec {
         }
     }
 
-    /// Returns a reference to an element or subslice of an [`OpaqueVec`], if it exists at the
+    /// Returns a reference to an element or subslice of a type-erased vector, if it exists at the
     /// given index or inside the given subslice.
     ///
     /// # Panics
@@ -6586,7 +6585,7 @@ impl OpaqueVec {
         }
     }
 
-    /// Returns a mutable reference to an element or subslice of an [`OpaqueVec`], if it exists at the
+    /// Returns a mutable reference to an element or subslice of a type-erased vector, if it exists at the
     /// given index or inside the given subslice.
     ///
     /// # Panics
@@ -6634,7 +6633,7 @@ impl OpaqueVec {
         }
     }
 
-    /// Returns a reference to an element or subslice of an [`OpaqueVec`], if it exists at the
+    /// Returns a reference to an element or subslice of a type-erased vector, if it exists at the
     /// given index or inside the given subslice.
     ///
     /// The method returns `None` from `self` under the following conditions:
@@ -6684,7 +6683,7 @@ impl OpaqueVec {
         proj_self.get(index)
     }
 
-    /// Returns a mutable reference to an element or subslice of an [`OpaqueVec`], if it exists at the
+    /// Returns a mutable reference to an element or subslice of a type-erased vector, if it exists at the
     /// given index or inside the given subslice.
     ///
     /// The method returns `None` from `self` under the following conditions:
@@ -6734,14 +6733,14 @@ impl OpaqueVec {
         proj_self.get_mut(index)
     }
 
-    /// Appends a new element to the end of an [`OpaqueVec`].
+    /// Appends a new element to the end of a type-erased vector.
     ///
     /// # Panics
     ///
     /// This method panics if either condition occurs:
     /// * The [`TypeId`] of the elements of `self` and the [`TypeId`] of the memory allocator of
     ///   `self` do not match the requested element type `T` and allocator type `A`, respectively.
-    /// * The new capacity exceeds `isize::MAX` _bytes_ if the [`OpaqueVec`] reallocates.
+    /// * The new capacity exceeds `isize::MAX` _bytes_ if the type-erased vector reallocates.
     ///
     /// # Examples
     ///
@@ -6772,7 +6771,7 @@ impl OpaqueVec {
         proj_self.push(value);
     }
 
-    /// Returns the last element in an [`OpaqueVec`] if the vector is non-empty,
+    /// Returns the last element in a type-erased vector if the vector is non-empty,
     /// and returns `None` if the collection is empty.
     ///
     /// # Panics
@@ -6815,7 +6814,7 @@ impl OpaqueVec {
         proj_self.pop()
     }
 
-    /// Appends an element to an [`OpaqueVec`] if there is sufficient spare capacity. Otherwise,
+    /// Appends an element to a type-erased vector if there is sufficient spare capacity. Otherwise,
     /// an error is returned with the element.
     ///
     /// Unlike [`push`], this method will not reallocate when there's insufficient
@@ -6892,7 +6891,7 @@ impl OpaqueVec {
         proj_self.push_within_capacity(value)
     }
 
-    /// Inserts a new value into an [`OpaqueVec`], replacing the old value.
+    /// Inserts a new value into a type-erased vector, replacing the old value.
     ///
     /// This method behaves with respect to `index` as follows:
     /// * If `index < self.len()`, it replaces the existing value at `index`.
@@ -6941,7 +6940,7 @@ impl OpaqueVec {
         proj_self.replace_insert(index, value);
     }
 
-    /// Inserts a new value into an [`OpaqueVec`], shifting the old value and all values after
+    /// Inserts a new value into a type-erased vector, shifting the old value and all values after
     /// it to the right in the collection.
     ///
     /// This method behaves with respect to `index` as follows:
@@ -6992,7 +6991,7 @@ impl OpaqueVec {
         proj_self.shift_insert(index, value);
     }
 
-    /// Removes a value from an [`OpaqueVec`], moving the last value in the collection to the
+    /// Removes a value from a type-erased vector, moving the last value in the collection to the
     /// index where the removed value occupies the collection.
     ///
     /// This method behaves with respect to `index` as follows:
@@ -7057,7 +7056,7 @@ impl OpaqueVec {
         proj_self.swap_remove(index)
     }
 
-    /// Removes a value from an [`OpaqueVec`], shifting every successive value in the collection to
+    /// Removes a value from a type-erased vector, shifting every successive value in the collection to
     /// the left one index to fill where the removed value occupies the collection.
     ///
     /// This method behaves with respect to `index` as follows:
@@ -7124,7 +7123,7 @@ impl OpaqueVec {
         proj_self.shift_remove(index)
     }
 
-    /// Determines whether an [`OpaqueVec`] contains a value.
+    /// Determines whether a type-erased vector contains a value.
     ///
     /// The method returns `true` if `self` contains the value `value`. Returns `false` otherwise.
     /// In particular, the method always returns `false` when `self` is empty.
@@ -7175,7 +7174,7 @@ impl OpaqueVec {
         proj_self.contains(value)
     }
 
-    /// Constructs an iterator over the elements of the [`OpaqueVec`].
+    /// Constructs an iterator over the elements of the type-erased vector.
     ///
     /// The iterator will yield all elements in the collection from start to end.
     ///
@@ -7222,7 +7221,7 @@ impl OpaqueVec {
         proj_self.iter()
     }
 
-    /// Constructs a mutable iterator over the elements of the [`OpaqueVec`].
+    /// Constructs a mutable iterator over the elements of the type-erased vector.
     ///
     /// The iterator will yield all elements in the collection from start to end.
     ///
@@ -7269,10 +7268,10 @@ impl OpaqueVec {
         proj_self.iter_mut()
     }
 
-    /// Constructs a consuming iterator for an [`OpaqueVec`]. A consuming iterator is an iterator
+    /// Constructs a consuming iterator for a type-erased vector. A consuming iterator is an iterator
     /// that moves each value out of the collection from beginning to end.
     ///
-    /// The method takes the [`OpaqueVec`], so that it cannot be used again.
+    /// The method takes the type-erased vector, so that it cannot be used again.
     ///
     /// # Panics
     ///
@@ -7333,7 +7332,7 @@ impl OpaqueVec {
         proj_self.into_iter()
     }
 
-    /// Appends one [`OpaqueVec`] to another [`OpaqueVec`], emptying the latter collection.
+    /// Appends one type-erased vector to another type-erased vector, emptying the latter collection.
     ///
     /// This method drains `other` into `self`, i.e. every element of `other` will be appended
     /// to `self`, and `other` will be empty after the operation finishes.
@@ -7423,7 +7422,7 @@ impl OpaqueVec {
     ///
     /// # Examples
     ///
-    /// Draining part of an [`OpaqueVec`].
+    /// Draining part of a type-erased vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -7452,7 +7451,7 @@ impl OpaqueVec {
     /// assert_eq!(drained_vec.as_slice::<i32, Global>(), &[3, 4, 5, 6]);
     /// ```
     ///
-    /// Draining an entire [`OpaqueVec`].
+    /// Draining an entire type-erased vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -7481,7 +7480,7 @@ impl OpaqueVec {
     /// assert_eq!(drained_vec.as_slice::<i32, Global>(), &[1, 2, 3, 4, 5, 6]);
     /// ```
     ///
-    /// Draining no part of an [`OpaqueVec`].
+    /// Draining no part of a type-erased vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -7780,7 +7779,7 @@ impl OpaqueVec {
         proj_self.as_non_null()
     }
 
-    /// Returns an immutable slice of the elements of the [`OpaqueVec`].
+    /// Returns an immutable slice of the elements of the type-erased vector.
     ///
     /// # Panics
     ///
@@ -7817,7 +7816,7 @@ impl OpaqueVec {
         proj_self.as_slice()
     }
 
-    /// Returns n mutable slice of the elements of the [`OpaqueVec`].
+    /// Returns n mutable slice of the elements of the type-erased vector.
     ///
     /// # Panics
     ///
@@ -7827,7 +7826,7 @@ impl OpaqueVec {
     ///
     /// # Examples
     ///
-    /// Getting a mutable slice of an [`OpaqueVec`].
+    /// Getting a mutable slice of a type-erased vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -7847,7 +7846,7 @@ impl OpaqueVec {
     /// assert_eq!(result.len(), opaque_vec.len());
     /// ```
     ///
-    /// Getting and mutating a mutable slice of an [`OpaqueVec`].
+    /// Getting and mutating a mutable slice of a type-erased vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -7884,7 +7883,7 @@ impl OpaqueVec {
         proj_self.as_mut_slice()
     }
 
-    /// Decomposes an [`OpaqueVec`] with the global allocator into its constituent parts:
+    /// Decomposes a type-erased vector with the global allocator into its constituent parts:
     /// `(pointer, length, capacity)`.
     ///
     /// This method returns a pointer to the memory allocation containing the vector, the
@@ -7938,7 +7937,7 @@ impl OpaqueVec {
         proj_self.into_raw_parts()
     }
 
-    /// Decomposes an [`OpaqueVec`] with the global allocator into its constituent parts:
+    /// Decomposes a type-erased vector with the global allocator into its constituent parts:
     /// `(non-null pointer, length, capacity)`.
     ///
     /// This method returns a [`NonNull`] pointer to the memory allocation containing the vector, the
@@ -7992,7 +7991,7 @@ impl OpaqueVec {
         proj_self.into_parts()
     }
 
-    /// Decomposes an [`OpaqueVec`] with any memory allocator into its constituent parts:
+    /// Decomposes a type-erased vector with any memory allocator into its constituent parts:
     /// `(pointer, length, capacity, allocator)`.
     ///
     /// This method returns a pointer to the memory allocation containing the vector, the
@@ -8048,7 +8047,7 @@ impl OpaqueVec {
         proj_self.into_raw_parts_with_alloc()
     }
 
-    /// Decomposes an [`OpaqueVec`] with the global allocator into its constituent parts:
+    /// Decomposes a type-erased vector with the global allocator into its constituent parts:
     /// `(non-null pointer, length, capacity)`.
     ///
     /// This method returns a [`NonNull`] pointer to the memory allocation containing the vector, the
@@ -8103,7 +8102,7 @@ impl OpaqueVec {
         proj_self.into_parts_with_alloc()
     }
 
-    /// Converts an [`OpaqueVec`] into a [`Box<[T]>`][owned slice].
+    /// Converts a type-erased vector into a [`Box<[T]>`][owned slice].
     ///
     /// Before doing the conversion, this method discards excess capacity like [`shrink_to_fit`].
     ///
@@ -8164,10 +8163,10 @@ impl OpaqueVec {
 }
 
 impl OpaqueVec {
-    /// Splits an [`OpaqueVec`] into two [`OpaqueVec`]s at the given index.
+    /// Splits a type-erased vector into two type-erased vectors at the given index.
     ///
-    /// This method returns a newly allocated [`OpaqueVec`] consisting of every element from
-    /// the original [`OpaqueVec`] in the range `[at, len)`. The original [`OpaqueVec`] will
+    /// This method returns a newly allocated type-erased vector consisting of every element from
+    /// the original type-erased vector in the range `[at, len)`. The original type-erased vector will
     /// consist of the elements in the range `[0, at)` with its capacity unchanged.
     ///
     /// # Panics
@@ -8225,14 +8224,14 @@ impl OpaqueVec {
         Self::from_proj(proj_split_off)
     }
 
-    /// Resizes the [`OpaqueVec`] in-place so that is length equals `new_len`.
+    /// Resizes the type-erased vector in place so that is length equals `new_len`.
     ///
-    /// If the length `new_len` is greater than the length `len`, the [`OpaqueVec`] is extended
+    /// If the length `new_len` is greater than the length `len`, the type-erased vector is extended
     /// by the difference, with each additional slot filled with the result of calling
     /// the closure `f`. The return values from `f` will end up in the `Vec` in the order
     /// they have been generated.
     ///
-    /// If `new_len` is less than `len`, the [`OpaqueVec`] is truncated, so the result is
+    /// If `new_len` is less than `len`, the type-erased vector is truncated, so the result is
     /// similar to calling [`truncate`].
     ///
     /// This method uses a closure to create new values on every push. To clone a given value,
@@ -8308,10 +8307,10 @@ impl OpaqueVec {
         proj_self.resize_with(new_len, f)
     }
 
-    /// Returns the remaining spare capacity of the [`OpaqueVec`] as a slice of
+    /// Returns the remaining spare capacity of the type-erased vector as a slice of
     /// [`MaybeUninit<T>`].
     ///
-    /// The returned slice can be used to fill the [`OpaqueVec`] with data before marking the
+    /// The returned slice can be used to fill the type-erased vector with data before marking the
     /// data as initialized using the [`set_len`] method.
     ///
     /// [`set_len`]: OpaqueVec::set_len
@@ -8360,7 +8359,7 @@ impl OpaqueVec {
     }
 
     /// Attempts to reserve capacity for **at least** `additional` more elements to be inserted
-    /// in the given [`OpaqueVec`].
+    /// in the given type-erased vector.
     ///
     /// The collection may reserve more space to speculatively avoid frequent reallocations.
     /// After calling this method, the capacity will be greater than or equal to
@@ -8412,7 +8411,7 @@ impl OpaqueVec {
     }
 
     /// Attempts to reserve capacity for **at least** `additional` more elements to be inserted
-    /// in the given [`OpaqueVec`].
+    /// in the given type-erased vector.
     ///
     /// Unlike [`try_reserve`], this will not deliberately over-allocate to speculatively avoid frequent
     /// allocations. After calling `reserve_exact`, the capacity of `self` will be greater than or
@@ -8466,7 +8465,7 @@ impl OpaqueVec {
     }
 
     /// Attempts to reserve capacity for **at least** `additional` more elements to be inserted
-    /// in the given [`OpaqueVec`].
+    /// in the given type-erased vector.
     ///
     /// The collection may reserve more space to speculatively avoid frequent reallocations.
     /// After calling this method, the capacity will be greater than or equal to
@@ -8516,7 +8515,7 @@ impl OpaqueVec {
     }
 
     /// Attempts to reserve capacity for **at least** `additional` more elements to be inserted
-    /// in the given [`OpaqueVec`].
+    /// in the given type-erased vector.
     ///
     /// Unlike [`reserve`], this will not deliberately over-allocate to speculatively avoid frequent
     /// allocations. After calling `reserve_exact`, the capacity of `self` will be greater than or
@@ -8567,10 +8566,10 @@ impl OpaqueVec {
         proj_self.reserve_exact(additional);
     }
 
-    /// Shrinks the capacity of the [`OpaqueVec`] as much as possible.
+    /// Shrinks the capacity of the type-erased vector as much as possible.
     ///
     /// The behavior of this method depends on the allocator, which may either shrink the
-    /// [`OpaqueVec`] in-place or reallocate. The resulting vector might still have some excess
+    /// type-erased vector in place or reallocate. The resulting vector might still have some excess
     /// capacity, just as is the case for [`with_capacity`]. See [`Allocator::shrink`] for more
     /// details.
     ///
@@ -8614,10 +8613,10 @@ impl OpaqueVec {
         proj_self.shrink_to_fit();
     }
 
-    /// Shrinks the capacity of the [`OpaqueVec`] to a lower bound.
+    /// Shrinks the capacity of the type-erased vector to a lower bound.
     ///
     /// The behavior of this method depends on the allocator, which may either shrink the
-    /// [`OpaqueVec`] in-place or reallocate. The resulting vector might still have some excess
+    /// type-erased vector in place or reallocate. The resulting vector might still have some excess
     /// capacity, just as is the case for [`with_capacity`]. See [`Allocator::shrink`] for more
     /// details.
     ///
@@ -8629,7 +8628,7 @@ impl OpaqueVec {
     /// self.capacity() >= max(self.len(), min_capacity).
     /// ```
     ///
-    /// If the current capacity of the [`OpaqueVec`] is less than the lower bound, the method does
+    /// If the current capacity of the type-erased vector is less than the lower bound, the method does
     /// nothing.
     ///
     /// [`with_capacity`]: OpaqueVec::with_capacity
@@ -8675,10 +8674,10 @@ impl OpaqueVec {
         proj_self.shrink_to(min_capacity);
     }
 
-    /// Removes all values from the [`OpaqueVec`].
+    /// Removes all values from the type-erased vector.
     ///
     /// After calling this method, the collection will be empty. This method does not change the
-    /// allocated capacity of the [`OpaqueVec`].
+    /// allocated capacity of the type-erased vector.
     ///
     /// # Panics
     ///
@@ -8720,14 +8719,14 @@ impl OpaqueVec {
 }
 
 impl OpaqueVec {
-    /// Creates a splicing iterator that replaces the specified range in the [`OpaqueVec`]
+    /// Creates a splicing iterator that replaces the specified range in the type-erased vector
     /// with the given `replace_with` iterator and yields the removed items.
     /// The argument `replace_with` does not need to be the same length as `range`.
     ///
     /// The `range` argument is removed even if the `Splice` iterator is not consumed before it is
     /// dropped.
     ///
-    /// It is unspecified how many elements are removed from the [`OpaqueVec`]
+    /// It is unspecified how many elements are removed from the type-erased vector
     /// if the `Splice` value is leaked.
     ///
     /// The input iterator `replace_with` is only consumed when the `Splice` value is dropped.
@@ -8738,7 +8737,7 @@ impl OpaqueVec {
     /// * or `replace_with` yields fewer or equal elements than `range`’s length
     /// * or the lower bound of its `size_hint()` is exact.
     ///
-    /// Otherwise, a temporary [`OpaqueVec`] is allocated and the tail is moved twice.
+    /// Otherwise, a temporary type-erased vector is allocated and the tail is moved twice.
     ///
     /// # Panics
     ///
@@ -8979,7 +8978,7 @@ impl OpaqueVec {
     }
     */
 
-    /// Appends all elements from a slice to the [`OpaqueVec`].
+    /// Appends all elements from a slice to the type-erased vector.
     ///
     /// # Panics
     ///
@@ -9023,11 +9022,11 @@ impl OpaqueVec {
         proj_self.extend_from_slice(other);
     }
 
-    /// Resizes the [`OpaqueVec`] in-place so that `len` is equal to `new_len`.
+    /// Resizes the type-erased vector in place so that `len` is equal to `new_len`.
     ///
-    /// If `new_len > len`, the [`OpaqueVec`] is extended by the
+    /// If `new_len > len`, the type-erased vector is extended by the
     /// difference, with each additional slot filled with `value`.
-    /// If `new_len < len`, the [`OpaqueVec`] is truncated.
+    /// If `new_len < len`, the type-erased vector is truncated.
     ///
     /// If you need more flexibility (or want to rely on [`Default`] instead of
     /// [`Clone`]), use [`OpaqueVec::resize_with`].
@@ -9042,7 +9041,7 @@ impl OpaqueVec {
     ///
     /// # Examples
     ///
-    /// Extending an [`OpaqueVec`] with a default value.
+    /// Extending a type-erased vector with a default value.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -9097,7 +9096,7 @@ impl OpaqueVec {
     /// assert_eq!(opaque_vec.as_slice::<&'static str, Global>(), expected.as_slice::<&'static str, Global>());
     /// ```
     ///
-    /// Shrinking an [`OpaqueVec`] with a default value.
+    /// Shrinking a type-erased vector with a default value.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -9161,7 +9160,7 @@ impl OpaqueVec {
         proj_self.resize(new_len, value);
     }
 
-    /// Shortens an [`OpaqueVec`] to the supplied length, dropping the remaining elements.
+    /// Shortens a type-erased vector to the supplied length, dropping the remaining elements.
     ///
     /// This method keeps the first `len` elements, and drops the rest of the elements, so that
     /// the length after calling this method is at most `len`. This method does nothing if
@@ -9175,7 +9174,7 @@ impl OpaqueVec {
     ///
     /// # Examples
     ///
-    /// Truncating an [`OpaqueVec`] when `len < self.len()`.
+    /// Truncating a type-erased vector when `len < self.len()`.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -9275,7 +9274,7 @@ impl OpaqueVec {
 }
 
 impl OpaqueVec {
-    /// Retains only the elements in the [`OpaqueVec`] that satisfy the supplied predicate.
+    /// Retains only the elements in the type-erased vector that satisfy the supplied predicate.
     ///
     /// This method removes all elements from the collection for which the predicate returns
     /// `false`. In particular, for each element `e` in the collection, it removes `e` provided
@@ -9318,7 +9317,7 @@ impl OpaqueVec {
         proj_self.retain(f);
     }
 
-    /// Retains only the elements in the [`OpaqueVec`] that satisfy the supplied predicate passing
+    /// Retains only the elements in the type-erased vector that satisfy the supplied predicate passing
     /// a mutable reference to it.
     ///
     /// This method removes all elements from the collection for which the predicate returns
@@ -9368,7 +9367,7 @@ impl OpaqueVec {
         proj_self.retain_mut(f);
     }
 
-    /// Removes consecutive repeated elements in the [`OpaqueVec`] according to the
+    /// Removes consecutive repeated elements in the type-erased vector according to the
     /// [`PartialEq`] trait implementation.
     ///
     /// This method removes all duplicates if the collection is sorted.
@@ -9381,7 +9380,7 @@ impl OpaqueVec {
     ///
     /// # Examples
     ///
-    /// Deduplicating an unsorted [`OpaqueVec`].
+    /// Deduplicating an unsorted type-erased vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -9401,7 +9400,7 @@ impl OpaqueVec {
     /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &[1, 2, 3, 2, 6, 4]);
     /// ```
     ///
-    /// Deduplicating a sorted [`OpaqueVec`] with duplicate values.
+    /// Deduplicating a sorted type-erased vector with duplicate values.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -9421,7 +9420,7 @@ impl OpaqueVec {
     /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &[1, 2, 3, 4, 5]);
     /// ```
     ///
-    /// Deduplicating a sorted [`OpaqueVec`] with no duplicate values does nothing.
+    /// Deduplicating a sorted type-erased vector with no duplicate values does nothing.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -9451,7 +9450,7 @@ impl OpaqueVec {
         proj_self.dedup();
     }
 
-    /// Removes all but the first of consecutive elements in the [`OpaqueVec`] that resolve to
+    /// Removes all but the first of consecutive elements in the type-erased vector that resolve to
     /// the same key.
     ///
     /// This removes all duplicates if the collection is sorted (since each duplicate value
@@ -9465,7 +9464,7 @@ impl OpaqueVec {
     ///
     /// # Examples
     ///
-    /// Deduplicating an unsorted [`OpaqueVec`] by key.
+    /// Deduplicating an unsorted type-erased vector by key.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -9482,7 +9481,7 @@ impl OpaqueVec {
     /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &[10, 20, 30, 20]);
     /// ```
     ///
-    /// Deduplicating a sorted [`OpaqueVec`] by key with duplicate values.
+    /// Deduplicating a sorted type-erased vector by key with duplicate values.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -9528,7 +9527,7 @@ impl OpaqueVec {
     ///
     /// # Examples
     ///
-    /// Deduplicating an unsorted [`OpaqueVec`].
+    /// Deduplicating an unsorted type-erased vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -9550,7 +9549,7 @@ impl OpaqueVec {
     /// assert_eq!(opaque_vec.as_slice::<&'static str, Global>(), &["foo", "bar", "baz", "bar", "quux"]);
     /// ```
     ///
-    /// Deduplicating a sorted [`OpaqueVec`] with duplicate values.
+    /// Deduplicating a sorted type-erased vector with duplicate values.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -9586,7 +9585,7 @@ impl OpaqueVec {
 }
 
 impl OpaqueVec {
-    /// Appends all elements from an iterator to the [`OpaqueVec`].
+    /// Appends all elements from an iterator to the type-erased vector.
     ///
     /// # Panics
     ///
@@ -9631,7 +9630,7 @@ impl OpaqueVec {
         proj_self.extend(iter);
     }
 
-    /// Mutably reverses an [`OpaqueVec`] in place.
+    /// Mutably reverses a type-erased vector in place.
     ///
     /// # Panics
     ///
@@ -9700,7 +9699,7 @@ impl OpaqueVec {
 }
 
 impl OpaqueVec {
-    /// Clones an [`OpaqueVec`].
+    /// Clones a type-erased vector.
     ///
     /// This method acts identically to an implementation of the [`Clone`] trait on a type-projected
     /// vector [`TypedProjVec`], or a generic [`Vec`].
@@ -9713,7 +9712,7 @@ impl OpaqueVec {
     ///
     /// # Examples
     ///
-    /// Cloning an empty [`OpaqueVec`].
+    /// Cloning an empty type-erased vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -9737,7 +9736,7 @@ impl OpaqueVec {
     /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), cloned_opaque_vec.as_slice::<i32, Global>());
     /// ```
     ///
-    /// Cloning a non-empty [`OpaqueVec`].
+    /// Cloning a non-empty type-erased vector.
     ///
     /// ```
     /// # #![feature(allocator_api)]

@@ -43,7 +43,7 @@ use core::hash;
 ///
 /// # Examples
 ///
-/// Using a [`TypedProjHasher`].
+/// Using a typed-projected hasher.
 ///
 /// ```
 /// # use opaque_hash::TypedProjHasher;
@@ -55,7 +55,7 @@ use core::hash;
 /// assert_eq!(proj_hasher.hasher_type_id(), TypeId::of::<DefaultHasher>());
 /// ```
 ///
-/// Using an [`OpaqueHasher`].
+/// Using a type-erased hasher.
 ///
 /// ```
 /// # use opaque_hash::OpaqueHasher;
@@ -248,7 +248,7 @@ where
 
 /// A type-erased hasher.
 ///
-/// For more information, see [`OpaqueHasher`].
+/// For more information, see [`TypedProjHasher`].
 #[repr(transparent)]
 pub struct OpaqueHasher {
     inner: OpaqueHasherInner,
@@ -387,8 +387,7 @@ impl OpaqueHasher {
 }
 
 impl OpaqueHasher {
-    /// Projects the type-erased [`OpaqueHasher`] reference into a type-projected
-    /// [`TypedProjHasher`] reference.
+    /// Projects the type-erased hasher reference into a type-projected hasher reference.
     ///
     /// # Panics
     ///
@@ -417,8 +416,8 @@ impl OpaqueHasher {
         unsafe { &*(self as *const OpaqueHasher as *const TypedProjHasher<H>) }
     }
 
-    /// Projects the type-erased [`OpaqueHasher`] mutable reference into a type-projected
-    /// [`TypedProjHasher`] mutable reference.
+    /// Projects the mutable type-erased hasher reference into a mutable type-projected
+    /// hasher reference.
     ///
     /// # Panics
     ///
@@ -447,8 +446,7 @@ impl OpaqueHasher {
         unsafe { &mut *(self as *mut OpaqueHasher as *mut TypedProjHasher<H>) }
     }
 
-    /// Projects the type-erased [`OpaqueHasher`] value into a type-projected
-    /// [`TypedProjHasher`] value.
+    /// Projects the type-erased hasher value into a type-projected hasher value.
     ///
     /// # Panics
     ///
@@ -479,7 +477,7 @@ impl OpaqueHasher {
         }
     }
 
-    /// Erases the type-projected [`TypedProjHasher`] value into a type-erased [`OpaqueHasher`] value.
+    /// Erases the type-projected hasher value into a type-erased hasher value.
     ///
     /// Unlike the type projection methods [`as_proj`], [`as_proj_mut`], and [`into_proj`], this
     /// method never panics.
