@@ -4082,13 +4082,19 @@ where
     }
 }
 
+/// A view into a single entry in a [`TypedProjIndexMap`] or an [`OpaqueIndexMap`], which may be
+/// occupied or vacant.
+///
+/// Entries are produced by the methods [`TypedProjIndexMap::entry`] and [`OpaqueIndexMap::entry`].
 pub enum Entry<'a, K, V, A = alloc::Global>
 where
     K: any::Any,
     V: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
+    /// An occupied entry.
     Occupied(OccupiedEntry<'a, K, V, A>),
+    /// A vacant entry.
     Vacant(VacantEntry<'a, K, V, A>),
 }
 
@@ -4098,6 +4104,36 @@ where
     V: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
+    /// Returns the storage index of the entry in the index map.
+    ///
+    /// If the entry is occupied, this method returns the index where the entry is actually stored
+    /// in the index map. If the entry is vacant, this method returns the index where the entry
+    /// would be stored if the entry was inserted into the index map.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map = TypedProjIndexMap::from([
+    ///     ("foo", 1_i32),
+    ///     ("bar", 2_i32),
+    ///     ("baz", 3_i32),
+    /// ]);
+    ///
+    /// assert_eq!(map.entry("foo").index(), 0);
+    /// assert_eq!(map.entry("bar").index(), 1);
+    /// assert_eq!(map.entry("baz").index(), 2);
+    ///
+    /// assert_eq!(map.entry("quux").index(), 3);
+    /// ```
     pub fn index(&self) -> usize {
         match *self {
             Entry::Occupied(ref entry) => entry.index(),
@@ -4105,6 +4141,37 @@ where
         }
     }
 
+    /// Sets the value of the entry (after inserting the entry if it is vacant), and returning an
+    /// [`OccupiedEntry`].
+    ///
+    /// This method behaves as follows:
+    /// * If the entry is occupied, this method replaces the old value with the new value in the entry,
+    ///   and returns an occupied entry. The entry retains its position in the storage order of the
+    ///   index map.
+    /// * If the entry is vacant, the entry is appended to the end of the map, so the resulting entry
+    ///   is in last place in the storage order, and the method returns an occupied entry containing
+    ///   the value `value` and the key from the original vacant entry.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map = TypedProjIndexMap::new();
+    /// let new_entry = map.entry("foo");
+    /// let occupied_entry = new_entry.insert_entry(1_i32);
+    ///
+    /// assert_eq!(occupied_entry.index(), 0);
+    /// assert_eq!(occupied_entry.key(), &"foo");
+    /// assert_eq!(occupied_entry.get(), &1_i32);
+    /// ```
     pub fn insert_entry(self, value: V) -> OccupiedEntry<'a, K, V, A> {
         match self {
             Entry::Occupied(mut entry) => {
@@ -4115,6 +4182,36 @@ where
         }
     }
 
+    /// Ensures a value is in the entry by inserting the default value if it is empty, and returns
+    /// a mutable reference to the value in the entry.
+    ///
+    /// If the entry is occupied, this method does nothing and returns a mutable reference to its
+    /// value. If the entry is vacant, this method inserts the provided default value and returns a
+    /// mutable reference to the entry's value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map = TypedProjIndexMap::new();
+    /// map.entry("foo").or_insert(3_i32);
+    ///
+    /// assert_eq!(map["foo"], 3_i32);
+    ///
+    /// // This does nothing since the entry with key `"foo"` already exists in the map.
+    /// map.entry("foo").or_insert(10_i32);
+    ///
+    /// assert_ne!(map["foo"], 10_32);
+    /// assert_eq!(map["foo"], 3_i32);
+    /// ```
     pub fn or_insert(self, default: V) -> &'a mut V {
         match self {
             Entry::Occupied(entry) => entry.into_mut(),
@@ -4122,6 +4219,41 @@ where
         }
     }
 
+    /// Ensures a value is in the entry by inserting the result of the default function if it is empty, and
+    /// returns a mutable reference to the value in the entry.
+    ///
+    /// This method behaves as follows:
+    /// * If the entry is occupied, this method does nothing and returns a mutable reference to its
+    ///   value.
+    /// * If the entry is vacant, this method inserts the result of calling the provided function
+    ///   `call` and returns a mutable reference to the entry's value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map = TypedProjIndexMap::new();
+    /// let default_value = "garply";
+    /// let another_value = "corge";
+    ///
+    /// map.entry("foo").or_insert_with(|| default_value);
+    ///
+    /// assert_eq!(map["foo"], default_value);
+    ///
+    /// // This does nothing since the entry with key `"foo"` already exists in the map.
+    /// map.entry("foo").or_insert_with(|| another_value);
+    ///
+    /// assert_ne!(map["foo"], another_value);
+    /// assert_eq!(map["foo"], default_value);
+    /// ```
     pub fn or_insert_with<F>(self, call: F) -> &'a mut V
     where
         F: FnOnce() -> V,
@@ -4132,6 +4264,43 @@ where
         }
     }
 
+    /// Ensures a value is in the entry, using the provided default function if necessary.
+    ///
+    /// This method behaves as follows:
+    /// * If the entry is occupied, this method does nothing, and returns a mutable reference to its value.
+    /// * Is the entry is vacant, this method inserts the result of the default function.
+    /// This method allows for generating key-derived values for insertion by providing the default
+    /// function a reference to the key that was moved during the [`entry`] method call.
+    ///
+    /// [`entry`]: TypedProjIndexMap::entry
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map = TypedProjIndexMap::new();
+    /// let default_value = "garply";
+    /// let another_value = "corge";
+    /// let func = |key: &&str| if key == &"foo" { default_value } else { another_value };
+    ///
+    /// map.entry("foo").or_insert_with_key(func);
+    ///
+    /// assert_eq!(map["foo"], default_value);
+    /// assert_ne!(map["foo"], another_value);
+    ///
+    /// map.entry("bar").or_insert_with_key(func);
+    ///
+    /// assert_eq!(map["bar"], another_value);
+    /// assert_ne!(map["bar"], default_value);
+    /// ```
     pub fn or_insert_with_key<F>(self, call: F) -> &'a mut V
     where
         F: FnOnce(&K) -> V,
@@ -4145,6 +4314,38 @@ where
         }
     }
 
+    /// Gets a reference to the entry's key in the index map.
+    ///
+    /// This method behaves as follows:
+    /// * If the entry is occupied, this method returns the key stored in the index map for that entry.
+    /// * If the entry is vacant, this method returns the key that was used to search for the entry
+    ///   in the index map.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map = TypedProjIndexMap::from([
+    ///     ("foo", 1_i32),
+    ///     ("bar", 2_i32),
+    ///     ("baz", 3_i32),
+    /// ]);
+    ///
+    /// assert_eq!(map.entry("foo").key(), &"foo");
+    /// assert_eq!(map.entry("bar").key(), &"bar");
+    /// assert_eq!(map.entry("baz").key(), &"baz");
+    ///
+    /// // Vacant entries have keys too.
+    /// assert_eq!(map.entry("quux").key(), &"quux");
+    /// ```
     pub fn key(&self) -> &K {
         match *self {
             Entry::Occupied(ref entry) => entry.key(),
@@ -4152,6 +4353,37 @@ where
         }
     }
 
+    /// Provides in place mutable access to an occupied entry before any potential insertions into the
+    /// index map.
+    ///
+    /// If the entry `self` is vacant, this method does nothing.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map = TypedProjIndexMap::new();
+    /// map.entry("foo").and_modify(|e| { *e += 1 }).or_insert(42);
+    ///
+    /// assert_eq!(map["foo"], 42);
+    ///
+    /// map.entry("foo").and_modify(|e| { *e += 1 }).or_insert(42);
+    ///
+    /// assert_eq!(map["foo"], 43);
+    ///
+    /// // The `and_modify` method has no effect on vacant entries.
+    /// map.entry("bar").and_modify(|e| *e = 55).or_insert(44);
+    ///
+    /// assert_eq!(map["bar"], 44);
+    /// ```
     pub fn and_modify<F>(mut self, f: F) -> Self
     where
         F: FnOnce(&mut V),
@@ -4159,9 +4391,54 @@ where
         if let Entry::Occupied(entry) = &mut self {
             f(entry.get_mut());
         }
+
         self
     }
 
+    /// Ensures that a value is in the entry by inserting the default value if necessary.
+    ///
+    /// This method behaves as follows:
+    /// * If the entry is vacant, this method inserts the default value and returns a mutable reference
+    ///   to the value in the entry.
+    /// * If the entry is occupied, the method does nothing and returns a mutable reference to the
+    ///   value in the entry.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// # #[derive(Copy, Clone, Debug, PartialEq, Eq)]
+    /// enum SpatialPartition {
+    ///     QuadTree,
+    ///     OctTree,
+    ///     BVH,
+    ///     Grid,
+    /// }
+    /// # impl Default for SpatialPartition {
+    /// #     fn default() -> Self {
+    /// #         SpatialPartition::QuadTree
+    /// #     }
+    /// # }
+    /// #
+    ///
+    /// let mut map: TypedProjIndexMap<&str, SpatialPartition> = TypedProjIndexMap::new();
+    ///
+    /// assert!(!map.contains_key("foo"));
+    ///
+    /// map.entry("foo").or_default();
+    ///
+    /// assert!(map.contains_key("foo"));
+    ///
+    /// assert_eq!(map["foo"], SpatialPartition::default());
+    /// ```
     pub fn or_default(self) -> &'a mut V
     where
         V: Default,
@@ -4189,6 +4466,8 @@ where
     }
 }
 
+/// A view into an occupied entry in an [`TypedProjIndexMap`] or [`OpaqueIndexMap`]. It is part of
+/// the [`Entry`] sum type.
 pub struct OccupiedEntry<'a, K, V, A = alloc::Global>
 where
     K: any::Any,
@@ -4205,16 +4484,83 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
 
+    /// Constructs a new occupied entry.
     #[inline]
     pub(crate) const fn new(inner: map_inner::OccupiedEntry<'a, K, V, A>) -> Self {
         Self { inner, }
     }
 
+    /// Returns the storage index of the occupied entry in the index map.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::map::{TypedProjIndexMap, Entry, OccupiedEntry};
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::{Any, TypeId};
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// fn into_occupied<'a, K: Any, V: Any>(entry: Entry<'a, K, V>) -> OccupiedEntry<'a, K, V> {
+    ///     match entry {
+    ///         Entry::Occupied(occupied_entry) => occupied_entry,
+    ///         _ => panic!("This method only destructures occupied entries")
+    ///     }
+    /// }
+    ///
+    /// let mut map = TypedProjIndexMap::from([
+    ///     ("foo",  1_i32),
+    ///     ("bar",  2_i32),
+    ///     ("baz",  3_i32),
+    ///     ("quux", 4_i32),
+    /// ]);
+    ///
+    /// assert_eq!(into_occupied(map.entry("foo")).index(),  0);
+    /// assert_eq!(into_occupied(map.entry("bar")).index(),  1);
+    /// assert_eq!(into_occupied(map.entry("baz")).index(),  2);
+    /// assert_eq!(into_occupied(map.entry("quux")).index(), 3);
+    /// ```
     #[inline]
     pub fn index(&self) -> usize {
         self.inner.index()
     }
 
+    /// Gets a reference to the key stored in the occupied entry in the index map.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::map::{TypedProjIndexMap, Entry, OccupiedEntry};
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::{Any, TypeId};
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// fn into_occupied<'a, K: Any, V: Any>(entry: Entry<'a, K, V>) -> OccupiedEntry<'a, K, V> {
+    ///     match entry {
+    ///         Entry::Occupied(occupied_entry) => occupied_entry,
+    ///         _ => panic!("This method only destructures occupied entries")
+    ///     }
+    /// }
+    ///
+    /// let mut map = TypedProjIndexMap::from([
+    ///     ("foo",  1_i32),
+    ///     ("bar",  2_i32),
+    ///     ("baz",  3_i32),
+    ///     ("quux", 4_i32),
+    /// ]);
+    ///
+    /// assert_eq!(into_occupied(map.entry("foo")).key(),  &"foo");
+    /// assert_eq!(into_occupied(map.entry("bar")).key(),  &"bar");
+    /// assert_eq!(into_occupied(map.entry("baz")).key(),  &"baz");
+    /// assert_eq!(into_occupied(map.entry("quux")).key(), &"quux");
+    /// ```
     pub fn key(&self) -> &K {
         self.inner.key()
     }
@@ -4225,43 +4571,501 @@ where
     }
     */
 
+    /// Gets a reference to the occupied entry's value in the index map.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::map::{TypedProjIndexMap, Entry, OccupiedEntry};
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::{Any, TypeId};
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// fn into_occupied<'a, K: Any, V: Any>(entry: Entry<'a, K, V>) -> OccupiedEntry<'a, K, V> {
+    ///     match entry {
+    ///         Entry::Occupied(occupied_entry) => occupied_entry,
+    ///         _ => panic!("This method only destructures occupied entries")
+    ///     }
+    /// }
+    ///
+    /// let mut map = TypedProjIndexMap::from([
+    ///     ("foo",  1_i32),
+    ///     ("bar",  2_i32),
+    ///     ("baz",  3_i32),
+    ///     ("quux", 4_i32),
+    /// ]);
+    ///
+    /// assert_eq!(into_occupied(map.entry("foo")).get(),  &1_i32);
+    /// assert_eq!(into_occupied(map.entry("bar")).get(),  &2_i32);
+    /// assert_eq!(into_occupied(map.entry("baz")).get(),  &3_i32);
+    /// assert_eq!(into_occupied(map.entry("quux")).get(), &4_i32);
+    /// ```
     pub fn get(&self) -> &V {
         self.inner.get()
     }
 
+    /// Gets a mutable reference to the occupied entry's value in the index map.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::map::{TypedProjIndexMap, Entry, OccupiedEntry};
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::{Any, TypeId};
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// fn into_occupied<'a, K: Any, V: Any>(entry: Entry<'a, K, V>) -> OccupiedEntry<'a, K, V> {
+    ///     match entry {
+    ///         Entry::Occupied(occupied_entry) => occupied_entry,
+    ///         _ => panic!("This method only destructures occupied entries")
+    ///     }
+    /// }
+    ///
+    /// let mut map = TypedProjIndexMap::from([
+    ///     ("foo",  1_i32),
+    ///     ("bar",  2_i32),
+    ///     ("baz",  3_i32),
+    ///     ("quux", 4_i32),
+    /// ]);
+    ///
+    /// assert_eq!(into_occupied(map.entry("foo")).get_mut(),  &mut 1_i32);
+    /// assert_eq!(into_occupied(map.entry("bar")).get_mut(),  &mut 2_i32);
+    /// assert_eq!(into_occupied(map.entry("baz")).get_mut(),  &mut 3_i32);
+    /// assert_eq!(into_occupied(map.entry("quux")).get_mut(), &mut 4_i32);
+    /// ```
     pub fn get_mut(&mut self) -> &mut V {
         self.inner.get_mut()
     }
 
+    /// Converts the [`OccupiedEntry`] into a mutable reference to the value in the entry
+    /// with a lifetime bound to the index map itself.
+    ///
+    /// Use [`get_mut`] to get multiple references to the occupied entry, [`get_mut`].
+    ///
+    /// [`get_mut`]: OccupiedEntry::get_mut
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::map::{TypedProjIndexMap, Entry, OccupiedEntry};
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::{Any, TypeId};
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// fn into_occupied<'a, K: Any, V: Any>(entry: Entry<'a, K, V>) -> OccupiedEntry<'a, K, V> {
+    ///     match entry {
+    ///         Entry::Occupied(occupied_entry) => occupied_entry,
+    ///         _ => panic!("This method only destructures occupied entries")
+    ///     }
+    /// }
+    ///
+    /// let mut map = TypedProjIndexMap::from([
+    ///     ("foo",  1_i32),
+    ///     ("bar",  2_i32),
+    ///     ("baz",  3_i32),
+    ///     ("quux", 4_i32),
+    /// ]);
+    ///
+    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
+    /// assert_eq!(map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
+    /// assert_eq!(map.get_full("quux"), Some((3, &"quux", &4_i32)));
+    /// {
+    ///     let mut occupied_entry = into_occupied(map.entry("bar"));
+    ///     let result = occupied_entry.into_mut();
+    ///
+    ///     assert_eq!(result, &2_i32);
+    ///
+    ///     *result = i32::MAX;
+    /// }
+    /// assert_eq!(into_occupied(map.entry("bar")).get(), &i32::MAX);
+    /// ```
     pub fn into_mut(self) -> &'a mut V {
         self.inner.into_mut()
     }
 
+    /// Sets the value of the occupied entry to a new value, and returns the old value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::map::{TypedProjIndexMap, Entry, OccupiedEntry};
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::{Any, TypeId};
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// fn into_occupied<'a, K: Any, V: Any>(entry: Entry<'a, K, V>) -> OccupiedEntry<'a, K, V> {
+    ///     match entry {
+    ///         Entry::Occupied(occupied_entry) => occupied_entry,
+    ///         _ => panic!("This method only destructures occupied entries")
+    ///     }
+    /// }
+    ///
+    /// let mut map = TypedProjIndexMap::from([
+    ///     ("foo",  1_i32),
+    ///     ("bar",  2_i32),
+    ///     ("baz",  3_i32),
+    ///     ("quux", 4_i32),
+    /// ]);
+    ///
+    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
+    /// assert_eq!(map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
+    /// assert_eq!(map.get_full("quux"), Some((3, &"quux", &4_i32)));
+    ///
+    /// let mut occupied_entry = into_occupied(map.entry("bar"));
+    /// let result = occupied_entry.insert(i32::MAX);
+    ///
+    /// assert_eq!(result, 2_i32);
+    ///
+    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(map.get_full("bar"),  Some((1, &"bar",  &i32::MAX)));
+    /// assert_eq!(map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
+    /// assert_eq!(map.get_full("quux"), Some((3, &"quux", &4_i32)));
+    /// ```
     pub fn insert(&mut self, value: V) -> V {
         mem::replace(self.get_mut(), value)
     }
 
+    /// Removes the occupied entry from the index map, and returns the value of the entry.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::map::{TypedProjIndexMap, Entry, OccupiedEntry};
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::{Any, TypeId};
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// fn into_occupied<'a, K: Any, V: Any>(entry: Entry<'a, K, V>) -> OccupiedEntry<'a, K, V> {
+    ///     match entry {
+    ///         Entry::Occupied(occupied_entry) => occupied_entry,
+    ///         _ => panic!("This method only destructures occupied entries")
+    ///     }
+    /// }
+    ///
+    /// let mut map = TypedProjIndexMap::from([
+    ///     ("foo",  1_i32),
+    ///     ("bar",  2_i32),
+    ///     ("baz",  3_i32),
+    ///     ("quux", 4_i32),
+    /// ]);
+    ///
+    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
+    /// assert_eq!(map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
+    /// assert_eq!(map.get_full("quux"), Some((3, &"quux", &4_i32)));
+    ///
+    /// let occupied_entry = into_occupied(map.entry("bar"));
+    /// let result = occupied_entry.swap_remove();
+    ///
+    /// assert_eq!(result, 2_i32);
+    ///
+    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
+    /// assert_eq!(map.get_full("quux"), Some((1, &"quux", &4_i32)));
+    /// ```
     pub fn swap_remove(self) -> V {
         self.swap_remove_entry().1
     }
 
+    /// Removes the occupied entry from the index map, and returns the value of the entry.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::map::{TypedProjIndexMap, Entry, OccupiedEntry};
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::{Any, TypeId};
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// fn into_occupied<'a, K: Any, V: Any>(entry: Entry<'a, K, V>) -> OccupiedEntry<'a, K, V> {
+    ///     match entry {
+    ///         Entry::Occupied(occupied_entry) => occupied_entry,
+    ///         _ => panic!("This method only destructures occupied entries")
+    ///     }
+    /// }
+    ///
+    /// let mut map = TypedProjIndexMap::from([
+    ///     ("foo",  1_i32),
+    ///     ("bar",  2_i32),
+    ///     ("baz",  3_i32),
+    ///     ("quux", 4_i32),
+    /// ]);
+    ///
+    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
+    /// assert_eq!(map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
+    /// assert_eq!(map.get_full("quux"), Some((3, &"quux", &4_i32)));
+    ///
+    /// let occupied_entry = into_occupied(map.entry("baz"));
+    /// let result = occupied_entry.shift_remove();
+    ///
+    /// assert_eq!(result, 3_i32);
+    ///
+    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
+    /// assert_eq!(map.get_full("quux"), Some((2, &"quux", &4_i32)));
+    /// ```
     pub fn shift_remove(self) -> V {
         self.shift_remove_entry().1
     }
 
+    /// Removes the occupied entry from the index map, and returns the key-value pair for the entry.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::map::{TypedProjIndexMap, Entry, OccupiedEntry};
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::{Any, TypeId};
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// fn into_occupied<'a, K: Any, V: Any>(entry: Entry<'a, K, V>) -> OccupiedEntry<'a, K, V> {
+    ///     match entry {
+    ///         Entry::Occupied(occupied_entry) => occupied_entry,
+    ///         _ => panic!("This method only destructures occupied entries")
+    ///     }
+    /// }
+    ///
+    /// let mut map = TypedProjIndexMap::from([
+    ///     ("foo",  1_i32),
+    ///     ("bar",  2_i32),
+    ///     ("baz",  3_i32),
+    ///     ("quux", 4_i32),
+    /// ]);
+    ///
+    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
+    /// assert_eq!(map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
+    /// assert_eq!(map.get_full("quux"), Some((3, &"quux", &4_i32)));
+    ///
+    /// let occupied_entry = into_occupied(map.entry("bar"));
+    /// let result = occupied_entry.swap_remove_entry();
+    ///
+    /// assert_eq!(result, ("bar", 2_i32));
+    ///
+    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
+    /// assert_eq!(map.get_full("quux"), Some((1, &"quux", &4_i32)));
+    /// ```
     pub fn swap_remove_entry(self) -> (K, V) {
         self.inner.swap_remove_entry()
     }
 
+    /// Removes the occupied entry from the index map, and returns the key-value pair for the entry.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::map::{TypedProjIndexMap, Entry, OccupiedEntry};
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::{Any, TypeId};
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// fn into_occupied<'a, K: Any, V: Any>(entry: Entry<'a, K, V>) -> OccupiedEntry<'a, K, V> {
+    ///     match entry {
+    ///         Entry::Occupied(occupied_entry) => occupied_entry,
+    ///         _ => panic!("This method only destructures occupied entries")
+    ///     }
+    /// }
+    ///
+    /// let mut map = TypedProjIndexMap::from([
+    ///     ("foo",  1_i32),
+    ///     ("bar",  2_i32),
+    ///     ("baz",  3_i32),
+    ///     ("quux", 4_i32),
+    /// ]);
+    ///
+    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
+    /// assert_eq!(map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
+    /// assert_eq!(map.get_full("quux"), Some((3, &"quux", &4_i32)));
+    ///
+    /// let occupied_entry = into_occupied(map.entry("baz"));
+    /// let result = occupied_entry.shift_remove_entry();
+    ///
+    /// assert_eq!(result, ("baz", 3_i32));
+    ///
+    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
+    /// assert_eq!(map.get_full("quux"), Some((2, &"quux", &4_i32)));
+    /// ```
     pub fn shift_remove_entry(self) -> (K, V) {
         self.inner.shift_remove_entry()
     }
 
+    /// Moves the storage position of an occupied entry from one index to another by shifting all
+    /// other pairs in between.
+    ///
+    /// This method behaves as follows:
+    /// * If `self.index() < to`, the other pairs will shift right while the targeted pair moves left.
+    /// * If `self.index() > to`, the other pairs will shift left while the targeted pair moves right.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if `to` is out of bounds.
+    ///
+    /// # Examples
+    ///
+    /// Moving an entry to an index where `self.index() > to`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::map::{TypedProjIndexMap, Entry, OccupiedEntry};
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::{Any, TypeId};
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// fn into_occupied<'a, K: Any, V: Any>(entry: Entry<'a, K, V>) -> OccupiedEntry<'a, K, V> {
+    ///     match entry {
+    ///         Entry::Occupied(occupied_entry) => occupied_entry,
+    ///         _ => panic!("This method only destructures occupied entries")
+    ///     }
+    /// }
+    ///
+    /// let mut map = TypedProjIndexMap::from([
+    ///     ("foo",  1_i32),
+    ///     ("bar",  2_i32),
+    ///     ("baz",  3_i32),
+    ///     ("quux", 4_i32),
+    /// ]);
+    ///
+    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
+    /// assert_eq!(map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
+    /// assert_eq!(map.get_full("quux"), Some((3, &"quux", &4_i32)));
+    ///
+    /// let occupied_entry = into_occupied(map.entry("foo"));
+    /// occupied_entry.move_index(3);
+    ///
+    /// assert_eq!(map.get_full("foo"),  Some((3, &"foo",  &1_i32)));
+    /// assert_eq!(map.get_full("bar"),  Some((0, &"bar",  &2_i32)));
+    /// assert_eq!(map.get_full("baz"),  Some((1, &"baz",  &3_i32)));
+    /// assert_eq!(map.get_full("quux"), Some((2, &"quux", &4_i32)));
+    /// ```
+    ///
+    /// Moving an entry to an index where `self.index() < to`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::map::{TypedProjIndexMap, Entry, OccupiedEntry};
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::{Any, TypeId};
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// fn into_occupied<'a, K: Any, V: Any>(entry: Entry<'a, K, V>) -> OccupiedEntry<'a, K, V> {
+    ///     match entry {
+    ///         Entry::Occupied(occupied_entry) => occupied_entry,
+    ///         _ => panic!("This method only destructures occupied entries")
+    ///     }
+    /// }
+    ///
+    /// let mut map = TypedProjIndexMap::from([
+    ///     ("foo",  1_i32),
+    ///     ("bar",  2_i32),
+    ///     ("baz",  3_i32),
+    ///     ("quux", 4_i32),
+    /// ]);
+    ///
+    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
+    /// assert_eq!(map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
+    /// assert_eq!(map.get_full("quux"), Some((3, &"quux", &4_i32)));
+    ///
+    /// let occupied_entry = into_occupied(map.entry("baz"));
+    /// occupied_entry.move_index(0);
+    ///
+    /// assert_eq!(map.get_full("foo"),  Some((1, &"foo",  &1_i32)));
+    /// assert_eq!(map.get_full("bar"),  Some((2, &"bar",  &2_i32)));
+    /// assert_eq!(map.get_full("baz"),  Some((0, &"baz",  &3_i32)));
+    /// assert_eq!(map.get_full("quux"), Some((3, &"quux", &4_i32)));
+    /// ```
+    /// ```
     #[track_caller]
     pub fn move_index(self, to: usize) {
         self.inner.move_index(to);
     }
 
+    /// Swaps the position of the occupied entry with the entry located at another storage index in
+    /// the index map.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if `other` is out of bounds.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::map::{TypedProjIndexMap, Entry, OccupiedEntry};
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::{Any, TypeId};
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// fn into_occupied<'a, K: Any, V: Any>(entry: Entry<'a, K, V>) -> OccupiedEntry<'a, K, V> {
+    ///     match entry {
+    ///         Entry::Occupied(occupied_entry) => occupied_entry,
+    ///         _ => panic!("This method only destructures occupied entries")
+    ///     }
+    /// }
+    ///
+    /// let mut map = TypedProjIndexMap::from([
+    ///     ("foo", 1_i32),
+    ///     ("bar", 2_i32),
+    ///     ("baz", 3_i32),
+    /// ]);
+    ///
+    /// assert_eq!(map.get_full("foo"), Some((0, &"foo", &1_i32)));
+    /// assert_eq!(map.get_full("baz"), Some((2, &"baz", &3_i32)));
+    ///
+    /// let occupied_entry = into_occupied(map.entry("foo"));
+    /// occupied_entry.swap_indices(2);
+    ///
+    /// assert_eq!(map.get_full("foo"), Some((2, &"foo", &1_i32)));
+    /// assert_eq!(map.get_full("baz"), Some((0, &"baz", &3_i32)));
+    /// ```
     pub fn swap_indices(self, other: usize) {
         self.inner.swap_indices(other);
     }
@@ -4292,6 +5096,8 @@ where
     }
 }
 
+/// A view into a vacant entry in an [`TypedProjIndexMap`] or [`OpaqueIndexMap`]. It is part of
+/// the [`Entry`] sum type.
 pub struct VacantEntry<'a, K, V, A = alloc::Global>
 where
     K: any::Any,
@@ -4307,15 +5113,81 @@ where
     V: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
+    /// Constructs a new vacant entry.
     #[inline]
     const fn new(inner: map_inner::VacantEntry<'a, K, V, A>) -> Self {
         Self { inner, }
     }
 
+    /// Returns the storage index the entry would have when inserted into the index map.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::map::{TypedProjIndexMap, Entry, VacantEntry};
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::{Any, TypeId};
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// fn into_vacant<'a, K: Any, V: Any>(entry: Entry<'a, K, V>) -> VacantEntry<'a, K, V> {
+    ///     match entry {
+    ///         Entry::Vacant(vacant_entry) => vacant_entry,
+    ///         _ => panic!("This method only destructures vacant entries")
+    ///     }
+    /// }
+    ///
+    /// let mut map = TypedProjIndexMap::from([
+    ///     ("foo",  1_i32),
+    ///     ("bar",  2_i32),
+    ///     ("baz",  3_i32),
+    ///     ("quux", 4_i32),
+    /// ]);
+    ///
+    /// assert_eq!(map.get("foo"),  Some(&1_i32));
+    /// assert_eq!(map.get("bar"),  Some(&2_i32));
+    /// assert_eq!(map.get("baz"),  Some(&3_i32));
+    /// assert_eq!(map.get("quux"), Some(&4_i32));
+    ///
+    /// let vacant_entry = into_vacant(map.entry("corge"));
+    ///
+    /// assert_eq!(vacant_entry.index(), 4);
+    /// ```
     pub fn index(&self) -> usize {
         self.inner.index()
     }
 
+    /// Gets a reference to the key that would be used when inserting a value through the vacant entry.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::map::{TypedProjIndexMap, Entry, VacantEntry};
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::{Any, TypeId};
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// fn into_vacant<'a, K: Any, V: Any>(entry: Entry<'a, K, V>) -> VacantEntry<'a, K, V> {
+    ///     match entry {
+    ///         Entry::Vacant(vacant_entry) => vacant_entry,
+    ///         _ => panic!("This method only destructures vacant entries")
+    ///     }
+    /// }
+    ///
+    /// let mut map: TypedProjIndexMap<&str, i32> = TypedProjIndexMap::new();
+    /// let vacant_entry = into_vacant(map.entry("foo"));
+    /// let expected = "foo";
+    /// let result = vacant_entry.key();
+    ///
+    /// assert_eq!(result, &expected);
+    /// ```
     pub fn key(&self) -> &K {
         self.inner.key()
     }
@@ -4326,18 +5198,217 @@ where
     }
     */
 
+    /// Takes ownership of the key for this vacant entry.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::map::{TypedProjIndexMap, Entry, VacantEntry};
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::{Any, TypeId};
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// fn into_vacant<'a, K: Any, V: Any>(entry: Entry<'a, K, V>) -> VacantEntry<'a, K, V> {
+    ///     match entry {
+    ///         Entry::Vacant(vacant_entry) => vacant_entry,
+    ///         _ => panic!("This method only destructures vacant entries")
+    ///     }
+    /// }
+    ///
+    /// let mut map: TypedProjIndexMap<&str, i32> = TypedProjIndexMap::new();
+    /// let vacant_entry = into_vacant(map.entry("foo"));
+    /// let expected = "foo";
+    /// let result = vacant_entry.into_key();
+    ///
+    /// assert_eq!(result, expected);
+    /// ```
     pub fn into_key(self) -> K {
         self.inner.into_key()
     }
 
+    /// Sets the value of the vacant entry, then returns a mutable reference to the value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::map::{TypedProjIndexMap, Entry, VacantEntry};
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::{Any, TypeId};
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// fn into_vacant<'a, K: Any, V: Any>(entry: Entry<'a, K, V>) -> VacantEntry<'a, K, V> {
+    ///     match entry {
+    ///         Entry::Vacant(vacant_entry) => vacant_entry,
+    ///         _ => panic!("This method only destructures vacant entries")
+    ///     }
+    /// }
+    ///
+    /// let mut map = TypedProjIndexMap::from([
+    ///     ("foo",  1_i32),
+    ///     ("bar",  2_i32),
+    ///     ("baz",  3_i32),
+    ///     ("quux", 4_i32),
+    /// ]);
+    ///
+    /// assert_eq!(map.get("foo"),  Some(&1_i32));
+    /// assert_eq!(map.get("bar"),  Some(&2_i32));
+    /// assert_eq!(map.get("baz"),  Some(&3_i32));
+    /// assert_eq!(map.get("quux"), Some(&4_i32));
+    ///
+    /// let result = into_vacant(map.entry("corge")).insert(i32::MAX);
+    ///
+    /// assert_eq!(result, &i32::MAX);
+    /// ```
     pub fn insert(self, value: V) -> &'a mut V {
         self.inner.insert(value)
     }
 
+    /// Sets the value of the vacant entry in the index map, then returns an occupied entry corresponding
+    /// to the key-value pair now stored in the index map.
+    ///
+    /// # Examples
+    ///
+    /// Calling this method on a vacant entry from an index map with a set of sorted keys yields the
+    /// index of the entry in the underlying storage.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::map::{TypedProjIndexMap, Entry, VacantEntry};
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::{Any, TypeId};
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// fn into_vacant<'a, K: Any, V: Any>(entry: Entry<'a, K, V>) -> VacantEntry<'a, K, V> {
+    ///     match entry {
+    ///         Entry::Vacant(vacant_entry) => vacant_entry,
+    ///         _ => panic!("This method only destructures vacant entries")
+    ///     }
+    /// }
+    ///
+    /// let mut map = TypedProjIndexMap::from([
+    ///     ("foo",  1_i32),
+    ///     ("bar",  2_i32),
+    ///     ("baz",  3_i32),
+    ///     ("quux", 4_i32),
+    /// ]);
+    ///
+    /// assert_eq!(map.get("foo"),  Some(&1_i32));
+    /// assert_eq!(map.get("bar"),  Some(&2_i32));
+    /// assert_eq!(map.get("baz"),  Some(&3_i32));
+    /// assert_eq!(map.get("quux"), Some(&4_i32));
+    ///
+    /// let occupied_entry = into_vacant(map.entry("corge")).insert_entry(i32::MAX);
+    ///
+    /// assert_eq!(occupied_entry.key(), &"corge");
+    /// assert_eq!(occupied_entry.get(), &i32::MAX);
+    /// assert_eq!(occupied_entry.index(), 4);
+    /// ```
     pub fn insert_entry(self, value: V) -> OccupiedEntry<'a, K, V, A> {
         OccupiedEntry::new(self.inner.insert_entry(value))
     }
 
+    /// Inserts a new entry in the index map at its ordered position among sorted keys.
+    ///
+    /// This method is equivalent to finding the position with [`binary_search_keys`], then either
+    /// updating it or calling [`insert_before`] for a new key.
+    ///
+    /// This method behaves as follows:
+    /// * If the index map is in sorted order and contains the sorted key `key`, its corresponding
+    ///   value is updated with `value`, and the older value is returned as `(index, Some(old_value))`,
+    ///   where `index` is the storage index of the sorted key.
+    /// * If the index map is in sorted order and does not contain the sorted key `key`, this method
+    ///   inserts the new entry at the sorted position, returns `(index, None)`, where `index` is the
+    ///   storage index of the sorted key.
+    /// * If the existing keys are **not** sorted order, then the insertion index is unspecified.
+    ///
+    /// # Examples
+    ///
+    /// Calling this method on a vacant entry from an index map with a set of sorted keys yields the
+    /// index of the entry in the underlying storage.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::map::{TypedProjIndexMap, Entry, VacantEntry};
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::{Any, TypeId};
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// fn into_vacant<'a, K: Any, V: Any>(entry: Entry<'a, K, V>) -> VacantEntry<'a, K, V> {
+    ///     match entry {
+    ///         Entry::Vacant(vacant_entry) => vacant_entry,
+    ///         _ => panic!("This method only destructures vacant entries")
+    ///     }
+    /// }
+    ///
+    /// let mut map = TypedProjIndexMap::from([
+    ///     ("foo",  1_i32),
+    ///     ("bar",  2_i32),
+    ///     ("baz",  3_i32),
+    ///     ("quux", 4_i32),
+    /// ]);
+    ///
+    /// assert_eq!(map.get("foo"),  Some(&1_i32));
+    /// assert_eq!(map.get("bar"),  Some(&2_i32));
+    /// assert_eq!(map.get("baz"),  Some(&3_i32));
+    /// assert_eq!(map.get("quux"), Some(&4_i32));
+    ///
+    /// let result = into_vacant(map.entry("corge")).insert_sorted(i32::MAX);
+    ///
+    /// // The map is sorted, so the index returned is the storage index in the map.
+    /// assert_eq!(result, (3, &mut i32::MAX));
+    /// ```
+    ///
+    /// Calling this method on a vacant entry from an index map with a set of unsorted keys yields a
+    /// meaningless result for the insertion index.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::map::{TypedProjIndexMap, Entry, VacantEntry};
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::{Any, TypeId};
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// fn into_vacant<'a, K: Any, V: Any>(entry: Entry<'a, K, V>) -> VacantEntry<'a, K, V> {
+    ///     match entry {
+    ///         Entry::Vacant(vacant_entry) => vacant_entry,
+    ///         _ => panic!("This method only destructures vacant entries")
+    ///     }
+    /// }
+    ///
+    /// let mut map = TypedProjIndexMap::from([
+    ///     ("quux", 4_i32),
+    ///     ("bar",  2_i32),
+    ///     ("foo",  1_i32),
+    ///     ("baz",  3_i32),
+    /// ]);
+    ///
+    /// assert_eq!(map.get("foo"),  Some(&1_i32));
+    /// assert_eq!(map.get("bar"),  Some(&2_i32));
+    /// assert_eq!(map.get("baz"),  Some(&3_i32));
+    /// assert_eq!(map.get("quux"), Some(&4_i32));
+    ///
+    /// let result = into_vacant(map.entry("corge")).insert_sorted(i32::MAX);
+    ///
+    /// // The map is sorted, so the index returned is the storage index in the map.
+    /// assert_ne!(result, (3, &mut i32::MAX));
+    /// ```
     pub fn insert_sorted(self, value: V) -> (usize, &'a mut V)
     where
         K: Ord,
@@ -4345,6 +5416,45 @@ where
         self.inner.insert_sorted(value)
     }
 
+    /// Sets the value of the vacant entry, then returns a mutable reference to the value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::map::{TypedProjIndexMap, Entry, VacantEntry};
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::{Any, TypeId};
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// fn into_vacant<'a, K: Any, V: Any>(entry: Entry<'a, K, V>) -> VacantEntry<'a, K, V> {
+    ///     match entry {
+    ///         Entry::Vacant(vacant_entry) => vacant_entry,
+    ///         _ => panic!("This method only destructures occupied entries")
+    ///     }
+    /// }
+    ///
+    /// let mut map = TypedProjIndexMap::from([
+    ///     ("foo", 1_i32),
+    ///     ("bar", 2_i32),
+    ///     ("baz", 3_i32),
+    /// ]);
+    ///
+    /// assert_eq!(map.get_full("foo"), Some((0, &"foo", &1_i32)));
+    /// assert_eq!(map.get_full("bar"), Some((1, &"bar", &2_i32)));
+    /// assert_eq!(map.get_full("baz"), Some((2, &"baz", &3_i32)));
+    ///
+    /// let occupied_entry = into_vacant(map.entry("quux"));
+    /// occupied_entry.shift_insert(1, i32::MAX);
+    ///
+    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(map.get_full("quux"), Some((1, &"quux", &i32::MAX)));
+    /// assert_eq!(map.get_full("bar"),  Some((2, &"bar",  &2_i32)));
+    /// assert_eq!(map.get_full("baz"),  Some((3, &"baz",  &3_i32)));
+    /// ```
     pub fn shift_insert(self, index: usize, value: V) -> &'a mut V {
         self.inner.shift_insert(index, value)
     }
@@ -7417,7 +8527,7 @@ where
     /// ]);
     /// let result = proj_map.insert_sorted(5_isize, 100_f64);
     ///
-    /// // The map is sorted, so the index returned is the storage
+    /// // The map is sorted, so the index returned is the storage index in the map.
     /// assert_eq!(result, (4, Some(6_f64)));
     ///
     /// assert_eq!(proj_map.get(&5_isize), Some(&100_f64));
