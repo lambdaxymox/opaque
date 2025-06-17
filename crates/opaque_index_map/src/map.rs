@@ -4118,7 +4118,7 @@ where
 /// A view into a single entry in a [`TypedProjIndexMap`] or an [`OpaqueIndexMap`], which may be
 /// occupied or vacant.
 ///
-/// Entries are produced by the [`TypedProjIndexMap::entry`] and [`OpaqueIndexMap::entry`] methods.
+/// Entries are obtained by the [`TypedProjIndexMap::entry`] and [`OpaqueIndexMap::entry`] methods.
 pub enum Entry<'a, K, V, A = alloc::Global>
 where
     K: any::Any,
@@ -4681,7 +4681,7 @@ where
     /// Converts the [`OccupiedEntry`] into a mutable reference to the value in the entry
     /// with a lifetime bound to the index map itself.
     ///
-    /// Use [`get_mut`] to get multiple references to the occupied entry, [`get_mut`].
+    /// Use [`get_mut`] to get multiple references to the occupied entry.
     ///
     /// [`get_mut`]: OccupiedEntry::get_mut
     ///
@@ -5051,7 +5051,6 @@ where
     /// assert_eq!(map.get_full("bar"),  Some((2, &"bar",  &2_i32)));
     /// assert_eq!(map.get_full("baz"),  Some((0, &"baz",  &3_i32)));
     /// assert_eq!(map.get_full("quux"), Some((3, &"quux", &4_i32)));
-    /// ```
     /// ```
     #[track_caller]
     pub fn move_index(self, to: usize) {
@@ -5504,6 +5503,10 @@ where
     }
 }
 
+/// A view into an occupied entry in an index map obtained by storage index.
+///
+/// Indexed entries are obtained from the [`TypedProjIndexMap::get_index_entry`] and
+/// [`OpaqueIndexMap::get_index_entry`] methods.
 pub struct IndexedEntry<'a, K, V, A = alloc::Global>
 where
     K: any::Any,
@@ -5519,6 +5522,7 @@ where
     V: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
+    /// Constructs a new indexed entry.
     pub(crate) fn new(inner: map_inner::IndexedEntry<'a, K, V, A>) -> Self
     where
         K: Ord,
@@ -5528,11 +5532,64 @@ where
         }
     }
 
+    /// Returns the storage index of the indexed entry in the index map.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map = TypedProjIndexMap::from([
+    ///     ("foo",  1_i32),
+    ///     ("bar",  2_i32),
+    ///     ("baz",  3_i32),
+    ///     ("quux", 4_i32),
+    /// ]);
+    ///
+    /// assert_eq!(map.get_index_entry(0).unwrap().index(),  0);
+    /// assert_eq!(map.get_index_entry(1).unwrap().index(),  1);
+    /// assert_eq!(map.get_index_entry(2).unwrap().index(),  2);
+    /// assert_eq!(map.get_index_entry(3).unwrap().index(), 3);
+    /// ```
     #[inline]
     pub fn index(&self) -> usize {
         self.inner.index()
     }
 
+    /// Gets a reference to the key stored in the indexed entry in the index map.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::{Any, TypeId};
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map = TypedProjIndexMap::from([
+    ///     ("foo",  1_i32),
+    ///     ("bar",  2_i32),
+    ///     ("baz",  3_i32),
+    ///     ("quux", 4_i32),
+    /// ]);
+    ///
+    /// assert_eq!(map.get_index_entry(0).unwrap().key(),  &"foo");
+    /// assert_eq!(map.get_index_entry(1).unwrap().key(),  &"bar");
+    /// assert_eq!(map.get_index_entry(2).unwrap().key(),  &"baz");
+    /// assert_eq!(map.get_index_entry(3).unwrap().key(), &"quux");
+    /// ```
     pub fn key(&self) -> &K {
         self.inner.key()
     }
@@ -5543,43 +5600,459 @@ where
     }
     */
 
+    /// Gets a reference to the indexed entry's value in the index map.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::{Any, TypeId};
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map = TypedProjIndexMap::from([
+    ///     ("foo",  1_i32),
+    ///     ("bar",  2_i32),
+    ///     ("baz",  3_i32),
+    ///     ("quux", 4_i32),
+    /// ]);
+    ///
+    /// assert_eq!(map.get_index_entry(0).unwrap().get(), &1_i32);
+    /// assert_eq!(map.get_index_entry(1).unwrap().get(), &2_i32);
+    /// assert_eq!(map.get_index_entry(2).unwrap().get(), &3_i32);
+    /// assert_eq!(map.get_index_entry(3).unwrap().get(), &4_i32);
+    /// ```
     pub fn get(&self) -> &V {
         self.inner.get()
     }
 
+    /// Gets a mutable reference to the indexed entry's value in the index map.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::{Any, TypeId};
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map = TypedProjIndexMap::from([
+    ///     ("foo",  1_i32),
+    ///     ("bar",  2_i32),
+    ///     ("baz",  3_i32),
+    ///     ("quux", 4_i32),
+    /// ]);
+    ///
+    /// assert_eq!(map.get_index_entry(0).unwrap().get_mut(), &mut 1_i32);
+    /// assert_eq!(map.get_index_entry(1).unwrap().get_mut(), &mut 2_i32);
+    /// assert_eq!(map.get_index_entry(2).unwrap().get_mut(), &mut 3_i32);
+    /// assert_eq!(map.get_index_entry(3).unwrap().get_mut(), &mut 4_i32);
+    /// ```
     pub fn get_mut(&mut self) -> &mut V {
         self.inner.get_mut()
     }
 
-    pub fn insert(&mut self, value: V) -> V {
-        self.inner.insert(value)
-    }
-
+    /// Converts the [`IndexedEntry`] into a mutable reference to the value in the entry
+    /// with a lifetime bound to the index map itself.
+    ///
+    /// Use [`get_mut`] to get multiple references to the occupied entry.
+    ///
+    /// [`get_mut`]: IndexedEntry::get_mut
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::{Any, TypeId};
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map = TypedProjIndexMap::from([
+    ///     ("foo",  1_i32),
+    ///     ("bar",  2_i32),
+    ///     ("baz",  3_i32),
+    ///     ("quux", 4_i32),
+    /// ]);
+    ///
+    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
+    /// assert_eq!(map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
+    /// assert_eq!(map.get_full("quux"), Some((3, &"quux", &4_i32)));
+    /// {
+    ///     let maybe_indexed_entry = map.get_index_entry(1);
+    ///
+    ///     assert!(maybe_indexed_entry.is_some());
+    ///
+    ///     let indexed_entry = maybe_indexed_entry.unwrap();
+    ///     let result = indexed_entry.into_mut();
+    ///
+    ///     assert_eq!(result, &2_i32);
+    ///
+    ///     *result = i32::MAX;
+    /// }
+    /// assert_eq!(map.get_index_entry(1).unwrap().get(), &i32::MAX);
+    /// ```
     pub fn into_mut(self) -> &'a mut V {
         self.inner.into_mut()
     }
 
-    pub fn swap_remove_entry(self) -> (K, V) {
-        self.inner.swap_remove_entry()
+    /// Sets the value of the indexed entry to a new value, and returns the old value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::{Any, TypeId};
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map = TypedProjIndexMap::from([
+    ///     ("foo",  1_i32),
+    ///     ("bar",  2_i32),
+    ///     ("baz",  3_i32),
+    ///     ("quux", 4_i32),
+    /// ]);
+    ///
+    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
+    /// assert_eq!(map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
+    /// assert_eq!(map.get_full("quux"), Some((3, &"quux", &4_i32)));
+    ///
+    /// let maybe_indexed_entry = map.get_index_entry(1);
+    ///
+    /// assert!(maybe_indexed_entry.is_some());
+    ///
+    /// let mut indexed_entry = maybe_indexed_entry.unwrap();
+    /// let result = indexed_entry.insert(i32::MAX);
+    ///
+    /// assert_eq!(result, 2_i32);
+    ///
+    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(map.get_full("bar"),  Some((1, &"bar",  &i32::MAX)));
+    /// assert_eq!(map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
+    /// assert_eq!(map.get_full("quux"), Some((3, &"quux", &4_i32)));
+    /// ```
+    pub fn insert(&mut self, value: V) -> V {
+        self.inner.insert(value)
     }
 
-    pub fn shift_remove_entry(self) -> (K, V) {
-        self.inner.shift_remove_entry()
-    }
-
+    /// Removes the indexed entry from the index map, and returns the value of the entry.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::{Any, TypeId};
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map = TypedProjIndexMap::from([
+    ///     ("foo",  1_i32),
+    ///     ("bar",  2_i32),
+    ///     ("baz",  3_i32),
+    ///     ("quux", 4_i32),
+    /// ]);
+    ///
+    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
+    /// assert_eq!(map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
+    /// assert_eq!(map.get_full("quux"), Some((3, &"quux", &4_i32)));
+    ///
+    /// let maybe_indexed_entry = map.get_index_entry(1);
+    ///
+    /// assert!(maybe_indexed_entry.is_some());
+    ///
+    /// let indexed_entry = maybe_indexed_entry.unwrap();
+    /// let result = indexed_entry.swap_remove();
+    ///
+    /// assert_eq!(result, 2_i32);
+    ///
+    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
+    /// assert_eq!(map.get_full("quux"), Some((1, &"quux", &4_i32)));
+    /// ```
     pub fn swap_remove(self) -> V {
         self.inner.swap_remove()
     }
 
+    /// Removes the indexed entry from the index map, and returns the value of the entry.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::{Any, TypeId};
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map = TypedProjIndexMap::from([
+    ///     ("foo",  1_i32),
+    ///     ("bar",  2_i32),
+    ///     ("baz",  3_i32),
+    ///     ("quux", 4_i32),
+    /// ]);
+    ///
+    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
+    /// assert_eq!(map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
+    /// assert_eq!(map.get_full("quux"), Some((3, &"quux", &4_i32)));
+    ///
+    /// let maybe_indexed_entry = map.get_index_entry(2);
+    ///
+    /// assert!(maybe_indexed_entry.is_some());
+    ///
+    /// let indexed_entry = maybe_indexed_entry.unwrap();
+    /// let result = indexed_entry.shift_remove();
+    ///
+    /// assert_eq!(result, 3_i32);
+    ///
+    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
+    /// assert_eq!(map.get_full("quux"), Some((2, &"quux", &4_i32)));
+    /// ```
     pub fn shift_remove(self) -> V {
         self.inner.shift_remove()
     }
 
+    /// Removes the indexed entry from the index map, and returns the key-value pair for the entry.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::{Any, TypeId};
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map = TypedProjIndexMap::from([
+    ///     ("foo",  1_i32),
+    ///     ("bar",  2_i32),
+    ///     ("baz",  3_i32),
+    ///     ("quux", 4_i32),
+    /// ]);
+    ///
+    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
+    /// assert_eq!(map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
+    /// assert_eq!(map.get_full("quux"), Some((3, &"quux", &4_i32)));
+    ///
+    /// let maybe_indexed_entry = map.get_index_entry(1);
+    ///
+    /// assert!(maybe_indexed_entry.is_some());
+    ///
+    /// let indexed_entry = maybe_indexed_entry.unwrap();
+    /// let result = indexed_entry.swap_remove_entry();
+    ///
+    /// assert_eq!(result, ("bar", 2_i32));
+    ///
+    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
+    /// assert_eq!(map.get_full("quux"), Some((1, &"quux", &4_i32)));
+    /// ```
+    pub fn swap_remove_entry(self) -> (K, V) {
+        self.inner.swap_remove_entry()
+    }
+
+    /// Removes the indexed entry from the index map, and returns the key-value pair for the entry.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::{Any, TypeId};
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map = TypedProjIndexMap::from([
+    ///     ("foo",  1_i32),
+    ///     ("bar",  2_i32),
+    ///     ("baz",  3_i32),
+    ///     ("quux", 4_i32),
+    /// ]);
+    ///
+    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
+    /// assert_eq!(map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
+    /// assert_eq!(map.get_full("quux"), Some((3, &"quux", &4_i32)));
+    ///
+    /// let maybe_indexed_entry = map.get_index_entry(2);
+    ///
+    /// assert!(maybe_indexed_entry.is_some());
+    ///
+    /// let indexed_entry = maybe_indexed_entry.unwrap();
+    /// let result = indexed_entry.shift_remove_entry();
+    ///
+    /// assert_eq!(result, ("baz", 3_i32));
+    ///
+    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
+    /// assert_eq!(map.get_full("quux"), Some((2, &"quux", &4_i32)));
+    /// ```
+    pub fn shift_remove_entry(self) -> (K, V) {
+        self.inner.shift_remove_entry()
+    }
+
+    /// Moves the storage position of an indexed entry from one index to another by shifting all
+    /// other pairs in between.
+    ///
+    /// This method behaves as follows:
+    /// * If `self.index() < to`, the other pairs will shift up while the targeted pair moves down.
+    /// * If `self.index() > to`, the other pairs will shift down while the targeted pair moves up.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if `to` is out of bounds.
+    ///
+    /// # Examples
+    ///
+    /// Moving an entry to an index where `self.index() > to`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::{Any, TypeId};
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map = TypedProjIndexMap::from([
+    ///     ("foo",  1_i32),
+    ///     ("bar",  2_i32),
+    ///     ("baz",  3_i32),
+    ///     ("quux", 4_i32),
+    /// ]);
+    ///
+    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
+    /// assert_eq!(map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
+    /// assert_eq!(map.get_full("quux"), Some((3, &"quux", &4_i32)));
+    ///
+    /// let maybe_indexed_entry = map.get_index_entry(0);
+    ///
+    /// assert!(maybe_indexed_entry.is_some());
+    ///
+    /// let indexed_entry = maybe_indexed_entry.unwrap();
+    /// indexed_entry.move_index(3);
+    ///
+    /// assert_eq!(map.get_full("foo"),  Some((3, &"foo",  &1_i32)));
+    /// assert_eq!(map.get_full("bar"),  Some((0, &"bar",  &2_i32)));
+    /// assert_eq!(map.get_full("baz"),  Some((1, &"baz",  &3_i32)));
+    /// assert_eq!(map.get_full("quux"), Some((2, &"quux", &4_i32)));
+    /// ```
+    ///
+    /// Moving an entry to an index where `self.index() < to`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::{Any, TypeId};
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map = TypedProjIndexMap::from([
+    ///     ("foo",  1_i32),
+    ///     ("bar",  2_i32),
+    ///     ("baz",  3_i32),
+    ///     ("quux", 4_i32),
+    /// ]);
+    ///
+    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
+    /// assert_eq!(map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
+    /// assert_eq!(map.get_full("quux"), Some((3, &"quux", &4_i32)));
+    ///
+    /// let maybe_indexed_entry = map.get_index_entry(2);
+    ///
+    /// assert!(maybe_indexed_entry.is_some());
+    ///
+    /// let indexed_entry = maybe_indexed_entry.unwrap();
+    /// indexed_entry.move_index(0);
+    ///
+    /// assert_eq!(map.get_full("foo"),  Some((1, &"foo",  &1_i32)));
+    /// assert_eq!(map.get_full("bar"),  Some((2, &"bar",  &2_i32)));
+    /// assert_eq!(map.get_full("baz"),  Some((0, &"baz",  &3_i32)));
+    /// assert_eq!(map.get_full("quux"), Some((3, &"quux", &4_i32)));
+    /// ```
     #[track_caller]
     pub fn move_index(self, to: usize) {
         self.inner.move_index(to);
     }
 
+    /// Swaps the position of the indexed entry with the entry located at another storage index in
+    /// the index map.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if `other` is out of bounds.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::{Any, TypeId};
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map = TypedProjIndexMap::from([
+    ///     ("foo", 1_i32),
+    ///     ("bar", 2_i32),
+    ///     ("baz", 3_i32),
+    /// ]);
+    ///
+    /// assert_eq!(map.get_full("foo"), Some((0, &"foo", &1_i32)));
+    /// assert_eq!(map.get_full("baz"), Some((2, &"baz", &3_i32)));
+    ///
+    /// let maybe_indexed_entry = map.get_index_entry(0);
+    ///
+    /// assert!(maybe_indexed_entry.is_some());
+    ///
+    /// let indexed_entry = maybe_indexed_entry.unwrap();
+    /// indexed_entry.swap_indices(2);
+    ///
+    /// assert_eq!(map.get_full("foo"), Some((2, &"foo", &1_i32)));
+    /// assert_eq!(map.get_full("baz"), Some((0, &"baz", &3_i32)));
+    /// ```
     pub fn swap_indices(self, other: usize) {
         self.inner.swap_indices(other);
     }
