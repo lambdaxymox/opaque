@@ -930,6 +930,9 @@ where
 ///
 /// Unlike [`TypedProjIndexMap`] and [`OpaqueIndexMap`], `Slice` does consider the order for
 /// [`PartialEq`] and [`Eq`], and it also implements [`PartialOrd`], [`Ord`], and [`Hash`].
+///
+/// Slices are created by the [`TypedProjIndexMap::as_slice`], [`TypedProjIndexMap::as_mut_slice`],
+/// [`OpaqueIndexMap::as_slice`], and [`OpaqueIndexMap::as_mut_slice`] methods.
 #[repr(transparent)]
 pub struct Slice<K, V> {
     entries: map_inner::Slice<K, V>,
