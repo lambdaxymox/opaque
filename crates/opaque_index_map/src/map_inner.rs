@@ -1,9 +1,11 @@
 use crate::range_ops;
 use crate::slice_eq;
 use crate::equivalent::Equivalent;
+use crate::get_disjoint_mut_error::GetDisjointMutError;
 
 use core::any;
 use core::cmp;
+use core::error;
 use core::fmt;
 use core::iter;
 use core::mem;
@@ -719,6 +721,49 @@ impl<K, V> Slice<K, V> {
         P: FnMut(&K, &V) -> bool,
     {
         self.entries.partition_point(move |a| pred(&a.key, &a.value))
+    }
+
+    pub(crate) fn get_disjoint_mut<const N: usize>(
+        &mut self,
+        indices: [usize; N],
+    ) -> Result<[(&K, &mut V); N], GetDisjointMutError> {
+        let indices = indices.map(Some);
+        let key_values = self.get_disjoint_opt_mut(indices)?;
+
+        Ok(key_values.map(Option::unwrap))
+    }
+
+    pub(crate) fn get_disjoint_opt_mut<const N: usize>(
+        &mut self,
+        indices: [Option<usize>; N],
+    ) -> Result<[Option<(&K, &mut V)>; N], GetDisjointMutError> {
+        // SAFETY: We cannot allow duplicate indices as we would return several mutable references
+        // to the same data.
+        let len = self.len();
+        for i in 0..N {
+            if let Some(idx) = indices[i] {
+                if idx >= len {
+                    return Err(GetDisjointMutError::IndexOutOfBounds);
+                } else if indices[..i].contains(&Some(idx)) {
+                    return Err(GetDisjointMutError::OverlappingIndices);
+                }
+            }
+        }
+
+        let entries_ptr = self.entries.as_mut_ptr();
+        let out = indices.map(|idx_opt| {
+            match idx_opt {
+                Some(idx) => {
+                    // SAFETY: The base pointer is valid as it comes from a slice and the reference is always
+                    // in bounds and unique as we have already checked the indices above.
+                    let kv = unsafe { (*(entries_ptr.add(idx))).ref_mut() };
+                    Some(kv)
+                }
+                None => None,
+            }
+        });
+
+        Ok(out)
     }
 }
 
@@ -3385,6 +3430,29 @@ where
         }
     }
 
+    pub(crate) fn get_disjoint_mut<Q, const N: usize>(&mut self, keys: [&Q; N]) -> [Option<&mut V>; N]
+    where
+        Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
+    {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
+        let indices = keys.map(|key| self.get_index_of(key));
+        match self.as_mut_slice().get_disjoint_opt_mut(indices) {
+            Err(GetDisjointMutError::IndexOutOfBounds) => {
+                unreachable!(
+                    "Internal error: indices should never be OOB as we got them from get_index_of"
+                );
+            }
+            Err(GetDisjointMutError::OverlappingIndices) => {
+                panic!("duplicate keys found");
+            }
+            Ok(key_values) => key_values.map(|kv_opt| kv_opt.map(|kv| kv.1)),
+        }
+    }
+
     pub(crate) fn keys(&self) -> Keys<'_, K, V> {
         debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
         debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
@@ -4192,6 +4260,19 @@ where
         }
 
         Some(IndexedEntry::new(&mut self.inner, index))
+    }
+
+    pub(crate) fn get_disjoint_indices_mut<const N: usize>(
+        &mut self,
+        indices: [usize; N]
+    ) -> Result<[(&K, &mut V); N], GetDisjointMutError>
+    {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
+        self.as_mut_slice().get_disjoint_mut(indices)
     }
 
     pub(crate) fn get_range<R>(&self, range: R) -> Option<&Slice<K, V>>

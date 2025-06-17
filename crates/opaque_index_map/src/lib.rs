@@ -15,10 +15,12 @@ mod map_inner;
 mod slice_eq;
 
 pub mod equivalent;
+pub mod get_disjoint_mut_error;
 pub mod map;
 pub mod set;
 
 pub use crate::equivalent::Equivalent;
+pub use crate::get_disjoint_mut_error::GetDisjointMutError;
 pub use crate::map::{
     TypedProjIndexMap,
     OpaqueIndexMap,

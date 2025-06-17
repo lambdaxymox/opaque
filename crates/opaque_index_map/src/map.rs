@@ -1,4 +1,5 @@
 use crate::equivalent::Equivalent;
+use crate::get_disjoint_mut_error::GetDisjointMutError;
 use crate::map_inner::{Bucket, OpaqueIndexMapInner, TypedProjIndexMapInner};
 use crate::map_inner;
 
@@ -2848,6 +2849,84 @@ impl<K, V> Slice<K, V> {
         P: FnMut(&K, &V) -> bool,
     {
         self.entries.partition_point(pred)
+    }
+
+    /// Returns multiple references to the key/value pairs of multiple entries in the index map at once.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if there are any duplicate indices.
+    ///
+    /// # Examples
+    ///
+    /// Getting key/value pairs from a type-projected index map.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map = TypedProjIndexMap::from([
+    ///     (1_isize, 'a'),
+    ///     (3_isize, 'b'),
+    ///     (2_isize, 'c'),
+    ///     (6_isize, 'e'),
+    ///     (4_isize, 'f'),
+    ///     (5_isize, '@'),
+    /// ]);
+    /// let slice = map.as_mut_slice();
+    ///
+    /// let maybe_result = slice.get_disjoint_mut([2, 1, 5]);
+    ///
+    /// assert!(maybe_result.is_ok());
+    ///
+    /// let result = maybe_result.unwrap();
+    ///
+    /// assert_eq!(result[0], (&2_isize, &mut 'c'));
+    /// assert_eq!(result[1], (&3_isize, &mut 'b'));
+    /// assert_eq!(result[2], (&5_isize, &mut '@'));
+    /// ```
+    ///
+    /// Getting key/value pairs from a type-erased index map.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map = OpaqueIndexMap::from([
+    ///     (1_isize, 'a'),
+    ///     (3_isize, 'b'),
+    ///     (2_isize, 'c'),
+    ///     (6_isize, 'e'),
+    ///     (4_isize, 'f'),
+    ///     (5_isize, '@'),
+    /// ]);
+    /// let slice = map.as_mut_slice::<isize, char, RandomState, Global>();
+    ///
+    /// let maybe_result = slice.get_disjoint_mut([2, 1, 5]);
+    ///
+    /// assert!(maybe_result.is_ok());
+    ///
+    /// let result = maybe_result.unwrap();
+    ///
+    /// assert_eq!(result[0], (&2_isize, &mut 'c'));
+    /// assert_eq!(result[1], (&3_isize, &mut 'b'));
+    /// assert_eq!(result[2], (&5_isize, &mut '@'));
+    /// ```
+    pub fn get_disjoint_mut<const N: usize>(
+        &mut self,
+        indices: [usize; N],
+    ) -> Result<[(&K, &mut V); N], GetDisjointMutError> {
+        self.entries.get_disjoint_mut(indices)
     }
 }
 
@@ -5737,6 +5816,41 @@ where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
         self.inner.get_full_mut(key)
+    }
+
+    /// Returns multiple references to the values of multiple keys at once.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if there are any duplicate keys.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map = TypedProjIndexMap::from([
+    ///     (1_isize, 'a'),
+    ///     (3_isize, 'b'),
+    ///     (2_isize, 'c'),
+    ///     (6_isize, 'e'),
+    ///     (4_isize, 'f'),
+    ///     (5_isize, '@'),
+    /// ]);
+    ///
+    /// assert_eq!(map.get_disjoint_mut([&2, &1, &5]), [Some(&mut 'c'), Some(&mut 'a'), Some(&mut '@')]);
+    /// ```
+    pub fn get_disjoint_mut<Q, const N: usize>(&mut self, keys: [&Q; N]) -> [Option<&mut V>; N]
+    where
+        Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
+    {
+        self.inner.get_disjoint_mut(keys)
     }
 
     /// Returns an iterator over the keys in the index map.
@@ -9206,6 +9320,50 @@ where
         self.inner.get_index_entry(index).map(IndexedEntry::new)
     }
 
+    /// Returns multiple references to the values of the entries at multiple storage indices at once.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if there are any duplicate indices.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map = TypedProjIndexMap::from([
+    ///     (1_isize, 'a'),
+    ///     (3_isize, 'b'),
+    ///     (2_isize, 'c'),
+    ///     (6_isize, 'e'),
+    ///     (4_isize, 'f'),
+    ///     (5_isize, '@'),
+    /// ]);
+    ///
+    /// let maybe_result = map.get_disjoint_indices_mut([2, 1, 5]);
+    ///
+    /// assert!(maybe_result.is_ok());
+    ///
+    /// let result = maybe_result.unwrap();
+    ///
+    /// assert_eq!(result[0], (&2_isize, &mut 'c'));
+    /// assert_eq!(result[1], (&3_isize, &mut 'b'));
+    /// assert_eq!(result[2], (&5_isize, &mut '@'));
+    /// ```
+    pub fn get_disjoint_indices_mut<const N: usize>(
+        &mut self,
+        indices: [usize; N]
+    ) -> Result<[(&K, &mut V); N], GetDisjointMutError>
+    {
+        self.inner.get_disjoint_indices_mut(indices)
+    }
+
     /// Returns a slice of entries in the index map in the given storage range in the map.
     ///
     /// If the range `range` is in bounds, this method returns `Some(&slice)`, where `slice` is the
@@ -11818,6 +11976,54 @@ impl OpaqueIndexMap {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
 
         proj_self.get_full_mut(key)
+    }
+
+    /// Returns multiple references to the values of multiple keys at once.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if there are any duplicate keys.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map = OpaqueIndexMap::from([
+    ///     (1_isize, 'a'),
+    ///     (3_isize, 'b'),
+    ///     (2_isize, 'c'),
+    ///     (6_isize, 'e'),
+    ///     (4_isize, 'f'),
+    ///     (5_isize, '@'),
+    /// ]);
+    /// #
+    /// # assert!(map.has_key_type::<isize>());
+    /// # assert!(map.has_value_type::<char>());
+    /// # assert!(map.has_build_hasher_type::<RandomState>());
+    /// # assert!(map.has_allocator_type::<Global>());
+    /// #
+    ///
+    /// assert_eq!(map.get_disjoint_mut::<_, 3, isize, char, RandomState, Global>([&2, &1, &5]), [Some(&mut 'c'), Some(&mut 'a'), Some(&mut '@')]);
+    /// ```
+    pub fn get_disjoint_mut<Q, const N: usize, K, V, S, A>(&mut self, keys: [&Q; N]) -> [Option<&mut V>; N]
+    where
+        K: any::Any,
+        V: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+        Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
+    {
+        let proj_self = self.as_proj_mut::<K, V, S, A>();
+
+        proj_self.get_disjoint_mut(keys)
     }
 
     /// Returns an iterator over the keys in the index map.
@@ -16721,6 +16927,55 @@ impl OpaqueIndexMap {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
 
         proj_self.get_index_entry(index)
+    }
+
+    /// Returns multiple references to the values of the entries at multiple storage indices at once.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if there are any duplicate indices.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut map = OpaqueIndexMap::from([
+    ///     (1_isize, 'a'),
+    ///     (3_isize, 'b'),
+    ///     (2_isize, 'c'),
+    ///     (6_isize, 'e'),
+    ///     (4_isize, 'f'),
+    ///     (5_isize, '@'),
+    /// ]);
+    ///
+    /// let maybe_result = map.get_disjoint_indices_mut::<3, isize, char, RandomState, Global>([2, 1, 5]);
+    ///
+    /// assert!(maybe_result.is_ok());
+    ///
+    /// let result = maybe_result.unwrap();
+    ///
+    /// assert_eq!(result[0], (&2_isize, &mut 'c'));
+    /// assert_eq!(result[1], (&3_isize, &mut 'b'));
+    /// assert_eq!(result[2], (&5_isize, &mut '@'));
+    /// ```
+    pub fn get_disjoint_indices_mut<const N: usize, K, V, S, A>(&mut self, indices: [usize; N]) -> Result<[(&K, &mut V); N], GetDisjointMutError>
+    where
+        K: any::Any + Ord,
+        V: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_self = self.as_proj_mut::<K, V, S, A>();
+
+        proj_self.get_disjoint_indices_mut(indices)
     }
 
     /// Returns a slice of entries in the index map in the given storage range in the map.

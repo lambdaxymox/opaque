@@ -64,4 +64,5 @@ impl fmt::Display for TryReserveError {
     }
 }
 
+#[cfg(feature = "std")]
 impl core::error::Error for TryReserveError {}
