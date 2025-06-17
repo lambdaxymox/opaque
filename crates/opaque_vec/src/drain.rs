@@ -13,6 +13,8 @@ use opaque_alloc::TypedProjAlloc;
 
 /// A draining iterator for [`TypedProjVec`] and [`OpaqueVec`].
 ///
+/// Draining iterators are created by the [`TypedProjVec::drain`] and [`OpaqueVec::drain`] methods.
+///
 /// # Examples
 ///
 /// Using a draining iterator on a type-projected vector.

@@ -17,7 +17,7 @@ use std::hash;
 
 #[cfg(not(feature = "std"))]
 use core::hash;
-
+use std::hash::Hash;
 use opaque_alloc::TypedProjAlloc;
 use opaque_error::{
     TryReserveError,
@@ -26,6 +26,9 @@ use opaque_hash::TypedProjBuildHasher;
 use opaque_vec::TypedProjVec;
 
 /// A draining iterator over the entries of a [`TypedProjIndexMap`] or [`OpaqueIndexMap`].
+///
+/// Draining iterators are created by the [`TypedProjIndexMap::drain`] or [`OpaqueIndexMap::entry`]
+/// methods.
 ///
 /// # Examples
 ///
@@ -242,7 +245,8 @@ where
 
 /// An iterator over the keys of the entries of the index map.
 ///
-/// This iterator returns the keys in the storage order of the entries in the index map.
+/// This iterator returns the keys in the storage order of the entries in the index map. Key iterators
+/// are created by the [`TypedProjIndexMap::keys`] and [`OpaqueIndexMap::keys`] methods.
 ///
 /// # Examples
 ///
@@ -361,7 +365,9 @@ impl<'a, K, V> ops::Index<usize> for Keys<'a, K, V> {
 
 /// A moving iterator over the keys of the entries of the index map.
 ///
-/// This iterator returns the keys in the storage order of the entries in the index map.
+/// This iterator returns the keys in the storage order of the entries in the index map. Moving key
+/// iterators are created by the [`TypedProjIndexMap::into_keys`] and [`OpaqueIndexMap::into_keys`]
+/// methods.
 ///
 /// # Examples
 ///
@@ -510,7 +516,8 @@ where
 
 /// An iterator over the values of the entries of the index map.
 ///
-/// This iterator returns the values in the storage order of the entries in the index map.
+/// This iterator returns the values in the storage order of the entries in the index map. Value
+/// iterators are created by the [`TypedProjIndexMap::values`] and [`OpaqueIndexMap::values`] methods.
 ///
 /// # Examples
 ///
@@ -628,7 +635,9 @@ impl<K, V> Default for Values<'_, K, V> {
 
 /// A mutable iterator over the values of the entries of the index map.
 ///
-/// This iterator returns the values in the storage order of the entries in the index map.
+/// This iterator returns the values in the storage order of the entries in the index map. Mutable values
+/// iterators are created by the [`TypedProjIndexMap::values_mut`] and [`OpaqueIndexMap::values_mut`]
+/// methods.
 ///
 /// # Examples
 ///
@@ -764,7 +773,9 @@ impl<K, V> Default for ValuesMut<'_, K, V> {
 
 /// A moving iterator over the values of the entries of the index map.
 ///
-/// This iterator returns the values in the storage order of the entries in the index map.
+/// This iterator returns the values in the storage order of the entries in the index map. Moving value
+/// iterators are created by the [`TypedProjIndexMap::into_values`] and [`OpaqueIndexMap::into_values`]
+/// methods.
 ///
 /// # Examples
 ///
@@ -912,7 +923,13 @@ where
     }
 }
 
-
+/// A dynamically-sized slice of entries in an index map.
+///
+/// This supports indexed operations much like a `[(K, V)]` slice, but no hashed operations on the
+/// index map keys.
+///
+/// Unlike [`TypedProjIndexMap`] and [`OpaqueIndexMap`], `Slice` does consider the order for
+/// [`PartialEq`] and [`Eq`], and it also implements [`PartialOrd`], [`Ord`], and [`Hash`].
 #[repr(transparent)]
 pub struct Slice<K, V> {
     entries: map_inner::Slice<K, V>,
@@ -3156,6 +3173,8 @@ impl_index_for_index_map_slice!(
 
 /// An immutable iterator over the entries of an index map.
 ///
+/// Iterators are created by the [`TypedProjIndexMap::iter`] and [`OpaqueIndexMap::iter`] methods.
+///
 /// # Examples
 ///
 /// Iterating over the entries of a type-projected index map.
@@ -3345,6 +3364,9 @@ impl<K, V> Default for Iter<'_, K, V> {
 }
 
 /// A mutable iterator over the entries of an index map.
+///
+/// Mutable iterators are created by the [`TypedProjIndexMap::iter_mut`] and [`OpaqueIndexMap::iter_mut`]
+/// methods.
 ///
 /// # Examples
 ///
@@ -3584,6 +3606,9 @@ impl<K, V> Default for IterMut<'_, K, V> {
 }
 
 /// A moving iterator over the entries of an index map.
+///
+/// Moving iterators are created by the [`TypedProjIndexMap::into_iter`] and [`OpaqueIndexMap::into_iter`]
+/// methods.
 ///
 /// # Examples
 ///
@@ -3878,9 +3903,14 @@ where
     }
 }
 
-/// An iterator that drains a slice of an index map, then splices a new slice in place
-/// of the drained slice. If an entry in the new slice has the same key as an entry in the remaining
+/// An iterator that drains a slice of an index map, then splices a new slice in place of the
+/// drained slice.
+///
+/// If an entry in the new slice has the same key as an entry in the remaining
 /// entries of the index map, that entry is updated with the new value from the splicing iterator.
+///
+/// Splicing iterators are created by the [`TypedProjIndexMap::splice`] and [`OpaqueIndexMap::splice`]
+/// methods.
 ///
 /// # Examples
 ///
@@ -4085,7 +4115,7 @@ where
 /// A view into a single entry in a [`TypedProjIndexMap`] or an [`OpaqueIndexMap`], which may be
 /// occupied or vacant.
 ///
-/// Entries are produced by the methods [`TypedProjIndexMap::entry`] and [`OpaqueIndexMap::entry`].
+/// Entries are produced by the [`TypedProjIndexMap::entry`] and [`OpaqueIndexMap::entry`] methods.
 pub enum Entry<'a, K, V, A = alloc::Global>
 where
     K: any::Any,

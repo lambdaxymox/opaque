@@ -19,6 +19,8 @@ const fn assuming_non_null<T>(item: *const T) -> NonNull<T> {
 
 /// An iterator that moves elements out of a collection.
 ///
+/// Moving iterators are created by the [`TypedProjVec::into_iter`] and [`OpaqueVec::into_iter`] methods.
+///
 /// # Examples
 ///
 /// Using a moving iterator on a type-projected vector.
