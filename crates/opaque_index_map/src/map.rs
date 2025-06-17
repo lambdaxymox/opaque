@@ -4119,6 +4119,55 @@ where
 /// occupied or vacant.
 ///
 /// Entries are obtained by the [`TypedProjIndexMap::entry`] and [`OpaqueIndexMap::entry`] methods.
+///
+/// # Examples
+///
+/// ```
+/// # #![feature(allocator_api)]
+/// # use opaque_index_map::TypedProjIndexMap;
+/// # use opaque_hash::TypedProjBuildHasher;
+/// # use opaque_alloc::TypedProjAlloc;
+/// # use opaque_vec::TypedProjVec;
+/// # use std::any::TypeId;
+/// # use std::hash::RandomState;
+/// # use std::alloc::Global;
+/// #
+/// let mut proj_map: TypedProjIndexMap<&str, i32> = TypedProjIndexMap::from([
+///     ("foo",  1_i32),
+///     ("bar",  2_i32),
+///     ("baz",  4_i32),
+///     ("quux", 8_i32),
+/// ]);
+///
+/// assert_eq!(proj_map.len(), 4);
+///
+/// assert_eq!(proj_map.entry("foo").key(), &"foo");
+/// assert_eq!(proj_map.entry("bar").key(), &"bar");
+/// assert_eq!(proj_map.entry("baz").key(), &"baz");
+/// assert_eq!(proj_map.entry("quux").key(), &"quux");
+///
+/// // Vacant entries also return their keys.
+/// assert_eq!(proj_map.entry("quuz").key(), &"quuz");
+/// assert_eq!(proj_map.entry("garply").key(), &"garply");
+///
+/// assert_eq!(proj_map.entry("foo").index(), 0);
+/// assert_eq!(proj_map.entry("bar").index(), 1);
+/// assert_eq!(proj_map.entry("baz").index(), 2);
+/// assert_eq!(proj_map.entry("quux").index(), 3);
+///
+/// // Vacant entries have the length of the index map as their index.
+/// assert_eq!(proj_map.entry("quuz").index(), proj_map.len());
+/// assert_eq!(proj_map.entry("garply").index(), proj_map.len());
+///
+/// assert_eq!(proj_map.len(), 4);
+///
+/// proj_map.entry("quuz").insert_entry(16_i32);
+///
+/// assert_eq!(proj_map.len(), 5);
+///
+/// assert_eq!(proj_map.entry("quuz").index(), 4);
+/// assert_eq!(proj_map.entry("garply").index(), 5);
+/// ```
 pub enum Entry<'a, K, V, A = alloc::Global>
 where
     K: any::Any,
@@ -5507,6 +5556,44 @@ where
 ///
 /// Indexed entries are obtained from the [`TypedProjIndexMap::get_index_entry`] and
 /// [`OpaqueIndexMap::get_index_entry`] methods.
+///
+/// # Examples
+///
+/// ```
+/// # #![feature(allocator_api)]
+/// # use opaque_index_map::TypedProjIndexMap;
+/// # use opaque_hash::TypedProjBuildHasher;
+/// # use opaque_alloc::TypedProjAlloc;
+/// # use opaque_vec::TypedProjVec;
+/// # use std::any::TypeId;
+/// # use std::cmp::Ordering;
+/// # use std::hash::RandomState;
+/// # use std::alloc::Global;
+/// #
+/// let mut proj_map = TypedProjIndexMap::from([
+///     (1_usize, 10_i32),
+///     (2_usize, 40_i32),
+///     (3_usize, 30_i32),
+/// ]);
+///
+/// assert!(proj_map.get_index_entry(0).is_some());
+/// assert!(proj_map.get_index_entry(1).is_some());
+/// assert!(proj_map.get_index_entry(2).is_some());
+///
+/// assert_eq!(proj_map.get_index_entry(0).unwrap().key(), &1_usize);
+/// assert_eq!(proj_map.get_index_entry(0).unwrap().index(), 0);
+/// assert_eq!(proj_map.get_index_entry(0).unwrap().get(), &10_i32);
+///
+/// assert_eq!(proj_map.get_index_entry(1).unwrap().key(), &2_usize);
+/// assert_eq!(proj_map.get_index_entry(1).unwrap().index(), 1);
+/// assert_eq!(proj_map.get_index_entry(1).unwrap().get(), &40_i32);
+///
+/// assert_eq!(proj_map.get_index_entry(2).unwrap().key(), &3_usize);
+/// assert_eq!(proj_map.get_index_entry(2).unwrap().index(), 2);
+/// assert_eq!(proj_map.get_index_entry(2).unwrap().get(), &30_i32);
+///
+/// assert!(proj_map.get_index_entry(3).is_none());
+/// ```
 pub struct IndexedEntry<'a, K, V, A = alloc::Global>
 where
     K: any::Any,
