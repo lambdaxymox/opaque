@@ -1681,7 +1681,7 @@ where
     ///
     /// This method is safe to call if the following conditions hold:
     /// * The length `new_len` is less than or equal to `self.capacity()`.
-    /// * The elements in the subslice `self.len()..new_len` must be initialized.
+    /// * The elements in the subslice `[self.len(), new_len)` must be initialized.
     ///
     /// # Examples
     ///
@@ -2103,11 +2103,12 @@ where
     }
 
     /// Inserts a new value into a type-projected vector, shifting the old value and all values after
-    /// it to the right in the collection.
+    /// it up in the collection.
     ///
     /// This method behaves with respect to `index` as follows:
     /// * If `index < self.len()`, it shifts the current value at `index` and all successive values
-    ///   in the collection to the right in the collection, reallocating if needed.
+    ///   in the collection up one index, reallocating if needed. This method inserts the value
+    ///   `value` at the position with index `index`.
     /// * If `index == self.len()`, it pushes `value` to the end of the collection.
     /// * If `index > self.len()`, it panics.
     ///
@@ -2192,12 +2193,12 @@ where
         self.inner.swap_remove(index)
     }
 
-    /// Removes a value from a type-projected vector, shifting every successive value in the collection to
-    /// the left one index to fill where the removed value occupies the collection.
+    /// Removes a value from a type-projected vector, shifting every successive value in the collection
+    /// down one index to fill where the removed value occupies the collection.
     ///
     /// This method behaves with respect to `index` as follows:
     /// * If `index < self.len()`, it moves the every successive value in the collection to
-    ///   the slot at `index` to the left one unit. Every value preceding the slot at `index` remains
+    ///   the slot at `index` down one unit. Every value preceding the slot at `index` remains
     ///   in the same location. In particular, the method acts like a [`pop`] when the last value in
     ///   the collection is shift-removed, because the sub-collection of successor values is empty.
     /// * If `index >= self.len()`, it panics.
@@ -6393,7 +6394,7 @@ impl OpaqueVec {
     ///
     /// This method is safe to call if the following conditions hold:
     /// * The length `new_len` is less than or equal to `self.capacity()`.
-    /// * The elements in the subslice `self.len()..new_len` must be initialized.
+    /// * The elements in the subslice `[self.len(), new_len)` must be initialized.
     ///
     /// # Panics
     ///
@@ -6941,11 +6942,12 @@ impl OpaqueVec {
     }
 
     /// Inserts a new value into a type-erased vector, shifting the old value and all values after
-    /// it to the right in the collection.
+    /// it up in the collection.
     ///
     /// This method behaves with respect to `index` as follows:
     /// * If `index < self.len()`, it shifts the current value at `index` and all successive values
-    ///   in the collection to the right in the collection, reallocating if needed.
+    ///   in the collection up one index, reallocating if needed. This method inserts the value
+    ///   `value` at the position with index `index`.
     /// * If `index == self.len()`, it pushes `value` to the end of the collection.
     /// * If `index > self.len()`, it panics.
     ///
@@ -7056,12 +7058,12 @@ impl OpaqueVec {
         proj_self.swap_remove(index)
     }
 
-    /// Removes a value from a type-erased vector, shifting every successive value in the collection to
-    /// the left one index to fill where the removed value occupies the collection.
+    /// Removes a value from a type-erased vector, shifting every successive value in the collection
+    /// down one index to fill where the removed value occupies the collection.
     ///
     /// This method behaves with respect to `index` as follows:
     /// * If `index < self.len()`, it moves the every successive value in the collection to
-    ///   the slot at `index` to the left one unit. Every value preceding the slot at `index` remains
+    ///   the slot at `index` down one unit. Every value preceding the slot at `index` remains
     ///   in the same location. In particular, the method acts like a [`pop`] when the last value in
     ///   the collection is shift-removed, because the sub-collection of successor values is empty.
     /// * If `index >= self.len()`, it panics.

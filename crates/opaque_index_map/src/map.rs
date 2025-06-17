@@ -17,7 +17,7 @@ use std::hash;
 
 #[cfg(not(feature = "std"))]
 use core::hash;
-use std::hash::Hash;
+
 use opaque_alloc::TypedProjAlloc;
 use opaque_error::{
     TryReserveError,
@@ -4964,8 +4964,8 @@ where
     /// other pairs in between.
     ///
     /// This method behaves as follows:
-    /// * If `self.index() < to`, the other pairs will shift right while the targeted pair moves left.
-    /// * If `self.index() > to`, the other pairs will shift left while the targeted pair moves right.
+    /// * If `self.index() < to`, the other pairs will shift up while the targeted pair moves down.
+    /// * If `self.index() > to`, the other pairs will shift down while the targeted pair moves up.
     ///
     /// # Panics
     ///
@@ -5646,7 +5646,7 @@ mod entry_assert_send_sync {
 ///
 /// # Indices
 ///
-/// The key-value pairs are stored in a packed range with no holes in the range `[0..self.len()]`.
+/// The key-value pairs are stored in a packed range with no holes in the range `[0, self.len()]`.
 /// Thus, one can always use the [`get_index_of`] or [`get_index`] methods to interact with key-value
 /// pairs inside the map by their storage index instead of their key.
 ///
@@ -8065,12 +8065,12 @@ where
     }
 
     /// Removes an entry from a type-projected index map, shifting every successive entry in the collection
-    /// in storage order to the left one index to fill where the removed entry occupies the collection.
+    /// in storage order down one index to fill where the removed entry occupies the collection.
     ///
     /// This method behaves with respect to `key` as follows:
     /// * If the key `key` exists in the index map, let `index` be its storage index.
     ///   If `index < self.len() - 1`, it moves every successive entry in the collection to the entry
-    ///   at storage index `index` to the left one unit. Every entry preceding the entry at index
+    ///   at storage index `index` down one unit. Every entry preceding the entry at index
     ///   `index` remains in the same location.  The method returns `Some(value)`, where `value` is
     ///    the value stored in the entry corresponding to the key `key` in the index map.
     /// * If the key `key` does not exist in the index map, the method returns `None`.
@@ -8153,12 +8153,12 @@ where
     }
 
     /// Removes an entry from a type-projected index map, shifting every successive entry in the collection
-    /// in storage order to the left one index to fill where the removed entry occupies the collection.
+    /// in storage order down one index to fill where the removed entry occupies the collection.
     ///
     /// This method behaves with respect to `key` as follows:
     /// * If the key `key` exists in the index map, let `index` be its storage index.
     ///   If `index < self.len() - 1`, it moves every successive entry in the collection to the entry
-    ///   at storage index `index` to the left one unit. Every entry preceding the entry at index
+    ///   at storage index `index` down one unit. Every entry preceding the entry at index
     ///   `index` remains in the same location. The method returns `Some((key, value))`, where
     ///   `(key, value)` is the key-value pair stored in the entry corresponding to the key `key` in
     ///    the index map.
@@ -8242,12 +8242,12 @@ where
     }
 
     /// Removes an entry from a type-projected index map, shifting every successive entry in the collection
-    /// in storage order to the left one index to fill where the removed entry occupies the collection.
+    /// in storage order down one index to fill where the removed entry occupies the collection.
     ///
     /// This method behaves with respect to `key` as follows:
     /// * If the key `key` exists in the index map, let `index` be its storage index.
     ///   If `index < self.len() - 1`, it moves every successive entry in the collection to the entry
-    ///   at storage index `index` to the left one unit. Every entry preceding the entry at index
+    ///   at storage index `index` down one unit. Every entry preceding the entry at index
     ///   `index` remains in the same location. The method returns `Some((index, key, value))`, where
     ///   `(key, value)` is the key-value pair stored in the entry corresponding to the key `key` in
     ///   the index map.
@@ -8612,19 +8612,19 @@ where
     /// * If an equivalent key to the key `key` exists in the index map, let `current_index` be the
     ///   storage index of the entry with the equivalent key to `key`.
     ///   - If `index > current_index`, this method moves the entry at `current_index` to `index - 1`,
-    ///     shifts each entry in `(current_index, index - 1]` left one index in the storage of the index
+    ///     shifts each entry in `(current_index, index - 1]` down one index in the storage of the index
     ///     map, replaces the old value of the entry `old_value` with the new value `value`, then
     ///     returns `(index - 1, Some(old_value))`.
     ///   - If `index < current_index`, this method moves the entry at `current_index` to `index`,
-    ///     shifts each entry in `[index, current_index)` right one index in the storage for the index
+    ///     shifts each entry in `[index, current_index)` up one index in the storage for the index
     ///     map, replaces the old value of the entry `old_value` with the new value `value`, then
     ///     returns `(index, Some(old_value))`.
     ///   - If `index == current_index`, this method replaces the old value of the entry `old_value`
     ///     with the new value `value`, no other entries get shifted or moved, then returns
     ///     `(index, Some(old_value))`.
     /// * If an equivalent key to the key `key` does not exist in the index map, the new entry is
-    ///   inserted exactly at the index `index`, every element in [index, self.len()) is shifted to
-    ///   the right one index, and the method returns `(index, None)`. When `index == self.len()`,
+    ///   inserted exactly at the index `index`, every element in `[index, self.len())` is shifted
+    ///   up one index, and the method returns `(index, None)`. When `index == self.len()`,
     ///   the interval `[index, self.len()] == [self.len(), self.len())` is empty, so no shifting occurs.
     ///
     /// # Panics
@@ -8814,19 +8814,19 @@ where
     /// This method behaves as follows:
     /// * If an equivalent key already exists in the map, let `current_index` be the storage index of
     ///   the entry with key equivalent to `key`.
-    ///   - If `index < current_index`, every entry in range `[index, current_index)` is shifted right
+    ///   - If `index < current_index`, every entry in range `[index, current_index)` is shifted up
     ///     one entry in the storage order, the current entry is moved from `current_index` to `index`,
     ///     the old value of the entry `old_value` is replaced with the new value `value`, and the method
     ///     returns `Some(old_value)`.
-    ///   - If `index > current_index`, every entry in range `(current_index, index]` is shifted left
+    ///   - If `index > current_index`, every entry in range `(current_index, index]` is shifted down
     ///     one entry in the storage order, the current entry is moved from `current_index` to `index`,
     ///     the old value of the entry `old_value` is replaced with the new value `value`, and the method
     ///     returns `Some(old_value)`.
     ///   - if `index == current_index`, no shifting occurs, the old value of the entry `old_value` is
     ///     replaced with the new value `value`, and the method returns `Some(old_value)`.
     /// * If an equivalent key does not exist in the index map, the new entry is inserted at the
-    ///   storage index `index`, and each entry in the range `[index, self.len())` is shifted to the
-    ///   right one index, and the method returns `None`.
+    ///   storage index `index`, and each entry in the range `[index, self.len())` is shifted
+    ///   up one index, and the method returns `None`.
     ///
     /// Note that an existing entry **cannot** be moved to the index `self.len()`.
     ///
@@ -10972,7 +10972,7 @@ where
     ///
     /// This method behaves as follows:
     /// * If `index < self.len()`, this method removes the entry at storage index `index`, and
-    ///   shifts each entry in `(index, self.len())` left one unit. This method removes and returns
+    ///   shifts each entry in `(index, self.len())` down one unit. This method removes and returns
     ///   `Some((key, value))`, where `key` is the key, and `value` is the value from the entry.
     /// * If `index >= self.len()`, the index `index` is out of bounds, so the method returns `None`.
     /// Note that when `self.len() == 1`, `self` is empty, so no shifting occurs.
@@ -11009,8 +11009,8 @@ where
     /// in between.
     ///
     /// This method behaves as follows:
-    /// * If `from < to`, the other pairs will shift right while the targeted pair moves left.
-    /// * If `from > to`, the other pairs will shift left while the targeted pair moves right.
+    /// * If `from < to`, the other pairs will shift up while the targeted pair moves down.
+    /// * If `from > to`, the other pairs will shift down while the targeted pair moves up.
     ///
     /// # Panics
     ///
@@ -14719,12 +14719,12 @@ impl OpaqueIndexMap {
     }
 
     /// Removes an entry from a type-erased index map, shifting every successive entry in the collection
-    /// in storage order to the left one index to fill where the removed entry occupies the collection.
+    /// in storage order down one index to fill where the removed entry occupies the collection.
     ///
     /// This method behaves with respect to `key` as follows:
     /// * If the key `key` exists in the index map, let `index` be its storage index.
     ///   If `index < self.len() - 1`, it moves every successive entry in the collection to the entry
-    ///   at storage index `index` to the left one unit. Every entry preceding the entry at index
+    ///   at storage index `index` down one unit. Every entry preceding the entry at index
     ///   `index` remains in the same location.  The method returns `Some(value)`, where `value` is
     ///    the value stored in the entry corresponding to the key `key` in the index map.
     /// * If the key `key` does not exist in the index map, the method returns `None`.
@@ -14875,12 +14875,12 @@ impl OpaqueIndexMap {
     }
 
     /// Removes an entry from a type-erased index map, shifting every successive entry in the collection
-    /// in storage order to the left one index to fill where the removed entry occupies the collection.
+    /// in storage order down one index to fill where the removed entry occupies the collection.
     ///
     /// This method behaves with respect to `key` as follows:
     /// * If the key `key` exists in the index map, let `index` be its storage index.
     ///   If `index < self.len() - 1`, it moves every successive entry in the collection to the entry
-    ///   at storage index `index` to the left one unit. Every entry preceding the entry at index
+    ///   at storage index `index` down one unit. Every entry preceding the entry at index
     ///   `index` remains in the same location. The method returns `Some((key, value))`, where
     ///   `(key, value)` is the key-value pair stored in the entry corresponding to the key `key` in
     ///    the index map.
@@ -15032,12 +15032,12 @@ impl OpaqueIndexMap {
     }
 
     /// Removes an entry from a type-erased index map, shifting every successive entry in the collection
-    /// in storage order to the left one index to fill where the removed entry occupies the collection.
+    /// in storage order down one index to fill where the removed entry occupies the collection.
     ///
     /// This method behaves with respect to `key` as follows:
     /// * If the key `key` exists in the index map, let `index` be its storage index.
     ///   If `index < self.len() - 1`, it moves every successive entry in the collection to the entry
-    ///   at storage index `index` to the left one unit. Every entry preceding the entry at index
+    ///   at storage index `index` down one unit. Every entry preceding the entry at index
     ///   `index` remains in the same location. The method returns `Some((index, key, value))`, where
     ///   `(key, value)` is the key-value pair stored in the entry corresponding to the key `key` in
     ///   the index map.
@@ -15570,19 +15570,19 @@ impl OpaqueIndexMap {
     /// * If an equivalent key to the key `key` exists in the index map, let `current_index` be the
     ///   storage index of the entry with the equivalent key to `key`.
     ///   - If `index > current_index`, this method moves the entry at `current_index` to `index - 1`,
-    ///     shifts each entry in `(current_index, index - 1]` left one index in the storage of the index
+    ///     shifts each entry in `(current_index, index - 1]` down one index in the storage of the index
     ///     map, replaces the old value of the entry `old_value` with the new value `value`, then
     ///     returns `(index - 1, Some(old_value))`.
     ///   - If `index < current_index`, this method moves the entry at `current_index` to `index`,
-    ///     shifts each entry in `[index, current_index)` right one index in the storage for the index
+    ///     shifts each entry in `[index, current_index)` up one index in the storage for the index
     ///     map, replaces the old value of the entry `old_value` with the new value `value`, then
     ///     returns `(index, Some(old_value))`.
     ///   - If `index == current_index`, this method replaces the old value of the entry `old_value`
     ///     with the new value `value`, no other entries get shifted or moved, then returns
     ///     `(index, Some(old_value))`.
     /// * If an equivalent key to the key `key` does not exist in the index map, the new entry is
-    ///   inserted exactly at the index `index`, every element in [index, self.len()) is shifted to
-    ///   the right one index, and the method returns `(index, None)`. When `index == self.len()`,
+    ///   inserted exactly at the index `index`, every element in `[index, self.len())` is shifted
+    ///   up one index, and the method returns `(index, None)`. When `index == self.len()`,
     ///   the interval `[index, self.len()] == [self.len(), self.len())` is empty, so no shifting occurs.
     ///
     /// # Panics
@@ -15807,19 +15807,19 @@ impl OpaqueIndexMap {
     /// This method behaves as follows:
     /// * If an equivalent key already exists in the map, let `current_index` be the storage index of
     ///   the entry with key equivalent to `key`.
-    ///   - If `index < current_index`, every entry in range `[index, current_index)` is shifted right
+    ///   - If `index < current_index`, every entry in range `[index, current_index)` is shifted up
     ///     one entry in the storage order, the current entry is moved from `current_index` to `index`,
     ///     the old value of the entry `old_value` is replaced with the new value `value`, and the method
     ///     returns `Some(old_value)`.
-    ///   - If `index > current_index`, every entry in range `(current_index, index]` is shifted left
+    ///   - If `index > current_index`, every entry in range `(current_index, index]` is shifted down
     ///     one entry in the storage order, the current entry is moved from `current_index` to `index`,
     ///     the old value of the entry `old_value` is replaced with the new value `value`, and the method
     ///     returns `Some(old_value)`.
     ///   - if `index == current_index`, no shifting occurs, the old value of the entry `old_value` is
     ///     replaced with the new value `value`, and the method returns `Some(old_value)`.
     /// * If an equivalent key does not exist in the index map, the new entry is inserted at the
-    ///   storage index `index`, and each entry in the range `[index, self.len())` is shifted to the
-    ///   right one index, and the method returns `None`.
+    ///   storage index `index`, and each entry in the range `[index, self.len())` is shifted
+    ///   up one index, and the method returns `None`.
     ///
     /// Note that an existing entry **cannot** be moved to the index `self.len()`.
     ///
@@ -18808,7 +18808,7 @@ impl OpaqueIndexMap {
     ///
     /// This method behaves as follows:
     /// * If `index < self.len()`, this method removes the entry at storage index `index`, and
-    ///   shifts each entry in `(index, self.len())` left one unit. This method removes and returns
+    ///   shifts each entry in `(index, self.len())` down one unit. This method removes and returns
     ///   `Some((key, value))`, where `key` is the key, and `value` is the value from the entry.
     /// * If `index >= self.len()`, the index `index` is out of bounds, so the method returns `None`.
     /// Note that when `self.len() == 1`, `self` is empty, so no shifting occurs.
@@ -18867,8 +18867,8 @@ impl OpaqueIndexMap {
     /// in between.
     ///
     /// This method behaves as follows:
-    /// * If `from < to`, the other pairs will shift right while the targeted pair moves left.
-    /// * If `from > to`, the other pairs will shift left while the targeted pair moves right.
+    /// * If `from < to`, the other pairs will shift up while the targeted pair moves down.
+    /// * If `from > to`, the other pairs will shift down while the targeted pair moves up.
     ///
     /// # Panics
     ///
@@ -19013,7 +19013,7 @@ impl OpaqueIndexMap {
     /// Clones a type-erased index map.
     ///
     /// This method acts identically to an implementation of the [`Clone`] trait on a type-projected
-    /// index map [`OpaqueIndexMap`], or a generic [`HashMap`].
+    /// index map [`TypedProjIndexMap`], or a generic [`HashMap`].
     ///
     /// # Panics
     ///
@@ -19126,7 +19126,7 @@ impl OpaqueIndexMap {
     /// Extends a type-erased index map.
     ///
     /// This method acts identically to an implementation of the [`Extend`] trait on a type-projected
-    /// index map [`OpaqueIndexMap`], or a generic [`HashMap`].
+    /// index map [`TypedProjIndexMap`], or a generic [`HashMap`].
     ///
     /// If the key of any entry from the iterable has an equivalent key in `self`, the value of
     /// the entry with the key `key` will be updated to the value from the iterator.
