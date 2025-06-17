@@ -1123,7 +1123,7 @@ impl<K, V> Slice<K, V> {
         self.entries.is_empty()
     }
 
-    /// Returns a (key reference, value reference) pair corresponding to the key/value pair stored at
+    /// Returns a (key reference, value reference) pair corresponding to the key-value pair stored at
     /// a given index in the index map slice, if it exists.
     ///
     /// If `index < self.len()`, this method returns `Some((&key, &value))`, where `key` is the key
@@ -1189,7 +1189,7 @@ impl<K, V> Slice<K, V> {
         self.entries.get_index(index)
     }
 
-    /// Returns a (key reference, mutable value reference) pair corresponding to the key/value pair stored at
+    /// Returns a (key reference, mutable value reference) pair corresponding to the key-value pair stored at
     /// a given index in the index map slice, if it exists.
     ///
     /// If `index < self.len()`, this method returns `Some((&key, &value))`, where `key` is the key
@@ -2851,7 +2851,7 @@ impl<K, V> Slice<K, V> {
         self.entries.partition_point(pred)
     }
 
-    /// Returns multiple references to the key/value pairs of multiple entries in the index map at once.
+    /// Returns multiple references to the key-value pairs of multiple entries in the index map at once.
     ///
     /// # Panics
     ///
@@ -2859,7 +2859,7 @@ impl<K, V> Slice<K, V> {
     ///
     /// # Examples
     ///
-    /// Getting key/value pairs from a type-projected index map.
+    /// Getting key-value pairs from a type-projected index map.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -2891,7 +2891,7 @@ impl<K, V> Slice<K, V> {
     /// assert_eq!(result[2], (&5_isize, &mut '@'));
     /// ```
     ///
-    /// Getting key/value pairs from a type-erased index map.
+    /// Getting key-value pairs from a type-erased index map.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -4496,15 +4496,15 @@ mod entry_assert_send_sync {
 ///
 /// # Ordering
 ///
-/// The key/value pairs are stored in the map in their insertion order, rather than by their
+/// The key-value pairs are stored in the map in their insertion order, rather than by their
 /// hash value, provided no removal method have been called on an entry in the map. In particular,
 /// inserting a new value into the map does not change the **storage order** of the other elements in
 /// the map.
 ///
 /// # Indices
 ///
-/// The key/value pairs are stored in a packed range with no holes in the range `[0..self.len()]`.
-/// Thus, one can always use the [`get_index_of`] or [`get_index`] methods to interact with key/value
+/// The key-value pairs are stored in a packed range with no holes in the range `[0..self.len()]`.
+/// Thus, one can always use the [`get_index_of`] or [`get_index`] methods to interact with key-value
 /// pairs inside the map by their storage index instead of their key.
 ///
 /// # Type Erasure And Type Projection
@@ -4802,7 +4802,7 @@ where
     /// memory allocator.
     ///
     /// This method *does not* allocate memory. In particular, the index map has zero capacity and will
-    /// not allocate memory until key/value pairs are inserted into it. The index map will have
+    /// not allocate memory until key-value pairs are inserted into it. The index map will have
     /// length zero until elements are inserted into it.
     ///
     /// # Examples
@@ -4914,7 +4914,7 @@ where
     /// Constructs a new index map with the given type-projected memory allocator.
     ///
     /// This method *does not* allocate memory. In particular, the index map has zero capacity and will
-    /// not allocate memory until key/value pairs are inserted into it. The index map will have
+    /// not allocate memory until key-value pairs are inserted into it. The index map will have
     /// length zero until elements are inserted into it.
     ///
     /// # Examples
@@ -5012,7 +5012,7 @@ where
     /// Constructs a new index map with the given hash builder and memory allocator.
     ///
     /// This method *does not* allocate memory. In particular, the index map has zero capacity and will
-    /// not allocate memory until key/value pairs are inserted into it. The index map will have
+    /// not allocate memory until key-value pairs are inserted into it. The index map will have
     /// length zero until elements are inserted into it.
     ///
     /// # Examples
@@ -5117,7 +5117,7 @@ where
     /// Constructs a new index map with the given memory allocator.
     ///
     /// This method *does not* allocate memory. In particular, the index map has zero capacity and will
-    /// not allocate memory until key/value pairs are inserted into it. The index map will have
+    /// not allocate memory until key-value pairs are inserted into it. The index map will have
     /// length zero until elements are inserted into it.
     ///
     /// # Examples
@@ -5211,7 +5211,7 @@ where
     /// Constructs a new index map with the given hash builder.
     ///
     /// This method *does not* allocate memory. In particular, the index map has zero capacity and will
-    /// not allocate memory until key/value pairs are inserted into it. The index map will have
+    /// not allocate memory until key-value pairs are inserted into it. The index map will have
     /// length zero until elements are inserted into it.
     ///
     /// # Examples
@@ -5298,7 +5298,7 @@ where
     /// Constructs a new index map.
     ///
     /// This method *does not* allocate memory. In particular, the index map has zero capacity and will
-    /// not allocate memory until key/value pairs are inserted into it. The index map will have
+    /// not allocate memory until key-value pairs are inserted into it. The index map will have
     /// length zero until elements are inserted into it.
     ///
     /// # Examples
@@ -5392,7 +5392,7 @@ where
 {
     /// Returns the capacity of the type-projected index map.
     ///
-    /// The **capacity** of a type-projected index map is the number of key/value pairs the index map
+    /// The **capacity** of a type-projected index map is the number of key-value pairs the index map
     /// can hold without reallocating memory.
     ///
     /// # Examples
@@ -5429,7 +5429,7 @@ where
 
     /// Returns the length of the type-projected index map.
     ///
-    /// The **length** of a type-projected index map is the number of key/value pairs stored inside it.
+    /// The **length** of a type-projected index map is the number of key-value pairs stored inside it.
     ///
     /// # Examples
     ///
@@ -5463,7 +5463,7 @@ where
 
     /// Determines whether the type-projected index map is empty.
     ///
-    /// A type-projected index map is **empty** if it contains no key/value pairs, i.e. its length is zero.
+    /// A type-projected index map is **empty** if it contains no key-value pairs, i.e. its length is zero.
     ///
     /// # Examples
     ///
@@ -5558,9 +5558,9 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    /// Returns the storage index of the key/value pair with the given key, if it exists in the index map.
+    /// Returns the storage index of the key-value pair with the given key, if it exists in the index map.
     ///
-    /// This method returns `Some(index)`, where `index` is the storage index of the key/value pair, if
+    /// This method returns `Some(index)`, where `index` is the storage index of the key-value pair, if
     /// the key `key` exists in `self`. This method returns `None` if the key `key` does not exist inside
     /// `self`.
     ///
@@ -5629,7 +5629,7 @@ where
         self.inner.contains_key(key)
     }
 
-    /// Returns a reference to the value corresponding to a key/value pair with the given key, if it
+    /// Returns a reference to the value corresponding to a key-value pair with the given key, if it
     /// exists in the index map.
     ///
     /// This method returns `Some(&value)` where `value` is the value corresponding to the key `key`
@@ -5665,7 +5665,7 @@ where
         self.inner.get(key)
     }
 
-    /// Returns a reference to the key and a reference to the value, of the key/value pair with the
+    /// Returns a reference to the key and a reference to the value, of the key-value pair with the
     /// given key, if it exists in the index map.
     ///
     /// This method returns `Some((&key, &value))` where `key` is the key stored in the map equivalent
@@ -5704,11 +5704,11 @@ where
         self.inner.get_key_value(key)
     }
 
-    /// Returns the storage index, a reference to the key and a reference to the value, of the key/value
+    /// Returns the storage index, a reference to the key and a reference to the value, of the key-value
     /// pair with the given key, if it exists in the index map.
     ///
     /// This method returns `Some((index, &key, &value))` where `index` is the storage index of the
-    /// key/value pair, `key` is the key stored in the map equivalent to the key provided by the method
+    /// key-value pair, `key` is the key stored in the map equivalent to the key provided by the method
     /// argument, and `value` is the value corresponding to the key `key` in `self`, if the equivalent
     /// key provided by the method argument exists inside `self`. This method returns `None` if the
     /// equivalent key provided by the method argument does not exist inside `self`.
@@ -5743,7 +5743,7 @@ where
         self.inner.get_full(key)
     }
 
-    /// Returns a mutable reference to the value corresponding to a key/value pair with the given key, if it
+    /// Returns a mutable reference to the value corresponding to a key-value pair with the given key, if it
     /// exists in the index map.
     ///
     /// This method returns `Some(&mut value)` where `value` is the value corresponding to the key `key`
@@ -5779,11 +5779,11 @@ where
         self.inner.get_mut(key)
     }
 
-    /// Returns the storage index, a reference to the key and a mutable reference to the value, of the key/value
+    /// Returns the storage index, a reference to the key and a mutable reference to the value, of the key-value
     /// pair with the given key, if it exists in the index map.
     ///
     /// This method returns `Some((index, &key, &mut value))` where `index` is the storage index of the
-    /// key/value pair, `key` is the key stored in the map equivalent to the key provided by the method
+    /// key-value pair, `key` is the key stored in the map equivalent to the key provided by the method
     /// argument, and `value` is the value corresponding to the key `key` in `self`, if the equivalent
     /// key provided by the method argument exists inside `self`. This method returns `None` if the
     /// equivalent key provided by the method argument does not exist inside `self`.
@@ -6761,7 +6761,7 @@ where
     ///   If `index < self.len() - 1`, it moves the last entry in the collection to the slot at
     ///   `index`, leaving the rest of the entries in place. If `index == self.len() - 1`, it removes
     ///   the entry from end of the collection with no reordering of the remaining entries in the collection.
-    ///   The method then returns `Some((key, value))`, where `(key, value)` is the key/value pair
+    ///   The method then returns `Some((key, value))`, where `(key, value)` is the key-value pair
     ///   stored in the index map corresponding to the key `key`.
     /// * If the key `key` does not exist in the index map, the method returns `None`.
     ///
@@ -6845,7 +6845,7 @@ where
     ///   If `index < self.len() - 1`, it moves the last entry in the collection to the slot at
     ///   `index`, leaving the rest of the entries in place. If `index == self.len() - 1`, it removes
     ///   the entry from end of the collection with no reordering of the remaining entries in the collection.
-    ///   The method then returns `Some((index, key, value))`, where `(key, value)` is the key/value
+    ///   The method then returns `Some((index, key, value))`, where `(key, value)` is the key-value
     ///   pair stored in the index map corresponding to the key `key`.
     /// * If the key `key` does not exist in the index map, the method returns `None`.
     ///
@@ -7017,7 +7017,7 @@ where
     ///   If `index < self.len() - 1`, it moves every successive entry in the collection to the entry
     ///   at storage index `index` to the left one unit. Every entry preceding the entry at index
     ///   `index` remains in the same location. The method returns `Some((key, value))`, where
-    ///   `(key, value)` is the key/value pair stored in the entry corresponding to the key `key` in
+    ///   `(key, value)` is the key-value pair stored in the entry corresponding to the key `key` in
     ///    the index map.
     /// * If the key `key` does not exist in the index map, the method returns `None`.
     ///
@@ -7106,7 +7106,7 @@ where
     ///   If `index < self.len() - 1`, it moves every successive entry in the collection to the entry
     ///   at storage index `index` to the left one unit. Every entry preceding the entry at index
     ///   `index` remains in the same location. The method returns `Some((index, key, value))`, where
-    ///   `(key, value)` is the key/value pair stored in the entry corresponding to the key `key` in
+    ///   `(key, value)` is the key-value pair stored in the entry corresponding to the key `key` in
     ///   the index map.
     /// * If the key `key` does not exist in the index map, the method returns `None`.
     ///
@@ -7187,7 +7187,7 @@ where
         self.inner.shift_remove_full(key)
     }
 
-    /// Returns a slice of all the key/value pairs in the index map.
+    /// Returns a slice of all the key-value pairs in the index map.
     ///
     /// # Examples
     ///
@@ -7220,7 +7220,7 @@ where
         Slice::from_slice(self.inner.as_slice())
     }
 
-    /// Returns a mutable slice of all the key/value pairs in the index map.
+    /// Returns a mutable slice of all the key-value pairs in the index map.
     ///
     /// # Examples
     ///
@@ -7358,7 +7358,7 @@ where
     /// ```text
     /// forall e1, e2 in self. e1 <= e2 <-> e1.key() <= e2.key() <-> e1.index() <= e2.index().
     /// ```
-    /// or equivalently over key/value pairs
+    /// or equivalently over key-value pairs
     /// ```text
     /// forall i1, i2 :: [0..self.len()]. forall k1, k2 :: K. forall v1, v2 :: V.
     /// (i1, (k1, v1)), (i2, (k2, v2)) in self --> (k1, v1) <= (k2, v2) <-> k1 <= k2 <-> i1 <= i2.
@@ -8103,7 +8103,7 @@ where
 {
     /// Removes and returns the last entry in the index map.
     ///
-    /// If `self` is nonempty, This method returns the last key/value pair in the index map
+    /// If `self` is nonempty, This method returns the last key-value pair in the index map
     /// as `Some((key, value))`. If `self` is empty, this method returns `None`.
     ///
     /// This method preserves the order of the remaining elements in the collection.
@@ -8165,7 +8165,7 @@ where
         self.inner.pop()
     }
 
-    /// Retains only the key/value pairs specified by the predicate.
+    /// Retains only the key-value pairs specified by the predicate.
     ///
     /// This method removes all entries `e` for which `keep(&e)` returns `false`. This method
     /// operates in place, visiting each element exactly once in the original order, and preserves
@@ -8228,7 +8228,7 @@ where
     /// ```text
     /// forall e1, e2 in self. e1 <= e2 <-> e1.key() <= e2.key() <-> e1.index() <= e2.index().
     /// ```
-    /// or equivalently over key/value pairs
+    /// or equivalently over key-value pairs
     /// ```text
     /// forall i1, i2 :: [0..self.len()]. forall k1, k2 :: K. forall v1, v2 :: V.
     /// (i1, (k1, v1)), (i2, (k2, v2)) in self --> (k1, v1) <= (k2, v2) <-> k1 <= k2 <-> i1 <= i2.
@@ -9201,7 +9201,7 @@ where
         Slice::from_boxed_slice(self.inner.into_boxed_slice())
     }
 
-    /// Returns a (key reference, value reference) pair corresponding to the key/value pair stored at
+    /// Returns a (key reference, value reference) pair corresponding to the key-value pair stored at
     /// a given storage index in the index map, if it exists.
     ///
     /// If `index < self.len()`, this method returns `Some((&key, &value))`, where `key` is the key
@@ -9236,7 +9236,7 @@ where
         self.inner.get_index(index)
     }
 
-    /// Returns a (key reference, mutable value reference) pair corresponding to the key/value pair stored at
+    /// Returns a (key reference, mutable value reference) pair corresponding to the key-value pair stored at
     /// a given storage index in the index map, if it exists.
     ///
     /// If `index < self.len()`, this method returns `Some((&key, &mut value))`, where `key` is the key
@@ -10680,7 +10680,7 @@ impl OpaqueIndexMap {
     /// memory allocator.
     ///
     /// This method *does not* allocate memory. In particular, the index map has zero capacity and will
-    /// not allocate memory until key/value pairs are inserted into it. The index map will have
+    /// not allocate memory until key-value pairs are inserted into it. The index map will have
     /// length zero until elements are inserted into it.
     ///
     /// # Examples
@@ -10808,7 +10808,7 @@ impl OpaqueIndexMap {
     /// Constructs a new index map with the given type-projected memory allocator.
     ///
     /// This method *does not* allocate memory. In particular, the index map has zero capacity and will
-    /// not allocate memory until key/value pairs are inserted into it. The index map will have
+    /// not allocate memory until key-value pairs are inserted into it. The index map will have
     /// length zero until elements are inserted into it.
     ///
     /// # Examples
@@ -10920,7 +10920,7 @@ impl OpaqueIndexMap {
     /// Constructs a new index map with the given hash builder and memory allocator.
     ///
     /// This method *does not* allocate memory. In particular, the index map has zero capacity and will
-    /// not allocate memory until key/value pairs are inserted into it. The index map will have
+    /// not allocate memory until key-value pairs are inserted into it. The index map will have
     /// length zero until elements are inserted into it.
     ///
     /// # Examples
@@ -11040,7 +11040,7 @@ impl OpaqueIndexMap {
     /// Constructs a new index map with the given memory allocator.
     ///
     /// This method *does not* allocate memory. In particular, the index map has zero capacity and will
-    /// not allocate memory until key/value pairs are inserted into it. The index map will have
+    /// not allocate memory until key-value pairs are inserted into it. The index map will have
     /// length zero until elements are inserted into it.
     ///
     /// # Examples
@@ -11149,7 +11149,7 @@ impl OpaqueIndexMap {
     /// Constructs a new index map with the given hash builder.
     ///
     /// This method *does not* allocate memory. In particular, the index map has zero capacity and will
-    /// not allocate memory until key/value pairs are inserted into it. The index map will have
+    /// not allocate memory until key-value pairs are inserted into it. The index map will have
     /// length zero until elements are inserted into it.
     ///
     /// # Examples
@@ -11262,7 +11262,7 @@ impl OpaqueIndexMap {
     /// Constructs a new index map.
     ///
     /// This method *does not* allocate memory. In particular, the index map has zero capacity and will
-    /// not allocate memory until key/value pairs are inserted into it. The index map will have
+    /// not allocate memory until key-value pairs are inserted into it. The index map will have
     /// length zero until elements are inserted into it.
     ///
     /// # Examples
@@ -11364,7 +11364,7 @@ impl OpaqueIndexMap {
 impl OpaqueIndexMap {
     /// Returns the capacity of the type-erased index map.
     ///
-    /// The **capacity** of a type-erased index map is the number of key/value pairs the index map
+    /// The **capacity** of a type-erased index map is the number of key-value pairs the index map
     /// can hold without reallocating memory.
     ///
     /// # Examples
@@ -11407,7 +11407,7 @@ impl OpaqueIndexMap {
 
     /// Returns the length of the type-erased index map.
     ///
-    /// The **length** of a type-erased index map is the number of key/value pairs stored inside it.
+    /// The **length** of a type-erased index map is the number of key-value pairs stored inside it.
     ///
     /// # Examples
     ///
@@ -11447,7 +11447,7 @@ impl OpaqueIndexMap {
 
     /// Determines whether the type-erased index map is empty.
     ///
-    /// A type-erased index map is **empty** if it contains no key/value pairs, i.e. its length is zero.
+    /// A type-erased index map is **empty** if it contains no key-value pairs, i.e. its length is zero.
     ///
     /// # Examples
     ///
@@ -11578,9 +11578,9 @@ impl OpaqueIndexMap {
 }
 
 impl OpaqueIndexMap {
-    /// Returns the storage index of the key/value pair with the given key, if it exists in the index map.
+    /// Returns the storage index of the key-value pair with the given key, if it exists in the index map.
     ///
-    /// This method returns `Some(index)`, where `index` is the storage index of the key/value pair, if
+    /// This method returns `Some(index)`, where `index` is the storage index of the key-value pair, if
     /// the key `key` exists in `self`. This method returns `None` if the key `key` does not exist inside
     /// `self`.
     ///
@@ -11689,7 +11689,7 @@ impl OpaqueIndexMap {
         proj_self.contains_key(key)
     }
 
-    /// Returns a reference to the value corresponding to a key/value pair with the given key, if it
+    /// Returns a reference to the value corresponding to a key-value pair with the given key, if it
     /// exists in the index map.
     ///
     /// This method returns `Some(&value)` where `value` is the value corresponding to the key `key`
@@ -11745,7 +11745,7 @@ impl OpaqueIndexMap {
         proj_self.get(key)
     }
 
-    /// Returns a reference to the key and a reference to the value, of the key/value pair with the
+    /// Returns a reference to the key and a reference to the value, of the key-value pair with the
     /// given key, if it exists in the index map.
     ///
     /// This method returns `Some((&key, &value))` where `key` is the key stored in the map equivalent
@@ -11804,11 +11804,11 @@ impl OpaqueIndexMap {
         proj_self.get_key_value(key)
     }
 
-    /// Returns the storage index, a reference to the key and a reference to the value, of the key/value
+    /// Returns the storage index, a reference to the key and a reference to the value, of the key-value
     /// pair with the given key, if it exists in the index map.
     ///
     /// This method returns `Some((index, &key, &value))` where `index` is the storage index of the
-    /// key/value pair, `key` is the key stored in the map equivalent to the key provided by the method
+    /// key-value pair, `key` is the key stored in the map equivalent to the key provided by the method
     /// argument, and `value` is the value corresponding to the key `key` in `self`, if the equivalent
     /// key provided by the method argument exists inside `self`. This method returns `None` if the
     /// equivalent key provided by the method argument does not exist inside `self`.
@@ -11863,7 +11863,7 @@ impl OpaqueIndexMap {
         proj_self.get_full(key)
     }
 
-    /// Returns a mutable reference to the value corresponding to a key/value pair with the given key, if it
+    /// Returns a mutable reference to the value corresponding to a key-value pair with the given key, if it
     /// exists in the index map.
     ///
     /// This method returns `Some(&mut value)` where `value` is the value corresponding to the key `key`
@@ -11919,11 +11919,11 @@ impl OpaqueIndexMap {
         proj_self.get_mut(key)
     }
 
-    /// Returns the storage index, a reference to the key and a mutable reference to the value, of the key/value
+    /// Returns the storage index, a reference to the key and a mutable reference to the value, of the key-value
     /// pair with the given key, if it exists in the index map.
     ///
     /// This method returns `Some((index, &key, &mut value))` where `index` is the storage index of the
-    /// key/value pair, `key` is the key stored in the map equivalent to the key provided by the method
+    /// key-value pair, `key` is the key stored in the map equivalent to the key provided by the method
     /// argument, and `value` is the value corresponding to the key `key` in `self`, if the equivalent
     /// key provided by the method argument exists inside `self`. This method returns `None` if the
     /// equivalent key provided by the method argument does not exist inside `self`.
@@ -12028,7 +12028,7 @@ impl OpaqueIndexMap {
 
     /// Returns an iterator over the keys in the index map.
     ///
-    /// The iterator returns the keys in the storage order of the key/value pairs inside the index map.
+    /// The iterator returns the keys in the storage order of the key-value pairs inside the index map.
     ///
     /// # Panics
     ///
@@ -12090,7 +12090,7 @@ impl OpaqueIndexMap {
 
     /// Returns a moving iterator over the keys in the index map.
     ///
-    /// The iterator returns the keys in the storage order of the key/value pairs inside the index map.
+    /// The iterator returns the keys in the storage order of the key-value pairs inside the index map.
     ///
     /// # Panics
     ///
@@ -12321,7 +12321,7 @@ impl OpaqueIndexMap {
 
     /// Returns an iterator over the values in the index map.
     ///
-    /// The iterator returns the values in the storage order of the key/value pairs inside the index map.
+    /// The iterator returns the values in the storage order of the key-value pairs inside the index map.
     ///
     /// # Panics
     ///
@@ -12382,7 +12382,7 @@ impl OpaqueIndexMap {
 
     /// Returns a mutable iterator over the values in the index map.
     ///
-    /// The iterator returns the values in the storage order of the key/value pairs inside the index map.
+    /// The iterator returns the values in the storage order of the key-value pairs inside the index map.
     ///
     /// # Panics
     ///
@@ -12482,7 +12482,7 @@ impl OpaqueIndexMap {
 
     /// Returns a moving iterator over the values in the index map.
     ///
-    /// The iterator returns the values in the storage order of the key/value pairs inside the index map.
+    /// The iterator returns the values in the storage order of the key-value pairs inside the index map.
     ///
     /// # Panics
     ///
@@ -13279,7 +13279,7 @@ impl OpaqueIndexMap {
     ///   If `index < self.len() - 1`, it moves the last entry in the collection to the slot at
     ///   `index`, leaving the rest of the entries in place. If `index == self.len() - 1`, it removes
     ///   the entry from end of the collection with no reordering of the remaining entries in the collection.
-    ///   The method then returns `Some((key, value))`, where `(key, value)` is the key/value pair
+    ///   The method then returns `Some((key, value))`, where `(key, value)` is the key-value pair
     ///   stored in the index map corresponding to the key `key`.
     /// * If the key `key` does not exist in the index map, the method returns `None`.
     ///
@@ -13431,7 +13431,7 @@ impl OpaqueIndexMap {
     ///   If `index < self.len() - 1`, it moves the last entry in the collection to the slot at
     ///   `index`, leaving the rest of the entries in place. If `index == self.len() - 1`, it removes
     ///   the entry from end of the collection with no reordering of the remaining entries in the collection.
-    ///   The method then returns `Some((index, key, value))`, where `(key, value)` is the key/value
+    ///   The method then returns `Some((index, key, value))`, where `(key, value)` is the key-value
     ///   pair stored in the index map corresponding to the key `key`.
     /// * If the key `key` does not exist in the index map, the method returns `None`.
     ///
@@ -13739,7 +13739,7 @@ impl OpaqueIndexMap {
     ///   If `index < self.len() - 1`, it moves every successive entry in the collection to the entry
     ///   at storage index `index` to the left one unit. Every entry preceding the entry at index
     ///   `index` remains in the same location. The method returns `Some((key, value))`, where
-    ///   `(key, value)` is the key/value pair stored in the entry corresponding to the key `key` in
+    ///   `(key, value)` is the key-value pair stored in the entry corresponding to the key `key` in
     ///    the index map.
     /// * If the key `key` does not exist in the index map, the method returns `None`.
     ///
@@ -13896,7 +13896,7 @@ impl OpaqueIndexMap {
     ///   If `index < self.len() - 1`, it moves every successive entry in the collection to the entry
     ///   at storage index `index` to the left one unit. Every entry preceding the entry at index
     ///   `index` remains in the same location. The method returns `Some((index, key, value))`, where
-    ///   `(key, value)` is the key/value pair stored in the entry corresponding to the key `key` in
+    ///   `(key, value)` is the key-value pair stored in the entry corresponding to the key `key` in
     ///   the index map.
     /// * If the key `key` does not exist in the index map, the method returns `None`.
     ///
@@ -14045,7 +14045,7 @@ impl OpaqueIndexMap {
         proj_self.shift_remove_full(key)
     }
 
-    /// Returns a slice of all the key/value pairs in the index map.
+    /// Returns a slice of all the key-value pairs in the index map.
     ///
     /// # Panics
     ///
@@ -14100,7 +14100,7 @@ impl OpaqueIndexMap {
         proj_self.as_slice()
     }
 
-    /// Returns a mutable slice of all the key/value pairs in the index map.
+    /// Returns a mutable slice of all the key-value pairs in the index map.
     ///
     /// # Panics
     ///
@@ -14291,7 +14291,7 @@ impl OpaqueIndexMap {
     /// ```text
     /// forall e1, e2 in self. e1 <= e2 <-> e1.key() <= e2.key() <-> e1.index() <= e2.index().
     /// ```
-    /// or equivalently over key/value pairs
+    /// or equivalently over key-value pairs
     /// ```text
     /// forall i1, i2 :: [0..self.len()]. forall k1, k2 :: K. forall v1, v2 :: V.
     /// (i1, (k1, v1)), (i2, (k2, v2)) in self --> (k1, v1) <= (k2, v2) <-> k1 <= k2 <-> i1 <= i2.
@@ -15190,7 +15190,7 @@ impl OpaqueIndexMap {
 impl OpaqueIndexMap {
     /// Removes and returns the last entry in the index map.
     ///
-    /// If `self` is nonempty, This method returns the last key/value pair in the index map
+    /// If `self` is nonempty, This method returns the last key-value pair in the index map
     /// as `Some((key, value))`. If `self` is empty, this method returns `None`.
     ///
     /// This method preserves the order of the remaining elements in the collection.
@@ -15280,7 +15280,7 @@ impl OpaqueIndexMap {
         proj_self.pop()
     }
 
-    /// Retains only the key/value pairs specified by the predicate.
+    /// Retains only the key-value pairs specified by the predicate.
     ///
     /// This method removes all entries `e` for which `keep(&e)` returns `false`. This method
     /// operates in place, visiting each element exactly once in the original order, and preserves
@@ -15363,7 +15363,7 @@ impl OpaqueIndexMap {
     /// ```text
     /// forall e1, e2 in self. e1 <= e2 <-> e1.key() <= e2.key() <-> e1.index() <= e2.index().
     /// ```
-    /// or equivalently over key/value pairs
+    /// or equivalently over key-value pairs
     /// ```text
     /// forall i1, i2 :: [0..self.len()]. forall k1, k2 :: K. forall v1, v2 :: V.
     /// (i1, (k1, v1)), (i2, (k2, v2)) in self --> (k1, v1) <= (k2, v2) <-> k1 <= k2 <-> i1 <= i2.
@@ -16747,7 +16747,7 @@ impl OpaqueIndexMap {
         proj_self.into_boxed_slice()
     }
 
-    /// Returns a (key reference, value reference) pair corresponding to the key/value pair stored at
+    /// Returns a (key reference, value reference) pair corresponding to the key-value pair stored at
     /// a given storage index in the index map, if it exists.
     ///
     /// If `index < self.len()`, this method returns `Some((&key, &value))`, where `key` is the key
@@ -16804,7 +16804,7 @@ impl OpaqueIndexMap {
         proj_self.get_index(index)
     }
 
-    /// Returns a (key reference, mutable value reference) pair corresponding to the key/value pair stored at
+    /// Returns a (key reference, mutable value reference) pair corresponding to the key-value pair stored at
     /// a given storage index in the index map, if it exists.
     ///
     /// If `index < self.len()`, this method returns `Some((&key, &mut value))`, where `key` is the key
