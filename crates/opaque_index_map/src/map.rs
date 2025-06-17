@@ -4537,7 +4537,7 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// fn into_occupied<'a, K: Any, V: Any>(entry: Entry<'a, K, V>) -> OccupiedEntry<'a, K, V> {
+    /// fn into_occupied<K: Any, V: Any>(entry: Entry<'_, K, V>) -> OccupiedEntry<'_, K, V> {
     ///     match entry {
     ///         Entry::Occupied(occupied_entry) => occupied_entry,
     ///         _ => panic!("This method only destructures occupied entries")
@@ -4575,7 +4575,7 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// fn into_occupied<'a, K: Any, V: Any>(entry: Entry<'a, K, V>) -> OccupiedEntry<'a, K, V> {
+    /// fn into_occupied<K: Any, V: Any>(entry: Entry<'_, K, V>) -> OccupiedEntry<'_, K, V> {
     ///     match entry {
     ///         Entry::Occupied(occupied_entry) => occupied_entry,
     ///         _ => panic!("This method only destructures occupied entries")
@@ -4618,7 +4618,7 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// fn into_occupied<'a, K: Any, V: Any>(entry: Entry<'a, K, V>) -> OccupiedEntry<'a, K, V> {
+    /// fn into_occupied<K: Any, V: Any>(entry: Entry<'_, K, V>) -> OccupiedEntry<'_, K, V> {
     ///     match entry {
     ///         Entry::Occupied(occupied_entry) => occupied_entry,
     ///         _ => panic!("This method only destructures occupied entries")
@@ -4655,7 +4655,7 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// fn into_occupied<'a, K: Any, V: Any>(entry: Entry<'a, K, V>) -> OccupiedEntry<'a, K, V> {
+    /// fn into_occupied<K: Any, V: Any>(entry: Entry<'_, K, V>) -> OccupiedEntry<'_, K, V> {
     ///     match entry {
     ///         Entry::Occupied(occupied_entry) => occupied_entry,
     ///         _ => panic!("This method only destructures occupied entries")
@@ -4697,7 +4697,7 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// fn into_occupied<'a, K: Any, V: Any>(entry: Entry<'a, K, V>) -> OccupiedEntry<'a, K, V> {
+    /// fn into_occupied<K: Any, V: Any>(entry: Entry<'_, K, V>) -> OccupiedEntry<'_, K, V> {
     ///     match entry {
     ///         Entry::Occupied(occupied_entry) => occupied_entry,
     ///         _ => panic!("This method only destructures occupied entries")
@@ -4743,7 +4743,7 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// fn into_occupied<'a, K: Any, V: Any>(entry: Entry<'a, K, V>) -> OccupiedEntry<'a, K, V> {
+    /// fn into_occupied<K: Any, V: Any>(entry: Entry<'_, K, V>) -> OccupiedEntry<'_, K, V> {
     ///     match entry {
     ///         Entry::Occupied(occupied_entry) => occupied_entry,
     ///         _ => panic!("This method only destructures occupied entries")
@@ -4790,7 +4790,7 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// fn into_occupied<'a, K: Any, V: Any>(entry: Entry<'a, K, V>) -> OccupiedEntry<'a, K, V> {
+    /// fn into_occupied<K: Any, V: Any>(entry: Entry<'_, K, V>) -> OccupiedEntry<'_, K, V> {
     ///     match entry {
     ///         Entry::Occupied(occupied_entry) => occupied_entry,
     ///         _ => panic!("This method only destructures occupied entries")
@@ -4836,7 +4836,7 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// fn into_occupied<'a, K: Any, V: Any>(entry: Entry<'a, K, V>) -> OccupiedEntry<'a, K, V> {
+    /// fn into_occupied<K: Any, V: Any>(entry: Entry<'_, K, V>) -> OccupiedEntry<'_, K, V> {
     ///     match entry {
     ///         Entry::Occupied(occupied_entry) => occupied_entry,
     ///         _ => panic!("This method only destructures occupied entries")
@@ -4882,7 +4882,7 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// fn into_occupied<'a, K: Any, V: Any>(entry: Entry<'a, K, V>) -> OccupiedEntry<'a, K, V> {
+    /// fn into_occupied<K: Any, V: Any>(entry: Entry<'_, K, V>) -> OccupiedEntry<'_, K, V> {
     ///     match entry {
     ///         Entry::Occupied(occupied_entry) => occupied_entry,
     ///         _ => panic!("This method only destructures occupied entries")
@@ -4928,7 +4928,7 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// fn into_occupied<'a, K: Any, V: Any>(entry: Entry<'a, K, V>) -> OccupiedEntry<'a, K, V> {
+    /// fn into_occupied<K: Any, V: Any>(entry: Entry<'_, K, V>) -> OccupiedEntry<'_, K, V> {
     ///     match entry {
     ///         Entry::Occupied(occupied_entry) => occupied_entry,
     ///         _ => panic!("This method only destructures occupied entries")
@@ -4985,7 +4985,7 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// fn into_occupied<'a, K: Any, V: Any>(entry: Entry<'a, K, V>) -> OccupiedEntry<'a, K, V> {
+    /// fn into_occupied<K: Any, V: Any>(entry: Entry<'_, K, V>) -> OccupiedEntry<'_, K, V> {
     ///     match entry {
     ///         Entry::Occupied(occupied_entry) => occupied_entry,
     ///         _ => panic!("This method only destructures occupied entries")
@@ -5025,7 +5025,7 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// fn into_occupied<'a, K: Any, V: Any>(entry: Entry<'a, K, V>) -> OccupiedEntry<'a, K, V> {
+    /// fn into_occupied<K: Any, V: Any>(entry: Entry<'_, K, V>) -> OccupiedEntry<'_, K, V> {
     ///     match entry {
     ///         Entry::Occupied(occupied_entry) => occupied_entry,
     ///         _ => panic!("This method only destructures occupied entries")
@@ -5077,7 +5077,7 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// fn into_occupied<'a, K: Any, V: Any>(entry: Entry<'a, K, V>) -> OccupiedEntry<'a, K, V> {
+    /// fn into_occupied<K: Any, V: Any>(entry: Entry<'_, K, V>) -> OccupiedEntry<'_, K, V> {
     ///     match entry {
     ///         Entry::Occupied(occupied_entry) => occupied_entry,
     ///         _ => panic!("This method only destructures occupied entries")
@@ -5166,7 +5166,7 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// fn into_vacant<'a, K: Any, V: Any>(entry: Entry<'a, K, V>) -> VacantEntry<'a, K, V> {
+    /// fn into_vacant<K: Any, V: Any>(entry: Entry<'_, K, V>) -> VacantEntry<'_, K, V> {
     ///     match entry {
     ///         Entry::Vacant(vacant_entry) => vacant_entry,
     ///         _ => panic!("This method only destructures vacant entries")
@@ -5207,7 +5207,7 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// fn into_vacant<'a, K: Any, V: Any>(entry: Entry<'a, K, V>) -> VacantEntry<'a, K, V> {
+    /// fn into_vacant<K: Any, V: Any>(entry: Entry<'_, K, V>) -> VacantEntry<'_, K, V> {
     ///     match entry {
     ///         Entry::Vacant(vacant_entry) => vacant_entry,
     ///         _ => panic!("This method only destructures vacant entries")
@@ -5245,7 +5245,7 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// fn into_vacant<'a, K: Any, V: Any>(entry: Entry<'a, K, V>) -> VacantEntry<'a, K, V> {
+    /// fn into_vacant<K: Any, V: Any>(entry: Entry<'_, K, V>) -> VacantEntry<'_, K, V> {
     ///     match entry {
     ///         Entry::Vacant(vacant_entry) => vacant_entry,
     ///         _ => panic!("This method only destructures vacant entries")
@@ -5277,7 +5277,7 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// fn into_vacant<'a, K: Any, V: Any>(entry: Entry<'a, K, V>) -> VacantEntry<'a, K, V> {
+    /// fn into_vacant<K: Any, V: Any>(entry: Entry<'_, K, V>) -> VacantEntry<'_, K, V> {
     ///     match entry {
     ///         Entry::Vacant(vacant_entry) => vacant_entry,
     ///         _ => panic!("This method only destructures vacant entries")
@@ -5322,7 +5322,7 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// fn into_vacant<'a, K: Any, V: Any>(entry: Entry<'a, K, V>) -> VacantEntry<'a, K, V> {
+    /// fn into_vacant<K: Any, V: Any>(entry: Entry<'_, K, V>) -> VacantEntry<'_, K, V> {
     ///     match entry {
     ///         Entry::Vacant(vacant_entry) => vacant_entry,
     ///         _ => panic!("This method only destructures vacant entries")
@@ -5380,7 +5380,7 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// fn into_vacant<'a, K: Any, V: Any>(entry: Entry<'a, K, V>) -> VacantEntry<'a, K, V> {
+    /// fn into_vacant<K: Any, V: Any>(entry: Entry<'_, K, V>) -> VacantEntry<'_, K, V> {
     ///     match entry {
     ///         Entry::Vacant(vacant_entry) => vacant_entry,
     ///         _ => panic!("This method only destructures vacant entries")
@@ -5418,7 +5418,7 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// fn into_vacant<'a, K: Any, V: Any>(entry: Entry<'a, K, V>) -> VacantEntry<'a, K, V> {
+    /// fn into_vacant<K: Any, V: Any>(entry: Entry<'_, K, V>) -> VacantEntry<'_, K, V> {
     ///     match entry {
     ///         Entry::Vacant(vacant_entry) => vacant_entry,
     ///         _ => panic!("This method only destructures vacant entries")
@@ -5463,7 +5463,7 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// fn into_vacant<'a, K: Any, V: Any>(entry: Entry<'a, K, V>) -> VacantEntry<'a, K, V> {
+    /// fn into_vacant<K: Any, V: Any>(entry: Entry<'_, K, V>) -> VacantEntry<'_, K, V> {
     ///     match entry {
     ///         Entry::Vacant(vacant_entry) => vacant_entry,
     ///         _ => panic!("This method only destructures occupied entries")
