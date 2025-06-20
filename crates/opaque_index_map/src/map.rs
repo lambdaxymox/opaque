@@ -127,14 +127,14 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map = TypedProjIndexMap::from([
+    /// let mut proj_map = TypedProjIndexMap::from([
     ///     (0_usize, "spam"),
     ///     (1_usize, "eggs"),
     ///     (2_usize, "bacon"),
     ///     (3_usize, "baked beans"),
     ///     (4_usize, "spam"),
     /// ]);
-    /// let mut drain = map.drain(..);
+    /// let mut drain = proj_map.drain(..);
     /// assert_eq!(drain.as_slice(), &[(0_usize, "spam"), (1_usize, "eggs"), (2_usize, "bacon"), (3_usize, "baked beans"), (4_usize, "spam")]);
     /// let _ = drain.next().unwrap();
     /// assert_eq!(drain.as_slice(), &[(1_usize, "eggs"), (2_usize, "bacon"), (3_usize, "baked beans"), (4_usize, "spam")]);
@@ -160,14 +160,14 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map = OpaqueIndexMap::from([
+    /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (0_usize, "spam"),
     ///     (1_usize, "eggs"),
     ///     (2_usize, "bacon"),
     ///     (3_usize, "baked beans"),
     ///     (4_usize, "spam"),
     /// ]);
-    /// let mut drain = map.drain::<_, usize, &str, RandomState, Global>(..);
+    /// let mut drain = opaque_map.drain::<_, usize, &str, RandomState, Global>(..);
     /// assert_eq!(drain.as_slice(), &[(0_usize, "spam"), (1_usize, "eggs"), (2_usize, "bacon"), (3_usize, "baked beans"), (4_usize, "spam")]);
     /// let _ = drain.next().unwrap();
     /// assert_eq!(drain.as_slice(), &[(1_usize, "eggs"), (2_usize, "bacon"), (3_usize, "baked beans"), (4_usize, "spam")]);
@@ -262,14 +262,14 @@ where
 /// # use std::hash::RandomState;
 /// # use std::alloc::Global;
 /// #
-/// let map = TypedProjIndexMap::from([
+/// let proj_map = TypedProjIndexMap::from([
 ///     ("foo",  1_i32),
 ///     ("bar",  2_i32),
 ///     ("baz",  3_i32),
 ///     ("quux", 4_i32),
 /// ]);
 /// let expected = TypedProjVec::from(["foo", "bar", "baz", "quux"]);
-/// let result: TypedProjVec<&str> = map
+/// let result: TypedProjVec<&str> = proj_map
 ///     .keys()
 ///     .cloned()
 ///     .collect();
@@ -289,14 +289,14 @@ where
 /// # use std::hash::RandomState;
 /// # use std::alloc::Global;
 /// #
-/// let map = OpaqueIndexMap::from([
+/// let opaque_map = OpaqueIndexMap::from([
 ///     ("foo",  1_i32),
 ///     ("bar",  2_i32),
 ///     ("baz",  3_i32),
 ///     ("quux", 4_i32),
 /// ]);
 /// let expected = TypedProjVec::from(["foo", "bar", "baz", "quux"]);
-/// let result: TypedProjVec<&str> = map
+/// let result: TypedProjVec<&str> = opaque_map
 ///     .keys::<&str, i32, RandomState, Global>()
 ///     .cloned()
 ///     .collect();
@@ -383,14 +383,14 @@ impl<'a, K, V> ops::Index<usize> for Keys<'a, K, V> {
 /// # use std::hash::RandomState;
 /// # use std::alloc::Global;
 /// #
-/// let map = TypedProjIndexMap::from([
+/// let proj_map = TypedProjIndexMap::from([
 ///     ("foo",  1_i32),
 ///     ("bar",  2_i32),
 ///     ("baz",  3_i32),
 ///     ("quux", 4_i32),
 /// ]);
 /// let expected = TypedProjVec::from(["foo", "bar", "baz", "quux"]);
-/// let result: TypedProjVec<&str> = map
+/// let result: TypedProjVec<&str> = proj_map
 ///     .into_keys()
 ///     .collect();
 ///
@@ -409,14 +409,14 @@ impl<'a, K, V> ops::Index<usize> for Keys<'a, K, V> {
 /// # use std::hash::RandomState;
 /// # use std::alloc::Global;
 /// #
-/// let map = OpaqueIndexMap::from([
+/// let opaque_map = OpaqueIndexMap::from([
 ///     ("foo",  1_i32),
 ///     ("bar",  2_i32),
 ///     ("baz",  3_i32),
 ///     ("quux", 4_i32),
 /// ]);
 /// let expected = TypedProjVec::from(["foo", "bar", "baz", "quux"]);
-/// let result: TypedProjVec<&str> = map
+/// let result: TypedProjVec<&str> = opaque_map
 ///     .into_keys::<&str, i32, RandomState, Global>()
 ///     .collect();
 ///
@@ -533,14 +533,14 @@ where
 /// # use std::hash::RandomState;
 /// # use std::alloc::Global;
 /// #
-/// let map = TypedProjIndexMap::from([
+/// let proj_map = TypedProjIndexMap::from([
 ///     ("foo",  1_i32),
 ///     ("bar",  2_i32),
 ///     ("baz",  3_i32),
 ///     ("quux", 4_i32),
 /// ]);
 /// let expected = TypedProjVec::from([1_i32, 2_i32, 3_i32, 4_i32]);
-/// let result: TypedProjVec<i32> = map
+/// let result: TypedProjVec<i32> = proj_map
 ///     .values()
 ///     .cloned()
 ///     .collect();
@@ -560,14 +560,14 @@ where
 /// # use std::hash::RandomState;
 /// # use std::alloc::Global;
 /// #
-/// let map = OpaqueIndexMap::from([
+/// let opaque_map = OpaqueIndexMap::from([
 ///     ("foo",  1_i32),
 ///     ("bar",  2_i32),
 ///     ("baz",  3_i32),
 ///     ("quux", 4_i32),
 /// ]);
 /// let expected = TypedProjVec::from([1_i32, 2_i32, 3_i32, 4_i32]);
-/// let result: TypedProjVec<i32> = map
+/// let result: TypedProjVec<i32> = opaque_map
 ///     .values::<&str, i32, RandomState, Global>()
 ///     .cloned()
 ///     .collect();
@@ -653,26 +653,26 @@ impl<K, V> Default for Values<'_, K, V> {
 /// # use std::hash::RandomState;
 /// # use std::alloc::Global;
 /// #
-/// let mut map = TypedProjIndexMap::from([
+/// let mut proj_map = TypedProjIndexMap::from([
 ///     ("foo",  1_i32),
 ///     ("bar",  2_i32),
 ///     ("baz",  3_i32),
 ///     ("quux", 4_i32),
 /// ]);
 /// let expected = TypedProjVec::from([1_i32, 2_i32, 3_i32, 4_i32]);
-/// let result: TypedProjVec<i32> = map
+/// let result: TypedProjVec<i32> = proj_map
 ///     .values_mut()
 ///     .map(|v| v.clone())
 ///     .collect();
 ///
 /// assert_eq!(result, expected);
 ///
-/// for value in map.values_mut() {
+/// for value in proj_map.values_mut() {
 ///     *value *= 2_i32;
 /// }
 ///
 /// let expected_mutated = TypedProjVec::from([2_i32, 4_i32, 6_i32, 8_i32]);
-/// let result_mutated: TypedProjVec<i32> = map
+/// let result_mutated: TypedProjVec<i32> = proj_map
 ///     .values_mut()
 ///     .map(|v| v.clone())
 ///     .collect();
@@ -692,26 +692,26 @@ impl<K, V> Default for Values<'_, K, V> {
 /// # use std::hash::RandomState;
 /// # use std::alloc::Global;
 /// #
-/// let mut map = OpaqueIndexMap::from([
+/// let mut opaque_map = OpaqueIndexMap::from([
 ///     ("foo",  1_i32),
 ///     ("bar",  2_i32),
 ///     ("baz",  3_i32),
 ///     ("quux", 4_i32),
 /// ]);
 /// let expected = TypedProjVec::from([1_i32, 2_i32, 3_i32, 4_i32]);
-/// let result: TypedProjVec<i32> = map
+/// let result: TypedProjVec<i32> = opaque_map
 ///     .values_mut::<&str, i32, RandomState, Global>()
 ///     .map(|v| v.clone())
 ///     .collect();
 ///
 /// assert_eq!(result, expected);
 ///
-/// for value in map.values_mut::<&str, i32, RandomState, Global>() {
+/// for value in opaque_map.values_mut::<&str, i32, RandomState, Global>() {
 ///     *value *= 2_i32;
 /// }
 ///
 /// let expected_mutated = TypedProjVec::from([2_i32, 4_i32, 6_i32, 8_i32]);
-/// let result_mutated: TypedProjVec<i32> = map
+/// let result_mutated: TypedProjVec<i32> = opaque_map
 ///     .values_mut::<&str, i32, RandomState, Global>()
 ///     .map(|v| v.clone())
 ///     .collect();
@@ -791,14 +791,14 @@ impl<K, V> Default for ValuesMut<'_, K, V> {
 /// # use std::hash::RandomState;
 /// # use std::alloc::Global;
 /// #
-/// let map = TypedProjIndexMap::from([
+/// let proj_map = TypedProjIndexMap::from([
 ///     ("foo",  1_i32),
 ///     ("bar",  2_i32),
 ///     ("baz",  3_i32),
 ///     ("quux", 4_i32),
 /// ]);
 /// let expected = TypedProjVec::from([1_i32, 2_i32, 3_i32, 4_i32]);
-/// let result: TypedProjVec<i32> = map
+/// let result: TypedProjVec<i32> = proj_map
 ///     .into_values()
 ///     .collect();
 ///
@@ -817,14 +817,14 @@ impl<K, V> Default for ValuesMut<'_, K, V> {
 /// # use std::hash::RandomState;
 /// # use std::alloc::Global;
 /// #
-/// let map = OpaqueIndexMap::from([
+/// let opaque_map = OpaqueIndexMap::from([
 ///     ("foo",  1_i32),
 ///     ("bar",  2_i32),
 ///     ("baz",  3_i32),
 ///     ("quux", 4_i32),
 /// ]);
 /// let expected = TypedProjVec::from([1_i32, 2_i32, 3_i32, 4_i32]);
-/// let result: TypedProjVec<i32> = map
+/// let result: TypedProjVec<i32> = opaque_map
 ///     .into_values::<&str, i32, RandomState, Global>()
 ///     .collect();
 ///
@@ -1042,7 +1042,7 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let map = TypedProjIndexMap::from([
+    /// let proj_map = TypedProjIndexMap::from([
     ///     (0_usize, 1_i32),
     ///     (1_usize, 2_i32),
     ///     (2_usize, 3_i32),
@@ -1050,7 +1050,7 @@ impl<K, V> Slice<K, V> {
     ///     (4_usize, 5_i32),
     ///     (5_usize, 6_i32),
     /// ]);
-    /// let slice = map.as_slice();
+    /// let slice = proj_map.as_slice();
     ///
     /// assert_eq!(slice.len(), 6);
     /// ```
@@ -1067,7 +1067,7 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let map = OpaqueIndexMap::from([
+    /// let opaque_map = OpaqueIndexMap::from([
     ///     (0_usize, 1_i32),
     ///     (1_usize, 2_i32),
     ///     (2_usize, 3_i32),
@@ -1075,7 +1075,7 @@ impl<K, V> Slice<K, V> {
     ///     (4_usize, 5_i32),
     ///     (5_usize, 6_i32),
     /// ]);
-    /// let slice = map.as_slice::<usize, i32, RandomState, Global>();
+    /// let slice = opaque_map.as_slice::<usize, i32, RandomState, Global>();
     ///
     /// assert_eq!(slice.len(), 6);
     /// ```
@@ -1102,7 +1102,7 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let map = TypedProjIndexMap::from([
+    /// let proj_map = TypedProjIndexMap::from([
     ///     (0_usize, 1_i32),
     ///     (1_usize, 2_i32),
     ///     (2_usize, 3_i32),
@@ -1110,7 +1110,7 @@ impl<K, V> Slice<K, V> {
     ///     (4_usize, 5_i32),
     ///     (5_usize, 6_i32),
     /// ]);
-    /// let slice = map.as_slice();
+    /// let slice = proj_map.as_slice();
     ///
     /// assert!(!slice.is_empty());
     /// assert!(slice[1..1].is_empty());
@@ -1128,7 +1128,7 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let map = OpaqueIndexMap::from([
+    /// let opaque_map = OpaqueIndexMap::from([
     ///     (0_usize, 1_i32),
     ///     (1_usize, 2_i32),
     ///     (2_usize, 3_i32),
@@ -1136,7 +1136,7 @@ impl<K, V> Slice<K, V> {
     ///     (4_usize, 5_i32),
     ///     (5_usize, 6_i32),
     /// ]);
-    /// let slice = map.as_slice::<usize, i32, RandomState, Global>();
+    /// let slice = opaque_map.as_slice::<usize, i32, RandomState, Global>();
     ///
     /// assert!(!slice.is_empty());
     /// assert!(slice[1..1].is_empty());
@@ -1168,13 +1168,13 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let map = TypedProjIndexMap::from([
+    /// let proj_map = TypedProjIndexMap::from([
     ///     (1_usize, 10_i32),
     ///     (2_usize, 40_i32),
     ///     (3_usize, 30_i32),
     ///
     /// ]);
-    /// let slice = map.as_slice();
+    /// let slice = proj_map.as_slice();
     ///
     /// assert_eq!(slice.get_index(0), Some((&1_usize, &10_i32)));
     /// assert_eq!(slice.get_index(1), Some((&2_usize, &40_i32)));
@@ -1195,13 +1195,13 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let map = OpaqueIndexMap::from([
+    /// let opaque_map = OpaqueIndexMap::from([
     ///     (1_usize, 10_i32),
     ///     (2_usize, 40_i32),
     ///     (3_usize, 30_i32),
     ///
     /// ]);
-    /// let slice = map.as_slice::<usize, i32, RandomState, Global>();
+    /// let slice = opaque_map.as_slice::<usize, i32, RandomState, Global>();
     ///
     /// assert_eq!(slice.get_index(0), Some((&1_usize, &10_i32)));
     /// assert_eq!(slice.get_index(1), Some((&2_usize, &40_i32)));
@@ -1234,13 +1234,13 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map = TypedProjIndexMap::from([
+    /// let mut proj_map = TypedProjIndexMap::from([
     ///     (1_usize, 10_i32),
     ///     (2_usize, 40_i32),
     ///     (3_usize, 30_i32),
     ///
     /// ]);
-    /// let slice = map.as_mut_slice();
+    /// let slice = proj_map.as_mut_slice();
     ///
     /// assert_eq!(slice.get_index_mut(0), Some((&1_usize, &mut 10_i32)));
     /// assert_eq!(slice.get_index_mut(1), Some((&2_usize, &mut 40_i32)));
@@ -1261,13 +1261,13 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map = OpaqueIndexMap::from([
+    /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (1_usize, 10_i32),
     ///     (2_usize, 40_i32),
     ///     (3_usize, 30_i32),
     ///
     /// ]);
-    /// let slice = map.as_mut_slice::<usize, i32, RandomState, Global>();
+    /// let slice = opaque_map.as_mut_slice::<usize, i32, RandomState, Global>();
     ///
     /// assert_eq!(slice.get_index_mut(0), Some((&1_usize, &mut 10_i32)));
     /// assert_eq!(slice.get_index_mut(1), Some((&2_usize, &mut 40_i32)));
@@ -1299,14 +1299,14 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let map = TypedProjIndexMap::from([
+    /// let proj_map = TypedProjIndexMap::from([
     ///     (1_usize, 10_i32),
     ///     (2_usize, 40_i32),
     ///     (3_usize, 30_i32),
     ///     (4_usize, 60_i32),
     /// ]);
     ///
-    /// let maybe_slice = map.get_range(1..);
+    /// let maybe_slice = proj_map.get_range(1..);
     ///
     /// assert!(maybe_slice.is_some());
     ///
@@ -1341,14 +1341,14 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let map = OpaqueIndexMap::from([
+    /// let opaque_map = OpaqueIndexMap::from([
     ///     (1_usize, 10_i32),
     ///     (2_usize, 40_i32),
     ///     (3_usize, 30_i32),
     ///     (4_usize, 60_i32),
     /// ]);
     ///
-    /// let maybe_slice = map.get_range::<_, usize, i32, RandomState, Global>(1..);
+    /// let maybe_slice = opaque_map.get_range::<_, usize, i32, RandomState, Global>(1..);
     ///
     /// assert!(maybe_slice.is_some());
     ///
@@ -1398,14 +1398,14 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map = TypedProjIndexMap::from([
+    /// let mut proj_map = TypedProjIndexMap::from([
     ///     (1_usize, 10_i32),
     ///     (2_usize, 40_i32),
     ///     (3_usize, 30_i32),
     ///     (4_usize, 60_i32),
     /// ]);
     ///
-    /// let maybe_slice = map.get_range_mut(1..);
+    /// let maybe_slice = proj_map.get_range_mut(1..);
     ///
     /// assert!(maybe_slice.is_some());
     ///
@@ -1440,14 +1440,14 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map = OpaqueIndexMap::from([
+    /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (1_usize, 10_i32),
     ///     (2_usize, 40_i32),
     ///     (3_usize, 30_i32),
     ///     (4_usize, 60_i32),
     /// ]);
     ///
-    /// let maybe_slice = map.get_range_mut::<_, usize, i32, RandomState, Global>(1..);
+    /// let maybe_slice = opaque_map.get_range_mut::<_, usize, i32, RandomState, Global>(1..);
     ///
     /// assert!(maybe_slice.is_some());
     ///
@@ -1496,13 +1496,13 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let map = TypedProjIndexMap::from([
+    /// let proj_map = TypedProjIndexMap::from([
     ///     (String::from("foo"),  1_usize),
     ///     (String::from("bar"),  2_usize),
     ///     (String::from("baz"),  3_usize),
     ///     (String::from("quux"), 4_usize),
     /// ]);
-    /// let slice = map.as_slice();
+    /// let slice = proj_map.as_slice();
     /// let result = slice.first();
     ///
     /// assert_eq!(result, Some((&String::from("foo"), &1_usize)));
@@ -1520,8 +1520,8 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let map: TypedProjIndexMap<String, usize> = TypedProjIndexMap::new();
-    /// let slice = map.as_slice();
+    /// let proj_map: TypedProjIndexMap<String, usize> = TypedProjIndexMap::new();
+    /// let slice = proj_map.as_slice();
     /// let maybe_entry = slice.first();
     ///
     /// assert!(maybe_entry.is_none());
@@ -1539,13 +1539,13 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let map = OpaqueIndexMap::from([
+    /// let opaque_map = OpaqueIndexMap::from([
     ///     (String::from("foo"),  1_usize),
     ///     (String::from("bar"),  2_usize),
     ///     (String::from("baz"),  3_usize),
     ///     (String::from("quux"), 4_usize),
     /// ]);
-    /// let slice = map.as_slice::<String, usize, RandomState, Global>();
+    /// let slice = opaque_map.as_slice::<String, usize, RandomState, Global>();
     /// let result = slice.first();
     ///
     /// assert_eq!(result, Some((&String::from("foo"), &1_usize)));
@@ -1563,8 +1563,8 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let map = OpaqueIndexMap::new::<String, usize>();
-    /// let slice = map.as_slice::<String, usize, RandomState, Global>();
+    /// let opaque_map = OpaqueIndexMap::new::<String, usize>();
+    /// let slice = opaque_map.as_slice::<String, usize, RandomState, Global>();
     /// let maybe_entry = slice.first();
     ///
     /// assert!(maybe_entry.is_none());
@@ -1594,13 +1594,13 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map = TypedProjIndexMap::from([
+    /// let mut proj_map = TypedProjIndexMap::from([
     ///     (String::from("foo"),  1_usize),
     ///     (String::from("bar"),  2_usize),
     ///     (String::from("baz"),  3_usize),
     ///     (String::from("quux"), 4_usize),
     /// ]);
-    /// let slice = map.as_mut_slice();
+    /// let slice = proj_map.as_mut_slice();
     /// let result = slice.first_mut();
     ///
     /// assert_eq!(result, Some((&String::from("foo"), &mut 1_usize)));
@@ -1618,8 +1618,8 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map: TypedProjIndexMap<String, usize> = TypedProjIndexMap::new();
-    /// let slice = map.as_mut_slice();
+    /// let mut proj_map: TypedProjIndexMap<String, usize> = TypedProjIndexMap::new();
+    /// let slice = proj_map.as_mut_slice();
     /// let maybe_entry = slice.first_mut();
     ///
     /// assert!(maybe_entry.is_none());
@@ -1637,13 +1637,13 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map = OpaqueIndexMap::from([
+    /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (String::from("foo"),  1_usize),
     ///     (String::from("bar"),  2_usize),
     ///     (String::from("baz"),  3_usize),
     ///     (String::from("quux"), 4_usize),
     /// ]);
-    /// let slice = map.as_mut_slice::<String, usize, RandomState, Global>();
+    /// let slice = opaque_map.as_mut_slice::<String, usize, RandomState, Global>();
     /// let result = slice.first_mut();
     ///
     /// assert_eq!(result, Some((&String::from("foo"), &mut 1_usize)));
@@ -1661,8 +1661,8 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map = OpaqueIndexMap::new::<String, usize>();
-    /// let slice = map.as_mut_slice::<String, usize, RandomState, Global>();
+    /// let mut opaque_map = OpaqueIndexMap::new::<String, usize>();
+    /// let slice = opaque_map.as_mut_slice::<String, usize, RandomState, Global>();
     /// let maybe_entry = slice.first_mut();
     ///
     /// assert!(maybe_entry.is_none());
@@ -1692,13 +1692,13 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let map = TypedProjIndexMap::from([
+    /// let proj_map = TypedProjIndexMap::from([
     ///     (String::from("foo"),  1_usize),
     ///     (String::from("bar"),  2_usize),
     ///     (String::from("baz"),  3_usize),
     ///     (String::from("quux"), 4_usize),
     /// ]);
-    /// let slice = map.as_slice();
+    /// let slice = proj_map.as_slice();
     /// let result = slice.last();
     ///
     /// assert_eq!(result, Some((&String::from("quux"), &4_usize)));
@@ -1716,8 +1716,8 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let map: TypedProjIndexMap<String, usize> = TypedProjIndexMap::new();
-    /// let slice = map.as_slice();
+    /// let proj_map: TypedProjIndexMap<String, usize> = TypedProjIndexMap::new();
+    /// let slice = proj_map.as_slice();
     /// let maybe_entry = slice.last();
     ///
     /// assert!(maybe_entry.is_none());
@@ -1735,13 +1735,13 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let map = OpaqueIndexMap::from([
+    /// let opaque_map = OpaqueIndexMap::from([
     ///     (String::from("foo"),  1_usize),
     ///     (String::from("bar"),  2_usize),
     ///     (String::from("baz"),  3_usize),
     ///     (String::from("quux"), 4_usize),
     /// ]);
-    /// let slice = map.as_slice::<String, usize, RandomState, Global>();
+    /// let slice = opaque_map.as_slice::<String, usize, RandomState, Global>();
     /// let result = slice.last();
     ///
     /// assert_eq!(result, Some((&String::from("quux"), &4_usize)));
@@ -1759,8 +1759,8 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let map = OpaqueIndexMap::new::<String, usize>();
-    /// let slice = map.as_slice::<String, usize, RandomState, Global>();
+    /// let opaque_map = OpaqueIndexMap::new::<String, usize>();
+    /// let slice = opaque_map.as_slice::<String, usize, RandomState, Global>();
     /// let maybe_entry = slice.last();
     ///
     /// assert!(maybe_entry.is_none());
@@ -1790,13 +1790,13 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map = TypedProjIndexMap::from([
+    /// let mut proj_map = TypedProjIndexMap::from([
     ///     (String::from("foo"),  1_usize),
     ///     (String::from("bar"),  2_usize),
     ///     (String::from("baz"),  3_usize),
     ///     (String::from("quux"), 4_usize),
     /// ]);
-    /// let slice = map.as_mut_slice();
+    /// let slice = proj_map.as_mut_slice();
     /// let result = slice.last_mut();
     ///
     /// assert_eq!(result, Some((&String::from("quux"), &mut 4_usize)));
@@ -1814,8 +1814,8 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map: TypedProjIndexMap<String, usize> = TypedProjIndexMap::new();
-    /// let slice = map.as_mut_slice();
+    /// let mut proj_map: TypedProjIndexMap<String, usize> = TypedProjIndexMap::new();
+    /// let slice = proj_map.as_mut_slice();
     /// let maybe_entry = slice.last_mut();
     ///
     /// assert!(maybe_entry.is_none());
@@ -1833,13 +1833,13 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map = OpaqueIndexMap::from([
+    /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (String::from("foo"),  1_usize),
     ///     (String::from("bar"),  2_usize),
     ///     (String::from("baz"),  3_usize),
     ///     (String::from("quux"), 4_usize),
     /// ]);
-    /// let slice = map.as_mut_slice::<String, usize, RandomState, Global>();
+    /// let slice = opaque_map.as_mut_slice::<String, usize, RandomState, Global>();
     /// let result = slice.last_mut();
     ///
     /// assert_eq!(result, Some((&String::from("quux"), &mut 4_usize)));
@@ -1857,8 +1857,8 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map = OpaqueIndexMap::new::<String, usize>();
-    /// let slice = map.as_mut_slice::<String, usize, RandomState, Global>();
+    /// let mut opaque_map = OpaqueIndexMap::new::<String, usize>();
+    /// let slice = opaque_map.as_mut_slice::<String, usize, RandomState, Global>();
     /// let maybe_entry = slice.last_mut();
     ///
     /// assert!(maybe_entry.is_none());
@@ -1883,14 +1883,14 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let map = TypedProjIndexMap::from([
+    /// let proj_map = TypedProjIndexMap::from([
     ///     (0_usize, 1_i32),
     ///     (1_usize, 2_i32),
     ///     (2_usize, 3_i32),
     ///     (3_usize, 4_i32),
     ///     (4_usize, 5_i32),
     /// ]);
-    /// let (prefix, suffix) = map.as_slice().split_at(2);
+    /// let (prefix, suffix) = proj_map.as_slice().split_at(2);
     ///
     /// assert_eq!(prefix, &[(0_usize, 1_i32), (1_usize, 2_i32)]);
     /// assert_eq!(suffix, &[(2_usize, 3_i32), (3_usize, 4_i32), (4_usize, 5_i32)]);
@@ -1908,14 +1908,14 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let map = OpaqueIndexMap::from([
+    /// let opaque_map = OpaqueIndexMap::from([
     ///     (0_usize, 1_i32),
     ///     (1_usize, 2_i32),
     ///     (2_usize, 3_i32),
     ///     (3_usize, 4_i32),
     ///     (4_usize, 5_i32),
     /// ]);
-    /// let (prefix, suffix) = map.as_slice::<usize, i32, RandomState, Global>().split_at(2);
+    /// let (prefix, suffix) = opaque_map.as_slice::<usize, i32, RandomState, Global>().split_at(2);
     ///
     /// assert_eq!(prefix, &[(0_usize, 1_i32), (1_usize, 2_i32)]);
     /// assert_eq!(suffix, &[(2_usize, 3_i32), (3_usize, 4_i32), (4_usize, 5_i32)]);
@@ -1942,14 +1942,14 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map = TypedProjIndexMap::from([
+    /// let mut proj_map = TypedProjIndexMap::from([
     ///     (0_usize, 1_i32),
     ///     (1_usize, 2_i32),
     ///     (2_usize, 3_i32),
     ///     (3_usize, 4_i32),
     ///     (4_usize, 5_i32),
     /// ]);
-    /// let (prefix, suffix) = map.as_mut_slice().split_at_mut(2);
+    /// let (prefix, suffix) = proj_map.as_mut_slice().split_at_mut(2);
     ///
     /// assert_eq!(prefix, &[(0_usize, 1_i32), (1_usize, 2_i32)]);
     /// assert_eq!(suffix, &[(2_usize, 3_i32), (3_usize, 4_i32), (4_usize, 5_i32)]);
@@ -1967,14 +1967,14 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map = OpaqueIndexMap::from([
+    /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (0_usize, 1_i32),
     ///     (1_usize, 2_i32),
     ///     (2_usize, 3_i32),
     ///     (3_usize, 4_i32),
     ///     (4_usize, 5_i32),
     /// ]);
-    /// let (prefix, suffix) = map.as_mut_slice::<usize, i32, RandomState, Global>() .split_at_mut(2);
+    /// let (prefix, suffix) = opaque_map.as_mut_slice::<usize, i32, RandomState, Global>() .split_at_mut(2);
     ///
     /// assert_eq!(prefix, &[(0_usize, 1_i32), (1_usize, 2_i32)]);
     /// assert_eq!(suffix, &[(2_usize, 3_i32), (3_usize, 4_i32), (4_usize, 5_i32)]);
@@ -2001,14 +2001,14 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let map = TypedProjIndexMap::from([
+    /// let proj_map = TypedProjIndexMap::from([
     ///     (0_usize, 1_i32),
     ///     (1_usize, 2_i32),
     ///     (2_usize, 3_i32),
     ///     (3_usize, 4_i32),
     ///     (4_usize, 5_i32),
     /// ]);
-    /// let result = map.as_slice().split_first();
+    /// let result = proj_map.as_slice().split_first();
     ///
     /// assert!(result.is_some());
     ///
@@ -2030,14 +2030,14 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let map = OpaqueIndexMap::from([
+    /// let opaque_map = OpaqueIndexMap::from([
     ///     (0_usize, 1_i32),
     ///     (1_usize, 2_i32),
     ///     (2_usize, 3_i32),
     ///     (3_usize, 4_i32),
     ///     (4_usize, 5_i32),
     /// ]);
-    /// let result = map.as_slice::<usize, i32, RandomState, Global>().split_first();
+    /// let result = opaque_map.as_slice::<usize, i32, RandomState, Global>().split_first();
     ///
     /// assert!(result.is_some());
     ///
@@ -2068,14 +2068,14 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map = TypedProjIndexMap::from([
+    /// let mut proj_map = TypedProjIndexMap::from([
     ///     (0_usize, 1_i32),
     ///     (1_usize, 2_i32),
     ///     (2_usize, 3_i32),
     ///     (3_usize, 4_i32),
     ///     (4_usize, 5_i32),
     /// ]);
-    /// let result = map.as_mut_slice().split_first_mut();
+    /// let result = proj_map.as_mut_slice().split_first_mut();
     ///
     /// assert!(result.is_some());
     ///
@@ -2097,14 +2097,14 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map = OpaqueIndexMap::from([
+    /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (0_usize, 1_i32),
     ///     (1_usize, 2_i32),
     ///     (2_usize, 3_i32),
     ///     (3_usize, 4_i32),
     ///     (4_usize, 5_i32),
     /// ]);
-    /// let result = map.as_mut_slice::<usize, i32, RandomState, Global>().split_first_mut();
+    /// let result = opaque_map.as_mut_slice::<usize, i32, RandomState, Global>().split_first_mut();
     ///
     /// assert!(result.is_some());
     ///
@@ -2135,14 +2135,14 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let map = TypedProjIndexMap::from([
+    /// let proj_map = TypedProjIndexMap::from([
     ///     (0_usize, 1_i32),
     ///     (1_usize, 2_i32),
     ///     (2_usize, 3_i32),
     ///     (3_usize, 4_i32),
     ///     (4_usize, 5_i32),
     /// ]);
-    /// let result = map.as_slice().split_last();
+    /// let result = proj_map.as_slice().split_last();
     ///
     /// assert!(result.is_some());
     ///
@@ -2164,14 +2164,14 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let map = OpaqueIndexMap::from([
+    /// let opaque_map = OpaqueIndexMap::from([
     ///     (0_usize, 1_i32),
     ///     (1_usize, 2_i32),
     ///     (2_usize, 3_i32),
     ///     (3_usize, 4_i32),
     ///     (4_usize, 5_i32),
     /// ]);
-    /// let result = map.as_slice::<usize, i32, RandomState, Global>().split_last();
+    /// let result = opaque_map.as_slice::<usize, i32, RandomState, Global>().split_last();
     ///
     /// assert!(result.is_some());
     ///
@@ -2203,14 +2203,14 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map = TypedProjIndexMap::from([
+    /// let mut proj_map = TypedProjIndexMap::from([
     ///     (0_usize, 1_i32),
     ///     (1_usize, 2_i32),
     ///     (2_usize, 3_i32),
     ///     (3_usize, 4_i32),
     ///     (4_usize, 5_i32),
     /// ]);
-    /// let result = map.as_mut_slice().split_last_mut();
+    /// let result = proj_map.as_mut_slice().split_last_mut();
     ///
     /// assert!(result.is_some());
     ///
@@ -2232,14 +2232,14 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map = OpaqueIndexMap::from([
+    /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (0_usize, 1_i32),
     ///     (1_usize, 2_i32),
     ///     (2_usize, 3_i32),
     ///     (3_usize, 4_i32),
     ///     (4_usize, 5_i32),
     /// ]);
-    /// let result = map.as_mut_slice::<usize, i32, RandomState, Global>().split_last_mut();
+    /// let result = opaque_map.as_mut_slice::<usize, i32, RandomState, Global>().split_last_mut();
     ///
     /// assert!(result.is_some());
     ///
@@ -2272,12 +2272,12 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let map = TypedProjIndexMap::from([
+    /// let proj_map = TypedProjIndexMap::from([
     ///     (0_usize, 2_f32),
     ///     (1_usize, 3_f32),
     ///     (2_usize, 4_f32),
     /// ]);
-    /// let slice = map.as_slice();
+    /// let slice = proj_map.as_slice();
     /// let entries: TypedProjVec<(usize, f32)> = slice
     ///     .iter()
     ///     .map(|(k, v)| (k.clone(), v.clone()))
@@ -2307,12 +2307,12 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map = TypedProjIndexMap::from([
+    /// let mut proj_map = TypedProjIndexMap::from([
     ///     (0_usize, 2_f32),
     ///     (1_usize, 3_f32),
     ///     (2_usize, 4_f32),
     /// ]);
-    /// let slice = map.as_mut_slice();
+    /// let slice = proj_map.as_mut_slice();
     /// let entries: TypedProjVec<(usize, f32)> = slice
     ///     .iter_mut()
     ///     .map(|(k, v)| (k.clone(), v.clone()))
@@ -2333,12 +2333,12 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map = TypedProjIndexMap::from([
+    /// let mut proj_map = TypedProjIndexMap::from([
     ///     (0_usize, 2_f32),
     ///     (1_usize, 3_f32),
     ///     (2_usize, 4_f32),
     /// ]);
-    /// let slice = map.as_mut_slice();
+    /// let slice = proj_map.as_mut_slice();
     /// let entries: TypedProjVec<(usize, f32)> = slice
     ///     .iter_mut()
     ///     .map(|(k, v)| (k.clone(), v.clone()))
@@ -2346,11 +2346,11 @@ impl<K, V> Slice<K, V> {
     ///
     /// assert_eq!(entries.as_slice(), &[(0_usize, 2_f32), (1_usize, 3_f32), (2_usize, 4_f32)]);
     ///
-    /// for (key, value) in map.iter_mut() {
+    /// for (key, value) in proj_map.iter_mut() {
     ///     *value *= 2_f32;
     /// }
     ///
-    /// let new_entries: TypedProjVec<(usize, f32)> = map
+    /// let new_entries: TypedProjVec<(usize, f32)> = proj_map
     ///     .iter_mut()
     ///     .map(|(k, v)| (k.clone(), v.clone()))
     ///     .collect();
@@ -2377,12 +2377,12 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let map: TypedProjIndexMap<usize, f64> = TypedProjIndexMap::from([
+    /// let proj_map: TypedProjIndexMap<usize, f64> = TypedProjIndexMap::from([
     ///     (1_usize, 2_f64),
     ///     (2_usize, 3_f64),
     ///     (3_usize, 4_f64),
     /// ]);
-    /// let slice = map.as_slice();
+    /// let slice = proj_map.as_slice();
     /// let keys: TypedProjVec<usize> = slice
     ///     .keys()
     ///     .cloned()
@@ -2410,12 +2410,12 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let map: TypedProjIndexMap<usize, f64> = TypedProjIndexMap::from([
+    /// let proj_map: TypedProjIndexMap<usize, f64> = TypedProjIndexMap::from([
     ///     (1_usize, 2_f64),
     ///     (2_usize, 3_f64),
     ///     (3_usize, 4_f64),
     /// ]);
-    /// let boxed_slice = map.into_boxed_slice();
+    /// let boxed_slice = proj_map.into_boxed_slice();
     ///
     /// let keys: TypedProjVec<usize> = boxed_slice.into_keys().collect();
     ///
@@ -2446,12 +2446,12 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let map: TypedProjIndexMap<usize, f64> = TypedProjIndexMap::from([
+    /// let proj_map: TypedProjIndexMap<usize, f64> = TypedProjIndexMap::from([
     ///     (1_usize, 2_f64),
     ///     (2_usize, 3_f64),
     ///     (3_usize, 4_f64),
     /// ]);
-    /// let slice = map.as_slice();
+    /// let slice = proj_map.as_slice();
     ///
     /// let values: TypedProjVec<f64> = slice
     ///     .values()
@@ -2482,12 +2482,12 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map: TypedProjIndexMap<usize, f64> = TypedProjIndexMap::from([
+    /// let mut proj_map: TypedProjIndexMap<usize, f64> = TypedProjIndexMap::from([
     ///     (1_usize, 2_f64),
     ///     (2_usize, 3_f64),
     ///     (3_usize, 4_f64),
     /// ]);
-    /// let slice = map.as_mut_slice();
+    /// let slice = proj_map.as_mut_slice();
     ///
     /// let values: TypedProjVec<f64> = slice
     ///     .values_mut()
@@ -2509,12 +2509,12 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map: TypedProjIndexMap<usize, f64> = TypedProjIndexMap::from([
+    /// let mut proj_map: TypedProjIndexMap<usize, f64> = TypedProjIndexMap::from([
     ///     (1_usize, 2_f64),
     ///     (2_usize, 3_f64),
     ///     (3_usize, 4_f64),
     /// ]);
-    /// let slice = map.as_mut_slice();
+    /// let slice = proj_map.as_mut_slice();
     ///
     /// let values: TypedProjVec<f64> = slice
     ///     .values_mut()
@@ -2554,12 +2554,12 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let map: TypedProjIndexMap<usize, f64> = TypedProjIndexMap::from([
+    /// let proj_map: TypedProjIndexMap<usize, f64> = TypedProjIndexMap::from([
     ///     (1_usize, 2_f64),
     ///     (2_usize, 3_f64),
     ///     (3_usize, 4_f64),
     /// ]);
-    /// let boxed_slice = map.into_boxed_slice();
+    /// let boxed_slice = proj_map.into_boxed_slice();
     ///
     /// let values: TypedProjVec<f64> = boxed_slice.into_values().collect();
     ///
@@ -2598,8 +2598,8 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let map: TypedProjIndexMap<isize, char> = TypedProjIndexMap::from_iter((1_isize..=26_isize).zip('a'..='z'));
-    /// let slice = map.as_slice();
+    /// let proj_map: TypedProjIndexMap<isize, char> = TypedProjIndexMap::from_iter((1_isize..=26_isize).zip('a'..='z'));
+    /// let slice = proj_map.as_slice();
     /// for (i, (key, value)) in (1_isize..=26_isize).zip('a'..='z').enumerate() {
     ///     let result = slice.binary_search_keys(&key);
     ///     assert_eq!(result, Ok(i));
@@ -2645,8 +2645,8 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let map: TypedProjIndexMap<isize, char> = TypedProjIndexMap::from_iter((1_isize..=26_isize).zip('a'..='z'));
-    /// let slice = map.as_slice();
+    /// let proj_map: TypedProjIndexMap<isize, char> = TypedProjIndexMap::from_iter((1_isize..=26_isize).zip('a'..='z'));
+    /// let slice = proj_map.as_slice();
     /// let expected = Ok(23);
     /// let result = slice.binary_search_by(|k, v| v.cmp(&'x'));
     ///
@@ -2673,12 +2673,12 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let map = TypedProjIndexMap::from([
+    /// let proj_map = TypedProjIndexMap::from([
     ///     (1_usize, 'a'), (2_usize, 'b'), (3_usize, 'c'),
     ///     (4_usize, 'd'), (5_usize, 'd'), (6_usize, 'd'),  (7_usize, 'd'),
     ///     (8_usize, 'e'), (9_usize, 'f'), (10_usize, 'g'), (11_usize, 'h'),
     /// ]);
-    /// let slice = map.as_slice();
+    /// let slice = proj_map.as_slice();
     ///
     /// assert_eq!(slice.binary_search_by(|&k, &v| v.cmp(&'a')), Ok(0));
     /// assert_eq!(slice.binary_search_by(|&k, &v| v.cmp(&'b')), Ok(1));
@@ -2734,7 +2734,7 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let map = TypedProjIndexMap::from([
+    /// let proj_map = TypedProjIndexMap::from([
     ///     (0_usize,  0_isize),
     ///     (1_usize,  1_isize), (2_usize, 1_isize), (3_usize, 1_isize), (4_usize, 1_isize),
     ///     (5_usize,  2_isize),
@@ -2746,7 +2746,7 @@ impl<K, V> Slice<K, V> {
     ///     (11_usize, 34_isize),
     ///     (12_usize, 55_isize),
     /// ]);
-    /// let slice = map.as_slice();
+    /// let slice = proj_map.as_slice();
     ///
     /// assert_eq!(slice.binary_search_by_key(&13, |&a, &b| b),  Ok(9));
     /// assert_eq!(slice.binary_search_by_key(&4, |&a, &b| b),   Err(7));
@@ -2789,7 +2789,7 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let map = TypedProjIndexMap::from([
+    /// let proj_map = TypedProjIndexMap::from([
     ///     (0_usize, 1_isize),
     ///     (1_usize, 2_isize),
     ///     (2_usize, 2_isize),
@@ -2800,7 +2800,7 @@ impl<K, V> Slice<K, V> {
     ///     (7_usize, 6_isize),
     ///     (8_usize, 9_isize),
     /// ]);
-    /// let slice = map.as_slice();
+    /// let slice = proj_map.as_slice();
     ///
     /// assert_eq!(slice.partition_point(|&k, &v| v < 5_isize), 4);
     /// ```
@@ -2822,7 +2822,7 @@ impl<K, V> Slice<K, V> {
     ///     n != 0 && (n & (n - 1)) == 0
     /// }
     ///
-    /// let map = TypedProjIndexMap::from([
+    /// let proj_map = TypedProjIndexMap::from([
     ///     (0_usize, 1_usize),
     ///     (1_usize, 2_usize),
     ///     (2_usize, 4_usize),
@@ -2831,7 +2831,7 @@ impl<K, V> Slice<K, V> {
     ///     (5_usize, 32_usize),
     ///     (6_usize, 64_usize),
     /// ]);
-    /// let slice = map.as_slice();
+    /// let slice = proj_map.as_slice();
     ///
     /// assert_eq!(slice.partition_point(|&k, &v| is_power_of_two(v)), slice.len());
     /// ```
@@ -2853,7 +2853,7 @@ impl<K, V> Slice<K, V> {
     ///     n != 0 && (n & (n - 1)) == 0
     /// }
     ///
-    /// let map = TypedProjIndexMap::from([
+    /// let proj_map = TypedProjIndexMap::from([
     ///     (0_usize, 3_usize),
     ///     (1_usize, 5_usize),
     ///     (2_usize, 7_usize),
@@ -2862,7 +2862,7 @@ impl<K, V> Slice<K, V> {
     ///     (5_usize, 17_usize),
     ///     (6_usize, 19_usize),
     /// ]);
-    /// let slice = map.as_slice();
+    /// let slice = proj_map.as_slice();
     ///
     /// assert_eq!(slice.partition_point(|&k, &v| is_power_of_two(v)), 0);
     /// ```
@@ -2893,7 +2893,7 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map = TypedProjIndexMap::from([
+    /// let mut proj_map = TypedProjIndexMap::from([
     ///     (1_isize, 'a'),
     ///     (3_isize, 'b'),
     ///     (2_isize, 'c'),
@@ -2901,7 +2901,7 @@ impl<K, V> Slice<K, V> {
     ///     (4_isize, 'f'),
     ///     (5_isize, '@'),
     /// ]);
-    /// let slice = map.as_mut_slice();
+    /// let slice = proj_map.as_mut_slice();
     ///
     /// let maybe_result = slice.get_disjoint_mut([2, 1, 5]);
     ///
@@ -2925,7 +2925,7 @@ impl<K, V> Slice<K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map = OpaqueIndexMap::from([
+    /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (1_isize, 'a'),
     ///     (3_isize, 'b'),
     ///     (2_isize, 'c'),
@@ -2933,7 +2933,7 @@ impl<K, V> Slice<K, V> {
     ///     (4_isize, 'f'),
     ///     (5_isize, '@'),
     /// ]);
-    /// let slice = map.as_mut_slice::<isize, char, RandomState, Global>();
+    /// let slice = opaque_map.as_mut_slice::<isize, char, RandomState, Global>();
     ///
     /// let maybe_result = slice.get_disjoint_mut([2, 1, 5]);
     ///
@@ -3196,13 +3196,13 @@ impl_index_for_index_map_slice!(
 /// # use std::hash::RandomState;
 /// # use std::alloc::Global;
 /// #
-/// let map = TypedProjIndexMap::from([
+/// let proj_map = TypedProjIndexMap::from([
 ///     (0_usize, 1_i32),
 ///     (1_usize, 2_i32),
 ///     (2_usize, 3_i32),
 ///     (3_usize, 4_i32),
 /// ]);
-/// let mut iterator = map.iter();
+/// let mut iterator = proj_map.iter();
 ///
 /// assert_eq!(iterator.next(), Some((&0_usize, &1_i32)));
 /// assert_eq!(iterator.next(), Some((&1_usize, &2_i32)));
@@ -3224,13 +3224,13 @@ impl_index_for_index_map_slice!(
 /// # use std::hash::RandomState;
 /// # use std::alloc::Global;
 /// #
-/// let map = OpaqueIndexMap::from([
+/// let opaque_map = OpaqueIndexMap::from([
 ///     (0_usize, 1_i32),
 ///     (1_usize, 2_i32),
 ///     (2_usize, 3_i32),
 ///     (3_usize, 4_i32),
 /// ]);
-/// let mut iterator = map.iter::<usize, i32, RandomState, Global>();
+/// let mut iterator = opaque_map.iter::<usize, i32, RandomState, Global>();
 ///
 /// assert_eq!(iterator.next(), Some((&0_usize, &1_i32)));
 /// assert_eq!(iterator.next(), Some((&1_usize, &2_i32)));
@@ -3266,13 +3266,13 @@ impl<'a, K, V> Iter<'a, K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let map = TypedProjIndexMap::from([
+    /// let proj_map = TypedProjIndexMap::from([
     ///     (0_usize, 1_i32),
     ///     (1_usize, 2_i32),
     ///     (2_usize, 3_i32),
     ///     (3_usize, 4_i32),
     /// ]);
-    /// let mut iterator = map.iter();
+    /// let mut iterator = proj_map.iter();
     ///
     /// assert_eq!(iterator.as_slice(), &[(0_usize, 1_i32), (1_usize, 2_i32), (2_usize, 3_i32), (3_usize, 4_i32)]);
     /// let _ = iterator.next().unwrap();
@@ -3298,13 +3298,13 @@ impl<'a, K, V> Iter<'a, K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let map = OpaqueIndexMap::from([
+    /// let opaque_map = OpaqueIndexMap::from([
     ///     (0_usize, 1_i32),
     ///     (1_usize, 2_i32),
     ///     (2_usize, 3_i32),
     ///     (3_usize, 4_i32),
     /// ]);
-    /// let mut iterator = map.iter::<usize, i32, RandomState, Global>();
+    /// let mut iterator = opaque_map.iter::<usize, i32, RandomState, Global>();
     ///
     /// assert_eq!(iterator.as_slice(), &[(0_usize, 1_i32), (1_usize, 2_i32), (2_usize, 3_i32), (3_usize, 4_i32)]);
     /// let _ = iterator.next().unwrap();
@@ -3389,13 +3389,13 @@ impl<K, V> Default for Iter<'_, K, V> {
 /// # use std::hash::RandomState;
 /// # use std::alloc::Global;
 /// #
-/// let mut map = TypedProjIndexMap::from([
+/// let mut proj_map = TypedProjIndexMap::from([
 ///     (0_usize, 1_i32),
 ///     (1_usize, 2_i32),
 ///     (2_usize, 3_i32),
 ///     (3_usize, 4_i32),
 /// ]);
-/// let mut iterator = map.iter_mut();
+/// let mut iterator = proj_map.iter_mut();
 ///
 /// assert_eq!(iterator.next(), Some((&0_usize, &mut 1_i32)));
 /// assert_eq!(iterator.next(), Some((&1_usize, &mut 2_i32)));
@@ -3417,13 +3417,13 @@ impl<K, V> Default for Iter<'_, K, V> {
 /// # use std::hash::RandomState;
 /// # use std::alloc::Global;
 /// #
-/// let mut map = OpaqueIndexMap::from([
+/// let mut opaque_map = OpaqueIndexMap::from([
 ///     (0_usize, 1_i32),
 ///     (1_usize, 2_i32),
 ///     (2_usize, 3_i32),
 ///     (3_usize, 4_i32),
 /// ]);
-/// let mut iterator = map.iter_mut::<usize, i32, RandomState, Global>();
+/// let mut iterator = opaque_map.iter_mut::<usize, i32, RandomState, Global>();
 ///
 /// assert_eq!(iterator.next(), Some((&0_usize, &mut 1_i32)));
 /// assert_eq!(iterator.next(), Some((&1_usize, &mut 2_i32)));
@@ -3459,13 +3459,13 @@ impl<'a, K, V> IterMut<'a, K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map = TypedProjIndexMap::from([
+    /// let mut proj_map = TypedProjIndexMap::from([
     ///     (0_usize, 1_i32),
     ///     (1_usize, 2_i32),
     ///     (2_usize, 3_i32),
     ///     (3_usize, 4_i32),
     /// ]);
-    /// let mut iterator = map.iter_mut();
+    /// let mut iterator = proj_map.iter_mut();
     ///
     /// let _ = iterator.next().unwrap();
     /// let _ = iterator.next().unwrap();
@@ -3486,13 +3486,13 @@ impl<'a, K, V> IterMut<'a, K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map = OpaqueIndexMap::from([
+    /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (0_usize, 1_i32),
     ///     (1_usize, 2_i32),
     ///     (2_usize, 3_i32),
     ///     (3_usize, 4_i32),
     /// ]);
-    /// let mut iterator = map.iter_mut::<usize, i32, RandomState, Global>();
+    /// let mut iterator = opaque_map.iter_mut::<usize, i32, RandomState, Global>();
     ///
     /// let _ = iterator.next().unwrap();
     /// let _ = iterator.next().unwrap();
@@ -3520,13 +3520,13 @@ impl<'a, K, V> IterMut<'a, K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map = TypedProjIndexMap::from([
+    /// let mut proj_map = TypedProjIndexMap::from([
     ///     (0_usize, 1_i32),
     ///     (1_usize, 2_i32),
     ///     (2_usize, 3_i32),
     ///     (3_usize, 4_i32),
     /// ]);
-    /// let mut iterator = map.iter_mut();
+    /// let mut iterator = proj_map.iter_mut();
     ///
     /// let _ = iterator.next().unwrap();
     /// let _ = iterator.next().unwrap();
@@ -3549,13 +3549,13 @@ impl<'a, K, V> IterMut<'a, K, V> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map = OpaqueIndexMap::from([
+    /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (0_usize, 1_i32),
     ///     (1_usize, 2_i32),
     ///     (2_usize, 3_i32),
     ///     (3_usize, 4_i32),
     /// ]);
-    /// let mut iterator = map.iter_mut::<usize, i32, RandomState, Global>();
+    /// let mut iterator = opaque_map.iter_mut::<usize, i32, RandomState, Global>();
     ///
     /// let _ = iterator.next().unwrap();
     /// let _ = iterator.next().unwrap();
@@ -3631,13 +3631,13 @@ impl<K, V> Default for IterMut<'_, K, V> {
 /// # use std::hash::RandomState;
 /// # use std::alloc::Global;
 /// #
-/// let map = TypedProjIndexMap::from([
+/// let proj_map = TypedProjIndexMap::from([
 ///     (0_usize, 1_i32),
 ///     (1_usize, 2_i32),
 ///     (2_usize, 3_i32),
 ///     (3_usize, 4_i32),
 /// ]);
-/// let mut iterator = map.into_iter();
+/// let mut iterator = proj_map.into_iter();
 ///
 /// assert_eq!(iterator.next(), Some((0_usize, 1_i32)));
 /// assert_eq!(iterator.next(), Some((1_usize, 2_i32)));
@@ -3659,13 +3659,13 @@ impl<K, V> Default for IterMut<'_, K, V> {
 /// # use std::hash::RandomState;
 /// # use std::alloc::Global;
 /// #
-/// let map = OpaqueIndexMap::from([
+/// let opaque_map = OpaqueIndexMap::from([
 ///     (0_usize, 1_i32),
 ///     (1_usize, 2_i32),
 ///     (2_usize, 3_i32),
 ///     (3_usize, 4_i32),
 /// ]);
-/// let mut iterator = map.into_iter::<usize, i32, RandomState, Global>();
+/// let mut iterator = opaque_map.into_iter::<usize, i32, RandomState, Global>();
 ///
 /// assert_eq!(iterator.next(), Some((0_usize, 1_i32)));
 /// assert_eq!(iterator.next(), Some((1_usize, 2_i32)));
@@ -3712,13 +3712,13 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let map = TypedProjIndexMap::from([
+    /// let proj_map = TypedProjIndexMap::from([
     ///     (0_usize, 1_i32),
     ///     (1_usize, 2_i32),
     ///     (2_usize, 3_i32),
     ///     (3_usize, 4_i32),
     /// ]);
-    /// let mut iterator = map.into_iter();
+    /// let mut iterator = proj_map.into_iter();
     ///
     /// assert_eq!(iterator.as_slice(), &[(0_usize, 1_i32), (1_usize, 2_i32), (2_usize, 3_i32), (3_usize, 4_i32)]);
     /// let _ = iterator.next().unwrap();
@@ -3744,13 +3744,13 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let map = OpaqueIndexMap::from([
+    /// let opaque_map = OpaqueIndexMap::from([
     ///     (0_usize, 1_i32),
     ///     (1_usize, 2_i32),
     ///     (2_usize, 3_i32),
     ///     (3_usize, 4_i32),
     /// ]);
-    /// let mut iterator = map.into_iter::<usize, i32, RandomState, Global>();
+    /// let mut iterator = opaque_map.into_iter::<usize, i32, RandomState, Global>();
     ///
     /// assert_eq!(iterator.as_slice(), &[(0_usize, 1_i32), (1_usize, 2_i32), (2_usize, 3_i32), (3_usize, 4_i32)]);
     /// let _ = iterator.next().unwrap();
@@ -3783,13 +3783,13 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let map = TypedProjIndexMap::from([
+    /// let proj_map = TypedProjIndexMap::from([
     ///     (0_usize, 1_i32),
     ///     (1_usize, 2_i32),
     ///     (2_usize, 3_i32),
     ///     (3_usize, 4_i32),
     /// ]);
-    /// let mut iterator = map.into_iter();
+    /// let mut iterator = proj_map.into_iter();
     ///
     /// assert_eq!(iterator.as_mut_slice(), &[(0_usize, 1_i32), (1_usize, 2_i32), (2_usize, 3_i32), (3_usize, 4_i32)]);
     /// let _ = iterator.next().unwrap();
@@ -3815,13 +3815,13 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let map = OpaqueIndexMap::from([
+    /// let opaque_map = OpaqueIndexMap::from([
     ///     (0_usize, 1_i32),
     ///     (1_usize, 2_i32),
     ///     (2_usize, 3_i32),
     ///     (3_usize, 4_i32),
     /// ]);
-    /// let mut iterator = map.into_iter::<usize, i32, RandomState, Global>();
+    /// let mut iterator = opaque_map.into_iter::<usize, i32, RandomState, Global>();
     ///
     /// assert_eq!(iterator.as_mut_slice(), &[(0_usize, 1_i32), (1_usize, 2_i32), (2_usize, 3_i32), (3_usize, 4_i32)]);
     /// let _ = iterator.next().unwrap();
@@ -3933,14 +3933,14 @@ where
 /// # use std::hash::RandomState;
 /// # use std::alloc::Global;
 /// #
-/// let map = TypedProjIndexMap::from([
+/// let proj_map = TypedProjIndexMap::from([
 ///     (0_usize, 1_i32),
 ///     (1_usize, 2_i32),
 ///     (2_usize, 3_i32),
 ///     (3_usize, 4_i32),
 ///     (4_usize, 5_i32),
 /// ]);
-/// let mut result = map.clone();
+/// let mut result = proj_map.clone();
 /// let splice_data = [
 ///     (4_usize, i32::MAX),
 ///     (5_usize, 8_i32),
@@ -3973,14 +3973,14 @@ where
 /// # use std::hash::RandomState;
 /// # use std::alloc::Global;
 /// #
-/// let map = OpaqueIndexMap::from([
+/// let opaque_map = OpaqueIndexMap::from([
 ///     (0_usize, 1_i32),
 ///     (1_usize, 2_i32),
 ///     (2_usize, 3_i32),
 ///     (3_usize, 4_i32),
 ///     (4_usize, 5_i32),
 /// ]);
-/// let mut result = map.clone::<usize, i32, RandomState, Global>();
+/// let mut result = opaque_map.clone::<usize, i32, RandomState, Global>();
 /// let splice_data = [
 ///     (4_usize, i32::MAX),
 ///     (5_usize, 8_i32),
@@ -4207,17 +4207,17 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map = TypedProjIndexMap::from([
+    /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo", 1_i32),
     ///     ("bar", 2_i32),
     ///     ("baz", 3_i32),
     /// ]);
     ///
-    /// assert_eq!(map.entry("foo").index(), 0);
-    /// assert_eq!(map.entry("bar").index(), 1);
-    /// assert_eq!(map.entry("baz").index(), 2);
+    /// assert_eq!(proj_map.entry("foo").index(), 0);
+    /// assert_eq!(proj_map.entry("bar").index(), 1);
+    /// assert_eq!(proj_map.entry("baz").index(), 2);
     ///
-    /// assert_eq!(map.entry("quux").index(), 3);
+    /// assert_eq!(proj_map.entry("quux").index(), 3);
     /// ```
     pub fn index(&self) -> usize {
         match *self {
@@ -4249,8 +4249,8 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map = TypedProjIndexMap::new();
-    /// let new_entry = map.entry("foo");
+    /// let mut proj_map = TypedProjIndexMap::new();
+    /// let new_entry = proj_map.entry("foo");
     /// let occupied_entry = new_entry.insert_entry(1_i32);
     ///
     /// assert_eq!(occupied_entry.index(), 0);
@@ -4286,16 +4286,16 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map = TypedProjIndexMap::new();
-    /// map.entry("foo").or_insert(3_i32);
+    /// let mut proj_map = TypedProjIndexMap::new();
+    /// proj_map.entry("foo").or_insert(3_i32);
     ///
-    /// assert_eq!(map["foo"], 3_i32);
+    /// assert_eq!(proj_map["foo"], 3_i32);
     ///
     /// // This does nothing since the entry with key `"foo"` already exists in the map.
-    /// map.entry("foo").or_insert(10_i32);
+    /// proj_map.entry("foo").or_insert(10_i32);
     ///
-    /// assert_ne!(map["foo"], 10_32);
-    /// assert_eq!(map["foo"], 3_i32);
+    /// assert_ne!(proj_map["foo"], 10_32);
+    /// assert_eq!(proj_map["foo"], 3_i32);
     /// ```
     pub fn or_insert(self, default: V) -> &'a mut V {
         match self {
@@ -4325,19 +4325,19 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map = TypedProjIndexMap::new();
+    /// let mut proj_map = TypedProjIndexMap::new();
     /// let default_value = "garply";
     /// let another_value = "corge";
     ///
-    /// map.entry("foo").or_insert_with(|| default_value);
+    /// proj_map.entry("foo").or_insert_with(|| default_value);
     ///
-    /// assert_eq!(map["foo"], default_value);
+    /// assert_eq!(proj_map["foo"], default_value);
     ///
     /// // This does nothing since the entry with key `"foo"` already exists in the map.
-    /// map.entry("foo").or_insert_with(|| another_value);
+    /// proj_map.entry("foo").or_insert_with(|| another_value);
     ///
-    /// assert_ne!(map["foo"], another_value);
-    /// assert_eq!(map["foo"], default_value);
+    /// assert_ne!(proj_map["foo"], another_value);
+    /// assert_eq!(proj_map["foo"], default_value);
     /// ```
     pub fn or_insert_with<F>(self, call: F) -> &'a mut V
     where
@@ -4371,20 +4371,20 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map = TypedProjIndexMap::new();
+    /// let mut proj_map = TypedProjIndexMap::new();
     /// let default_value = "garply";
     /// let another_value = "corge";
     /// let func = |key: &&str| if key == &"foo" { default_value } else { another_value };
     ///
-    /// map.entry("foo").or_insert_with_key(func);
+    /// proj_map.entry("foo").or_insert_with_key(func);
     ///
-    /// assert_eq!(map["foo"], default_value);
-    /// assert_ne!(map["foo"], another_value);
+    /// assert_eq!(proj_map["foo"], default_value);
+    /// assert_ne!(proj_map["foo"], another_value);
     ///
-    /// map.entry("bar").or_insert_with_key(func);
+    /// proj_map.entry("bar").or_insert_with_key(func);
     ///
-    /// assert_eq!(map["bar"], another_value);
-    /// assert_ne!(map["bar"], default_value);
+    /// assert_eq!(proj_map["bar"], another_value);
+    /// assert_ne!(proj_map["bar"], default_value);
     /// ```
     pub fn or_insert_with_key<F>(self, call: F) -> &'a mut V
     where
@@ -4418,18 +4418,18 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map = TypedProjIndexMap::from([
+    /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo", 1_i32),
     ///     ("bar", 2_i32),
     ///     ("baz", 3_i32),
     /// ]);
     ///
-    /// assert_eq!(map.entry("foo").key(), &"foo");
-    /// assert_eq!(map.entry("bar").key(), &"bar");
-    /// assert_eq!(map.entry("baz").key(), &"baz");
+    /// assert_eq!(proj_map.entry("foo").key(), &"foo");
+    /// assert_eq!(proj_map.entry("bar").key(), &"bar");
+    /// assert_eq!(proj_map.entry("baz").key(), &"baz");
     ///
     /// // Vacant entries have keys too.
-    /// assert_eq!(map.entry("quux").key(), &"quux");
+    /// assert_eq!(proj_map.entry("quux").key(), &"quux");
     /// ```
     pub fn key(&self) -> &K {
         match *self {
@@ -4455,19 +4455,19 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map = TypedProjIndexMap::new();
-    /// map.entry("foo").and_modify(|e| { *e += 1 }).or_insert(42);
+    /// let mut proj_map = TypedProjIndexMap::new();
+    /// proj_map.entry("foo").and_modify(|e| { *e += 1 }).or_insert(42);
     ///
-    /// assert_eq!(map["foo"], 42);
+    /// assert_eq!(proj_map["foo"], 42);
     ///
-    /// map.entry("foo").and_modify(|e| { *e += 1 }).or_insert(42);
+    /// proj_map.entry("foo").and_modify(|e| { *e += 1 }).or_insert(42);
     ///
-    /// assert_eq!(map["foo"], 43);
+    /// assert_eq!(proj_map["foo"], 43);
     ///
     /// // The `and_modify` method has no effect on vacant entries.
-    /// map.entry("bar").and_modify(|e| *e = 55).or_insert(44);
+    /// proj_map.entry("bar").and_modify(|e| *e = 55).or_insert(44);
     ///
-    /// assert_eq!(map["bar"], 44);
+    /// assert_eq!(proj_map["bar"], 44);
     /// ```
     pub fn and_modify<F>(mut self, f: F) -> Self
     where
@@ -4514,15 +4514,15 @@ where
     /// # }
     /// #
     ///
-    /// let mut map: TypedProjIndexMap<&str, SpatialPartition> = TypedProjIndexMap::new();
+    /// let mut proj_map: TypedProjIndexMap<&str, SpatialPartition> = TypedProjIndexMap::new();
     ///
-    /// assert!(!map.contains_key("foo"));
+    /// assert!(!proj_map.contains_key("foo"));
     ///
-    /// map.entry("foo").or_default();
+    /// proj_map.entry("foo").or_default();
     ///
-    /// assert!(map.contains_key("foo"));
+    /// assert!(proj_map.contains_key("foo"));
     ///
-    /// assert_eq!(map["foo"], SpatialPartition::default());
+    /// assert_eq!(proj_map["foo"], SpatialPartition::default());
     /// ```
     pub fn or_default(self) -> &'a mut V
     where
@@ -4596,17 +4596,17 @@ where
     ///     }
     /// }
     ///
-    /// let mut map = TypedProjIndexMap::from([
+    /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo",  1_i32),
     ///     ("bar",  2_i32),
     ///     ("baz",  3_i32),
     ///     ("quux", 4_i32),
     /// ]);
     ///
-    /// assert_eq!(into_occupied(map.entry("foo")).index(),  0);
-    /// assert_eq!(into_occupied(map.entry("bar")).index(),  1);
-    /// assert_eq!(into_occupied(map.entry("baz")).index(),  2);
-    /// assert_eq!(into_occupied(map.entry("quux")).index(), 3);
+    /// assert_eq!(into_occupied(proj_map.entry("foo")).index(),  0);
+    /// assert_eq!(into_occupied(proj_map.entry("bar")).index(),  1);
+    /// assert_eq!(into_occupied(proj_map.entry("baz")).index(),  2);
+    /// assert_eq!(into_occupied(proj_map.entry("quux")).index(), 3);
     /// ```
     #[inline]
     pub fn index(&self) -> usize {
@@ -4634,17 +4634,17 @@ where
     ///     }
     /// }
     ///
-    /// let mut map = TypedProjIndexMap::from([
+    /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo",  1_i32),
     ///     ("bar",  2_i32),
     ///     ("baz",  3_i32),
     ///     ("quux", 4_i32),
     /// ]);
     ///
-    /// assert_eq!(into_occupied(map.entry("foo")).key(),  &"foo");
-    /// assert_eq!(into_occupied(map.entry("bar")).key(),  &"bar");
-    /// assert_eq!(into_occupied(map.entry("baz")).key(),  &"baz");
-    /// assert_eq!(into_occupied(map.entry("quux")).key(), &"quux");
+    /// assert_eq!(into_occupied(proj_map.entry("foo")).key(),  &"foo");
+    /// assert_eq!(into_occupied(proj_map.entry("bar")).key(),  &"bar");
+    /// assert_eq!(into_occupied(proj_map.entry("baz")).key(),  &"baz");
+    /// assert_eq!(into_occupied(proj_map.entry("quux")).key(), &"quux");
     /// ```
     pub fn key(&self) -> &K {
         self.inner.key()
@@ -4677,17 +4677,17 @@ where
     ///     }
     /// }
     ///
-    /// let mut map = TypedProjIndexMap::from([
+    /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo",  1_i32),
     ///     ("bar",  2_i32),
     ///     ("baz",  3_i32),
     ///     ("quux", 4_i32),
     /// ]);
     ///
-    /// assert_eq!(into_occupied(map.entry("foo")).get(),  &1_i32);
-    /// assert_eq!(into_occupied(map.entry("bar")).get(),  &2_i32);
-    /// assert_eq!(into_occupied(map.entry("baz")).get(),  &3_i32);
-    /// assert_eq!(into_occupied(map.entry("quux")).get(), &4_i32);
+    /// assert_eq!(into_occupied(proj_map.entry("foo")).get(),  &1_i32);
+    /// assert_eq!(into_occupied(proj_map.entry("bar")).get(),  &2_i32);
+    /// assert_eq!(into_occupied(proj_map.entry("baz")).get(),  &3_i32);
+    /// assert_eq!(into_occupied(proj_map.entry("quux")).get(), &4_i32);
     /// ```
     pub fn get(&self) -> &V {
         self.inner.get()
@@ -4714,17 +4714,17 @@ where
     ///     }
     /// }
     ///
-    /// let mut map = TypedProjIndexMap::from([
+    /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo",  1_i32),
     ///     ("bar",  2_i32),
     ///     ("baz",  3_i32),
     ///     ("quux", 4_i32),
     /// ]);
     ///
-    /// assert_eq!(into_occupied(map.entry("foo")).get_mut(),  &mut 1_i32);
-    /// assert_eq!(into_occupied(map.entry("bar")).get_mut(),  &mut 2_i32);
-    /// assert_eq!(into_occupied(map.entry("baz")).get_mut(),  &mut 3_i32);
-    /// assert_eq!(into_occupied(map.entry("quux")).get_mut(), &mut 4_i32);
+    /// assert_eq!(into_occupied(proj_map.entry("foo")).get_mut(),  &mut 1_i32);
+    /// assert_eq!(into_occupied(proj_map.entry("bar")).get_mut(),  &mut 2_i32);
+    /// assert_eq!(into_occupied(proj_map.entry("baz")).get_mut(),  &mut 3_i32);
+    /// assert_eq!(into_occupied(proj_map.entry("quux")).get_mut(), &mut 4_i32);
     /// ```
     pub fn get_mut(&mut self) -> &mut V {
         self.inner.get_mut()
@@ -4756,26 +4756,26 @@ where
     ///     }
     /// }
     ///
-    /// let mut map = TypedProjIndexMap::from([
+    /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo",  1_i32),
     ///     ("bar",  2_i32),
     ///     ("baz",  3_i32),
     ///     ("quux", 4_i32),
     /// ]);
     ///
-    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
-    /// assert_eq!(map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
-    /// assert_eq!(map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
-    /// assert_eq!(map.get_full("quux"), Some((3, &"quux", &4_i32)));
+    /// assert_eq!(proj_map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(proj_map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
+    /// assert_eq!(proj_map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
+    /// assert_eq!(proj_map.get_full("quux"), Some((3, &"quux", &4_i32)));
     /// {
-    ///     let mut occupied_entry = into_occupied(map.entry("bar"));
+    ///     let mut occupied_entry = into_occupied(proj_map.entry("bar"));
     ///     let result = occupied_entry.into_mut();
     ///
     ///     assert_eq!(result, &2_i32);
     ///
     ///     *result = i32::MAX;
     /// }
-    /// assert_eq!(into_occupied(map.entry("bar")).get(), &i32::MAX);
+    /// assert_eq!(into_occupied(proj_map.entry("bar")).get(), &i32::MAX);
     /// ```
     pub fn into_mut(self) -> &'a mut V {
         self.inner.into_mut()
@@ -4802,27 +4802,27 @@ where
     ///     }
     /// }
     ///
-    /// let mut map = TypedProjIndexMap::from([
+    /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo",  1_i32),
     ///     ("bar",  2_i32),
     ///     ("baz",  3_i32),
     ///     ("quux", 4_i32),
     /// ]);
     ///
-    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
-    /// assert_eq!(map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
-    /// assert_eq!(map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
-    /// assert_eq!(map.get_full("quux"), Some((3, &"quux", &4_i32)));
+    /// assert_eq!(proj_map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(proj_map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
+    /// assert_eq!(proj_map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
+    /// assert_eq!(proj_map.get_full("quux"), Some((3, &"quux", &4_i32)));
     ///
-    /// let mut occupied_entry = into_occupied(map.entry("bar"));
+    /// let mut occupied_entry = into_occupied(proj_map.entry("bar"));
     /// let result = occupied_entry.insert(i32::MAX);
     ///
     /// assert_eq!(result, 2_i32);
     ///
-    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
-    /// assert_eq!(map.get_full("bar"),  Some((1, &"bar",  &i32::MAX)));
-    /// assert_eq!(map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
-    /// assert_eq!(map.get_full("quux"), Some((3, &"quux", &4_i32)));
+    /// assert_eq!(proj_map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(proj_map.get_full("bar"),  Some((1, &"bar",  &i32::MAX)));
+    /// assert_eq!(proj_map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
+    /// assert_eq!(proj_map.get_full("quux"), Some((3, &"quux", &4_i32)));
     /// ```
     pub fn insert(&mut self, value: V) -> V {
         mem::replace(self.get_mut(), value)
@@ -4849,26 +4849,26 @@ where
     ///     }
     /// }
     ///
-    /// let mut map = TypedProjIndexMap::from([
+    /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo",  1_i32),
     ///     ("bar",  2_i32),
     ///     ("baz",  3_i32),
     ///     ("quux", 4_i32),
     /// ]);
     ///
-    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
-    /// assert_eq!(map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
-    /// assert_eq!(map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
-    /// assert_eq!(map.get_full("quux"), Some((3, &"quux", &4_i32)));
+    /// assert_eq!(proj_map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(proj_map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
+    /// assert_eq!(proj_map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
+    /// assert_eq!(proj_map.get_full("quux"), Some((3, &"quux", &4_i32)));
     ///
-    /// let occupied_entry = into_occupied(map.entry("bar"));
+    /// let occupied_entry = into_occupied(proj_map.entry("bar"));
     /// let result = occupied_entry.swap_remove();
     ///
     /// assert_eq!(result, 2_i32);
     ///
-    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
-    /// assert_eq!(map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
-    /// assert_eq!(map.get_full("quux"), Some((1, &"quux", &4_i32)));
+    /// assert_eq!(proj_map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(proj_map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
+    /// assert_eq!(proj_map.get_full("quux"), Some((1, &"quux", &4_i32)));
     /// ```
     pub fn swap_remove(self) -> V {
         self.swap_remove_entry().1
@@ -4895,26 +4895,26 @@ where
     ///     }
     /// }
     ///
-    /// let mut map = TypedProjIndexMap::from([
+    /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo",  1_i32),
     ///     ("bar",  2_i32),
     ///     ("baz",  3_i32),
     ///     ("quux", 4_i32),
     /// ]);
     ///
-    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
-    /// assert_eq!(map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
-    /// assert_eq!(map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
-    /// assert_eq!(map.get_full("quux"), Some((3, &"quux", &4_i32)));
+    /// assert_eq!(proj_map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(proj_map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
+    /// assert_eq!(proj_map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
+    /// assert_eq!(proj_map.get_full("quux"), Some((3, &"quux", &4_i32)));
     ///
-    /// let occupied_entry = into_occupied(map.entry("baz"));
+    /// let occupied_entry = into_occupied(proj_map.entry("baz"));
     /// let result = occupied_entry.shift_remove();
     ///
     /// assert_eq!(result, 3_i32);
     ///
-    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
-    /// assert_eq!(map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
-    /// assert_eq!(map.get_full("quux"), Some((2, &"quux", &4_i32)));
+    /// assert_eq!(proj_map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(proj_map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
+    /// assert_eq!(proj_map.get_full("quux"), Some((2, &"quux", &4_i32)));
     /// ```
     pub fn shift_remove(self) -> V {
         self.shift_remove_entry().1
@@ -4941,26 +4941,26 @@ where
     ///     }
     /// }
     ///
-    /// let mut map = TypedProjIndexMap::from([
+    /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo",  1_i32),
     ///     ("bar",  2_i32),
     ///     ("baz",  3_i32),
     ///     ("quux", 4_i32),
     /// ]);
     ///
-    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
-    /// assert_eq!(map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
-    /// assert_eq!(map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
-    /// assert_eq!(map.get_full("quux"), Some((3, &"quux", &4_i32)));
+    /// assert_eq!(proj_map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(proj_map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
+    /// assert_eq!(proj_map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
+    /// assert_eq!(proj_map.get_full("quux"), Some((3, &"quux", &4_i32)));
     ///
-    /// let occupied_entry = into_occupied(map.entry("bar"));
+    /// let occupied_entry = into_occupied(proj_map.entry("bar"));
     /// let result = occupied_entry.swap_remove_entry();
     ///
     /// assert_eq!(result, ("bar", 2_i32));
     ///
-    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
-    /// assert_eq!(map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
-    /// assert_eq!(map.get_full("quux"), Some((1, &"quux", &4_i32)));
+    /// assert_eq!(proj_map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(proj_map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
+    /// assert_eq!(proj_map.get_full("quux"), Some((1, &"quux", &4_i32)));
     /// ```
     pub fn swap_remove_entry(self) -> (K, V) {
         self.inner.swap_remove_entry()
@@ -4987,26 +4987,26 @@ where
     ///     }
     /// }
     ///
-    /// let mut map = TypedProjIndexMap::from([
+    /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo",  1_i32),
     ///     ("bar",  2_i32),
     ///     ("baz",  3_i32),
     ///     ("quux", 4_i32),
     /// ]);
     ///
-    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
-    /// assert_eq!(map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
-    /// assert_eq!(map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
-    /// assert_eq!(map.get_full("quux"), Some((3, &"quux", &4_i32)));
+    /// assert_eq!(proj_map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(proj_map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
+    /// assert_eq!(proj_map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
+    /// assert_eq!(proj_map.get_full("quux"), Some((3, &"quux", &4_i32)));
     ///
-    /// let occupied_entry = into_occupied(map.entry("baz"));
+    /// let occupied_entry = into_occupied(proj_map.entry("baz"));
     /// let result = occupied_entry.shift_remove_entry();
     ///
     /// assert_eq!(result, ("baz", 3_i32));
     ///
-    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
-    /// assert_eq!(map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
-    /// assert_eq!(map.get_full("quux"), Some((2, &"quux", &4_i32)));
+    /// assert_eq!(proj_map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(proj_map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
+    /// assert_eq!(proj_map.get_full("quux"), Some((2, &"quux", &4_i32)));
     /// ```
     pub fn shift_remove_entry(self) -> (K, V) {
         self.inner.shift_remove_entry()
@@ -5044,25 +5044,25 @@ where
     ///     }
     /// }
     ///
-    /// let mut map = TypedProjIndexMap::from([
+    /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo",  1_i32),
     ///     ("bar",  2_i32),
     ///     ("baz",  3_i32),
     ///     ("quux", 4_i32),
     /// ]);
     ///
-    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
-    /// assert_eq!(map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
-    /// assert_eq!(map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
-    /// assert_eq!(map.get_full("quux"), Some((3, &"quux", &4_i32)));
+    /// assert_eq!(proj_map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(proj_map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
+    /// assert_eq!(proj_map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
+    /// assert_eq!(proj_map.get_full("quux"), Some((3, &"quux", &4_i32)));
     ///
-    /// let occupied_entry = into_occupied(map.entry("foo"));
+    /// let occupied_entry = into_occupied(proj_map.entry("foo"));
     /// occupied_entry.move_index(3);
     ///
-    /// assert_eq!(map.get_full("foo"),  Some((3, &"foo",  &1_i32)));
-    /// assert_eq!(map.get_full("bar"),  Some((0, &"bar",  &2_i32)));
-    /// assert_eq!(map.get_full("baz"),  Some((1, &"baz",  &3_i32)));
-    /// assert_eq!(map.get_full("quux"), Some((2, &"quux", &4_i32)));
+    /// assert_eq!(proj_map.get_full("foo"),  Some((3, &"foo",  &1_i32)));
+    /// assert_eq!(proj_map.get_full("bar"),  Some((0, &"bar",  &2_i32)));
+    /// assert_eq!(proj_map.get_full("baz"),  Some((1, &"baz",  &3_i32)));
+    /// assert_eq!(proj_map.get_full("quux"), Some((2, &"quux", &4_i32)));
     /// ```
     ///
     /// Moving an entry to an index where `self.index() < to`.
@@ -5084,25 +5084,25 @@ where
     ///     }
     /// }
     ///
-    /// let mut map = TypedProjIndexMap::from([
+    /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo",  1_i32),
     ///     ("bar",  2_i32),
     ///     ("baz",  3_i32),
     ///     ("quux", 4_i32),
     /// ]);
     ///
-    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
-    /// assert_eq!(map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
-    /// assert_eq!(map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
-    /// assert_eq!(map.get_full("quux"), Some((3, &"quux", &4_i32)));
+    /// assert_eq!(proj_map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(proj_map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
+    /// assert_eq!(proj_map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
+    /// assert_eq!(proj_map.get_full("quux"), Some((3, &"quux", &4_i32)));
     ///
-    /// let occupied_entry = into_occupied(map.entry("baz"));
+    /// let occupied_entry = into_occupied(proj_map.entry("baz"));
     /// occupied_entry.move_index(0);
     ///
-    /// assert_eq!(map.get_full("foo"),  Some((1, &"foo",  &1_i32)));
-    /// assert_eq!(map.get_full("bar"),  Some((2, &"bar",  &2_i32)));
-    /// assert_eq!(map.get_full("baz"),  Some((0, &"baz",  &3_i32)));
-    /// assert_eq!(map.get_full("quux"), Some((3, &"quux", &4_i32)));
+    /// assert_eq!(proj_map.get_full("foo"),  Some((1, &"foo",  &1_i32)));
+    /// assert_eq!(proj_map.get_full("bar"),  Some((2, &"bar",  &2_i32)));
+    /// assert_eq!(proj_map.get_full("baz"),  Some((0, &"baz",  &3_i32)));
+    /// assert_eq!(proj_map.get_full("quux"), Some((3, &"quux", &4_i32)));
     /// ```
     #[track_caller]
     pub fn move_index(self, to: usize) {
@@ -5135,20 +5135,20 @@ where
     ///     }
     /// }
     ///
-    /// let mut map = TypedProjIndexMap::from([
+    /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo", 1_i32),
     ///     ("bar", 2_i32),
     ///     ("baz", 3_i32),
     /// ]);
     ///
-    /// assert_eq!(map.get_full("foo"), Some((0, &"foo", &1_i32)));
-    /// assert_eq!(map.get_full("baz"), Some((2, &"baz", &3_i32)));
+    /// assert_eq!(proj_map.get_full("foo"), Some((0, &"foo", &1_i32)));
+    /// assert_eq!(proj_map.get_full("baz"), Some((2, &"baz", &3_i32)));
     ///
-    /// let occupied_entry = into_occupied(map.entry("foo"));
+    /// let occupied_entry = into_occupied(proj_map.entry("foo"));
     /// occupied_entry.swap_indices(2);
     ///
-    /// assert_eq!(map.get_full("foo"), Some((2, &"foo", &1_i32)));
-    /// assert_eq!(map.get_full("baz"), Some((0, &"baz", &3_i32)));
+    /// assert_eq!(proj_map.get_full("foo"), Some((2, &"foo", &1_i32)));
+    /// assert_eq!(proj_map.get_full("baz"), Some((0, &"baz", &3_i32)));
     /// ```
     pub fn swap_indices(self, other: usize) {
         self.inner.swap_indices(other);
@@ -5224,19 +5224,19 @@ where
     ///     }
     /// }
     ///
-    /// let mut map = TypedProjIndexMap::from([
+    /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo",  1_i32),
     ///     ("bar",  2_i32),
     ///     ("baz",  3_i32),
     ///     ("quux", 4_i32),
     /// ]);
     ///
-    /// assert_eq!(map.get("foo"),  Some(&1_i32));
-    /// assert_eq!(map.get("bar"),  Some(&2_i32));
-    /// assert_eq!(map.get("baz"),  Some(&3_i32));
-    /// assert_eq!(map.get("quux"), Some(&4_i32));
+    /// assert_eq!(proj_map.get("foo"),  Some(&1_i32));
+    /// assert_eq!(proj_map.get("bar"),  Some(&2_i32));
+    /// assert_eq!(proj_map.get("baz"),  Some(&3_i32));
+    /// assert_eq!(proj_map.get("quux"), Some(&4_i32));
     ///
-    /// let vacant_entry = into_vacant(map.entry("corge"));
+    /// let vacant_entry = into_vacant(proj_map.entry("corge"));
     ///
     /// assert_eq!(vacant_entry.index(), 4);
     /// ```
@@ -5265,8 +5265,8 @@ where
     ///     }
     /// }
     ///
-    /// let mut map: TypedProjIndexMap<&str, i32> = TypedProjIndexMap::new();
-    /// let vacant_entry = into_vacant(map.entry("foo"));
+    /// let mut proj_map: TypedProjIndexMap<&str, i32> = TypedProjIndexMap::new();
+    /// let vacant_entry = into_vacant(proj_map.entry("foo"));
     /// let expected = "foo";
     /// let result = vacant_entry.key();
     ///
@@ -5303,8 +5303,8 @@ where
     ///     }
     /// }
     ///
-    /// let mut map: TypedProjIndexMap<&str, i32> = TypedProjIndexMap::new();
-    /// let vacant_entry = into_vacant(map.entry("foo"));
+    /// let mut proj_map: TypedProjIndexMap<&str, i32> = TypedProjIndexMap::new();
+    /// let vacant_entry = into_vacant(proj_map.entry("foo"));
     /// let expected = "foo";
     /// let result = vacant_entry.into_key();
     ///
@@ -5335,19 +5335,19 @@ where
     ///     }
     /// }
     ///
-    /// let mut map = TypedProjIndexMap::from([
+    /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo",  1_i32),
     ///     ("bar",  2_i32),
     ///     ("baz",  3_i32),
     ///     ("quux", 4_i32),
     /// ]);
     ///
-    /// assert_eq!(map.get("foo"),  Some(&1_i32));
-    /// assert_eq!(map.get("bar"),  Some(&2_i32));
-    /// assert_eq!(map.get("baz"),  Some(&3_i32));
-    /// assert_eq!(map.get("quux"), Some(&4_i32));
+    /// assert_eq!(proj_map.get("foo"),  Some(&1_i32));
+    /// assert_eq!(proj_map.get("bar"),  Some(&2_i32));
+    /// assert_eq!(proj_map.get("baz"),  Some(&3_i32));
+    /// assert_eq!(proj_map.get("quux"), Some(&4_i32));
     ///
-    /// let result = into_vacant(map.entry("corge")).insert(i32::MAX);
+    /// let result = into_vacant(proj_map.entry("corge")).insert(i32::MAX);
     ///
     /// assert_eq!(result, &i32::MAX);
     /// ```
@@ -5380,19 +5380,19 @@ where
     ///     }
     /// }
     ///
-    /// let mut map = TypedProjIndexMap::from([
+    /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo",  1_i32),
     ///     ("bar",  2_i32),
     ///     ("baz",  3_i32),
     ///     ("quux", 4_i32),
     /// ]);
     ///
-    /// assert_eq!(map.get("foo"),  Some(&1_i32));
-    /// assert_eq!(map.get("bar"),  Some(&2_i32));
-    /// assert_eq!(map.get("baz"),  Some(&3_i32));
-    /// assert_eq!(map.get("quux"), Some(&4_i32));
+    /// assert_eq!(proj_map.get("foo"),  Some(&1_i32));
+    /// assert_eq!(proj_map.get("bar"),  Some(&2_i32));
+    /// assert_eq!(proj_map.get("baz"),  Some(&3_i32));
+    /// assert_eq!(proj_map.get("quux"), Some(&4_i32));
     ///
-    /// let occupied_entry = into_vacant(map.entry("corge")).insert_entry(i32::MAX);
+    /// let occupied_entry = into_vacant(proj_map.entry("corge")).insert_entry(i32::MAX);
     ///
     /// assert_eq!(occupied_entry.key(), &"corge");
     /// assert_eq!(occupied_entry.get(), &i32::MAX);
@@ -5438,19 +5438,19 @@ where
     ///     }
     /// }
     ///
-    /// let mut map = TypedProjIndexMap::from([
+    /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo",  1_i32),
     ///     ("bar",  2_i32),
     ///     ("baz",  3_i32),
     ///     ("quux", 4_i32),
     /// ]);
     ///
-    /// assert_eq!(map.get("foo"),  Some(&1_i32));
-    /// assert_eq!(map.get("bar"),  Some(&2_i32));
-    /// assert_eq!(map.get("baz"),  Some(&3_i32));
-    /// assert_eq!(map.get("quux"), Some(&4_i32));
+    /// assert_eq!(proj_map.get("foo"),  Some(&1_i32));
+    /// assert_eq!(proj_map.get("bar"),  Some(&2_i32));
+    /// assert_eq!(proj_map.get("baz"),  Some(&3_i32));
+    /// assert_eq!(proj_map.get("quux"), Some(&4_i32));
     ///
-    /// let result = into_vacant(map.entry("corge")).insert_sorted(i32::MAX);
+    /// let result = into_vacant(proj_map.entry("corge")).insert_sorted(i32::MAX);
     ///
     /// // The map is sorted, so the index returned is the storage index in the map.
     /// assert_eq!(result, (3, &mut i32::MAX));
@@ -5476,19 +5476,19 @@ where
     ///     }
     /// }
     ///
-    /// let mut map = TypedProjIndexMap::from([
+    /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("quux", 4_i32),
     ///     ("bar",  2_i32),
     ///     ("foo",  1_i32),
     ///     ("baz",  3_i32),
     /// ]);
     ///
-    /// assert_eq!(map.get("foo"),  Some(&1_i32));
-    /// assert_eq!(map.get("bar"),  Some(&2_i32));
-    /// assert_eq!(map.get("baz"),  Some(&3_i32));
-    /// assert_eq!(map.get("quux"), Some(&4_i32));
+    /// assert_eq!(proj_map.get("foo"),  Some(&1_i32));
+    /// assert_eq!(proj_map.get("bar"),  Some(&2_i32));
+    /// assert_eq!(proj_map.get("baz"),  Some(&3_i32));
+    /// assert_eq!(proj_map.get("quux"), Some(&4_i32));
     ///
-    /// let result = into_vacant(map.entry("corge")).insert_sorted(i32::MAX);
+    /// let result = into_vacant(proj_map.entry("corge")).insert_sorted(i32::MAX);
     ///
     /// // The map is sorted, so the index returned is the storage index in the map.
     /// assert_ne!(result, (3, &mut i32::MAX));
@@ -5521,23 +5521,23 @@ where
     ///     }
     /// }
     ///
-    /// let mut map = TypedProjIndexMap::from([
+    /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo", 1_i32),
     ///     ("bar", 2_i32),
     ///     ("baz", 3_i32),
     /// ]);
     ///
-    /// assert_eq!(map.get_full("foo"), Some((0, &"foo", &1_i32)));
-    /// assert_eq!(map.get_full("bar"), Some((1, &"bar", &2_i32)));
-    /// assert_eq!(map.get_full("baz"), Some((2, &"baz", &3_i32)));
+    /// assert_eq!(proj_map.get_full("foo"), Some((0, &"foo", &1_i32)));
+    /// assert_eq!(proj_map.get_full("bar"), Some((1, &"bar", &2_i32)));
+    /// assert_eq!(proj_map.get_full("baz"), Some((2, &"baz", &3_i32)));
     ///
-    /// let occupied_entry = into_vacant(map.entry("quux"));
+    /// let occupied_entry = into_vacant(proj_map.entry("quux"));
     /// occupied_entry.shift_insert(1, i32::MAX);
     ///
-    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
-    /// assert_eq!(map.get_full("quux"), Some((1, &"quux", &i32::MAX)));
-    /// assert_eq!(map.get_full("bar"),  Some((2, &"bar",  &2_i32)));
-    /// assert_eq!(map.get_full("baz"),  Some((3, &"baz",  &3_i32)));
+    /// assert_eq!(proj_map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(proj_map.get_full("quux"), Some((1, &"quux", &i32::MAX)));
+    /// assert_eq!(proj_map.get_full("bar"),  Some((2, &"bar",  &2_i32)));
+    /// assert_eq!(proj_map.get_full("baz"),  Some((3, &"baz",  &3_i32)));
     /// ```
     pub fn shift_insert(self, index: usize, value: V) -> &'a mut V {
         self.inner.shift_insert(index, value)
@@ -5637,17 +5637,17 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map = TypedProjIndexMap::from([
+    /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo",  1_i32),
     ///     ("bar",  2_i32),
     ///     ("baz",  3_i32),
     ///     ("quux", 4_i32),
     /// ]);
     ///
-    /// assert_eq!(map.get_index_entry(0).unwrap().index(),  0);
-    /// assert_eq!(map.get_index_entry(1).unwrap().index(),  1);
-    /// assert_eq!(map.get_index_entry(2).unwrap().index(),  2);
-    /// assert_eq!(map.get_index_entry(3).unwrap().index(), 3);
+    /// assert_eq!(proj_map.get_index_entry(0).unwrap().index(),  0);
+    /// assert_eq!(proj_map.get_index_entry(1).unwrap().index(),  1);
+    /// assert_eq!(proj_map.get_index_entry(2).unwrap().index(),  2);
+    /// assert_eq!(proj_map.get_index_entry(3).unwrap().index(), 3);
     /// ```
     #[inline]
     pub fn index(&self) -> usize {
@@ -5668,17 +5668,17 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map = TypedProjIndexMap::from([
+    /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo",  1_i32),
     ///     ("bar",  2_i32),
     ///     ("baz",  3_i32),
     ///     ("quux", 4_i32),
     /// ]);
     ///
-    /// assert_eq!(map.get_index_entry(0).unwrap().key(),  &"foo");
-    /// assert_eq!(map.get_index_entry(1).unwrap().key(),  &"bar");
-    /// assert_eq!(map.get_index_entry(2).unwrap().key(),  &"baz");
-    /// assert_eq!(map.get_index_entry(3).unwrap().key(), &"quux");
+    /// assert_eq!(proj_map.get_index_entry(0).unwrap().key(),  &"foo");
+    /// assert_eq!(proj_map.get_index_entry(1).unwrap().key(),  &"bar");
+    /// assert_eq!(proj_map.get_index_entry(2).unwrap().key(),  &"baz");
+    /// assert_eq!(proj_map.get_index_entry(3).unwrap().key(), &"quux");
     /// ```
     pub fn key(&self) -> &K {
         self.inner.key()
@@ -5704,17 +5704,17 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map = TypedProjIndexMap::from([
+    /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo",  1_i32),
     ///     ("bar",  2_i32),
     ///     ("baz",  3_i32),
     ///     ("quux", 4_i32),
     /// ]);
     ///
-    /// assert_eq!(map.get_index_entry(0).unwrap().get(), &1_i32);
-    /// assert_eq!(map.get_index_entry(1).unwrap().get(), &2_i32);
-    /// assert_eq!(map.get_index_entry(2).unwrap().get(), &3_i32);
-    /// assert_eq!(map.get_index_entry(3).unwrap().get(), &4_i32);
+    /// assert_eq!(proj_map.get_index_entry(0).unwrap().get(), &1_i32);
+    /// assert_eq!(proj_map.get_index_entry(1).unwrap().get(), &2_i32);
+    /// assert_eq!(proj_map.get_index_entry(2).unwrap().get(), &3_i32);
+    /// assert_eq!(proj_map.get_index_entry(3).unwrap().get(), &4_i32);
     /// ```
     pub fn get(&self) -> &V {
         self.inner.get()
@@ -5734,17 +5734,17 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map = TypedProjIndexMap::from([
+    /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo",  1_i32),
     ///     ("bar",  2_i32),
     ///     ("baz",  3_i32),
     ///     ("quux", 4_i32),
     /// ]);
     ///
-    /// assert_eq!(map.get_index_entry(0).unwrap().get_mut(), &mut 1_i32);
-    /// assert_eq!(map.get_index_entry(1).unwrap().get_mut(), &mut 2_i32);
-    /// assert_eq!(map.get_index_entry(2).unwrap().get_mut(), &mut 3_i32);
-    /// assert_eq!(map.get_index_entry(3).unwrap().get_mut(), &mut 4_i32);
+    /// assert_eq!(proj_map.get_index_entry(0).unwrap().get_mut(), &mut 1_i32);
+    /// assert_eq!(proj_map.get_index_entry(1).unwrap().get_mut(), &mut 2_i32);
+    /// assert_eq!(proj_map.get_index_entry(2).unwrap().get_mut(), &mut 3_i32);
+    /// assert_eq!(proj_map.get_index_entry(3).unwrap().get_mut(), &mut 4_i32);
     /// ```
     pub fn get_mut(&mut self) -> &mut V {
         self.inner.get_mut()
@@ -5769,19 +5769,19 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map = TypedProjIndexMap::from([
+    /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo",  1_i32),
     ///     ("bar",  2_i32),
     ///     ("baz",  3_i32),
     ///     ("quux", 4_i32),
     /// ]);
     ///
-    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
-    /// assert_eq!(map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
-    /// assert_eq!(map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
-    /// assert_eq!(map.get_full("quux"), Some((3, &"quux", &4_i32)));
+    /// assert_eq!(proj_map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(proj_map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
+    /// assert_eq!(proj_map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
+    /// assert_eq!(proj_map.get_full("quux"), Some((3, &"quux", &4_i32)));
     /// {
-    ///     let maybe_indexed_entry = map.get_index_entry(1);
+    ///     let maybe_indexed_entry = proj_map.get_index_entry(1);
     ///
     ///     assert!(maybe_indexed_entry.is_some());
     ///
@@ -5792,7 +5792,7 @@ where
     ///
     ///     *result = i32::MAX;
     /// }
-    /// assert_eq!(map.get_index_entry(1).unwrap().get(), &i32::MAX);
+    /// assert_eq!(proj_map.get_index_entry(1).unwrap().get(), &i32::MAX);
     /// ```
     pub fn into_mut(self) -> &'a mut V {
         self.inner.into_mut()
@@ -5812,19 +5812,19 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map = TypedProjIndexMap::from([
+    /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo",  1_i32),
     ///     ("bar",  2_i32),
     ///     ("baz",  3_i32),
     ///     ("quux", 4_i32),
     /// ]);
     ///
-    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
-    /// assert_eq!(map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
-    /// assert_eq!(map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
-    /// assert_eq!(map.get_full("quux"), Some((3, &"quux", &4_i32)));
+    /// assert_eq!(proj_map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(proj_map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
+    /// assert_eq!(proj_map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
+    /// assert_eq!(proj_map.get_full("quux"), Some((3, &"quux", &4_i32)));
     ///
-    /// let maybe_indexed_entry = map.get_index_entry(1);
+    /// let maybe_indexed_entry = proj_map.get_index_entry(1);
     ///
     /// assert!(maybe_indexed_entry.is_some());
     ///
@@ -5833,10 +5833,10 @@ where
     ///
     /// assert_eq!(result, 2_i32);
     ///
-    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
-    /// assert_eq!(map.get_full("bar"),  Some((1, &"bar",  &i32::MAX)));
-    /// assert_eq!(map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
-    /// assert_eq!(map.get_full("quux"), Some((3, &"quux", &4_i32)));
+    /// assert_eq!(proj_map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(proj_map.get_full("bar"),  Some((1, &"bar",  &i32::MAX)));
+    /// assert_eq!(proj_map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
+    /// assert_eq!(proj_map.get_full("quux"), Some((3, &"quux", &4_i32)));
     /// ```
     pub fn insert(&mut self, value: V) -> V {
         self.inner.insert(value)
@@ -5856,19 +5856,19 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map = TypedProjIndexMap::from([
+    /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo",  1_i32),
     ///     ("bar",  2_i32),
     ///     ("baz",  3_i32),
     ///     ("quux", 4_i32),
     /// ]);
     ///
-    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
-    /// assert_eq!(map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
-    /// assert_eq!(map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
-    /// assert_eq!(map.get_full("quux"), Some((3, &"quux", &4_i32)));
+    /// assert_eq!(proj_map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(proj_map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
+    /// assert_eq!(proj_map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
+    /// assert_eq!(proj_map.get_full("quux"), Some((3, &"quux", &4_i32)));
     ///
-    /// let maybe_indexed_entry = map.get_index_entry(1);
+    /// let maybe_indexed_entry = proj_map.get_index_entry(1);
     ///
     /// assert!(maybe_indexed_entry.is_some());
     ///
@@ -5877,9 +5877,9 @@ where
     ///
     /// assert_eq!(result, 2_i32);
     ///
-    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
-    /// assert_eq!(map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
-    /// assert_eq!(map.get_full("quux"), Some((1, &"quux", &4_i32)));
+    /// assert_eq!(proj_map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(proj_map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
+    /// assert_eq!(proj_map.get_full("quux"), Some((1, &"quux", &4_i32)));
     /// ```
     pub fn swap_remove(self) -> V {
         self.inner.swap_remove()
@@ -5899,19 +5899,19 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map = TypedProjIndexMap::from([
+    /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo",  1_i32),
     ///     ("bar",  2_i32),
     ///     ("baz",  3_i32),
     ///     ("quux", 4_i32),
     /// ]);
     ///
-    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
-    /// assert_eq!(map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
-    /// assert_eq!(map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
-    /// assert_eq!(map.get_full("quux"), Some((3, &"quux", &4_i32)));
+    /// assert_eq!(proj_map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(proj_map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
+    /// assert_eq!(proj_map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
+    /// assert_eq!(proj_map.get_full("quux"), Some((3, &"quux", &4_i32)));
     ///
-    /// let maybe_indexed_entry = map.get_index_entry(2);
+    /// let maybe_indexed_entry = proj_map.get_index_entry(2);
     ///
     /// assert!(maybe_indexed_entry.is_some());
     ///
@@ -5920,9 +5920,9 @@ where
     ///
     /// assert_eq!(result, 3_i32);
     ///
-    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
-    /// assert_eq!(map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
-    /// assert_eq!(map.get_full("quux"), Some((2, &"quux", &4_i32)));
+    /// assert_eq!(proj_map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(proj_map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
+    /// assert_eq!(proj_map.get_full("quux"), Some((2, &"quux", &4_i32)));
     /// ```
     pub fn shift_remove(self) -> V {
         self.inner.shift_remove()
@@ -5942,19 +5942,19 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map = TypedProjIndexMap::from([
+    /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo",  1_i32),
     ///     ("bar",  2_i32),
     ///     ("baz",  3_i32),
     ///     ("quux", 4_i32),
     /// ]);
     ///
-    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
-    /// assert_eq!(map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
-    /// assert_eq!(map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
-    /// assert_eq!(map.get_full("quux"), Some((3, &"quux", &4_i32)));
+    /// assert_eq!(proj_map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(proj_map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
+    /// assert_eq!(proj_map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
+    /// assert_eq!(proj_map.get_full("quux"), Some((3, &"quux", &4_i32)));
     ///
-    /// let maybe_indexed_entry = map.get_index_entry(1);
+    /// let maybe_indexed_entry = proj_map.get_index_entry(1);
     ///
     /// assert!(maybe_indexed_entry.is_some());
     ///
@@ -5963,9 +5963,9 @@ where
     ///
     /// assert_eq!(result, ("bar", 2_i32));
     ///
-    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
-    /// assert_eq!(map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
-    /// assert_eq!(map.get_full("quux"), Some((1, &"quux", &4_i32)));
+    /// assert_eq!(proj_map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(proj_map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
+    /// assert_eq!(proj_map.get_full("quux"), Some((1, &"quux", &4_i32)));
     /// ```
     pub fn swap_remove_entry(self) -> (K, V) {
         self.inner.swap_remove_entry()
@@ -5985,19 +5985,19 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map = TypedProjIndexMap::from([
+    /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo",  1_i32),
     ///     ("bar",  2_i32),
     ///     ("baz",  3_i32),
     ///     ("quux", 4_i32),
     /// ]);
     ///
-    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
-    /// assert_eq!(map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
-    /// assert_eq!(map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
-    /// assert_eq!(map.get_full("quux"), Some((3, &"quux", &4_i32)));
+    /// assert_eq!(proj_map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(proj_map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
+    /// assert_eq!(proj_map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
+    /// assert_eq!(proj_map.get_full("quux"), Some((3, &"quux", &4_i32)));
     ///
-    /// let maybe_indexed_entry = map.get_index_entry(2);
+    /// let maybe_indexed_entry = proj_map.get_index_entry(2);
     ///
     /// assert!(maybe_indexed_entry.is_some());
     ///
@@ -6006,9 +6006,9 @@ where
     ///
     /// assert_eq!(result, ("baz", 3_i32));
     ///
-    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
-    /// assert_eq!(map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
-    /// assert_eq!(map.get_full("quux"), Some((2, &"quux", &4_i32)));
+    /// assert_eq!(proj_map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(proj_map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
+    /// assert_eq!(proj_map.get_full("quux"), Some((2, &"quux", &4_i32)));
     /// ```
     pub fn shift_remove_entry(self) -> (K, V) {
         self.inner.shift_remove_entry()
@@ -6039,29 +6039,29 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map = TypedProjIndexMap::from([
+    /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo",  1_i32),
     ///     ("bar",  2_i32),
     ///     ("baz",  3_i32),
     ///     ("quux", 4_i32),
     /// ]);
     ///
-    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
-    /// assert_eq!(map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
-    /// assert_eq!(map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
-    /// assert_eq!(map.get_full("quux"), Some((3, &"quux", &4_i32)));
+    /// assert_eq!(proj_map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(proj_map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
+    /// assert_eq!(proj_map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
+    /// assert_eq!(proj_map.get_full("quux"), Some((3, &"quux", &4_i32)));
     ///
-    /// let maybe_indexed_entry = map.get_index_entry(0);
+    /// let maybe_indexed_entry = proj_map.get_index_entry(0);
     ///
     /// assert!(maybe_indexed_entry.is_some());
     ///
     /// let indexed_entry = maybe_indexed_entry.unwrap();
     /// indexed_entry.move_index(3);
     ///
-    /// assert_eq!(map.get_full("foo"),  Some((3, &"foo",  &1_i32)));
-    /// assert_eq!(map.get_full("bar"),  Some((0, &"bar",  &2_i32)));
-    /// assert_eq!(map.get_full("baz"),  Some((1, &"baz",  &3_i32)));
-    /// assert_eq!(map.get_full("quux"), Some((2, &"quux", &4_i32)));
+    /// assert_eq!(proj_map.get_full("foo"),  Some((3, &"foo",  &1_i32)));
+    /// assert_eq!(proj_map.get_full("bar"),  Some((0, &"bar",  &2_i32)));
+    /// assert_eq!(proj_map.get_full("baz"),  Some((1, &"baz",  &3_i32)));
+    /// assert_eq!(proj_map.get_full("quux"), Some((2, &"quux", &4_i32)));
     /// ```
     ///
     /// Moving an entry to an index where `self.index() < to`.
@@ -6076,29 +6076,29 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map = TypedProjIndexMap::from([
+    /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo",  1_i32),
     ///     ("bar",  2_i32),
     ///     ("baz",  3_i32),
     ///     ("quux", 4_i32),
     /// ]);
     ///
-    /// assert_eq!(map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
-    /// assert_eq!(map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
-    /// assert_eq!(map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
-    /// assert_eq!(map.get_full("quux"), Some((3, &"quux", &4_i32)));
+    /// assert_eq!(proj_map.get_full("foo"),  Some((0, &"foo",  &1_i32)));
+    /// assert_eq!(proj_map.get_full("bar"),  Some((1, &"bar",  &2_i32)));
+    /// assert_eq!(proj_map.get_full("baz"),  Some((2, &"baz",  &3_i32)));
+    /// assert_eq!(proj_map.get_full("quux"), Some((3, &"quux", &4_i32)));
     ///
-    /// let maybe_indexed_entry = map.get_index_entry(2);
+    /// let maybe_indexed_entry = proj_map.get_index_entry(2);
     ///
     /// assert!(maybe_indexed_entry.is_some());
     ///
     /// let indexed_entry = maybe_indexed_entry.unwrap();
     /// indexed_entry.move_index(0);
     ///
-    /// assert_eq!(map.get_full("foo"),  Some((1, &"foo",  &1_i32)));
-    /// assert_eq!(map.get_full("bar"),  Some((2, &"bar",  &2_i32)));
-    /// assert_eq!(map.get_full("baz"),  Some((0, &"baz",  &3_i32)));
-    /// assert_eq!(map.get_full("quux"), Some((3, &"quux", &4_i32)));
+    /// assert_eq!(proj_map.get_full("foo"),  Some((1, &"foo",  &1_i32)));
+    /// assert_eq!(proj_map.get_full("bar"),  Some((2, &"bar",  &2_i32)));
+    /// assert_eq!(proj_map.get_full("baz"),  Some((0, &"baz",  &3_i32)));
+    /// assert_eq!(proj_map.get_full("quux"), Some((3, &"quux", &4_i32)));
     /// ```
     #[track_caller]
     pub fn move_index(self, to: usize) {
@@ -6124,24 +6124,24 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map = TypedProjIndexMap::from([
+    /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo", 1_i32),
     ///     ("bar", 2_i32),
     ///     ("baz", 3_i32),
     /// ]);
     ///
-    /// assert_eq!(map.get_full("foo"), Some((0, &"foo", &1_i32)));
-    /// assert_eq!(map.get_full("baz"), Some((2, &"baz", &3_i32)));
+    /// assert_eq!(proj_map.get_full("foo"), Some((0, &"foo", &1_i32)));
+    /// assert_eq!(proj_map.get_full("baz"), Some((2, &"baz", &3_i32)));
     ///
-    /// let maybe_indexed_entry = map.get_index_entry(0);
+    /// let maybe_indexed_entry = proj_map.get_index_entry(0);
     ///
     /// assert!(maybe_indexed_entry.is_some());
     ///
     /// let indexed_entry = maybe_indexed_entry.unwrap();
     /// indexed_entry.swap_indices(2);
     ///
-    /// assert_eq!(map.get_full("foo"), Some((2, &"foo", &1_i32)));
-    /// assert_eq!(map.get_full("baz"), Some((0, &"baz", &3_i32)));
+    /// assert_eq!(proj_map.get_full("foo"), Some((2, &"foo", &1_i32)));
+    /// assert_eq!(proj_map.get_full("baz"), Some((0, &"baz", &3_i32)));
     /// ```
     pub fn swap_indices(self, other: usize) {
         self.inner.swap_indices(other);
@@ -7567,7 +7567,7 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map = TypedProjIndexMap::from([
+    /// let mut proj_map = TypedProjIndexMap::from([
     ///     (1_isize, 'a'),
     ///     (3_isize, 'b'),
     ///     (2_isize, 'c'),
@@ -7576,7 +7576,7 @@ where
     ///     (5_isize, '@'),
     /// ]);
     ///
-    /// assert_eq!(map.get_disjoint_mut([&2, &1, &5]), [Some(&mut 'c'), Some(&mut 'a'), Some(&mut '@')]);
+    /// assert_eq!(proj_map.get_disjoint_mut([&2, &1, &5]), [Some(&mut 'c'), Some(&mut 'a'), Some(&mut '@')]);
     /// ```
     pub fn get_disjoint_mut<Q, const N: usize>(&mut self, keys: [&Q; N]) -> [Option<&mut V>; N]
     where
@@ -11977,7 +11977,7 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map = TypedProjIndexMap::from([
+    /// let mut proj_map = TypedProjIndexMap::from([
     ///     (1_isize, 'a'),
     ///     (3_isize, 'b'),
     ///     (2_isize, 'c'),
@@ -11986,7 +11986,7 @@ where
     ///     (5_isize, '@'),
     /// ]);
     ///
-    /// let maybe_result = map.get_disjoint_indices_mut([2, 1, 5]);
+    /// let maybe_result = proj_map.get_disjoint_indices_mut([2, 1, 5]);
     ///
     /// assert!(maybe_result.is_ok());
     ///
@@ -14793,7 +14793,7 @@ impl OpaqueIndexMap {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map = OpaqueIndexMap::from([
+    /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (1_isize, 'a'),
     ///     (3_isize, 'b'),
     ///     (2_isize, 'c'),
@@ -14802,13 +14802,13 @@ impl OpaqueIndexMap {
     ///     (5_isize, '@'),
     /// ]);
     /// #
-    /// # assert!(map.has_key_type::<isize>());
-    /// # assert!(map.has_value_type::<char>());
-    /// # assert!(map.has_build_hasher_type::<RandomState>());
-    /// # assert!(map.has_allocator_type::<Global>());
+    /// # assert!(opaque_map.has_key_type::<isize>());
+    /// # assert!(opaque_map.has_value_type::<char>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
     /// #
     ///
-    /// assert_eq!(map.get_disjoint_mut::<_, 3, isize, char, RandomState, Global>([&2, &1, &5]), [Some(&mut 'c'), Some(&mut 'a'), Some(&mut '@')]);
+    /// assert_eq!(opaque_map.get_disjoint_mut::<_, 3, isize, char, RandomState, Global>([&2, &1, &5]), [Some(&mut 'c'), Some(&mut 'a'), Some(&mut '@')]);
     /// ```
     pub fn get_disjoint_mut<Q, const N: usize, K, V, S, A>(&mut self, keys: [&Q; N]) -> [Option<&mut V>; N]
     where
@@ -20648,7 +20648,7 @@ impl OpaqueIndexMap {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut map = OpaqueIndexMap::from([
+    /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (1_isize, 'a'),
     ///     (3_isize, 'b'),
     ///     (2_isize, 'c'),
@@ -20657,7 +20657,7 @@ impl OpaqueIndexMap {
     ///     (5_isize, '@'),
     /// ]);
     ///
-    /// let maybe_result = map.get_disjoint_indices_mut::<3, isize, char, RandomState, Global>([2, 1, 5]);
+    /// let maybe_result = opaque_map.get_disjoint_indices_mut::<3, isize, char, RandomState, Global>([2, 1, 5]);
     ///
     /// assert!(maybe_result.is_ok());
     ///
