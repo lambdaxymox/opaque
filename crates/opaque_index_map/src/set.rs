@@ -1149,26 +1149,26 @@ impl<I: fmt::Debug> fmt::Debug for UnitValue<I> {
 }
 
 /// A type-projected hash set where the order of the entries inside the set is independent of the
-/// hash values of the keys.
+/// hash values of the elements.
 ///
 /// The interface to this hash set tracks closely with the standard library's [`HashSet`] interface.
 /// One feature this hash set has that the standard library one does not is that it is generic over
 /// the choice of memory allocator. This type supports type-erasure of generic parameters. The main
 /// difference is that a `TypedProjIndexSet` can be converted to an `OpaqueIndexSet` in constant
-/// **O(1)** time, hiding its key type, value type, hash builder type, and allocator type, at runtime.
+/// **O(1)** time, hiding its value type, hash builder type, and allocator type, at runtime.
 ///
 /// # Ordering
 ///
-/// The key-value pairs are stored in the set in their insertion order, rather than by their
+/// The values are stored in the set in their insertion order, rather than by their
 /// hash value, provided no removal method have been called on an entry in the set. In particular,
-/// inserting a new value into the set does not change the **storage order** of the other elements in
+/// inserting a new value into the set does not change the **storage order** of the other values in
 /// the set.
 ///
 /// # Indices
 ///
-/// The key-value pairs are stored in a packed range with no holes in the range `[0, self.len())`.
-/// Thus, one can always use the [`get_index_of`] or [`get_index`] methods to interact with key-value
-/// pairs inside the set by their storage index instead of their key.
+/// The values are stored in a packed range with no holes in the range `[0, self.len())`.
+/// Thus, one can always use the [`get_index_of`] or [`get_index`] methods to interact with values
+/// inside the set by their storage index instead of their value.
 ///
 /// # Type Erasure And Type Projection
 ///
@@ -1215,7 +1215,7 @@ impl<I: fmt::Debug> fmt::Debug for UnitValue<I> {
 /// assert!(!party.contains("jenova"));
 /// assert!(!party.contains("emerald weapon"));
 ///
-/// // Elements of a `TypedProjIndexSet` are stored in their insertion order, independent of their keys.
+/// // Elements of a `TypedProjIndexSet` are stored in their insertion order, independent of their values.
 /// assert_eq!(party.get_index_of("cloud"),     Some(0));
 /// assert_eq!(party.get_index_of("tifa"),      Some(1));
 /// assert_eq!(party.get_index_of("aerith"),    Some(2));
@@ -1234,7 +1234,7 @@ impl<I: fmt::Debug> fmt::Debug for UnitValue<I> {
 ///
 /// assert!(party.contains("sephiroth"));
 ///
-/// // Elements of a `TypedProjIndexMap` are stored in their insertion order, independent of their keys.
+/// // Elements of a `TypedProjIndexMap` are stored in their insertion order, independent of their values.
 /// assert_eq!(party.get_index_of("cloud"),     Some(0));
 /// assert_eq!(party.get_index_of("tifa"),      Some(1));
 /// assert_eq!(party.get_index_of("aerith"),    Some(2));
@@ -1291,7 +1291,7 @@ impl<I: fmt::Debug> fmt::Debug for UnitValue<I> {
 /// assert!(!party.contains::<_, String, RandomState, Global>("jenova"));
 /// assert!(!party.contains::<_, String, RandomState, Global>("emerald weapon"));
 ///
-/// // Elements of an `OpaqueIndexSet` are stored in their insertion order, independent of their keys.
+/// // Elements of an `OpaqueIndexSet` are stored in their insertion order, independent of their values.
 /// assert_eq!(party.get_index_of::<_, String, RandomState, Global>("cloud"),     Some(0));
 /// assert_eq!(party.get_index_of::<_, String, RandomState, Global>("tifa"),      Some(1));
 /// assert_eq!(party.get_index_of::<_, String, RandomState, Global>("aerith"),    Some(2));
@@ -1310,7 +1310,7 @@ impl<I: fmt::Debug> fmt::Debug for UnitValue<I> {
 ///
 /// assert!(party.contains::<_, String, RandomState, Global>("sephiroth"));
 ///
-/// // Elements of a `TypedProjIndexMap` are stored in their insertion order, independent of their keys.
+/// // Elements of a `TypedProjIndexMap` are stored in their insertion order, independent of their values.
 /// assert_eq!(party.get_index_of::<_, String, RandomState, Global>("cloud"),     Some(0));
 /// assert_eq!(party.get_index_of::<_, String, RandomState, Global>("tifa"),      Some(1));
 /// assert_eq!(party.get_index_of::<_, String, RandomState, Global>("aerith"),    Some(2));
@@ -1462,7 +1462,7 @@ where
     ///
     /// This method **does not** allocate memory. In particular, the index set has zero capacity and will
     /// not allocate memory until values are inserted into it. The index set will have length zero
-    /// until elements are inserted into it.
+    /// until values are inserted into it.
     ///
     /// # Examples
     ///
@@ -1499,7 +1499,7 @@ where
     ///
     /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular, the
     /// index set has capacity at least `capacity`, and will allocate enough memory to store at least
-    /// `capacity` keys and values. The index set will have length zero until elements are inserted into it.
+    /// `capacity` values. The index set will have length zero until values are inserted into it.
     ///
     /// # Examples
     ///
@@ -1572,8 +1572,8 @@ where
     /// Constructs a new index set with the given type-projected memory allocator.
     ///
     /// This method **does not** allocate memory. In particular, the index set has zero capacity and will
-    /// not allocate memory until key-value pairs are inserted into it. The index set will have
-    /// length zero until elements are inserted into it.
+    /// not allocate memory until values are inserted into it. The index set will have
+    /// length zero until values are inserted into it.
     ///
     /// # Examples
     ///
@@ -1604,7 +1604,7 @@ where
     ///
     /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular, the
     /// index set has capacity at least `capacity`, and will allocate enough memory to store at least
-    /// `capacity` keys and values. The index set will have length zero until elements are inserted into it.
+    /// `capacity` values. The index set will have length zero until values are inserted into it.
     ///
     /// # Examples
     ///
@@ -1669,8 +1669,8 @@ where
     /// Constructs a new index set with the given hash builder and memory allocator.
     ///
     /// This method **does not** allocate memory. In particular, the index set has zero capacity and will
-    /// not allocate memory until key-value pairs are inserted into it. The index set will have
-    /// length zero until elements are inserted into it.
+    /// not allocate memory until values are inserted into it. The index set will have
+    /// length zero until values are inserted into it.
     ///
     /// # Examples
     ///
@@ -1703,7 +1703,7 @@ where
     ///
     /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular, the
     /// index set has capacity at least `capacity`, and will allocate enough memory to store at least
-    /// `capacity` keys and values. The index set will have length zero until elements are inserted into it.
+    /// `capacity` values. The index set will have length zero until values are inserted into it.
     ///
     /// # Examples
     ///
@@ -1767,8 +1767,8 @@ where
     /// Constructs a new index set with the given memory allocator.
     ///
     /// This method **does not** allocate memory. In particular, the index set has zero capacity and will
-    /// not allocate memory until key-value pairs are inserted into it. The index set will have
-    /// length zero until elements are inserted into it.
+    /// not allocate memory until values are inserted into it. The index set will have
+    /// length zero until values are inserted into it.
     ///
     /// # Examples
     ///
@@ -1798,7 +1798,7 @@ where
     ///
     /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular, the
     /// index set has capacity at least `capacity`, and will allocate enough memory to store at least
-    /// `capacity` keys and values. The index set will have length zero until elements are inserted into it.
+    /// `capacity` values. The index set will have length zero until values are inserted into it.
     ///
     /// # Examples
     ///
@@ -1860,8 +1860,8 @@ where
     /// Constructs a new index set with the given hash builder.
     ///
     /// This method **does not** allocate memory. In particular, the index set has zero capacity and will
-    /// not allocate memory until key-value pairs are inserted into it. The index set will have
-    /// length zero until elements are inserted into it.
+    /// not allocate memory until values are inserted into it. The index set will have
+    /// length zero until values are inserted into it.
     ///
     /// # Examples
     ///
@@ -1889,7 +1889,7 @@ where
     ///
     /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular, the
     /// index set has capacity at least `capacity`, and will allocate enough memory to store at least
-    /// `capacity` keys and values. The index set will have length zero until elements are inserted into it.
+    /// `capacity` values. The index set will have length zero until values are inserted into it.
     ///
     /// # Examples
     ///
@@ -1948,8 +1948,8 @@ where
     /// Constructs a new index set.
     ///
     /// This method **does not** allocate memory. In particular, the index set has zero capacity and will
-    /// not allocate memory until key-value pairs are inserted into it. The index set will have
-    /// length zero until elements are inserted into it.
+    /// not allocate memory until values are inserted into it. The index set will have
+    /// length zero until values are inserted into it.
     ///
     /// # Examples
     ///
@@ -1977,7 +1977,7 @@ where
     ///
     /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular, the
     /// index set has capacity at least `capacity`, and will allocate enough memory to store at least
-    /// `capacity` keys and values. The index set will have length zero until elements are inserted into it.
+    /// `capacity` values. The index set will have length zero until values are inserted into it.
     ///
     /// # Examples
     ///
@@ -2033,14 +2033,114 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
+    /// Returns the capacity of the type-projected index set.
+    ///
+    /// The **capacity** of a type-projected index set is the number of values the index set
+    /// can hold without reallocating memory.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let capacity = 32;
+    /// let mut proj_set: TypedProjIndexSet<usize, RandomState, Global> = TypedProjIndexSet::with_capacity_in(
+    ///     capacity,
+    ///     Global,
+    /// );
+    ///
+    /// assert_eq!(proj_set.len(), 0);
+    /// assert!(proj_set.capacity() >= capacity);
+    ///
+    /// for i in 0..capacity {
+    ///     proj_set.insert(i);
+    /// }
+    ///
+    /// assert_eq!(proj_set.len(), capacity);
+    /// assert!(proj_set.capacity() >= capacity);
+    /// ```
+    #[inline]
     pub fn capacity(&self) -> usize {
         self.inner.capacity()
     }
 
+    /// Returns the length of the type-projected index set.
+    ///
+    /// The **length** of a type-projected index set is the number of values stored inside it.
+    /// The length satisfies the following. Given an index set `set`
+    ///
+    /// ```text
+    /// set.len() ≤ set.capacity().
+    /// ```
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let len = 32;
+    /// let mut proj_set: TypedProjIndexSet<usize, RandomState, Global> = TypedProjIndexSet::with_capacity_in(
+    ///     len,
+    ///     Global,
+    /// );
+    ///
+    /// assert_eq!(proj_set.len(), 0);
+    ///
+    /// for i in 0..len {
+    ///     proj_set.insert(i);
+    /// }
+    ///
+    /// assert_eq!(proj_set.len(), len);
+    /// ```
+    #[inline]
     pub fn len(&self) -> usize {
         self.inner.len()
     }
 
+    /// Determines whether the type-projected index set is empty.
+    ///
+    /// A type-projected index set is **empty** if it contains no values, i.e. its length is zero.
+    /// This method satisfies the following. Given an index set `set`
+    ///
+    /// ```text
+    /// set.is_empty() ⇔ set.len() = 0.
+    /// ```
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set: TypedProjIndexSet<usize, RandomState, Global> = TypedProjIndexSet::with_capacity_in(
+    ///     1,
+    ///     Global,
+    /// );
+    ///
+    /// assert!(proj_set.is_empty());
+    ///
+    /// proj_set.insert(1);
+    ///
+    /// assert!(!proj_set.is_empty());
+    /// ```
+    #[inline]
     pub fn is_empty(&self) -> bool {
         self.inner.is_empty()
     }
@@ -3144,7 +3244,7 @@ impl OpaqueIndexSet {
     ///
     /// This method **does not** allocate memory. In particular, the index set has zero capacity and will
     /// not allocate memory until values are inserted into it. The index set will have length zero
-    /// until elements are inserted into it.
+    /// until values are inserted into it.
     ///
     /// # Examples
     ///
@@ -3185,7 +3285,7 @@ impl OpaqueIndexSet {
     ///
     /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular, the
     /// index set has capacity at least `capacity`, and will allocate enough memory to store at least
-    /// `capacity` keys and values. The index set will have length zero until elements are inserted into it.
+    /// `capacity` values. The index set will have length zero until values are inserted into it.
     ///
     /// # Examples
     ///
@@ -3254,8 +3354,8 @@ impl OpaqueIndexSet {
     /// Constructs a new index set with the given type-projected memory allocator.
     ///
     /// This method **does not** allocate memory. In particular, the index set has zero capacity and will
-    /// not allocate memory until key-value pairs are inserted into it. The index set will have
-    /// length zero until elements are inserted into it.
+    /// not allocate memory until values are inserted into it. The index set will have
+    /// length zero until values are inserted into it.
     ///
     /// # Examples
     ///
@@ -3288,7 +3388,7 @@ impl OpaqueIndexSet {
     ///
     /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular, the
     /// index set has capacity at least `capacity`, and will allocate enough memory to store at least
-    /// `capacity` keys and values. The index set will have length zero until elements are inserted into it.
+    /// `capacity` values. The index set will have length zero until values are inserted into it.
     ///
     /// # Examples
     ///
@@ -3349,8 +3449,8 @@ impl OpaqueIndexSet {
     /// Constructs a new index set with the given hash builder and memory allocator.
     ///
     /// This method **does not** allocate memory. In particular, the index set has zero capacity and will
-    /// not allocate memory until key-value pairs are inserted into it. The index set will have
-    /// length zero until elements are inserted into it.
+    /// not allocate memory until values are inserted into it. The index set will have
+    /// length zero until values are inserted into it.
     ///
     /// # Examples
     ///
@@ -3388,7 +3488,7 @@ impl OpaqueIndexSet {
     ///
     /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular, the
     /// index set has capacity at least `capacity`, and will allocate enough memory to store at least
-    /// `capacity` keys and values. The index set will have length zero until elements are inserted into it.
+    /// `capacity` values. The index set will have length zero until values are inserted into it.
     ///
     /// # Examples
     ///
@@ -3452,8 +3552,8 @@ impl OpaqueIndexSet {
     /// Constructs a new index set with the given memory allocator.
     ///
     /// This method **does not** allocate memory. In particular, the index set has zero capacity and will
-    /// not allocate memory until key-value pairs are inserted into it. The index set will have
-    /// length zero until elements are inserted into it.
+    /// not allocate memory until values are inserted into it. The index set will have
+    /// length zero until values are inserted into it.
     ///
     /// # Examples
     ///
@@ -3485,7 +3585,7 @@ impl OpaqueIndexSet {
     ///
     /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular, the
     /// index set has capacity at least `capacity`, and will allocate enough memory to store at least
-    /// `capacity` keys and values. The index set will have length zero until elements are inserted into it.
+    /// `capacity` values. The index set will have length zero until values are inserted into it.
     ///
     /// # Examples
     ///
@@ -3544,8 +3644,8 @@ impl OpaqueIndexSet {
     /// Constructs a new index set with the given hash builder.
     ///
     /// This method **does not** allocate memory. In particular, the index set has zero capacity and will
-    /// not allocate memory until key-value pairs are inserted into it. The index set will have
-    /// length zero until elements are inserted into it.
+    /// not allocate memory until values are inserted into it. The index set will have
+    /// length zero until values are inserted into it.
     ///
     /// # Examples
     ///
@@ -3579,7 +3679,7 @@ impl OpaqueIndexSet {
     ///
     /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular, the
     /// index set has capacity at least `capacity`, and will allocate enough memory to store at least
-    /// `capacity` keys and values. The index set will have length zero until elements are inserted into it.
+    /// `capacity` values. The index set will have length zero until values are inserted into it.
     ///
     /// # Examples
     ///
@@ -3640,8 +3740,8 @@ impl OpaqueIndexSet {
     /// Constructs a new index set.
     ///
     /// This method **does not** allocate memory. In particular, the index set has zero capacity and will
-    /// not allocate memory until key-value pairs are inserted into it. The index set will have
-    /// length zero until elements are inserted into it.
+    /// not allocate memory until values are inserted into it. The index set will have
+    /// length zero until values are inserted into it.
     ///
     /// # Examples
     ///
@@ -3671,7 +3771,7 @@ impl OpaqueIndexSet {
     ///
     /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular, the
     /// index set has capacity at least `capacity`, and will allocate enough memory to store at least
-    /// `capacity` keys and values. The index set will have length zero until elements are inserted into it.
+    /// `capacity` values. The index set will have length zero until values are inserted into it.
     ///
     /// # Examples
     ///
@@ -3723,16 +3823,113 @@ impl OpaqueIndexSet {
 }
 
 impl OpaqueIndexSet {
+    /// Returns the capacity of the type-erased index set.
+    ///
+    /// The **capacity** of a type-erased index set is the number of values the index set
+    /// can hold without reallocating memory.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let capacity = 32;
+    /// let mut opaque_set = OpaqueIndexSet::with_capacity_in::<usize, Global>(
+    ///     capacity,
+    ///     Global,
+    /// );
+    ///
+    /// assert_eq!(opaque_set.len(), 0);
+    /// assert!(opaque_set.capacity() >= capacity);
+    ///
+    /// for i in 0..capacity {
+    ///     opaque_set.insert::<usize, RandomState, Global>(i);
+    /// }
+    ///
+    /// assert_eq!(opaque_set.len(), capacity);
+    /// assert!(opaque_set.capacity() >= capacity);
+    /// ```
     #[inline]
     pub fn capacity(&self) -> usize {
         self.inner.capacity()
     }
 
+    /// Returns the length of the type-erased index set.
+    ///
+    /// The **length** of a type-erased index set is the number of values stored inside it.
+    /// The length satisfies the following. Given an index set `set`
+    ///
+    /// ```text
+    /// set.len() ≤ set.capacity().
+    /// ```
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let len = 32;
+    /// let mut opaque_set = OpaqueIndexSet::with_capacity_in::<usize, Global>(
+    ///     len,
+    ///     Global,
+    /// );
+    ///
+    /// assert_eq!(opaque_set.len(), 0);
+    ///
+    /// for i in 0..len {
+    ///     opaque_set.insert::<usize, RandomState, Global>(i);
+    /// }
+    ///
+    /// assert_eq!(opaque_set.len(), len);
+    /// ```
     #[inline]
     pub fn len(&self) -> usize {
         self.inner.len()
     }
 
+    /// Determines whether the type-erased index set is empty.
+    ///
+    /// A type-erased index set is **empty** if it contains no values, i.e. its length is zero.
+    /// This method satisfies the following. Given an index set `set`
+    ///
+    /// ```text
+    /// set.is_empty() ⇔ set.len() = 0.
+    /// ```
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set: TypedProjIndexSet<usize, RandomState, Global> = TypedProjIndexSet::with_capacity_in(
+    ///     1,
+    ///     Global,
+    /// );
+    ///
+    /// assert!(proj_set.is_empty());
+    ///
+    /// proj_set.insert(1);
+    ///
+    /// assert!(!proj_set.is_empty());
+    /// ```
     #[inline]
     pub fn is_empty(&self) -> bool {
         self.inner.is_empty()
