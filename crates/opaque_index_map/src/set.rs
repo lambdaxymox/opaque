@@ -1,4 +1,4 @@
-use crate::map_inner;
+use crate::{map_inner, OpaqueIndexMap, TypedProjIndexMap};
 use crate::map_inner::{Bucket, OpaqueIndexMapInner};
 use crate::range_ops;
 use crate::slice_eq;
@@ -1148,6 +1148,186 @@ impl<I: fmt::Debug> fmt::Debug for UnitValue<I> {
     }
 }
 
+/// A type-projected hash set where the order of the entries inside the set is independent of the
+/// hash values of the keys.
+///
+/// The interface to this hash set tracks closely with the standard library's [`HashSet`] interface.
+/// One feature this hash set has that the standard library one does not is that it is generic over
+/// the choice of memory allocator. This type supports type-erasure of generic parameters. The main
+/// difference is that a `TypedProjIndexSet` can be converted to an `OpaqueIndexSet` in constant
+/// **O(1)** time, hiding its key type, value type, hash builder type, and allocator type, at runtime.
+///
+/// # Ordering
+///
+/// The key-value pairs are stored in the set in their insertion order, rather than by their
+/// hash value, provided no removal method have been called on an entry in the set. In particular,
+/// inserting a new value into the set does not change the **storage order** of the other elements in
+/// the set.
+///
+/// # Indices
+///
+/// The key-value pairs are stored in a packed range with no holes in the range `[0, self.len())`.
+/// Thus, one can always use the [`get_index_of`] or [`get_index`] methods to interact with key-value
+/// pairs inside the set by their storage index instead of their key.
+///
+/// # Type Erasure And Type Projection
+///
+/// This allows for more flexible and dynamic data handling, especially when working with
+/// collections of unknown or dynamic types. Type-erasable collections allow for more efficient
+/// runtime dynamic typing, since one has more control over the memory layout of the collection,
+/// even for erased types. Some applications of this include implementing heterogeneous data
+/// structures, plugin systems, and managing foreign function interface data. There are two data
+/// types that are dual to each other: [`TypedProjIndexSet`] and [`OpaqueIndexSet`].
+///
+/// By laying out both data types identically, we can project the underlying types in **O(1)**-time,
+/// and erase the underlying types in **O(1)**-time, though the conversion is often zero-cost.
+///
+/// # Examples
+///
+/// Basic usage of a type-projected index set.
+///
+/// ```
+/// # use opaque_index_map::TypedProjIndexSet;
+/// #
+/// let mut party: TypedProjIndexSet<String> = TypedProjIndexSet::from([
+///     String::from("cloud"),
+///     String::from("tifa"),
+///     String::from("aerith"),
+///     String::from("barret"),
+///     String::from("cid"),
+///     String::from("vincent"),
+///     String::from("yuffie"),
+///     String::from("red xiii"),
+///     String::from("cait sith"),
+/// ]);
+///
+/// assert_eq!(party.get("cloud"),     Some(&String::from("cloud")));
+/// assert_eq!(party.get("tifa"),      Some(&String::from("tifa")));
+/// assert_eq!(party.get("aerith"),    Some(&String::from("aerith")));
+/// assert_eq!(party.get("barret"),    Some(&String::from("barret")));
+/// assert_eq!(party.get("cid"),       Some(&String::from("cid")));
+/// assert_eq!(party.get("vincent"),   Some(&String::from("vincent")));
+/// assert_eq!(party.get("yuffie"),    Some(&String::from("yuffie")));
+/// assert_eq!(party.get("red xiii"),  Some(&String::from("red xiii")));
+/// assert_eq!(party.get("cait sith"), Some(&String::from("cait sith")));
+///
+/// assert!(!party.contains("sephiroth"));
+/// assert!(!party.contains("jenova"));
+/// assert!(!party.contains("emerald weapon"));
+///
+/// // Elements of a `TypedProjIndexSet` are stored in their insertion order, independent of their keys.
+/// assert_eq!(party.get_index_of("cloud"),     Some(0));
+/// assert_eq!(party.get_index_of("tifa"),      Some(1));
+/// assert_eq!(party.get_index_of("aerith"),    Some(2));
+/// assert_eq!(party.get_index_of("barret"),    Some(3));
+/// assert_eq!(party.get_index_of("cid"),       Some(4));
+/// assert_eq!(party.get_index_of("vincent"),   Some(5));
+/// assert_eq!(party.get_index_of("yuffie"),    Some(6));
+/// assert_eq!(party.get_index_of("red xiii"),  Some(7));
+/// assert_eq!(party.get_index_of("cait sith"), Some(8));
+///
+/// assert_eq!(party.get_index_of("sephiroth"),      None);
+/// assert_eq!(party.get_index_of("jenova"),         None);
+/// assert_eq!(party.get_index_of("emerald weapon"), None);
+///
+/// party.insert(String::from("sephiroth"));
+///
+/// assert!(party.contains("sephiroth"));
+///
+/// // Elements of a `TypedProjIndexMap` are stored in their insertion order, independent of their keys.
+/// assert_eq!(party.get_index_of("cloud"),     Some(0));
+/// assert_eq!(party.get_index_of("tifa"),      Some(1));
+/// assert_eq!(party.get_index_of("aerith"),    Some(2));
+/// assert_eq!(party.get_index_of("barret"),    Some(3));
+/// assert_eq!(party.get_index_of("cid"),       Some(4));
+/// assert_eq!(party.get_index_of("vincent"),   Some(5));
+/// assert_eq!(party.get_index_of("yuffie"),    Some(6));
+/// assert_eq!(party.get_index_of("red xiii"),  Some(7));
+/// assert_eq!(party.get_index_of("cait sith"), Some(8));
+/// assert_eq!(party.get_index_of("sephiroth"), Some(9));
+///
+/// assert_eq!(party.get("sephiroth"), Some(&String::from("sephiroth")));
+///
+/// party.shift_remove("sephiroth");
+///
+/// assert!(!party.contains("sephiroth"));
+/// ```
+///
+/// Basic usage of a type-erased index set.
+///
+/// ```
+/// # #![feature(allocator_api)]
+/// # use opaque_index_map::OpaqueIndexSet;
+/// # use std::hash::RandomState;
+/// # use std::alloc::Global;
+/// #
+/// let mut party: OpaqueIndexSet = OpaqueIndexSet::from([
+///     String::from("cloud"),
+///     String::from("tifa"),
+///     String::from("aerith"),
+///     String::from("barret"),
+///     String::from("cid"),
+///     String::from("vincent"),
+///     String::from("yuffie"),
+///     String::from("red xiii"),
+///     String::from("cait sith"),
+/// ]);
+///
+/// assert!(party.has_value_type::<String>());
+/// assert!(party.has_build_hasher_type::<RandomState>());
+/// assert!(party.has_allocator_type::<Global>());
+///
+/// assert_eq!(party.get::<_, String, RandomState, Global>("cloud"),     Some(&String::from("cloud")));
+/// assert_eq!(party.get::<_, String, RandomState, Global>("tifa"),      Some(&String::from("tifa")));
+/// assert_eq!(party.get::<_, String, RandomState, Global>("aerith"),    Some(&String::from("aerith")));
+/// assert_eq!(party.get::<_, String, RandomState, Global>("barret"),    Some(&String::from("barret")));
+/// assert_eq!(party.get::<_, String, RandomState, Global>("cid"),       Some(&String::from("cid")));
+/// assert_eq!(party.get::<_, String, RandomState, Global>("vincent"),   Some(&String::from("vincent")));
+/// assert_eq!(party.get::<_, String, RandomState, Global>("yuffie"),    Some(&String::from("yuffie")));
+/// assert_eq!(party.get::<_, String, RandomState, Global>("red xiii"),  Some(&String::from("red xiii")));
+/// assert_eq!(party.get::<_ ,String, RandomState, Global>("cait sith"), Some(&String::from("cait sith")));
+///
+/// assert!(!party.contains::<_, String, RandomState, Global>("sephiroth"));
+/// assert!(!party.contains::<_, String, RandomState, Global>("jenova"));
+/// assert!(!party.contains::<_, String, RandomState, Global>("emerald weapon"));
+///
+/// // Elements of an `OpaqueIndexSet` are stored in their insertion order, independent of their keys.
+/// assert_eq!(party.get_index_of::<_, String, RandomState, Global>("cloud"),     Some(0));
+/// assert_eq!(party.get_index_of::<_, String, RandomState, Global>("tifa"),      Some(1));
+/// assert_eq!(party.get_index_of::<_, String, RandomState, Global>("aerith"),    Some(2));
+/// assert_eq!(party.get_index_of::<_, String, RandomState, Global>("barret"),    Some(3));
+/// assert_eq!(party.get_index_of::<_, String, RandomState, Global>("cid"),       Some(4));
+/// assert_eq!(party.get_index_of::<_, String, RandomState, Global>("vincent"),   Some(5));
+/// assert_eq!(party.get_index_of::<_, String, RandomState, Global>("yuffie"),    Some(6));
+/// assert_eq!(party.get_index_of::<_, String, RandomState, Global>("red xiii"),  Some(7));
+/// assert_eq!(party.get_index_of::<_, String, RandomState, Global>("cait sith"), Some(8));
+///
+/// assert_eq!(party.get_index_of::<_, String, RandomState, Global>("sephiroth"),      None);
+/// assert_eq!(party.get_index_of::<_, String, RandomState, Global>("jenova"),         None);
+/// assert_eq!(party.get_index_of::<_, String, RandomState, Global>("emerald weapon"), None);
+///
+/// party.insert::<String, RandomState, Global>(String::from("sephiroth"));
+///
+/// assert!(party.contains::<_, String, RandomState, Global>("sephiroth"));
+///
+/// // Elements of a `TypedProjIndexMap` are stored in their insertion order, independent of their keys.
+/// assert_eq!(party.get_index_of::<_, String, RandomState, Global>("cloud"),     Some(0));
+/// assert_eq!(party.get_index_of::<_, String, RandomState, Global>("tifa"),      Some(1));
+/// assert_eq!(party.get_index_of::<_, String, RandomState, Global>("aerith"),    Some(2));
+/// assert_eq!(party.get_index_of::<_, String, RandomState, Global>("barret"),    Some(3));
+/// assert_eq!(party.get_index_of::<_, String, RandomState, Global>("cid"),       Some(4));
+/// assert_eq!(party.get_index_of::<_, String, RandomState, Global>("vincent"),   Some(5));
+/// assert_eq!(party.get_index_of::<_, String, RandomState, Global>("yuffie"),    Some(6));
+/// assert_eq!(party.get_index_of::<_, String, RandomState, Global>("red xiii"),  Some(7));
+/// assert_eq!(party.get_index_of::<_, String, RandomState, Global>("cait sith"), Some(8));
+/// assert_eq!(party.get_index_of::<_, String, RandomState, Global>("sephiroth"), Some(9));
+///
+/// assert_eq!(party.get::<_, String, RandomState, Global>("sephiroth"), Some(&String::from("sephiroth")));
+///
+/// party.shift_remove::<_, String, RandomState, Global>("sephiroth");
+///
+/// assert!(!party.contains::<_, String, RandomState, Global>("sephiroth"));
+/// ```
 #[cfg(feature = "std")]
 #[repr(transparent)]
 pub struct TypedProjIndexSet<T, S = hash::RandomState, A = alloc::Global>
@@ -1170,6 +1350,74 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     inner: map_inner::TypedProjIndexMapInner<T, (), S, A>,
+}
+
+impl<T, S, A> TypedProjIndexSet<T, S, A>
+where
+    T: any::Any,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    /// Returns the [`TypeId`] of the values contained in the type-projected index set.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let set: TypedProjIndexSet<isize, RandomState, Global> = TypedProjIndexSet::new();
+    ///
+    /// assert_eq!(set.value_type_id(), TypeId::of::<isize>());
+    /// ```
+    #[inline]
+    pub const fn value_type_id(&self) -> any::TypeId {
+        self.inner.key_type_id()
+    }
+
+    /// Returns the [`TypeId`] of the hash builder for the type-projected index set.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let set: TypedProjIndexSet<isize, RandomState, Global> = TypedProjIndexSet::new();
+    ///
+    /// assert_eq!(set.build_hasher_type_id(), TypeId::of::<RandomState>());
+    /// ```
+    #[inline]
+    pub const fn build_hasher_type_id(&self) -> any::TypeId {
+        self.inner.build_hasher_type_id()
+    }
+
+    /// Returns the [`TypeId`] of the memory allocator for the type-projected index set.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let set: TypedProjIndexSet<isize, RandomState, Global> = TypedProjIndexSet::new();
+    ///
+    /// assert_eq!(set.allocator_type_id(), TypeId::of::<Global>());
+    /// ```
+    #[inline]
+    pub const fn allocator_type_id(&self) -> any::TypeId {
+        self.inner.allocator_type_id()
+    }
 }
 
 impl<T, S, A> Clone for TypedProjIndexSet<T, S, A>
@@ -2100,27 +2348,77 @@ where
     }
 }
 
+/// A type-erased index set.
+///
+/// For more information, see [`TypedProjIndexSet`].
 #[repr(transparent)]
 pub struct OpaqueIndexSet {
     inner: map_inner::OpaqueIndexMapInner,
 }
 
 impl OpaqueIndexSet {
+    /// Returns the [`TypeId`] of the values contained in the type-erased index set.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let set: OpaqueIndexSet = OpaqueIndexSet::new::<isize>();
+    ///
+    /// assert_eq!(set.value_type_id(), TypeId::of::<isize>());
+    /// ```
     #[inline]
     pub const fn value_type_id(&self) -> any::TypeId {
         self.inner.key_type_id()
     }
 
+    /// Returns the [`TypeId`] of the hash builder for the type-erased index set.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let set: OpaqueIndexSet = OpaqueIndexSet::new::<isize>();
+    ///
+    /// assert_eq!(set.build_hasher_type_id(), TypeId::of::<RandomState>());
+    /// ```
     #[inline]
-    pub const fn build_hasher_type_id<S>(&self) -> any::TypeId {
+    pub const fn build_hasher_type_id(&self) -> any::TypeId {
         self.inner.build_hasher_type_id()
     }
 
+    /// Returns the [`TypeId`] of the memory allocator for the type-erased index set.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let set: OpaqueIndexSet = OpaqueIndexSet::new::<isize>();
+    ///
+    /// assert_eq!(set.allocator_type_id(), TypeId::of::<Global>());
+    /// ```
     #[inline]
     pub const fn allocator_type_id(&self) -> any::TypeId {
         self.inner.allocator_type_id()
     }
+}
 
+impl OpaqueIndexSet {
     #[inline]
     pub fn has_value_type<T>(&self) -> bool
     where

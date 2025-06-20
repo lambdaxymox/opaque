@@ -6209,7 +6209,7 @@ mod entry_assert_send_sync {
 ///
 /// # Indices
 ///
-/// The key-value pairs are stored in a packed range with no holes in the range `[0, self.len()]`.
+/// The key-value pairs are stored in a packed range with no holes in the range `[0, self.len())`.
 /// Thus, one can always use the [`get_index_of`] or [`get_index`] methods to interact with key-value
 /// pairs inside the map by their storage index instead of their key.
 ///
@@ -6300,7 +6300,7 @@ mod entry_assert_send_sync {
 /// assert!(!party.contains_key("sephiroth"));
 /// ```
 ///
-/// Basic usage of an [`OpaqueIndexMap`].
+/// Basic usage of a type-erased index map.
 ///
 /// ```
 /// # #![feature(allocator_api)]
