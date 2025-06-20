@@ -1457,6 +1457,34 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
+    /// Constructs a new index set with the given type-projected hash builder and type-projected
+    /// memory allocator.
+    ///
+    /// This method *does not* allocate memory. In particular, the index set has zero capacity and will
+    /// not allocate memory until values are inserted into it. The index set will have length zero
+    /// until elements are inserted into it.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_alloc = TypedProjAlloc::new(Global);
+    /// let proj_build_hasher = TypedProjBuildHasher::new(RandomState::new());
+    /// let proj_set: TypedProjIndexSet<f64, RandomState, Global> = TypedProjIndexSet::with_hasher_proj_in(
+    ///     proj_build_hasher,
+    ///     proj_alloc
+    /// );
+    ///
+    /// assert!(proj_set.is_empty());
+    /// assert_eq!(proj_set.capacity(), 0);
+    /// ```
     #[inline]
     pub fn with_hasher_proj_in(proj_build_hasher: TypedProjBuildHasher<S>, proj_alloc: TypedProjAlloc<A>) -> Self {
         let proj_inner = map_inner::TypedProjIndexMapInner::<T, (), S, A>::with_hasher_proj_in(proj_build_hasher, proj_alloc);

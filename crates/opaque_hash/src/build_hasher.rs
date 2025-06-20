@@ -422,7 +422,7 @@ impl OpaqueBuildHasher {
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the hash builder of `self` do not match the requested
-    /// hash builder type `S`. This method does *not* test the hasher type produced by the underlying
+    /// hash builder type `S`. This method **does not** test the hasher type produced by the underlying
     /// hash builder. This method exists only to ensure the underlying integrity of the hash builder
     /// type projections and type erasures.
     #[inline]

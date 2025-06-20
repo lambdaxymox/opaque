@@ -269,7 +269,7 @@ where
         // 2. Move [tail] to a new start at `start + len(unyielded)`
         // 3. Update length of the original vec to `len(head) + len(unyielded) + len(tail)`
         //    a. In case of ZST, this is the only thing we want to do
-        // 4. Do *not* drop self, as everything is put in a consistent state already, there is nothing to do
+        // 4. Do **not** drop self, as everything is put in a consistent state already, there is nothing to do
         let mut this = ManuallyDrop::new(self);
 
         unsafe {

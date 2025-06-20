@@ -6619,7 +6619,7 @@ where
 {
     /// Constructs a new index map with the given type-projected memory allocator.
     ///
-    /// This method *does not* allocate memory. In particular, the index map has zero capacity and will
+    /// This method **does not** allocate memory. In particular, the index map has zero capacity and will
     /// not allocate memory until key-value pairs are inserted into it. The index map will have
     /// length zero until elements are inserted into it.
     ///
@@ -6717,7 +6717,7 @@ where
 {
     /// Constructs a new index map with the given hash builder and memory allocator.
     ///
-    /// This method *does not* allocate memory. In particular, the index map has zero capacity and will
+    /// This method **does not** allocate memory. In particular, the index map has zero capacity and will
     /// not allocate memory until key-value pairs are inserted into it. The index map will have
     /// length zero until elements are inserted into it.
     ///
@@ -6822,7 +6822,7 @@ where
 {
     /// Constructs a new index map with the given memory allocator.
     ///
-    /// This method *does not* allocate memory. In particular, the index map has zero capacity and will
+    /// This method **does not** allocate memory. In particular, the index map has zero capacity and will
     /// not allocate memory until key-value pairs are inserted into it. The index map will have
     /// length zero until elements are inserted into it.
     ///
@@ -6916,7 +6916,7 @@ where
 {
     /// Constructs a new index map with the given hash builder.
     ///
-    /// This method *does not* allocate memory. In particular, the index map has zero capacity and will
+    /// This method **does not** allocate memory. In particular, the index map has zero capacity and will
     /// not allocate memory until key-value pairs are inserted into it. The index map will have
     /// length zero until elements are inserted into it.
     ///
@@ -7003,7 +7003,7 @@ where
 {
     /// Constructs a new index map.
     ///
-    /// This method *does not* allocate memory. In particular, the index map has zero capacity and will
+    /// This method **does not** allocate memory. In particular, the index map has zero capacity and will
     /// not allocate memory until key-value pairs are inserted into it. The index map will have
     /// length zero until elements are inserted into it.
     ///
@@ -13451,7 +13451,7 @@ impl OpaqueIndexMap {
     /// Constructs a new index map with the given type-projected hash builder and type-projected
     /// memory allocator.
     ///
-    /// This method *does not* allocate memory. In particular, the index map has zero capacity and will
+    /// This method **does not** allocate memory. In particular, the index map has zero capacity and will
     /// not allocate memory until key-value pairs are inserted into it. The index map will have
     /// length zero until elements are inserted into it.
     ///
@@ -13579,7 +13579,7 @@ impl OpaqueIndexMap {
 impl OpaqueIndexMap {
     /// Constructs a new index map with the given type-projected memory allocator.
     ///
-    /// This method *does not* allocate memory. In particular, the index map has zero capacity and will
+    /// This method **does not** allocate memory. In particular, the index map has zero capacity and will
     /// not allocate memory until key-value pairs are inserted into it. The index map will have
     /// length zero until elements are inserted into it.
     ///
@@ -13691,7 +13691,7 @@ impl OpaqueIndexMap {
 impl OpaqueIndexMap {
     /// Constructs a new index map with the given hash builder and memory allocator.
     ///
-    /// This method *does not* allocate memory. In particular, the index map has zero capacity and will
+    /// This method **does not** allocate memory. In particular, the index map has zero capacity and will
     /// not allocate memory until key-value pairs are inserted into it. The index map will have
     /// length zero until elements are inserted into it.
     ///
@@ -13811,7 +13811,7 @@ impl OpaqueIndexMap {
 impl OpaqueIndexMap {
     /// Constructs a new index map with the given memory allocator.
     ///
-    /// This method *does not* allocate memory. In particular, the index map has zero capacity and will
+    /// This method **does not** allocate memory. In particular, the index map has zero capacity and will
     /// not allocate memory until key-value pairs are inserted into it. The index map will have
     /// length zero until elements are inserted into it.
     ///
@@ -13920,7 +13920,7 @@ impl OpaqueIndexMap {
 impl OpaqueIndexMap {
     /// Constructs a new index map with the given hash builder.
     ///
-    /// This method *does not* allocate memory. In particular, the index map has zero capacity and will
+    /// This method **does not** allocate memory. In particular, the index map has zero capacity and will
     /// not allocate memory until key-value pairs are inserted into it. The index map will have
     /// length zero until elements are inserted into it.
     ///
@@ -14033,7 +14033,7 @@ impl OpaqueIndexMap {
 impl OpaqueIndexMap {
     /// Constructs a new index map.
     ///
-    /// This method *does not* allocate memory. In particular, the index map has zero capacity and will
+    /// This method **does not** allocate memory. In particular, the index map has zero capacity and will
     /// not allocate memory until key-value pairs are inserted into it. The index map will have
     /// length zero until elements are inserted into it.
     ///
