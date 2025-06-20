@@ -4014,16 +4014,16 @@ where
     ///
     /// This method removes all elements from the collection for which the predicate returns
     /// `false`. In particular, for each element `e` in the collection, it removes `e` provided
-    /// that `f(&e) == false`. This method operates in place, and preserves the order of the
+    /// that `keep(&e) == false`. This method operates in place, and preserves the order of the
     /// retained elements.
     ///
     /// In other words, after calling this method, the vector contains only elements for which
-    /// `f(e)` is true, in the same order as they appeared originally.
+    /// `keep(e)` is true, in the same order as they appeared originally.
     ///
     /// # Formal Properties
     ///
     /// Let `vec` be a vector, `vec_before` be the state of `vec` before this method is called,
-    /// `vec_after` be the state of `vec` after this method completes, and `f : T → bool` be the
+    /// `vec_after` be the state of `vec` after this method completes, and `keep : T → bool` be the
     /// predicate function passed to this method.
     ///
     /// We say that the vector `vec` **contains** a value `e :: T`, or that `e` is an **element**` of
@@ -4037,19 +4037,19 @@ where
     ///
     /// ```text
     /// { true }
-    /// vec.retain(f)
+    /// vec.retain(keep)
     /// {
-    ///     ∀ e ∈ vec_after. f(e)
+    ///     ∀ e ∈ vec_after. keep(e)
     ///     ∧ (∀ i ∈ [0, vec_after.len()). ∃ k ∈ [0, vec_before.len()).
     ///         (vec_after[i] = vec_before[k])
-    ///         ∧ f(vec_before[k])
-    ///         ∧ (∀ j < k. vec_before[j] = vec_after[i] ⇒ ¬f(vec_before[j])
+    ///         ∧ keep(vec_before[k])
+    ///         ∧ (∀ j < k. vec_before[j] = vec_after[i] ⇒ ¬keep(vec_before[j])
     ///     )
     ///     ∧ (∀ i < j < vec_after.len(). ∃ k < l < vec_before.len().
     ///         (vec_after[i] = vec_before[k])
     ///         ∧ (vec_after[j] = vec_before[l])
-    ///         ∧ f(vec_before[k])
-    ///         ∧ f(vec_before[l])
+    ///         ∧ keep(vec_before[k])
+    ///         ∧ keep(vec_before[l])
     ///     )
     /// }
     /// ```
@@ -4068,11 +4068,11 @@ where
     ///
     /// assert_eq!(proj_vec.as_slice(), &[2, 4, 6]);
     /// ```
-    pub fn retain<F>(&mut self, mut f: F)
+    pub fn retain<F>(&mut self, keep: F)
     where
         F: FnMut(&T) -> bool,
     {
-        self.inner.retain(|elem| f(elem));
+        self.inner.retain(keep)
     }
 
     /// Retains only the elements in the type-projected vector that satisfy the supplied predicate passing
@@ -4080,16 +4080,16 @@ where
     ///
     /// This method removes all elements from the collection for which the predicate returns
     /// `false`. In particular, for each element `e` in the collection, it removes `e` provided
-    /// that `f(&e) == false`. This method operates in place, and preserves the order of the
+    /// that `keep(&e) == false`. This method operates in place, and preserves the order of the
     /// retained elements.
     ///
     /// In other words, after calling this method, the vector contains only elements for which
-    /// `f(e)` is true, in the same order as they appeared originally.
+    /// `keep(e)` is true, in the same order as they appeared originally.
     ///
     /// # Formal Properties
     ///
     /// Let `vec` be a vector, `vec_before` be the state of `vec` before this method is called,
-    /// `vec_after` be the state of `vec` after this method completes, and `f : T → bool` be the
+    /// `vec_after` be the state of `vec` after this method completes, and `keep : T → bool` be the
     /// predicate function passed to this method.
     ///
     /// We say that the vector `vec` **contains** a value `e :: T`, or that `e` is an **element**` of
@@ -4103,19 +4103,19 @@ where
     ///
     /// ```text
     /// { true }
-    /// vec.retain(f)
+    /// vec.retain(keep)
     /// {
-    ///     ∀ e ∈ vec_after. f(e)
+    ///     ∀ e ∈ vec_after. keep(e)
     ///     ∧ (∀ i ∈ [0, vec_after.len()). ∃ k ∈ [0, vec_before.len()).
     ///         (vec_after[i] = vec_before[k])
-    ///         ∧ f(vec_before[k])
-    ///         ∧ (∀ j < k. vec_before[j] = vec_after[i] ⇒ ¬f(vec_before[j])
+    ///         ∧ keep(vec_before[k])
+    ///         ∧ (∀ j < k. vec_before[j] = vec_after[i] ⇒ ¬keep(vec_before[j])
     ///     )
     ///     ∧ (∀ i < j < vec_after.len(). ∃ k < l < vec_before.len().
     ///         (vec_after[i] = vec_before[k])
     ///         ∧ (vec_after[j] = vec_before[l])
-    ///         ∧ f(vec_before[k])
-    ///         ∧ f(vec_before[l])
+    ///         ∧ keep(vec_before[k])
+    ///         ∧ keep(vec_before[l])
     ///     )
     /// }
     /// ```
@@ -4139,11 +4139,11 @@ where
     ///
     /// assert_eq!(proj_vec.as_slice(), &[2, 3, 4]);
     /// ```
-    pub fn retain_mut<F>(&mut self, f: F)
+    pub fn retain_mut<F>(&mut self, keep: F)
     where
         F: FnMut(&mut T) -> bool,
     {
-        self.inner.retain_mut(f)
+        self.inner.retain_mut(keep)
     }
 
     /// Removes consecutive repeated elements in the type-projected vector according to the
@@ -9926,16 +9926,16 @@ impl OpaqueVec {
     ///
     /// This method removes all elements from the collection for which the predicate returns
     /// `false`. In particular, for each element `e` in the collection, it removes `e` provided
-    /// that `f(&e) == false`. This method operates in place, and preserves the order of the
+    /// that `keep(&e) == false`. This method operates in place, and preserves the order of the
     /// retained elements.
     ///
     /// In other words, after calling this method, the vector contains only elements for which
-    /// `f(e)` is true, in the same order as they appeared originally.
+    /// `keep(e)` is true, in the same order as they appeared originally.
     ///
     /// # Formal Properties
     ///
     /// Let `vec` be a vector, `vec_before` be the state of `vec` before this method is called,
-    /// `vec_after` be the state of `vec` after this method completes, and `f : T → bool` be the
+    /// `vec_after` be the state of `vec` after this method completes, and `keep : T → bool` be the
     /// predicate function passed to this method.
     ///
     /// We say that the vector `vec` **contains** a value `e :: T`, or that `e` is an **element**` of
@@ -9949,19 +9949,19 @@ impl OpaqueVec {
     ///
     /// ```text
     /// { true }
-    /// vec.retain(f)
+    /// vec.retain(keep)
     /// {
-    ///     ∀ e ∈ vec_after. f(e)
+    ///     ∀ e ∈ vec_after. keep(e)
     ///     ∧ (∀ i ∈ [0, vec_after.len()). ∃ k ∈ [0, vec_before.len()).
     ///         (vec_after[i] = vec_before[k])
-    ///         ∧ f(vec_before[k])
-    ///         ∧ (∀ j < k. vec_before[j] = vec_after[i] ⇒ ¬f(vec_before[j])
+    ///         ∧ keep(vec_before[k])
+    ///         ∧ (∀ j < k. vec_before[j] = vec_after[i] ⇒ ¬keep(vec_before[j])
     ///     )
     ///     ∧ (∀ i < j < vec_after.len(). ∃ k < l < vec_before.len().
     ///         (vec_after[i] = vec_before[k])
     ///         ∧ (vec_after[j] = vec_before[l])
-    ///         ∧ f(vec_before[k])
-    ///         ∧ f(vec_before[l])
+    ///         ∧ keep(vec_before[k])
+    ///         ∧ keep(vec_before[l])
     ///     )
     /// }
     /// ```
@@ -9993,7 +9993,7 @@ impl OpaqueVec {
     ///
     /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &[2, 4, 6]);
     /// ```
-    pub fn retain<F, T, A>(&mut self, f: F)
+    pub fn retain<F, T, A>(&mut self, keep: F)
     where
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
@@ -10001,7 +10001,7 @@ impl OpaqueVec {
     {
         let proj_self = self.as_proj_mut::<T, A>();
 
-        proj_self.retain(f);
+        proj_self.retain(keep);
     }
 
     /// Retains only the elements in the type-erased vector that satisfy the supplied predicate passing
@@ -10009,16 +10009,16 @@ impl OpaqueVec {
     ///
     /// This method removes all elements from the collection for which the predicate returns
     /// `false`. In particular, for each element `e` in the collection, it removes `e` provided
-    /// that `f(&e) == false`. This method operates in place, and preserves the order of the
+    /// that `keep(&e) == false`. This method operates in place, and preserves the order of the
     /// retained elements.
     ///
     /// In other words, after calling this method, the vector contains only elements for which
-    /// `f(e)` is true, in the same order as they appeared originally.
+    /// `keep(e)` is true, in the same order as they appeared originally.
     ///
     /// # Formal Properties
     ///
     /// Let `vec` be a vector, `vec_before` be the state of `vec` before this method is called,
-    /// `vec_after` be the state of `vec` after this method completes, and `f : T → bool` be the
+    /// `vec_after` be the state of `vec` after this method completes, and `keep : T → bool` be the
     /// predicate function passed to this method.
     ///
     /// We say that the vector `vec` **contains** a value `e :: T`, or that `e` is an **element**` of
@@ -10032,19 +10032,19 @@ impl OpaqueVec {
     ///
     /// ```text
     /// { true }
-    /// vec.retain(f)
+    /// vec.retain(keep)
     /// {
-    ///     ∀ e ∈ vec_after. f(e)
+    ///     ∀ e ∈ vec_after. keep(e)
     ///     ∧ (∀ i ∈ [0, vec_after.len()). ∃ k ∈ [0, vec_before.len()).
     ///         (vec_after[i] = vec_before[k])
-    ///         ∧ f(vec_before[k])
-    ///         ∧ (∀ j < k. vec_before[j] = vec_after[i] ⇒ ¬f(vec_before[j])
+    ///         ∧ keep(vec_before[k])
+    ///         ∧ (∀ j < k. vec_before[j] = vec_after[i] ⇒ ¬keep(vec_before[j])
     ///     )
     ///     ∧ (∀ i < j < vec_after.len(). ∃ k < l < vec_before.len().
     ///         (vec_after[i] = vec_before[k])
     ///         ∧ (vec_after[j] = vec_before[l])
-    ///         ∧ f(vec_before[k])
-    ///         ∧ f(vec_before[l])
+    ///         ∧ keep(vec_before[k])
+    ///         ∧ keep(vec_before[l])
     ///     )
     /// }
     /// ```
@@ -10082,7 +10082,7 @@ impl OpaqueVec {
     ///
     /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &[2, 3, 4]);
     /// ```
-    pub fn retain_mut<F, T, A>(&mut self, f: F)
+    pub fn retain_mut<F, T, A>(&mut self, keep: F)
     where
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
@@ -10090,7 +10090,7 @@ impl OpaqueVec {
     {
         let proj_self = self.as_proj_mut::<T, A>();
 
-        proj_self.retain_mut(f);
+        proj_self.retain_mut(keep);
     }
 
     /// Removes consecutive repeated elements in the type-erased vector according to the

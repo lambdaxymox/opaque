@@ -992,17 +992,17 @@ where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    pub(crate) fn retain<F>(&mut self, mut f: F)
+    pub(crate) fn retain<F>(&mut self, mut keep: F)
     where
         F: FnMut(&T) -> bool,
     {
         debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
         debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
 
-        self.retain_mut::<_>(|elem| f(elem));
+        self.retain_mut::<_>(|elem| keep(elem));
     }
 
-    pub(crate) fn retain_mut<F>(&mut self, mut f: F)
+    pub(crate) fn retain_mut<F>(&mut self, mut keep: F)
     where
         A: alloc::Allocator,
         F: FnMut(&mut T) -> bool,
@@ -1108,10 +1108,10 @@ where
         }
 
         // Stage 1: Nothing was deleted.
-        process_loop::<F, T, A, false>(original_len, &mut f, &mut g);
+        process_loop::<F, T, A, false>(original_len, &mut keep, &mut g);
 
         // Stage 2: Some elements were deleted.
-        process_loop::<F, T, A, true>(original_len, &mut f, &mut g);
+        process_loop::<F, T, A, true>(original_len, &mut keep, &mut g);
 
         // All item are processed. This can be optimized to `set_len` by LLVM.
         drop(g);
