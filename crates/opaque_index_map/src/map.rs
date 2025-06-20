@@ -4304,8 +4304,8 @@ where
         }
     }
 
-    /// Ensures a value is in the entry by inserting the result of the default function if it is empty, and
-    /// returns a mutable reference to the value in the entry.
+    /// Ensures a value is in the entry by inserting the result of the default function if it is
+    /// empty, and returns a mutable reference to the value in the entry.
     ///
     /// This method behaves as follows:
     /// * If the entry is occupied, this method does nothing and returns a mutable reference to its
@@ -9502,18 +9502,18 @@ where
     /// Inserts a new entry in the index map at its ordered position among sorted keys.
     ///
     /// An index map is in **sorted order by key** if it satisfies the following property: let `e1`
-    /// and `e2` be entries in `self`. Then `e1.key() <= e2.key()` if and only if `e1.index() <= e2.index()`.
-    /// More precisely, given the index map `self`
+    /// and `e2` be entries in `self`. Then `e1.key() <= e2.key()` if and only if
+    /// `e1.index() <= e2.index()`. More precisely, given the index map `self`
     ///
     /// ```text
-    /// forall e1, e2 in self. e1 <= e2 <-> e1.key() <= e2.key() <-> e1.index() <= e2.index()
+    /// forall e1, e2 in self. e1.index() <= e2.index() <-> e1.key() <= e2.key()
     /// ```
     ///
     /// or equivalently over key-value pairs
     ///
     /// ```text
     /// forall i1, i2 in [0, self.len()). forall k1, k2 :: K. forall v1, v2 :: V.
-    /// (i1, (k1, v1)), (i2, (k2, v2)) in self --> (k1, v1) <= (k2, v2) <-> k1 <= k2 <-> i1 <= i2.
+    /// (i1, (k1, v1)), (i2, (k2, v2)) in self --> i1 <= i2 <-> k1 <= k2.
     /// ```
     ///
     /// Otherwise, the index map is in **unsorted order by key**, or is **unsorted** for short.
@@ -9939,7 +9939,7 @@ where
     ///     one entry in the storage order, the current entry is moved from `current_index` to `index`,
     ///     the old value of the entry `old_value` is replaced with the new value `value`, and the method
     ///     returns `Some(old_value)`.
-    ///   - if `index == current_index`, no shifting occurs, the old value of the entry `old_value` is
+    ///   - If `index == current_index`, no shifting occurs, the old value of the entry `old_value` is
     ///     replaced with the new value `value`, and the method returns `Some(old_value)`.
     /// * If an equivalent key does not exist in the index map, the new entry is inserted at the
     ///   storage index `index`, and each entry in the range `[index, self.len())` is shifted
@@ -10215,8 +10215,8 @@ where
         }
     }
 
-    /// Creates a splicing iterator that replaces the specified storage range in the type-projected index map
-    /// with the given `replace_with` iterator and yields the removed items. The argument
+    /// Creates a splicing iterator that replaces the specified storage range in the type-projected
+    /// index map with the given `replace_with` iterator and yields the removed items. The argument
     /// `replace_with` does not need to be the same length as `range`.
     ///
     /// The `range` argument is removed even if the `Splice` iterator is not consumed before it is
@@ -10249,7 +10249,7 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_map: TypedProjIndexMap<usize, &str> = TypedProjIndexMap::from([
+    /// let mut proj_map = TypedProjIndexMap::from([
     ///     (0_usize, "foo"),
     ///     (1_usize, "bar"),
     ///     (2_usize, "baz"),
@@ -10260,7 +10260,7 @@ where
     ///     (8_usize, "corge"),
     ///     (9_usize, "grault"),
     /// ];
-    /// let expected: TypedProjVec<(usize, &str)> = TypedProjVec::from([
+    /// let expected = TypedProjVec::from([
     ///     (0_usize, "foo"),
     ///     (7_usize, "garply"),
     ///     (8_usize, "corge"),
@@ -10294,7 +10294,7 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_map: TypedProjIndexMap<usize, &str> = TypedProjIndexMap::from([
+    /// let mut proj_map = TypedProjIndexMap::from([
     ///     (0_usize, "foo"),
     ///     (4_usize, "grault")
     /// ]);
@@ -10303,7 +10303,7 @@ where
     ///     (2_usize, "baz"),
     ///     (3_usize, "quux"),
     /// ];
-    /// let expected: TypedProjVec<(usize, &str)> = TypedProjVec::from([
+    /// let expected = TypedProjVec::from([
     ///     (0_usize, "foo"),
     ///     (1_usize, "bar"),
     ///     (2_usize, "baz"),
@@ -10384,13 +10384,13 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_map1: TypedProjIndexMap<&str, usize> = TypedProjIndexMap::from([
+    /// let mut proj_map1 = TypedProjIndexMap::from([
     ///     ("foo",  0_usize),
     ///     ("bar",  1_usize),
     ///     ("baz",  2_usize),
     ///     ("quux", 3_usize),
     /// ]);
-    /// let mut proj_map2: TypedProjIndexMap<&str, usize> = TypedProjIndexMap::from([
+    /// let mut proj_map2 = TypedProjIndexMap::from([
     ///     ("garply", 4_usize),
     ///     ("corge",  5_usize),
     ///     ("grault", 6_usize),
@@ -10420,13 +10420,13 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_map1: TypedProjIndexMap<&str, usize> = TypedProjIndexMap::from([
+    /// let mut proj_map1 = TypedProjIndexMap::from([
     ///     ("foo",  0_usize),
     ///     ("bar",  1_usize),
     ///     ("baz",  2_usize),
     ///     ("quux", 3_usize),
     /// ]);
-    /// let mut proj_map2: TypedProjIndexMap<&str, usize> = TypedProjIndexMap::from([
+    /// let mut proj_map2 = TypedProjIndexMap::from([
     ///     ("garply", 4_usize),
     ///     ("corge",  5_usize),
     ///     ("grault", 6_usize),
@@ -10646,22 +10646,22 @@ where
         self.inner.retain(keep);
     }
 
-    /// Sorts the entries in the index map into the sorted ordering of the keys as defined by the default
-    /// ordering of the keys.
+    /// Sorts the entries in the index map into the sorted ordering of the keys as defined by the
+    /// default ordering of the keys.
     ///
     /// An index map is in **sorted order by key** if it satisfies the following property: let `e1`
-    /// and `e2` be entries in `self`. Then `e1.key() <= e2.key()` if and only if `e1.index() <= e2.index()`.
-    /// More precisely, given the index map `self`
+    /// and `e2` be entries in `self`. Then `e1.key() <= e2.key()` if and only if
+    /// `e1.index() <= e2.index()`. More precisely, given the index map `self`
     ///
     /// ```text
-    /// forall e1, e2 in self. e1.index() <= e2.index() <-> e1.key() <= e2.key().
+    /// forall e1, e2 in self. e1.index() <= e2.index() <-> e1.key() <= e2.key()
     /// ```
     ///
     /// or equivalently over key-value pairs
     ///
     /// ```text
     /// forall i1, i2 in [0, self.len()). forall k1, k2 :: K. forall v1, v2 :: V.
-    /// (i1, (k1, v1)), (i2, (k2, v2)) in self --> i1 <= i2 <-> k1 <= k2
+    /// (i1, (k1, v1)), (i2, (k2, v2)) in self --> i1 <= i2 <-> k1 <= k2.
     /// ```
     ///
     /// Otherwise, the index map is in **unsorted order by key**, or is **unsorted** for short.
@@ -10894,8 +10894,8 @@ where
         IntoIter::new(self.inner.sorted_by(cmp))
     }
 
-    /// Sorts the entries in the index map into the sorted ordering of the keys as defined by the default
-    /// ordering of the keys, but may not preserve the order of equal values.
+    /// Sorts the entries in the index map into the sorted ordering of the keys as defined by the
+    /// default ordering of the keys, but may not preserve the order of equal values.
     ///
     /// After this method completes, the index map will be in unstable sorted order.
     ///
@@ -17501,16 +17501,20 @@ impl OpaqueIndexMap {
     /// Inserts a new entry in the index map at its ordered position among sorted keys.
     ///
     /// An index map is in **sorted order by key** if it satisfies the following property: let `e1`
-    /// and `e2` be entries in `self`. Then `e1.key() <= e2.key()` if and only if `e1.index() <= e2.index()`.
-    /// More precisely, given the index map `self`
+    /// and `e2` be entries in `self`. Then `e1.key() <= e2.key()` if and only if
+    /// `e1.index() <= e2.index()`. More precisely, given the index map `self`
+    ///
     /// ```text
-    /// forall e1, e2 in self. e1 <= e2 <-> e1.key() <= e2.key() <-> e1.index() <= e2.index().
+    /// forall e1, e2 in self. e1.index() <= e2.index() <-> e1.key() <= e2.key()
     /// ```
+    ///
     /// or equivalently over key-value pairs
+    ///
     /// ```text
-    /// forall i1, i2 :: [0..self.len()]. forall k1, k2 :: K. forall v1, v2 :: V.
-    /// (i1, (k1, v1)), (i2, (k2, v2)) in self --> (k1, v1) <= (k2, v2) <-> k1 <= k2 <-> i1 <= i2.
+    /// forall i1, i2 in [0, self.len()). forall k1, k2 :: K. forall v1, v2 :: V.
+    /// (i1, (k1, v1)), (i2, (k2, v2)) in self --> i1 <= i2 <-> k1 <= k2.
     /// ```
+    ///
     /// Otherwise, the index map is in **unsorted order by key**, or is **unsorted** for short.
     ///
     /// This means that an index map is in sorted order if the total ordering of the keys in the map
@@ -17994,7 +17998,7 @@ impl OpaqueIndexMap {
     ///     one entry in the storage order, the current entry is moved from `current_index` to `index`,
     ///     the old value of the entry `old_value` is replaced with the new value `value`, and the method
     ///     returns `Some(old_value)`.
-    ///   - if `index == current_index`, no shifting occurs, the old value of the entry `old_value` is
+    ///   - If `index == current_index`, no shifting occurs, the old value of the entry `old_value` is
     ///     replaced with the new value `value`, and the method returns `Some(old_value)`.
     /// * If an equivalent key does not exist in the index map, the new entry is inserted at the
     ///   storage index `index`, and each entry in the range `[index, self.len())` is shifted
@@ -18315,8 +18319,8 @@ impl OpaqueIndexMap {
         proj_self.entry(key)
     }
 
-    /// Creates a splicing iterator that replaces the specified storage range in the type-erased index map
-    /// with the given `replace_with` iterator and yields the removed items. The argument
+    /// Creates a splicing iterator that replaces the specified storage range in the type-erased
+    /// index map with the given `replace_with` iterator and yields the removed items. The argument
     /// `replace_with` does not need to be the same length as `range`.
     ///
     /// The `range` argument is removed even if the `Splice` iterator is not consumed before it is
@@ -18843,22 +18847,22 @@ impl OpaqueIndexMap {
         proj_self.retain(keep)
     }
 
-    /// Sorts the entries in the index map into the sorted ordering of the keys as defined by the default
-    /// ordering of the keys.
+    /// Sorts the entries in the index map into the sorted ordering of the keys as defined by the
+    /// default ordering of the keys.
     ///
     /// An index map is in **sorted order by key** if it satisfies the following property: let `e1`
-    /// and `e2` be entries in `self`. Then `e1.key() <= e2.key()` if and only if `e1.index() <= e2.index()`.
-    /// More precisely, given the index map `self`
+    /// and `e2` be entries in `self`. Then `e1.key() <= e2.key()` if and only if
+    /// `e1.index() <= e2.index()`. More precisely, given the index map `self`
     ///
     /// ```text
-    /// forall e1, e2 in self. e1.index() <= e2.index() <-> e1.key() <= e2.key().
+    /// forall e1, e2 in self. e1.index() <= e2.index() <-> e1.key() <= e2.key()
     /// ```
     ///
     /// or equivalently over key-value pairs
     ///
     /// ```text
     /// forall i1, i2 in [0, self.len()). forall k1, k2 :: K. forall v1, v2 :: V.
-    /// (i1, (k1, v1)), (i2, (k2, v2)) in self --> i1 <= i2 <-> k1 <= k2
+    /// (i1, (k1, v1)), (i2, (k2, v2)) in self --> i1 <= i2 <-> k1 <= k2.
     /// ```
     ///
     /// Otherwise, the index map is in **unsorted order by key**, or is **unsorted** for short.
@@ -19150,8 +19154,8 @@ impl OpaqueIndexMap {
         proj_self.sorted_by(cmp)
     }
 
-    /// Sorts the entries in the index map into the sorted ordering of the keys as defined by the default
-    /// ordering of the keys, but may not preserve the order of equal values.
+    /// Sorts the entries in the index map into the sorted ordering of the keys as defined by the
+    /// default ordering of the keys, but may not preserve the order of equal values.
     ///
     /// After this method completes, the index map will be in unstable sorted order.
     ///

@@ -2929,6 +2929,1020 @@ where
     }
 }
 
+impl<T, S, A> TypedProjIndexSet<T, S, A>
+where
+    T: any::Any + hash::Hash + Eq,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    /// Inserts a new entry into the index set.
+    ///
+    /// This method behaves as follows:
+    /// * If the equivalent value already exists in the index set, this method returns `false`. The
+    ///   entry retains its position in the storage order of the index set.
+    /// * If the entry with the equivalent value does not exist in the set, it is appended to the end
+    ///   of the set, so the resulting entry is in last place in the storage order, and the method
+    ///   returns `true`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set: TypedProjIndexSet<isize> = TypedProjIndexSet::from([1_isize, 2_isize, 3_isize]);
+    ///
+    /// let result = proj_set.insert(isize::MAX);
+    ///
+    /// assert_eq!(result, true);
+    ///
+    /// let result = proj_set.insert(2_isize);
+    ///
+    /// assert_eq!(result, false);
+    /// ```
+    pub fn insert(&mut self, value: T) -> bool {
+        self.inner.insert(value, ()).is_none()
+    }
+
+    /// Inserts a new entry into the index set, returning the storage index of the old entry, if it
+    /// exists.
+    ///
+    /// This method behaves as follows:
+    /// * If the equivalent value already exists in the index set, this method returns the storage
+    ///   index of the value as `(index, false)`. The entry retains its position in the storage order
+    ///   of the index set.
+    /// * If the entry with the equivalent value does not exist in the set, it is appended to the end
+    ///   of the set, so the resulting entry is in last place in the storage order, and the method
+    ///   returns `(index, true)`, where `index` is the index of the last entry in the set in storage
+    ///   order.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set: TypedProjIndexSet<isize> = TypedProjIndexSet::from([1_isize, 2_isize, 3_isize]);
+    ///
+    /// let result = proj_set.insert_full(isize::MAX);
+    ///
+    /// assert_eq!(result, (3, true));
+    ///
+    /// let result = proj_set.insert_full(2_isize);
+    ///
+    /// assert_eq!(result, (1, false));
+    /// ```
+    pub fn insert_full(&mut self, value: T) -> (usize, bool) {
+        let (index, existing) = self.inner.insert_full(value, ());
+
+        (index, existing.is_none())
+    }
+
+    /// Inserts a new entry in the index set at its ordered position among sorted values.
+    ///
+    /// An index set is in **sorted order by value** if it satisfies the following property: let
+    /// `e1` and `e2` be entries in `self`. Then `e1.value() <= e2.value()` if and only if
+    /// `e1.index() <= e2.index()`. More precisely, given the index set `self`
+    ///
+    /// ```text
+    /// forall e1, e2 in self. e1.index() <= e2.index() <-> e1.value() <= e2.value()
+    /// ```
+    ///
+    /// or equivalently over values
+    ///
+    /// ```text
+    /// forall i1, i2 in [0, self.len()). forall v1, v2 :: T.
+    /// (i1, v1), (i2, v2) in self --> i1 <= i2 <-> v1 <= v2.
+    /// ```
+    ///
+    /// Otherwise, the index set is in **unsorted order by value**, or is **unsorted** for short.
+    ///
+    /// This means that an index set is in sorted order if the total ordering of the values in the
+    /// set matches the storage order of the entries in the set. The values are **sorted** if the
+    /// index set is in sorted order, and **unsorted** otherwise.
+    ///
+    /// This method is equivalent to finding the position with [`binary_search_keys`], then either
+    /// updating it or calling [`insert_before`] for a new value.
+    ///
+    /// This method behaves as follows:
+    /// * If the index set is in sorted order and contains the sorted value `value`, this method
+    ///   returns `(index, false)`, where `index` is the storage index of the sorted value.
+    /// * If the index set is in sorted order and does not contain the sorted value `value`, this
+    ///   method inserts the new entry at the sorted position, returns `(index, true)`, where
+    ///   `index` is the storage index of the sorted value.
+    /// * If the existing values are **not** sorted order, then the insertion index is unspecified.
+    ///
+    /// Instead of repeating calls to `insert_sorted`, it may be faster to call batched [`insert`]
+    /// or [`extend`] and only call [`sort_keys`] or [`sort_unstable_keys`] once.
+    ///
+    /// [`binary_search_keys`]: TypedProjIndexSet::binary_search_keys
+    /// [`insert_before`]: TypedProjIndexSet::insert_before
+    /// [`insert`]: TypedProjIndexSet::insert
+    /// [`extend`]: TypedProjIndexSet::extend
+    /// [`sort_keys`]: TypedProjIndexSet::sort_keys
+    /// [`sort_unstable_keys`]: TypedProjIndexSet::sort_unstable_keys
+    ///
+    /// # Examples
+    ///
+    /// Calling this method on an index set with a set of sorted values yields the index of the
+    /// entry in the underlying storage.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set: TypedProjIndexSet<isize> = TypedProjIndexSet::from([
+    ///     1_isize,
+    ///     2_isize,
+    ///     3_isize,
+    ///     4_isize,
+    ///     5_isize,
+    ///     6_isize,
+    ///     7_isize,
+    /// ]);
+    /// let result = proj_set.insert_sorted(5_isize);
+    ///
+    /// // The set is sorted, so the index returned is the storage index in the set.
+    /// assert_eq!(result, (4, false));
+    ///
+    /// assert_eq!(proj_set.get(&5_isize), Some(&5_isize));
+    /// ```
+    ///
+    /// Calling this method on an index set with a set of unsorted value yields a meaningless
+    /// result for the insertion index.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set: TypedProjIndexSet<isize> = TypedProjIndexSet::from([
+    ///     7_isize,
+    ///     4_isize,
+    ///     2_isize,
+    ///     5_isize,
+    ///     6_isize,
+    ///     1_isize,
+    ///     3_isize,
+    /// ]);
+    /// let result = proj_set.insert_sorted(5_isize);
+    ///
+    /// // The set is unsorted, so the index returned by the method is meaningless.
+    /// assert_ne!(result, (4, false));
+    ///
+    /// assert_eq!(proj_set.get(&5_isize), Some(&5_isize));
+    /// ```
+    pub fn insert_sorted(&mut self, value: T) -> (usize, bool)
+    where
+        T: Ord,
+    {
+        let (index, existing) = self.inner.insert_sorted(value, ());
+        (index, existing.is_none())
+    }
+
+    /// Inserts an entry into a type-projected index set before the entry at the given index, or at
+    /// the end of the index set.
+    ///
+    /// The index `index` must be in bounds. The index `index` is **in bounds** provided that
+    /// `index` is in `[0, self.len()]`. Otherwise, the index `index` is **out of bounds**.
+    ///
+    /// This method behaves as follows:
+    /// * If an equivalent value to the value `value` exists in the index set, let `current_index`
+    ///   be the storage index of the entry with the equivalent value to `value`.
+    ///   - If `index > current_index`, this method moves the entry at `current_index` to
+    ///     `index - 1`, shifts each entry in `(current_index, index - 1]` down one index in the
+    ///     storage of the index set, then returns `(index - 1, false)`.
+    ///   - If `index < current_index`, this method moves the entry at `current_index` to `index`,
+    ///     shifts each entry in `[index, current_index)` up one index in the storage for the index
+    ///     set, then returns `(index, false)`.
+    ///   - If `index == current_index`, this method returns `(index, false)`. No entries are moved
+    ///     around in this case.
+    /// * If an equivalent value to the value `value` does not exist in the index set, the new entry
+    ///   is inserted exactly at the index `index`, every element in `[index, self.len())` is
+    ///   shifted up one index, and the method returns `(index, true)`. When `index == self.len()`,
+    ///   the interval `[index, self.len()] == [self.len(), self.len())` is empty, so no shifting
+    ///   occurs.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the index `index` is out of bounds.
+    ///
+    /// # Examples
+    ///
+    /// Inserting an existing value `value` where `index > self.get_index_of(value)`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set: TypedProjIndexSet<char> = TypedProjIndexSet::from([
+    ///     'a',
+    ///     '*',
+    ///     'c',
+    ///     'd',
+    ///     'e',
+    ///     'f',
+    ///     'g',
+    /// ]);
+    /// let removed = proj_set.insert_before(5, '*');
+    /// let expected: TypedProjVec<char> = TypedProjVec::from([
+    ///     'a',
+    ///     'c',
+    ///     'd',
+    ///     'e',
+    ///     '*',
+    ///     'f',
+    ///     'g',
+    /// ]);
+    /// let result: TypedProjVec<char> = proj_set
+    ///     .iter()
+    ///     .cloned()
+    ///     .collect();
+    ///
+    /// assert_eq!(result, expected);
+    /// assert_eq!(removed, (4, false));
+    /// ```
+    ///
+    /// Inserting an existing value `value` where `index < self.get_index_of(value)`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set: TypedProjIndexSet<char> = TypedProjIndexSet::from([
+    ///     'a',
+    ///     'b',
+    ///     'c',
+    ///     'd',
+    ///     'e',
+    ///     '*',
+    ///     'g',
+    /// ]);
+    /// let removed = proj_set.insert_before(2, '*');
+    /// let expected: TypedProjVec<char> = TypedProjVec::from([
+    ///     'a',
+    ///     'b',
+    ///     '*',
+    ///     'c',
+    ///     'd',
+    ///     'e',
+    ///     'g',
+    /// ]);
+    /// let result: TypedProjVec<char> = proj_set
+    ///     .iter()
+    ///     .cloned()
+    ///     .collect();
+    ///
+    /// assert_eq!(result, expected);
+    /// assert_eq!(removed, (2, false));
+    /// ```
+    ///
+    /// Inserting an existing value `value` where `index == self.get_index_of(value)`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set: TypedProjIndexSet<char> = TypedProjIndexSet::from([
+    ///     'a',
+    ///     'b',
+    ///     'c',
+    ///     '*',
+    ///     'e',
+    ///     'f',
+    ///     'g',
+    /// ]);
+    /// let removed = proj_set.insert_before(3, '*');
+    /// let expected: TypedProjVec<char> = TypedProjVec::from([
+    ///     'a',
+    ///     'b',
+    ///     'c',
+    ///     '*',
+    ///     'e',
+    ///     'f',
+    ///     'g',
+    /// ]);
+    /// let result: TypedProjVec<char> = proj_set
+    ///     .iter()
+    ///     .cloned()
+    ///     .collect();
+    ///
+    /// assert_eq!(result, expected);
+    /// assert_eq!(removed, (3, false));
+    /// ```
+    ///
+    /// Inserting a value `value` that does not exist in the index set at an index `index`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set: TypedProjIndexSet<char> = TypedProjIndexSet::from([
+    ///     'a',
+    ///     'b',
+    ///     'c',
+    ///     'd',
+    ///     'e',
+    ///     'f',
+    ///     'g',
+    /// ]);
+    /// let removed = proj_set.insert_before(3, '*');
+    /// let expected: TypedProjVec<char> = TypedProjVec::from([
+    ///     'a',
+    ///     'b',
+    ///     'c',
+    ///     '*',
+    ///     'd',
+    ///     'e',
+    ///     'f',
+    ///     'g',
+    /// ]);
+    /// let result: TypedProjVec<char> = proj_set
+    ///     .iter()
+    ///     .cloned()
+    ///     .collect();
+    ///
+    /// assert_eq!(result, expected);
+    /// assert_eq!(removed, (3, true));
+    /// ```
+    #[track_caller]
+    pub fn insert_before(&mut self, index: usize, value: T) -> (usize, bool) {
+        let (index, existing) = self.inner.insert_before(index, value, ());
+        (index, existing.is_none())
+    }
+
+    /// Inserts an entry into a type-projected index set at the given storage index.
+    ///
+    /// The index `index` must be in bounds. The index `index` is **in bounds** provided that one
+    /// of the following conditions holds:
+    /// * If an entry with a value equivalent to the value `value` exists in the index set, and `index` is
+    ///   in `[0, self.len())`.
+    /// * If an entry with a value equivalent to the value `value` does not exist in the index set, and
+    ///   index is in `[0, self.len()]`.
+    /// Otherwise, the index `index` is **out of bounds**.
+    ///
+    /// This method behaves as follows:
+    /// * If an equivalent value already exists in the set, let `current_index` be the storage index of
+    ///   the entry with value equivalent to `value`.
+    ///   - If `index < current_index`, every entry in range `[index, current_index)` is shifted up
+    ///     one entry in the storage order, the current entry is moved from `current_index` to `index`,
+    ///     and the method returns `(index, false)`.
+    ///   - If `index > current_index`, every entry in range `(current_index, index]` is shifted down
+    ///     one entry in the storage order, the current entry is moved from `current_index` to `index`,
+    ///     and the method returns `(index, false)`.
+    ///   - If `index == current_index`, no shifting occurs, and the method returns `(index, false)`.
+    /// * If an equivalent value does not exist in the index set, the new entry is inserted at the
+    ///   storage index `index`, and each entry in the range `[index, self.len())` is shifted
+    ///   up one index, and the method returns `(index, true)`.
+    ///
+    /// Note that an existing entry **cannot** be moved to the index `self.len()`.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the index `index` is out of bounds.
+    ///
+    /// # Examples
+    ///
+    /// Shift inserting an entry that **does not** exist with index `index < self.len()`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set: TypedProjIndexSet<isize> = TypedProjIndexSet::from([
+    ///     1_isize,
+    ///     2_isize,
+    ///     3_isize,
+    ///     4_isize,
+    ///     5_isize,
+    ///     6_isize,
+    ///     7_isize,
+    /// ]);
+    /// let inserted = proj_set.shift_insert(3, isize::MAX);
+    /// let expected: TypedProjVec<isize> = TypedProjVec::from([
+    ///     1_isize,
+    ///     2_isize,
+    ///     3_isize,
+    ///     isize::MAX,
+    ///     4_isize,
+    ///     5_isize,
+    ///     6_isize,
+    ///     7_isize,
+    /// ]);
+    /// let result: TypedProjVec<isize> = proj_set
+    ///     .iter()
+    ///     .cloned()
+    ///     .collect();
+    ///
+    /// assert_eq!(result, expected);
+    /// assert!(inserted);
+    /// ```
+    ///
+    /// Shift inserting an entry that **does not** exist with index `index == self.len()`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set: TypedProjIndexSet<isize> = TypedProjIndexSet::from([
+    ///     1_isize,
+    ///     2_isize,
+    ///     3_isize,
+    ///     4_isize,
+    ///     5_isize,
+    ///     6_isize,
+    ///     7_isize,
+    /// ]);
+    /// let inserted = proj_set.shift_insert(proj_set.len(), isize::MAX);
+    /// let expected: TypedProjVec<isize> = TypedProjVec::from([
+    ///     1_isize,
+    ///     2_isize,
+    ///     3_isize,
+    ///     4_isize,
+    ///     5_isize,
+    ///     6_isize,
+    ///     7_isize,
+    ///     isize::MAX,
+    /// ]);
+    /// let result: TypedProjVec<isize> = proj_set
+    ///     .iter()
+    ///     .cloned()
+    ///     .collect();
+    ///
+    /// assert_eq!(result, expected);
+    /// assert!(inserted);
+    /// ```
+    ///
+    /// Shift inserting an entry that **does** exist with index `index < self.len()`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set: TypedProjIndexSet<isize> = TypedProjIndexSet::from([
+    ///     1_isize,
+    ///     2_isize,
+    ///     3_isize,
+    ///     4_isize,
+    ///     5_isize,
+    ///     6_isize,
+    ///     7_isize,
+    /// ]);
+    /// let inserted = proj_set.shift_insert(3, 6_isize);
+    /// let expected: TypedProjVec<isize> = TypedProjVec::from([
+    ///     1_isize,
+    ///     2_isize,
+    ///     3_isize,
+    ///     6_isize,
+    ///     4_isize,
+    ///     5_isize,
+    ///     7_isize,
+    /// ]);
+    /// let result: TypedProjVec<isize> = proj_set
+    ///     .iter()
+    ///     .cloned()
+    ///     .collect();
+    ///
+    /// assert_eq!(result, expected);
+    /// assert!(!inserted);
+    /// ```
+    #[track_caller]
+    pub fn shift_insert(&mut self, index: usize, value: T) -> bool {
+        self.inner.shift_insert(index, value, ()).is_none()
+    }
+
+    /// Adds a new value to the index set, and replaces the existing value equal to the given one,
+    /// if it exists, and returns the value of the existing one.
+    ///
+    /// This method does not change the storage order of the other elements in the set.
+    ///
+    /// # Examples
+    ///
+    /// Replacing a value where two different string values are equal up to letter case.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::{Hash, Hasher, RandomState};
+    /// # use std::alloc::Global;
+    /// #
+    /// struct CaseInsensitiveString(String);
+    ///
+    /// impl PartialEq for CaseInsensitiveString {
+    ///     fn eq(&self, other: &Self) -> bool {
+    ///         self.0.eq_ignore_ascii_case(&other.0)
+    ///     }
+    /// }
+    /// #
+    /// # impl Eq for CaseInsensitiveString {}
+    /// #
+    /// # impl Hash for CaseInsensitiveString {
+    /// #     fn hash<H: Hasher>(&self, state: &mut H) {
+    /// #        for byte in self.0.bytes() {
+    /// #            state.write_u8(byte.to_ascii_lowercase());
+    /// #        }
+    /// #    }
+    /// # }
+    /// #
+    ///
+    /// let mut proj_set = TypedProjIndexSet::from([
+    ///     CaseInsensitiveString(String::from("foo")),
+    ///     CaseInsensitiveString(String::from("bar")),
+    ///     CaseInsensitiveString(String::from("baz")),
+    /// ]);
+    ///
+    /// let expected = Some(String::from("bar"));
+    /// let result: Option<String> = {
+    ///     let _result = proj_set.replace(CaseInsensitiveString(String::from("BAR")));
+    ///     _result.map(|s| s.0)
+    /// };
+    ///
+    /// assert_eq!(result, expected);
+    ///
+    /// let expected_entries = TypedProjVec::from([
+    ///     String::from("foo"),
+    ///     String::from("BAR"),
+    ///     String::from("baz"),
+    /// ]);
+    /// let result_entries: TypedProjVec<String> = proj_set
+    ///     .iter()
+    ///     .map(|s| s.0.clone())
+    ///     .collect();
+    ///
+    /// assert_eq!(result_entries, expected_entries);
+    /// ```
+    pub fn replace(&mut self, value: T) -> Option<T> {
+        self.replace_full(value).1
+    }
+
+    /// Adds a new value to the index set, and replaces the existing value equal to the given one,
+    /// if it exists, and returns the storage index and value of the existing one.
+    ///
+    /// This method does not change the storage order of the other elements in the set.
+    ///
+    /// # Examples
+    ///
+    /// Replacing a value where two different string values are equal up to letter case.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::{Hash, Hasher, RandomState};
+    /// # use std::alloc::Global;
+    /// #
+    /// struct CaseInsensitiveString(String);
+    ///
+    /// impl PartialEq for CaseInsensitiveString {
+    ///     fn eq(&self, other: &Self) -> bool {
+    ///         self.0.eq_ignore_ascii_case(&other.0)
+    ///     }
+    /// }
+    /// #
+    /// # impl Eq for CaseInsensitiveString {}
+    /// #
+    /// # impl Hash for CaseInsensitiveString {
+    /// #     fn hash<H: Hasher>(&self, state: &mut H) {
+    /// #        for byte in self.0.bytes() {
+    /// #            state.write_u8(byte.to_ascii_lowercase());
+    /// #        }
+    /// #    }
+    /// # }
+    /// #
+    ///
+    /// let mut proj_set = TypedProjIndexSet::from([
+    ///     CaseInsensitiveString(String::from("foo")),
+    ///     CaseInsensitiveString(String::from("bar")),
+    ///     CaseInsensitiveString(String::from("baz")),
+    /// ]);
+    ///
+    /// let expected = (1, Some(String::from("bar")));
+    /// let result: (usize, Option<String>) = {
+    ///     let (i, _result) = proj_set.replace_full(CaseInsensitiveString(String::from("BAR")));
+    ///     (i, _result.map(|s| s.0))
+    /// };
+    ///
+    /// assert_eq!(result, expected);
+    ///
+    /// let expected_entries = TypedProjVec::from([
+    ///     String::from("foo"),
+    ///     String::from("BAR"),
+    ///     String::from("baz"),
+    /// ]);
+    /// let result_entries: TypedProjVec<String> = proj_set
+    ///     .iter()
+    ///     .map(|s| s.0.clone())
+    ///     .collect();
+    ///
+    /// assert_eq!(result_entries, expected_entries);
+    /// ```
+    pub fn replace_full(&mut self, value: T) -> (usize, Option<T>) {
+        match self.inner.replace_full(value, ()) {
+            (i, Some((replaced, ()))) => (i, Some(replaced)),
+            (i, None) => (i, None),
+        }
+    }
+
+    /// Return an iterator over the values in the set-theoretic difference of two index sets.
+    ///
+    /// This iterator behaves as follows. Let `self` and `other` be index sets. Let `v` be a value
+    /// produced by the iterator. Then `v` satisfies `(v in self) && (not (v in other))`. More
+    /// informally, this iterator produces values that are in `self`, but not in `other`.
+    ///
+    /// This iterator produces values in the same order that they appear in `self`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::{Hash, Hasher, RandomState};
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set1 = TypedProjIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32]);
+    /// let proj_set2 = TypedProjIndexSet::from([2_i32, 4_i32, 6_i32, 7_i32, 8_i32]);
+    ///
+    /// let expected = TypedProjIndexSet::from([1_i32, 3_i32, 5_i32]);
+    /// let result: TypedProjIndexSet<i32> = proj_set1
+    ///     .difference(&proj_set2)
+    ///     .cloned()
+    ///     .collect();
+    ///
+    /// assert_eq!(result, expected);
+    /// assert_eq!(result.as_slice(), expected.as_slice());
+    /// ```
+    pub fn difference<'a, S2>(&'a self, other: &'a TypedProjIndexSet<T, S2, A>) -> Difference<'a, T, S2, A>
+    where
+        S2: any::Any + hash::BuildHasher + Send + Sync,
+        S2::Hasher: any::Any + hash::Hasher + Send + Sync,
+    {
+        Difference::new(self, other)
+    }
+
+    /// Return an iterator over the values in the set-theoretic symmetric difference of two index
+    /// sets.
+    ///
+    /// This iterator behaves as follows. Let `self` and `other` be index sets. Let `v` be a value
+    /// produced by the iterator. Then `v` satisfies
+    ///
+    /// ```text
+    /// (v in self) && (not (v in other)) || (not (v in self)) && (v in other).
+    /// ```
+    ///
+    /// More informally, this iterator produces those elements that are in one set or the other
+    /// set, but not both sets.
+    ///
+    /// The iterator produces the values from `self` storage order, followed by the values from
+    /// `other` in their storage order.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::{Hash, Hasher, RandomState};
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set1 = TypedProjIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32]);
+    /// let proj_set2 = TypedProjIndexSet::from([2_i32, 4_i32, 6_i32, 7_i32, 8_i32]);
+    ///
+    /// let expected = TypedProjIndexSet::from([1_i32, 3_i32, 5_i32, 7_i32, 8_i32]);
+    /// let result: TypedProjIndexSet<i32> = proj_set1
+    ///     .symmetric_difference(&proj_set2)
+    ///     .cloned()
+    ///     .collect();
+    ///
+    /// assert_eq!(result, expected);
+    /// assert_eq!(result.as_slice(), expected.as_slice());
+    /// ```
+    pub fn symmetric_difference<'a, S2>(
+        &'a self,
+        other: &'a TypedProjIndexSet<T, S2, A>,
+    ) -> SymmetricDifference<'a, T, S, S2, A>
+    where
+        S2: any::Any + hash::BuildHasher + Send + Sync,
+        S2::Hasher: any::Any + hash::Hasher + Send + Sync,
+    {
+        SymmetricDifference::new(self, other)
+    }
+
+    /// Return an iterator over the values in the set-theoretic intersection of two index sets.
+    ///
+    /// This iterator behaves as follows. Let `self` and `other` be index sets. Let `v` be a value
+    /// produced by the iterator. Then `v` satisfies `(v in self) && (v in other)`. More informally,
+    /// this iterator produces those elements that are in both sets, and none of the elements that
+    /// are only in one set.
+    ///
+    /// This iterator produces values in the order that they appear in `self`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::{Hash, Hasher, RandomState};
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set1 = TypedProjIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32]);
+    /// let proj_set2 = TypedProjIndexSet::from([2_i32, 4_i32, 6_i32, 7_i32, 8_i32]);
+    ///
+    /// let expected = TypedProjIndexSet::from([2_i32, 4_i32, 6_i32]);
+    /// let result: TypedProjIndexSet<i32> = proj_set1
+    ///     .intersection(&proj_set2)
+    ///     .cloned()
+    ///     .collect();
+    ///
+    /// assert_eq!(result, expected);
+    /// assert_eq!(result.as_slice(), expected.as_slice());
+    /// ```
+    pub fn intersection<'a, S2>(&'a self, other: &'a TypedProjIndexSet<T, S2, A>) -> Intersection<'a, T, S2, A>
+    where
+        S2: any::Any + hash::BuildHasher + Send + Sync,
+        S2::Hasher: any::Any + hash::Hasher + Send + Sync,
+    {
+        Intersection::new(self, other)
+    }
+
+    /// Return an iterator over the values in the set-theoretic union of two index sets.
+    ///
+    /// This iterator behaves as follows. Let `self` and `other` be index sets. Let `v` be a value
+    /// produced by the iterator. Then `v` satisfies `(v in self) || (v in other)`. More informally,
+    /// this iterator produces every value in `self` and `other` exactly once.
+    ///
+    /// This iterator produces values in the same order as their storage order in `self`, followed
+    /// by the storage order of the values unique to `other`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::{Hash, Hasher, RandomState};
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set1 = TypedProjIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32]);
+    /// let proj_set2 = TypedProjIndexSet::from([2_i32, 4_i32, 6_i32, 7_i32, 8_i32]);
+    ///
+    /// let expected = TypedProjIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32, 7_i32, 8_i32]);
+    /// let result: TypedProjIndexSet<i32> = proj_set1
+    ///     .union(&proj_set2)
+    ///     .cloned()
+    ///     .collect();
+    ///
+    /// assert_eq!(result, expected);
+    /// assert_eq!(result.as_slice(), expected.as_slice());
+    /// ```
+    pub fn union<'a, S2>(&'a self, other: &'a TypedProjIndexSet<T, S2, A>) -> Union<'a, T, S, A>
+    where
+        S2: any::Any + hash::BuildHasher + Send + Sync,
+        S2::Hasher: any::Any + hash::Hasher + Send + Sync,
+    {
+        Union::new(self, other)
+    }
+
+    /// Creates a splicing iterator that replaces the specified storage range in the type-projected
+    /// index set with the given `replace_with` iterator and yields the removed items. The argument
+    /// `replace_with` does not need to be the same length as `range`.
+    ///
+    /// The `range` argument is removed even if the `Splice` iterator is not consumed before it is
+    /// dropped.
+    ///
+    /// It is unspecified how many elements are removed from the type-projected index set
+    /// if the `Splice` value is leaked.
+    ///
+    /// The input iterator `replace_with` is only consumed when the `Splice` value is dropped.
+    /// If a key from the iterator matches an existing entry in the set (i.e. outside the range `range`),
+    /// then the value will be updated in that position. Otherwise, the new entry will be inserted
+    /// in the replaced `range`.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the starting point is greater than the end point or if the end point
+    /// is greater than the length of the index set.
+    ///
+    /// # Examples
+    ///
+    /// Splicing entries into an index set.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set = TypedProjIndexSet::from(["foo", "bar", "baz", "quux"]);
+    /// let new = ["garply", "corge", "grault"];
+    /// let expected = TypedProjVec::from(["foo", "garply", "corge", "grault", "quux"]);
+    /// let expected_removed = TypedProjVec::from(["bar", "baz"]);
+    /// let removed: TypedProjVec<&str> = proj_set.splice(1..3, new).collect();
+    /// let result: TypedProjVec<&str> = proj_set
+    ///     .iter()
+    ///     .cloned()
+    ///     .collect();
+    ///
+    /// assert_eq!(result, expected);
+    /// assert_eq!(removed, expected_removed);
+    /// ```
+    ///
+    /// Using `splice` to insert new items into an index set efficiently at a specific position
+    /// indicated by an empty range.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set: TypedProjIndexSet<&str> = TypedProjIndexSet::from(["foo", "grault"]);
+    /// let new = ["bar", "baz", "quux"];
+    /// let expected = TypedProjVec::from(["foo", "bar", "baz", "quux", "grault"]);
+    /// let expected_removed = TypedProjVec::from([]);
+    /// let removed: TypedProjVec<&str> = proj_set.splice(1..1, new).collect();
+    /// let result: TypedProjVec<&str> = proj_set
+    ///     .iter()
+    ///     .cloned()
+    ///     .collect();
+    ///
+    /// assert_eq!(result, expected);
+    /// assert_eq!(removed, expected_removed);
+    /// ```
+    #[track_caller]
+    pub fn splice<R, I>(&mut self, range: R, replace_with: I) -> Splice<'_, I::IntoIter, T, S, A>
+    where
+        R: ops::RangeBounds<usize>,
+        A: any::Any + alloc::Allocator + Clone,
+        I: IntoIterator<Item = T>,
+    {
+        Splice::new(self, range, replace_with.into_iter())
+    }
+
+    /// Moves all entries from `other` into `self`, leaving `other` empty.
+    ///
+    /// This is equivalent to calling [`insert`] for each entry from `other` in order, which means
+    /// that for keys that already exist in `self`, their value is updated in the current position.
+    ///
+    /// [`insert`]: TypedProjIndexSet::insert
+    ///
+    /// # Examples
+    ///
+    /// Appending one index set to another when they have no overlapping values.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set1 = TypedProjIndexSet::from(["foo", "bar", "baz", "quux"]);
+    /// let mut proj_set2 = TypedProjIndexSet::from(["garply", "corge", "grault"]);
+    ///
+    /// assert_eq!(proj_set1.len(), 4);
+    /// assert_eq!(proj_set2.len(), 3);
+    ///
+    /// proj_set1.append(&mut proj_set2);
+    ///
+    /// assert_eq!(proj_set1.len(), 7);
+    /// assert_eq!(proj_set2.len(), 0);
+    ///
+    /// assert_eq!(proj_set1.as_slice(), &["foo", "bar", "baz", "quux", "garply", "corge", "grault"]);
+    /// ```
+    ///
+    /// Appending one index set to another when they have overlapping values.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set1 = TypedProjIndexSet::from(["foo", "bar", "baz", "quux"]);
+    /// let mut proj_set2 = TypedProjIndexSet::from(["garply", "corge", "grault", "baz"]);
+    ///
+    /// assert_eq!(proj_set1.len(), 4);
+    /// assert_eq!(proj_set2.len(), 4);
+    ///
+    /// proj_set1.append(&mut proj_set2);
+    ///
+    /// assert_eq!(proj_set1.len(), 7);
+    /// assert_eq!(proj_set2.len(), 0);
+    ///
+    /// assert_eq!(proj_set1.as_slice(), &["foo", "bar", "baz", "quux", "garply", "corge", "grault"]);
+    /// ```
+    pub fn append<S2, A2>(&mut self, other: &mut TypedProjIndexSet<T, S2, A2>)
+    where
+        S2: any::Any + hash::BuildHasher + Send + Sync,
+        S2::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A2: any::Any + alloc::Allocator + Send + Sync,
+    {
+        self.inner.append(&mut other.inner);
+    }
+}
+
 impl<T, S, A> Clone for TypedProjIndexSet<T, S, A>
 where
     T: any::Any + Clone,
@@ -2944,108 +3958,6 @@ where
 
     fn clone_from(&mut self, other: &Self) {
         self.inner.clone_from(&other.inner);
-    }
-}
-
-impl<T, S, A> TypedProjIndexSet<T, S, A>
-where
-    T: any::Any + hash::Hash + Eq,
-    S: any::Any + hash::BuildHasher + Send + Sync,
-    S::Hasher: any::Any + hash::Hasher + Send + Sync,
-    A: any::Any + alloc::Allocator + Send + Sync,
-{
-    pub fn insert(&mut self, value: T) -> bool {
-        self.inner.insert(value, ()).is_none()
-    }
-
-    pub fn insert_full(&mut self, value: T) -> (usize, bool) {
-        let (index, existing) = self.inner.insert_full(value, ());
-
-        (index, existing.is_none())
-    }
-
-    pub fn insert_sorted(&mut self, value: T) -> (usize, bool)
-    where
-        T: Ord,
-    {
-        let (index, existing) = self.inner.insert_sorted(value, ());
-        (index, existing.is_none())
-    }
-
-    #[track_caller]
-    pub fn insert_before(&mut self, index: usize, value: T) -> (usize, bool) {
-        let (index, existing) = self.inner.insert_before(index, value, ());
-        (index, existing.is_none())
-    }
-
-    #[track_caller]
-    pub fn shift_insert(&mut self, index: usize, value: T) -> bool {
-        self.inner.shift_insert(index, value, ()).is_none()
-    }
-
-    pub fn replace(&mut self, value: T) -> Option<T> {
-        self.replace_full(value).1
-    }
-
-    pub fn replace_full(&mut self, value: T) -> (usize, Option<T>) {
-        match self.inner.replace_full(value, ()) {
-            (i, Some((replaced, ()))) => (i, Some(replaced)),
-            (i, None) => (i, None),
-        }
-    }
-
-    pub fn difference<'a, S2>(&'a self, other: &'a TypedProjIndexSet<T, S2, A>) -> Difference<'a, T, S2, A>
-    where
-        S2: any::Any + hash::BuildHasher + Send + Sync,
-        S2::Hasher: any::Any + hash::Hasher + Send + Sync,
-    {
-        Difference::new(self, other)
-    }
-
-    pub fn symmetric_difference<'a, S2>(
-        &'a self,
-        other: &'a TypedProjIndexSet<T, S2, A>,
-    ) -> SymmetricDifference<'a, T, S, S2, A>
-    where
-        S2: any::Any + hash::BuildHasher + Send + Sync,
-        S2::Hasher: any::Any + hash::Hasher + Send + Sync,
-    {
-        SymmetricDifference::new(self, other)
-    }
-
-    pub fn intersection<'a, S2>(&'a self, other: &'a TypedProjIndexSet<T, S2, A>) -> Intersection<'a, T, S2, A>
-    where
-        S2: any::Any + hash::BuildHasher + Send + Sync,
-        S2::Hasher: any::Any + hash::Hasher + Send + Sync,
-    {
-        Intersection::new(self, other)
-    }
-
-    pub fn union<'a, S2>(&'a self, other: &'a TypedProjIndexSet<T, S2, A>) -> Union<'a, T, S, A>
-    where
-        S2: any::Any + hash::BuildHasher + Send + Sync,
-        S2::Hasher: any::Any + hash::Hasher + Send + Sync,
-    {
-        Union::new(self, other)
-    }
-
-    #[track_caller]
-    pub fn splice<R, I>(&mut self, range: R, replace_with: I) -> Splice<'_, I::IntoIter, T, S, A>
-    where
-        R: ops::RangeBounds<usize>,
-        A: any::Any + alloc::Allocator + Clone,
-        I: IntoIterator<Item = T>,
-    {
-        Splice::new(self, range, replace_with.into_iter())
-    }
-
-    pub fn append<S2, A2>(&mut self, other: &mut TypedProjIndexSet<T, S2, A2>)
-    where
-        S2: any::Any + hash::BuildHasher + Send + Sync,
-        S2::Hasher: any::Any + hash::Hasher + Send + Sync,
-        A2: any::Any + alloc::Allocator + Send + Sync,
-    {
-        self.inner.append(&mut other.inner);
     }
 }
 
@@ -5660,6 +6572,37 @@ impl OpaqueIndexSet {
 }
 
 impl OpaqueIndexSet {
+    /// Inserts a new entry into the index set.
+    ///
+    /// This method behaves as follows:
+    /// * If the equivalent value already exists in the index set, this method returns `false`. The
+    ///   entry retains its position in the storage order of the index set.
+    /// * If the entry with the equivalent value does not exist in the set, it is appended to the end
+    ///   of the set, so the resulting entry is in last place in the storage order, and the method
+    ///   returns `true`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set = OpaqueIndexSet::from([1_isize, 2_isize, 3_isize]);
+    ///
+    /// let result = proj_set.insert::<isize, RandomState, Global>(isize::MAX);
+    ///
+    /// assert_eq!(result, true);
+    ///
+    /// let result = proj_set.insert::<isize, RandomState, Global>(2_isize);
+    ///
+    /// assert_eq!(result, false);
+    /// ```
     pub fn insert<T, S, A>(&mut self, value: T) -> bool
     where
         T: any::Any + hash::Hash + Eq,
@@ -5672,6 +6615,40 @@ impl OpaqueIndexSet {
         proj_self.insert(value)
     }
 
+    /// Inserts a new entry into the index set, returning the storage index of the old entry, if it
+    /// exists.
+    ///
+    /// This method behaves as follows:
+    /// * If the equivalent value already exists in the index set, this method returns the storage
+    ///   index of the value as `(index, false)`. The entry retains its position in the storage order
+    ///   of the index set.
+    /// * If the entry with the equivalent value does not exist in the set, it is appended to the end
+    ///   of the set, so the resulting entry is in last place in the storage order, and the method
+    ///   returns `(index, true)`, where `index` is the index of the last entry in the set in storage
+    ///   order.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set = OpaqueIndexSet::from([1_isize, 2_isize, 3_isize]);
+    ///
+    /// let result = proj_set.insert_full::<isize, RandomState, Global>(isize::MAX);
+    ///
+    /// assert_eq!(result, (3, true));
+    ///
+    /// let result = proj_set.insert_full::<isize, RandomState, Global>(2_isize);
+    ///
+    /// assert_eq!(result, (1, false));
+    /// ```
     pub fn insert_full<T, S, A>(&mut self, value: T) -> (usize, bool)
     where
         T: any::Any + hash::Hash + Eq,
@@ -5684,6 +6661,111 @@ impl OpaqueIndexSet {
         proj_self.insert_full(value)
     }
 
+    /// Inserts a new entry in the index set at its ordered position among sorted values.
+    ///
+    /// An index set is in **sorted order by value** if it satisfies the following property: let
+    /// `e1` and `e2` be entries in `self`. Then `e1.value() <= e2.value()` if and only if
+    /// `e1.index() <= e2.index()`. More precisely, given the index set `self`
+    ///
+    /// ```text
+    /// forall e1, e2 in self. e1.index() <= e2.index() <-> e1.value() <= e2.value()
+    /// ```
+    ///
+    /// or equivalently over values
+    ///
+    /// ```text
+    /// forall i1, i2 in [0, self.len()). forall v1, v2 :: T.
+    /// (i1, v1), (i2, v2) in self --> i1 <= i2 <-> v1 <= v2.
+    /// ```
+    ///
+    /// Otherwise, the index set is in **unsorted order by value**, or is **unsorted** for short.
+    ///
+    /// This means that an index set is in sorted order if the total ordering of the values in the
+    /// set matches the storage order of the entries in the set. The values are **sorted** if the
+    /// index set is in sorted order, and **unsorted** otherwise.
+    ///
+    /// This method is equivalent to finding the position with [`binary_search_keys`], then either
+    /// updating it or calling [`insert_before`] for a new value.
+    ///
+    /// This method behaves as follows:
+    /// * If the index set is in sorted order and contains the sorted value `value`, this method
+    ///   returns `(index, false)`, where `index` is the storage index of the sorted value.
+    /// * If the index set is in sorted order and does not contain the sorted value `value`, this
+    ///   method inserts the new entry at the sorted position, returns `(index, true)`, where
+    ///   `index` is the storage index of the sorted value.
+    /// * If the existing values are **not** sorted order, then the insertion index is unspecified.
+    ///
+    /// Instead of repeating calls to `insert_sorted`, it may be faster to call batched [`insert`]
+    /// or [`extend`] and only call [`sort_keys`] or [`sort_unstable_keys`] once.
+    ///
+    /// [`binary_search_keys`]: TypedProjIndexSet::binary_search_keys
+    /// [`insert_before`]: TypedProjIndexSet::insert_before
+    /// [`insert`]: TypedProjIndexSet::insert
+    /// [`extend`]: TypedProjIndexSet::extend
+    /// [`sort_keys`]: TypedProjIndexSet::sort_keys
+    /// [`sort_unstable_keys`]: TypedProjIndexSet::sort_unstable_keys
+    ///
+    /// # Examples
+    ///
+    /// Calling this method on an index set with a set of sorted values yields the index of the
+    /// entry in the underlying storage.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set = OpaqueIndexSet::from([
+    ///     1_isize,
+    ///     2_isize,
+    ///     3_isize,
+    ///     4_isize,
+    ///     5_isize,
+    ///     6_isize,
+    ///     7_isize,
+    /// ]);
+    /// let result = proj_set.insert_sorted::<isize, RandomState, Global>(5_isize);
+    ///
+    /// // The set is sorted, so the index returned is the storage index in the set.
+    /// assert_eq!(result, (4, false));
+    ///
+    /// assert_eq!(proj_set.get::<_, isize, RandomState, Global>(&5_isize), Some(&5_isize));
+    /// ```
+    ///
+    /// Calling this method on an index set with a set of unsorted value yields a meaningless
+    /// result for the insertion index.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set = OpaqueIndexSet::from([
+    ///     7_isize,
+    ///     4_isize,
+    ///     2_isize,
+    ///     5_isize,
+    ///     6_isize,
+    ///     1_isize,
+    ///     3_isize,
+    /// ]);
+    /// let result = proj_set.insert_sorted::<isize, RandomState, Global>(5_isize);
+    ///
+    /// // The set is unsorted, so the index returned by the method is meaningless.
+    /// assert_ne!(result, (4, false));
+    ///
+    /// assert_eq!(proj_set.get::<_, isize, RandomState, Global>(&5_isize), Some(&5_isize));
+    /// ```
     pub fn insert_sorted<T, S, A>(&mut self, value: T) -> (usize, bool)
     where
         T: any::Any + hash::Hash + Eq + Ord,
@@ -5696,6 +6778,195 @@ impl OpaqueIndexSet {
         proj_self.insert_sorted(value)
     }
 
+    /// Inserts an entry into a type-erased index set before the entry at the given index, or at
+    /// the end of the index set.
+    ///
+    /// The index `index` must be in bounds. The index `index` is **in bounds** provided that
+    /// `index` is in `[0, self.len()]`. Otherwise, the index `index` is **out of bounds**.
+    ///
+    /// This method behaves as follows:
+    /// * If an equivalent value to the value `value` exists in the index set, let `current_index`
+    ///   be the storage index of the entry with the equivalent value to `value`.
+    ///   - If `index > current_index`, this method moves the entry at `current_index` to
+    ///     `index - 1`, shifts each entry in `(current_index, index - 1]` down one index in the
+    ///     storage of the index set, then returns `(index - 1, false)`.
+    ///   - If `index < current_index`, this method moves the entry at `current_index` to `index`,
+    ///     shifts each entry in `[index, current_index)` up one index in the storage for the index
+    ///     set, then returns `(index, false)`.
+    ///   - If `index == current_index`, this method returns `(index, false)`. No entries are moved
+    ///     around in this case.
+    /// * If an equivalent value to the value `value` does not exist in the index set, the new entry
+    ///   is inserted exactly at the index `index`, every element in `[index, self.len())` is
+    ///   shifted up one index, and the method returns `(index, true)`. When `index == self.len()`,
+    ///   the interval `[index, self.len()] == [self.len(), self.len())` is empty, so no shifting
+    ///   occurs.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the index `index` is out of bounds.
+    ///
+    /// # Examples
+    ///
+    /// Inserting an existing value `value` where `index > self.get_index_of(value)`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set = OpaqueIndexSet::from([
+    ///     'a',
+    ///     '*',
+    ///     'c',
+    ///     'd',
+    ///     'e',
+    ///     'f',
+    ///     'g',
+    /// ]);
+    /// let removed = proj_set.insert_before::<char, RandomState, Global>(5, '*');
+    /// let expected: TypedProjVec<char> = TypedProjVec::from([
+    ///     'a',
+    ///     'c',
+    ///     'd',
+    ///     'e',
+    ///     '*',
+    ///     'f',
+    ///     'g',
+    /// ]);
+    /// let result: TypedProjVec<char> = proj_set
+    ///     .iter::<char, RandomState, Global>()
+    ///     .cloned()
+    ///     .collect();
+    ///
+    /// assert_eq!(result, expected);
+    /// assert_eq!(removed, (4, false));
+    /// ```
+    ///
+    /// Inserting an existing value `value` where `index < self.get_index_of(value)`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set = OpaqueIndexSet::from([
+    ///     'a',
+    ///     'b',
+    ///     'c',
+    ///     'd',
+    ///     'e',
+    ///     '*',
+    ///     'g',
+    /// ]);
+    /// let removed = proj_set.insert_before::<char, RandomState, Global>(2, '*');
+    /// let expected: TypedProjVec<char> = TypedProjVec::from([
+    ///     'a',
+    ///     'b',
+    ///     '*',
+    ///     'c',
+    ///     'd',
+    ///     'e',
+    ///     'g',
+    /// ]);
+    /// let result: TypedProjVec<char> = proj_set
+    ///     .iter::<char, RandomState, Global>()
+    ///     .cloned()
+    ///     .collect();
+    ///
+    /// assert_eq!(result, expected);
+    /// assert_eq!(removed, (2, false));
+    /// ```
+    ///
+    /// Inserting an existing value `value` where `index == self.get_index_of(value)`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set = OpaqueIndexSet::from([
+    ///     'a',
+    ///     'b',
+    ///     'c',
+    ///     '*',
+    ///     'e',
+    ///     'f',
+    ///     'g',
+    /// ]);
+    /// let removed = proj_set.insert_before::<char, RandomState, Global>(3, '*');
+    /// let expected: TypedProjVec<char> = TypedProjVec::from([
+    ///     'a',
+    ///     'b',
+    ///     'c',
+    ///     '*',
+    ///     'e',
+    ///     'f',
+    ///     'g',
+    /// ]);
+    /// let result: TypedProjVec<char> = proj_set
+    ///     .iter::<char, RandomState, Global>()
+    ///     .cloned()
+    ///     .collect();
+    ///
+    /// assert_eq!(result, expected);
+    /// assert_eq!(removed, (3, false));
+    /// ```
+    ///
+    /// Inserting a value `value` that does not exist in the index set at an index `index`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set = OpaqueIndexSet::from([
+    ///     'a',
+    ///     'b',
+    ///     'c',
+    ///     'd',
+    ///     'e',
+    ///     'f',
+    ///     'g',
+    /// ]);
+    /// let removed = proj_set.insert_before::<char, RandomState, Global>(3, '*');
+    /// let expected: TypedProjVec<char> = TypedProjVec::from([
+    ///     'a',
+    ///     'b',
+    ///     'c',
+    ///     '*',
+    ///     'd',
+    ///     'e',
+    ///     'f',
+    ///     'g',
+    /// ]);
+    /// let result: TypedProjVec<char> = proj_set
+    ///     .iter::<char, RandomState, Global>()
+    ///     .cloned()
+    ///     .collect();
+    ///
+    /// assert_eq!(result, expected);
+    /// assert_eq!(removed, (3, true));
+    /// ```
     #[track_caller]
     pub fn insert_before<T, S, A>(&mut self, index: usize, value: T) -> (usize, bool)
     where
@@ -5709,6 +6980,159 @@ impl OpaqueIndexSet {
         proj_self.insert_before(index, value)
     }
 
+    /// Inserts an entry into a type-erased index set at the given storage index.
+    ///
+    /// The index `index` must be in bounds. The index `index` is **in bounds** provided that one
+    /// of the following conditions holds:
+    /// * If an entry with a value equivalent to the value `value` exists in the index set, and `index` is
+    ///   in `[0, self.len())`.
+    /// * If an entry with a value equivalent to the value `value` does not exist in the index set, and
+    ///   index is in `[0, self.len()]`.
+    /// Otherwise, the index `index` is **out of bounds**.
+    ///
+    /// This method behaves as follows:
+    /// * If an equivalent value already exists in the set, let `current_index` be the storage index of
+    ///   the entry with value equivalent to `value`.
+    ///   - If `index < current_index`, every entry in range `[index, current_index)` is shifted up
+    ///     one entry in the storage order, the current entry is moved from `current_index` to `index`,
+    ///     and the method returns `(index, false)`.
+    ///   - If `index > current_index`, every entry in range `(current_index, index]` is shifted down
+    ///     one entry in the storage order, the current entry is moved from `current_index` to `index`,
+    ///     and the method returns `(index, false)`.
+    ///   - If `index == current_index`, no shifting occurs, and the method returns `(index, false)`.
+    /// * If an equivalent value does not exist in the index set, the new entry is inserted at the
+    ///   storage index `index`, and each entry in the range `[index, self.len())` is shifted
+    ///   up one index, and the method returns `(index, true)`.
+    ///
+    /// Note that an existing entry **cannot** be moved to the index `self.len()`.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the index `index` is out of bounds.
+    ///
+    /// # Examples
+    ///
+    /// Shift inserting an entry that **does not** exist with index `index < self.len()`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set = OpaqueIndexSet::from([
+    ///     1_isize,
+    ///     2_isize,
+    ///     3_isize,
+    ///     4_isize,
+    ///     5_isize,
+    ///     6_isize,
+    ///     7_isize,
+    /// ]);
+    /// let inserted = proj_set.shift_insert::<isize, RandomState, Global>(3, isize::MAX);
+    /// let expected: TypedProjVec<isize> = TypedProjVec::from([
+    ///     1_isize,
+    ///     2_isize,
+    ///     3_isize,
+    ///     isize::MAX,
+    ///     4_isize,
+    ///     5_isize,
+    ///     6_isize,
+    ///     7_isize,
+    /// ]);
+    /// let result: TypedProjVec<isize> = proj_set
+    ///     .iter::<isize, RandomState, Global>()
+    ///     .cloned()
+    ///     .collect();
+    ///
+    /// assert_eq!(result, expected);
+    /// assert!(inserted);
+    /// ```
+    ///
+    /// Shift inserting an entry that **does not** exist with index `index == self.len()`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set = OpaqueIndexSet::from([
+    ///     1_isize,
+    ///     2_isize,
+    ///     3_isize,
+    ///     4_isize,
+    ///     5_isize,
+    ///     6_isize,
+    ///     7_isize,
+    /// ]);
+    /// let inserted = proj_set.shift_insert::<isize, RandomState, Global>(proj_set.len(), isize::MAX);
+    /// let expected: TypedProjVec<isize> = TypedProjVec::from([
+    ///     1_isize,
+    ///     2_isize,
+    ///     3_isize,
+    ///     4_isize,
+    ///     5_isize,
+    ///     6_isize,
+    ///     7_isize,
+    ///     isize::MAX,
+    /// ]);
+    /// let result: TypedProjVec<isize> = proj_set
+    ///     .iter::<isize, RandomState, Global>()
+    ///     .cloned()
+    ///     .collect();
+    ///
+    /// assert_eq!(result, expected);
+    /// assert!(inserted);
+    /// ```
+    ///
+    /// Shift inserting an entry that **does** exist with index `index < self.len()`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set = OpaqueIndexSet::from([
+    ///     1_isize,
+    ///     2_isize,
+    ///     3_isize,
+    ///     4_isize,
+    ///     5_isize,
+    ///     6_isize,
+    ///     7_isize,
+    /// ]);
+    /// let inserted = proj_set.shift_insert::<isize, RandomState, Global>(3, 6_isize);
+    /// let expected: TypedProjVec<isize> = TypedProjVec::from([
+    ///     1_isize,
+    ///     2_isize,
+    ///     3_isize,
+    ///     6_isize,
+    ///     4_isize,
+    ///     5_isize,
+    ///     7_isize,
+    /// ]);
+    /// let result: TypedProjVec<isize> = proj_set
+    ///     .iter::<isize, RandomState, Global>()
+    ///     .cloned()
+    ///     .collect();
+    ///
+    /// assert_eq!(result, expected);
+    /// assert!(!inserted);
+    /// ```
     #[track_caller]
     pub fn shift_insert<T, S, A>(&mut self, index: usize, value: T) -> bool
     where
@@ -5722,6 +7146,72 @@ impl OpaqueIndexSet {
         proj_self.shift_insert(index, value)
     }
 
+    /// Adds a new value to the index set, and replaces the existing value equal to the given one,
+    /// if it exists, and returns the value of the existing one.
+    ///
+    /// This method does not change the storage order of the other elements in the set.
+    ///
+    /// # Examples
+    ///
+    /// Replacing a value where two different string values are equal up to letter case.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::{Hash, Hasher, RandomState};
+    /// # use std::alloc::Global;
+    /// #
+    /// struct CaseInsensitiveString(String);
+    ///
+    /// impl PartialEq for CaseInsensitiveString {
+    ///     fn eq(&self, other: &Self) -> bool {
+    ///         self.0.eq_ignore_ascii_case(&other.0)
+    ///     }
+    /// }
+    /// #
+    /// # impl Eq for CaseInsensitiveString {}
+    /// #
+    /// # impl Hash for CaseInsensitiveString {
+    /// #     fn hash<H: Hasher>(&self, state: &mut H) {
+    /// #        for byte in self.0.bytes() {
+    /// #            state.write_u8(byte.to_ascii_lowercase());
+    /// #        }
+    /// #    }
+    /// # }
+    /// #
+    ///
+    /// let mut proj_set = OpaqueIndexSet::from([
+    ///     CaseInsensitiveString(String::from("foo")),
+    ///     CaseInsensitiveString(String::from("bar")),
+    ///     CaseInsensitiveString(String::from("baz")),
+    /// ]);
+    ///
+    /// let expected = Some(String::from("bar"));
+    /// let result: Option<String> = {
+    ///     let _result = proj_set.replace::<CaseInsensitiveString, RandomState, Global>(
+    ///         CaseInsensitiveString(String::from("BAR")),
+    ///     );
+    ///     _result.map(|s| s.0)
+    /// };
+    ///
+    /// assert_eq!(result, expected);
+    ///
+    /// let expected_entries = TypedProjVec::from([
+    ///     String::from("foo"),
+    ///     String::from("BAR"),
+    ///     String::from("baz"),
+    /// ]);
+    /// let result_entries: TypedProjVec<String> = proj_set
+    ///     .iter::<CaseInsensitiveString, RandomState, Global>()
+    ///     .map(|s| s.0.clone())
+    ///     .collect();
+    ///
+    /// assert_eq!(result_entries, expected_entries);
+    /// ```
     pub fn replace<T, S, A>(&mut self, value: T) -> Option<T>
     where
         T: any::Any + hash::Hash + Eq,
@@ -5734,6 +7224,72 @@ impl OpaqueIndexSet {
         proj_self.replace(value)
     }
 
+    /// Adds a new value to the index set, and replaces the existing value equal to the given one,
+    /// if it exists, and returns the storage index and value of the existing one.
+    ///
+    /// This method does not change the storage order of the other elements in the set.
+    ///
+    /// # Examples
+    ///
+    /// Replacing a value where two different string values are equal up to letter case.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::{Hash, Hasher, RandomState};
+    /// # use std::alloc::Global;
+    /// #
+    /// struct CaseInsensitiveString(String);
+    ///
+    /// impl PartialEq for CaseInsensitiveString {
+    ///     fn eq(&self, other: &Self) -> bool {
+    ///         self.0.eq_ignore_ascii_case(&other.0)
+    ///     }
+    /// }
+    /// #
+    /// # impl Eq for CaseInsensitiveString {}
+    /// #
+    /// # impl Hash for CaseInsensitiveString {
+    /// #     fn hash<H: Hasher>(&self, state: &mut H) {
+    /// #        for byte in self.0.bytes() {
+    /// #            state.write_u8(byte.to_ascii_lowercase());
+    /// #        }
+    /// #    }
+    /// # }
+    /// #
+    ///
+    /// let mut proj_set = OpaqueIndexSet::from([
+    ///     CaseInsensitiveString(String::from("foo")),
+    ///     CaseInsensitiveString(String::from("bar")),
+    ///     CaseInsensitiveString(String::from("baz")),
+    /// ]);
+    ///
+    /// let expected = (1, Some(String::from("bar")));
+    /// let result: (usize, Option<String>) = {
+    ///     let (i, _result) = proj_set.replace_full::<CaseInsensitiveString, RandomState, Global>(
+    ///         CaseInsensitiveString(String::from("BAR")),
+    ///     );
+    ///     (i, _result.map(|s| s.0))
+    /// };
+    ///
+    /// assert_eq!(result, expected);
+    ///
+    /// let expected_entries = TypedProjVec::from([
+    ///     String::from("foo"),
+    ///     String::from("BAR"),
+    ///     String::from("baz"),
+    /// ]);
+    /// let result_entries: TypedProjVec<String> = proj_set
+    ///     .iter::<CaseInsensitiveString, RandomState, Global>()
+    ///     .map(|s| s.0.clone())
+    ///     .collect();
+    ///
+    /// assert_eq!(result_entries, expected_entries);
+    /// ```
     pub fn replace_full<T, S, A>(&mut self, value: T) -> (usize, Option<T>)
     where
         T: any::Any + hash::Hash + Eq,
@@ -5746,7 +7302,39 @@ impl OpaqueIndexSet {
         proj_self.replace_full(value)
     }
 
-    pub fn difference<'a, S2, T, S, A>(&'a self, other: &'a TypedProjIndexSet<T, S2, A>) -> Difference<'a, T, S2, A>
+    /// Return an iterator over the values in the set-theoretic difference of two index sets.
+    ///
+    /// This iterator behaves as follows. Let `self` and `other` be index sets. Let `v` be a value
+    /// produced by the iterator. Then `v` satisfies `(v in self) && (not (v in other))`. More
+    /// informally, this iterator produces values that are in `self`, but not in `other`.
+    ///
+    /// This iterator produces values in the same order that they appear in `self`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::{OpaqueIndexSet, TypedProjIndexSet};
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::{Hash, Hasher, RandomState};
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set1 = OpaqueIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32]);
+    /// let proj_set2 = OpaqueIndexSet::from([2_i32, 4_i32, 6_i32, 7_i32, 8_i32]);
+    ///
+    /// let expected = TypedProjIndexSet::from([1_i32, 3_i32, 5_i32]);
+    /// let result: TypedProjIndexSet<i32> = proj_set1
+    ///     .difference::<RandomState, i32, RandomState, Global>(&proj_set2)
+    ///     .cloned()
+    ///     .collect();
+    ///
+    /// assert_eq!(result, expected);
+    /// assert_eq!(result.as_slice(), expected.as_slice());
+    /// ```
+    pub fn difference<'a, S2, T, S, A>(&'a self, other: &'a OpaqueIndexSet) -> Difference<'a, T, S2, A>
     where
         T: any::Any + hash::Hash + Eq,
         S: any::Any + hash::BuildHasher + Send + Sync,
@@ -5756,11 +7344,52 @@ impl OpaqueIndexSet {
         S2::Hasher: any::Any + hash::Hasher + Send + Sync,
     {
         let proj_self = self.as_proj::<T, S, A>();
+        let proj_other = other.as_proj::<T, S2, A>();
 
-        proj_self.difference(other)
+        proj_self.difference(proj_other)
     }
 
-    pub fn symmetric_difference<'a, S2, T, S, A>(&'a self, other: &'a TypedProjIndexSet<T, S2, A>) -> SymmetricDifference<'a, T, S, S2, A>
+    /// Return an iterator over the values in the set-theoretic symmetric difference of two index
+    /// sets.
+    ///
+    /// This iterator behaves as follows. Let `self` and `other` be index sets. Let `v` be a value
+    /// produced by the iterator. Then `v` satisfies
+    ///
+    /// ```text
+    /// (v in self) && (not (v in other)) || (not (v in self)) && (v in other).
+    /// ```
+    ///
+    /// More informally, this iterator produces those elements that are in one set or the other
+    /// set, but not both sets.
+    ///
+    /// The iterator produces the values from `self` storage order, followed by the values from
+    /// `other` in their storage order.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::{OpaqueIndexSet, TypedProjIndexSet};
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::{Hash, Hasher, RandomState};
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set1 = OpaqueIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32]);
+    /// let proj_set2 = OpaqueIndexSet::from([2_i32, 4_i32, 6_i32, 7_i32, 8_i32]);
+    ///
+    /// let expected = TypedProjIndexSet::from([1_i32, 3_i32, 5_i32, 7_i32, 8_i32]);
+    /// let result: TypedProjIndexSet<i32> = proj_set1
+    ///     .symmetric_difference::<RandomState, i32, RandomState, Global>(&proj_set2)
+    ///     .cloned()
+    ///     .collect();
+    ///
+    /// assert_eq!(result, expected);
+    /// assert_eq!(result.as_slice(), expected.as_slice());
+    /// ```
+    pub fn symmetric_difference<'a, S2, T, S, A>(&'a self, other: &'a OpaqueIndexSet) -> SymmetricDifference<'a, T, S, S2, A>
     where
         T: any::Any + hash::Hash + Eq,
         S: any::Any + hash::BuildHasher + Send + Sync,
@@ -5770,11 +7399,45 @@ impl OpaqueIndexSet {
         S2::Hasher: any::Any + hash::Hasher + Send + Sync,
     {
         let proj_self = self.as_proj::<T, S, A>();
+        let proj_other = other.as_proj::<T, S2, A>();
 
-        proj_self.symmetric_difference(other)
+        proj_self.symmetric_difference(proj_other)
     }
 
-    pub fn intersection<'a, S2, T, S, A>(&'a self, other: &'a TypedProjIndexSet<T, S2, A>) -> Intersection<'a, T, S2, A>
+    /// Return an iterator over the values in the set-theoretic intersection of two index sets.
+    ///
+    /// This iterator behaves as follows. Let `self` and `other` be index sets. Let `v` be a value
+    /// produced by the iterator. Then `v` satisfies `(v in self) && (v in other)`. More informally,
+    /// this iterator produces those elements that are in both sets, and none of the elements that
+    /// are only in one set.
+    ///
+    /// This iterator produces values in the order that they appear in `self`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::{OpaqueIndexSet, TypedProjIndexSet};
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::{Hash, Hasher, RandomState};
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set1 = OpaqueIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32]);
+    /// let proj_set2 = OpaqueIndexSet::from([2_i32, 4_i32, 6_i32, 7_i32, 8_i32]);
+    ///
+    /// let expected = TypedProjIndexSet::from([2_i32, 4_i32, 6_i32]);
+    /// let result: TypedProjIndexSet<i32> = proj_set1
+    ///     .intersection::<RandomState, i32, RandomState, Global>(&proj_set2)
+    ///     .cloned()
+    ///     .collect();
+    ///
+    /// assert_eq!(result, expected);
+    /// assert_eq!(result.as_slice(), expected.as_slice());
+    /// ```
+    pub fn intersection<'a, S2, T, S, A>(&'a self, other: &'a OpaqueIndexSet) -> Intersection<'a, T, S2, A>
     where
         T: any::Any + hash::Hash + Eq,
         S: any::Any + hash::BuildHasher + Send + Sync,
@@ -5784,11 +7447,45 @@ impl OpaqueIndexSet {
         S2::Hasher: any::Any + hash::Hasher + Send + Sync,
     {
         let proj_self = self.as_proj::<T, S, A>();
+        let proj_other = other.as_proj::<T, S2, A>();
 
-        proj_self.intersection(other)
+        proj_self.intersection(proj_other)
     }
 
-    pub fn union<'a, S2, T, S, A>(&'a self, other: &'a TypedProjIndexSet<T, S2, A>) -> Union<'a, T, S, A>
+    /// Return an iterator over the values in the set-theoretic union of two index sets.
+    ///
+    /// This iterator behaves as follows. Let `self` and `other` be index sets. Let `v` be a value
+    /// produced by the iterator. Then `v` satisfies `(v in self) || (v in other)`. More informally,
+    /// this iterator produces every value in `self` and `other` exactly once.
+    ///
+    /// This iterator produces values in the same order as their storage order in `self`, followed
+    /// by the storage order of the values unique to `other`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::{OpaqueIndexSet, TypedProjIndexSet};
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::{Hash, Hasher, RandomState};
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set1 = OpaqueIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32]);
+    /// let proj_set2 = OpaqueIndexSet::from([2_i32, 4_i32, 6_i32, 7_i32, 8_i32]);
+    ///
+    /// let expected = TypedProjIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32, 7_i32, 8_i32]);
+    /// let result: TypedProjIndexSet<i32> = proj_set1
+    ///     .union::<RandomState, i32, RandomState, Global>(&proj_set2)
+    ///     .cloned()
+    ///     .collect();
+    ///
+    /// assert_eq!(result, expected);
+    /// assert_eq!(result.as_slice(), expected.as_slice());
+    /// ```
+    pub fn union<'a, S2, T, S, A>(&'a self, other: &'a OpaqueIndexSet) -> Union<'a, T, S, A>
     where
         T: any::Any + hash::Hash + Eq,
         S: any::Any + hash::BuildHasher + Send + Sync,
@@ -5798,10 +7495,89 @@ impl OpaqueIndexSet {
         S2::Hasher: any::Any + hash::Hasher + Send + Sync,
     {
         let proj_self = self.as_proj::<T, S, A>();
+        let proj_other = other.as_proj::<T, S2, A>();
 
-        proj_self.union(other)
+        proj_self.union(proj_other)
     }
 
+    /// Creates a splicing iterator that replaces the specified storage range in the type-erased
+    /// index set with the given `replace_with` iterator and yields the removed items. The argument
+    /// `replace_with` does not need to be the same length as `range`.
+    ///
+    /// The `range` argument is removed even if the `Splice` iterator is not consumed before it is
+    /// dropped.
+    ///
+    /// It is unspecified how many elements are removed from the type-erased index set
+    /// if the `Splice` value is leaked.
+    ///
+    /// The input iterator `replace_with` is only consumed when the `Splice` value is dropped.
+    /// If a key from the iterator matches an existing entry in the set (i.e. outside the range `range`),
+    /// then the value will be updated in that position. Otherwise, the new entry will be inserted
+    /// in the replaced `range`.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the starting point is greater than the end point or if the end point
+    /// is greater than the length of the index set.
+    ///
+    /// # Examples
+    ///
+    /// Splicing entries into an index set.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set = OpaqueIndexSet::from(["foo", "bar", "baz", "quux"]);
+    /// let new = ["garply", "corge", "grault"];
+    /// let expected = TypedProjVec::from(["foo", "garply", "corge", "grault", "quux"]);
+    /// let expected_removed = TypedProjVec::from(["bar", "baz"]);
+    /// let removed: TypedProjVec<&str> = proj_set
+    ///     .splice::<_, _, &str, RandomState, Global>(1..3, new)
+    ///     .collect();
+    /// let result: TypedProjVec<&str> = proj_set
+    ///     .iter::<&str, RandomState, Global>()
+    ///     .cloned()
+    ///     .collect();
+    ///
+    /// assert_eq!(result, expected);
+    /// assert_eq!(removed, expected_removed);
+    /// ```
+    ///
+    /// Using `splice` to insert new items into an index set efficiently at a specific position
+    /// indicated by an empty range.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set = OpaqueIndexSet::from(["foo", "grault"]);
+    /// let new = ["bar", "baz", "quux"];
+    /// let expected = TypedProjVec::from(["foo", "bar", "baz", "quux", "grault"]);
+    /// let expected_removed = TypedProjVec::from([]);
+    /// let removed: TypedProjVec<&str> = proj_set
+    ///     .splice::<_, _, &str, RandomState, Global>(1..1, new)
+    ///     .collect();
+    /// let result: TypedProjVec<&str> = proj_set
+    ///     .iter::<&str, RandomState, Global>()
+    ///     .cloned()
+    ///     .collect();
+    ///
+    /// assert_eq!(result, expected);
+    /// assert_eq!(removed, expected_removed);
+    /// ```
     #[track_caller]
     pub fn splice<R, I, T, S, A>(&mut self, range: R, replace_with: I) -> Splice<'_, I::IntoIter, T, S, A>
     where
@@ -5817,7 +7593,73 @@ impl OpaqueIndexSet {
         proj_self.splice(range, replace_with)
     }
 
-    pub fn append<S2, A2, T, S, A>(&mut self, other: &mut TypedProjIndexSet<T, S2, A2>)
+    /// Moves all entries from `other` into `self`, leaving `other` empty.
+    ///
+    /// This is equivalent to calling [`insert`] for each entry from `other` in order, which means
+    /// that for keys that already exist in `self`, their value is updated in the current position.
+    ///
+    /// [`insert`]: TypedProjIndexSet::insert
+    ///
+    /// # Examples
+    ///
+    /// Appending one index set to another when they have no overlapping values.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set1 = OpaqueIndexSet::from(["foo", "bar", "baz", "quux"]);
+    /// let mut proj_set2 = OpaqueIndexSet::from(["garply", "corge", "grault"]);
+    ///
+    /// assert_eq!(proj_set1.len(), 4);
+    /// assert_eq!(proj_set2.len(), 3);
+    ///
+    /// proj_set1.append::<RandomState, Global, &str, RandomState, Global>(&mut proj_set2);
+    ///
+    /// assert_eq!(proj_set1.len(), 7);
+    /// assert_eq!(proj_set2.len(), 0);
+    ///
+    /// let expected = &["foo", "bar", "baz", "quux", "garply", "corge", "grault"];
+    /// let result = proj_set1.as_slice::<&str, RandomState, Global>();
+    ///
+    /// assert_eq!(result, expected);
+    /// ```
+    ///
+    /// Appending one index set to another when they have overlapping values.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set1 = OpaqueIndexSet::from(["foo", "bar", "baz", "quux"]);
+    /// let mut proj_set2 = OpaqueIndexSet::from(["garply", "corge", "grault", "baz"]);
+    ///
+    /// assert_eq!(proj_set1.len(), 4);
+    /// assert_eq!(proj_set2.len(), 4);
+    ///
+    /// proj_set1.append::<RandomState, Global, &str, RandomState, Global>(&mut proj_set2);
+    ///
+    /// assert_eq!(proj_set1.len(), 7);
+    /// assert_eq!(proj_set2.len(), 0);
+    ///
+    /// let expected =  &["foo", "bar", "baz", "quux", "garply", "corge", "grault"];
+    /// let result = proj_set1.as_slice::<&str, RandomState, Global>();
+    ///
+    /// assert_eq!(result, expected);
+    /// ```
+    pub fn append<S2, A2, T, S, A>(&mut self, other: &mut OpaqueIndexSet)
     where
         T: any::Any + hash::Hash + Eq,
         S: any::Any + hash::BuildHasher + Send + Sync,
@@ -5827,9 +7669,10 @@ impl OpaqueIndexSet {
         S2::Hasher: any::Any + hash::Hasher + Send + Sync,
         A2: any::Any + alloc::Allocator + Send + Sync,
     {
-        let proj_self = self.as_proj_mut::<T, S, A2>();
+        let proj_self = self.as_proj_mut::<T, S, A>();
+        let proj_other = other.as_proj_mut::<T, S2, A2>();
 
-        proj_self.append(other)
+        proj_self.append(proj_other)
     }
 }
 
@@ -6290,7 +8133,7 @@ impl OpaqueIndexSet {
     ///
     /// # Examples
     ///
-    /// Extending a type-erased index set without overlapping keys.
+    /// Extending a type-erased index set without overlapping values.
     ///
     /// ```
     /// # #![feature(allocator_api)]
