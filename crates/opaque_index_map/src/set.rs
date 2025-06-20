@@ -1420,24 +1420,6 @@ where
     }
 }
 
-impl<T, S, A> Clone for TypedProjIndexSet<T, S, A>
-where
-    T: any::Any + Clone,
-    S: any::Any + hash::BuildHasher + Send + Sync + Clone,
-    S::Hasher: any::Any + hash::Hasher + Send + Sync,
-    A: any::Any + alloc::Allocator + Send + Sync + Clone,
-{
-    fn clone(&self) -> Self {
-        TypedProjIndexSet {
-            inner: self.inner.clone(),
-        }
-    }
-
-    fn clone_from(&mut self, other: &Self) {
-        self.inner.clone_from(&other.inner);
-    }
-}
-
 impl<T, S, A> TypedProjIndexSet<T, S, A>
 where
     T: any::Any,
@@ -1640,6 +1622,24 @@ where
     #[inline]
     pub fn allocator(&self) -> &TypedProjAlloc<A> {
         self.inner.allocator()
+    }
+}
+
+impl<T, S, A> Clone for TypedProjIndexSet<T, S, A>
+where
+    T: any::Any + Clone,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
+{
+    fn clone(&self) -> Self {
+        TypedProjIndexSet {
+            inner: self.inner.clone(),
+        }
+    }
+
+    fn clone_from(&mut self, other: &Self) {
+        self.inner.clone_from(&other.inner);
     }
 }
 
@@ -2419,6 +2419,23 @@ impl OpaqueIndexSet {
 }
 
 impl OpaqueIndexSet {
+    /// Determines whether the type-erased index set has the given value type.
+    ///
+    /// Returns `true` if `self` has the specified value type. Returns `false` otherwise.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let set = OpaqueIndexSet::new::<isize>();
+    ///
+    /// assert!(set.has_value_type::<isize>());
+    /// ```
     #[inline]
     pub fn has_value_type<T>(&self) -> bool
     where
@@ -2427,6 +2444,23 @@ impl OpaqueIndexSet {
         self.inner.key_type_id() == any::TypeId::of::<T>()
     }
 
+    /// Determines whether the type-erased index set has the given hash builder type.
+    ///
+    /// Returns `true` if `self` has the specified hash builder type. Returns `false` otherwise.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let set = OpaqueIndexSet::new::<isize>();
+    ///
+    /// assert!(set.has_build_hasher_type::<RandomState>());
+    /// ```
     #[inline]
     pub fn has_build_hasher_type<S>(&self) -> bool
     where
@@ -2435,6 +2469,23 @@ impl OpaqueIndexSet {
         self.inner.build_hasher_type_id() == any::TypeId::of::<S>()
     }
 
+    /// Determines whether the type-erased index set has the given memory allocator type.
+    ///
+    /// Returns `true` if `self` has the specified memory allocator type. Returns `false` otherwise.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let set = OpaqueIndexSet::new::<isize>();
+    ///
+    /// assert!(set.has_allocator_type::<Global>());
+    /// ```
     #[inline]
     pub fn has_allocator_type<A>(&self) -> bool
     where
@@ -2443,6 +2494,16 @@ impl OpaqueIndexSet {
         self.inner.allocator_type_id() == any::TypeId::of::<A>()
     }
 
+    /// Assert the concrete types underlying a type-erased data type.
+    ///
+    /// This method's main use case is ensuring the type safety of an operation before projecting
+    /// into the type-projected counterpart of the type-erased index set.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
     #[inline]
     #[track_caller]
     fn assert_type_safety<T, S, A>(&self)
@@ -2473,6 +2534,33 @@ impl OpaqueIndexSet {
 }
 
 impl OpaqueIndexSet {
+    /// Projects the type-erased index set reference into a type-projected index set reference.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::{OpaqueIndexSet, TypedProjIndexSet};
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_set = OpaqueIndexSet::with_hasher_in::<f64, RandomState, Global>(
+    ///     RandomState::new(),
+    ///     Global
+    /// );
+    /// #
+    /// # assert!(opaque_set.has_value_type::<f64>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    /// let proj_set: &TypedProjIndexSet<f64, RandomState, Global> = opaque_set.as_proj::<f64, RandomState, Global>();
+    /// ```
     #[inline]
     pub fn as_proj<T, S, A>(&self) -> &TypedProjIndexSet<T, S, A>
     where
@@ -2486,6 +2574,34 @@ impl OpaqueIndexSet {
         unsafe { &*(self as *const OpaqueIndexSet as *const TypedProjIndexSet<T, S, A>) }
     }
 
+    /// Projects the mutable type-erased index set reference into a mutable type-projected
+    /// index set reference.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::{OpaqueIndexSet, TypedProjIndexSet};
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_set = OpaqueIndexSet::with_hasher_in::<f64, RandomState, Global>(
+    ///     RandomState::new(),
+    ///     Global
+    /// );
+    /// #
+    /// # assert!(opaque_set.has_value_type::<f64>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    /// let proj_set: &mut TypedProjIndexSet<f64, RandomState, Global> = opaque_set.as_proj_mut::<f64, RandomState, Global>();
+    /// ```
     #[inline]
     pub fn as_proj_mut<T, S, A>(&mut self) -> &mut TypedProjIndexSet<T, S, A>
     where
@@ -2499,6 +2615,33 @@ impl OpaqueIndexSet {
         unsafe { &mut *(self as *mut OpaqueIndexSet as *mut TypedProjIndexSet<T, S, A>) }
     }
 
+    /// Projects the type-erased index set value into a type-projected index set value.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::{OpaqueIndexSet, TypedProjIndexSet};
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_set = OpaqueIndexSet::with_hasher_in::<f64, RandomState, Global>(
+    ///     RandomState::new(),
+    ///     Global
+    /// );
+    /// #
+    /// # assert!(opaque_set.has_value_type::<f64>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    /// let proj_set: TypedProjIndexSet<f64, RandomState, Global> = opaque_set.into_proj::<f64, RandomState, Global>();
+    /// ```
     #[inline]
     pub fn into_proj<T, S, A>(self) -> TypedProjIndexSet<T, S, A>
     where
@@ -2514,6 +2657,34 @@ impl OpaqueIndexSet {
         }
     }
 
+    /// Erases the type-projected index set value into a type-erased index set value.
+    ///
+    /// Unlike the type projection methods [`as_proj`], [`as_proj_mut`], and [`into_proj`], this
+    /// method never panics.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::{OpaqueIndexSet, TypedProjIndexSet};
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set: TypedProjIndexSet<f64, RandomState, Global> = TypedProjIndexSet::with_hasher_in(
+    ///     RandomState::new(),
+    ///     Global
+    /// );
+    /// let opaque_set: OpaqueIndexSet = OpaqueIndexSet::from_proj(proj_set);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<f64>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    /// ```
+    ///
+    /// [`as_proj`]: OpaqueIndexSet::as_proj,
+    /// [`as_proj_mut`]: OpaqueIndexSet::as_proj_mut
+    /// [`into_proj`]: OpaqueIndexSet::into_proj
     #[inline]
     pub fn from_proj<T, S, A>(proj_self: TypedProjIndexSet<T, S, A>) -> Self
     where
