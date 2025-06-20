@@ -29,6 +29,7 @@ use opaque_error::TryReserveError;
 /// in constant **O(1)** time, hiding its element type and allocator at runtime.
 ///
 /// A type-erasable vector is parameterized by the following parameters:
+///
 /// * a pointer to a memory allocation,
 /// * capacity --- the number of elements the vector can store without reallocating, or equivalently,
 ///   the size of the memory allocation in units of elements.
@@ -1584,6 +1585,11 @@ where
     /// Returns the length of a type-projected vector.
     ///
     /// The **length** of a type-projected vector is the number of elements stored inside it.
+    /// The length satisfies the following. Given a vector `vec`
+    ///
+    /// ```text
+    /// vec.len() ≤ vec.capacity().
+    /// ```
     ///
     /// # Examples
     ///
@@ -1612,6 +1618,11 @@ where
     /// Determines whether a type-projected vector is empty or not.
     ///
     /// A type-projected vector is **empty** if it contains no elements, i.e. its length is zero.
+    /// This method satisfies the following. Given a vector `vec`
+    ///
+    /// ```text
+    /// vec.is_empty() ⇔ vec.len() = 0.
+    /// ```
     ///
     /// # Examples
     ///
@@ -1680,6 +1691,7 @@ where
     /// # Safety
     ///
     /// This method is safe to call if the following conditions hold:
+    ///
     /// * The length `new_len` is less than or equal to `self.capacity()`.
     /// * The elements in the subslice `[self.len(), new_len)` must be initialized.
     ///
@@ -1811,6 +1823,7 @@ where
     /// # Panics
     ///
     /// This method panics if one of the following conditions holds:
+    ///
     /// * If `index` is a scalar index, and `index` is out of bounds.
     /// * If `index` is a slice range, and a subslice of `index` falls out of bounds.
     ///
@@ -1850,6 +1863,7 @@ where
     /// # Panics
     ///
     /// This method panics if one of the following conditions holds:
+    ///
     /// * If `index` is a scalar index, and `index` is out of bounds.
     /// * If `index` is a slice range, and a subslice of `index` falls out of bounds.
     ///
@@ -1887,8 +1901,10 @@ where
     /// given index or inside the given subslice.
     ///
     /// The method returns `None` from `self` under the following conditions:
+    ///
     /// * If `index` is a scalar index, and `index` is out of bounds.
     /// * If `index` is a slice range, and a subslice of `index` falls out of bounds.
+    ///
     /// The method returns some value or range of values otherwise.
     ///
     /// # Examples
@@ -1923,8 +1939,10 @@ where
     /// given index or inside the given subslice.
     ///
     /// The method returns `None` from `self` under the following conditions:
+    ///
     /// * If `index` is a scalar index, and `index` is out of bounds.
     /// * If `index` is a slice range, and a subslice of `index` falls out of bounds.
+    ///
     /// The method returns some value or range of values otherwise.
     ///
     /// # Examples
@@ -1957,9 +1975,26 @@ where
 
     /// Appends a new element to the end of a type-projected vector.
     ///
+    /// # Formal Properties
+    ///
+    /// Let `vec` be a vector. Let `vec_before` be the state of `vec` before this method is called,
+    /// and let `vec_after` be the state of `vec` after this method is completed.
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { true }
+    /// vec.push(value)
+    /// {
+    ///     vec_after.len() = vec_before.len() + 1
+    ///     ∧ (∀ i ∈ [0, vec_before.len()). vec_after[i] = vec_before[i])
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `vec`.
+    ///
     /// # Panics
     ///
-    /// This method panics if the new capacity exceeds `isize::MAX` _bytes_.
+    /// This method panics if the new capacity exceeds `isize::MAX` _bytes_ if the vector reallocates.
     ///
     /// # Examples
     ///
@@ -1979,8 +2014,30 @@ where
         self.inner.push(value);
     }
 
-    /// Returns the last element in a type-projected vector if the vector is non-empty,
+    /// Removes and returns the last element in a type-projected vector if the vector is non-empty,
     /// and returns `None` if the collection is empty.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `vec` be a vector. Let `vec_before` be the state of `vec` before this method is called,
+    /// let `vec_after` be the state of `vec` after this method completes. Let `result` be the value
+    /// that this method returns after completing. This method satisfies:
+    ///
+    /// ```text
+    /// { vec_before.len() = 0 }
+    /// vec.pop()
+    /// { (vec_after.len() = 0) ∧ (result = None) }
+    ///
+    /// { vec_before.len() > 0 }
+    /// vec.pop()
+    /// {
+    ///     (vec_after.len() = vec_before.len() - 1)
+    ///     ∧ (∀ i ∈ [0, vec_after.len()). vec_after[i] = vec_before[i]).
+    ///     ∧ (result = Some(vec_before[vec_before.len() - 1]))
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `vec`.
     ///
     /// # Examples
     ///
@@ -2012,6 +2069,39 @@ where
     /// Unlike [`push`], this method will not reallocate when there's insufficient
     /// capacity. The caller should use [`reserve`] or [`try_reserve`] to ensure that
     /// there is enough capacity.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `vec` be a vector. Let `vec_before` be the state of `vec` before this method is called,
+    /// let `vec_after` be the state of `vec` after this method completes. Let `result` be the
+    /// value that this method returns after completing.
+    ///
+    /// We say that `vec_after` is **equal to** `vec_before` if and only if
+    ///
+    /// ```text
+    /// vec_after = vec_before ⇔
+    ///     (vec_before.len() = vec_after.len())
+    ///     ∧ (∀ i ∈ [0, vec_before.len()). vec_after[i] = vec_before[i]).
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { vec_before.len() < vec_before.capacity() }
+    /// vec.push_within_capacity(value)
+    /// {
+    ///     vec_after.len() = vec_before.len() + 1
+    ///     ∧ vec_after[vec_before.len()] = value
+    ///     ∧ (∀ i ∈ [0, vec_before.len()). vec_after[i] = vec_before[i])
+    ///     ∧ result = Ok(())
+    /// }
+    ///
+    /// { vec_before.len() = vec_before.capacity() }
+    /// vec.push_within_capacity(value)
+    /// { vec_after = vec_before ∧ result = Err(value) }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `vec`.
     ///
     /// # Examples
     ///
@@ -2068,9 +2158,27 @@ where
     /// Inserts a new value into a type-projected vector, replacing the old value.
     ///
     /// This method behaves with respect to `index` as follows:
+    ///
     /// * If `index < self.len()`, it replaces the existing value at `index`.
     /// * If `index == self.len()`, it pushes `value` to the end of the collection.
     /// * If `index > self.len()`, it panics.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `vec` be a vector, `vec_before` be the state of `vec` before this method is called,
+    /// and let `vec_after` be the state of `vec` after this method completes. This method satisfies
+    ///
+    /// ```text
+    /// { index < vec_before.len() }
+    /// vec.replace_insert(index, value)
+    /// {
+    ///     vec_after.len() = vec_before.len()
+    ///     ∧ vec_after[index] = value
+    ///     ∧ (∀ i ∈ [0, vec_before.len()). i ≠ index ⇒ vec_after[i] = vec_before[i])
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `vec`.
     ///
     /// # Panics
     ///
@@ -2106,11 +2214,38 @@ where
     /// it up in the collection.
     ///
     /// This method behaves with respect to `index` as follows:
+    ///
     /// * If `index < self.len()`, it shifts the current value at `index` and all successive values
     ///   in the collection up one index, reallocating if needed. This method inserts the value
     ///   `value` at the position with index `index`.
     /// * If `index == self.len()`, it pushes `value` to the end of the collection.
     /// * If `index > self.len()`, it panics.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `vec` be a vector, `vec_before` be the state of `vec` before this method is called,
+    /// and let `vec_after` be the state of `vec` after this method completes. This method satisfies
+    ///
+    /// ```text
+    /// { index < vec_before.len() }
+    /// vec.shift_insert(index, value)
+    /// {
+    ///     vec_after.len() = vec_before.len() + 1
+    ///     ∧ vec_after[index] = value
+    ///     ∧ (∀ i ∈ [0, index). vec_after[i] = vec_before[i])
+    ///     ∧ (∀ i ∈ [index, vec_before.len()). vec_after[i + 1] = vec_before[i])
+    /// }
+    ///
+    /// { index = vec_before.len() }
+    /// vec.shift_insert(index, value)
+    /// {
+    ///     vec_after.len() = vec_before.len() + 1
+    ///     ∧ vec_after[index] = value
+    ///     ∧ (∀ i ∈ [0, vec_before.len()). vec_after[i] = vec_before[i])
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `vec`.
     ///
     /// # Panics
     ///
@@ -2146,11 +2281,36 @@ where
     /// index where the removed value occupies the collection.
     ///
     /// This method behaves with respect to `index` as follows:
+    ///
     /// * If `index < self.len() - 1`, it moves the last value in the collection to the slot at
     ///   `index`, leaving the rest of the values in place.
     /// * If `index == self.len() - 1`, it removes the value from end of the collection with no
     ///   reordering of the remaining values in the collection.
     /// * If `index >= self.len()`, it panics.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `vec` be a vector, `vec_before` be the state of `vec` before this method is called,
+    /// and let `vec_after` be the state of `vec` after this method completes. This method satisfies
+    ///
+    /// ```text
+    /// { index < vec_before.len() - 1 }
+    /// vec.swap_remove(index)
+    /// {
+    ///     vec_after.len() = vec_before.len() - 1
+    ///     ∧ vec_after[index] = vec_before[vec_before.len() - 1]
+    ///     ∧ (∀ i ∈ [0, vec_before.len() - 1). i ≠ index ⇒ vec_after[i] = vec_before[i])
+    /// }
+    ///
+    /// { index = vec_before.len() - 1 }
+    /// vec.swap_remove(index)
+    /// {
+    ///     vec_after.len() = vec_before.len() - 1
+    ///     ∧ (∀ i ∈ [0, vec_before.len() - 1). vec_after[i] = vec_before[i])
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `vec`.
     ///
     /// # Panics
     ///
@@ -2197,11 +2357,33 @@ where
     /// down one index to fill where the removed value occupies the collection.
     ///
     /// This method behaves with respect to `index` as follows:
+    ///
     /// * If `index < self.len()`, it moves the every successive value in the collection to
     ///   the slot at `index` down one unit. Every value preceding the slot at `index` remains
-    ///   in the same location. In particular, the method acts like a [`pop`] when the last value in
-    ///   the collection is shift-removed, because the sub-collection of successor values is empty.
+    ///   in the same location.
     /// * If `index >= self.len()`, it panics.
+    ///
+    /// In particular, the method acts like a [`pop`] when the last value in the collection is
+    /// shift-removed, because the sub-collection of successor values is empty.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `vec` be a vector, `vec_before` be the state of `vec` before this method is called,
+    /// let `vec_after` be the state of `vec` after this method completes, and let `result` be the
+    /// value that this method returns after completing. This method satisfies:
+    ///
+    /// ```text
+    /// { index < vec_before.len() }
+    /// vec.shift_remove(index)
+    /// {
+    ///     vec_after.len() = vec_before.len() - 1
+    ///     ∧ (∀ i ∈ [0, index). vec_after[i] = vec_before[i])
+    ///     ∧ (∀ i ∈ [index, vec_after.len()). vec_after[i] = vec_before[i + 1])
+    ///     ∧ result = vec_before[index]
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `vec`.
     ///
     /// # Panics
     ///
@@ -2250,6 +2432,22 @@ where
     ///
     /// The method returns `true` if `self` contains the value `value`. Returns `false` otherwise.
     /// In particular, the method always returns `false` when `self` is empty.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `vec` be a vector with values of type `T`, and let `e :: T` be a value of type `T`. We
+    /// say that `vec` **contains** a value `e :: T`, or that `e` is an **element of** `vec` if the
+    /// following holds:
+    ///
+    /// ```text
+    /// ∀ e :: T. (e ∈ vec) ⇔ (∃ i ∈ [0, vec.len()). vec[i] = e).
+    /// ```
+    ///
+    /// Then this method satisfies the following:
+    ///
+    /// ```text
+    /// ∀ e :: T. vec.contains(v) ⇔ (e ∈ vec) ⇔ (∃ i ∈ [0, vec.len()). vec[i] = e).
+    /// ```
     ///
     /// # Examples
     ///
@@ -2350,6 +2548,26 @@ where
     ///
     /// This method drains `other` into `self`, i.e. every element of `other` will be appended
     /// to `self`, and `other` will be empty after the operation finishes.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `vec1` and `vec2` be vectors, `vec1_before` be the state of `vec1` before this method is
+    /// called, `vec2_before` be the state of `vec2` before this method is called, `vec1_after` be the
+    /// state of `vec1` after this method completes, and `vec2_after` be the state of `vec2` after this
+    /// method completes. This method satisfies
+    ///
+    /// ```text
+    /// { true }
+    /// vec1.append(vec2)
+    /// {
+    ///     vec1_after.len() = vec1_before.len() + vec2_before.len()
+    ///     ∧ (∀ i ∈ [0, vec1_before.len()). vec1_after[i] = vec1_before[i])
+    ///     ∧ (∀ i ∈ [0 vec1_before.len()). vec1_after[vec1_before.len() + i] = vec2_before[i])
+    ///     ∧ vec2_after.len() = 0
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `vec`.
     ///
     /// # Panics
     ///
@@ -3190,6 +3408,7 @@ where
     /// # Panics
     ///
     /// This method panics if one of the following conditions occurs:
+    ///
     /// * If the capacity of the vector overflows.
     /// * If the allocator reports a failure.
     ///
@@ -3231,6 +3450,7 @@ where
     /// # Panics
     ///
     /// This method panics if one of the following conditions occurs:
+    ///
     /// * If the capacity of the vector overflows.
     /// * If the allocator reports a failure.
     ///
@@ -3341,6 +3561,28 @@ where
     ///
     /// After calling this method, the collection will be empty. This method does not change the
     /// allocated capacity of the type-projected vector.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `vec` be a vector, `vec_before` be the state of `vec` before this method is called,
+    /// and `vec_after` be the state of `vec` after this method completes.
+    ///
+    /// We say that `vec` **contains** a value `e :: T`, or that `e` is an **element of** `vec` if
+    /// the following holds:
+    ///
+    /// ```text
+    /// ∀ e :: T. (e ∈ vec) ⇔ (∃ i ∈ [0, vec.len()). vec[i] = e).
+    /// ```
+    ///
+    /// The method satisfies:
+    ///
+    /// ```text
+    /// { true }
+    /// vec.clear()
+    /// { (vec_after.len() = 0) ∧ (∀ e ∈ vec_before. e ∉ vec_after) }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `vec`.
     ///
     /// # Examples
     ///
@@ -3579,9 +3821,12 @@ where
 
     /// Resizes the type-projected vector in place so that `len` is equal to `new_len`.
     ///
-    /// If `new_len > len`, the type-projected vector is extended by the
-    /// difference, with each additional slot filled with `value`.
-    /// If `new_len < len`, the type-projected vector is truncated.
+    /// This method behaves as follows:
+    ///
+    /// * If `new_len > len`, the vector is extended by the difference, with each additional slot
+    ///   filled with `value`.
+    /// * If `new_len < len`, the vector is truncated. Each entry in `[new_len, len)` is dropped by
+    ///   this method.
     ///
     /// If you need more flexibility (or want to rely on [`Default`] instead of
     /// [`Clone`]), use [`TypedProjVec::resize_with`].
@@ -3772,6 +4017,45 @@ where
     /// that `f(&e) == false`. This method operates in place, and preserves the order of the
     /// retained elements.
     ///
+    /// In other words, after calling this method, the vector contains only elements for which
+    /// `f(e)` is true, in the same order as they appeared originally.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `vec` be a vector, `vec_before` be the state of `vec` before this method is called,
+    /// `vec_after` be the state of `vec` after this method completes, and `f : T → bool` be the
+    /// predicate function passed to this method.
+    ///
+    /// We say that the vector `vec` **contains** a value `e :: T`, or that `e` is an **element**` of
+    /// `vec` if and only if
+    ///
+    /// ```text
+    /// ∀ e :: T. (e ∈ vec) ⇔ (∃ i ∈ [0, vec.len()). vec[i] = e).
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { true }
+    /// vec.retain(f)
+    /// {
+    ///     ∀ e ∈ vec_after. f(e)
+    ///     ∧ (∀ i ∈ [0, vec_after.len()). ∃ k ∈ [0, vec_before.len()).
+    ///         (vec_after[i] = vec_before[k])
+    ///         ∧ f(vec_before[k])
+    ///         ∧ (∀ j < k. vec_before[j] = vec_after[i] ⇒ ¬f(vec_before[j])
+    ///     )
+    ///     ∧ (∀ i < j < vec_after.len(). ∃ k < l < vec_before.len().
+    ///         (vec_after[i] = vec_before[k])
+    ///         ∧ (vec_after[j] = vec_before[l])
+    ///         ∧ f(vec_before[k])
+    ///         ∧ f(vec_before[l])
+    ///     )
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `vec`.
+    ///
     /// # Examples
     ///
     /// ```
@@ -3798,6 +4082,45 @@ where
     /// `false`. In particular, for each element `e` in the collection, it removes `e` provided
     /// that `f(&e) == false`. This method operates in place, and preserves the order of the
     /// retained elements.
+    ///
+    /// In other words, after calling this method, the vector contains only elements for which
+    /// `f(e)` is true, in the same order as they appeared originally.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `vec` be a vector, `vec_before` be the state of `vec` before this method is called,
+    /// `vec_after` be the state of `vec` after this method completes, and `f : T → bool` be the
+    /// predicate function passed to this method.
+    ///
+    /// We say that the vector `vec` **contains** a value `e :: T`, or that `e` is an **element**` of
+    /// `vec` if and only if
+    ///
+    /// ```text
+    /// ∀ e :: T. (e ∈ vec) ⇔ (∃ i ∈ [0, vec.len()). vec[i] = e).
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { true }
+    /// vec.retain(f)
+    /// {
+    ///     ∀ e ∈ vec_after. f(e)
+    ///     ∧ (∀ i ∈ [0, vec_after.len()). ∃ k ∈ [0, vec_before.len()).
+    ///         (vec_after[i] = vec_before[k])
+    ///         ∧ f(vec_before[k])
+    ///         ∧ (∀ j < k. vec_before[j] = vec_after[i] ⇒ ¬f(vec_before[j])
+    ///     )
+    ///     ∧ (∀ i < j < vec_after.len(). ∃ k < l < vec_before.len().
+    ///         (vec_after[i] = vec_before[k])
+    ///         ∧ (vec_after[j] = vec_before[l])
+    ///         ∧ f(vec_before[k])
+    ///         ∧ f(vec_before[l])
+    ///     )
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `vec`.
     ///
     /// # Examples
     ///
@@ -3827,6 +4150,37 @@ where
     /// [`PartialEq`] trait implementation.
     ///
     /// This method removes all duplicates if the collection is sorted.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `vec` be a vector, `vec_before` be the state of `vec` before this method is called,
+    /// and `vec_after` be the state of `vec` after this method completes. A function `g: A → B` is
+    /// called **strictly increasing** if and only if
+    ///
+    /// ```text
+    /// strictly_increasing(g) := ∀ i ∈ A. ∀ j ∈ A. i < j ⇒ g(i) < g(j).
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { true }
+    /// vec.dedup()
+    /// {
+    ///     vec_after.len() ≤ vec_before.len()
+    ///     ∧ (∃ g: [0, vec_after.len()) → [0, vec_before.len()).
+    ///         strictly_increasing(g) ∧ ∀ i ∈ [0, vec_after.len()). vec_after[i] = vec_before[g(i)]
+    ///       )
+    ///     ∧ (∀ i ∈ [0, vec_after.len() - 1). vec_after[i] ≠ vec_after[i + 1])
+    ///     ∧ (∀ i ∈ [0, vec_after.len()). ∃ j ∈ [0, vec_before.len()). vec_after[i] = vec_before[j]
+    ///         ∧ (∀ k < j. vec_before[k] = vec_after[i] ⇒ (∃ m < j. (vec_before[m] = vec_after[i]) ∧ (m < k)))
+    ///         ∨ (∀ k < j. vec_before[k] ≠ vec_after[i])
+    ///       )
+    ///     )
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `vec`.
     ///
     /// # Examples
     ///
@@ -3882,6 +4236,32 @@ where
     /// This removes all duplicates if the collection is sorted (since each duplicate value
     /// trivially resolves to the same key).
     ///
+    /// # Formal Properties
+    ///
+    /// Let `vec` be a vector, `vec_before` be the state of `vec` before this method is called,
+    /// `vec_after` be the state of `vec` after this method completes, and `key: T → K` be the
+    /// key function. A function `g: A → B` is called **strictly increasing** if and only if
+    ///
+    /// ```text
+    /// strictly_increasing(g) := ∀ i ∈ A. ∀ j ∈ A. i < j ⇒ g(i) < g(j).
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { true }
+    /// vec.dedup_key(key)
+    /// {
+    ///     vec_after.len() ≤ vec_before.len()
+    ///     ∧ (∃ g: [0, vec_after.len()) → [0, vec_before.len()).
+    ///         strictly_increasing(g) ∧ (∀ i ∈ [0, vec_after.len()). vec_after[i] = vec_before[g(i)])
+    ///     )
+    ///     ∧ (∀ i ∈ [0, vec_after.len() - 1). key(vec_after[i]) ≠ key(vec_after[i + 1]))
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `vec`.
+    ///
     /// # Examples
     ///
     /// Deduplicating an unsorted type-projected vector by key.
@@ -3926,6 +4306,32 @@ where
     /// from their order in the slice, so if `same_bucket(a, b)` returns `true`, `a` is removed.
     ///
     /// This method removes all duplicates if the collection is sorted.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `vec` be a vector, `vec_before` be the state of `vec` before this method is called,
+    /// `vec_after` be the state of `vec` after this method completes, and `same_bucket: (T, T) → bool`
+    /// be the binary predicate. A function `g: A → B` is called **strictly increasing** if and only if
+    ///
+    /// ```text
+    /// strictly_increasing(g) := ∀ i ∈ A. ∀ j ∈ A. i < j ⇒ g(i) < g(j).
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { true }
+    /// vec.dedup_by(same_bucket)
+    /// {
+    ///     vec_after.len() ≤ vec_before.len()
+    ///     ∧ (∃ g: [0, vec_after.len()) → [0, vec_before.len()).
+    ///         strictly_increasing(g) ∧ (∀ i ∈ [0, vec_after.len()). vec_after[i] = vec_before[g(i)])
+    ///     )
+    ///     ∧ (∀ i ∈ [0, vec_after.len() - 1). ¬same_bucket(vec_after[i], vec_after[i + 1]))
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `vec`.
     ///
     /// # Examples
     ///
@@ -6286,6 +6692,11 @@ impl OpaqueVec {
     /// Returns the length of a type-erased vector.
     ///
     /// The **length** of a type-erased vector is the number of elements stored inside it.
+    /// The length satisfies the following. Given a vector `vec`
+    ///
+    /// ```text
+    /// vec.len() ≤ vec.capacity().
+    /// ```
     ///
     /// # Examples
     ///
@@ -6316,6 +6727,11 @@ impl OpaqueVec {
     /// Determines whether a type-erased vector is empty or not.
     ///
     /// A type-erased vector is **empty** if it contains no elements, i.e. its length is zero.
+    /// This method satisfies the following. Given a vector `vec`
+    ///
+    /// ```text
+    /// vec.is_empty() ⇔ vec.len() = 0.
+    /// ```
     ///
     /// # Examples
     ///
@@ -6393,6 +6809,7 @@ impl OpaqueVec {
     /// # Safety
     ///
     /// This method is safe to call if the following conditions hold:
+    ///
     /// * The length `new_len` is less than or equal to `self.capacity()`.
     /// * The elements in the subslice `[self.len(), new_len)` must be initialized.
     ///
@@ -6544,6 +6961,7 @@ impl OpaqueVec {
     /// # Panics
     ///
     /// This method panics if one of the following conditions holds:
+    ///
     /// * The [`TypeId`] of the elements of `self` and the [`TypeId`] of the memory allocator of
     ///   `self` do not match the requested element type `T` and allocator type `A`, respectively.
     /// * If `index` is a scalar index, and `index` is out of bounds.
@@ -6592,6 +7010,7 @@ impl OpaqueVec {
     /// # Panics
     ///
     /// This method panics if one of the following conditions holds:
+    ///
     /// * The [`TypeId`] of the elements of `self` and the [`TypeId`] of the memory allocator of
     ///   `self` do not match the requested element type `T` and allocator type `A`, respectively.
     /// * If `index` is a scalar index, and `index` is out of bounds.
@@ -6638,6 +7057,7 @@ impl OpaqueVec {
     /// given index or inside the given subslice.
     ///
     /// The method returns `None` from `self` under the following conditions:
+    ///
     /// * If `index` is a scalar index, and `index` is out of bounds.
     /// * If `index` is a slice range, and a subslice of `index` falls out of bounds.
     /// The method returns some value or range of values otherwise.
@@ -6688,6 +7108,7 @@ impl OpaqueVec {
     /// given index or inside the given subslice.
     ///
     /// The method returns `None` from `self` under the following conditions:
+    ///
     /// * If `index` is a scalar index, and `index` is out of bounds.
     /// * If `index` is a slice range, and a subslice of `index` falls out of bounds.
     /// The method returns some value or range of values otherwise.
@@ -6736,12 +7157,29 @@ impl OpaqueVec {
 
     /// Appends a new element to the end of a type-erased vector.
     ///
+    /// # Formal Properties
+    ///
+    /// Let `vec` be a vector. Let `vec_before` be the state of `vec` before this method is called,
+    /// and let `vec_after` be the state of `vec` after this method is completed.
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { true }
+    /// vec.push(value)
+    /// {
+    ///     vec_after.len() = vec_before.len() + 1
+    ///     ∧ (∀ i ∈ [0, vec_before.len()). vec_after[i] = vec_before[i])
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `vec`.
+    ///
     /// # Panics
     ///
     /// This method panics if either condition occurs:
     /// * The [`TypeId`] of the elements of `self` and the [`TypeId`] of the memory allocator of
     ///   `self` do not match the requested element type `T` and allocator type `A`, respectively.
-    /// * The new capacity exceeds `isize::MAX` _bytes_ if the type-erased vector reallocates.
+    /// * The new capacity exceeds `isize::MAX` _bytes_ if the vector reallocates.
     ///
     /// # Examples
     ///
@@ -6772,8 +7210,30 @@ impl OpaqueVec {
         proj_self.push(value);
     }
 
-    /// Returns the last element in a type-erased vector if the vector is non-empty,
+    /// Removes and returns the last element in a type-erased vector if the vector is non-empty,
     /// and returns `None` if the collection is empty.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `vec` be a vector. Let `vec_before` be the state of `vec` before this method is called,
+    /// let `vec_after` be the state of `vec` after this method completes. Let `result` be the value
+    /// that this method returns after completing. This method satisfies:
+    ///
+    /// ```text
+    /// { vec_before.len() = 0 }
+    /// vec.pop()
+    /// { (vec_after.len() = 0) ∧ (result = None) }
+    ///
+    /// { vec_before.len() > 0 }
+    /// vec.pop()
+    /// {
+    ///     (vec_after.len() = vec_before.len() - 1)
+    ///     ∧ (∀ i ∈ [0, vec_after.len()). vec_after[i] = vec_before[i]).
+    ///     ∧ (result = Some(vec_before[vec_before.len() - 1]))
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `vec`.
     ///
     /// # Panics
     ///
@@ -6821,6 +7281,39 @@ impl OpaqueVec {
     /// Unlike [`push`], this method will not reallocate when there's insufficient
     /// capacity. The caller should use [`reserve`] or [`try_reserve`] to ensure that
     /// there is enough capacity.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `vec` be a vector. Let `vec_before` be the state of `vec` before this method is called,
+    /// let `vec_after` be the state of `vec` after this method completes. Let `result` be the
+    /// value that this method returns after completing.
+    ///
+    /// We say that `vec_after` is **equal to** `vec_before` if and only if
+    ///
+    /// ```text
+    /// vec_after = vec_before ⇔
+    ///     (vec_before.len() = vec_after.len())
+    ///     ∧ (∀ i ∈ [0, vec_before.len()). vec_after[i] = vec_before[i]).
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { vec_before.len() < vec_before.capacity() }
+    /// vec.push_within_capacity(value)
+    /// {
+    ///     vec_after.len() = vec_before.len() + 1
+    ///     ∧ vec_after[vec_before.len()] = value
+    ///     ∧ (∀ i ∈ [0, vec_before.len()). vec_after[i] = vec_before[i])
+    ///     ∧ result = Ok(())
+    /// }
+    ///
+    /// { vec_before.len() = vec_before.capacity() }
+    /// vec.push_within_capacity(value)
+    /// { vec_after = vec_before ∧ result = Err(value) }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `vec`.
     ///
     /// # Panics
     ///
@@ -6895,9 +7388,27 @@ impl OpaqueVec {
     /// Inserts a new value into a type-erased vector, replacing the old value.
     ///
     /// This method behaves with respect to `index` as follows:
+    ///
     /// * If `index < self.len()`, it replaces the existing value at `index`.
     /// * If `index == self.len()`, it pushes `value` to the end of the collection.
     /// * If `index > self.len()`, it panics.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `vec` be a vector, `vec_before` be the state of `vec` before this method is called,
+    /// and let `vec_after` be the state of `vec` after this method completes. This method satisfies
+    ///
+    /// ```text
+    /// { index < vec_before.len() }
+    /// vec.replace_insert(index, value)
+    /// {
+    ///     vec_after.len() = vec_before.len()
+    ///     ∧ vec_after[index] = value
+    ///     ∧ (∀ i ∈ [0, vec_before.len()). i ≠ index ⇒ vec_after[i] = vec_before[i])
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `vec`.
     ///
     /// # Panics
     ///
@@ -6945,11 +7456,38 @@ impl OpaqueVec {
     /// it up in the collection.
     ///
     /// This method behaves with respect to `index` as follows:
+    ///
     /// * If `index < self.len()`, it shifts the current value at `index` and all successive values
     ///   in the collection up one index, reallocating if needed. This method inserts the value
     ///   `value` at the position with index `index`.
     /// * If `index == self.len()`, it pushes `value` to the end of the collection.
     /// * If `index > self.len()`, it panics.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `vec` be a vector, `vec_before` be the state of `vec` before this method is called,
+    /// and let `vec_after` be the state of `vec` after this method completes. This method satisfies
+    ///
+    /// ```text
+    /// { index < vec_before.len() }
+    /// vec.shift_insert(index, value)
+    /// {
+    ///     vec_after.len() = vec_before.len() + 1
+    ///     ∧ vec_after[index] = value
+    ///     ∧ (∀ i ∈ [0, index). vec_after[i] = vec_before[i])
+    ///     ∧ (∀ i ∈ [index, vec_before.len()). vec_after[i + 1] = vec_before[i])
+    /// }
+    ///
+    /// { index = vec_before.len() }
+    /// vec.shift_insert(index, value)
+    /// {
+    ///     vec_after.len() = vec_before.len() + 1
+    ///     ∧ vec_after[index] = value
+    ///     ∧ (∀ i ∈ [0, vec_before.len()). vec_after[i] = vec_before[i])
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `vec`.
     ///
     /// # Panics
     ///
@@ -6997,11 +7535,36 @@ impl OpaqueVec {
     /// index where the removed value occupies the collection.
     ///
     /// This method behaves with respect to `index` as follows:
+    ///
     /// * If `index < self.len() - 1`, it moves the last value in the collection to the slot at
     ///   `index`, leaving the rest of the values in place.
     /// * If `index == self.len() - 1`, it removes the value from end of the collection with no
     ///   reordering of the remaining values in the collection.
     /// * If `index >= self.len()`, it panics.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `vec` be a vector, `vec_before` be the state of `vec` before this method is called,
+    /// and let `vec_after` be the state of `vec` after this method completes. This method satisfies
+    ///
+    /// ```text
+    /// { index < vec_before.len() - 1 }
+    /// vec.swap_remove(index)
+    /// {
+    ///     vec_after.len() = vec_before.len() - 1
+    ///     ∧ vec_after[index] = vec_before[vec_before.len() - 1]
+    ///     ∧ (∀ i ∈ [0, vec_before.len() - 1). i ≠ index ⇒ vec_after[i] = vec_before[i])
+    /// }
+    ///
+    /// { index = vec_before.len() - 1 }
+    /// vec.swap_remove(index)
+    /// {
+    ///     vec_after.len() = vec_before.len() - 1
+    ///     ∧ (∀ i ∈ [0, vec_before.len() - 1). vec_after[i] = vec_before[i])
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `vec`.
     ///
     /// # Panics
     ///
@@ -7062,11 +7625,33 @@ impl OpaqueVec {
     /// down one index to fill where the removed value occupies the collection.
     ///
     /// This method behaves with respect to `index` as follows:
+    ///
     /// * If `index < self.len()`, it moves the every successive value in the collection to
     ///   the slot at `index` down one unit. Every value preceding the slot at `index` remains
-    ///   in the same location. In particular, the method acts like a [`pop`] when the last value in
-    ///   the collection is shift-removed, because the sub-collection of successor values is empty.
+    ///   in the same location.
     /// * If `index >= self.len()`, it panics.
+    ///
+    /// In particular, the method acts like a [`pop`] when the last value in the collection is
+    /// shift-removed, because the sub-collection of successor values is empty.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `vec` be a vector, `vec_before` be the state of `vec` before this method is called,
+    /// let `vec_after` be the state of `vec` after this method completes, and let `result` be the
+    /// value that this method returns after completing. This method satisfies:
+    ///
+    /// ```text
+    /// { index < vec_before.len() }
+    /// vec.shift_remove(index)
+    /// {
+    ///     vec_after.len() = vec_before.len() - 1
+    ///     ∧ (∀ i ∈ [0, index). vec_after[i] = vec_before[i])
+    ///     ∧ (∀ i ∈ [index, vec_after.len()). vec_after[i] = vec_before[i + 1])
+    ///     ∧ result = vec_before[index]
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `vec`.
     ///
     /// # Panics
     ///
@@ -7129,6 +7714,22 @@ impl OpaqueVec {
     ///
     /// The method returns `true` if `self` contains the value `value`. Returns `false` otherwise.
     /// In particular, the method always returns `false` when `self` is empty.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `vec` be a vector with values of type `T`, and let `e :: T` be a value of type `T`. We
+    /// say that `vec` **contains** a value `e :: T`, or that `e` is an **element of** `vec` if the
+    /// following holds:
+    ///
+    /// ```text
+    /// ∀ e :: T. (e ∈ vec) ⇔ (∃ i ∈ [0, vec.len()). vec[i] = e).
+    /// ```
+    ///
+    /// Then this method satisfies the following:
+    ///
+    /// ```text
+    /// ∀ e :: T. vec.contains(v) ⇔ (e ∈ vec) ⇔ (∃ i ∈ [0, vec.len()). vec[i] = e).
+    /// ```
     ///
     /// # Panics
     ///
@@ -7338,6 +7939,26 @@ impl OpaqueVec {
     ///
     /// This method drains `other` into `self`, i.e. every element of `other` will be appended
     /// to `self`, and `other` will be empty after the operation finishes.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `vec1` and `vec2` be vectors, `vec1_before` be the state of `vec1` before this method is
+    /// called, `vec2_before` be the state of `vec2` before this method is called, `vec1_after` be the
+    /// state of `vec1` after this method completes, and `vec2_after` be the state of `vec2` after this
+    /// method completes. This method satisfies
+    ///
+    /// ```text
+    /// { true }
+    /// vec1.append(vec2)
+    /// {
+    ///     vec1_after.len() = vec1_before.len() + vec2_before.len()
+    ///     ∧ (∀ i ∈ [0, vec1_before.len()). vec1_after[i] = vec1_before[i])
+    ///     ∧ (∀ i ∈ [0 vec1_before.len()). vec1_after[vec1_before.len() + i] = vec2_before[i])
+    ///     ∧ vec2_after.len() = 0
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `vec`.
     ///
     /// # Panics
     ///
@@ -8681,6 +9302,28 @@ impl OpaqueVec {
     /// After calling this method, the collection will be empty. This method does not change the
     /// allocated capacity of the type-erased vector.
     ///
+    /// # Formal Properties
+    ///
+    /// Let `vec` be a vector, `vec_before` be the state of `vec` before this method is called,
+    /// and `vec_after` be the state of `vec` after this method completes.
+    ///
+    /// We say that `vec` **contains** a value `e :: T`, or that `e` is an **element of** `vec` if
+    /// the following holds:
+    ///
+    /// ```text
+    /// ∀ e :: T. (e ∈ vec) ⇔ (∃ i ∈ [0, vec.len()). vec[i] = e).
+    /// ```
+    ///
+    /// The method satisfies:
+    ///
+    /// ```text
+    /// { true }
+    /// vec.clear()
+    /// { (vec_after.len() = 0) ∧ (∀ e ∈ vec_before. e ∉ vec_after) }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `vec`.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the elements of `self` and the [`TypeId`]
@@ -9026,9 +9669,12 @@ impl OpaqueVec {
 
     /// Resizes the type-erased vector in place so that `len` is equal to `new_len`.
     ///
-    /// If `new_len > len`, the type-erased vector is extended by the
-    /// difference, with each additional slot filled with `value`.
-    /// If `new_len < len`, the type-erased vector is truncated.
+    /// This method behaves as follows:
+    ///
+    /// * If `new_len > len`, the vector is extended by the difference, with each additional slot
+    ///   filled with `value`.
+    /// * If `new_len < len`, the vector is truncated. Each entry in `[new_len, len)` is dropped by
+    ///   this method.
     ///
     /// If you need more flexibility (or want to rely on [`Default`] instead of
     /// [`Clone`]), use [`OpaqueVec::resize_with`].
@@ -9283,6 +9929,45 @@ impl OpaqueVec {
     /// that `f(&e) == false`. This method operates in place, and preserves the order of the
     /// retained elements.
     ///
+    /// In other words, after calling this method, the vector contains only elements for which
+    /// `f(e)` is true, in the same order as they appeared originally.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `vec` be a vector, `vec_before` be the state of `vec` before this method is called,
+    /// `vec_after` be the state of `vec` after this method completes, and `f : T → bool` be the
+    /// predicate function passed to this method.
+    ///
+    /// We say that the vector `vec` **contains** a value `e :: T`, or that `e` is an **element**` of
+    /// `vec` if and only if
+    ///
+    /// ```text
+    /// ∀ e :: T. (e ∈ vec) ⇔ (∃ i ∈ [0, vec.len()). vec[i] = e).
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { true }
+    /// vec.retain(f)
+    /// {
+    ///     ∀ e ∈ vec_after. f(e)
+    ///     ∧ (∀ i ∈ [0, vec_after.len()). ∃ k ∈ [0, vec_before.len()).
+    ///         (vec_after[i] = vec_before[k])
+    ///         ∧ f(vec_before[k])
+    ///         ∧ (∀ j < k. vec_before[j] = vec_after[i] ⇒ ¬f(vec_before[j])
+    ///     )
+    ///     ∧ (∀ i < j < vec_after.len(). ∃ k < l < vec_before.len().
+    ///         (vec_after[i] = vec_before[k])
+    ///         ∧ (vec_after[j] = vec_before[l])
+    ///         ∧ f(vec_before[k])
+    ///         ∧ f(vec_before[l])
+    ///     )
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `vec`.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the elements of `self` and the [`TypeId`]
@@ -9326,6 +10011,45 @@ impl OpaqueVec {
     /// `false`. In particular, for each element `e` in the collection, it removes `e` provided
     /// that `f(&e) == false`. This method operates in place, and preserves the order of the
     /// retained elements.
+    ///
+    /// In other words, after calling this method, the vector contains only elements for which
+    /// `f(e)` is true, in the same order as they appeared originally.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `vec` be a vector, `vec_before` be the state of `vec` before this method is called,
+    /// `vec_after` be the state of `vec` after this method completes, and `f : T → bool` be the
+    /// predicate function passed to this method.
+    ///
+    /// We say that the vector `vec` **contains** a value `e :: T`, or that `e` is an **element**` of
+    /// `vec` if and only if
+    ///
+    /// ```text
+    /// ∀ e :: T. (e ∈ vec) ⇔ (∃ i ∈ [0, vec.len()). vec[i] = e).
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { true }
+    /// vec.retain(f)
+    /// {
+    ///     ∀ e ∈ vec_after. f(e)
+    ///     ∧ (∀ i ∈ [0, vec_after.len()). ∃ k ∈ [0, vec_before.len()).
+    ///         (vec_after[i] = vec_before[k])
+    ///         ∧ f(vec_before[k])
+    ///         ∧ (∀ j < k. vec_before[j] = vec_after[i] ⇒ ¬f(vec_before[j])
+    ///     )
+    ///     ∧ (∀ i < j < vec_after.len(). ∃ k < l < vec_before.len().
+    ///         (vec_after[i] = vec_before[k])
+    ///         ∧ (vec_after[j] = vec_before[l])
+    ///         ∧ f(vec_before[k])
+    ///         ∧ f(vec_before[l])
+    ///     )
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `vec`.
     ///
     /// # Panics
     ///
@@ -9373,6 +10097,37 @@ impl OpaqueVec {
     /// [`PartialEq`] trait implementation.
     ///
     /// This method removes all duplicates if the collection is sorted.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `vec` be a vector, `vec_before` be the state of `vec` before this method is called,
+    /// and `vec_after` be the state of `vec` after this method completes. A function `g: A → B` is
+    /// called **strictly increasing** if and only if
+    ///
+    /// ```text
+    /// strictly_increasing(g) := ∀ i ∈ A. ∀ j ∈ A. i < j ⇒ g(i) < g(j).
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { true }
+    /// vec.dedup()
+    /// {
+    ///     vec_after.len() ≤ vec_before.len()
+    ///     ∧ (∃ g: [0, vec_after.len()) → [0, vec_before.len()).
+    ///         strictly_increasing(g) ∧ ∀ i ∈ [0, vec_after.len()). vec_after[i] = vec_before[g(i)]
+    ///       )
+    ///     ∧ (∀ i ∈ [0, vec_after.len() - 1). vec_after[i] ≠ vec_after[i + 1])
+    ///     ∧ (∀ i ∈ [0, vec_after.len()). ∃ j ∈ [0, vec_before.len()). vec_after[i] = vec_before[j]
+    ///         ∧ (∀ k < j. vec_before[k] = vec_after[i] ⇒ (∃ m < j. (vec_before[m] = vec_after[i]) ∧ (m < k)))
+    ///         ∨ (∀ k < j. vec_before[k] ≠ vec_after[i])
+    ///       )
+    ///     )
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `vec`.
     ///
     /// # Panics
     ///
@@ -9458,6 +10213,32 @@ impl OpaqueVec {
     /// This removes all duplicates if the collection is sorted (since each duplicate value
     /// trivially resolves to the same key).
     ///
+    /// # Formal Properties
+    ///
+    /// Let `vec` be a vector, `vec_before` be the state of `vec` before this method is called,
+    /// `vec_after` be the state of `vec` after this method completes, and `key: T → K` be the
+    /// key function. A function `g: A → B` is called **strictly increasing** if and only if
+    ///
+    /// ```text
+    /// strictly_increasing(g) := ∀ i ∈ A. ∀ j ∈ A. i < j ⇒ g(i) < g(j).
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { true }
+    /// vec.dedup_key(key)
+    /// {
+    ///     vec_after.len() ≤ vec_before.len()
+    ///     ∧ (∃ g: [0, vec_after.len()) → [0, vec_before.len()).
+    ///         strictly_increasing(g) ∧ (∀ i ∈ [0, vec_after.len()). vec_after[i] = vec_before[g(i)])
+    ///     )
+    ///     ∧ (∀ i ∈ [0, vec_after.len() - 1). key(vec_after[i]) ≠ key(vec_after[i + 1]))
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `vec`.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the elements of `self` and the [`TypeId`]
@@ -9520,6 +10301,32 @@ impl OpaqueVec {
     /// from their order in the slice, so if `same_bucket(a, b)` returns `true`, `a` is removed.
     ///
     /// This method removes all duplicates if the collection is sorted.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `vec` be a vector, `vec_before` be the state of `vec` before this method is called,
+    /// `vec_after` be the state of `vec` after this method completes, and `same_bucket: (T, T) → bool`
+    /// be the binary predicate. A function `g: A → B` is called **strictly increasing** if and only if
+    ///
+    /// ```text
+    /// strictly_increasing(g) := ∀ i ∈ A. ∀ j ∈ A. i < j ⇒ g(i) < g(j).
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { true }
+    /// vec.dedup_by(same_bucket)
+    /// {
+    ///     vec_after.len() ≤ vec_before.len()
+    ///     ∧ (∃ g: [0, vec_after.len()) → [0, vec_before.len()).
+    ///         strictly_increasing(g) ∧ (∀ i ∈ [0, vec_after.len()). vec_after[i] = vec_before[g(i)])
+    ///     )
+    ///     ∧ (∀ i ∈ [0, vec_after.len() - 1). ¬same_bucket(vec_after[i], vec_after[i + 1]))
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `vec`.
     ///
     /// # Panics
     ///

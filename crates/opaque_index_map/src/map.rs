@@ -951,6 +951,7 @@ impl<K, V> Slice<K, V> {
         unsafe { &mut *(entries as *mut map_inner::Slice<K, V> as *mut Self) }
     }
 
+    /// Constructs a new boxed slice from an inner boxed slice.
     fn from_boxed_slice<A>(entries: Box<map_inner::Slice<K, V>, TypedProjAlloc<A>>) -> Box<Self, TypedProjAlloc<A>>
     where
         A: any::Any + alloc::Allocator + Send + Sync,
@@ -962,6 +963,7 @@ impl<K, V> Slice<K, V> {
         }
     }
 
+    /// Converts a boxed slice into an inner boxed slice.
     fn into_boxed_slice<A>(self: Box<Self, A>) -> Box<map_inner::Slice<K, V>, A>
     where
         A: any::Any + alloc::Allocator + Send + Sync,
@@ -973,6 +975,7 @@ impl<K, V> Slice<K, V> {
         }
     }
 
+    /// Constructs a new boxed slice from a type-projected vector.
     fn from_entries_in<A>(vec: TypedProjVec<Bucket<K, V>, A>) -> Box<Self, TypedProjAlloc<A>>
     where
         K: any::Any,
@@ -7133,6 +7136,11 @@ where
     /// Returns the length of the type-projected index map.
     ///
     /// The **length** of a type-projected index map is the number of key-value pairs stored inside it.
+    /// The length satisfies the following. Given an index map `map`
+    ///
+    /// ```text
+    /// map.len() ≤ map.capacity().
+    /// ```
     ///
     /// # Examples
     ///
@@ -7167,6 +7175,11 @@ where
     /// Determines whether the type-projected index map is empty.
     ///
     /// A type-projected index map is **empty** if it contains no key-value pairs, i.e. its length is zero.
+    /// This method satisfies the following. Given an index map `map`
+    ///
+    /// ```text
+    /// map.is_empty() ⇔ map.len() = 0.
+    /// ```
     ///
     /// # Examples
     ///
@@ -7301,6 +7314,22 @@ where
     ///
     /// This method returns `true` if the key `key` exists in `self`. This method returns `false` if
     /// the key `key` does not exist inside `self`.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with keys of type `K` and values of type `V`. Let `e :: (K, V)` be
+    /// an entry of type `(K, V)`. We say that `map` **contains** a key-value pair `e :: (K, V)`, or that
+    /// `e` is an **entry of** `map` if the following holds:
+    ///
+    /// ```text
+    /// ∀ e :: (K, V). (e ∈ map) ⇔ (∃ i ∈ [0, map.len()). map[i] = e ∧ map[e.key()] = e.value())
+    /// ```
+    ///
+    /// Then this method satisfies the following:
+    ///
+    /// ```text
+    /// ∀ e :: (K, V). map.contains_key(e.key()) ⇔ (e ∈ map) ⇔ (∃ i ∈ [0, map.len()). map[e.key()] = e.value()).
+    /// ```
     ///
     /// # Examples
     ///
@@ -7916,6 +7945,28 @@ where
     /// After calling this method, the collection will be empty. This method does not change the
     /// allocated capacity of the type-projected index map.
     ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the state
+    /// of `map` before this method is called, and `map_after` be the state of `map` after this method
+    /// completes.
+    ///
+    /// We say that a key-value pair `e :: (K, V)` is an **entry** in the map `map` if and only if
+    ///
+    /// ```text
+    /// ∀ e :: (K, V). e ∈ map ⇔ (∃ i ∈ [0, map.len()). map[i] = e).
+    /// ```
+    ///
+    /// The method satisfies:
+    ///
+    /// ```text
+    /// { true }
+    /// map.clear()
+    /// { map_after.len() = 0 ∧ (∀ e ∈ map_before. e ∉ map_after) }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
     /// # Examples
     ///
     /// ```
@@ -8384,6 +8435,69 @@ where
     ///   corresponding to the key `key`.
     /// * If the key `key` does not exist in the index map, the method returns `None`.
     ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the state
+    /// of `map` before this method is called, `map_after` be the state of `map` after this method
+    /// completes.
+    ///
+    /// The set of **keys** in the map `map` is defined as
+    ///
+    /// ```text
+    /// keys(map) := { k :: K | ∃ i ∈ [0, map.len()). map[i].key() = k }
+    /// ```
+    ///
+    /// or equivalently
+    ///
+    /// ```text
+    /// ∀ k :: K. (k ∈ keys(map)) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
+    /// ```
+    ///
+    /// We also say that a key `k` is in the map `map` provided that
+    ///
+    /// ```text
+    /// ∀ k :: K. k ∈ map ⇔ k ∈ keys(map).
+    /// ```
+    ///
+    /// The **index** of a key `k` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, k) := i such that map[i].key() = k ∧ (∀ j ∈ [0, map.len()). j ≠ i ⇒ map[j].key() ≠ k).
+    /// ```
+    ///
+    /// The **last entry** in the map `map` when `map` is non-empty is defined by
+    ///
+    /// ```text
+    /// last(map) := map[map.len() - 1].
+    /// ```
+    ///
+    /// We say that two maps `map1` and `map2` are **equal** if and only if
+    ///
+    /// ```text
+    /// map1 = map2 ⇔ (map1.len() = map2.len()) ∧ (∀ i ∈ [0, map1.len()). map1[i] = map2[i]).
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { key ∈ map_before }
+    /// map.swap_remove(key)
+    /// {
+    ///     result = Some(map_before[key])
+    ///     ∧ map_after.len() = map_before.len() - 1
+    ///     ∧ key ∉ map_after
+    ///     ∧ (map_after[index(map_before, key)] = last(map_before)
+    ///        ∧ (∀ k ∈ keys(map_after). k ≠ last(map_before).key() ∧ k ≠ key ⇒ map_after[k] = map_before[k])
+    ///     )
+    /// }
+    ///
+    /// { key ∉ map_before }
+    /// map.swap_remove(key)
+    /// { result = None ∧ map_after = map_before }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
     /// # Examples
     ///
     /// Showing how swap removal happens.
@@ -8468,6 +8582,69 @@ where
     ///   stored in the index map corresponding to the key `key`.
     /// * If the key `key` does not exist in the index map, the method returns `None`.
     ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the state
+    /// of `map` before this method is called, `map_after` be the state of `map` after this method
+    /// completes.
+    ///
+    /// The set of **keys** in the map `map` is defined as
+    ///
+    /// ```text
+    /// keys(map) := { k :: K | ∃ i ∈ [0, map.len()). map[i].key() = k }
+    /// ```
+    ///
+    /// or equivalently
+    ///
+    /// ```text
+    /// ∀ k :: K. (k ∈ keys(map)) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
+    /// ```
+    ///
+    /// We also say that a key `k` is in the map `map` provided that
+    ///
+    /// ```text
+    /// ∀ k :: K. k ∈ map ⇔ k ∈ keys(map).
+    /// ```
+    ///
+    /// The **index** of a key `k` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, k) := i such that map[i].key() = k ∧ (∀ j ∈ [0, map.len()). j ≠ i ⇒ map[j].key() ≠ k).
+    /// ```
+    ///
+    /// The **last entry** in the map `map` when `map` is non-empty is defined by
+    ///
+    /// ```text
+    /// last(map) := map[map.len() - 1].
+    /// ```
+    ///
+    /// We say that two maps `map1` and `map2` are **equal** if and only if
+    ///
+    /// ```text
+    /// map1 = map2 ⇔ (map1.len() = map2.len()) ∧ (∀ i ∈ [0, map1.len()). map1[i] = map2[i]).
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { key ∈ map_before }
+    /// map.swap_remove_entry(key)
+    /// {
+    ///     result = Some(map_before[key])
+    ///     ∧ map_after.len() = map_before.len() - 1
+    ///     ∧ key ∉ map_after
+    ///     ∧ (map_after[index(map_before, key)] = last(map_before)
+    ///        ∧ (∀ k ∈ keys(map_after). k ≠ last(map_before).key() ∧ k ≠ key ⇒ map_after[k] = map_before[k])
+    ///     )
+    /// }
+    ///
+    /// { key ∉ map_before }
+    /// map.swap_remove_entry(key)
+    /// { result = None ∧ map_after = map_before }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
     /// # Examples
     ///
     /// Showing how swap removal happens.
@@ -8551,6 +8728,69 @@ where
     ///   The method then returns `Some((index, key, value))`, where `(key, value)` is the key-value
     ///   pair stored in the index map corresponding to the key `key`.
     /// * If the key `key` does not exist in the index map, the method returns `None`.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the state
+    /// of `map` before this method is called, `map_after` be the state of `map` after this method
+    /// completes.
+    ///
+    /// The set of **keys** in the map `map` is defined as
+    ///
+    /// ```text
+    /// keys(map) := { k :: K | ∃ i ∈ [0, map.len()). map[i].key() = k }
+    /// ```
+    ///
+    /// or equivalently
+    ///
+    /// ```text
+    /// ∀ k :: K. (k ∈ keys(map)) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
+    /// ```
+    ///
+    /// We also say that a key `k` is in the map `map` provided that
+    ///
+    /// ```text
+    /// ∀ k :: K. k ∈ map ⇔ k ∈ keys(map).
+    /// ```
+    ///
+    /// The **index** of a key `k` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, k) := i such that map[i].key() = k ∧ (∀ j ∈ [0, map.len()). j ≠ i ⇒ map[j].key() ≠ k).
+    /// ```
+    ///
+    /// The **last entry** in the map `map` when `map` is non-empty is defined by
+    ///
+    /// ```text
+    /// last(map) := map[map.len() - 1].
+    /// ```
+    ///
+    /// We say that two maps `map1` and `map2` are **equal** if and only if
+    ///
+    /// ```text
+    /// map1 = map2 ⇔ (map1.len() = map2.len()) ∧ (∀ i ∈ [0, map1.len()). map1[i] = map2[i]).
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { key ∈ map_before }
+    /// map.swap_remove_full(key)
+    /// {
+    ///     result = Some(map_before[key])
+    ///     ∧ map_after.len() = map_before.len() - 1
+    ///     ∧ key ∉ map_after
+    ///     ∧ (map_after[index(map_before, key)] = last(map_before)
+    ///        ∧ (∀ k ∈ keys(map_after). k ≠ last(map_before).key() ∧ k ≠ key ⇒ map_after[k] = map_before[k])
+    ///     )
+    /// }
+    ///
+    /// { key ∉ map_before }
+    /// map.swap_remove_full(key)
+    /// { result = None ∧ map_after = map_before }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
     /// # Examples
     ///
@@ -8637,6 +8877,52 @@ where
     ///
     /// In particular, the method acts like a [`pop`] when the last value in the collection is
     /// shift-removed, because the sub-collection of successor entries in the entry storage is empty.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the state
+    /// of `map` before this method is called, `map_after` be the state of `map` after this method
+    /// completes.
+    ///
+    /// We say that a key `k` is in the map `map` provided that
+    ///
+    /// ```text
+    /// ∀ k :: K. (k ∈ map) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
+    /// ```
+    ///
+    /// The **index** of a key `k` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, k) := i such that map[i].key() = k ∧ (∀ j ∈ [0, map.len()). j ≠ i ⇒ map[j].key() ≠ k).
+    /// ```
+    ///
+    /// We say that two maps `map1` and `map2` are **equal** if and only if
+    ///
+    /// ```text
+    /// map1 = map2 ⇔ (map1.len() = map2.len()) ∧ (∀ i ∈ [0, map1.len()). map1[i] = map2[i]).
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { key ∈ map_before }
+    /// map.shift_remove(key)
+    /// {
+    ///     result = Some(map_before[key])
+    ///     ∧ map_after.len() = map_before.len() - 1
+    ///     ∧ key ∉ map_after
+    ///     ∧ (let i = index(map_before, key);
+    ///        (∀ j ∈ [0, i). map_after[j] = map_before[j])
+    ///        ∧ (∀ j ∈ [i, map_after.len()). map_after[j] = map_before[j + 1])
+    ///     )
+    /// }
+    ///
+    /// { key ∉ map_before }
+    /// map.shift_remove(key)
+    /// { result = None ∧ map_after = map_before }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
     /// # Examples
     ///
@@ -8727,6 +9013,52 @@ where
     /// In particular, the method acts like a [`pop`] when the last value in the collection is
     /// shift-removed, because the sub-collection of successor entries in the entry storage is empty.
     ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the state
+    /// of `map` before this method is called, `map_after` be the state of `map` after this method
+    /// completes.
+    ///
+    /// We say that a key `k` is in the map `map` provided that
+    ///
+    /// ```text
+    /// ∀ k :: K. (k ∈ map) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
+    /// ```
+    ///
+    /// The **index** of a key `k` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, k) := i such that map[i].key() = k ∧ (∀ j ∈ [0, map.len()). j ≠ i ⇒ map[j].key() ≠ k).
+    /// ```
+    ///
+    /// We say that two maps `map1` and `map2` are **equal** if and only if
+    ///
+    /// ```text
+    /// map1 = map2 ⇔ (map1.len() = map2.len()) ∧ (∀ i ∈ [0, map1.len()). map1[i] = map2[i]).
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { key ∈ map_before }
+    /// map.shift_remove_entry(key)
+    /// {
+    ///     result = Some(map_before[key])
+    ///     ∧ map_after.len() = map_before.len() - 1
+    ///     ∧ key ∉ map_after
+    ///     ∧ (let i = index(map_before, key);
+    ///        (∀ j ∈ [0, i). map_after[j] = map_before[j])
+    ///        ∧ (∀ j ∈ [i, map_after.len()). map_after[j] = map_before[j + 1])
+    ///     )
+    /// }
+    ///
+    /// { key ∉ map_before }
+    /// map.shift_remove_entry(key)
+    /// { result = None ∧ map_after = map_before }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
     /// # Examples
     ///
     /// Showing how shift removal happens.
@@ -8815,6 +9147,52 @@ where
     ///
     /// In particular, the method acts like a [`pop`] when the last value in the collection is
     /// shift-removed, because the sub-collection of successor entries in the entry storage is empty.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the state
+    /// of `map` before this method is called, `map_after` be the state of `map` after this method
+    /// completes.
+    ///
+    /// We say that a key `k` is in the map `map` provided that
+    ///
+    /// ```text
+    /// ∀ k :: K. (k ∈ map) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
+    /// ```
+    ///
+    /// The **index** of a key `k` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, k) := i such that map[i].key() = k ∧ (∀ j ∈ [0, map.len()). j ≠ i ⇒ map[j].key() ≠ k).
+    /// ```
+    ///
+    /// We say that two maps `map1` and `map2` are **equal** if and only if
+    ///
+    /// ```text
+    /// map1 = map2 ⇔ (map1.len() = map2.len()) ∧ (∀ i ∈ [0, map1.len()). map1[i] = map2[i]).
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { key ∈ map_before }
+    /// map.shift_remove_full(key)
+    /// {
+    ///     result = Some(map_before[key])
+    ///     ∧ map_after.len() = map_before.len() - 1
+    ///     ∧ key ∉ map_after
+    ///     ∧ (let i = index(map_before, key);
+    ///        (∀ j ∈ [0, i). map_after[j] = map_before[j])
+    ///        ∧ (∀ j ∈ [i, map_after.len()). map_after[j] = map_before[j + 1])
+    ///     )
+    /// }
+    ///
+    /// { key ∉ map_before }
+    /// map.shift_remove_full(key)
+    /// { result = None ∧ map_after = map_before }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
     /// # Examples
     ///
@@ -8975,6 +9353,40 @@ where
     ///   of the map, so the resulting entry is in last place in the storage order, and the method
     ///   returns `None`.
     ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the state
+    /// of `map` before this method is called, `map_after` be the state of `map` after this method
+    /// completes.
+    ///
+    /// We say that a key `k` is in the map `map` provided that
+    ///
+    /// ```text
+    /// ∀ k :: K. (k ∈ map) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
+    /// ```
+    ///
+    /// ```text
+    /// { key ∈ map_before }
+    /// map.insert(key, value)
+    /// {
+    ///     result = Some(map_before[key])
+    ///     ∧ map_after.len() = map_before.len()
+    ///     ∧ map_after[key] = value
+    ///     ∧ (∀ k ∈ map_before. k ≠ key ⇒ map_after[k] = map_before[k])
+    /// }
+    ///
+    /// { key ∉ map_before }
+    /// map.insert(key, value)
+    /// {
+    ///     result = None
+    ///     ∧ map_after.len() = map_before.len() + 1
+    ///     ∧ map_after[key] = value
+    ///     ∧ (∀ k ∈ map_before. map_after[k] = map_before[k])
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
     /// # Examples
     ///
     /// ```
@@ -9020,6 +9432,40 @@ where
     ///   returns `(index, None)`, where `index` is the index of the last entry in the map in storage
     ///   order.
     ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the state
+    /// of `map` before this method is called, `map_after` be the state of `map` after this method
+    /// completes.
+    ///
+    /// We say that a key `k` is in the map `map` provided that
+    ///
+    /// ```text
+    /// ∀ k :: K. (k ∈ map) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
+    /// ```
+    ///
+    /// ```text
+    /// { key ∈ map_before }
+    /// map.insert_full(key, value)
+    /// {
+    ///     result = Some(map_before[key])
+    ///     ∧ map_after.len() = map_before.len()
+    ///     ∧ map_after[key] = value
+    ///     ∧ (∀ k ∈ map_before. k ≠ key ⇒ map_after[k] = map_before[k])
+    /// }
+    ///
+    /// { key ∉ map_before }
+    /// map.insert_full(key, value)
+    /// {
+    ///     result = None
+    ///     ∧ map_after.len() = map_before.len() + 1
+    ///     ∧ map_after[key] = value
+    ///     ∧ (∀ k ∈ map_before. map_after[k] = map_before[k])
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
     /// # Examples
     ///
     /// ```
@@ -9058,14 +9504,18 @@ where
     /// An index map is in **sorted order by key** if it satisfies the following property: let `e1`
     /// and `e2` be entries in `self`. Then `e1.key() <= e2.key()` if and only if `e1.index() <= e2.index()`.
     /// More precisely, given the index map `self`
+    ///
     /// ```text
-    /// forall e1, e2 in self. e1 <= e2 <-> e1.key() <= e2.key() <-> e1.index() <= e2.index().
+    /// forall e1, e2 in self. e1 <= e2 <-> e1.key() <= e2.key() <-> e1.index() <= e2.index()
     /// ```
+    ///
     /// or equivalently over key-value pairs
+    ///
     /// ```text
-    /// forall i1, i2 :: [0..self.len()]. forall k1, k2 :: K. forall v1, v2 :: V.
+    /// forall i1, i2 in [0, self.len()). forall k1, k2 :: K. forall v1, v2 :: V.
     /// (i1, (k1, v1)), (i2, (k2, v2)) in self --> (k1, v1) <= (k2, v2) <-> k1 <= k2 <-> i1 <= i2.
     /// ```
+    ///
     /// Otherwise, the index map is in **unsorted order by key**, or is **unsorted** for short.
     ///
     /// This means that an index map is in sorted order if the total ordering of the keys in the map
@@ -9093,6 +9543,67 @@ where
     /// [`extend`]: TypedProjIndexMap::extend
     /// [`sort_keys`]: TypedProjIndexMap::sort_keys
     /// [`sort_unstable_keys`]: TypedProjIndexMap::sort_unstable_keys
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the state
+    /// of `map` before this method is called, `map_after` be the state of `map` after this method
+    /// completes.
+    ///
+    /// We say that a key `k` is in the map `map` provided that
+    ///
+    /// ```text
+    /// ∀ k :: K. (k ∈ map) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
+    /// ```
+    ///
+    /// The index map `map` is **sorted**, or in **sorted order** if and only if
+    ///
+    /// ```text
+    /// sorted(map) := ∀ i1, i2 ∈ [0, map.len()). (i1 ≤ i2) ⇒ (map[i1].key() ≤ map[i2].key())
+    /// ```
+    ///
+    /// or equivalently over index-key-value triples
+    ///
+    /// ```text
+    /// ∀ i1, i2 ∈ [0, map.len()). ∀ k1, k2 :: K. ∀ v1, v2 :: V.
+    /// ((i1, (k1, v1)) ∈ map ∧ (i2, (k2, v2)) ∈ map) ⇒ (i1 ≤ i2 ⇔ k1 ≤ k2).
+    /// ```
+    ///
+    /// Otherwise, the index map is in **unsorted order by key**, or is **unsorted** for short.
+    ///
+    /// The **index** of a key `k` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, k) := i such that map[i].key() = k ∧ (∀ j ∈ [0, map.len()). j ≠ i ⇒ map[j].key() ≠ k).
+    /// ```
+    ///
+    /// This method satisfies
+    ///
+    /// ```text
+    /// { key ∈ map_before ∧ sorted(map_before) }
+    /// map.insert_sorted(key, value)
+    /// {
+    ///     result = Some(map_before[key])
+    ///     ∧ map_after[key] = value
+    ///     ∧ map_after.len() = map_before.len()
+    ///     ∧ (∀ k ∈ map_before. k ≠ key ⇒ map_after[k] = map_before[k])
+    ///     ∧ sorted(map_after)
+    /// }
+    ///
+    /// { key ∉ map_before ∧ sorted(map_before) }
+    /// map.insert_sorted(key, value)
+    /// {
+    ///     result = None
+    ///     ∧ map_after[key] = value
+    ///     ∧ map_after.len() = map_before.len() + 1
+    ///     ∧ (∀ k ∈ map_before. map_after[k] = map_before[k])
+    ///     ∧ (∀ i < index(map_after, key). map_after[i].key() ≤ key
+    ///        ∧ ∀ i > index(map_after, key). key ≤ map_after[i].key())
+    ///     ∧ sorted(map_after)
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
     /// # Examples
     ///
@@ -9186,6 +9697,52 @@ where
     ///   inserted exactly at the index `index`, every element in `[index, self.len())` is shifted
     ///   up one index, and the method returns `(index, None)`. When `index == self.len()`,
     ///   the interval `[index, self.len()] == [self.len(), self.len())` is empty, so no shifting occurs.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the state
+    /// of `map` before this method is called, `map_after` be the state of `map` after this method
+    /// completes. Let `result` be the return value of this method after it completes.
+    ///
+    /// We say that a key `k` is in the map `map` provided that
+    ///
+    /// ```text
+    /// ∀ k :: K. (k ∈ map) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
+    /// ```
+    ///
+    /// The **index** of a key `k` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, k) := i such that map[i].key() = k ∧ (∀ j ∈ [0, map.len()). j ≠ i ⇒ map[j].key() ≠ k)
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { index ∈ [0, map_before.len()] ∧ key ∈ map_before }
+    /// map.insert_before(index, key, value)
+    /// {
+    ///     result = (new_index, Some(map_before[key]))
+    ///     ∧ map_after[key] = value
+    ///     ∧ map_after.len() = map_before.len()
+    ///     ∧ (∀ k ∈ map_before. k ≠ key ⇒ map_after[k] = map_before[k])
+    ///     ∧ new_index = index(map_after, key)
+    ///     ∧ ((new_index = index) ∨ (new_index = index - 1))
+    /// }
+    ///
+    /// { index ∈ [0, map_before.len()] ∧ key ∉ map_before }
+    /// map.insert_before(index, key, value)
+    /// {
+    ///     result = (index, None)
+    ///     ∧ map_after[key] = value
+    ///     ∧ map_after.len() = map_before.len() + 1
+    ///     ∧ (∀ k ∈ map_before. map_after[k] = map_before[k])
+    ///     ∧ map_after[index].key() = key
+    ///     ∧ (∀ i ∈ [0, map_after.len()). i ≠ index ⇒ map_after[i].key() ≠ key)
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
     /// # Panics
     ///
@@ -9389,6 +9946,76 @@ where
     ///   up one index, and the method returns `None`.
     ///
     /// Note that an existing entry **cannot** be moved to the index `self.len()`.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the state
+    /// of `map` before this method is called, `map_after` be the state of `map` after this method
+    /// completes. Let `result` be the return value of this method after it completes.
+    ///
+    /// We say that a key `k` is in the map `map` provided that
+    ///
+    /// ```text
+    /// ∀ k :: K. (k ∈ map) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
+    /// ```
+    ///
+    /// The **index** of a key `k` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, k) := i such that map[i].key() = k ∧ (∀ j ∈ [0, map.len()). j ≠ i ⇒ map[j].key() ≠ k)
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { index ∈ [0, map_before.len()) ∧ key ∈ map_before ∧ index(map_before, key) = index }
+    /// map.shift_insert(index, key, value)
+    /// {
+    ///     result = Some(map_before[key])
+    ///     ∧ map_after[key] = value
+    ///     ∧ map_after.len() = map_before.len()
+    ///     ∧ (∀ k ∈ map_before. map_after[k] = map_before[k])
+    ///     ∧ map_after[index].key() = key
+    /// }
+    ///
+    /// { index ∈ [0, map_before.len()) ∧ key ∈ map_before ∧ index(map_before, key) < index }
+    /// map.shift_insert(index, key, value)
+    /// {
+    ///     result = Some(map_before[key])
+    ///     ∧ map_after[key] = value
+    ///     ∧ map_after.len() = map_before.len()
+    ///     ∧ (∀ i ∈ [0, old_index). map_after[i] = map_before[i])
+    ///     ∧ (∀ i ∈ [old_index, index - 1]. map_after[i] = map_before[i + 1])
+    ///     ∧ map_after[index].key() = key
+    ///     ∧ (∀ i ∈ [index + 1, map_after.len()). map_after[i] = map_before[i])
+    /// }
+    ///
+    /// { index ∈ [0, map_before.len()) ∧ key ∈ map_before ∧ index(map_before, key) > index }
+    /// map.shift_insert(index, key, value)
+    /// {
+    ///     result = Some(map_before[key])
+    ///     ∧ map_after[key] = value
+    ///     ∧ map_after.len() = map_before.len()
+    ///     ∧ (∀ i ∈ [0, index). map_after[i] = map_before[i])
+    ///     ∧ map_after[index].key() = key
+    ///     ∧ (∀ i ∈ [index + 1, old_index + 1]. map_after[i] = map_before[i - 1])
+    ///     ∧ (∀ i ∈ [old_index + 1, map_after.len()). map_after[i] = map_before[i])
+    /// }
+    ///
+    /// { index ∈ [0, map_before.len()] ∧ key ∉ map_before }
+    /// map.shift_insert(index, key, value)
+    /// {
+    ///     result = None
+    ///     ∧ map_after[key] = value
+    ///     ∧ map_after.len() = map_before.len() + 1
+    ///     ∧ map_after[index].key() = key
+    ///     ∧ (∀ j ∈ [0, map_after.len()). j ≠ index ⇒ map_after[j].key() ≠ key)
+    ///     ∧ (∀ i ∈ [0, index). map_after[i] = map_before[i])
+    ///     ∧ (∀ i ∈ [index + 1, map_after.len()). map_after[i] = map_before[i - 1])
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
     /// # Panics
     ///
@@ -9711,6 +10338,38 @@ where
     ///
     /// [`insert`]: TypedProjIndexMap::insert
     ///
+    /// # Formal Properties
+    ///
+    /// Let `map1` and `map2` be index maps, `map1_before` be the state of `map1` before this method is
+    /// called, `map2_before` be the state of `map2` before this method is called, `map1_after` be the
+    /// state of `map1` after this method completes, and `map2_after` be the state of `map2` after this
+    /// method completes.
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { true }
+    /// map1.append(map2)
+    /// {
+    ///     map1_after.len() = map1_before.len() + map2_before.len()
+    ///     ∧ map2_after.len() = 0
+    ///     ∧ (∀ k ∈ map2_before. k ∈ map1_before ⇒ map1_after[k] = map2_before[k])
+    ///     ∧ (∀ k ∈ map2_before. k ∉ map1_before ⇒ map1_after[k] = map2_before[k])
+    ///     ∧ (∀ k ∈ map1_before. k ∉ map2_before ⇒ map1_after[k] = map1_before[k])
+    ///     ∧ (∀ i ∈ [0, map1_before.len()). map1_after[i].key() = map1_before[i].key())
+    ///     ∧ (∀ j1, j2 ∈ [0, map2_before.len()).
+    ///          ((map2_before[j1].key() ∉ map1_before) ∧ (map2_before[j2].key() ∉ map1_before) ∧ (j1 < j2))
+    ///          ⇒ (∃ i1, i2 ∈ [map1_before.len(), map1_after.len()).
+    ///               i1 < i2
+    ///               ∧ map1_after[i1].key() = map2_before[j1].key()
+    ///               ∧ map1_after[i2].key() = map2_before[j2].key()
+    ///          )
+    ///     )
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
     /// # Examples
     ///
     /// Appending one index map to another when they have no overlapping keys.
@@ -9811,6 +10470,30 @@ where
     ///
     /// This method preserves the order of the remaining elements in the collection.
     ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the state
+    /// of `map` before this method is called, `map_after` be the state of `map` after this method
+    /// completes. Let `result` be the return value of this method after it completes.
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { map_before.len() > 0 }
+    /// map.pop()
+    /// {
+    ///     result = Some(map_before[map_before.len() - 1])
+    ///     ∧ map_after.len() = map_before.len() - 1
+    ///     ∧ (∀ i ∈ [0, map_after.len()). map_after[i] = map_before[i])
+    /// }
+    ///
+    /// { map_before.len() = 0 }
+    /// map.pop()
+    /// { result = None ∧ map_after.len() = 0 }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
     /// # Examples
     ///
     /// Popping from a nonempty index map.
@@ -9875,6 +10558,47 @@ where
     /// the storage order of the retained entries. Stated difference, this method keeps only those
     /// entries `e` for which `keep(&e)` returns `true`.
     ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the state
+    /// of `map` before this method is called, `map_after` be the state of `map` after this method
+    /// completes. Let `result` be the return value of this method after it completes. Let `keep` be
+    /// the filtering function for entries in `map`.
+    ///
+    /// We say that a key-value pair `e :: (K, V)` is an **entry** in the map `map` if and only if
+    ///
+    /// ```text
+    /// ∀ e :: (K, V). e ∈ map ⇔ (∃ i ∈ [0, map.len()). map[i] = e).
+    /// ```
+    ///
+    /// We say that a key `k` is in the map `map` provided that
+    ///
+    /// ```text
+    /// ∀ k :: K. (k ∈ map) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
+    /// ```
+    ///
+    /// The **index** of a key `k` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, k) := i such that map[i].key() = k ∧ (∀ j ∈ [0, map.len()). j ≠ i ⇒ map[j].key() ≠ k)
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { true }
+    /// map.retain(f)
+    /// {
+    ///     map_after.len() ≤ map_before.len()
+    ///     ∧ (∀ (k, v) ∈ map_after. k ∈ map_before ∧ f(k, v))
+    ///     ∧ (∀ (k, v) ∈ map_before. f(k, v) ⇒ (k, v') ∈ map_after ∧ (if f mutated v, then v' is the updated value, else v' = v))
+    ///     ∧ (∀ (k, v) ∈ map_before. ¬f(k, v) ⇒ k ∉ map_after)
+    ///     ∧ (∀ k1, k2 ∈ map_after. index(map_before, k1) < index(map_before, k2) ⇒ index(map_after, k1) < index(map_after, k2))
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
     /// # Examples
     ///
     /// ```
@@ -9928,14 +10652,18 @@ where
     /// An index map is in **sorted order by key** if it satisfies the following property: let `e1`
     /// and `e2` be entries in `self`. Then `e1.key() <= e2.key()` if and only if `e1.index() <= e2.index()`.
     /// More precisely, given the index map `self`
+    ///
     /// ```text
-    /// forall e1, e2 in self. e1 <= e2 <-> e1.key() <= e2.key() <-> e1.index() <= e2.index().
+    /// forall e1, e2 in self. e1.index() <= e2.index() <-> e1.key() <= e2.key().
     /// ```
+    ///
     /// or equivalently over key-value pairs
+    ///
     /// ```text
-    /// forall i1, i2 :: [0..self.len()]. forall k1, k2 :: K. forall v1, v2 :: V.
-    /// (i1, (k1, v1)), (i2, (k2, v2)) in self --> (k1, v1) <= (k2, v2) <-> k1 <= k2 <-> i1 <= i2.
+    /// forall i1, i2 in [0, self.len()). forall k1, k2 :: K. forall v1, v2 :: V.
+    /// (i1, (k1, v1)), (i2, (k2, v2)) in self --> i1 <= i2 <-> k1 <= k2
     /// ```
+    ///
     /// Otherwise, the index map is in **unsorted order by key**, or is **unsorted** for short.
     ///
     /// This means that an index map is in sorted order if the total ordering of the keys in the map
@@ -9943,6 +10671,50 @@ where
     /// is in sorted order, and **unsorted** otherwise.
     ///
     /// After this method completes, the index map will be in stable sorted order.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the state
+    /// of `map` before this method is called, `map_after` be the state of `map` after this method
+    /// completes.
+    ///
+    /// We say that a key-value pair `(k, v) :: (K, V)` is an **entry** in the map `map` if and only if
+    ///
+    /// ```text
+    /// ∀ (k, v) :: (K, V). (k, v) ∈ map ⇔ (∃ i ∈ [0, map.len()). map[i] = (k, v)).
+    /// ```
+    ///
+    /// An index map `map1` is a **permutation** of an index map `map2` if it satisfies
+    ///
+    /// ```text
+    /// is_permutation(map1, map2) :=
+    ///     map1.len() = map2.len()
+    ///     ∧ (∀ i ∈ [0, map1.len()). ∃ j ∈ [0, map2.len()). map1[i] = map2[j])
+    ///     ∧ (∀ i ∈ [0, map2.len()). ∃ j ∈ [0, map1.len()). map2[i] = map1[j])
+    /// ```
+    ///
+    /// Note that multiset equality is not needed here because every key is unique in an index map.
+    ///
+    /// The index map `map` is **sorted** with respect to its keys if
+    ///
+    /// ```text
+    /// sorted(map) := ∀ i ∈ [0, map.len() - 1). map[i].key() ≤ map[i + 1].key().
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { true }
+    /// map.sort_keys()
+    /// {
+    ///     map_after.len() = map_before.len()
+    ///     ∧ is_permutation(map_after, map_before)
+    ///     ∧ sorted(map_after)
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`. This sort is
+    /// stable because keys are unique.
     ///
     /// # Examples
     ///
@@ -9980,6 +10752,72 @@ where
     ///
     /// After this method completes, the index map will be in stable sorted order with the ordering
     /// defined by the comparison function.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the state
+    /// of `map` before this method is called, `map_after` be the state of `map` after this method
+    /// completes.
+    ///
+    /// A **comparator** is a map `cmp : K ⨯ V ⨯ K ⨯ V → Ordering` such that given entries
+    /// `(k1, v1) :: (K, V)` and `(k2, v2) :: (K, V)` from a partially ordered collection of entries
+    ///
+    /// ```text
+    /// cmp(k1, v1, k2, v2) = Ordering::Greater when (k1, v1) > (k2, v2)
+    /// cmp(k1, v2, k2, v2) = Ordering::Less    when (k1, v1) < (k2, v2)
+    /// cmp(k1, v1, k2, v2) = Ordering::Equal   when (k1, v1) = (k2, v2)
+    /// ```
+    ///
+    /// An index map `map1` is a **permutation** of an index map `map2` if it satisfies
+    ///
+    /// ```text
+    /// is_permutation(map1, map2) :=
+    ///     map1.len() = map2.len()
+    ///     ∧ (∀ i ∈ [0, map1.len()). ∃ j ∈ [0, map2.len()). map1[i] = map2[j])
+    ///     ∧ (∀ i ∈ [0, map2.len()). ∃ j ∈ [0, map1.len()). map2[i] = map1[j])
+    /// ```
+    ///
+    /// Note that multiset equality is not needed here because every key is unique in an index map.
+    ///
+    /// The **index** of a key `k` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, k) := i such that map[i].key() = k ∧ (∀ j ∈ [0, map.len()). j ≠ i ⇒ map[j].key() ≠ k)
+    /// ```
+    ///
+    /// The index map `map` is **sorted** with respect to the comparator `cmp` if
+    ///
+    /// ```text
+    /// sorted(map, cmp) := ∀ i ∈ [0, map.len() - 1).
+    ///     cmp(map[i].key(), map[i].value(), map[i + 1].key(), map[i + 1].value()) != Greater
+    /// ```
+    ///
+    /// holds. We say that the sort is **stable** if and only if
+    ///
+    /// ```text
+    /// stable_sorted(map, original, cmp) :=
+    ///     sorted(map, cmp)
+    ///     ∧ ∀ i, j ∈ [0, original.len()).
+    ///         (cmp(original[i].key(), original[i].value(), original[j].key(), original[j].value()) = Equal ∧ (i < j))
+    ///         ⇒
+    ///         (index(map, original[i].key()) < index(map, original[j].key()))
+    /// ```
+    ///
+    /// holds.
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { true }
+    /// map.sort_by(cmp)
+    /// {
+    ///     map_after.len() = map_before.len()
+    ///     ∧ is_permutation(map_after, map_before)
+    ///     ∧ stable_sorted(map_after, map_before, cmp)
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
     /// # Examples
     ///
@@ -10061,6 +10899,50 @@ where
     ///
     /// After this method completes, the index map will be in unstable sorted order.
     ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the state
+    /// of `map` before this method is called, `map_after` be the state of `map` after this method
+    /// completes.
+    ///
+    /// We say that a key-value pair `(k, v) :: (K, V)` is an **entry** in the map `map` if and only if
+    ///
+    /// ```text
+    /// ∀ (k, v) :: (K, V). (k, v) ∈ map ⇔ (∃ i ∈ [0, map.len()). map[i] = (k, v)).
+    /// ```
+    ///
+    /// An index map `map1` is a **permutation** of an index map `map2` if it satisfies
+    ///
+    /// ```text
+    /// is_permutation(map1, map2) :=
+    ///     map1.len() = map2.len()
+    ///     ∧ (∀ i ∈ [0, map1.len()). ∃ j ∈ [0, map2.len()). map1[i] = map2[j])
+    ///     ∧ (∀ i ∈ [0, map2.len()). ∃ j ∈ [0, map1.len()). map2[i] = map1[j])
+    /// ```
+    ///
+    /// Note that multiset equality is not needed here because every key is unique in an index map.
+    ///
+    /// The index map `map` is **sorted** with respect to its keys if
+    ///
+    /// ```text
+    /// sorted(map) := ∀ i ∈ [0, map.len() - 1). map[i].key() ≤ map[i + 1].key().
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { true }
+    /// map.sort_unstable_keys()
+    /// {
+    ///     map_after.len() = map_before.len()
+    ///     ∧ is_permutation(map_after, map_before)
+    ///     ∧ sorted(map_after)
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`. This sort is
+    /// stable because keys are unique.
+    ///
     /// # Examples
     ///
     /// ```
@@ -10103,6 +10985,61 @@ where
     ///
     /// After this method completes, the index map will be in unstable sorted order with the ordering
     /// defined by the comparison function.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the state
+    /// of `map` before this method is called, `map_after` be the state of `map` after this method
+    /// completes.
+    ///
+    /// A **comparator** is a map `cmp : K ⨯ V ⨯ K ⨯ V → Ordering` such that given entries
+    /// `(k1, v1) :: (K, V)` and `(k2, v2) :: (K, V)` from a partially ordered collection of entries
+    ///
+    /// ```text
+    /// cmp(k1, v1, k2, v2) = Ordering::Greater when (k1, v1) > (k2, v2)
+    /// cmp(k1, v2, k2, v2) = Ordering::Less    when (k1, v1) < (k2, v2)
+    /// cmp(k1, v1, k2, v2) = Ordering::Equal   when (k1, v1) = (k2, v2)
+    /// ```
+    ///
+    /// An index map `map1` is a **permutation** of an index map `map2` if it satisfies
+    ///
+    /// ```text
+    /// is_permutation(map1, map2) :=
+    ///     map1.len() = map2.len()
+    ///     ∧ (∀ i ∈ [0, map1.len()). ∃ j ∈ [0, map2.len()). map1[i] = map2[j])
+    ///     ∧ (∀ i ∈ [0, map2.len()). ∃ j ∈ [0, map1.len()). map2[i] = map1[j])
+    /// ```
+    ///
+    /// Note that multiset equality is not needed here because every key is unique in an index map.
+    ///
+    /// The **index** of a key `k` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, k) := i such that map[i].key() = k ∧ (∀ j ∈ [0, map.len()). j ≠ i ⇒ map[j].key() ≠ k)
+    /// ```
+    ///
+    /// The index map `map` is **sorted** with respect to the comparator `cmp` if
+    ///
+    /// ```text
+    /// sorted(map, cmp) := ∀ i ∈ [0, map.len() - 1).
+    ///     cmp(map[i].key(), map[i].value(), map[i + 1].key(), map[i + 1].value()) != Greater
+    /// ```
+    ///
+    /// holds.
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { true }
+    /// map.sort_unstable_by(cmp)
+    /// {
+    ///     map_after.len() = map_before.len()
+    ///     ∧ is_permutation(map_after, map_before)
+    ///     ∧ sorted(map_after cmp)
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
     /// # Examples
     ///
@@ -11500,6 +12437,44 @@ where
     ///   removed entry.
     /// * If `index >= self.len()`, the index `index` is out of bounds, so the method returns `None`.
     ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the state
+    /// of `map` before this method is called, `map_after` be the state of `map` after this method
+    /// completes.
+    ///
+    /// The **last entry** in the map `map` when `map` is non-empty is defined by
+    ///
+    /// ```text
+    /// last(map) := map[map.len() - 1].
+    /// ```
+    ///
+    /// We say that two maps `map1` and `map2` are **equal** if and only if
+    ///
+    /// ```text
+    /// map1 = map2 ⇔ (map1.len() = map2.len()) ∧ (∀ i ∈ [0, map1.len()). map1[i] = map2[i]).
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { index < map_before.len() }
+    /// map.swap_remove_index(index)
+    /// {
+    ///     result = Some(map_before[index])
+    ///     ∧ map_after.len() = map_before.len() - 1
+    ///     ∧ (∀ i ∈ [0, index). map_after[i] = map_before[i])
+    ///     ∧ (index < map_before.len() - 1 ⇒ map_after[index] = last(map_before))
+    ///     ∧ (∀ i ∈ [index + 1, map_after.len()). map_after[i] = map_before[i])
+    /// }
+    ///
+    /// { index ≥ map_before.len() }
+    /// map.swap_remove_index(index)
+    /// { result = None ∧ map_after = map_before }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
     /// # Examples
     ///
     /// ```
@@ -11537,6 +12512,37 @@ where
     /// * If `index >= self.len()`, the index `index` is out of bounds, so the method returns `None`.
     /// Note that when `self.len() == 1`, `self` is empty, so no shifting occurs.
     ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the state
+    /// of `map` before this method is called, `map_after` be the state of `map` after this method
+    /// completes.
+    ///
+    /// We say that two maps `map1` and `map2` are **equal** if and only if
+    ///
+    /// ```text
+    /// map1 = map2 ⇔ (map1.len() = map2.len()) ∧ (∀ i ∈ [0, map1.len()). map1[i] = map2[i]).
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { 0 ≤ index < map_before.len() }
+    /// map.shift_remove_index(index)
+    /// {
+    ///     result = Some(map_before[index])
+    ///     ∧ map_after.len() = map_before.len() - 1
+    ///     ∧ (∀ i ∈ [0, index). map_after[i] = map_before[i])
+    ///     ∧ (∀ i ∈ [index, map_after.len()). map_after[i] = map_before[i + 1])
+    /// }
+    ///
+    /// { index ≥ map_before.len() }
+    /// map.shift_remove_index(index)
+    /// { result = None ∧ map_after = map_before }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
     /// # Examples
     ///
     /// ```
@@ -11571,6 +12577,48 @@ where
     /// This method behaves as follows:
     /// * If `from < to`, the other pairs will shift up while the targeted pair moves down.
     /// * If `from > to`, the other pairs will shift down while the targeted pair moves up.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the state
+    /// of `map` before this method is called, `map_after` be the state of `map` after this method
+    /// completes.
+    ///
+    /// We say that two maps `map1` and `map2` are **equal** if and only if
+    ///
+    /// ```text
+    /// map1 = map2 ⇔ (map1.len() = map2.len()) ∧ (∀ i ∈ [0, map1.len()). map1[i] = map2[i]).
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { from < map_before.len() ∧ to < map_before.len() ∧ from < to }
+    /// map.move_index(from, to)
+    /// {
+    ///     map_after.len() = map_before.len()
+    ///     ∧ map_after[to] = map_before[from]
+    ///     ∧ (∀ i ∈ [0, from). map_after[i] = map_before[i])
+    ///     ∧ (∀ i ∈ [from, to). map_after[i] = map_before[i + 1])
+    ///     ∧ (∀ i ∈ [to + 1, map_after.len()). map_after[i] = map_before[i])
+    /// }
+    ///
+    /// { from < map_before.len() ∧ to < map_before.len() ∧ from > to }
+    /// map.move_index(from, to)
+    /// {
+    ///     map_after.len() = map_before.len()
+    ///     ∧ map_after[to] = map_before[from]
+    ///     ∧ (∀ i ∈ [0, to). map_after[i] = map_before[i])
+    ///     ∧ (∀ i ∈ [to, from). map_after[i + 1] = map_before[i])
+    ///     ∧ (∀ i ∈ [from + 1, map_after.len()). map_after[i] = map_before[i])
+    /// }
+    ///
+    /// { from < map_before.len() ∧ to < map_before.len() ∧ from = to }
+    /// map.move_index(from, to)
+    /// { map_after = map_before }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
     /// # Panics
     ///
@@ -11631,6 +12679,27 @@ where
     }
 
     /// Swaps the position of two entries in the index map.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the state
+    /// of `map` before this method is called, `map_after` be the state of `map` after this method
+    /// completes.
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { a < map_before.len() ∧ b < map_before.len() }
+    /// map.swap_indices(a, b)
+    /// {
+    ///     map_after.len() = map_before.len()
+    ///     ∧ map_after[a] = map_before[b]
+    ///     ∧ map_after[b] = map_before[a]
+    ///     ∧ (∀ i ∈ [0, map_after.len()). i ∉ {a, b} ⇒ map_after[i] = map_before[i])
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
     /// # Panics
     ///
@@ -13111,6 +14180,11 @@ impl OpaqueIndexMap {
     /// Returns the length of the type-erased index map.
     ///
     /// The **length** of a type-erased index map is the number of key-value pairs stored inside it.
+    /// The length satisfies the following. Given an index map `map`
+    ///
+    /// ```text
+    /// map.len() ≤ map.capacity().
+    /// ```
     ///
     /// # Examples
     ///
@@ -13151,6 +14225,11 @@ impl OpaqueIndexMap {
     /// Determines whether the type-erased index map is empty.
     ///
     /// A type-erased index map is **empty** if it contains no key-value pairs, i.e. its length is zero.
+    /// This method satisfies the following. Given an index map `map`
+    ///
+    /// ```text
+    /// map.is_empty() ⇔ map.len() = 0.
+    /// ```
     ///
     /// # Examples
     ///
@@ -13341,6 +14420,22 @@ impl OpaqueIndexMap {
     ///
     /// This method returns `true` if the key `key` exists in `self`. This method returns `false` if
     /// the key `key` does not exist inside `self`.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with keys of type `K` and values of type `V`. Let `e :: (K, V)` be
+    /// an entry of type `(K, V)`. We say that `map` **contains** a key-value pair `e :: (K, V)`, or that
+    /// `e` is an **entry of** `map` if the following holds:
+    ///
+    /// ```text
+    /// ∀ e :: (K, V). (e ∈ map) ⇔ (∃ i ∈ [0, map.len()). map[i] = e ∧ map[e.key()] = e.value())
+    /// ```
+    ///
+    /// Then this method satisfies the following:
+    ///
+    /// ```text
+    /// ∀ e :: (K, V). map.contains_key(e.key()) ⇔ (e ∈ map) ⇔ (∃ i ∈ [0, map.len()). map[e.key()] = e.value()).
+    /// ```
     ///
     /// # Panics
     ///
@@ -14249,6 +15344,28 @@ impl OpaqueIndexMap {
     /// After calling this method, the collection will be empty. This method does not change the
     /// allocated capacity of the type-erased index map.
     ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the state
+    /// of `map` before this method is called, and `map_after` be the state of `map` after this method
+    /// completes.
+    ///
+    /// We say that a key-value pair `e :: (K, V)` is an **entry** in the map `map` if and only if
+    ///
+    /// ```text
+    /// ∀ e :: (K, V). e ∈ map ⇔ (∃ i ∈ [0, map.len()). map[i] = e).
+    /// ```
+    ///
+    /// The method satisfies:
+    ///
+    /// ```text
+    /// { true }
+    /// map.clear()
+    /// { map_after.len() = 0 ∧ (∀ e ∈ map_before. e ∉ map_after) }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
@@ -14834,6 +15951,69 @@ impl OpaqueIndexMap {
     ///   corresponding to the key `key`.
     /// * If the key `key` does not exist in the index map, the method returns `None`.
     ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the state
+    /// of `map` before this method is called, `map_after` be the state of `map` after this method
+    /// completes.
+    ///
+    /// The set of **keys** in the map `map` is defined as
+    ///
+    /// ```text
+    /// keys(map) := { k :: K | ∃ i ∈ [0, map.len()). map[i].key() = k }
+    /// ```
+    ///
+    /// or equivalently
+    ///
+    /// ```text
+    /// ∀ k :: K. (k ∈ keys(map)) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
+    /// ```
+    ///
+    /// We also say that a key `k` is in the map `map` provided that
+    ///
+    /// ```text
+    /// ∀ k :: K. k ∈ map ⇔ k ∈ keys(map).
+    /// ```
+    ///
+    /// The **index** of a key `k` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, k) := i such that map[i].key() = k ∧ (∀ j ∈ [0, map.len()). j ≠ i ⇒ map[j].key() ≠ k).
+    /// ```
+    ///
+    /// The **last entry** in the map `map` when `map` is non-empty is defined by
+    ///
+    /// ```text
+    /// last(map) := map[map.len() - 1].
+    /// ```
+    ///
+    /// We say that two maps `map1` and `map2` are **equal** if and only if
+    ///
+    /// ```text
+    /// map1 = map2 ⇔ (map1.len() = map2.len()) ∧ (∀ i ∈ [0, map1.len()). map1[i] = map2[i]).
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { key ∈ map_before }
+    /// map.swap_remove(key)
+    /// {
+    ///     result = Some(map_before[key])
+    ///     ∧ map_after.len() = map_before.len() - 1
+    ///     ∧ key ∉ map_after
+    ///     ∧ (map_after[index(map_before, key)] = last(map_before)
+    ///        ∧ (∀ k ∈ keys(map_after). k ≠ last(map_before).key() ∧ k ≠ key ⇒ map_after[k] = map_before[k])
+    ///     )
+    /// }
+    ///
+    /// { key ∉ map_before }
+    /// map.swap_remove(key)
+    /// { result = None ∧ map_after = map_before }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
@@ -14986,6 +16166,69 @@ impl OpaqueIndexMap {
     ///   stored in the index map corresponding to the key `key`.
     /// * If the key `key` does not exist in the index map, the method returns `None`.
     ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the state
+    /// of `map` before this method is called, `map_after` be the state of `map` after this method
+    /// completes.
+    ///
+    /// The set of **keys** in the map `map` is defined as
+    ///
+    /// ```text
+    /// keys(map) := { k :: K | ∃ i ∈ [0, map.len()). map[i].key() = k }
+    /// ```
+    ///
+    /// or equivalently
+    ///
+    /// ```text
+    /// ∀ k :: K. (k ∈ keys(map)) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
+    /// ```
+    ///
+    /// We also say that a key `k` is in the map `map` provided that
+    ///
+    /// ```text
+    /// ∀ k :: K. k ∈ map ⇔ k ∈ keys(map).
+    /// ```
+    ///
+    /// The **index** of a key `k` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, k) := i such that map[i].key() = k ∧ (∀ j ∈ [0, map.len()). j ≠ i ⇒ map[j].key() ≠ k).
+    /// ```
+    ///
+    /// The **last entry** in the map `map` when `map` is non-empty is defined by
+    ///
+    /// ```text
+    /// last(map) := map[map.len() - 1].
+    /// ```
+    ///
+    /// We say that two maps `map1` and `map2` are **equal** if and only if
+    ///
+    /// ```text
+    /// map1 = map2 ⇔ (map1.len() = map2.len()) ∧ (∀ i ∈ [0, map1.len()). map1[i] = map2[i]).
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { key ∈ map_before }
+    /// map.swap_remove_entry(key)
+    /// {
+    ///     result = Some(map_before[key])
+    ///     ∧ map_after.len() = map_before.len() - 1
+    ///     ∧ key ∉ map_after
+    ///     ∧ (map_after[index(map_before, key)] = last(map_before)
+    ///        ∧ (∀ k ∈ keys(map_after). k ≠ last(map_before).key() ∧ k ≠ key ⇒ map_after[k] = map_before[k])
+    ///     )
+    /// }
+    ///
+    /// { key ∉ map_before }
+    /// map.swap_remove_entry(key)
+    /// { result = None ∧ map_after = map_before }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
@@ -15137,6 +16380,69 @@ impl OpaqueIndexMap {
     ///   The method then returns `Some((index, key, value))`, where `(key, value)` is the key-value
     ///   pair stored in the index map corresponding to the key `key`.
     /// * If the key `key` does not exist in the index map, the method returns `None`.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the state
+    /// of `map` before this method is called, `map_after` be the state of `map` after this method
+    /// completes.
+    ///
+    /// The set of **keys** in the map `map` is defined as
+    ///
+    /// ```text
+    /// keys(map) := { k :: K | ∃ i ∈ [0, map.len()). map[i].key() = k }
+    /// ```
+    ///
+    /// or equivalently
+    ///
+    /// ```text
+    /// ∀ k :: K. (k ∈ keys(map)) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
+    /// ```
+    ///
+    /// We also say that a key `k` is in the map `map` provided that
+    ///
+    /// ```text
+    /// ∀ k :: K. k ∈ map ⇔ k ∈ keys(map).
+    /// ```
+    ///
+    /// The **index** of a key `k` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, k) := i such that map[i].key() = k ∧ (∀ j ∈ [0, map.len()). j ≠ i ⇒ map[j].key() ≠ k).
+    /// ```
+    ///
+    /// The **last entry** in the map `map` when `map` is non-empty is defined by
+    ///
+    /// ```text
+    /// last(map) := map[map.len() - 1].
+    /// ```
+    ///
+    /// We say that two maps `map1` and `map2` are **equal** if and only if
+    ///
+    /// ```text
+    /// map1 = map2 ⇔ (map1.len() = map2.len()) ∧ (∀ i ∈ [0, map1.len()). map1[i] = map2[i]).
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { key ∈ map_before }
+    /// map.swap_remove_full(key)
+    /// {
+    ///     result = Some(map_before[key])
+    ///     ∧ map_after.len() = map_before.len() - 1
+    ///     ∧ key ∉ map_after
+    ///     ∧ (map_after[index(map_before, key)] = last(map_before)
+    ///        ∧ (∀ k ∈ keys(map_after). k ≠ last(map_before).key() ∧ k ≠ key ⇒ map_after[k] = map_before[k])
+    ///     )
+    /// }
+    ///
+    /// { key ∉ map_before }
+    /// map.swap_remove_full(key)
+    /// { result = None ∧ map_after = map_before }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
     /// # Panics
     ///
@@ -15291,6 +16597,52 @@ impl OpaqueIndexMap {
     ///
     /// In particular, the method acts like a [`pop`] when the last value in the collection is
     /// shift-removed, because the sub-collection of successor entries in the entry storage is empty.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the state
+    /// of `map` before this method is called, `map_after` be the state of `map` after this method
+    /// completes.
+    ///
+    /// We say that a key `k` is in the map `map` provided that
+    ///
+    /// ```text
+    /// ∀ k :: K. (k ∈ map) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
+    /// ```
+    ///
+    /// The **index** of a key `k` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, k) := i such that map[i].key() = k ∧ (∀ j ∈ [0, map.len()). j ≠ i ⇒ map[j].key() ≠ k).
+    /// ```
+    ///
+    /// We say that two maps `map1` and `map2` are **equal** if and only if
+    ///
+    /// ```text
+    /// map1 = map2 ⇔ (map1.len() = map2.len()) ∧ (∀ i ∈ [0, map1.len()). map1[i] = map2[i]).
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { key ∈ map_before }
+    /// map.shift_remove(key)
+    /// {
+    ///     result = Some(map_before[key])
+    ///     ∧ map_after.len() = map_before.len() - 1
+    ///     ∧ key ∉ map_after
+    ///     ∧ (let i = index(map_before, key);
+    ///        (∀ j ∈ [0, i). map_after[j] = map_before[j])
+    ///        ∧ (∀ j ∈ [i, map_after.len()). map_after[j] = map_before[j + 1])
+    ///     )
+    /// }
+    ///
+    /// { key ∉ map_before }
+    /// map.shift_remove(key)
+    /// { result = None ∧ map_after = map_before }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
     /// # Panics
     ///
@@ -15449,6 +16801,52 @@ impl OpaqueIndexMap {
     /// In particular, the method acts like a [`pop`] when the last value in the collection is
     /// shift-removed, because the sub-collection of successor entries in the entry storage is empty.
     ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the state
+    /// of `map` before this method is called, `map_after` be the state of `map` after this method
+    /// completes.
+    ///
+    /// We say that a key `k` is in the map `map` provided that
+    ///
+    /// ```text
+    /// ∀ k :: K. (k ∈ map) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
+    /// ```
+    ///
+    /// The **index** of a key `k` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, k) := i such that map[i].key() = k ∧ (∀ j ∈ [0, map.len()). j ≠ i ⇒ map[j].key() ≠ k).
+    /// ```
+    ///
+    /// We say that two maps `map1` and `map2` are **equal** if and only if
+    ///
+    /// ```text
+    /// map1 = map2 ⇔ (map1.len() = map2.len()) ∧ (∀ i ∈ [0, map1.len()). map1[i] = map2[i]).
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { key ∈ map_before }
+    /// map.shift_remove_entry(key)
+    /// {
+    ///     result = Some(map_before[key])
+    ///     ∧ map_after.len() = map_before.len() - 1
+    ///     ∧ key ∉ map_after
+    ///     ∧ (let i = index(map_before, key);
+    ///        (∀ j ∈ [0, i). map_after[j] = map_before[j])
+    ///        ∧ (∀ j ∈ [i, map_after.len()). map_after[j] = map_before[j + 1])
+    ///     )
+    /// }
+    ///
+    /// { key ∉ map_before }
+    /// map.shift_remove_entry(key)
+    /// { result = None ∧ map_after = map_before }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
@@ -15605,6 +17003,52 @@ impl OpaqueIndexMap {
     ///
     /// In particular, the method acts like a [`pop`] when the last value in the collection is
     /// shift-removed, because the sub-collection of successor entries in the entry storage is empty.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the state
+    /// of `map` before this method is called, `map_after` be the state of `map` after this method
+    /// completes.
+    ///
+    /// We say that a key `k` is in the map `map` provided that
+    ///
+    /// ```text
+    /// ∀ k :: K. (k ∈ map) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
+    /// ```
+    ///
+    /// The **index** of a key `k` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, k) := i such that map[i].key() = k ∧ (∀ j ∈ [0, map.len()). j ≠ i ⇒ map[j].key() ≠ k).
+    /// ```
+    ///
+    /// We say that two maps `map1` and `map2` are **equal** if and only if
+    ///
+    /// ```text
+    /// map1 = map2 ⇔ (map1.len() = map2.len()) ∧ (∀ i ∈ [0, map1.len()). map1[i] = map2[i]).
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { key ∈ map_before }
+    /// map.shift_remove_full(key)
+    /// {
+    ///     result = Some(map_before[key])
+    ///     ∧ map_after.len() = map_before.len() - 1
+    ///     ∧ key ∉ map_after
+    ///     ∧ (let i = index(map_before, key);
+    ///        (∀ j ∈ [0, i). map_after[j] = map_before[j])
+    ///        ∧ (∀ j ∈ [i, map_after.len()). map_after[j] = map_before[j + 1])
+    ///     )
+    /// }
+    ///
+    /// { key ∉ map_before }
+    /// map.shift_remove_full(key)
+    /// { result = None ∧ map_after = map_before }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
     /// # Panics
     ///
@@ -15870,6 +17314,40 @@ impl OpaqueIndexMap {
     ///   of the map, so the resulting entry is in last place in the storage order, and the method
     ///   returns `None`.
     ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the state
+    /// of `map` before this method is called, `map_after` be the state of `map` after this method
+    /// completes.
+    ///
+    /// We say that a key `k` is in the map `map` provided that
+    ///
+    /// ```text
+    /// ∀ k :: K. (k ∈ map) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
+    /// ```
+    ///
+    /// ```text
+    /// { key ∈ map_before }
+    /// map.insert(key, value)
+    /// {
+    ///     result = Some(map_before[key])
+    ///     ∧ map_after.len() = map_before.len()
+    ///     ∧ map_after[key] = value
+    ///     ∧ (∀ k ∈ map_before. k ≠ key ⇒ map_after[k] = map_before[k])
+    /// }
+    ///
+    /// { key ∉ map_before }
+    /// map.insert(key, value)
+    /// {
+    ///     result = None
+    ///     ∧ map_after.len() = map_before.len() + 1
+    ///     ∧ map_after[key] = value
+    ///     ∧ (∀ k ∈ map_before. map_after[k] = map_before[k])
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
@@ -15933,6 +17411,40 @@ impl OpaqueIndexMap {
     ///   of the map, so the resulting entry is in last place in the storage order, and the method
     ///   returns `(index, None)`, where `index` is the index of the last entry in the map in storage
     ///   order.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the state
+    /// of `map` before this method is called, `map_after` be the state of `map` after this method
+    /// completes.
+    ///
+    /// We say that a key `k` is in the map `map` provided that
+    ///
+    /// ```text
+    /// ∀ k :: K. (k ∈ map) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
+    /// ```
+    ///
+    /// ```text
+    /// { key ∈ map_before }
+    /// map.insert_full(key, value)
+    /// {
+    ///     result = Some(map_before[key])
+    ///     ∧ map_after.len() = map_before.len()
+    ///     ∧ map_after[key] = value
+    ///     ∧ (∀ k ∈ map_before. k ≠ key ⇒ map_after[k] = map_before[k])
+    /// }
+    ///
+    /// { key ∉ map_before }
+    /// map.insert_full(key, value)
+    /// {
+    ///     result = None
+    ///     ∧ map_after.len() = map_before.len() + 1
+    ///     ∧ map_after[key] = value
+    ///     ∧ (∀ k ∈ map_before. map_after[k] = map_before[k])
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
     /// # Panics
     ///
@@ -16026,6 +17538,67 @@ impl OpaqueIndexMap {
     /// [`extend`]: OpaqueIndexMap::extend
     /// [`sort_keys`]: OpaqueIndexMap::sort_keys
     /// [`sort_unstable_keys`]: OpaqueIndexMap::sort_unstable_keys
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the state
+    /// of `map` before this method is called, `map_after` be the state of `map` after this method
+    /// completes.
+    ///
+    /// We say that a key `k` is in the map `map` provided that
+    ///
+    /// ```text
+    /// ∀ k :: K. (k ∈ map) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
+    /// ```
+    ///
+    /// The index map `map` is **sorted**, or in **sorted order** if and only if
+    ///
+    /// ```text
+    /// sorted(map) := ∀ i1, i2 ∈ [0, map.len()). (i1 ≤ i2) ⇒ (map[i1].key() ≤ map[i2].key())
+    /// ```
+    ///
+    /// or equivalently over index-key-value triples
+    ///
+    /// ```text
+    /// ∀ i1, i2 ∈ [0, map.len()). ∀ k1, k2 :: K. ∀ v1, v2 :: V.
+    /// ((i1, (k1, v1)) ∈ map ∧ (i2, (k2, v2)) ∈ map) ⇒ (i1 ≤ i2 ⇔ k1 ≤ k2).
+    /// ```
+    ///
+    /// Otherwise, the index map is in **unsorted order by key**, or is **unsorted** for short.
+    ///
+    /// The **index** of a key `k` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, k) := i such that map[i].key() = k ∧ (∀ j ∈ [0, map.len()). j ≠ i ⇒ map[j].key() ≠ k).
+    /// ```
+    ///
+    /// This method satisfies
+    ///
+    /// ```text
+    /// { key ∈ map_before ∧ sorted(map_before) }
+    /// map.insert_sorted(key, value)
+    /// {
+    ///     result = Some(map_before[key])
+    ///     ∧ map_after[key] = value
+    ///     ∧ map_after.len() = map_before.len()
+    ///     ∧ (∀ k ∈ map_before. k ≠ key ⇒ map_after[k] = map_before[k])
+    ///     ∧ sorted(map_after)
+    /// }
+    ///
+    /// { key ∉ map_before ∧ sorted(map_before) }
+    /// map.insert_sorted(key, value)
+    /// {
+    ///     result = None
+    ///     ∧ map_after[key] = value
+    ///     ∧ map_after.len() = map_before.len() + 1
+    ///     ∧ (∀ k ∈ map_before. map_after[k] = map_before[k])
+    ///     ∧ (∀ i < index(map_after, key). map_after[i].key() ≤ key
+    ///        ∧ ∀ i > index(map_after, key). key ≤ map_after[i].key())
+    ///     ∧ sorted(map_after)
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
     /// # Panics
     ///
@@ -16144,6 +17717,52 @@ impl OpaqueIndexMap {
     ///   inserted exactly at the index `index`, every element in `[index, self.len())` is shifted
     ///   up one index, and the method returns `(index, None)`. When `index == self.len()`,
     ///   the interval `[index, self.len()] == [self.len(), self.len())` is empty, so no shifting occurs.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the state
+    /// of `map` before this method is called, `map_after` be the state of `map` after this method
+    /// completes. Let `result` be the return value of this method after it completes.
+    ///
+    /// We say that a key `k` is in the map `map` provided that
+    ///
+    /// ```text
+    /// ∀ k :: K. (k ∈ map) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
+    /// ```
+    ///
+    /// The **index** of a key `k` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, k) := i such that map[i].key() = k ∧ (∀ j ∈ [0, map.len()). j ≠ i ⇒ map[j].key() ≠ k)
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { index ∈ [0, map_before.len()] ∧ key ∈ map_before }
+    /// map.insert_before(index, key, value)
+    /// {
+    ///     result = (new_index, Some(map_before[key]))
+    ///     ∧ map_after[key] = value
+    ///     ∧ map_after.len() = map_before.len()
+    ///     ∧ (∀ k ∈ map_before. k ≠ key ⇒ map_after[k] = map_before[k])
+    ///     ∧ new_index = index(map_after, key)
+    ///     ∧ ((new_index = index) ∨ (new_index = index - 1))
+    /// }
+    ///
+    /// { index ∈ [0, map_before.len()] ∧ key ∉ map_before }
+    /// map.insert_before(index, key, value)
+    /// {
+    ///     result = (index, None)
+    ///     ∧ map_after[key] = value
+    ///     ∧ map_after.len() = map_before.len() + 1
+    ///     ∧ (∀ k ∈ map_before. map_after[k] = map_before[k])
+    ///     ∧ map_after[index].key() = key
+    ///     ∧ (∀ i ∈ [0, map_after.len()). i ≠ index ⇒ map_after[i].key() ≠ key)
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
     /// # Panics
     ///
@@ -16382,6 +18001,76 @@ impl OpaqueIndexMap {
     ///   up one index, and the method returns `None`.
     ///
     /// Note that an existing entry **cannot** be moved to the index `self.len()`.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the state
+    /// of `map` before this method is called, `map_after` be the state of `map` after this method
+    /// completes. Let `result` be the return value of this method after it completes.
+    ///
+    /// We say that a key `k` is in the map `map` provided that
+    ///
+    /// ```text
+    /// ∀ k :: K. (k ∈ map) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
+    /// ```
+    ///
+    /// The **index** of a key `k` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, k) := i such that map[i].key() = k ∧ (∀ j ∈ [0, map.len()). j ≠ i ⇒ map[j].key() ≠ k)
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { index ∈ [0, map_before.len()) ∧ key ∈ map_before ∧ index(map_before, key) = index }
+    /// map.shift_insert(index, key, value)
+    /// {
+    ///     result = Some(map_before[key])
+    ///     ∧ map_after[key] = value
+    ///     ∧ map_after.len() = map_before.len()
+    ///     ∧ (∀ k ∈ map_before. map_after[k] = map_before[k])
+    ///     ∧ map_after[index].key() = key
+    /// }
+    ///
+    /// { index ∈ [0, map_before.len()) ∧ key ∈ map_before ∧ index(map_before, key) < index }
+    /// map.shift_insert(index, key, value)
+    /// {
+    ///     result = Some(map_before[key])
+    ///     ∧ map_after[key] = value
+    ///     ∧ map_after.len() = map_before.len()
+    ///     ∧ (∀ i ∈ [0, old_index). map_after[i] = map_before[i])
+    ///     ∧ (∀ i ∈ [old_index, index - 1]. map_after[i] = map_before[i + 1])
+    ///     ∧ map_after[index].key() = key
+    ///     ∧ (∀ i ∈ [index + 1, map_after.len()). map_after[i] = map_before[i])
+    /// }
+    ///
+    /// { index ∈ [0, map_before.len()) ∧ key ∈ map_before ∧ index(map_before, key) > index }
+    /// map.shift_insert(index, key, value)
+    /// {
+    ///     result = Some(map_before[key])
+    ///     ∧ map_after[key] = value
+    ///     ∧ map_after.len() = map_before.len()
+    ///     ∧ (∀ i ∈ [0, index). map_after[i] = map_before[i])
+    ///     ∧ map_after[index].key() = key
+    ///     ∧ (∀ i ∈ [index + 1, old_index + 1]. map_after[i] = map_before[i - 1])
+    ///     ∧ (∀ i ∈ [old_index + 1, map_after.len()). map_after[i] = map_before[i])
+    /// }
+    ///
+    /// { index ∈ [0, map_before.len()] ∧ key ∉ map_before }
+    /// map.shift_insert(index, key, value)
+    /// {
+    ///     result = None
+    ///     ∧ map_after[key] = value
+    ///     ∧ map_after.len() = map_before.len() + 1
+    ///     ∧ map_after[index].key() = key
+    ///     ∧ (∀ j ∈ [0, map_after.len()). j ≠ index ⇒ map_after[j].key() ≠ key)
+    ///     ∧ (∀ i ∈ [0, index). map_after[i] = map_before[i])
+    ///     ∧ (∀ i ∈ [index + 1, map_after.len()). map_after[i] = map_before[i - 1])
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
     /// # Panics
     ///
@@ -16771,6 +18460,38 @@ impl OpaqueIndexMap {
     ///
     /// [`insert`]: OpaqueIndexMap::insert
     ///
+    /// # Formal Properties
+    ///
+    /// Let `map1` and `map2` be index maps, `map1_before` be the state of `map1` before this method is
+    /// called, `map2_before` be the state of `map2` before this method is called, `map1_after` be the
+    /// state of `map1` after this method completes, and `map2_after` be the state of `map2` after this
+    /// method completes.
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { true }
+    /// map1.append(map2)
+    /// {
+    ///     map1_after.len() = map1_before.len() + map2_before.len()
+    ///     ∧ map2_after.len() = 0
+    ///     ∧ (∀ k ∈ map2_before. k ∈ map1_before ⇒ map1_after[k] = map2_before[k])
+    ///     ∧ (∀ k ∈ map2_before. k ∉ map1_before ⇒ map1_after[k] = map2_before[k])
+    ///     ∧ (∀ k ∈ map1_before. k ∉ map2_before ⇒ map1_after[k] = map1_before[k])
+    ///     ∧ (∀ i ∈ [0, map1_before.len()). map1_after[i].key() = map1_before[i].key())
+    ///     ∧ (∀ j1, j2 ∈ [0, map2_before.len()).
+    ///          ((map2_before[j1].key() ∉ map1_before) ∧ (map2_before[j2].key() ∉ map1_before) ∧ (j1 < j2))
+    ///          ⇒ (∃ i1, i2 ∈ [map1_before.len(), map1_after.len()).
+    ///               i1 < i2
+    ///               ∧ map1_after[i1].key() = map2_before[j1].key()
+    ///               ∧ map1_after[i2].key() = map2_before[j2].key()
+    ///          )
+    ///     )
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
@@ -16898,6 +18619,30 @@ impl OpaqueIndexMap {
     ///
     /// This method preserves the order of the remaining elements in the collection.
     ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the state
+    /// of `map` before this method is called, `map_after` be the state of `map` after this method
+    /// completes. Let `result` be the return value of this method after it completes.
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { map_before.len() > 0 }
+    /// map.pop()
+    /// {
+    ///     result = Some(map_before[map_before.len() - 1])
+    ///     ∧ map_after.len() = map_before.len() - 1
+    ///     ∧ (∀ i ∈ [0, map_after.len()). map_after[i] = map_before[i])
+    /// }
+    ///
+    /// { map_before.len() = 0 }
+    /// map.pop()
+    /// { result = None ∧ map_after.len() = 0 }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
@@ -16990,6 +18735,47 @@ impl OpaqueIndexMap {
     /// the storage order of the retained entries. Stated difference, this method keeps only those
     /// entries `e` for which `keep(&e)` returns `true`.
     ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the state
+    /// of `map` before this method is called, `map_after` be the state of `map` after this method
+    /// completes. Let `result` be the return value of this method after it completes. Let `keep` be
+    /// the filtering function for entries in `map`.
+    ///
+    /// We say that a key-value pair `e :: (K, V)` is an **entry** in the map `map` if and only if
+    ///
+    /// ```text
+    /// ∀ e :: (K, V). e ∈ map ⇔ (∃ i ∈ [0, map.len()). map[i] = e).
+    /// ```
+    ///
+    /// We say that a key `k` is in the map `map` provided that
+    ///
+    /// ```text
+    /// ∀ k :: K. (k ∈ map) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
+    /// ```
+    ///
+    /// The **index** of a key `k` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, k) := i such that map[i].key() = k ∧ (∀ j ∈ [0, map.len()). j ≠ i ⇒ map[j].key() ≠ k)
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { true }
+    /// map.retain(f)
+    /// {
+    ///     map_after.len() ≤ map_before.len()
+    ///     ∧ (∀ (k, v) ∈ map_after. k ∈ map_before ∧ f(k, v))
+    ///     ∧ (∀ (k, v) ∈ map_before. f(k, v) ⇒ (k, v') ∈ map_after ∧ (if f mutated v, then v' is the updated value, else v' = v))
+    ///     ∧ (∀ (k, v) ∈ map_before. ¬f(k, v) ⇒ k ∉ map_after)
+    ///     ∧ (∀ k1, k2 ∈ map_after. index(map_before, k1) < index(map_before, k2) ⇒ index(map_after, k1) < index(map_after, k2))
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
@@ -17063,14 +18849,18 @@ impl OpaqueIndexMap {
     /// An index map is in **sorted order by key** if it satisfies the following property: let `e1`
     /// and `e2` be entries in `self`. Then `e1.key() <= e2.key()` if and only if `e1.index() <= e2.index()`.
     /// More precisely, given the index map `self`
+    ///
     /// ```text
-    /// forall e1, e2 in self. e1 <= e2 <-> e1.key() <= e2.key() <-> e1.index() <= e2.index().
+    /// forall e1, e2 in self. e1.index() <= e2.index() <-> e1.key() <= e2.key().
     /// ```
+    ///
     /// or equivalently over key-value pairs
+    ///
     /// ```text
-    /// forall i1, i2 :: [0..self.len()]. forall k1, k2 :: K. forall v1, v2 :: V.
-    /// (i1, (k1, v1)), (i2, (k2, v2)) in self --> (k1, v1) <= (k2, v2) <-> k1 <= k2 <-> i1 <= i2.
+    /// forall i1, i2 in [0, self.len()). forall k1, k2 :: K. forall v1, v2 :: V.
+    /// (i1, (k1, v1)), (i2, (k2, v2)) in self --> i1 <= i2 <-> k1 <= k2
     /// ```
+    ///
     /// Otherwise, the index map is in **unsorted order by key**, or is **unsorted** for short.
     ///
     /// This means that an index map is in sorted order if the total ordering of the keys in the map
@@ -17078,6 +18868,50 @@ impl OpaqueIndexMap {
     /// is in sorted order, and **unsorted** otherwise.
     ///
     /// After this method completes, the index map will be in stable sorted order.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the state
+    /// of `map` before this method is called, `map_after` be the state of `map` after this method
+    /// completes.
+    ///
+    /// We say that a key-value pair `(k, v) :: (K, V)` is an **entry** in the map `map` if and only if
+    ///
+    /// ```text
+    /// ∀ (k, v) :: (K, V). (k, v) ∈ map ⇔ (∃ i ∈ [0, map.len()). map[i] = (k, v)).
+    /// ```
+    ///
+    /// An index map `map1` is a **permutation** of an index map `map2` if it satisfies
+    ///
+    /// ```text
+    /// is_permutation(map1, map2) :=
+    ///     map1.len() = map2.len()
+    ///     ∧ (∀ i ∈ [0, map1.len()). ∃ j ∈ [0, map2.len()). map1[i] = map2[j])
+    ///     ∧ (∀ i ∈ [0, map2.len()). ∃ j ∈ [0, map1.len()). map2[i] = map1[j])
+    /// ```
+    ///
+    /// Note that multiset equality is not needed here because every key is unique in an index map.
+    ///
+    /// The index map `map` is **sorted** with respect to its keys if
+    ///
+    /// ```text
+    /// sorted(map) := ∀ i ∈ [0, map.len() - 1). map[i].key() ≤ map[i + 1].key().
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { true }
+    /// map.sort_keys()
+    /// {
+    ///     map_after.len() = map_before.len()
+    ///     ∧ is_permutation(map_after, map_before)
+    ///     ∧ sorted(map_after)
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`. This sort is
+    /// stable because keys are unique.
     ///
     /// # Panics
     ///
@@ -17134,6 +18968,72 @@ impl OpaqueIndexMap {
     ///
     /// After this method completes, the index map will be in stable sorted order with the ordering
     /// defined by the comparison function.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the state
+    /// of `map` before this method is called, `map_after` be the state of `map` after this method
+    /// completes.
+    ///
+    /// A **comparator** is a map `cmp : K ⨯ V ⨯ K ⨯ V → Ordering` such that given entries
+    /// `(k1, v1) :: (K, V)` and `(k2, v2) :: (K, V)` from a partially ordered collection of entries
+    ///
+    /// ```text
+    /// cmp(k1, v1, k2, v2) = Ordering::Greater when (k1, v1) > (k2, v2)
+    /// cmp(k1, v2, k2, v2) = Ordering::Less    when (k1, v1) < (k2, v2)
+    /// cmp(k1, v1, k2, v2) = Ordering::Equal   when (k1, v1) = (k2, v2)
+    /// ```
+    ///
+    /// An index map `map1` is a **permutation** of an index map `map2` if it satisfies
+    ///
+    /// ```text
+    /// is_permutation(map1, map2) :=
+    ///     map1.len() = map2.len()
+    ///     ∧ (∀ i ∈ [0, map1.len()). ∃ j ∈ [0, map2.len()). map1[i] = map2[j])
+    ///     ∧ (∀ i ∈ [0, map2.len()). ∃ j ∈ [0, map1.len()). map2[i] = map1[j])
+    /// ```
+    ///
+    /// Note that multiset equality is not needed here because every key is unique in an index map.
+    ///
+    /// The **index** of a key `k` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, k) := i such that map[i].key() = k ∧ (∀ j ∈ [0, map.len()). j ≠ i ⇒ map[j].key() ≠ k)
+    /// ```
+    ///
+    /// The index map `map` is **sorted** with respect to the comparator `cmp` if
+    ///
+    /// ```text
+    /// sorted(map, cmp) := ∀ i ∈ [0, map.len() - 1).
+    ///     cmp(map[i].key(), map[i].value(), map[i + 1].key(), map[i + 1].value()) != Greater
+    /// ```
+    ///
+    /// holds. We say that the sort is **stable** if and only if
+    ///
+    /// ```text
+    /// stable_sorted(map, original, cmp) :=
+    ///     sorted(map, cmp)
+    ///     ∧ ∀ i, j ∈ [0, original.len()).
+    ///         (cmp(original[i].key(), original[i].value(), original[j].key(), original[j].value()) = Equal ∧ (i < j))
+    ///         ⇒
+    ///         (index(map, original[i].key()) < index(map, original[j].key()))
+    /// ```
+    ///
+    /// holds.
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { true }
+    /// map.sort_by(cmp)
+    /// {
+    ///     map_after.len() = map_before.len()
+    ///     ∧ is_permutation(map_after, map_before)
+    ///     ∧ stable_sorted(map_after, map_before, cmp)
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
     /// # Panics
     ///
@@ -17255,6 +19155,50 @@ impl OpaqueIndexMap {
     ///
     /// After this method completes, the index map will be in unstable sorted order.
     ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the state
+    /// of `map` before this method is called, `map_after` be the state of `map` after this method
+    /// completes.
+    ///
+    /// We say that a key-value pair `(k, v) :: (K, V)` is an **entry** in the map `map` if and only if
+    ///
+    /// ```text
+    /// ∀ (k, v) :: (K, V). (k, v) ∈ map ⇔ (∃ i ∈ [0, map.len()). map[i] = (k, v)).
+    /// ```
+    ///
+    /// An index map `map1` is a **permutation** of an index map `map2` if it satisfies
+    ///
+    /// ```text
+    /// is_permutation(map1, map2) :=
+    ///     map1.len() = map2.len()
+    ///     ∧ (∀ i ∈ [0, map1.len()). ∃ j ∈ [0, map2.len()). map1[i] = map2[j])
+    ///     ∧ (∀ i ∈ [0, map2.len()). ∃ j ∈ [0, map1.len()). map2[i] = map1[j])
+    /// ```
+    ///
+    /// Note that multiset equality is not needed here because every key is unique in an index map.
+    ///
+    /// The index map `map` is **sorted** with respect to its keys if
+    ///
+    /// ```text
+    /// sorted(map) := ∀ i ∈ [0, map.len() - 1). map[i].key() ≤ map[i + 1].key().
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { true }
+    /// map.sort_unstable_keys()
+    /// {
+    ///     map_after.len() = map_before.len()
+    ///     ∧ is_permutation(map_after, map_before)
+    ///     ∧ sorted(map_after)
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`. This sort is
+    /// stable because keys are unique.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
@@ -17316,6 +19260,61 @@ impl OpaqueIndexMap {
     ///
     /// After this method completes, the index map will be in unstable sorted order with the ordering
     /// defined by the comparison function.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the state
+    /// of `map` before this method is called, `map_after` be the state of `map` after this method
+    /// completes.
+    ///
+    /// A **comparator** is a map `cmp : K ⨯ V ⨯ K ⨯ V → Ordering` such that given entries
+    /// `(k1, v1) :: (K, V)` and `(k2, v2) :: (K, V)` from a partially ordered collection of entries
+    ///
+    /// ```text
+    /// cmp(k1, v1, k2, v2) = Ordering::Greater when (k1, v1) > (k2, v2)
+    /// cmp(k1, v2, k2, v2) = Ordering::Less    when (k1, v1) < (k2, v2)
+    /// cmp(k1, v1, k2, v2) = Ordering::Equal   when (k1, v1) = (k2, v2)
+    /// ```
+    ///
+    /// An index map `map1` is a **permutation** of an index map `map2` if it satisfies
+    ///
+    /// ```text
+    /// is_permutation(map1, map2) :=
+    ///     map1.len() = map2.len()
+    ///     ∧ (∀ i ∈ [0, map1.len()). ∃ j ∈ [0, map2.len()). map1[i] = map2[j])
+    ///     ∧ (∀ i ∈ [0, map2.len()). ∃ j ∈ [0, map1.len()). map2[i] = map1[j])
+    /// ```
+    ///
+    /// Note that multiset equality is not needed here because every key is unique in an index map.
+    ///
+    /// The **index** of a key `k` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, k) := i such that map[i].key() = k ∧ (∀ j ∈ [0, map.len()). j ≠ i ⇒ map[j].key() ≠ k)
+    /// ```
+    ///
+    /// The index map `map` is **sorted** with respect to the comparator `cmp` if
+    ///
+    /// ```text
+    /// sorted(map, cmp) := ∀ i ∈ [0, map.len() - 1).
+    ///     cmp(map[i].key(), map[i].value(), map[i + 1].key(), map[i + 1].value()) != Greater
+    /// ```
+    ///
+    /// holds.
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { true }
+    /// map.sort_unstable_by(cmp)
+    /// {
+    ///     map_after.len() = map_before.len()
+    ///     ∧ is_permutation(map_after, map_before)
+    ///     ∧ sorted(map_after cmp)
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
     /// # Panics
     ///
@@ -19314,6 +21313,44 @@ impl OpaqueIndexMap {
     ///   removed entry.
     /// * If `index >= self.len()`, the index `index` is out of bounds, so the method returns `None`.
     ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the state
+    /// of `map` before this method is called, `map_after` be the state of `map` after this method
+    /// completes.
+    ///
+    /// The **last entry** in the map `map` when `map` is non-empty is defined by
+    ///
+    /// ```text
+    /// last(map) := map[map.len() - 1].
+    /// ```
+    ///
+    /// We say that two maps `map1` and `map2` are **equal** if and only if
+    ///
+    /// ```text
+    /// map1 = map2 ⇔ (map1.len() = map2.len()) ∧ (∀ i ∈ [0, map1.len()). map1[i] = map2[i]).
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { index < map_before.len() }
+    /// map.swap_remove_index(index)
+    /// {
+    ///     result = Some(map_before[index])
+    ///     ∧ map_after.len() = map_before.len() - 1
+    ///     ∧ (∀ i ∈ [0, index). map_after[i] = map_before[i])
+    ///     ∧ (index < map_before.len() - 1 ⇒ map_after[index] = last(map_before))
+    ///     ∧ (∀ i ∈ [index + 1, map_after.len()). map_after[i] = map_before[i])
+    /// }
+    ///
+    /// { index ≥ map_before.len() }
+    /// map.swap_remove_index(index)
+    /// { result = None ∧ map_after = map_before }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
@@ -19373,6 +21410,37 @@ impl OpaqueIndexMap {
     /// * If `index >= self.len()`, the index `index` is out of bounds, so the method returns `None`.
     /// Note that when `self.len() == 1`, `self` is empty, so no shifting occurs.
     ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the state
+    /// of `map` before this method is called, `map_after` be the state of `map` after this method
+    /// completes.
+    ///
+    /// We say that two maps `map1` and `map2` are **equal** if and only if
+    ///
+    /// ```text
+    /// map1 = map2 ⇔ (map1.len() = map2.len()) ∧ (∀ i ∈ [0, map1.len()). map1[i] = map2[i]).
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { 0 ≤ index < map_before.len() }
+    /// map.shift_remove_index(index)
+    /// {
+    ///     result = Some(map_before[index])
+    ///     ∧ map_after.len() = map_before.len() - 1
+    ///     ∧ (∀ i ∈ [0, index). map_after[i] = map_before[i])
+    ///     ∧ (∀ i ∈ [index, map_after.len()). map_after[i] = map_before[i + 1])
+    /// }
+    ///
+    /// { index ≥ map_before.len() }
+    /// map.shift_remove_index(index)
+    /// { result = None ∧ map_after = map_before }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
@@ -19429,6 +21497,48 @@ impl OpaqueIndexMap {
     /// This method behaves as follows:
     /// * If `from < to`, the other pairs will shift up while the targeted pair moves down.
     /// * If `from > to`, the other pairs will shift down while the targeted pair moves up.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the state
+    /// of `map` before this method is called, `map_after` be the state of `map` after this method
+    /// completes.
+    ///
+    /// We say that two maps `map1` and `map2` are **equal** if and only if
+    ///
+    /// ```text
+    /// map1 = map2 ⇔ (map1.len() = map2.len()) ∧ (∀ i ∈ [0, map1.len()). map1[i] = map2[i]).
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { from < map_before.len() ∧ to < map_before.len() ∧ from < to }
+    /// map.move_index(from, to)
+    /// {
+    ///     map_after.len() = map_before.len()
+    ///     ∧ map_after[to] = map_before[from]
+    ///     ∧ (∀ i ∈ [0, from). map_after[i] = map_before[i])
+    ///     ∧ (∀ i ∈ [from, to). map_after[i] = map_before[i + 1])
+    ///     ∧ (∀ i ∈ [to + 1, map_after.len()). map_after[i] = map_before[i])
+    /// }
+    ///
+    /// { from < map_before.len() ∧ to < map_before.len() ∧ from > to }
+    /// map.move_index(from, to)
+    /// {
+    ///     map_after.len() = map_before.len()
+    ///     ∧ map_after[to] = map_before[from]
+    ///     ∧ (∀ i ∈ [0, to). map_after[i] = map_before[i])
+    ///     ∧ (∀ i ∈ [to, from). map_after[i + 1] = map_before[i])
+    ///     ∧ (∀ i ∈ [from + 1, map_after.len()). map_after[i] = map_before[i])
+    /// }
+    ///
+    /// { from < map_before.len() ∧ to < map_before.len() ∧ from = to }
+    /// map.move_index(from, to)
+    /// { map_after = map_before }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
     /// # Panics
     ///
@@ -19515,6 +21625,27 @@ impl OpaqueIndexMap {
     }
 
     /// Swaps the position of two entries in the index map.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the state
+    /// of `map` before this method is called, `map_after` be the state of `map` after this method
+    /// completes.
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { a < map_before.len() ∧ b < map_before.len() }
+    /// map.swap_indices(a, b)
+    /// {
+    ///     map_after.len() = map_before.len()
+    ///     ∧ map_after[a] = map_before[b]
+    ///     ∧ map_after[b] = map_before[a]
+    ///     ∧ (∀ i ∈ [0, map_after.len()). i ∉ {a, b} ⇒ map_after[i] = map_before[i])
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
     /// # Panics
     ///
