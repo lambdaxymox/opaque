@@ -12527,7 +12527,7 @@ where
     /// This method satisfies:
     ///
     /// ```text
-    /// { 0 ≤ index < map_before.len() }
+    /// { index < map_before.len() }
     /// map.shift_remove_index(index)
     /// {
     ///     result = Some(map_before[index])
@@ -21425,7 +21425,7 @@ impl OpaqueIndexMap {
     /// This method satisfies:
     ///
     /// ```text
-    /// { 0 ≤ index < map_before.len() }
+    /// { index < map_before.len() }
     /// map.shift_remove_index(index)
     /// {
     ///     result = Some(map_before[index])
