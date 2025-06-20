@@ -17,7 +17,7 @@ use std::hash;
 
 #[cfg(not(feature = "std"))]
 use core::hash;
-
+use std::mem;
 use opaque_alloc::TypedProjAlloc;
 use opaque_hash::TypedProjBuildHasher;
 use opaque_vec::TypedProjVec;
@@ -2202,6 +2202,733 @@ where
     }
 }
 
+impl<T, S, A> TypedProjIndexSet<T, S, A>
+where
+    T: any::Any,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    /// Returns an iterator over the entries in the index set.
+    ///
+    /// The iterator returns the entries in their storage order in the index set.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set: TypedProjIndexSet<i32> = TypedProjIndexSet::from([1_i32, 2_i32, 3_i32]);
+    /// let entries: TypedProjVec<i32> = proj_set
+    ///     .iter()
+    ///     .cloned()
+    ///     .collect();
+    ///
+    /// assert_eq!(entries.as_slice(), &[1_i32, 2_i32, 3_i32]);
+    ///
+    /// // The entries come back in storage or insertion order from the index set.
+    /// for i in 0..entries.len() {
+    ///     let expected = i;
+    ///     let result = proj_set.get_index_of(&entries[i]).unwrap();
+    ///     assert_eq!(result, expected);
+    /// }
+    /// ```
+    pub fn iter(&self) -> Iter<'_, T> {
+        Iter::new(self.as_entries())
+    }
+
+    /// Removes all the entries from the index set.
+    ///
+    /// After calling this method, the collection will be empty. This method does not change the
+    /// allocated capacity of the type-projected index set.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let capacity = 10;
+    /// let mut proj_set: TypedProjIndexSet<String> = TypedProjIndexSet::with_capacity(10);
+    ///
+    /// assert!(proj_set.is_empty());
+    ///
+    /// proj_set.extend([String::from("foo"), String::from("bar"), String::from("baz")]);
+    ///
+    /// assert!(!proj_set.is_empty());
+    /// assert_eq!(proj_set.len(), 3);
+    ///
+    /// let old_capacity = proj_set.capacity();
+    ///
+    /// proj_set.clear();
+    ///
+    /// assert!(proj_set.is_empty());
+    /// assert_eq!(proj_set.capacity(), old_capacity);
+    /// ```
+    pub fn clear(&mut self) {
+        self.inner.clear();
+    }
+
+    /// Shortens an index set to the supplied length, dropping the remaining elements.
+    ///
+    /// This method keeps the entries of `self` in the range `[0, len)`. In particular,
+    /// this method drops every entry with storage index in the range `[len, self.len())`.
+    /// This method does nothing when `self.len() <= len`.
+    ///
+    /// # Examples
+    ///
+    /// Truncating a type-projected index set when `len < self.len()`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set: TypedProjIndexSet<i64> = TypedProjIndexSet::from([
+    ///     1_i64,
+    ///     2_i64,
+    ///     3_i64,
+    ///     4_i64,
+    ///     5_i64,
+    ///     6_i64,
+    /// ]);
+    ///
+    /// proj_set.truncate(2);
+    ///
+    /// assert_eq!(proj_set.len(), 2);
+    ///
+    /// let expected = TypedProjVec::from([1_i64, 2_i64]);
+    /// let result: TypedProjVec<i64> = proj_set
+    ///     .iter()
+    ///     .cloned()
+    ///     .collect();
+    ///
+    /// assert_eq!(result, expected);
+    /// ```
+    ///
+    /// No truncation occurs when `len == self.len()`
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set: TypedProjIndexSet<i64> = TypedProjIndexSet::from([
+    ///     1_i64,
+    ///     2_i64,
+    ///     3_i64,
+    ///     4_i64,
+    ///     5_i64,
+    ///     6_i64,
+    /// ]);
+    ///
+    /// proj_set.truncate(6);
+    ///
+    /// assert_eq!(proj_set.len(), 6);
+    ///
+    /// let expected = TypedProjVec::from([1_i64, 2_i64, 3_i64, 4_i64, 5_i64, 6_i64]);
+    /// let result: TypedProjVec<i64> = proj_set
+    ///     .iter()
+    ///     .cloned()
+    ///     .collect();
+    ///
+    /// assert_eq!(result, expected);
+    /// ```
+    ///
+    /// No truncation occurs when `len > self.len()`
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set: TypedProjIndexSet<i64> = TypedProjIndexSet::from([
+    ///     1_i64,
+    ///     2_i64,
+    ///     3_i64,
+    ///     4_i64,
+    ///     5_i64,
+    ///     6_i64,
+    /// ]);
+    ///
+    /// proj_set.truncate(7);
+    ///
+    /// assert_eq!(proj_set.len(), 6);
+    ///
+    /// let expected = TypedProjVec::from([1_i64, 2_i64, 3_i64, 4_i64, 5_i64, 6_i64]);
+    /// let result: TypedProjVec<i64> = proj_set
+    ///     .iter()
+    ///     .cloned()
+    ///     .collect();
+    ///
+    /// assert_eq!(result, expected);
+    /// ```
+    ///
+    /// Truncating when `len == 0` is equivalent to calling the [`clear`] method.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set: TypedProjIndexSet<i64> = TypedProjIndexSet::from([
+    ///     1_i64,
+    ///     2_i64,
+    ///     3_i64,
+    ///     4_i64,
+    ///     5_i64,
+    ///     6_i64,
+    /// ]);
+    ///
+    /// proj_set.truncate(0);
+    ///
+    /// assert_eq!(proj_set.len(), 0);
+    ///
+    /// let expected = TypedProjVec::from([]);
+    /// let result: TypedProjVec<i64> = proj_set
+    ///     .iter()
+    ///     .cloned()
+    ///     .collect();
+    ///
+    /// assert_eq!(result, expected);
+    /// ```
+    ///
+    /// [`clear`]: TypedProjIndexSet::clear
+    pub fn truncate(&mut self, len: usize) {
+        self.inner.truncate(len);
+    }
+
+    /// Removes the subslice indicated by the given range from the index set,
+    /// returning a double-ended iterator over the removed subslice.
+    ///
+    /// If the iterator is dropped before being fully consumed, it drops the remaining removed
+    /// elements. The draining iterator shifts the remaining entries in the index set above the range
+    /// down to fill in the removed entries.
+    ///
+    /// The returned iterator keeps a mutable borrow on the index set to optimize its implementation.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the range of the subslice falls outside the bounds of the collection.
+    /// That is, if the starting point of the subslice being removed starts after the end of `self`,
+    /// or if the ending point is larger than the length of the index set.
+    ///
+    /// # Leaking
+    ///
+    /// If the returned iterator goes out of scope without being dropped (due to
+    /// [`mem::forget`], for example), the index set may have lost and leaked
+    /// elements arbitrarily, including elements outside the range.
+    ///
+    /// # Examples
+    ///
+    /// Draining part of a type-projected index set.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set: TypedProjIndexSet<i64> = TypedProjIndexSet::from([
+    ///     1_i64,
+    ///     2_i64,
+    ///     3_i64,
+    ///     4_i64,
+    ///     5_i64,
+    ///     6_i64,
+    /// ]);
+    ///
+    /// assert_eq!(proj_set.len(), 6);
+    ///
+    /// let drained_entries: TypedProjVec<i64> = proj_set.drain(2..).collect();
+    ///
+    /// assert_eq!(proj_set.len(), 2);
+    /// assert_eq!(drained_entries.len(), 4);
+    ///
+    /// let expected_set_entries = TypedProjVec::from([1_i64, 2_i64]);
+    /// let result_set_entries: TypedProjVec<i64> = proj_set
+    ///     .iter()
+    ///     .cloned()
+    ///     .collect();
+    ///
+    /// assert_eq!(result_set_entries, expected_set_entries);
+    ///
+    /// let expected_drained_entries: TypedProjVec<i64> = TypedProjVec::from([
+    ///     3_i64,
+    ///     4_i64,
+    ///     5_i64,
+    ///     6_i64,
+    /// ]);
+    ///
+    /// assert_eq!(drained_entries.as_slice(), expected_drained_entries.as_slice());
+    /// ```
+    ///
+    /// Draining an entire type-projected index set.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set: TypedProjIndexSet<i64> = TypedProjIndexSet::from([
+    ///     1_i64,
+    ///     2_i64,
+    ///     3_i64,
+    ///     4_i64,
+    ///     5_i64,
+    ///     6_i64,
+    /// ]);
+    ///
+    /// assert_eq!(proj_set.len(), 6);
+    ///
+    /// let drained_entries: TypedProjVec<i64> = proj_set.drain(..).collect();
+    ///
+    /// assert_eq!(proj_set.len(), 0);
+    /// assert_eq!(drained_entries.len(), 6);
+    ///
+    /// let expected_set_entries = TypedProjVec::from([]);
+    /// let result_set_entries: TypedProjVec<i64> = proj_set
+    ///     .iter()
+    ///     .cloned()
+    ///     .collect();
+    ///
+    /// assert_eq!(result_set_entries, expected_set_entries);
+    ///
+    /// let expected_drained_entries: TypedProjVec<i64> = TypedProjVec::from([
+    ///     1_i64,
+    ///     2_i64,
+    ///     3_i64,
+    ///     4_i64,
+    ///     5_i64,
+    ///     6_i64,
+    /// ]);
+    ///
+    /// assert_eq!(drained_entries.as_slice(), expected_drained_entries.as_slice());
+    /// ```
+    ///
+    /// Draining no part of a type-projected index set.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set: TypedProjIndexSet<i64> = TypedProjIndexSet::from([
+    ///     1_i64,
+    ///     2_i64,
+    ///     3_i64,
+    ///     4_i64,
+    ///     5_i64,
+    ///     6_i64,
+    /// ]);
+    ///
+    /// assert_eq!(proj_set.len(), 6);
+    ///
+    /// let drained_entries: TypedProjVec<i64> = proj_set.drain(0..0).collect();
+    ///
+    /// assert_eq!(proj_set.len(), 6);
+    /// assert_eq!(drained_entries.len(), 0);
+    ///
+    /// let expected_set_entries: TypedProjVec<i64> = TypedProjVec::from([
+    ///     1_i64,
+    ///     2_i64,
+    ///     3_i64,
+    ///     4_i64,
+    ///     5_i64,
+    ///     6_i64,
+    /// ]);
+    /// let result_set_entries: TypedProjVec<i64> = proj_set
+    ///     .iter()
+    ///     .cloned()
+    ///     .collect();
+    ///
+    /// assert_eq!(result_set_entries, expected_set_entries);
+    ///
+    /// let expected_drained_entries: TypedProjVec<i64> = TypedProjVec::from([]);
+    ///
+    /// assert_eq!(drained_entries.as_slice(), expected_drained_entries.as_slice());
+    /// ```
+    #[track_caller]
+    pub fn drain<R>(&mut self, range: R) -> Drain<'_, T, A>
+    where
+        R: ops::RangeBounds<usize>,
+    {
+        Drain::new(self.inner.drain(range))
+    }
+
+    /// Splits a type-projected index set into two type-projected index sets at the given index.
+    ///
+    /// This method returns a newly allocated type-projected index set consisting of every entry from
+    /// the original type-projected index set in the storage range `[at, len)`. The original
+    /// type-projected index set will consist of the entries in the range `[0, at)` with its capacity
+    /// unchanged.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if `at > self.len()`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set: TypedProjIndexSet<i64> = TypedProjIndexSet::from([
+    ///     1_i64,
+    ///     2_i64,
+    ///     3_i64,
+    ///     4_i64,
+    ///     5_i64,
+    ///     6_i64,
+    /// ]);
+    ///
+    /// assert_eq!(proj_set.len(), 6);
+    ///
+    /// let old_capacity = proj_set.capacity();
+    /// let proj_split_set = proj_set.split_off(4);
+    ///
+    /// assert_eq!(proj_set.len(), 4);
+    /// assert_eq!(proj_set.capacity(), old_capacity);
+    ///
+    /// let expected_proj_set_entries: TypedProjVec<i64> = TypedProjVec::from([
+    ///     1_i64,
+    ///     2_i64,
+    ///     3_i64,
+    ///     4_i64,
+    /// ]);
+    /// let result_proj_set_entries: TypedProjVec<i64> = proj_set
+    ///     .iter()
+    ///     .cloned()
+    ///     .collect();
+    ///
+    /// assert_eq!(result_proj_set_entries, expected_proj_set_entries);
+    ///
+    /// assert_eq!(proj_split_set.len(), 2);
+    ///
+    /// let expected_split_set_entries: TypedProjVec<i64> = TypedProjVec::from([5_i64, 6_i64]);
+    /// let result_split_set_entries: TypedProjVec<i64> = proj_split_set
+    ///     .iter()
+    ///     .cloned()
+    ///     .collect();
+    ///
+    /// assert_eq!(result_split_set_entries, expected_split_set_entries);
+    /// ```
+    #[track_caller]
+    pub fn split_off(&mut self, at: usize) -> Self
+    where
+        S: Clone,
+        A: Clone,
+    {
+        Self {
+            inner: self.inner.split_off(at),
+        }
+    }
+
+    /// Attempts to reserve capacity for **at least** `additional` more elements to be inserted
+    /// in the given index set.
+    ///
+    /// The collection may reserve more space to speculatively avoid frequent reallocations.
+    /// After calling this method, the capacity will be greater than or equal to
+    /// `self.len() + additional` if it returns. This method does nothing if the collection
+    /// capacity is already sufficient. This method preserves the contents even if a panic occurs.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if one of the following conditions occurs:
+    /// * If the capacity of the index set overflows.
+    /// * If the allocator reports a failure.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set = TypedProjIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32]);
+    /// proj_set.reserve(10);
+    ///
+    /// assert!(proj_set.capacity() >= proj_set.len() + 10);
+    ///
+    /// let old_capacity = proj_set.capacity();
+    /// proj_set.extend([7_i32, 8_i32, 9_i32, 10_i32]);
+    ///
+    /// assert_eq!(proj_set.capacity(), old_capacity);
+    /// ```
+    pub fn reserve(&mut self, additional: usize) {
+        self.inner.reserve(additional);
+    }
+
+    /// Attempts to reserve capacity for **at least** `additional` more elements to be inserted
+    /// in the given index set.
+    ///
+    /// Unlike [`reserve`], this will not deliberately over-allocate to speculatively avoid frequent
+    /// allocations. After calling `reserve_exact`, the capacity of `self` will be greater than or
+    /// equal to `self.len() + additional`. This method does nothing if the capacity is already
+    /// sufficient.
+    ///
+    /// [`reserve`]: TypedProjIndexSet::reserve
+    ///
+    /// # Panics
+    ///
+    /// This method panics if one of the following conditions occurs:
+    /// * If the capacity of the index set overflows.
+    /// * If the allocator reports a failure.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set = TypedProjIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32]);
+    /// proj_set.reserve_exact(10);
+    ///
+    /// assert!(proj_set.capacity() >= proj_set.len() + 10);
+    ///
+    /// let old_capacity = proj_set.capacity();
+    /// proj_set.extend([7_i32, 8_i32, 9_i32, 10_i32]);
+    ///
+    /// assert_eq!(proj_set.capacity(), old_capacity);
+    /// ```
+    pub fn reserve_exact(&mut self, additional: usize) {
+        self.inner.reserve_exact(additional);
+    }
+
+    /// Attempts to reserve capacity for **at least** `additional` more elements to be inserted
+    /// in the given index set.
+    ///
+    /// The collection may reserve more space to speculatively avoid frequent reallocations.
+    /// After calling this method, the capacity will be greater than or equal to
+    /// `self.len() + additional` if it returns `Ok(())`. This method does nothing if the collection
+    /// capacity is already sufficient. This method preserves the contents even if an error occurs.
+    ///
+    /// # Errors
+    ///
+    /// This method returns an error if the capacity overflows, or the allocator reports a failure.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set = TypedProjIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32]);
+    /// let result = proj_set.try_reserve(10);
+    ///
+    /// assert!(result.is_ok());
+    /// assert!(proj_set.capacity() >= proj_set.len() + 10);
+    ///
+    /// let old_capacity = proj_set.capacity();
+    /// proj_set.extend([7_i32, 8_i32, 9_i32, 10_i32]);
+    ///
+    /// assert_eq!(proj_set.capacity(), old_capacity);
+    /// ```
+    pub fn try_reserve(&mut self, additional: usize) -> Result<(), TryReserveError> {
+        self.inner.try_reserve(additional)
+    }
+
+    /// Attempts to reserve capacity for **at least** `additional` more elements to be inserted
+    /// in the given index set.
+    ///
+    /// Unlike [`try_reserve`], this will not deliberately over-allocate to speculatively avoid frequent
+    /// allocations. After calling `reserve_exact`, the capacity of `self` will be greater than or
+    /// equal to `self.len() + additional`. This method does nothing if the capacity is already
+    /// sufficient.
+    ///
+    /// [`try_reserve`]: TypedProjIndexSet::try_reserve
+    ///
+    /// # Errors
+    ///
+    /// This method returns an error if the capacity overflows, or the allocator reports a failure.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set = TypedProjIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32]);
+    /// let result = proj_set.try_reserve_exact(10);
+    ///
+    /// assert!(result.is_ok());
+    /// assert!(proj_set.capacity() >= proj_set.len() + 10);
+    ///
+    /// let old_capacity = proj_set.capacity();
+    /// proj_set.extend([7_i32, 8_i32, 9_i32, 10_i32]);
+    ///
+    /// assert_eq!(proj_set.capacity(), old_capacity);
+    /// ```
+    pub fn try_reserve_exact(&mut self, additional: usize) -> Result<(), TryReserveError> {
+        self.inner.try_reserve_exact(additional)
+    }
+
+    /// Shrinks the capacity of the index set as much as possible.
+    ///
+    /// The behavior of this method depends on the allocator, which may either shrink the
+    /// index set in place or reallocate. The resulting index set might still have some excess
+    /// capacity, just as is the case for [`with_capacity`]. See [`Allocator::shrink`] for more
+    /// details.
+    ///
+    /// [`with_capacity`]: TypedProjIndexSet::with_capacity
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set = TypedProjIndexSet::with_capacity(10);
+    /// proj_set.extend([1_i32, 2_i32, 3_i32]);
+    ///
+    /// assert!(proj_set.capacity() >= 10);
+    ///
+    /// proj_set.shrink_to_fit();
+    ///
+    /// assert!(proj_set.capacity() >= 3);
+    /// ```
+    pub fn shrink_to_fit(&mut self) {
+        self.inner.shrink_to_fit();
+    }
+
+    /// Shrinks the capacity of the index set to a lower bound.
+    ///
+    /// The behavior of this method depends on the allocator, which may either shrink the
+    /// index set in place or reallocate. The resulting index set might still have some excess
+    /// capacity, just as is the case for [`with_capacity`]. See [`Allocator::shrink`] for more
+    /// details.
+    ///
+    /// The capacity will remain at least as large as both the length
+    /// and the supplied capacity `min_capacity`. In particular, after calling this method,
+    /// the capacity of `self` satisfies
+    ///
+    /// ```text
+    /// self.capacity() >= max(self.len(), min_capacity).
+    /// ```
+    ///
+    /// If the current capacity of the index set is less than the lower bound, the method does
+    /// nothing.
+    ///
+    /// [`with_capacity`]: TypedProjIndexSet::with_capacity
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set = TypedProjIndexSet::with_capacity(10);
+    /// proj_set.extend([1_i32, 2_i32, 3_i32]);
+    ///
+    /// assert!(proj_set.capacity() >= 10);
+    ///
+    /// proj_set.shrink_to(4);
+    ///
+    /// assert!(proj_set.capacity() >= 4);
+    ///
+    /// proj_set.shrink_to(0);
+    ///
+    /// assert!(proj_set.capacity() >= 3);
+    /// ```
+    pub fn shrink_to(&mut self, min_capacity: usize) {
+        self.inner.shrink_to(min_capacity);
+    }
+}
+
 impl<T, S, A> Clone for TypedProjIndexSet<T, S, A>
 where
     T: any::Any + Clone,
@@ -2217,69 +2944,6 @@ where
 
     fn clone_from(&mut self, other: &Self) {
         self.inner.clone_from(&other.inner);
-    }
-}
-
-impl<T, S, A> TypedProjIndexSet<T, S, A>
-where
-    T: any::Any,
-    S: any::Any + hash::BuildHasher + Send + Sync,
-    S::Hasher: any::Any + hash::Hasher + Send + Sync,
-    A: any::Any + alloc::Allocator + Send + Sync,
-{
-    pub fn iter(&self) -> Iter<'_, T> {
-        Iter::new(self.as_entries())
-    }
-
-    pub fn clear(&mut self) {
-        self.inner.clear();
-    }
-
-    pub fn truncate(&mut self, len: usize) {
-        self.inner.truncate(len);
-    }
-
-    #[track_caller]
-    pub fn drain<R>(&mut self, range: R) -> Drain<'_, T, A>
-    where
-        R: ops::RangeBounds<usize>,
-    {
-        Drain::new(self.inner.drain(range))
-    }
-
-    #[track_caller]
-    pub fn split_off(&mut self, at: usize) -> Self
-    where
-        S: Clone,
-        A: Clone,
-    {
-        Self {
-            inner: self.inner.split_off(at),
-        }
-    }
-
-    pub fn reserve(&mut self, additional: usize) {
-        self.inner.reserve(additional);
-    }
-
-    pub fn reserve_exact(&mut self, additional: usize) {
-        self.inner.reserve_exact(additional);
-    }
-
-    pub fn try_reserve(&mut self, additional: usize) -> Result<(), TryReserveError> {
-        self.inner.try_reserve(additional)
-    }
-
-    pub fn try_reserve_exact(&mut self, additional: usize) -> Result<(), TryReserveError> {
-        self.inner.try_reserve_exact(additional)
-    }
-
-    pub fn shrink_to_fit(&mut self) {
-        self.inner.shrink_to_fit();
-    }
-
-    pub fn shrink_to(&mut self, min_capacity: usize) {
-        self.inner.shrink_to(min_capacity);
     }
 }
 
@@ -4041,6 +4705,37 @@ impl OpaqueIndexSet {
 }
 
 impl OpaqueIndexSet {
+    /// Returns an iterator over the entries in the index set.
+    ///
+    /// The iterator returns the entries in their storage order in the index set.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_set = OpaqueIndexSet::from([1_i32, 2_i32, 3_i32]);
+    /// let entries: TypedProjVec<i32> = opaque_set
+    ///     .iter::<i32, RandomState, Global>()
+    ///     .cloned()
+    ///     .collect();
+    ///
+    /// assert_eq!(entries.as_slice(), &[1_i32, 2_i32, 3_i32]);
+    ///
+    /// // The entries come back in storage or insertion order from the index set.
+    /// for i in 0..entries.len() {
+    ///     let expected = i;
+    ///     let result = opaque_set.get_index_of::<_, i32, RandomState, Global>(&entries[i]).unwrap();
+    ///     assert_eq!(result, expected);
+    /// }
+    /// ```
     pub fn iter<T, S, A>(&self) -> Iter<'_, T>
     where
         T: any::Any,
@@ -4053,6 +4748,40 @@ impl OpaqueIndexSet {
         proj_self.iter()
     }
 
+    /// Removes all the entries from the index set.
+    ///
+    /// After calling this method, the collection will be empty. This method does not change the
+    /// allocated capacity of the type-projected index set.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let capacity = 10;
+    /// let mut opaque_set = OpaqueIndexSet::with_capacity::<String>(10);
+    ///
+    /// assert!(opaque_set.is_empty());
+    ///
+    /// opaque_set.extend::<_, String, RandomState, Global>([String::from("foo"), String::from("bar"), String::from("baz")]);
+    ///
+    /// assert!(!opaque_set.is_empty());
+    /// assert_eq!(opaque_set.len(), 3);
+    ///
+    /// let old_capacity = opaque_set.capacity();
+    ///
+    /// opaque_set.clear::<String, RandomState, Global>();
+    ///
+    /// assert!(opaque_set.is_empty());
+    /// assert_eq!(opaque_set.capacity(), old_capacity);
+    /// ```
     pub fn clear<T, S, A>(&mut self)
     where
         T: any::Any,
@@ -4065,6 +4794,151 @@ impl OpaqueIndexSet {
         proj_self.clear()
     }
 
+    /// Shortens an index set to the supplied length, dropping the remaining elements.
+    ///
+    /// This method keeps the entries of `self` in the range `[0, len)`. In particular,
+    /// this method drops every entry with storage index in the range `[len, self.len())`.
+    /// This method does nothing when `self.len() <= len`.
+    ///
+    /// # Examples
+    ///
+    /// Truncating a type-erased index set when `len < self.len()`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_set = OpaqueIndexSet::from([
+    ///     1_i64,
+    ///     2_i64,
+    ///     3_i64,
+    ///     4_i64,
+    ///     5_i64,
+    ///     6_i64,
+    /// ]);
+    ///
+    /// opaque_set.truncate::<i64, RandomState, Global>(2);
+    ///
+    /// assert_eq!(opaque_set.len(), 2);
+    ///
+    /// let expected = TypedProjVec::from([1_i64, 2_i64]);
+    /// let result: TypedProjVec<i64> = opaque_set
+    ///     .iter::<i64, RandomState, Global>()
+    ///     .cloned()
+    ///     .collect();
+    ///
+    /// assert_eq!(result, expected);
+    /// ```
+    ///
+    /// No truncation occurs when `len == self.len()`
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_set = OpaqueIndexSet::from([
+    ///     1_i64,
+    ///     2_i64,
+    ///     3_i64,
+    ///     4_i64,
+    ///     5_i64,
+    ///     6_i64,
+    /// ]);
+    ///
+    /// opaque_set.truncate::<i64, RandomState, Global>(6);
+    ///
+    /// assert_eq!(opaque_set.len(), 6);
+    ///
+    /// let expected = TypedProjVec::from([1_i64, 2_i64, 3_i64, 4_i64, 5_i64, 6_i64]);
+    /// let result: TypedProjVec<i64> = opaque_set
+    ///     .iter::<i64, RandomState, Global>()
+    ///     .cloned()
+    ///     .collect();
+    ///
+    /// assert_eq!(result, expected);
+    /// ```
+    ///
+    /// No truncation occurs when `len > self.len()`
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_set = OpaqueIndexSet::from([
+    ///     1_i64,
+    ///     2_i64,
+    ///     3_i64,
+    ///     4_i64,
+    ///     5_i64,
+    ///     6_i64,
+    /// ]);
+    ///
+    /// opaque_set.truncate::<i64, RandomState, Global>(7);
+    ///
+    /// assert_eq!(opaque_set.len(), 6);
+    ///
+    /// let expected = TypedProjVec::from([1_i64, 2_i64, 3_i64, 4_i64, 5_i64, 6_i64]);
+    /// let result: TypedProjVec<i64> = opaque_set
+    ///     .iter::<i64, RandomState, Global>()
+    ///     .cloned()
+    ///     .collect();
+    ///
+    /// assert_eq!(result, expected);
+    /// ```
+    ///
+    /// Truncating when `len == 0` is equivalent to calling the [`clear`] method.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_set = OpaqueIndexSet::from([
+    ///     1_i64,
+    ///     2_i64,
+    ///     3_i64,
+    ///     4_i64,
+    ///     5_i64,
+    ///     6_i64,
+    /// ]);
+    ///
+    /// opaque_set.truncate::<i64, RandomState, Global>(0);
+    ///
+    /// assert_eq!(opaque_set.len(), 0);
+    ///
+    /// let expected = TypedProjVec::from([]);
+    /// let result: TypedProjVec<i64> = opaque_set
+    ///     .iter::<i64, RandomState, Global>()
+    ///     .cloned()
+    ///     .collect();
+    ///
+    /// assert_eq!(result, expected);
+    /// ```
+    ///
+    /// [`clear`]: OpaqueIndexSet::clear
     pub fn truncate<T, S, A>(&mut self, len: usize)
     where
         T: any::Any,
@@ -4077,6 +4951,170 @@ impl OpaqueIndexSet {
         proj_self.truncate(len)
     }
 
+    /// Removes the subslice indicated by the given range from the index set,
+    /// returning a double-ended iterator over the removed subslice.
+    ///
+    /// If the iterator is dropped before being fully consumed, it drops the remaining removed
+    /// elements. The draining iterator shifts the remaining entries in the index set above the range
+    /// down to fill in the removed entries.
+    ///
+    /// The returned iterator keeps a mutable borrow on the index set to optimize its implementation.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the range of the subslice falls outside the bounds of the collection.
+    /// That is, if the starting point of the subslice being removed starts after the end of `self`,
+    /// or if the ending point is larger than the length of the index set.
+    ///
+    /// # Leaking
+    ///
+    /// If the returned iterator goes out of scope without being dropped (due to
+    /// [`mem::forget`], for example), the index set may have lost and leaked
+    /// elements arbitrarily, including elements outside the range.
+    ///
+    /// # Examples
+    ///
+    /// Draining part of a type-erased index set.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_set = OpaqueIndexSet::from([
+    ///     1_i64,
+    ///     2_i64,
+    ///     3_i64,
+    ///     4_i64,
+    ///     5_i64,
+    ///     6_i64,
+    /// ]);
+    ///
+    /// assert_eq!(opaque_set.len(), 6);
+    ///
+    /// let drained_entries: TypedProjVec<i64> = opaque_set.drain::<_, i64, RandomState, Global>(2..).collect();
+    ///
+    /// assert_eq!(opaque_set.len(), 2);
+    /// assert_eq!(drained_entries.len(), 4);
+    ///
+    /// let expected_set_entries = TypedProjVec::from([1_i64, 2_i64]);
+    /// let result_set_entries: TypedProjVec<i64> = opaque_set
+    ///     .iter::<i64, RandomState, Global>()
+    ///     .cloned()
+    ///     .collect();
+    ///
+    /// assert_eq!(result_set_entries, expected_set_entries);
+    ///
+    /// let expected_drained_entries: TypedProjVec<i64> = TypedProjVec::from([
+    ///     3_i64,
+    ///     4_i64,
+    ///     5_i64,
+    ///     6_i64,
+    /// ]);
+    ///
+    /// assert_eq!(drained_entries.as_slice(), expected_drained_entries.as_slice());
+    /// ```
+    ///
+    /// Draining an entire type-erased index set.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_set = OpaqueIndexSet::from([
+    ///     1_i64,
+    ///     2_i64,
+    ///     3_i64,
+    ///     4_i64,
+    ///     5_i64,
+    ///     6_i64,
+    /// ]);
+    ///
+    /// assert_eq!(opaque_set.len(), 6);
+    ///
+    /// let drained_entries: TypedProjVec<i64> = opaque_set.drain::<_, i64, RandomState, Global>(..).collect();
+    ///
+    /// assert_eq!(opaque_set.len(), 0);
+    /// assert_eq!(drained_entries.len(), 6);
+    ///
+    /// let expected_set_entries = TypedProjVec::from([]);
+    /// let result_set_entries: TypedProjVec<i64> = opaque_set
+    ///     .iter::<i64, RandomState, Global>()
+    ///     .cloned()
+    ///     .collect();
+    ///
+    /// assert_eq!(result_set_entries, expected_set_entries);
+    ///
+    /// let expected_drained_entries: TypedProjVec<i64> = TypedProjVec::from([
+    ///     1_i64,
+    ///     2_i64,
+    ///     3_i64,
+    ///     4_i64,
+    ///     5_i64,
+    ///     6_i64,
+    /// ]);
+    ///
+    /// assert_eq!(drained_entries.as_slice(), expected_drained_entries.as_slice());
+    /// ```
+    ///
+    /// Draining no part of a type-erased index set.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_set = OpaqueIndexSet::from([
+    ///     1_i64,
+    ///     2_i64,
+    ///     3_i64,
+    ///     4_i64,
+    ///     5_i64,
+    ///     6_i64,
+    /// ]);
+    ///
+    /// assert_eq!(opaque_set.len(), 6);
+    ///
+    /// let drained_entries: TypedProjVec<i64> = opaque_set.drain::<_, i64, RandomState, Global>(0..0).collect();
+    ///
+    /// assert_eq!(opaque_set.len(), 6);
+    /// assert_eq!(drained_entries.len(), 0);
+    ///
+    /// let expected_set_entries: TypedProjVec<i64> = TypedProjVec::from([
+    ///     1_i64,
+    ///     2_i64,
+    ///     3_i64,
+    ///     4_i64,
+    ///     5_i64,
+    ///     6_i64,
+    /// ]);
+    /// let result_set_entries: TypedProjVec<i64> = opaque_set
+    ///     .iter::<i64, RandomState, Global>()
+    ///     .cloned()
+    ///     .collect();
+    ///
+    /// assert_eq!(result_set_entries, expected_set_entries);
+    ///
+    /// let expected_drained_entries: TypedProjVec<i64> = TypedProjVec::from([]);
+    ///
+    /// assert_eq!(drained_entries.as_slice(), expected_drained_entries.as_slice());
+    /// ```
     #[track_caller]
     pub fn drain<R, T, S, A>(&mut self, range: R) -> Drain<'_, T, A>
     where
@@ -4091,6 +5129,69 @@ impl OpaqueIndexSet {
         proj_self.drain(range)
     }
 
+    /// Splits a type-projected index set into two type-erased index sets at the given index.
+    ///
+    /// This method returns a newly allocated type-erased index set consisting of every entry from
+    /// the original type-erased index set in the storage range `[at, len)`. The original
+    /// type-erased index set will consist of the entries in the range `[0, at)` with its capacity
+    /// unchanged.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if `at > self.len()`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_set = OpaqueIndexSet::from([
+    ///     1_i64,
+    ///     2_i64,
+    ///     3_i64,
+    ///     4_i64,
+    ///     5_i64,
+    ///     6_i64,
+    /// ]);
+    ///
+    /// assert_eq!(opaque_set.len(), 6);
+    ///
+    /// let old_capacity = opaque_set.capacity();
+    /// let opaque_split_set = opaque_set.split_off::<i64, RandomState, Global>(4);
+    ///
+    /// assert_eq!(opaque_set.len(), 4);
+    /// assert_eq!(opaque_set.capacity(), old_capacity);
+    ///
+    /// let expected_proj_set_entries: TypedProjVec<i64> = TypedProjVec::from([
+    ///     1_i64,
+    ///     2_i64,
+    ///     3_i64,
+    ///     4_i64,
+    /// ]);
+    /// let result_proj_set_entries: TypedProjVec<i64> = opaque_set
+    ///     .iter::<i64, RandomState, Global>()
+    ///     .cloned()
+    ///     .collect();
+    ///
+    /// assert_eq!(result_proj_set_entries, expected_proj_set_entries);
+    ///
+    /// assert_eq!(opaque_split_set.len(), 2);
+    ///
+    /// let expected_split_set_entries: TypedProjVec<i64> = TypedProjVec::from([5_i64, 6_i64]);
+    /// let result_split_set_entries: TypedProjVec<i64> = opaque_split_set
+    ///     .iter::<i64, RandomState, Global>()
+    ///     .cloned()
+    ///     .collect();
+    ///
+    /// assert_eq!(result_split_set_entries, expected_split_set_entries);
+    /// ```
     #[track_caller]
     pub fn split_off<T, S, A>(&mut self, at: usize) -> Self
     where
@@ -4105,6 +5206,43 @@ impl OpaqueIndexSet {
         Self::from_proj(proj_split)
     }
 
+    /// Attempts to reserve capacity for **at least** `additional` more elements to be inserted
+    /// in the given index set.
+    ///
+    /// The collection may reserve more space to speculatively avoid frequent reallocations.
+    /// After calling this method, the capacity will be greater than or equal to
+    /// `self.len() + additional` if it returns. This method does nothing if the collection
+    /// capacity is already sufficient. This method preserves the contents even if a panic occurs.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if one of the following conditions occurs:
+    /// * If the capacity of the index set overflows.
+    /// * If the allocator reports a failure.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_set = OpaqueIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32]);
+    /// opaque_set.reserve::<i32, RandomState, Global>(10);
+    ///
+    /// assert!(opaque_set.capacity() >= opaque_set.len() + 10);
+    ///
+    /// let old_capacity = opaque_set.capacity();
+    /// opaque_set.extend::<_, i32, RandomState, Global>([7_i32, 8_i32, 9_i32, 10_i32]);
+    ///
+    /// assert_eq!(opaque_set.capacity(), old_capacity);
+    /// ```
     pub fn reserve<T, S, A>(&mut self, additional: usize)
     where
         T: any::Any,
@@ -4117,6 +5255,45 @@ impl OpaqueIndexSet {
         proj_self.reserve(additional)
     }
 
+    /// Attempts to reserve capacity for **at least** `additional` more elements to be inserted
+    /// in the given index set.
+    ///
+    /// Unlike [`reserve`], this will not deliberately over-allocate to speculatively avoid frequent
+    /// allocations. After calling `reserve_exact`, the capacity of `self` will be greater than or
+    /// equal to `self.len() + additional`. This method does nothing if the capacity is already
+    /// sufficient.
+    ///
+    /// [`reserve`]: OpaqueIndexSet::reserve
+    ///
+    /// # Panics
+    ///
+    /// This method panics if one of the following conditions occurs:
+    /// * If the capacity of the index set overflows.
+    /// * If the allocator reports a failure.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_set = OpaqueIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32]);
+    /// opaque_set.reserve_exact::<i32, RandomState, Global>(10);
+    ///
+    /// assert!(opaque_set.capacity() >= opaque_set.len() + 10);
+    ///
+    /// let old_capacity = opaque_set.capacity();
+    /// opaque_set.extend::<_, i32, RandomState, Global>([7_i32, 8_i32, 9_i32, 10_i32]);
+    ///
+    /// assert_eq!(opaque_set.capacity(), old_capacity);
+    /// ```
     pub fn reserve_exact<T, S, A>(&mut self, additional: usize)
     where
         T: any::Any,
@@ -4129,6 +5306,42 @@ impl OpaqueIndexSet {
         proj_self.reserve_exact(additional)
     }
 
+    /// Attempts to reserve capacity for **at least** `additional` more elements to be inserted
+    /// in the given index set.
+    ///
+    /// The collection may reserve more space to speculatively avoid frequent reallocations.
+    /// After calling this method, the capacity will be greater than or equal to
+    /// `self.len() + additional` if it returns `Ok(())`. This method does nothing if the collection
+    /// capacity is already sufficient. This method preserves the contents even if an error occurs.
+    ///
+    /// # Errors
+    ///
+    /// This method returns an error if the capacity overflows, or the allocator reports a failure.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_set = OpaqueIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32]);
+    /// let result = opaque_set.try_reserve::<i32, RandomState, Global>(10);
+    ///
+    /// assert!(result.is_ok());
+    /// assert!(opaque_set.capacity() >= opaque_set.len() + 10);
+    ///
+    /// let old_capacity = opaque_set.capacity();
+    /// opaque_set.extend::<_, i32, RandomState, Global>([7_i32, 8_i32, 9_i32, 10_i32]);
+    ///
+    /// assert_eq!(opaque_set.capacity(), old_capacity);
+    /// ```
     pub fn try_reserve<T, S, A>(&mut self, additional: usize) -> Result<(), TryReserveError>
     where
         T: any::Any,
@@ -4141,6 +5354,44 @@ impl OpaqueIndexSet {
         proj_self.try_reserve(additional)
     }
 
+    /// Attempts to reserve capacity for **at least** `additional` more elements to be inserted
+    /// in the given index set.
+    ///
+    /// Unlike [`try_reserve`], this will not deliberately over-allocate to speculatively avoid frequent
+    /// allocations. After calling `reserve_exact`, the capacity of `self` will be greater than or
+    /// equal to `self.len() + additional`. This method does nothing if the capacity is already
+    /// sufficient.
+    ///
+    /// [`try_reserve`]: OpaqueIndexSet::try_reserve
+    ///
+    /// # Errors
+    ///
+    /// This method returns an error if the capacity overflows, or the allocator reports a failure.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_set = OpaqueIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32]);
+    /// let result = opaque_set.try_reserve_exact::<i32, RandomState, Global>(10);
+    ///
+    /// assert!(result.is_ok());
+    /// assert!(opaque_set.capacity() >= opaque_set.len() + 10);
+    ///
+    /// let old_capacity = opaque_set.capacity();
+    /// opaque_set.extend::<_, i32, RandomState, Global>([7_i32, 8_i32, 9_i32, 10_i32]);
+    ///
+    /// assert_eq!(opaque_set.capacity(), old_capacity);
+    /// ```
     pub fn try_reserve_exact<T, S, A>(&mut self, additional: usize) -> Result<(), TryReserveError>
     where
         T: any::Any,
@@ -4153,6 +5404,37 @@ impl OpaqueIndexSet {
         proj_self.try_reserve_exact(additional)
     }
 
+    /// Shrinks the capacity of the index set as much as possible.
+    ///
+    /// The behavior of this method depends on the allocator, which may either shrink the
+    /// index set in place or reallocate. The resulting index set might still have some excess
+    /// capacity, just as is the case for [`with_capacity`]. See [`Allocator::shrink`] for more
+    /// details.
+    ///
+    /// [`with_capacity`]: OpaqueIndexSet::with_capacity
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_set = OpaqueIndexSet::with_capacity::<i32>(10);
+    /// opaque_set.extend::<_, i32, RandomState, Global>([1_i32, 2_i32, 3_i32]);
+    ///
+    /// assert!(opaque_set.capacity() >= 10);
+    ///
+    /// opaque_set.shrink_to_fit::<i32, RandomState, Global>();
+    ///
+    /// assert!(opaque_set.capacity() >= 3);
+    /// ```
     pub fn shrink_to_fit<T, S, A>(&mut self)
     where
         T: any::Any,
@@ -4165,6 +5447,52 @@ impl OpaqueIndexSet {
         proj_self.shrink_to_fit()
     }
 
+    /// Shrinks the capacity of the index set to a lower bound.
+    ///
+    /// The behavior of this method depends on the allocator, which may either shrink the
+    /// index set in place or reallocate. The resulting index set might still have some excess
+    /// capacity, just as is the case for [`with_capacity`]. See [`Allocator::shrink`] for more
+    /// details.
+    ///
+    /// The capacity will remain at least as large as both the length
+    /// and the supplied capacity `min_capacity`. In particular, after calling this method,
+    /// the capacity of `self` satisfies
+    ///
+    /// ```text
+    /// self.capacity() >= max(self.len(), min_capacity).
+    /// ```
+    ///
+    /// If the current capacity of the index set is less than the lower bound, the method does
+    /// nothing.
+    ///
+    /// [`with_capacity`]: OpaqueIndexSet::with_capacity
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_set = OpaqueIndexSet::with_capacity::<i32>(10);
+    /// opaque_set.extend::<_, i32, RandomState, Global>([1_i32, 2_i32, 3_i32]);
+    ///
+    /// assert!(opaque_set.capacity() >= 10);
+    ///
+    /// opaque_set.shrink_to::<i32, RandomState, Global>(4);
+    ///
+    /// assert!(opaque_set.capacity() >= 4);
+    ///
+    /// opaque_set.shrink_to::<i32, RandomState, Global>(0);
+    ///
+    /// assert!(opaque_set.capacity() >= 3);
+    /// ```
     pub fn shrink_to<T, S, A>(&mut self, min_capacity: usize)
     where
         T: any::Any,
@@ -4789,6 +6117,81 @@ impl OpaqueIndexSet {
         let proj_self = self.as_proj_mut::<T, S, A>();
 
         proj_self.swap_indices(a, b)
+    }
+}
+
+impl OpaqueIndexSet {
+    /// Extends a type-erased index set.
+    ///
+    /// This method acts identically to an implementation of the [`Extend`] trait on a type-projected
+    /// index set [`TypedProjIndexSet`], or a generic [`HashSet`].
+    ///
+    /// If any entry from the iterable has an equivalent value in `self`, the value of the entry
+    /// will not be included from the iterator.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
+    /// # Examples
+    ///
+    /// Extending a type-erased index set without overlapping keys.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let array: [i32; 6] = [1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32];
+    /// let extension: [i32; 4] = [7_i32, 8_i32, 9_i32, 10_i32];
+    /// let combined: [i32; 10] = [
+    ///     1_i32,
+    ///     2_i32,
+    ///     3_i32,
+    ///     4_i32,
+    ///     5_i32,
+    ///     6_i32,
+    ///     7_i32,
+    ///     8_i32,
+    ///     9_i32,
+    ///     10_i32,
+    /// ];
+    /// let expected = OpaqueIndexSet::from(combined);
+    /// #
+    /// # assert!(expected.has_value_type::<i32>());
+    /// # assert!(expected.has_build_hasher_type::<RandomState>());
+    /// # assert!(expected.has_allocator_type::<Global>());
+    /// #
+    /// let mut result = OpaqueIndexSet::from(array);
+    /// #
+    /// # assert!(result.has_value_type::<i32>());
+    /// # assert!(result.has_build_hasher_type::<RandomState>());
+    /// # assert!(result.has_allocator_type::<Global>());
+    /// #
+    /// result.extend::<_, i32, RandomState, Global>(extension.iter().cloned());
+    ///
+    /// assert_eq!(result.len(), expected.len());
+    /// assert_eq!(result.as_slice::<i32, RandomState, Global>(), expected.as_slice::<i32, RandomState, Global>());
+    /// ```
+    #[inline]
+    pub fn extend<I, T, S, A>(&mut self, iterable: I)
+    where
+        T: any::Any + hash::Hash + Eq,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+        I: IntoIterator<Item = T>,
+    {
+        let proj_self = self.as_proj_mut::<T, S, A>();
+
+        proj_self.extend(iterable)
     }
 }
 
