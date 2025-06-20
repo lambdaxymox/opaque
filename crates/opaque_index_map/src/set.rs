@@ -4641,6 +4641,12 @@ impl OpaqueIndexSet {
 impl OpaqueIndexSet {
     /// Returns a reference to the type-projected hash builder used by the index set.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
     /// ```
@@ -4653,6 +4659,11 @@ impl OpaqueIndexSet {
     /// # use std::alloc::Global;
     /// #
     /// let opaque_set = OpaqueIndexSet::new::<usize>();
+    /// #
+    /// # assert!(opaque_set.has_value_type::<usize>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
     ///
     /// assert!(opaque_set.is_empty());
     ///
@@ -4673,6 +4684,12 @@ impl OpaqueIndexSet {
 
     /// Returns a reference to the type-projected memory allocator from the index set.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
     /// ```
@@ -4685,6 +4702,11 @@ impl OpaqueIndexSet {
     /// # use std::alloc::Global;
     /// #
     /// let opaque_set = OpaqueIndexSet::new::<usize>();
+    /// #
+    /// # assert!(opaque_set.has_value_type::<usize>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
     ///
     /// assert!(opaque_set.is_empty());
     ///
@@ -4709,6 +4731,12 @@ impl OpaqueIndexSet {
     ///
     /// The iterator returns the entries in their storage order in the index set.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
     /// ```
@@ -4722,6 +4750,11 @@ impl OpaqueIndexSet {
     /// # use std::alloc::Global;
     /// #
     /// let opaque_set = OpaqueIndexSet::from([1_i32, 2_i32, 3_i32]);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<i32>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
     /// let entries: TypedProjVec<i32> = opaque_set
     ///     .iter::<i32, RandomState, Global>()
     ///     .cloned()
@@ -4753,6 +4786,12 @@ impl OpaqueIndexSet {
     /// After calling this method, the collection will be empty. This method does not change the
     /// allocated capacity of the type-projected index set.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
     /// ```
@@ -4767,6 +4806,11 @@ impl OpaqueIndexSet {
     /// #
     /// let capacity = 10;
     /// let mut opaque_set = OpaqueIndexSet::with_capacity::<String>(10);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<String>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
     ///
     /// assert!(opaque_set.is_empty());
     ///
@@ -4800,6 +4844,12 @@ impl OpaqueIndexSet {
     /// this method drops every entry with storage index in the range `[len, self.len())`.
     /// This method does nothing when `self.len() <= len`.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
     /// Truncating a type-erased index set when `len < self.len()`.
@@ -4822,6 +4872,11 @@ impl OpaqueIndexSet {
     ///     5_i64,
     ///     6_i64,
     /// ]);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<i64>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
     ///
     /// opaque_set.truncate::<i64, RandomState, Global>(2);
     ///
@@ -4856,6 +4911,11 @@ impl OpaqueIndexSet {
     ///     5_i64,
     ///     6_i64,
     /// ]);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<i64>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
     ///
     /// opaque_set.truncate::<i64, RandomState, Global>(6);
     ///
@@ -4890,6 +4950,11 @@ impl OpaqueIndexSet {
     ///     5_i64,
     ///     6_i64,
     /// ]);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<i64>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
     ///
     /// opaque_set.truncate::<i64, RandomState, Global>(7);
     ///
@@ -4962,9 +5027,13 @@ impl OpaqueIndexSet {
     ///
     /// # Panics
     ///
-    /// This method panics if the range of the subslice falls outside the bounds of the collection.
-    /// That is, if the starting point of the subslice being removed starts after the end of `self`,
-    /// or if the ending point is larger than the length of the index set.
+    /// This method panics under one of the following conditions:
+    /// * If the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    ///   builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    ///   value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    /// * If the range of the subslice falls outside the bounds of the collection.
+    ///   That is, if the starting point of the subslice being removed starts after the end of
+    ///   `self`, or if the ending point is larger than the length of the index set.
     ///
     /// # Leaking
     ///
@@ -4994,6 +5063,11 @@ impl OpaqueIndexSet {
     ///     5_i64,
     ///     6_i64,
     /// ]);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<i64>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
     ///
     /// assert_eq!(opaque_set.len(), 6);
     ///
@@ -5040,6 +5114,11 @@ impl OpaqueIndexSet {
     ///     5_i64,
     ///     6_i64,
     /// ]);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<i64>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
     ///
     /// assert_eq!(opaque_set.len(), 6);
     ///
@@ -5088,6 +5167,11 @@ impl OpaqueIndexSet {
     ///     5_i64,
     ///     6_i64,
     /// ]);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<i64>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
     ///
     /// assert_eq!(opaque_set.len(), 6);
     ///
@@ -5138,7 +5222,11 @@ impl OpaqueIndexSet {
     ///
     /// # Panics
     ///
-    /// This method panics if `at > self.len()`.
+    /// This method panics under one of the following conditions:
+    /// * If the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    ///   builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    ///   value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    /// * If `at > self.len()`.
     ///
     /// # Examples
     ///
@@ -5160,6 +5248,11 @@ impl OpaqueIndexSet {
     ///     5_i64,
     ///     6_i64,
     /// ]);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<i64>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
     ///
     /// assert_eq!(opaque_set.len(), 6);
     ///
@@ -5217,6 +5310,9 @@ impl OpaqueIndexSet {
     /// # Panics
     ///
     /// This method panics if one of the following conditions occurs:
+    /// * If the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    ///   builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    ///   value type `T`, hash builder type `S`, and allocator type `A`, respectively.
     /// * If the capacity of the index set overflows.
     /// * If the allocator reports a failure.
     ///
@@ -5234,6 +5330,11 @@ impl OpaqueIndexSet {
     /// # use std::alloc::Global;
     /// #
     /// let mut opaque_set = OpaqueIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32]);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<i32>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
     /// opaque_set.reserve::<i32, RandomState, Global>(10);
     ///
     /// assert!(opaque_set.capacity() >= opaque_set.len() + 10);
@@ -5268,6 +5369,9 @@ impl OpaqueIndexSet {
     /// # Panics
     ///
     /// This method panics if one of the following conditions occurs:
+    /// * If the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    ///   builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    ///   value type `T`, hash builder type `S`, and allocator type `A`, respectively.
     /// * If the capacity of the index set overflows.
     /// * If the allocator reports a failure.
     ///
@@ -5285,6 +5389,11 @@ impl OpaqueIndexSet {
     /// # use std::alloc::Global;
     /// #
     /// let mut opaque_set = OpaqueIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32]);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<i32>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
     /// opaque_set.reserve_exact::<i32, RandomState, Global>(10);
     ///
     /// assert!(opaque_set.capacity() >= opaque_set.len() + 10);
@@ -5318,6 +5427,12 @@ impl OpaqueIndexSet {
     ///
     /// This method returns an error if the capacity overflows, or the allocator reports a failure.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
     /// ```
@@ -5332,6 +5447,11 @@ impl OpaqueIndexSet {
     /// # use std::alloc::Global;
     /// #
     /// let mut opaque_set = OpaqueIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32]);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<i32>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
     /// let result = opaque_set.try_reserve::<i32, RandomState, Global>(10);
     ///
     /// assert!(result.is_ok());
@@ -5368,6 +5488,12 @@ impl OpaqueIndexSet {
     ///
     /// This method returns an error if the capacity overflows, or the allocator reports a failure.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
     /// ```
@@ -5382,6 +5508,11 @@ impl OpaqueIndexSet {
     /// # use std::alloc::Global;
     /// #
     /// let mut opaque_set = OpaqueIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32]);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<i32>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
     /// let result = opaque_set.try_reserve_exact::<i32, RandomState, Global>(10);
     ///
     /// assert!(result.is_ok());
@@ -5413,6 +5544,12 @@ impl OpaqueIndexSet {
     ///
     /// [`with_capacity`]: OpaqueIndexSet::with_capacity
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
     /// ```
@@ -5427,6 +5564,11 @@ impl OpaqueIndexSet {
     /// # use std::alloc::Global;
     /// #
     /// let mut opaque_set = OpaqueIndexSet::with_capacity::<i32>(10);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<i32>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
     /// opaque_set.extend::<_, i32, RandomState, Global>([1_i32, 2_i32, 3_i32]);
     ///
     /// assert!(opaque_set.capacity() >= 10);
@@ -5467,6 +5609,12 @@ impl OpaqueIndexSet {
     ///
     /// [`with_capacity`]: OpaqueIndexSet::with_capacity
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
     /// ```
@@ -5481,6 +5629,11 @@ impl OpaqueIndexSet {
     /// # use std::alloc::Global;
     /// #
     /// let mut opaque_set = OpaqueIndexSet::with_capacity::<i32>(10);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<i32>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
     /// opaque_set.extend::<_, i32, RandomState, Global>([1_i32, 2_i32, 3_i32]);
     ///
     /// assert!(opaque_set.capacity() >= 10);
