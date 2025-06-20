@@ -1370,9 +1370,9 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let set: TypedProjIndexSet<isize, RandomState, Global> = TypedProjIndexSet::new();
+    /// let proj_set: TypedProjIndexSet<isize, RandomState, Global> = TypedProjIndexSet::new();
     ///
-    /// assert_eq!(set.value_type_id(), TypeId::of::<isize>());
+    /// assert_eq!(proj_set.value_type_id(), TypeId::of::<isize>());
     /// ```
     #[inline]
     pub const fn value_type_id(&self) -> any::TypeId {
@@ -1390,9 +1390,9 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let set: TypedProjIndexSet<isize, RandomState, Global> = TypedProjIndexSet::new();
+    /// let proj_set: TypedProjIndexSet<isize, RandomState, Global> = TypedProjIndexSet::new();
     ///
-    /// assert_eq!(set.build_hasher_type_id(), TypeId::of::<RandomState>());
+    /// assert_eq!(proj_set.build_hasher_type_id(), TypeId::of::<RandomState>());
     /// ```
     #[inline]
     pub const fn build_hasher_type_id(&self) -> any::TypeId {
@@ -1410,9 +1410,9 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let set: TypedProjIndexSet<isize, RandomState, Global> = TypedProjIndexSet::new();
+    /// let proj_set: TypedProjIndexSet<isize, RandomState, Global> = TypedProjIndexSet::new();
     ///
-    /// assert_eq!(set.allocator_type_id(), TypeId::of::<Global>());
+    /// assert_eq!(proj_set.allocator_type_id(), TypeId::of::<Global>());
     /// ```
     #[inline]
     pub const fn allocator_type_id(&self) -> any::TypeId {
@@ -1460,7 +1460,7 @@ where
     /// Constructs a new index set with the given type-projected hash builder and type-projected
     /// memory allocator.
     ///
-    /// This method *does not* allocate memory. In particular, the index set has zero capacity and will
+    /// This method **does not** allocate memory. In particular, the index set has zero capacity and will
     /// not allocate memory until values are inserted into it. The index set will have length zero
     /// until elements are inserted into it.
     ///
@@ -1494,6 +1494,61 @@ where
         }
     }
 
+    /// Constructs a new index set with the given capacity, type-projected hash builder, and type-projected
+    /// memory allocator.
+    ///
+    /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular, the
+    /// index set has capacity at least `capacity`, and will allocate enough memory to store at least
+    /// `capacity` keys and values. The index set will have length zero until elements are inserted into it.
+    ///
+    /// # Examples
+    ///
+    /// Creating a type-projected index set with capacity `capacity > 0`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let capacity = 10;
+    /// let proj_alloc = TypedProjAlloc::new(Global);
+    /// let proj_build_hasher = TypedProjBuildHasher::new(RandomState::new());
+    /// let proj_set: TypedProjIndexSet<f64, RandomState, Global> = TypedProjIndexSet::with_capacity_and_hasher_proj_in(
+    ///     capacity,
+    ///     proj_build_hasher,
+    ///     proj_alloc
+    /// );
+    ///
+    /// assert!(proj_set.is_empty());
+    /// assert!(proj_set.capacity() >= capacity);
+    /// ```
+    ///
+    /// Creating a type-projected index set with capacity `capacity == 0`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_alloc = TypedProjAlloc::new(Global);
+    /// let proj_build_hasher = TypedProjBuildHasher::new(RandomState::new());
+    /// let proj_set: TypedProjIndexSet<f64, RandomState, Global> = TypedProjIndexSet::with_capacity_and_hasher_proj_in(
+    ///     0,
+    ///     proj_build_hasher,
+    ///     proj_alloc
+    /// );
+    ///
+    /// assert!(proj_set.is_empty());
+    /// assert_eq!(proj_set.capacity(), 0);
+    /// ```
     #[inline]
     pub fn with_capacity_and_hasher_proj_in(capacity: usize, proj_build_hasher: TypedProjBuildHasher<S>, proj_alloc: TypedProjAlloc<A>) -> Self {
         if capacity == 0 {
@@ -2396,9 +2451,9 @@ impl OpaqueIndexSet {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let set: OpaqueIndexSet = OpaqueIndexSet::new::<isize>();
+    /// let opaque_set: OpaqueIndexSet = OpaqueIndexSet::new::<isize>();
     ///
-    /// assert_eq!(set.value_type_id(), TypeId::of::<isize>());
+    /// assert_eq!(opaque_set.value_type_id(), TypeId::of::<isize>());
     /// ```
     #[inline]
     pub const fn value_type_id(&self) -> any::TypeId {
@@ -2416,9 +2471,9 @@ impl OpaqueIndexSet {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let set: OpaqueIndexSet = OpaqueIndexSet::new::<isize>();
+    /// let opaque_set: OpaqueIndexSet = OpaqueIndexSet::new::<isize>();
     ///
-    /// assert_eq!(set.build_hasher_type_id(), TypeId::of::<RandomState>());
+    /// assert_eq!(opaque_set.build_hasher_type_id(), TypeId::of::<RandomState>());
     /// ```
     #[inline]
     pub const fn build_hasher_type_id(&self) -> any::TypeId {
@@ -2436,9 +2491,9 @@ impl OpaqueIndexSet {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let set: OpaqueIndexSet = OpaqueIndexSet::new::<isize>();
+    /// let opaque_set: OpaqueIndexSet = OpaqueIndexSet::new::<isize>();
     ///
-    /// assert_eq!(set.allocator_type_id(), TypeId::of::<Global>());
+    /// assert_eq!(opaque_set.allocator_type_id(), TypeId::of::<Global>());
     /// ```
     #[inline]
     pub const fn allocator_type_id(&self) -> any::TypeId {
@@ -2460,9 +2515,9 @@ impl OpaqueIndexSet {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let set = OpaqueIndexSet::new::<isize>();
+    /// let opaque_set = OpaqueIndexSet::new::<isize>();
     ///
-    /// assert!(set.has_value_type::<isize>());
+    /// assert!(opaque_set.has_value_type::<isize>());
     /// ```
     #[inline]
     pub fn has_value_type<T>(&self) -> bool
@@ -2485,9 +2540,9 @@ impl OpaqueIndexSet {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let set = OpaqueIndexSet::new::<isize>();
+    /// let opaque_set = OpaqueIndexSet::new::<isize>();
     ///
-    /// assert!(set.has_build_hasher_type::<RandomState>());
+    /// assert!(opaque_set.has_build_hasher_type::<RandomState>());
     /// ```
     #[inline]
     pub fn has_build_hasher_type<S>(&self) -> bool
@@ -2510,9 +2565,9 @@ impl OpaqueIndexSet {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let set = OpaqueIndexSet::new::<isize>();
+    /// let opaque_set = OpaqueIndexSet::new::<isize>();
     ///
-    /// assert!(set.has_allocator_type::<Global>());
+    /// assert!(opaque_set.has_allocator_type::<Global>());
     /// ```
     #[inline]
     pub fn has_allocator_type<A>(&self) -> bool

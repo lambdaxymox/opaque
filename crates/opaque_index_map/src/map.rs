@@ -6507,7 +6507,7 @@ where
     /// Constructs a new index map with the given type-projected hash builder and type-projected
     /// memory allocator.
     ///
-    /// This method *does not* allocate memory. In particular, the index map has zero capacity and will
+    /// This method **does not** allocate memory. In particular, the index map has zero capacity and will
     /// not allocate memory until key-value pairs are inserted into it. The index map will have
     /// length zero until elements are inserted into it.
     ///
@@ -6544,7 +6544,7 @@ where
     /// Constructs a new index map with the given capacity, type-projected hash builder, and type-projected
     /// memory allocator.
     ///
-    /// This method *does* allocate memory if the capacity `capacity` is non-zero. In particular, the
+    /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular, the
     /// index map has capacity at least `capacity`, and will allocate enough memory to store at least
     /// `capacity` keys and values. The index map will have length zero until elements are inserted into it.
     ///
@@ -6650,7 +6650,7 @@ where
 
     /// Constructs a new index map with the given capacity and type-projected memory allocator.
     ///
-    /// This method *does* allocate memory if the capacity `capacity` is non-zero. In particular, the
+    /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular, the
     /// index map has capacity at least `capacity`, and will allocate enough memory to store at least
     /// `capacity` keys and values. The index map will have length zero until elements are inserted into it.
     ///
@@ -6751,7 +6751,7 @@ where
 
     /// Constructs a new index map with the given capacity, hash builder, and memory allocator.
     ///
-    /// This method *does* allocate memory if the capacity `capacity` is non-zero. In particular, the
+    /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular, the
     /// index map has capacity at least `capacity`, and will allocate enough memory to store at least
     /// `capacity` keys and values. The index map will have length zero until elements are inserted into it.
     ///
@@ -6852,7 +6852,7 @@ where
 
     /// Constructs a new index map with the given capacity and memory allocator.
     ///
-    /// This method *does* allocate memory if the capacity `capacity` is non-zero. In particular, the
+    /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular, the
     /// index map has capacity at least `capacity`, and will allocate enough memory to store at least
     /// `capacity` keys and values. The index map will have length zero until elements are inserted into it.
     ///
@@ -6943,7 +6943,7 @@ where
 
     /// Constructs a new index map with the given capacity and hash builder.
     ///
-    /// This method *does* allocate memory if the capacity `capacity` is non-zero. In particular, the
+    /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular, the
     /// index map has capacity at least `capacity`, and will allocate enough memory to store at least
     /// `capacity` keys and values. The index map will have length zero until elements are inserted into it.
     ///
@@ -7034,7 +7034,7 @@ where
 
     /// Constructs a new index map with the given capacity.
     ///
-    /// This method *does* allocate memory if the capacity `capacity` is non-zero. In particular, the
+    /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular, the
     /// index map has capacity at least `capacity`, and will allocate enough memory to store at least
     /// `capacity` keys and values. The index map will have length zero until elements are inserted into it.
     ///
@@ -13498,7 +13498,7 @@ impl OpaqueIndexMap {
     /// Constructs a new index map with the given capacity, type-projected hash builder, and type-projected
     /// memory allocator.
     ///
-    /// This method *does* allocate memory if the capacity `capacity` is non-zero. In particular, the
+    /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular, the
     /// index map has capacity at least `capacity`, and will allocate enough memory to store at least
     /// `capacity` keys and values. The index map will have length zero until elements are inserted into it.
     ///
@@ -13618,7 +13618,7 @@ impl OpaqueIndexMap {
 
     /// Constructs a new index map with the given capacity and type-projected memory allocator.
     ///
-    /// This method *does* allocate memory if the capacity `capacity` is non-zero. In particular, the
+    /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular, the
     /// index map has capacity at least `capacity`, and will allocate enough memory to store at least
     /// `capacity` keys and values. The index map will have length zero until elements are inserted into it.
     ///
@@ -13735,7 +13735,7 @@ impl OpaqueIndexMap {
 
     /// Constructs a new index map with the given capacity, hash builder, and memory allocator.
     ///
-    /// This method *does* allocate memory if the capacity `capacity` is non-zero. In particular, the
+    /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular, the
     /// index map has capacity at least `capacity`, and will allocate enough memory to store at least
     /// `capacity` keys and values. The index map will have length zero until elements are inserted into it.
     ///
@@ -13849,7 +13849,7 @@ impl OpaqueIndexMap {
 
     /// Constructs a new index map with the given capacity and memory allocator.
     ///
-    /// This method *does* allocate memory if the capacity `capacity` is non-zero. In particular, the
+    /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular, the
     /// index map has capacity at least `capacity`, and will allocate enough memory to store at least
     /// `capacity` keys and values. The index map will have length zero until elements are inserted into it.
     ///
@@ -13960,7 +13960,7 @@ impl OpaqueIndexMap {
 
     /// Constructs a new index map with the given capacity and hash builder.
     ///
-    /// This method *does* allocate memory if the capacity `capacity` is non-zero. In particular, the
+    /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular, the
     /// index map has capacity at least `capacity`, and will allocate enough memory to store at least
     /// `capacity` keys and values. The index map will have length zero until elements are inserted into it.
     ///
@@ -14069,7 +14069,7 @@ impl OpaqueIndexMap {
 
     /// Constructs a new index map with the given capacity.
     ///
-    /// This method *does* allocate memory if the capacity `capacity` is non-zero. In particular, the
+    /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular, the
     /// index map has capacity at least `capacity`, and will allocate enough memory to store at least
     /// `capacity` keys and values. The index map will have length zero until elements are inserted into it.
     ///
