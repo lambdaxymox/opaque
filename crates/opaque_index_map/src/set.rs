@@ -1569,6 +1569,29 @@ where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
+    /// Constructs a new index set with the given type-projected memory allocator.
+    ///
+    /// This method **does not** allocate memory. In particular, the index set has zero capacity and will
+    /// not allocate memory until key-value pairs are inserted into it. The index set will have
+    /// length zero until elements are inserted into it.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_alloc = TypedProjAlloc::new(Global);
+    /// let proj_set: TypedProjIndexSet<f64, RandomState, Global> = TypedProjIndexSet::new_proj_in(proj_alloc);
+    ///
+    /// assert!(proj_set.is_empty());
+    /// assert_eq!(proj_set.capacity(), 0);
+    /// ```
     pub fn new_proj_in(proj_alloc: TypedProjAlloc<A>) -> Self {
         let proj_inner = map_inner::TypedProjIndexMapInner::<T, (), hash::RandomState, A>::new_proj_in(proj_alloc);
 
@@ -1577,6 +1600,56 @@ where
         }
     }
 
+    /// Constructs a new index set with the given capacity and type-projected memory allocator.
+    ///
+    /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular, the
+    /// index set has capacity at least `capacity`, and will allocate enough memory to store at least
+    /// `capacity` keys and values. The index set will have length zero until elements are inserted into it.
+    ///
+    /// # Examples
+    ///
+    /// Creating a type-projected index set with capacity `capacity > 0`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let capacity = 10;
+    /// let proj_alloc = TypedProjAlloc::new(Global);
+    /// let proj_set: TypedProjIndexSet<f64, RandomState, Global> = TypedProjIndexSet::with_capacity_proj_in(
+    ///     capacity,
+    ///     proj_alloc
+    /// );
+    ///
+    /// assert!(proj_set.is_empty());
+    /// assert!(proj_set.capacity() >= capacity);
+    /// ```
+    ///
+    /// Creating a type-projected index set with capacity `capacity == 0`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_alloc = TypedProjAlloc::new(Global);
+    /// let proj_set: TypedProjIndexSet<f64, RandomState, Global> = TypedProjIndexSet::with_capacity_proj_in(
+    ///     0,
+    ///     proj_alloc
+    /// );
+    ///
+    /// assert!(proj_set.is_empty());
+    /// assert_eq!(proj_set.capacity(), 0);
+    /// ```
     pub fn with_capacity_proj_in(capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self {
         let proj_inner = map_inner::TypedProjIndexMapInner::<T, (), hash::RandomState, A>::with_capacity_proj_in(capacity, proj_alloc);
 
@@ -1593,16 +1666,91 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    pub fn with_capacity_and_hasher_in(capacity: usize, build_hasher: S, alloc: A) -> Self {
-        let proj_inner = map_inner::TypedProjIndexMapInner::with_capacity_and_hasher_in(capacity, build_hasher, alloc);
+    /// Constructs a new index set with the given hash builder and memory allocator.
+    ///
+    /// This method **does not** allocate memory. In particular, the index set has zero capacity and will
+    /// not allocate memory until key-value pairs are inserted into it. The index set will have
+    /// length zero until elements are inserted into it.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set: TypedProjIndexSet<f64, RandomState, Global> = TypedProjIndexSet::with_hasher_in(
+    ///     RandomState::new(),
+    ///     Global
+    /// );
+    ///
+    /// assert!(proj_set.is_empty());
+    /// assert_eq!(proj_set.capacity(), 0);
+    /// ```
+    pub fn with_hasher_in(build_hasher: S, alloc: A) -> Self {
+        let proj_inner = map_inner::TypedProjIndexMapInner::with_hasher_in(build_hasher, alloc);
 
         TypedProjIndexSet {
             inner: proj_inner,
         }
     }
 
-    pub fn with_hasher_in(build_hasher: S, alloc: A) -> Self {
-        let proj_inner = map_inner::TypedProjIndexMapInner::with_hasher_in(build_hasher, alloc);
+    /// Constructs a new index set with the given capacity, hash builder, and memory allocator.
+    ///
+    /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular, the
+    /// index set has capacity at least `capacity`, and will allocate enough memory to store at least
+    /// `capacity` keys and values. The index set will have length zero until elements are inserted into it.
+    ///
+    /// # Examples
+    ///
+    /// Creating a type-projected index set with capacity `capacity > 0`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let capacity = 10;
+    /// let proj_set: TypedProjIndexSet<f64, RandomState, Global> = TypedProjIndexSet::with_capacity_and_hasher_in(
+    ///     capacity,
+    ///     RandomState::new(),
+    ///     Global
+    /// );
+    ///
+    /// assert!(proj_set.is_empty());
+    /// assert!(proj_set.capacity() >= capacity);
+    /// ```
+    ///
+    /// Creating a type-projected index set with capacity `capacity == 0`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set: TypedProjIndexSet<f64, RandomState, Global> = TypedProjIndexSet::with_capacity_and_hasher_in(
+    ///     0,
+    ///     RandomState::new(),
+    ///     Global
+    /// );
+    ///
+    /// assert!(proj_set.is_empty());
+    /// assert_eq!(proj_set.capacity(), 0);
+    /// ```
+    pub fn with_capacity_and_hasher_in(capacity: usize, build_hasher: S, alloc: A) -> Self {
+        let proj_inner = map_inner::TypedProjIndexMapInner::with_capacity_and_hasher_in(capacity, build_hasher, alloc);
 
         TypedProjIndexSet {
             inner: proj_inner,
@@ -1616,6 +1764,28 @@ where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
+    /// Constructs a new index set with the given memory allocator.
+    ///
+    /// This method **does not** allocate memory. In particular, the index set has zero capacity and will
+    /// not allocate memory until key-value pairs are inserted into it. The index set will have
+    /// length zero until elements are inserted into it.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set: TypedProjIndexSet<f64, RandomState, Global> = TypedProjIndexSet::new_in(Global);
+    ///
+    /// assert!(proj_set.is_empty());
+    /// assert_eq!(proj_set.capacity(), 0);
+    /// ```
     pub fn new_in(alloc: A) -> Self {
         let proj_inner = map_inner::TypedProjIndexMapInner::<T, (), hash::RandomState, A>::new_in(alloc);
 
@@ -1624,6 +1794,54 @@ where
         }
     }
 
+    /// Constructs a new index set with the given capacity and memory allocator.
+    ///
+    /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular, the
+    /// index set has capacity at least `capacity`, and will allocate enough memory to store at least
+    /// `capacity` keys and values. The index set will have length zero until elements are inserted into it.
+    ///
+    /// # Examples
+    ///
+    /// Creating a type-projected index set with capacity `capacity > 0`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let capacity = 10;
+    /// let proj_set: TypedProjIndexSet<f64, RandomState, Global> = TypedProjIndexSet::with_capacity_in(
+    ///     capacity,
+    ///     Global
+    /// );
+    ///
+    /// assert!(proj_set.is_empty());
+    /// assert!(proj_set.capacity() >= capacity);
+    /// ```
+    ///
+    /// Creating a type-projected index set with capacity `capacity == 0`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set: TypedProjIndexSet<f64, RandomState, Global> = TypedProjIndexSet::with_capacity_in(
+    ///     0,
+    ///     Global
+    /// );
+    ///
+    /// assert!(proj_set.is_empty());
+    /// assert_eq!(proj_set.capacity(), 0);
+    /// ```
     pub fn with_capacity_in(capacity: usize, alloc: A) -> Self {
         let proj_inner = map_inner::TypedProjIndexMapInner::<T, (), hash::RandomState, A>::with_capacity_in(capacity, alloc);
 
@@ -1639,15 +1857,85 @@ where
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
 {
-    pub fn with_capacity_and_hasher(capacity: usize, build_hasher: S) -> Self {
-        TypedProjIndexSet {
-            inner: map_inner::TypedProjIndexMapInner::with_capacity_and_hasher(capacity, build_hasher),
-        }
-    }
-
+    /// Constructs a new index set with the given hash builder.
+    ///
+    /// This method **does not** allocate memory. In particular, the index set has zero capacity and will
+    /// not allocate memory until key-value pairs are inserted into it. The index set will have
+    /// length zero until elements are inserted into it.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set: TypedProjIndexSet<f64, RandomState, Global> = TypedProjIndexSet::with_hasher(RandomState::new());
+    ///
+    /// assert!(proj_set.is_empty());
+    /// assert_eq!(proj_set.capacity(), 0);
+    /// ```
     pub fn with_hasher(build_hasher: S) -> Self {
         TypedProjIndexSet {
             inner: map_inner::TypedProjIndexMapInner::with_hasher(build_hasher),
+        }
+    }
+
+    /// Constructs a new index set with the given capacity and hash builder.
+    ///
+    /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular, the
+    /// index set has capacity at least `capacity`, and will allocate enough memory to store at least
+    /// `capacity` keys and values. The index set will have length zero until elements are inserted into it.
+    ///
+    /// # Examples
+    ///
+    /// Creating a type-projected index set with capacity `capacity > 0`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let capacity = 10;
+    /// let proj_set: TypedProjIndexSet<f64, RandomState, Global> = TypedProjIndexSet::with_capacity_and_hasher(
+    ///     capacity,
+    ///     RandomState::new(),
+    /// );
+    ///
+    /// assert!(proj_set.is_empty());
+    /// assert!(proj_set.capacity() >= capacity);
+    /// ```
+    ///
+    /// Creating a type-projected index set with capacity `capacity == 0`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set: TypedProjIndexSet<f64, RandomState, Global> = TypedProjIndexSet::with_capacity_and_hasher(
+    ///     0,
+    ///     RandomState::new(),
+    /// );
+    ///
+    /// assert!(proj_set.is_empty());
+    /// assert_eq!(proj_set.capacity(), 0);
+    /// ```
+    pub fn with_capacity_and_hasher(capacity: usize, build_hasher: S) -> Self {
+        TypedProjIndexSet {
+            inner: map_inner::TypedProjIndexMapInner::with_capacity_and_hasher(capacity, build_hasher),
         }
     }
 }
@@ -1657,12 +1945,80 @@ impl<T> TypedProjIndexSet<T, hash::RandomState, alloc::Global>
 where
     T: any::Any,
 {
+    /// Constructs a new index set.
+    ///
+    /// This method **does not** allocate memory. In particular, the index set has zero capacity and will
+    /// not allocate memory until key-value pairs are inserted into it. The index set will have
+    /// length zero until elements are inserted into it.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set: TypedProjIndexSet<f64, RandomState, Global> = TypedProjIndexSet::new();
+    ///
+    /// assert!(proj_set.is_empty());
+    /// assert_eq!(proj_set.capacity(), 0);
+    /// ```
     pub fn new() -> Self {
         TypedProjIndexSet {
             inner: map_inner::TypedProjIndexMapInner::new(),
         }
     }
 
+    /// Constructs a new index set with the given capacity.
+    ///
+    /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular, the
+    /// index set has capacity at least `capacity`, and will allocate enough memory to store at least
+    /// `capacity` keys and values. The index set will have length zero until elements are inserted into it.
+    ///
+    /// # Examples
+    ///
+    /// Creating a type-projected index set with capacity `capacity > 0`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let capacity = 10;
+    /// let proj_set: TypedProjIndexSet<f64, RandomState, Global> = TypedProjIndexSet::with_capacity(
+    ///     capacity,
+    /// );
+    ///
+    /// assert!(proj_set.is_empty());
+    /// assert!(proj_set.capacity() >= capacity);
+    /// ```
+    ///
+    /// Creating a type-projected index set with capacity `capacity == 0`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set: TypedProjIndexSet<f64, RandomState, Global> = TypedProjIndexSet::with_capacity(
+    ///     0,
+    /// );
+    ///
+    /// assert!(proj_set.is_empty());
+    /// assert_eq!(proj_set.capacity(), 0);
+    /// ```
     pub fn with_capacity(capacity: usize) -> Self {
         TypedProjIndexSet {
             inner: map_inner::TypedProjIndexMapInner::with_capacity(capacity),
@@ -2783,6 +3139,34 @@ impl OpaqueIndexSet {
 }
 
 impl OpaqueIndexSet {
+    /// Constructs a new index set with the given type-projected hash builder and type-projected
+    /// memory allocator.
+    ///
+    /// This method **does not** allocate memory. In particular, the index set has zero capacity and will
+    /// not allocate memory until values are inserted into it. The index set will have length zero
+    /// until elements are inserted into it.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_alloc = TypedProjAlloc::new(Global);
+    /// let proj_build_hasher = TypedProjBuildHasher::new(RandomState::new());
+    /// let opaque_set = OpaqueIndexSet::with_hasher_proj_in::<f64, RandomState, Global>(
+    ///     proj_build_hasher,
+    ///     proj_alloc
+    /// );
+    ///
+    /// assert!(opaque_set.is_empty());
+    /// assert_eq!(opaque_set.capacity(), 0);
+    /// ```
     #[inline]
     pub fn with_hasher_proj_in<T, S, A>(proj_build_hasher: TypedProjBuildHasher<S>, proj_alloc: TypedProjAlloc<A>) -> Self
     where
@@ -2796,6 +3180,61 @@ impl OpaqueIndexSet {
         Self::from_proj(proj_index_set)
     }
 
+    /// Constructs a new index set with the given capacity, type-projected hash builder, and type-projected
+    /// memory allocator.
+    ///
+    /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular, the
+    /// index set has capacity at least `capacity`, and will allocate enough memory to store at least
+    /// `capacity` keys and values. The index set will have length zero until elements are inserted into it.
+    ///
+    /// # Examples
+    ///
+    /// Creating a type-erased index set with capacity `capacity > 0`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let capacity = 10;
+    /// let proj_alloc = TypedProjAlloc::new(Global);
+    /// let proj_build_hasher = TypedProjBuildHasher::new(RandomState::new());
+    /// let opaque_set = OpaqueIndexSet::with_capacity_and_hasher_proj_in::<f64, RandomState, Global>(
+    ///     capacity,
+    ///     proj_build_hasher,
+    ///     proj_alloc
+    /// );
+    ///
+    /// assert!(opaque_set.is_empty());
+    /// assert!(opaque_set.capacity() >= capacity);
+    /// ```
+    ///
+    /// Creating a type-erased index set with capacity `capacity == 0`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_alloc = TypedProjAlloc::new(Global);
+    /// let proj_build_hasher = TypedProjBuildHasher::new(RandomState::new());
+    /// let opaque_set = OpaqueIndexSet::with_capacity_and_hasher_proj_in::<f64, RandomState, Global>(
+    ///     0,
+    ///     proj_build_hasher,
+    ///     proj_alloc
+    /// );
+    ///
+    /// assert!(opaque_set.is_empty());
+    /// assert_eq!(opaque_set.capacity(), 0);
+    /// ```
     #[inline]
     pub fn with_capacity_and_hasher_proj_in<T, S, A>(capacity: usize, proj_build_hasher: TypedProjBuildHasher<S>, proj_alloc: TypedProjAlloc<A>) -> Self
     where
@@ -2812,6 +3251,29 @@ impl OpaqueIndexSet {
 
 #[cfg(feature = "std")]
 impl OpaqueIndexSet {
+    /// Constructs a new index set with the given type-projected memory allocator.
+    ///
+    /// This method **does not** allocate memory. In particular, the index set has zero capacity and will
+    /// not allocate memory until key-value pairs are inserted into it. The index set will have
+    /// length zero until elements are inserted into it.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_alloc = TypedProjAlloc::new(Global);
+    /// let opaque_set = OpaqueIndexSet::new_proj_in::<f64, Global>(proj_alloc);
+    ///
+    /// assert!(opaque_set.is_empty());
+    /// assert_eq!(opaque_set.capacity(), 0);
+    /// ```
     pub fn new_proj_in<T, A>(proj_alloc: TypedProjAlloc<A>) -> Self
     where
         T: any::Any,
@@ -2822,6 +3284,56 @@ impl OpaqueIndexSet {
         Self::from_proj(proj_index_set)
     }
 
+    /// Constructs a new index set with the given capacity and type-projected memory allocator.
+    ///
+    /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular, the
+    /// index set has capacity at least `capacity`, and will allocate enough memory to store at least
+    /// `capacity` keys and values. The index set will have length zero until elements are inserted into it.
+    ///
+    /// # Examples
+    ///
+    /// Creating a type-erased index set with capacity `capacity > 0`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let capacity = 10;
+    /// let proj_alloc = TypedProjAlloc::new(Global);
+    /// let opaque_set = OpaqueIndexSet::with_capacity_proj_in::<f64, Global>(
+    ///     capacity,
+    ///     proj_alloc
+    /// );
+    ///
+    /// assert!(opaque_set.is_empty());
+    /// assert!(opaque_set.capacity() >= capacity);
+    /// ```
+    ///
+    /// Creating a type-erased index set with capacity `capacity == 0`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_alloc = TypedProjAlloc::new(Global);
+    /// let opaque_set = OpaqueIndexSet::with_capacity_proj_in::<f64, Global>(
+    ///     0,
+    ///     proj_alloc
+    /// );
+    ///
+    /// assert!(opaque_set.is_empty());
+    /// assert_eq!(opaque_set.capacity(), 0);
+    /// ```
     pub fn with_capacity_proj_in<T, A>(capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self
     where
         T: any::Any,
@@ -2834,6 +3346,31 @@ impl OpaqueIndexSet {
 }
 
 impl OpaqueIndexSet {
+    /// Constructs a new index set with the given hash builder and memory allocator.
+    ///
+    /// This method **does not** allocate memory. In particular, the index set has zero capacity and will
+    /// not allocate memory until key-value pairs are inserted into it. The index set will have
+    /// length zero until elements are inserted into it.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_set = OpaqueIndexSet::with_hasher_in::<f64, RandomState, Global>(
+    ///     RandomState::new(),
+    ///     Global
+    /// );
+    ///
+    /// assert!(opaque_set.is_empty());
+    /// assert_eq!(opaque_set.capacity(), 0);
+    /// ```
     #[inline]
     pub fn with_hasher_in<T, S, A>(build_hasher: S, alloc: A) -> Self
     where
@@ -2847,6 +3384,56 @@ impl OpaqueIndexSet {
         Self::from_proj(proj_index_set)
     }
 
+    /// Constructs a new index set with the given capacity, hash builder, and memory allocator.
+    ///
+    /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular, the
+    /// index set has capacity at least `capacity`, and will allocate enough memory to store at least
+    /// `capacity` keys and values. The index set will have length zero until elements are inserted into it.
+    ///
+    /// # Examples
+    ///
+    /// Creating a type-erased index set with capacity `capacity > 0`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let capacity = 10;
+    /// let opaque_set = OpaqueIndexSet::with_capacity_and_hasher_in::<f64, RandomState, Global>(
+    ///     capacity,
+    ///     RandomState::new(),
+    ///     Global
+    /// );
+    ///
+    /// assert!(opaque_set.is_empty());
+    /// assert!(opaque_set.capacity() >= capacity);
+    /// ```
+    ///
+    /// Creating a type-erased index set with capacity `capacity == 0`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_set = OpaqueIndexSet::with_capacity_and_hasher_in::<f64, RandomState, Global>(
+    ///     0,
+    ///     RandomState::new(),
+    ///     Global
+    /// );
+    ///
+    /// assert!(opaque_set.is_empty());
+    /// assert_eq!(opaque_set.capacity(), 0);
+    /// ```
     #[inline]
     pub fn with_capacity_and_hasher_in<T, S, A>(capacity: usize, build_hasher: S, alloc: A) -> Self
     where
@@ -2862,6 +3449,28 @@ impl OpaqueIndexSet {
 }
 
 impl OpaqueIndexSet {
+    /// Constructs a new index set with the given memory allocator.
+    ///
+    /// This method **does not** allocate memory. In particular, the index set has zero capacity and will
+    /// not allocate memory until key-value pairs are inserted into it. The index set will have
+    /// length zero until elements are inserted into it.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_set = OpaqueIndexSet::new_in::<f64, Global>(Global);
+    ///
+    /// assert!(opaque_set.is_empty());
+    /// assert_eq!(opaque_set.capacity(), 0);
+    /// ```
     pub fn new_in<T, A>(alloc: A) -> Self
     where
         T: any::Any,
@@ -2872,6 +3481,54 @@ impl OpaqueIndexSet {
         Self::from_proj(proj_index_set)
     }
 
+    /// Constructs a new index set with the given capacity and memory allocator.
+    ///
+    /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular, the
+    /// index set has capacity at least `capacity`, and will allocate enough memory to store at least
+    /// `capacity` keys and values. The index set will have length zero until elements are inserted into it.
+    ///
+    /// # Examples
+    ///
+    /// Creating a type-erased index set with capacity `capacity > 0`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let capacity = 10;
+    /// let opaque_set = OpaqueIndexSet::with_capacity_in::<f64, Global>(
+    ///     capacity,
+    ///     Global
+    /// );
+    ///
+    /// assert!(opaque_set.is_empty());
+    /// assert!(opaque_set.capacity() >= capacity);
+    /// ```
+    ///
+    /// Creating a type-erased index set with capacity `capacity == 0`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_set = OpaqueIndexSet::with_capacity_in::<f64, Global>(
+    ///     0,
+    ///     Global
+    /// );
+    ///
+    /// assert!(opaque_set.is_empty());
+    /// assert_eq!(opaque_set.capacity(), 0);
+    /// ```
     pub fn with_capacity_in<T, A>(capacity: usize, alloc: A) -> Self
     where
         T: any::Any,
@@ -2884,6 +3541,28 @@ impl OpaqueIndexSet {
 }
 
 impl OpaqueIndexSet {
+    /// Constructs a new index set with the given hash builder.
+    ///
+    /// This method **does not** allocate memory. In particular, the index set has zero capacity and will
+    /// not allocate memory until key-value pairs are inserted into it. The index set will have
+    /// length zero until elements are inserted into it.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_set = OpaqueIndexSet::with_hasher::<f64, RandomState>(RandomState::new());
+    ///
+    /// assert!(opaque_set.is_empty());
+    /// assert_eq!(opaque_set.capacity(), 0);
+    /// ```
     #[inline]
     pub fn with_hasher<T, S>(build_hasher: S) -> Self
     where
@@ -2896,6 +3575,54 @@ impl OpaqueIndexSet {
         Self::from_proj(proj_index_set)
     }
 
+    /// Constructs a new index set with the given capacity and hash builder.
+    ///
+    /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular, the
+    /// index set has capacity at least `capacity`, and will allocate enough memory to store at least
+    /// `capacity` keys and values. The index set will have length zero until elements are inserted into it.
+    ///
+    /// # Examples
+    ///
+    /// Creating a type-erased index set with capacity `capacity > 0`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let capacity = 10;
+    /// let opaque_set = OpaqueIndexSet::with_capacity_and_hasher::<f64, RandomState>(
+    ///     capacity,
+    ///     RandomState::new(),
+    /// );
+    ///
+    /// assert!(opaque_set.is_empty());
+    /// assert!(opaque_set.capacity() >= capacity);
+    /// ```
+    ///
+    /// Creating a type-erased index set with capacity `capacity == 0`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_set = OpaqueIndexSet::with_capacity_and_hasher::<f64, RandomState>(
+    ///     0,
+    ///     RandomState::new(),
+    /// );
+    ///
+    /// assert!(opaque_set.is_empty());
+    /// assert_eq!(opaque_set.capacity(), 0);
+    /// ```
     #[inline]
     pub fn with_capacity_and_hasher<T, S>(capacity: usize, build_hasher: S) -> Self
     where
@@ -2910,6 +3637,28 @@ impl OpaqueIndexSet {
 }
 
 impl OpaqueIndexSet {
+    /// Constructs a new index set.
+    ///
+    /// This method **does not** allocate memory. In particular, the index set has zero capacity and will
+    /// not allocate memory until key-value pairs are inserted into it. The index set will have
+    /// length zero until elements are inserted into it.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_set = OpaqueIndexSet::new::<f64>();
+    ///
+    /// assert!(opaque_set.is_empty());
+    /// assert_eq!(opaque_set.capacity(), 0);
+    /// ```
     #[inline]
     pub fn new<T>() -> Self
     where
@@ -2918,6 +3667,52 @@ impl OpaqueIndexSet {
         Self::new_in::<T, alloc::Global>(alloc::Global)
     }
 
+    /// Constructs a new index set with the given capacity.
+    ///
+    /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular, the
+    /// index set has capacity at least `capacity`, and will allocate enough memory to store at least
+    /// `capacity` keys and values. The index set will have length zero until elements are inserted into it.
+    ///
+    /// # Examples
+    ///
+    /// Creating a type-erased index set with capacity `capacity > 0`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let capacity = 10;
+    /// let opaque_set = OpaqueIndexSet::with_capacity::<f64>(
+    ///     capacity,
+    /// );
+    ///
+    /// assert!(opaque_set.is_empty());
+    /// assert!(opaque_set.capacity() >= capacity);
+    /// ```
+    ///
+    /// Creating a type-erased index set with capacity `capacity == 0`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_set = OpaqueIndexSet::with_capacity::<f64>(
+    ///     0,
+    /// );
+    ///
+    /// assert!(opaque_set.is_empty());
+    /// assert_eq!(opaque_set.capacity(), 0);
+    /// ```
     #[inline]
     pub fn with_capacity<T>(capacity: usize) -> Self
     where
