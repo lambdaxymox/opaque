@@ -1477,7 +1477,7 @@ where
     /// #
     /// let proj_alloc = TypedProjAlloc::new(Global);
     /// let proj_build_hasher = TypedProjBuildHasher::new(RandomState::new());
-    /// let proj_set: TypedProjIndexSet<f64, RandomState, Global> = TypedProjIndexSet::with_hasher_proj_in(
+    /// let proj_set: TypedProjIndexSet<usize, RandomState, Global> = TypedProjIndexSet::with_hasher_proj_in(
     ///     proj_build_hasher,
     ///     proj_alloc
     /// );
@@ -1517,7 +1517,7 @@ where
     /// let capacity = 10;
     /// let proj_alloc = TypedProjAlloc::new(Global);
     /// let proj_build_hasher = TypedProjBuildHasher::new(RandomState::new());
-    /// let proj_set: TypedProjIndexSet<f64, RandomState, Global> = TypedProjIndexSet::with_capacity_and_hasher_proj_in(
+    /// let proj_set: TypedProjIndexSet<usize, RandomState, Global> = TypedProjIndexSet::with_capacity_and_hasher_proj_in(
     ///     capacity,
     ///     proj_build_hasher,
     ///     proj_alloc
@@ -1540,7 +1540,7 @@ where
     /// #
     /// let proj_alloc = TypedProjAlloc::new(Global);
     /// let proj_build_hasher = TypedProjBuildHasher::new(RandomState::new());
-    /// let proj_set: TypedProjIndexSet<f64, RandomState, Global> = TypedProjIndexSet::with_capacity_and_hasher_proj_in(
+    /// let proj_set: TypedProjIndexSet<usize, RandomState, Global> = TypedProjIndexSet::with_capacity_and_hasher_proj_in(
     ///     0,
     ///     proj_build_hasher,
     ///     proj_alloc
@@ -1587,7 +1587,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// let proj_alloc = TypedProjAlloc::new(Global);
-    /// let proj_set: TypedProjIndexSet<f64, RandomState, Global> = TypedProjIndexSet::new_proj_in(proj_alloc);
+    /// let proj_set: TypedProjIndexSet<usize, RandomState, Global> = TypedProjIndexSet::new_proj_in(proj_alloc);
     ///
     /// assert!(proj_set.is_empty());
     /// assert_eq!(proj_set.capacity(), 0);
@@ -1621,7 +1621,7 @@ where
     /// #
     /// let capacity = 10;
     /// let proj_alloc = TypedProjAlloc::new(Global);
-    /// let proj_set: TypedProjIndexSet<f64, RandomState, Global> = TypedProjIndexSet::with_capacity_proj_in(
+    /// let proj_set: TypedProjIndexSet<usize, RandomState, Global> = TypedProjIndexSet::with_capacity_proj_in(
     ///     capacity,
     ///     proj_alloc
     /// );
@@ -1642,7 +1642,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// let proj_alloc = TypedProjAlloc::new(Global);
-    /// let proj_set: TypedProjIndexSet<f64, RandomState, Global> = TypedProjIndexSet::with_capacity_proj_in(
+    /// let proj_set: TypedProjIndexSet<usize, RandomState, Global> = TypedProjIndexSet::with_capacity_proj_in(
     ///     0,
     ///     proj_alloc
     /// );
@@ -1683,7 +1683,7 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let proj_set: TypedProjIndexSet<f64, RandomState, Global> = TypedProjIndexSet::with_hasher_in(
+    /// let proj_set: TypedProjIndexSet<usize, RandomState, Global> = TypedProjIndexSet::with_hasher_in(
     ///     RandomState::new(),
     ///     Global
     /// );
@@ -1719,7 +1719,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// let capacity = 10;
-    /// let proj_set: TypedProjIndexSet<f64, RandomState, Global> = TypedProjIndexSet::with_capacity_and_hasher_in(
+    /// let proj_set: TypedProjIndexSet<usize, RandomState, Global> = TypedProjIndexSet::with_capacity_and_hasher_in(
     ///     capacity,
     ///     RandomState::new(),
     ///     Global
@@ -1740,7 +1740,7 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let proj_set: TypedProjIndexSet<f64, RandomState, Global> = TypedProjIndexSet::with_capacity_and_hasher_in(
+    /// let proj_set: TypedProjIndexSet<usize, RandomState, Global> = TypedProjIndexSet::with_capacity_and_hasher_in(
     ///     0,
     ///     RandomState::new(),
     ///     Global
@@ -1781,7 +1781,7 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let proj_set: TypedProjIndexSet<f64, RandomState, Global> = TypedProjIndexSet::new_in(Global);
+    /// let proj_set: TypedProjIndexSet<usize, RandomState, Global> = TypedProjIndexSet::new_in(Global);
     ///
     /// assert!(proj_set.is_empty());
     /// assert_eq!(proj_set.capacity(), 0);
@@ -1814,7 +1814,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// let capacity = 10;
-    /// let proj_set: TypedProjIndexSet<f64, RandomState, Global> = TypedProjIndexSet::with_capacity_in(
+    /// let proj_set: TypedProjIndexSet<usize, RandomState, Global> = TypedProjIndexSet::with_capacity_in(
     ///     capacity,
     ///     Global
     /// );
@@ -1834,7 +1834,7 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let proj_set: TypedProjIndexSet<f64, RandomState, Global> = TypedProjIndexSet::with_capacity_in(
+    /// let proj_set: TypedProjIndexSet<usize, RandomState, Global> = TypedProjIndexSet::with_capacity_in(
     ///     0,
     ///     Global
     /// );
@@ -1874,7 +1874,7 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let proj_set: TypedProjIndexSet<f64, RandomState, Global> = TypedProjIndexSet::with_hasher(RandomState::new());
+    /// let proj_set: TypedProjIndexSet<usize, RandomState, Global> = TypedProjIndexSet::with_hasher(RandomState::new());
     ///
     /// assert!(proj_set.is_empty());
     /// assert_eq!(proj_set.capacity(), 0);
@@ -1905,7 +1905,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// let capacity = 10;
-    /// let proj_set: TypedProjIndexSet<f64, RandomState, Global> = TypedProjIndexSet::with_capacity_and_hasher(
+    /// let proj_set: TypedProjIndexSet<usize, RandomState, Global> = TypedProjIndexSet::with_capacity_and_hasher(
     ///     capacity,
     ///     RandomState::new(),
     /// );
@@ -1925,7 +1925,7 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let proj_set: TypedProjIndexSet<f64, RandomState, Global> = TypedProjIndexSet::with_capacity_and_hasher(
+    /// let proj_set: TypedProjIndexSet<usize, RandomState, Global> = TypedProjIndexSet::with_capacity_and_hasher(
     ///     0,
     ///     RandomState::new(),
     /// );
@@ -1947,9 +1947,9 @@ where
 {
     /// Constructs a new index set.
     ///
-    /// This method **does not** allocate memory. In particular, the index set has zero capacity and will
-    /// not allocate memory until values are inserted into it. The index set will have
-    /// length zero until values are inserted into it.
+    /// This method **does not** allocate memory. In particular, the index set has zero capacity and
+    /// will not allocate memory until values are inserted into it. The index set will have length
+    /// zero until values are inserted into it.
     ///
     /// # Examples
     ///
@@ -1962,7 +1962,7 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let proj_set: TypedProjIndexSet<f64, RandomState, Global> = TypedProjIndexSet::new();
+    /// let proj_set: TypedProjIndexSet<usize, RandomState, Global> = TypedProjIndexSet::new();
     ///
     /// assert!(proj_set.is_empty());
     /// assert_eq!(proj_set.capacity(), 0);
@@ -1993,7 +1993,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// let capacity = 10;
-    /// let proj_set: TypedProjIndexSet<f64, RandomState, Global> = TypedProjIndexSet::with_capacity(
+    /// let proj_set: TypedProjIndexSet<usize, RandomState, Global> = TypedProjIndexSet::with_capacity(
     ///     capacity,
     /// );
     ///
@@ -2012,7 +2012,7 @@ where
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let proj_set: TypedProjIndexSet<f64, RandomState, Global> = TypedProjIndexSet::with_capacity(
+    /// let proj_set: TypedProjIndexSet<usize, RandomState, Global> = TypedProjIndexSet::with_capacity(
     ///     0,
     /// );
     ///
@@ -2153,11 +2153,49 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
+    /// Returns a reference to the type-projected hash builder used by the index set.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set: TypedProjIndexSet<usize> = TypedProjIndexSet::new();
+    ///
+    /// assert!(proj_set.is_empty());
+    ///
+    /// let build_hasher: &TypedProjBuildHasher<RandomState> = proj_set.hasher();
+    /// ```
     #[inline]
     pub const fn hasher(&self) -> &TypedProjBuildHasher<S> {
         self.inner.hasher()
     }
 
+    /// Returns a reference to the type-projected memory allocator from the index set.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set: TypedProjIndexSet<usize> = TypedProjIndexSet::new();
+    ///
+    /// assert!(proj_set.is_empty());
+    ///
+    /// let alloc: &TypedProjAlloc<Global> = proj_set.allocator();
+    /// ```
     #[inline]
     pub fn allocator(&self) -> &TypedProjAlloc<A> {
         self.inner.allocator()
@@ -3089,16 +3127,16 @@ impl OpaqueIndexSet {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let opaque_set = OpaqueIndexSet::with_hasher_in::<f64, RandomState, Global>(
+    /// let opaque_set = OpaqueIndexSet::with_hasher_in::<usize, RandomState, Global>(
     ///     RandomState::new(),
     ///     Global
     /// );
     /// #
-    /// # assert!(opaque_set.has_value_type::<f64>());
+    /// # assert!(opaque_set.has_value_type::<usize>());
     /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
     /// # assert!(opaque_set.has_allocator_type::<Global>());
     /// #
-    /// let proj_set: &TypedProjIndexSet<f64, RandomState, Global> = opaque_set.as_proj::<f64, RandomState, Global>();
+    /// let proj_set: &TypedProjIndexSet<usize, RandomState, Global> = opaque_set.as_proj::<usize, RandomState, Global>();
     /// ```
     #[inline]
     pub fn as_proj<T, S, A>(&self) -> &TypedProjIndexSet<T, S, A>
@@ -3130,16 +3168,16 @@ impl OpaqueIndexSet {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut opaque_set = OpaqueIndexSet::with_hasher_in::<f64, RandomState, Global>(
+    /// let mut opaque_set = OpaqueIndexSet::with_hasher_in::<usize, RandomState, Global>(
     ///     RandomState::new(),
     ///     Global
     /// );
     /// #
-    /// # assert!(opaque_set.has_value_type::<f64>());
+    /// # assert!(opaque_set.has_value_type::<usize>());
     /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
     /// # assert!(opaque_set.has_allocator_type::<Global>());
     /// #
-    /// let proj_set: &mut TypedProjIndexSet<f64, RandomState, Global> = opaque_set.as_proj_mut::<f64, RandomState, Global>();
+    /// let proj_set: &mut TypedProjIndexSet<usize, RandomState, Global> = opaque_set.as_proj_mut::<usize, RandomState, Global>();
     /// ```
     #[inline]
     pub fn as_proj_mut<T, S, A>(&mut self) -> &mut TypedProjIndexSet<T, S, A>
@@ -3170,16 +3208,16 @@ impl OpaqueIndexSet {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let opaque_set = OpaqueIndexSet::with_hasher_in::<f64, RandomState, Global>(
+    /// let opaque_set = OpaqueIndexSet::with_hasher_in::<usize, RandomState, Global>(
     ///     RandomState::new(),
     ///     Global
     /// );
     /// #
-    /// # assert!(opaque_set.has_value_type::<f64>());
+    /// # assert!(opaque_set.has_value_type::<usize>());
     /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
     /// # assert!(opaque_set.has_allocator_type::<Global>());
     /// #
-    /// let proj_set: TypedProjIndexSet<f64, RandomState, Global> = opaque_set.into_proj::<f64, RandomState, Global>();
+    /// let proj_set: TypedProjIndexSet<usize, RandomState, Global> = opaque_set.into_proj::<usize, RandomState, Global>();
     /// ```
     #[inline]
     pub fn into_proj<T, S, A>(self) -> TypedProjIndexSet<T, S, A>
@@ -3209,13 +3247,13 @@ impl OpaqueIndexSet {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let proj_set: TypedProjIndexSet<f64, RandomState, Global> = TypedProjIndexSet::with_hasher_in(
+    /// let proj_set: TypedProjIndexSet<usize, RandomState, Global> = TypedProjIndexSet::with_hasher_in(
     ///     RandomState::new(),
     ///     Global
     /// );
     /// let opaque_set: OpaqueIndexSet = OpaqueIndexSet::from_proj(proj_set);
     /// #
-    /// # assert!(opaque_set.has_value_type::<f64>());
+    /// # assert!(opaque_set.has_value_type::<usize>());
     /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
     /// # assert!(opaque_set.has_allocator_type::<Global>());
     /// #
@@ -3259,7 +3297,7 @@ impl OpaqueIndexSet {
     /// #
     /// let proj_alloc = TypedProjAlloc::new(Global);
     /// let proj_build_hasher = TypedProjBuildHasher::new(RandomState::new());
-    /// let opaque_set = OpaqueIndexSet::with_hasher_proj_in::<f64, RandomState, Global>(
+    /// let opaque_set = OpaqueIndexSet::with_hasher_proj_in::<usize, RandomState, Global>(
     ///     proj_build_hasher,
     ///     proj_alloc
     /// );
@@ -3303,7 +3341,7 @@ impl OpaqueIndexSet {
     /// let capacity = 10;
     /// let proj_alloc = TypedProjAlloc::new(Global);
     /// let proj_build_hasher = TypedProjBuildHasher::new(RandomState::new());
-    /// let opaque_set = OpaqueIndexSet::with_capacity_and_hasher_proj_in::<f64, RandomState, Global>(
+    /// let opaque_set = OpaqueIndexSet::with_capacity_and_hasher_proj_in::<usize, RandomState, Global>(
     ///     capacity,
     ///     proj_build_hasher,
     ///     proj_alloc
@@ -3326,7 +3364,7 @@ impl OpaqueIndexSet {
     /// #
     /// let proj_alloc = TypedProjAlloc::new(Global);
     /// let proj_build_hasher = TypedProjBuildHasher::new(RandomState::new());
-    /// let opaque_set = OpaqueIndexSet::with_capacity_and_hasher_proj_in::<f64, RandomState, Global>(
+    /// let opaque_set = OpaqueIndexSet::with_capacity_and_hasher_proj_in::<usize, RandomState, Global>(
     ///     0,
     ///     proj_build_hasher,
     ///     proj_alloc
@@ -3369,7 +3407,7 @@ impl OpaqueIndexSet {
     /// # use std::alloc::Global;
     /// #
     /// let proj_alloc = TypedProjAlloc::new(Global);
-    /// let opaque_set = OpaqueIndexSet::new_proj_in::<f64, Global>(proj_alloc);
+    /// let opaque_set = OpaqueIndexSet::new_proj_in::<usize, Global>(proj_alloc);
     ///
     /// assert!(opaque_set.is_empty());
     /// assert_eq!(opaque_set.capacity(), 0);
@@ -3405,7 +3443,7 @@ impl OpaqueIndexSet {
     /// #
     /// let capacity = 10;
     /// let proj_alloc = TypedProjAlloc::new(Global);
-    /// let opaque_set = OpaqueIndexSet::with_capacity_proj_in::<f64, Global>(
+    /// let opaque_set = OpaqueIndexSet::with_capacity_proj_in::<usize, Global>(
     ///     capacity,
     ///     proj_alloc
     /// );
@@ -3426,7 +3464,7 @@ impl OpaqueIndexSet {
     /// # use std::alloc::Global;
     /// #
     /// let proj_alloc = TypedProjAlloc::new(Global);
-    /// let opaque_set = OpaqueIndexSet::with_capacity_proj_in::<f64, Global>(
+    /// let opaque_set = OpaqueIndexSet::with_capacity_proj_in::<usize, Global>(
     ///     0,
     ///     proj_alloc
     /// );
@@ -3463,7 +3501,7 @@ impl OpaqueIndexSet {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let opaque_set = OpaqueIndexSet::with_hasher_in::<f64, RandomState, Global>(
+    /// let opaque_set = OpaqueIndexSet::with_hasher_in::<usize, RandomState, Global>(
     ///     RandomState::new(),
     ///     Global
     /// );
@@ -3504,7 +3542,7 @@ impl OpaqueIndexSet {
     /// # use std::alloc::Global;
     /// #
     /// let capacity = 10;
-    /// let opaque_set = OpaqueIndexSet::with_capacity_and_hasher_in::<f64, RandomState, Global>(
+    /// let opaque_set = OpaqueIndexSet::with_capacity_and_hasher_in::<usize, RandomState, Global>(
     ///     capacity,
     ///     RandomState::new(),
     ///     Global
@@ -3525,7 +3563,7 @@ impl OpaqueIndexSet {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let opaque_set = OpaqueIndexSet::with_capacity_and_hasher_in::<f64, RandomState, Global>(
+    /// let opaque_set = OpaqueIndexSet::with_capacity_and_hasher_in::<usize, RandomState, Global>(
     ///     0,
     ///     RandomState::new(),
     ///     Global
@@ -3566,7 +3604,7 @@ impl OpaqueIndexSet {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let opaque_set = OpaqueIndexSet::new_in::<f64, Global>(Global);
+    /// let opaque_set = OpaqueIndexSet::new_in::<usize, Global>(Global);
     ///
     /// assert!(opaque_set.is_empty());
     /// assert_eq!(opaque_set.capacity(), 0);
@@ -3601,7 +3639,7 @@ impl OpaqueIndexSet {
     /// # use std::alloc::Global;
     /// #
     /// let capacity = 10;
-    /// let opaque_set = OpaqueIndexSet::with_capacity_in::<f64, Global>(
+    /// let opaque_set = OpaqueIndexSet::with_capacity_in::<usize, Global>(
     ///     capacity,
     ///     Global
     /// );
@@ -3621,7 +3659,7 @@ impl OpaqueIndexSet {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let opaque_set = OpaqueIndexSet::with_capacity_in::<f64, Global>(
+    /// let opaque_set = OpaqueIndexSet::with_capacity_in::<usize, Global>(
     ///     0,
     ///     Global
     /// );
@@ -3658,7 +3696,7 @@ impl OpaqueIndexSet {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let opaque_set = OpaqueIndexSet::with_hasher::<f64, RandomState>(RandomState::new());
+    /// let opaque_set = OpaqueIndexSet::with_hasher::<usize, RandomState>(RandomState::new());
     ///
     /// assert!(opaque_set.is_empty());
     /// assert_eq!(opaque_set.capacity(), 0);
@@ -3695,7 +3733,7 @@ impl OpaqueIndexSet {
     /// # use std::alloc::Global;
     /// #
     /// let capacity = 10;
-    /// let opaque_set = OpaqueIndexSet::with_capacity_and_hasher::<f64, RandomState>(
+    /// let opaque_set = OpaqueIndexSet::with_capacity_and_hasher::<usize, RandomState>(
     ///     capacity,
     ///     RandomState::new(),
     /// );
@@ -3715,7 +3753,7 @@ impl OpaqueIndexSet {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let opaque_set = OpaqueIndexSet::with_capacity_and_hasher::<f64, RandomState>(
+    /// let opaque_set = OpaqueIndexSet::with_capacity_and_hasher::<usize, RandomState>(
     ///     0,
     ///     RandomState::new(),
     /// );
@@ -3739,9 +3777,9 @@ impl OpaqueIndexSet {
 impl OpaqueIndexSet {
     /// Constructs a new index set.
     ///
-    /// This method **does not** allocate memory. In particular, the index set has zero capacity and will
-    /// not allocate memory until values are inserted into it. The index set will have
-    /// length zero until values are inserted into it.
+    /// This method **does not** allocate memory. In particular, the index set has zero capacity and
+    /// will not allocate memory until values are inserted into it. The index set will have length
+    /// zero until values are inserted into it.
     ///
     /// # Examples
     ///
@@ -3754,7 +3792,7 @@ impl OpaqueIndexSet {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let opaque_set = OpaqueIndexSet::new::<f64>();
+    /// let opaque_set = OpaqueIndexSet::new::<usize>();
     ///
     /// assert!(opaque_set.is_empty());
     /// assert_eq!(opaque_set.capacity(), 0);
@@ -3787,7 +3825,7 @@ impl OpaqueIndexSet {
     /// # use std::alloc::Global;
     /// #
     /// let capacity = 10;
-    /// let opaque_set = OpaqueIndexSet::with_capacity::<f64>(
+    /// let opaque_set = OpaqueIndexSet::with_capacity::<usize>(
     ///     capacity,
     /// );
     ///
@@ -3806,7 +3844,7 @@ impl OpaqueIndexSet {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let opaque_set = OpaqueIndexSet::with_capacity::<f64>(
+    /// let opaque_set = OpaqueIndexSet::with_capacity::<usize>(
     ///     0,
     /// );
     ///
@@ -3937,6 +3975,25 @@ impl OpaqueIndexSet {
 }
 
 impl OpaqueIndexSet {
+    /// Returns a reference to the type-projected hash builder used by the index set.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_set = OpaqueIndexSet::new::<usize>();
+    ///
+    /// assert!(opaque_set.is_empty());
+    ///
+    /// let build_hasher: &TypedProjBuildHasher<RandomState> = opaque_set.hasher::<usize, RandomState, Global>();
+    /// ```
     #[inline]
     pub fn hasher<T, S, A>(&self) -> &TypedProjBuildHasher<S>
     where
@@ -3950,6 +4007,25 @@ impl OpaqueIndexSet {
         proj_self.hasher()
     }
 
+    /// Returns a reference to the type-projected memory allocator from the index set.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_set = OpaqueIndexSet::new::<usize>();
+    ///
+    /// assert!(opaque_set.is_empty());
+    ///
+    /// let alloc: &TypedProjAlloc<Global> = opaque_set.allocator::<usize, RandomState, Global>();
+    /// ```
     #[inline]
     pub fn allocator<T, S, A>(&self) -> &TypedProjAlloc<A>
     where
