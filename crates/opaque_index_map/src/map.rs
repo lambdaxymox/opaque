@@ -964,7 +964,7 @@ impl<K, V> Slice<K, V> {
     }
 
     /// Converts a boxed slice into an inner boxed slice.
-    fn into_boxed_slice<A>(self: Box<Self, A>) -> Box<map_inner::Slice<K, V>, A>
+    fn into_boxed_slice<A>(self: Box<Self, TypedProjAlloc<A>>) -> Box<map_inner::Slice<K, V>, TypedProjAlloc<A>>
     where
         A: any::Any + alloc::Allocator + Send + Sync,
     {
