@@ -1,8 +1,69 @@
 use opaque_index_map::map::TypedProjIndexMap;
 
 use core::any;
+use core::ptr::NonNull;
 use std::hash;
 use std::alloc;
+
+#[derive(Debug, Clone, Copy, Default)]
+pub struct WrappingAlloc1<A> {
+    alloc: A,
+}
+
+impl<A> WrappingAlloc1<A>
+where
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    #[inline]
+    pub const fn new(alloc: A) -> Self {
+        Self { alloc, }
+    }
+}
+
+unsafe impl<A> alloc::Allocator for WrappingAlloc1<A>
+where
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    fn allocate(&self, layout: alloc::Layout) -> Result<NonNull<[u8]>, alloc::AllocError> {
+        self.alloc.allocate(layout)
+    }
+
+    unsafe fn deallocate(&self, ptr: NonNull<u8>, layout: alloc::Layout) {
+        unsafe {
+            self.alloc.deallocate(ptr, layout)
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Default)]
+pub struct WrappingAlloc2<A> {
+    alloc: A,
+}
+
+impl<A> WrappingAlloc2<A>
+where
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    #[inline]
+    pub const fn new(alloc: A) -> Self {
+        Self { alloc, }
+    }
+}
+
+unsafe impl<A> alloc::Allocator for WrappingAlloc2<A>
+where
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    fn allocate(&self, layout: alloc::Layout) -> Result<NonNull<[u8]>, alloc::AllocError> {
+        self.alloc.allocate(layout)
+    }
+
+    unsafe fn deallocate(&self, ptr: NonNull<u8>, layout: alloc::Layout) {
+        unsafe {
+            self.alloc.deallocate(ptr, layout)
+        }
+    }
+}
 
 pub fn from_entries_in<K, V, S, A>(entries: &[(K, V)], build_hasher: S, alloc: A) -> TypedProjIndexMap<K, V, S, A>
 where

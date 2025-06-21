@@ -1,8 +1,69 @@
 use opaque_index_map::map::OpaqueIndexMap;
 
 use core::any;
+use core::ptr::NonNull;
 use std::hash;
 use std::alloc;
+
+#[derive(Debug, Clone, Copy, Default)]
+pub struct WrappingAlloc1<A> {
+    alloc: A,
+}
+
+impl<A> WrappingAlloc1<A>
+where
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    #[inline]
+    pub const fn new(alloc: A) -> Self {
+        Self { alloc, }
+    }
+}
+
+unsafe impl<A> alloc::Allocator for WrappingAlloc1<A>
+where
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    fn allocate(&self, layout: alloc::Layout) -> Result<NonNull<[u8]>, alloc::AllocError> {
+        self.alloc.allocate(layout)
+    }
+
+    unsafe fn deallocate(&self, ptr: NonNull<u8>, layout: alloc::Layout) {
+        unsafe {
+            self.alloc.deallocate(ptr, layout)
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Default)]
+pub struct WrappingAlloc2<A> {
+    alloc: A,
+}
+
+impl<A> WrappingAlloc2<A>
+where
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    #[inline]
+    pub const fn new(alloc: A) -> Self {
+        Self { alloc, }
+    }
+}
+
+unsafe impl<A> alloc::Allocator for WrappingAlloc2<A>
+where
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    fn allocate(&self, layout: alloc::Layout) -> Result<NonNull<[u8]>, alloc::AllocError> {
+        self.alloc.allocate(layout)
+    }
+
+    unsafe fn deallocate(&self, ptr: NonNull<u8>, layout: alloc::Layout) {
+        unsafe {
+            self.alloc.deallocate(ptr, layout)
+        }
+    }
+}
 
 pub fn from_entries_in<K, V, S, A>(entries: &[(K, V)], build_hasher: S, alloc: A) -> OpaqueIndexMap
 where
@@ -14,7 +75,7 @@ where
 {
     let mut map = OpaqueIndexMap::with_hasher_in::<K, V, S, A>(build_hasher, alloc);
     for (key, value) in entries.iter().cloned() {
-        map.insert::<K, V, hash::RandomState, alloc::Global>(key, value);
+        map.insert::<K, V, S, A>(key, value);
     }
 
     map
@@ -30,7 +91,7 @@ where
 {
     let mut map = OpaqueIndexMap::with_hasher_in::<K, V, S, A>(build_hasher, alloc);
     for (key, value) in entries.iter().cloned() {
-        map.insert_full::<K, V, hash::RandomState, alloc::Global>(key, value);
+        map.insert_full::<K, V, S, A>(key, value);
     }
 
     map

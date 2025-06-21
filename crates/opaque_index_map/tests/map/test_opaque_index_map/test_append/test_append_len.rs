@@ -159,9 +159,9 @@ macro_rules! generate_tests {
                 let values1: [($key_typ, $value_typ); 0] = [];
                 let values2: [($key_typ, $value_typ); 0] = [];
                 let build_hasher1 = hash::RandomState::new();
-                let alloc1 = alloc::Global;
+                let alloc1 = common::opaque_index_map::WrappingAlloc1::new(alloc::Global);
                 let build_hasher2 = hash::RandomState::new();
-                let alloc2 = alloc::Global;
+                let alloc2 = common::opaque_index_map::WrappingAlloc2::new(alloc::Global);
                 run_test_typed_proj_index_map_append_len_source_values(&values1, &values2, build_hasher1, alloc1, build_hasher2, alloc2);
             }
 
@@ -170,9 +170,9 @@ macro_rules! generate_tests {
                 let values1 = oimt::map::range_entries::<$key_typ, $value_typ>($src_range_spec);
                 let values2 = oimt::map::range_entries::<$key_typ, $value_typ>($dst_range_spec);
                 let build_hasher1 = hash::RandomState::new();
-                let alloc1 = alloc::Global;
+                let alloc1 = common::opaque_index_map::WrappingAlloc1::new(alloc::Global);
                 let build_hasher2 = hash::RandomState::new();
-                let alloc2 = alloc::Global;
+                let alloc2 = common::opaque_index_map::WrappingAlloc2::new(alloc::Global);
                 run_test_typed_proj_index_map_append_len_source_values(&values1, &values2, build_hasher1, alloc1, build_hasher2, alloc2);
             }
 
@@ -181,9 +181,9 @@ macro_rules! generate_tests {
                 let values1: [($key_typ, $value_typ); 0] = [];
                 let values2: [($key_typ, $value_typ); 0] = [];
                 let build_hasher1 = hash::RandomState::new();
-                let alloc1 = alloc::Global;
+                let alloc1 = common::opaque_index_map::WrappingAlloc1::new(alloc::Global);
                 let build_hasher2 = hash::RandomState::new();
-                let alloc2 = alloc::Global;
+                let alloc2 = common::opaque_index_map::WrappingAlloc2::new(alloc::Global);
                 run_test_typed_proj_index_map_append_len_destination_values(&values1, &values2, build_hasher1, alloc1, build_hasher2, alloc2);
             }
 
@@ -192,9 +192,9 @@ macro_rules! generate_tests {
                 let values1 = oimt::map::range_entries::<$key_typ, $value_typ>($src_range_spec);
                 let values2 = oimt::map::range_entries::<$key_typ, $value_typ>($dst_range_spec);
                 let build_hasher1 = hash::RandomState::new();
-                let alloc1 = alloc::Global;
+                let alloc1 = common::opaque_index_map::WrappingAlloc1::new(alloc::Global);
                 let build_hasher2 = hash::RandomState::new();
-                let alloc2 = alloc::Global;
+                let alloc2 = common::opaque_index_map::WrappingAlloc2::new(alloc::Global);
                 run_test_typed_proj_index_map_append_len_destination_values(&values1, &values2, build_hasher1, alloc1, build_hasher2, alloc2);
             }
         }
