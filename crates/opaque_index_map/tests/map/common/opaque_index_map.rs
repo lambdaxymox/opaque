@@ -40,7 +40,7 @@ pub fn clone<K, V, S, A>(opaque_map: &OpaqueIndexMap) -> OpaqueIndexMap
 where
     K: any::Any + Clone + Eq + hash::Hash,
     V: any::Any + Clone + Eq,
-    S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {

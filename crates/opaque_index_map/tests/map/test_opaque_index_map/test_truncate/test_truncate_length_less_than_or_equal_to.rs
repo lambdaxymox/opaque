@@ -27,7 +27,7 @@ fn result<K, V, S, A>(map: &OpaqueIndexMap, len: usize) -> Vec<(K, V)>
 where
     K: any::Any + Clone + Eq + hash::Hash,
     V: any::Any + Clone + Eq,
-    S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
@@ -46,7 +46,7 @@ fn run_test_opaque_index_map_truncate_length_less_than_or_equal_to<K, V, S, A>(e
 where
     K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
-    S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
@@ -63,7 +63,7 @@ fn run_test_opaque_index_map_truncate_length_less_than_or_equal_to_values<K, V, 
 where
     K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
-    S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {

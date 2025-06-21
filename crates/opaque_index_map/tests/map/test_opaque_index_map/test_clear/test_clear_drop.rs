@@ -33,7 +33,7 @@ impl Drop for DropCounter {
 
 fn create_drop_counter_index_map_in<S, A>(len: usize, build_hasher: S, alloc: A) -> (DropCounter, OpaqueIndexMap)
 where
-    S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
@@ -48,7 +48,7 @@ where
 
 fn run_test_opaque_index_map_clear<S, A>(length: usize, build_hasher: S, alloc: A)
 where
-    S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
