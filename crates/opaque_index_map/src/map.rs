@@ -6225,6 +6225,10 @@ mod entry_assert_send_sync {
 /// By laying out both data types identically, we can project the underlying types in **O(1)**-time,
 /// and erase the underlying types in **O(1)**-time, though the conversion is often zero-cost.
 ///
+/// # See Also
+///
+/// - [`OpaqueIndexMap`]: the type-erased counterpart to [`TypedProjIndexMap`].
+///
 /// # Examples
 ///
 /// Basic usage of a type-projected index map.
@@ -6298,88 +6302,6 @@ mod entry_assert_send_sync {
 /// party.shift_remove("sephiroth");
 ///
 /// assert!(!party.contains_key("sephiroth"));
-/// ```
-///
-/// Basic usage of a type-erased index map.
-///
-/// ```
-/// # #![feature(allocator_api)]
-/// # use opaque_index_map::OpaqueIndexMap;
-/// # use std::hash::RandomState;
-/// # use std::alloc::Global;
-/// #
-/// let mut party: OpaqueIndexMap = OpaqueIndexMap::from([
-///     (String::from("cloud"),     String::from("protagonist")),
-///     (String::from("tifa"),      String::from("fighter")),
-///     (String::from("aerith"),    String::from("mage")),
-///     (String::from("barret"),    String::from("gunner")),
-///     (String::from("cid"),       String::from("pilot")),
-///     (String::from("vincent"),   String::from("mysterious brooding sable-clad kind of guy")),
-///     (String::from("yuffie"),    String::from("ninja")),
-///     (String::from("red xiii"),  String::from("scientist")),
-///     (String::from("cait sith"), String::from("fortune teller")),
-/// ]);
-///
-/// assert!(party.has_key_type::<String>());
-/// assert!(party.has_value_type::<String>());
-/// assert!(party.has_build_hasher_type::<RandomState>());
-/// assert!(party.has_allocator_type::<Global>());
-///
-/// assert_eq!(party.get::<_, String, String, RandomState, Global>("cloud"),     Some(&String::from("protagonist")));
-/// assert_eq!(party.get::<_, String, String, RandomState, Global>("tifa"),      Some(&String::from("fighter")));
-/// assert_eq!(party.get::<_, String, String, RandomState, Global>("aerith"),    Some(&String::from("mage")));
-/// assert_eq!(party.get::<_, String, String, RandomState, Global>("barret"),    Some(&String::from("gunner")));
-/// assert_eq!(party.get::<_, String, String, RandomState, Global>("cid"),       Some(&String::from("pilot")));
-/// assert_eq!(party.get::<_, String, String, RandomState, Global>("vincent"),   Some(&String::from("mysterious brooding sable-clad kind of guy")));
-/// assert_eq!(party.get::<_, String, String, RandomState, Global>("yuffie"),    Some(&String::from("ninja")));
-/// assert_eq!(party.get::<_, String, String, RandomState, Global>("red xiii"),  Some(&String::from("scientist")));
-/// assert_eq!(party.get::<_ ,String, String, RandomState, Global>("cait sith"), Some(&String::from("fortune teller")));
-///
-/// assert!(!party.contains_key::<_, String, String, RandomState, Global>("sephiroth"));
-/// assert!(!party.contains_key::<_, String, String, RandomState, Global>("jenova"));
-/// assert!(!party.contains_key::<_, String, String, RandomState, Global>("emerald weapon"));
-///
-/// // Elements of an `OpaqueIndexMap` are stored in their insertion order, independent of their keys.
-/// assert_eq!(party.get_index_of::<_, String, String, RandomState, Global>("cloud"),     Some(0));
-/// assert_eq!(party.get_index_of::<_, String, String, RandomState, Global>("tifa"),      Some(1));
-/// assert_eq!(party.get_index_of::<_, String, String, RandomState, Global>("aerith"),    Some(2));
-/// assert_eq!(party.get_index_of::<_, String, String, RandomState, Global>("barret"),    Some(3));
-/// assert_eq!(party.get_index_of::<_, String, String, RandomState, Global>("cid"),       Some(4));
-/// assert_eq!(party.get_index_of::<_, String, String, RandomState, Global>("vincent"),   Some(5));
-/// assert_eq!(party.get_index_of::<_, String, String, RandomState, Global>("yuffie"),    Some(6));
-/// assert_eq!(party.get_index_of::<_, String, String, RandomState, Global>("red xiii"),  Some(7));
-/// assert_eq!(party.get_index_of::<_, String, String, RandomState, Global>("cait sith"), Some(8));
-///
-/// assert_eq!(party.get_index_of::<_, String, String, RandomState, Global>("sephiroth"),      None);
-/// assert_eq!(party.get_index_of::<_, String, String, RandomState, Global>("jenova"),         None);
-/// assert_eq!(party.get_index_of::<_, String, String, RandomState, Global>("emerald weapon"), None);
-///
-/// party.insert::<String, String, RandomState, Global>(String::from("sephiroth"), String::from("one-winged angel"));
-///
-/// assert!(party.contains_key::<_, String, String, RandomState, Global>("sephiroth"));
-///
-/// // Elements of a `TypedProjIndexMap` are stored in their insertion order, independent of their keys.
-/// assert_eq!(party.get_index_of::<_, String, String, RandomState, Global>("cloud"),     Some(0));
-/// assert_eq!(party.get_index_of::<_, String, String, RandomState, Global>("tifa"),      Some(1));
-/// assert_eq!(party.get_index_of::<_, String, String, RandomState, Global>("aerith"),    Some(2));
-/// assert_eq!(party.get_index_of::<_, String, String, RandomState, Global>("barret"),    Some(3));
-/// assert_eq!(party.get_index_of::<_, String, String, RandomState, Global>("cid"),       Some(4));
-/// assert_eq!(party.get_index_of::<_, String, String, RandomState, Global>("vincent"),   Some(5));
-/// assert_eq!(party.get_index_of::<_, String, String, RandomState, Global>("yuffie"),    Some(6));
-/// assert_eq!(party.get_index_of::<_, String, String, RandomState, Global>("red xiii"),  Some(7));
-/// assert_eq!(party.get_index_of::<_, String, String, RandomState, Global>("cait sith"), Some(8));
-/// assert_eq!(party.get_index_of::<_, String, String, RandomState, Global>("sephiroth"), Some(9));
-///
-/// assert_eq!(party.get::<_, String, String, RandomState, Global>("sephiroth"), Some(&String::from("one-winged angel")));
-/// {
-///     let value = party.get_mut::<_, String, String, RandomState, Global>("sephiroth").unwrap();
-///     *value = String::from("nevermind");
-/// }
-/// assert_eq!(party.get::<_, String, String, RandomState, Global>("sephiroth"), Some(&String::from("nevermind")));
-///
-/// party.shift_remove::<_, String, String, RandomState, Global>("sephiroth");
-///
-/// assert!(!party.contains_key::<_, String, String, RandomState, Global>("sephiroth"));
 /// ```
 #[cfg(feature = "std")]
 #[repr(transparent)]
@@ -13054,9 +12976,127 @@ where
     }
 }
 
-/// A type-erased index map.
+/// A type-erased hash map where the order of the entries inside the map is independent of the
+/// hash values of the keys.
 ///
-/// For more information, see [`TypedProjIndexMap`].
+/// The interface to this hash map tracks closely with the standard library's [`HashMap`] interface.
+/// One feature this hash map has that the standard library one does not is that it is generic over
+/// the choice of memory allocator. This type supports type-erasure of generic parameters. The main
+/// difference is that a `TypedProjIndexMap` can be converted to an `OpaqueIndexMap` in constant
+/// **O(1)** time, hiding its key type, value type, hash builder type, and allocator type, at runtime.
+///
+/// # Ordering
+///
+/// The key-value pairs are stored in the map in their insertion order, rather than by their
+/// hash value, provided no removal method have been called on an entry in the map. In particular,
+/// inserting a new value into the map does not change the **storage order** of the other elements in
+/// the map.
+///
+/// # Indices
+///
+/// The key-value pairs are stored in a packed range with no holes in the range `[0, self.len())`.
+/// Thus, one can always use the [`get_index_of`] or [`get_index`] methods to interact with key-value
+/// pairs inside the map by their storage index instead of their key.
+///
+/// # Type Erasure And Type Projection
+///
+/// This allows for more flexible and dynamic data handling, especially when working with
+/// collections of unknown or dynamic types. Type-erasable collections allow for more efficient
+/// runtime dynamic typing, since one has more control over the memory layout of the collection,
+/// even for erased types. Some applications of this include implementing heterogeneous data
+/// structures, plugin systems, and managing foreign function interface data. There are two data
+/// types that are dual to each other: [`TypedProjIndexMap`] and [`OpaqueIndexMap`].
+///
+/// By laying out both data types identically, we can project the underlying types in **O(1)**-time,
+/// and erase the underlying types in **O(1)**-time, though the conversion is often zero-cost.
+///
+/// # See Also
+///
+/// - [`TypedProjIndexMap`]: the type-projected counterpart to [`OpaqueIndexMap`].
+///
+/// # Examples
+///
+/// Basic usage of a type-erased index map.
+///
+/// ```
+/// # #![feature(allocator_api)]
+/// # use opaque_index_map::OpaqueIndexMap;
+/// # use std::hash::RandomState;
+/// # use std::alloc::Global;
+/// #
+/// let mut party: OpaqueIndexMap = OpaqueIndexMap::from([
+///     (String::from("cloud"),     String::from("protagonist")),
+///     (String::from("tifa"),      String::from("fighter")),
+///     (String::from("aerith"),    String::from("mage")),
+///     (String::from("barret"),    String::from("gunner")),
+///     (String::from("cid"),       String::from("pilot")),
+///     (String::from("vincent"),   String::from("mysterious brooding sable-clad kind of guy")),
+///     (String::from("yuffie"),    String::from("ninja")),
+///     (String::from("red xiii"),  String::from("scientist")),
+///     (String::from("cait sith"), String::from("fortune teller")),
+/// ]);
+///
+/// assert!(party.has_key_type::<String>());
+/// assert!(party.has_value_type::<String>());
+/// assert!(party.has_build_hasher_type::<RandomState>());
+/// assert!(party.has_allocator_type::<Global>());
+///
+/// assert_eq!(party.get::<_, String, String, RandomState, Global>("cloud"),     Some(&String::from("protagonist")));
+/// assert_eq!(party.get::<_, String, String, RandomState, Global>("tifa"),      Some(&String::from("fighter")));
+/// assert_eq!(party.get::<_, String, String, RandomState, Global>("aerith"),    Some(&String::from("mage")));
+/// assert_eq!(party.get::<_, String, String, RandomState, Global>("barret"),    Some(&String::from("gunner")));
+/// assert_eq!(party.get::<_, String, String, RandomState, Global>("cid"),       Some(&String::from("pilot")));
+/// assert_eq!(party.get::<_, String, String, RandomState, Global>("vincent"),   Some(&String::from("mysterious brooding sable-clad kind of guy")));
+/// assert_eq!(party.get::<_, String, String, RandomState, Global>("yuffie"),    Some(&String::from("ninja")));
+/// assert_eq!(party.get::<_, String, String, RandomState, Global>("red xiii"),  Some(&String::from("scientist")));
+/// assert_eq!(party.get::<_ ,String, String, RandomState, Global>("cait sith"), Some(&String::from("fortune teller")));
+///
+/// assert!(!party.contains_key::<_, String, String, RandomState, Global>("sephiroth"));
+/// assert!(!party.contains_key::<_, String, String, RandomState, Global>("jenova"));
+/// assert!(!party.contains_key::<_, String, String, RandomState, Global>("emerald weapon"));
+///
+/// // Elements of an `OpaqueIndexMap` are stored in their insertion order, independent of their keys.
+/// assert_eq!(party.get_index_of::<_, String, String, RandomState, Global>("cloud"),     Some(0));
+/// assert_eq!(party.get_index_of::<_, String, String, RandomState, Global>("tifa"),      Some(1));
+/// assert_eq!(party.get_index_of::<_, String, String, RandomState, Global>("aerith"),    Some(2));
+/// assert_eq!(party.get_index_of::<_, String, String, RandomState, Global>("barret"),    Some(3));
+/// assert_eq!(party.get_index_of::<_, String, String, RandomState, Global>("cid"),       Some(4));
+/// assert_eq!(party.get_index_of::<_, String, String, RandomState, Global>("vincent"),   Some(5));
+/// assert_eq!(party.get_index_of::<_, String, String, RandomState, Global>("yuffie"),    Some(6));
+/// assert_eq!(party.get_index_of::<_, String, String, RandomState, Global>("red xiii"),  Some(7));
+/// assert_eq!(party.get_index_of::<_, String, String, RandomState, Global>("cait sith"), Some(8));
+///
+/// assert_eq!(party.get_index_of::<_, String, String, RandomState, Global>("sephiroth"),      None);
+/// assert_eq!(party.get_index_of::<_, String, String, RandomState, Global>("jenova"),         None);
+/// assert_eq!(party.get_index_of::<_, String, String, RandomState, Global>("emerald weapon"), None);
+///
+/// party.insert::<String, String, RandomState, Global>(String::from("sephiroth"), String::from("one-winged angel"));
+///
+/// assert!(party.contains_key::<_, String, String, RandomState, Global>("sephiroth"));
+///
+/// // Elements of a `TypedProjIndexMap` are stored in their insertion order, independent of their keys.
+/// assert_eq!(party.get_index_of::<_, String, String, RandomState, Global>("cloud"),     Some(0));
+/// assert_eq!(party.get_index_of::<_, String, String, RandomState, Global>("tifa"),      Some(1));
+/// assert_eq!(party.get_index_of::<_, String, String, RandomState, Global>("aerith"),    Some(2));
+/// assert_eq!(party.get_index_of::<_, String, String, RandomState, Global>("barret"),    Some(3));
+/// assert_eq!(party.get_index_of::<_, String, String, RandomState, Global>("cid"),       Some(4));
+/// assert_eq!(party.get_index_of::<_, String, String, RandomState, Global>("vincent"),   Some(5));
+/// assert_eq!(party.get_index_of::<_, String, String, RandomState, Global>("yuffie"),    Some(6));
+/// assert_eq!(party.get_index_of::<_, String, String, RandomState, Global>("red xiii"),  Some(7));
+/// assert_eq!(party.get_index_of::<_, String, String, RandomState, Global>("cait sith"), Some(8));
+/// assert_eq!(party.get_index_of::<_, String, String, RandomState, Global>("sephiroth"), Some(9));
+///
+/// assert_eq!(party.get::<_, String, String, RandomState, Global>("sephiroth"), Some(&String::from("one-winged angel")));
+/// {
+///     let value = party.get_mut::<_, String, String, RandomState, Global>("sephiroth").unwrap();
+///     *value = String::from("nevermind");
+/// }
+/// assert_eq!(party.get::<_, String, String, RandomState, Global>("sephiroth"), Some(&String::from("nevermind")));
+///
+/// party.shift_remove::<_, String, String, RandomState, Global>("sephiroth");
+///
+/// assert!(!party.contains_key::<_, String, String, RandomState, Global>("sephiroth"));
+/// ```
 #[repr(transparent)]
 pub struct OpaqueIndexMap {
     inner: OpaqueIndexMapInner,

@@ -41,6 +41,10 @@ use core::hash;
 /// can be held inside the container: the underlying hasher must be [`any::Any`], i.e. it must have a
 /// `'static` lifetime.
 ///
+/// # See Also
+///
+/// - [`OpaqueHasher`]: the type-erased counterpart to [`TypedProjHasher`].
+///
 /// # Examples
 ///
 /// Using a typed-projected hasher.
@@ -53,18 +57,6 @@ use core::hash;
 /// let proj_hasher = TypedProjHasher::new(DefaultHasher::new());
 ///
 /// assert_eq!(proj_hasher.hasher_type_id(), TypeId::of::<DefaultHasher>());
-/// ```
-///
-/// Using a type-erased hasher.
-///
-/// ```
-/// # use opaque_hash::OpaqueHasher;
-/// # use std::any::TypeId;
-/// # use std::hash::DefaultHasher;
-/// #
-/// let opaque_hasher = OpaqueHasher::new::<DefaultHasher>(DefaultHasher::new());
-///
-/// assert_eq!(opaque_hasher.hasher_type_id(), TypeId::of::<DefaultHasher>());
 /// ```
 #[repr(transparent)]
 pub struct TypedProjHasher<H>
@@ -248,7 +240,51 @@ where
 
 /// A type-erased hasher.
 ///
-/// For more information, see [`TypedProjHasher`].
+/// Wrapping the hasher like this allows us to type-erase and type-project hashers
+/// as **O(1)**-time operations. When passing references to type-projected or type-erased hashers
+/// around, type-erasure and type-projection are zero-cost operations, since they have identical
+/// layout.
+///
+/// For a given hasher type `H`, the [`TypedProjHasher<H>`] and [`OpaqueHasher`] data types also
+/// implement the [`Hasher`] trait, so we can calculate hashes with it just as well as the
+/// underlying hasher of type `H`.
+///
+/// # Type Erasure And Type Projection
+///
+/// This allows for more flexible and dynamic data handling, especially when working with
+/// collections of unknown or dynamic types. Some applications of this include implementing
+/// heterogeneous data structures, plugin systems, and managing foreign function interface data. There
+/// are two data types that are dual to each other: [`TypedProjHasher`] and [`OpaqueHasher`].
+///
+/// # Tradeoffs Compared To A Non-Projected Hasher
+///
+/// There are some tradeoffs to gaining type-erasability and type-projectability. The projected and
+/// erased hashers have identical memory layout to ensure that type projection and type erasure are
+/// both **O(1)**-time operations. Thus, the underlying hasher must be stored in the equivalent
+/// of a [`Box`], which carries a small performance penalty. Moreover, the hashers must carry extra
+/// metadata about the type of the underlying hasher through its [`TypeId`]. Boxing the hasher
+/// imposes a small performance penalty at runtime, and the extra metadata makes the hasher itself
+/// a little bigger in memory. This also puts a slight restriction on what kinds of hashers
+/// can be held inside the container: the underlying hasher must be [`any::Any`], i.e. it must have a
+/// `'static` lifetime.
+///
+/// # See Also
+///
+/// - [`TypedProjHasher`]: the type-projected counterpart to [`OpaqueHasher`].
+///
+/// # Examples
+///
+/// Using a type-erased hasher.
+///
+/// ```
+/// # use opaque_hash::OpaqueHasher;
+/// # use std::any::TypeId;
+/// # use std::hash::DefaultHasher;
+/// #
+/// let opaque_hasher = OpaqueHasher::new::<DefaultHasher>(DefaultHasher::new());
+///
+/// assert_eq!(opaque_hasher.hasher_type_id(), TypeId::of::<DefaultHasher>());
+/// ```
 #[repr(transparent)]
 pub struct OpaqueHasher {
     inner: OpaqueHasherInner,

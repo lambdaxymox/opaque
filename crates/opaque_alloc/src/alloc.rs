@@ -37,6 +37,10 @@ use alloc_crate::boxed::Box;
 /// kinds of memory allocators can be held inside the container: the underlying memory
 /// allocator must be [`any::Any`], i.e. it must have a `'static` lifetime.
 ///
+/// # See Also
+///
+/// - [`OpaqueAlloc`]: The type-erased counterpart to [`TypedProjAlloc`].
+///
 /// # Examples
 ///
 /// Using a type-projected allocator.
@@ -50,19 +54,6 @@ use alloc_crate::boxed::Box;
 /// let proj_alloc = TypedProjAlloc::new(Global);
 ///
 /// assert_eq!(proj_alloc.allocator_type_id(), TypeId::of::<Global>());
-/// ```
-///
-/// Using a type-erased allocator.
-///
-/// ```
-/// # #![feature(allocator_api)]
-/// # use opaque_alloc::OpaqueAlloc;
-/// # use std::any::TypeId;
-/// # use std::alloc::Global;
-/// #
-/// let opaque_alloc = OpaqueAlloc::new::<Global>(Global);
-///
-/// assert_eq!(opaque_alloc.allocator_type_id(), TypeId::of::<Global>());
 /// ```
 ///
 /// [`Allocator`]: std::alloc::Allocator
@@ -252,7 +243,54 @@ where
 
 /// A type-erased memory allocator.
 ///
-/// For more information, see [`TypedProjAlloc`].
+/// Wrapping the memory allocator like this allows us to type-erase and type-project allocators
+/// as **O(1)**-time operations. When passing references to type-projected or type-erased allocators
+/// around, type-erasure and type-projection are zero-cost operations, since they have identical
+/// layout.
+///
+/// For a given allocator type `A`, the [`TypedProjAlloc<A>`] and [`OpaqueAlloc`] data types also
+/// implement the [`Allocator`] trait, so we can allocate memory with it just as well as the
+/// underlying allocator of type `A`.
+///
+/// # Type Erasure And Type Projection
+///
+/// This allows for more flexible and dynamic data handling, especially when working with
+/// collections of unknown or dynamic types. Some applications of this include implementing
+/// heterogeneous data structures, plugin systems, and managing foreign function interface data. There
+/// are two data types that are dual to each other: [`TypedProjAlloc`] and [`OpaqueAlloc`].
+///
+/// # Tradeoffs Compared To A Non-Projected Allocator
+///
+/// There are some tradeoffs to gaining type-erasability and type-projectability. The projected and
+/// erased allocators have identical memory layout to ensure that type projection and type erasure are
+/// both **O(1)**-time operations. Thus, the underlying memory allocator must be stored in the equivalent
+/// of a [`Box`], which carries a small performance penalty. Moreover, the allocators must carry extra
+/// metadata about the type of the underlying allocator through its [`TypeId`]. Boxing the allocator
+/// imposes a small performance penalty at runtime, and the extra metadata makes the allocator itself
+/// a little bigger in memory, though this is very minor. This also puts a slight restriction on what
+/// kinds of memory allocators can be held inside the container: the underlying memory
+/// allocator must be [`any::Any`], i.e. it must have a `'static` lifetime.
+///
+/// # See Also
+///
+/// - [`TypedProjAlloc`]: The type-projected counterpart to [`OpaqueAlloc`].
+///
+/// # Examples
+///
+/// Using a type-erased allocator.
+///
+/// ```
+/// # #![feature(allocator_api)]
+/// # use opaque_alloc::OpaqueAlloc;
+/// # use std::any::TypeId;
+/// # use std::alloc::Global;
+/// #
+/// let opaque_alloc = OpaqueAlloc::new::<Global>(Global);
+///
+/// assert_eq!(opaque_alloc.allocator_type_id(), TypeId::of::<Global>());
+/// ```
+///
+/// [`Allocator`]: std::alloc::Allocator
 #[repr(transparent)]
 pub struct OpaqueAlloc {
     inner: OpaqueAllocInner,

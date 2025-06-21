@@ -47,6 +47,10 @@ use core::hash;
 /// can be held inside the container: the underlying hash builder must be [`any::Any`], i.e. it must have a
 /// `'static` lifetime.
 ///
+/// # See Also
+///
+/// - [`OpaqueBuildHasher`]: the type-erased counterpart to [`TypedProjBuildHasher`].
+///
 /// # Examples
 ///
 /// Using a type-projected hash builder.
@@ -65,24 +69,6 @@ use core::hash;
 ///
 /// // The `build_hasher_proj` method builds a type-projected hasher.
 /// let proj_hasher: TypedProjHasher<DefaultHasher> = proj_build_hasher.build_hasher_proj();
-/// ```
-///
-/// Using a type-erased hash builder.
-///
-/// ```
-/// # use opaque_hash::{OpaqueBuildHasher, TypedProjHasher};
-/// # use std::any::TypeId;
-/// # use std::hash::{DefaultHasher, RandomState};
-/// #
-/// let opaque_build_hasher = OpaqueBuildHasher::new::<RandomState>(RandomState::new());
-///
-/// assert_eq!(opaque_build_hasher.build_hasher_type_id(), TypeId::of::<RandomState>());
-///
-/// // The `build_hasher` method builds an unprojected hasher.
-/// let hasher: DefaultHasher = opaque_build_hasher.build_hasher::<RandomState>();
-///
-/// // The `build_hasher_proj` method builds a type-projected hasher.
-/// let proj_hasher: TypedProjHasher<DefaultHasher> = opaque_build_hasher.build_hasher_proj::<RandomState>();
 /// ```
 #[repr(transparent)]
 pub struct TypedProjBuildHasher<S>
@@ -323,7 +309,62 @@ where
 
 /// A type-erased hash builder.
 ///
-/// For more information, see [`TypedProjBuildHasher`].
+/// Wrapping the hash builder like this allows us to type-erase and type-project hash builders
+/// as **O(1)**-time operations. When passing references to type-projected or type-erased hash builders
+/// around, type-erasure and type-projection are zero-cost operations, since they have identical
+/// layout.
+///
+/// For a given hash builder type `S`, the [`TypedProjBuildHasher<S>`] and [`OpaqueHasher`] data types
+/// also implement the [`BuildHasher`] trait, so we can build hashers with it just as well as the
+/// underlying hash builder of type `S`. The type-projected hash builder's [`BuildHasher`] implementation
+/// will build the same hasher as the underlying hash builder type does with its [`BuildHasher`] implementation.
+/// The type-projected and type-erased hash builders also have an additional feature where they can
+/// build type-projected versions of the underlying hasher with the `build_hasher_proj` method.
+/// See the [`TypedProjBuildHasher::build_hasher_proj`] and [`OpaqueBuildHasher::build_hasher_proj`]
+/// methods for more detail.
+///
+/// # Type Erasure And Type Projection
+///
+/// This allows for more flexible and dynamic data handling, especially when working with
+/// collections of unknown or dynamic types. Some applications of this include implementing
+/// heterogeneous data structures, plugin systems, and managing foreign function interface data. There
+/// are two data types that are dual to each other: [`TypedProjBuildHasher`] and [`OpaqueBuildHasher`].
+///
+/// # Tradeoffs Compared To A Non-Projected Hasher
+///
+/// There are some tradeoffs to gaining type-erasability and type-projectability. The projected and
+/// erased hash builders have identical memory layout to ensure that type projection and type erasure are
+/// both **O(1)**-time operations. Thus, the underlying hash builder must be stored in the equivalent
+/// of a [`Box`], which carries a small performance penalty. Moreover, the hash builders must carry extra
+/// metadata about the type of the underlying hash builder through its [`TypeId`]. Boxing the hash builder
+/// imposes a small performance penalty at runtime, and the extra metadata makes the hash builder itself
+/// a little bigger in memory. This also puts a slight restriction on what kinds of hash builders
+/// can be held inside the container: the underlying hash builder must be [`any::Any`], i.e. it must have a
+/// `'static` lifetime.
+///
+/// # See Also
+///
+/// - [`TypedProjBuildHasher`]: the type-projected counterpart to [`OpaqueBuildHasher`].
+///
+/// # Examples
+///
+/// Using a type-erased hash builder.
+///
+/// ```
+/// # use opaque_hash::{OpaqueBuildHasher, TypedProjHasher};
+/// # use std::any::TypeId;
+/// # use std::hash::{DefaultHasher, RandomState};
+/// #
+/// let opaque_build_hasher = OpaqueBuildHasher::new::<RandomState>(RandomState::new());
+///
+/// assert_eq!(opaque_build_hasher.build_hasher_type_id(), TypeId::of::<RandomState>());
+///
+/// // The `build_hasher` method builds an unprojected hasher.
+/// let hasher: DefaultHasher = opaque_build_hasher.build_hasher::<RandomState>();
+///
+/// // The `build_hasher_proj` method builds a type-projected hasher.
+/// let proj_hasher: TypedProjHasher<DefaultHasher> = opaque_build_hasher.build_hasher_proj::<RandomState>();
+/// ```
 #[repr(transparent)]
 pub struct OpaqueBuildHasher {
     inner: OpaqueBuildHasherInner,
