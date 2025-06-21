@@ -1,3 +1,4 @@
+mod test_append;
 mod test_as_mut_slice;
 mod test_as_slice;
 mod test_clear;

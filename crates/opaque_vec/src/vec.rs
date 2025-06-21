@@ -2544,7 +2544,8 @@ where
         self.inner.iter_mut()
     }
 
-    /// Appends one type-projected vector to another type-projected vector, emptying the latter collection.
+    /// Appends one type-projected vector to another type-projected vector, emptying the latter
+    /// collection.
     ///
     /// This method drains `other` into `self`, i.e. every element of `other` will be appended
     /// to `self`, and `other` will be empty after the operation finishes.
@@ -2552,9 +2553,9 @@ where
     /// # Formal Properties
     ///
     /// Let `vec1` and `vec2` be vectors, `vec1_before` be the state of `vec1` before this method is
-    /// called, `vec2_before` be the state of `vec2` before this method is called, `vec1_after` be the
-    /// state of `vec1` after this method completes, and `vec2_after` be the state of `vec2` after this
-    /// method completes. This method satisfies
+    /// called, `vec2_before` be the state of `vec2` before this method is called, `vec1_after` be
+    /// the state of `vec1` after this method completes, and `vec2_after` be the state of `vec2`
+    /// after this method completes. This method satisfies
     ///
     /// ```text
     /// { true }
@@ -7935,7 +7936,8 @@ impl OpaqueVec {
         proj_self.into_iter()
     }
 
-    /// Appends one type-erased vector to another type-erased vector, emptying the latter collection.
+    /// Appends one type-erased vector to another type-projected vector, emptying the latter
+    /// collection.
     ///
     /// This method drains `other` into `self`, i.e. every element of `other` will be appended
     /// to `self`, and `other` will be empty after the operation finishes.
@@ -7943,9 +7945,9 @@ impl OpaqueVec {
     /// # Formal Properties
     ///
     /// Let `vec1` and `vec2` be vectors, `vec1_before` be the state of `vec1` before this method is
-    /// called, `vec2_before` be the state of `vec2` before this method is called, `vec1_after` be the
-    /// state of `vec1` after this method completes, and `vec2_after` be the state of `vec2` after this
-    /// method completes. This method satisfies
+    /// called, `vec2_before` be the state of `vec2` before this method is called, `vec1_after` be
+    /// the state of `vec1` after this method completes, and `vec2_after` be the state of `vec2`
+    /// after this method completes. This method satisfies
     ///
     /// ```text
     /// { true }

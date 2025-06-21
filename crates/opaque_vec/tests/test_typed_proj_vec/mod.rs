@@ -1,3 +1,4 @@
+mod test_append;
 mod test_as_mut_slice;
 mod test_as_slice;
 mod test_clear;
@@ -22,4 +23,3 @@ mod test_truncate;
 mod test_shift_insert_shift_remove;
 mod test_into_iter;
 mod test_drain;
-
