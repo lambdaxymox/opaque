@@ -169,8 +169,8 @@ macro_rules! generate_tests {
 
             #[test]
             fn test_opaque_index_set_append_contains_source_range_values() {
-                let values1 = opaque_index_map_testing::set::range_entries::<$value_typ>($src_range_spec);
-                let values2 = opaque_index_map_testing::set::range_entries::<$value_typ>($dst_range_spec);
+                let values1 = oimt::set::range_entries::<$value_typ>($src_range_spec);
+                let values2 = oimt::set::range_entries::<$value_typ>($dst_range_spec);
                 let build_hasher1 = hash::RandomState::new();
                 let alloc1 = alloc::Global;
                 let build_hasher2 = hash::RandomState::new();
@@ -191,8 +191,8 @@ macro_rules! generate_tests {
 
             #[test]
             fn test_opaque_index_set_append_contains_destination_range_values() {
-                let values1 = opaque_index_map_testing::set::range_entries::<$value_typ>($src_range_spec);
-                let values2 = opaque_index_map_testing::set::range_entries::<$value_typ>($dst_range_spec);
+                let values1 = oimt::set::range_entries::<$value_typ>($src_range_spec);
+                let values2 = oimt::set::range_entries::<$value_typ>($dst_range_spec);
                 let build_hasher1 = hash::RandomState::new();
                 let alloc1 = alloc::Global;
                 let build_hasher2 = hash::RandomState::new();

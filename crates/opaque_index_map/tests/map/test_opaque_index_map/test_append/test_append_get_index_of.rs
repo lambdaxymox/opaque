@@ -116,8 +116,8 @@ macro_rules! generate_tests {
 
             #[test]
             fn test_opaque_index_map_append_get_index_of_source_range_values() {
-                let values1 = opaque_index_map_testing::map::range_entries::<$key_typ, $value_typ>($src_range_spec);
-                let values2 = opaque_index_map_testing::map::range_entries::<$key_typ, $value_typ>($dst_range_spec);
+                let values1 = oimt::map::range_entries::<$key_typ, $value_typ>($src_range_spec);
+                let values2 = oimt::map::range_entries::<$key_typ, $value_typ>($dst_range_spec);
                 let build_hasher1 = hash::RandomState::new();
                 let alloc1 = alloc::Global;
                 let build_hasher2 = hash::RandomState::new();
