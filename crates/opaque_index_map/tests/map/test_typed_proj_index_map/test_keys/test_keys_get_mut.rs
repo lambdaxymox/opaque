@@ -11,7 +11,7 @@ fn run_test_typed_proj_index_map_keys_get_mut<K, V, S, A>(entries: &[(K, V)], bu
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
-    S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
@@ -26,7 +26,7 @@ fn run_test_typed_proj_index_map_keys_get_mut_values<K, V, S, A>(entries: &[(K, 
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
-    S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {

@@ -25,7 +25,7 @@ where
 fn result<T, S, A>(set: &TypedProjIndexSet<T, S, A>, value: &T) -> Vec<T>
 where
     T: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
-    S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
@@ -43,7 +43,7 @@ where
 fn run_test_typed_proj_index_set_swap_remove_full_preserves_order<T, S, A>(entries: &[T], build_hasher: S, alloc: A)
 where
     T: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
-    S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
@@ -60,7 +60,7 @@ where
 fn run_test_typed_proj_index_set_swap_remove_full_preserves_order_values<T, S, A>(entries: &[T], build_hasher: S, alloc: A)
 where
     T: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
-    S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {

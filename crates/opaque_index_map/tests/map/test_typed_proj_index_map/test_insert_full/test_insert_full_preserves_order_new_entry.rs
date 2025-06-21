@@ -11,7 +11,7 @@ fn run_test_typed_proj_index_map_insert_full_preserves_order_new_entry<K, V, S, 
 where
     K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
-    S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
@@ -39,7 +39,7 @@ fn run_test_typed_proj_index_map_insert_full_preserves_order_new_entry_values<K,
 where
     K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
-    S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {

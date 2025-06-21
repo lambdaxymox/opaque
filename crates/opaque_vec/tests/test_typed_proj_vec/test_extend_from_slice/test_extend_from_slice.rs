@@ -64,16 +64,16 @@ macro_rules! generate_tests {
 
             #[test]
             fn test_typed_proj_vec_clone_len_range_values() {
-                let values = opaque_vec_testing::range_values::<$typ, $max_array_size>($range_spec);
-                let extension_values = opaque_vec_testing::constant_values::<$typ, $max_array_size>($const_spec);
+                let values = ovt::range_values::<$typ, $max_array_size>($range_spec);
+                let extension_values = ovt::constant_values::<$typ, $max_array_size>($const_spec);
                 let alloc = alloc::Global;
                 run_test_typed_proj_vec_extend_from_slice_values(&values, &extension_values, alloc);
             }
 
             #[test]
             fn test_typed_proj_vec_clone_len_alternating_values() {
-                let values = opaque_vec_testing::alternating_values::<$typ, $max_array_size>($alt_spec);
-                let extension_values = opaque_vec_testing::constant_values::<$typ, $max_array_size>($const_spec);
+                let values = ovt::alternating_values::<$typ, $max_array_size>($alt_spec);
+                let extension_values = ovt::constant_values::<$typ, $max_array_size>($const_spec);
                 let alloc = alloc::Global;
                 run_test_typed_proj_vec_extend_from_slice_values(&values, &extension_values, alloc);
             }
@@ -85,55 +85,55 @@ generate_tests!(
     unit,
     (),
     128,
-    opaque_vec_testing::RangeValuesSpec::new(Box::new(iter::repeat(()))),
-    opaque_vec_testing::AlternatingValuesSpec::new((), ()),
-    opaque_vec_testing::ConstantValuesSpec::new(())
+    ovt::RangeValuesSpec::new(Box::new(iter::repeat(()))),
+    ovt::AlternatingValuesSpec::new((), ()),
+    ovt::ConstantValuesSpec::new(())
 );
 generate_tests!(
     u8,
     u8,
     128,
-    opaque_vec_testing::RangeValuesSpec::new(Box::new(ops::RangeFrom { start: 0 })),
-    opaque_vec_testing::AlternatingValuesSpec::new(u8::MIN, u8::MAX),
-    opaque_vec_testing::ConstantValuesSpec::new(u8::MAX)
+    ovt::RangeValuesSpec::new(Box::new(ops::RangeFrom { start: 0 })),
+    ovt::AlternatingValuesSpec::new(u8::MIN, u8::MAX),
+    ovt::ConstantValuesSpec::new(u8::MAX)
 );
 generate_tests!(
     u16,
     u16,
     128,
-    opaque_vec_testing::RangeValuesSpec::new(Box::new(ops::RangeFrom { start: 0 })),
-    opaque_vec_testing::AlternatingValuesSpec::new(u16::MIN, u16::MAX),
-    opaque_vec_testing::ConstantValuesSpec::new(u16::MAX)
+    ovt::RangeValuesSpec::new(Box::new(ops::RangeFrom { start: 0 })),
+    ovt::AlternatingValuesSpec::new(u16::MIN, u16::MAX),
+    ovt::ConstantValuesSpec::new(u16::MAX)
 );
 generate_tests!(
     u32,
     u32,
     128,
-    opaque_vec_testing::RangeValuesSpec::new(Box::new(ops::RangeFrom { start: 0 })),
-    opaque_vec_testing::AlternatingValuesSpec::new(u32::MIN, u32::MAX),
-    opaque_vec_testing::ConstantValuesSpec::new(u32::MAX)
+    ovt::RangeValuesSpec::new(Box::new(ops::RangeFrom { start: 0 })),
+    ovt::AlternatingValuesSpec::new(u32::MIN, u32::MAX),
+    ovt::ConstantValuesSpec::new(u32::MAX)
 );
 generate_tests!(
     u64,
     u64,
     128,
-    opaque_vec_testing::RangeValuesSpec::new(Box::new(ops::RangeFrom { start: 0 })),
-    opaque_vec_testing::AlternatingValuesSpec::new(u64::MIN, u64::MAX),
-    opaque_vec_testing::ConstantValuesSpec::new(u64::MAX)
+    ovt::RangeValuesSpec::new(Box::new(ops::RangeFrom { start: 0 })),
+    ovt::AlternatingValuesSpec::new(u64::MIN, u64::MAX),
+    ovt::ConstantValuesSpec::new(u64::MAX)
 );
 generate_tests!(
     usize,
     usize,
     128,
-    opaque_vec_testing::RangeValuesSpec::new(Box::new(ops::RangeFrom { start: 0 })),
-    opaque_vec_testing::AlternatingValuesSpec::new(usize::MIN, usize::MAX),
-    opaque_vec_testing::ConstantValuesSpec::new(usize::MAX)
+    ovt::RangeValuesSpec::new(Box::new(ops::RangeFrom { start: 0 })),
+    ovt::AlternatingValuesSpec::new(usize::MIN, usize::MAX),
+    ovt::ConstantValuesSpec::new(usize::MAX)
 );
 generate_tests!(
     string,
     String,
     128,
-    opaque_vec_testing::RangeValuesSpec::new(Box::new(ovt::StringRangeFrom::new(0))),
-    opaque_vec_testing::AlternatingValuesSpec::new(String::from("foo"), String::from("bar")),
-    opaque_vec_testing::ConstantValuesSpec::new(String::from("baz"))
+    ovt::RangeValuesSpec::new(Box::new(ovt::StringRangeFrom::new(0))),
+    ovt::AlternatingValuesSpec::new(String::from("foo"), String::from("bar")),
+    ovt::ConstantValuesSpec::new(String::from("baz"))
 );

@@ -8,7 +8,7 @@ pub fn from_entries_in<K, V, S, A>(entries: &[(K, V)], build_hasher: S, alloc: A
 where
     K: any::Any + Clone + Eq + hash::Hash,
     V: any::Any + Clone + Eq,
-    S: any::Any + hash::BuildHasher + Clone + Send + Sync,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
@@ -24,7 +24,7 @@ pub fn from_entries_full_in<K, V, S, A>(entries: &[(K, V)], build_hasher: S, all
 where
     K: any::Any + Clone + Eq + hash::Hash,
     V: any::Any + Clone + Eq,
-    S: any::Any + hash::BuildHasher + Clone + Send + Sync,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync,
 {

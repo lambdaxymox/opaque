@@ -10,7 +10,7 @@ use opaque_index_map_testing as oimt;
 fn run_test_typed_proj_index_set_insert_get_full<T, S, A>(entries: &[T], build_hasher: S, alloc: A)
 where
     T: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
-    S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
@@ -26,7 +26,7 @@ where
 fn run_test_typed_proj_index_set_insert_get_full_values<T, S, A>(entries: &[T], build_hasher: S, alloc: A)
 where
     T: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
-    S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {

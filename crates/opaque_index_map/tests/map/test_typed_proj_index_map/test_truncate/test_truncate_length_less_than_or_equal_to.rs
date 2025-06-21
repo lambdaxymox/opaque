@@ -26,7 +26,7 @@ fn result<K, V, S, A>(map: &TypedProjIndexMap<K, V, S, A>, len: usize) -> Vec<(K
 where
     K: any::Any + Clone + Eq + hash::Hash,
     V: any::Any + Clone + Eq,
-    S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
@@ -45,7 +45,7 @@ fn run_test_typed_proj_index_map_truncate_length_less_than_or_equal_to<K, V, S, 
 where
     K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
-    S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
@@ -62,7 +62,7 @@ fn run_test_typed_proj_index_map_truncate_length_less_than_or_equal_to_values<K,
 where
     K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
-    S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {

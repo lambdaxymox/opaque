@@ -78,20 +78,20 @@ generate_tests!(
     u64,
     u64,
     lengths = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 32, 64, 128 },
-    opaque_vec_testing::RangeValuesSpec::new(Box::new(ops::RangeFrom { start: 0 })),
-    opaque_vec_testing::AlternatingValuesSpec::new(u64::MIN, 0)
+    ovt::RangeValuesSpec::new(Box::new(ops::RangeFrom { start: 0 })),
+    ovt::AlternatingValuesSpec::new(u64::MIN, 0)
 );
 generate_tests!(
     usize,
     usize,
     lengths = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 32, 64, 128 },
-    opaque_vec_testing::RangeValuesSpec::new(Box::new(ops::RangeFrom { start: 0 })),
-    opaque_vec_testing::AlternatingValuesSpec::new(usize::MIN, 0)
+    ovt::RangeValuesSpec::new(Box::new(ops::RangeFrom { start: 0 })),
+    ovt::AlternatingValuesSpec::new(usize::MIN, 0)
 );
 generate_tests!(
     string,
     String,
     lengths = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 32, 64, 128 },
-    opaque_vec_testing::RangeValuesSpec::new(Box::new(ovt::StringRangeFrom::new(0))),
-    opaque_vec_testing::AlternatingValuesSpec::new(String::from("foo"), String::from("bar"))
+    ovt::RangeValuesSpec::new(Box::new(ovt::StringRangeFrom::new(0))),
+    ovt::AlternatingValuesSpec::new(String::from("foo"), String::from("bar"))
 );

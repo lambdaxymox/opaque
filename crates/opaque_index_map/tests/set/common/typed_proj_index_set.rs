@@ -7,7 +7,7 @@ use std::alloc;
 pub fn from_entries_in<T, S, A>(entries: &[T], build_hasher: S, alloc: A) -> TypedProjIndexSet<T, S, A>
 where
     T: any::Any + Clone + Eq + hash::Hash,
-    S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
@@ -22,7 +22,7 @@ where
 pub fn from_entries_full_in<T, S, A>(entries: &[T], build_hasher: S, alloc: A) -> TypedProjIndexSet<T, S, A>
 where
     T: any::Any + Clone + Eq + hash::Hash,
-    S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync,
 {

@@ -50,7 +50,7 @@ impl<T> hash::Hash for UnhashedValueWrapper<T> {
 
 fn create_drop_counter_index_set_in<S, A>(len: usize, build_hasher: S, alloc: A) -> (DropCounter, TypedProjIndexSet<UnhashedValueWrapper<DropCounter>, S, A>)
 where
-    S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
@@ -65,7 +65,7 @@ where
 
 fn run_test_typed_proj_index_set_clear<S, A>(length: usize, build_hasher: S, alloc: A)
 where
-    S: any::Any + hash::BuildHasher + Clone + Send + Sync + Clone,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
