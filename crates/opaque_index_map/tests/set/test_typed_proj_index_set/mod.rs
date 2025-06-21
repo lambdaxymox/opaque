@@ -1,3 +1,4 @@
+mod test_append;
 mod test_clear;
 mod test_clone;
 mod test_insert;
