@@ -10404,8 +10404,15 @@ where
     /// assert_eq!(proj_map1.len(), 7);
     /// assert_eq!(proj_map2.len(), 0);
     ///
-    /// assert!(proj_map1.keys().eq(&["foo", "bar", "baz", "quux", "garply", "corge", "grault"]));
-    /// assert!(proj_map1.values().eq(&[0_usize, 1_usize, 2_usize, 3_usize, 4_usize, 5_usize, 6_usize]));
+    /// let expected_keys = ["foo", "bar", "baz", "quux", "garply", "corge", "grault"];
+    /// let result_keys = TypedProjVec::from_iter(proj_map1.keys().cloned());
+    ///
+    /// assert_eq!(result_keys.as_slice(), expected_keys.as_slice());
+    ///
+    /// let expected_values = [0_usize, 1_usize, 2_usize, 3_usize, 4_usize, 5_usize, 6_usize];
+    /// let result_values = TypedProjVec::from_iter(proj_map1.values().cloned());
+    ///
+    /// assert_eq!(result_values.as_slice(), expected_values.as_slice());
     /// ```
     ///
     /// Appending one index map to another when they have overlapping keys.
@@ -10441,8 +10448,15 @@ where
     /// assert_eq!(proj_map1.len(), 7);
     /// assert_eq!(proj_map2.len(), 0);
     ///
-    /// assert!(proj_map1.keys().eq(&["foo", "bar", "baz", "quux", "garply", "corge", "grault"]));
-    /// assert!(proj_map1.values().eq(&[0_usize, 1_usize, usize::MAX, 3_usize, 4_usize, 5_usize, 6_usize]));
+    /// let expected_keys = ["foo", "bar", "baz", "quux", "garply", "corge", "grault"];
+    /// let result_keys = TypedProjVec::from_iter(proj_map1.keys().cloned());
+    ///
+    /// assert_eq!(result_keys.as_slice(), expected_keys.as_slice());
+    ///
+    /// let expected_values = [0_usize, 1_usize, usize::MAX, 3_usize, 4_usize, 5_usize, 6_usize];
+    /// let result_values = TypedProjVec::from_iter(proj_map1.values().cloned());
+    ///
+    /// assert_eq!(result_values.as_slice(), expected_values.as_slice());
     /// ```
     pub fn append<S2, A2>(&mut self, other: &mut TypedProjIndexMap<K, V, S2, A2>)
     where
@@ -18498,10 +18512,15 @@ impl OpaqueIndexMap {
     ///
     /// # Panics
     ///
-    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
-    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
-    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
-    /// type `S`, and allocator type `A`, respectively.
+    /// This method panics under the following conditions:
+    /// * If the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of `self`, the
+    ///   [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory allocator of
+    ///   `self` do not match the requested key type `K`, value type `V`, hash builder type `S1`, and
+    ///   allocator type `A1`, respectively.
+    /// * If the [`TypeId`] of the keys of `other`, the [`TypeId`] of the values of `other`, the
+    ///   [`TypeId`] for the hash builder of `other`, and the [`TypeId`] of the memory allocator of
+    ///   `other` do not match the requested key type `K`, value type `V`, hash builder type `S2`,
+    ///   and allocator type `A2`, respectively.
     ///
     /// # Examples
     ///
@@ -18548,8 +18567,19 @@ impl OpaqueIndexMap {
     /// assert_eq!(opaque_map1.len(), 7);
     /// assert_eq!(opaque_map2.len(), 0);
     ///
-    /// assert!(opaque_map1.keys::<&str, usize, RandomState, Global>().eq(&["foo", "bar", "baz", "quux", "garply", "corge", "grault"]));
-    /// assert!(opaque_map1.values::<&str, usize, RandomState, Global>().eq(&[0_usize, 1_usize, 2_usize, 3_usize, 4_usize, 5_usize, 6_usize]));
+    /// let expected_keys = ["foo", "bar", "baz", "quux", "garply", "corge", "grault"];
+    /// let result_keys = TypedProjVec::from_iter(
+    ///     opaque_map1.keys::<&str, usize, RandomState, Global>().cloned()
+    /// );
+    ///
+    /// assert_eq!(result_keys.as_slice(), expected_keys.as_slice());
+    ///
+    /// let expected_values = [0_usize, 1_usize, 2_usize, 3_usize, 4_usize, 5_usize, 6_usize];
+    /// let result_values = TypedProjVec::from_iter(
+    ///     opaque_map1.values::<&str, usize, RandomState, Global>().cloned()
+    /// );
+    ///
+    /// assert_eq!(result_values.as_slice(), expected_values.as_slice());
     /// ```
     ///
     /// Appending one index map to another when they have overlapping keys.
@@ -18597,8 +18627,19 @@ impl OpaqueIndexMap {
     /// assert_eq!(opaque_map1.len(), 7);
     /// assert_eq!(opaque_map2.len(), 0);
     ///
-    /// assert!(opaque_map1.keys::<&str, usize, RandomState, Global>().eq(&["foo", "bar", "baz", "quux", "garply", "corge", "grault"]));
-    /// assert!(opaque_map1.values::<&str, usize, RandomState, Global>().eq(&[0_usize, 1_usize, usize::MAX, 3_usize, 4_usize, 5_usize, 6_usize]));
+    /// let expected_keys = ["foo", "bar", "baz", "quux", "garply", "corge", "grault"];
+    /// let result_keys = TypedProjVec::from_iter(
+    ///     opaque_map1.keys::<&str, usize, RandomState, Global>().cloned()
+    /// );
+    ///
+    /// assert_eq!(result_keys.as_slice(), expected_keys.as_slice());
+    ///
+    /// let expected_values = [0_usize, 1_usize, usize::MAX, 3_usize, 4_usize, 5_usize, 6_usize];
+    /// let result_values = TypedProjVec::from_iter(
+    ///     opaque_map1.values::<&str, usize, RandomState, Global>().cloned()
+    /// );
+    ///
+    /// assert_eq!(result_values.as_slice(), expected_values.as_slice());
     /// ```
     pub fn append<K, V, S, A>(&mut self, other: &mut OpaqueIndexMap)
     where

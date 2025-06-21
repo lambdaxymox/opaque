@@ -3905,7 +3905,10 @@ where
     /// assert_eq!(proj_set1.len(), 7);
     /// assert_eq!(proj_set2.len(), 0);
     ///
-    /// assert_eq!(proj_set1.as_slice(), &["foo", "bar", "baz", "quux", "garply", "corge", "grault"]);
+    /// let expected = ["foo", "bar", "baz", "quux", "garply", "corge", "grault"];
+    /// let result = TypedProjVec::from_iter(proj_set1.iter().cloned());
+    ///
+    /// assert_eq!(result.as_slice(), expected.as_slice());
     /// ```
     ///
     /// Appending one index set to another when they have overlapping values.
@@ -3931,7 +3934,10 @@ where
     /// assert_eq!(proj_set1.len(), 7);
     /// assert_eq!(proj_set2.len(), 0);
     ///
-    /// assert_eq!(proj_set1.as_slice(), &["foo", "bar", "baz", "quux", "garply", "corge", "grault"]);
+    /// let expected = ["foo", "bar", "baz", "quux", "garply", "corge", "grault"];
+    /// let result = TypedProjVec::from_iter(proj_set1.iter().cloned());
+    ///
+    /// assert_eq!(result.as_slice(), expected.as_slice());
     /// ```
     pub fn append<S2, A2>(&mut self, other: &mut TypedProjIndexSet<T, S2, A2>)
     where
@@ -6581,6 +6587,12 @@ impl OpaqueIndexSet {
     ///   of the set, so the resulting entry is in last place in the storage order, and the method
     ///   returns `true`.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
     /// ```
@@ -6593,13 +6605,18 @@ impl OpaqueIndexSet {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_set = OpaqueIndexSet::from([1_isize, 2_isize, 3_isize]);
+    /// let mut opaque_set = OpaqueIndexSet::from([1_isize, 2_isize, 3_isize]);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<isize>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
     ///
-    /// let result = proj_set.insert::<isize, RandomState, Global>(isize::MAX);
+    /// let result = opaque_set.insert::<isize, RandomState, Global>(isize::MAX);
     ///
     /// assert_eq!(result, true);
     ///
-    /// let result = proj_set.insert::<isize, RandomState, Global>(2_isize);
+    /// let result = opaque_set.insert::<isize, RandomState, Global>(2_isize);
     ///
     /// assert_eq!(result, false);
     /// ```
@@ -6627,6 +6644,12 @@ impl OpaqueIndexSet {
     ///   returns `(index, true)`, where `index` is the index of the last entry in the set in storage
     ///   order.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
     /// ```
@@ -6639,13 +6662,18 @@ impl OpaqueIndexSet {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_set = OpaqueIndexSet::from([1_isize, 2_isize, 3_isize]);
+    /// let mut opaque_set = OpaqueIndexSet::from([1_isize, 2_isize, 3_isize]);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<isize>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
     ///
-    /// let result = proj_set.insert_full::<isize, RandomState, Global>(isize::MAX);
+    /// let result = opaque_set.insert_full::<isize, RandomState, Global>(isize::MAX);
     ///
     /// assert_eq!(result, (3, true));
     ///
-    /// let result = proj_set.insert_full::<isize, RandomState, Global>(2_isize);
+    /// let result = opaque_set.insert_full::<isize, RandomState, Global>(2_isize);
     ///
     /// assert_eq!(result, (1, false));
     /// ```
@@ -6705,6 +6733,12 @@ impl OpaqueIndexSet {
     /// [`sort_keys`]: TypedProjIndexSet::sort_keys
     /// [`sort_unstable_keys`]: TypedProjIndexSet::sort_unstable_keys
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
     /// Calling this method on an index set with a set of sorted values yields the index of the
@@ -6720,7 +6754,7 @@ impl OpaqueIndexSet {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_set = OpaqueIndexSet::from([
+    /// let mut opaque_set = OpaqueIndexSet::from([
     ///     1_isize,
     ///     2_isize,
     ///     3_isize,
@@ -6729,12 +6763,17 @@ impl OpaqueIndexSet {
     ///     6_isize,
     ///     7_isize,
     /// ]);
-    /// let result = proj_set.insert_sorted::<isize, RandomState, Global>(5_isize);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<isize>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    /// let result = opaque_set.insert_sorted::<isize, RandomState, Global>(5_isize);
     ///
     /// // The set is sorted, so the index returned is the storage index in the set.
     /// assert_eq!(result, (4, false));
     ///
-    /// assert_eq!(proj_set.get::<_, isize, RandomState, Global>(&5_isize), Some(&5_isize));
+    /// assert_eq!(opaque_set.get::<_, isize, RandomState, Global>(&5_isize), Some(&5_isize));
     /// ```
     ///
     /// Calling this method on an index set with a set of unsorted value yields a meaningless
@@ -6750,7 +6789,7 @@ impl OpaqueIndexSet {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_set = OpaqueIndexSet::from([
+    /// let mut opaque_set = OpaqueIndexSet::from([
     ///     7_isize,
     ///     4_isize,
     ///     2_isize,
@@ -6759,12 +6798,17 @@ impl OpaqueIndexSet {
     ///     1_isize,
     ///     3_isize,
     /// ]);
-    /// let result = proj_set.insert_sorted::<isize, RandomState, Global>(5_isize);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<isize>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    /// let result = opaque_set.insert_sorted::<isize, RandomState, Global>(5_isize);
     ///
     /// // The set is unsorted, so the index returned by the method is meaningless.
     /// assert_ne!(result, (4, false));
     ///
-    /// assert_eq!(proj_set.get::<_, isize, RandomState, Global>(&5_isize), Some(&5_isize));
+    /// assert_eq!(opaque_set.get::<_, isize, RandomState, Global>(&5_isize), Some(&5_isize));
     /// ```
     pub fn insert_sorted<T, S, A>(&mut self, value: T) -> (usize, bool)
     where
@@ -6803,7 +6847,11 @@ impl OpaqueIndexSet {
     ///
     /// # Panics
     ///
-    /// This method panics if the index `index` is out of bounds.
+    /// This method panics under one of the following conditions:
+    /// * If the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash builder of `self`,
+    ///   and the [`TypeId`] of the memory allocator of `self` do not match the value type `T`, hash
+    ///   builder type `S`, and allocator type `A`, respectively.
+    /// * If the index `index` is out of bounds.
     ///
     /// # Examples
     ///
@@ -6819,7 +6867,7 @@ impl OpaqueIndexSet {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_set = OpaqueIndexSet::from([
+    /// let mut opaque_set = OpaqueIndexSet::from([
     ///     'a',
     ///     '*',
     ///     'c',
@@ -6828,7 +6876,12 @@ impl OpaqueIndexSet {
     ///     'f',
     ///     'g',
     /// ]);
-    /// let removed = proj_set.insert_before::<char, RandomState, Global>(5, '*');
+    /// #
+    /// # assert!(opaque_set.has_value_type::<char>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    /// let removed = opaque_set.insert_before::<char, RandomState, Global>(5, '*');
     /// let expected: TypedProjVec<char> = TypedProjVec::from([
     ///     'a',
     ///     'c',
@@ -6838,7 +6891,7 @@ impl OpaqueIndexSet {
     ///     'f',
     ///     'g',
     /// ]);
-    /// let result: TypedProjVec<char> = proj_set
+    /// let result: TypedProjVec<char> = opaque_set
     ///     .iter::<char, RandomState, Global>()
     ///     .cloned()
     ///     .collect();
@@ -6859,7 +6912,7 @@ impl OpaqueIndexSet {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_set = OpaqueIndexSet::from([
+    /// let mut opaque_set = OpaqueIndexSet::from([
     ///     'a',
     ///     'b',
     ///     'c',
@@ -6868,7 +6921,12 @@ impl OpaqueIndexSet {
     ///     '*',
     ///     'g',
     /// ]);
-    /// let removed = proj_set.insert_before::<char, RandomState, Global>(2, '*');
+    /// #
+    /// # assert!(opaque_set.has_value_type::<char>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    /// let removed = opaque_set.insert_before::<char, RandomState, Global>(2, '*');
     /// let expected: TypedProjVec<char> = TypedProjVec::from([
     ///     'a',
     ///     'b',
@@ -6878,7 +6936,7 @@ impl OpaqueIndexSet {
     ///     'e',
     ///     'g',
     /// ]);
-    /// let result: TypedProjVec<char> = proj_set
+    /// let result: TypedProjVec<char> = opaque_set
     ///     .iter::<char, RandomState, Global>()
     ///     .cloned()
     ///     .collect();
@@ -6899,7 +6957,7 @@ impl OpaqueIndexSet {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_set = OpaqueIndexSet::from([
+    /// let mut opaque_set = OpaqueIndexSet::from([
     ///     'a',
     ///     'b',
     ///     'c',
@@ -6908,7 +6966,12 @@ impl OpaqueIndexSet {
     ///     'f',
     ///     'g',
     /// ]);
-    /// let removed = proj_set.insert_before::<char, RandomState, Global>(3, '*');
+    /// #
+    /// # assert!(opaque_set.has_value_type::<char>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    /// let removed = opaque_set.insert_before::<char, RandomState, Global>(3, '*');
     /// let expected: TypedProjVec<char> = TypedProjVec::from([
     ///     'a',
     ///     'b',
@@ -6918,7 +6981,7 @@ impl OpaqueIndexSet {
     ///     'f',
     ///     'g',
     /// ]);
-    /// let result: TypedProjVec<char> = proj_set
+    /// let result: TypedProjVec<char> = opaque_set
     ///     .iter::<char, RandomState, Global>()
     ///     .cloned()
     ///     .collect();
@@ -6939,7 +7002,7 @@ impl OpaqueIndexSet {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_set = OpaqueIndexSet::from([
+    /// let mut opaque_set = OpaqueIndexSet::from([
     ///     'a',
     ///     'b',
     ///     'c',
@@ -6948,7 +7011,12 @@ impl OpaqueIndexSet {
     ///     'f',
     ///     'g',
     /// ]);
-    /// let removed = proj_set.insert_before::<char, RandomState, Global>(3, '*');
+    /// #
+    /// # assert!(opaque_set.has_value_type::<char>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    /// let removed = opaque_set.insert_before::<char, RandomState, Global>(3, '*');
     /// let expected: TypedProjVec<char> = TypedProjVec::from([
     ///     'a',
     ///     'b',
@@ -6959,7 +7027,7 @@ impl OpaqueIndexSet {
     ///     'f',
     ///     'g',
     /// ]);
-    /// let result: TypedProjVec<char> = proj_set
+    /// let result: TypedProjVec<char> = opaque_set
     ///     .iter::<char, RandomState, Global>()
     ///     .cloned()
     ///     .collect();
@@ -7008,7 +7076,11 @@ impl OpaqueIndexSet {
     ///
     /// # Panics
     ///
-    /// This method panics if the index `index` is out of bounds.
+    /// This method panics under one of the following conditions:
+    /// * This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    ///   builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    ///   value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    /// * If the index `index` is out of bounds.
     ///
     /// # Examples
     ///
@@ -7024,7 +7096,7 @@ impl OpaqueIndexSet {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_set = OpaqueIndexSet::from([
+    /// let mut opaque_set = OpaqueIndexSet::from([
     ///     1_isize,
     ///     2_isize,
     ///     3_isize,
@@ -7033,7 +7105,12 @@ impl OpaqueIndexSet {
     ///     6_isize,
     ///     7_isize,
     /// ]);
-    /// let inserted = proj_set.shift_insert::<isize, RandomState, Global>(3, isize::MAX);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<isize>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    /// let inserted = opaque_set.shift_insert::<isize, RandomState, Global>(3, isize::MAX);
     /// let expected: TypedProjVec<isize> = TypedProjVec::from([
     ///     1_isize,
     ///     2_isize,
@@ -7044,7 +7121,7 @@ impl OpaqueIndexSet {
     ///     6_isize,
     ///     7_isize,
     /// ]);
-    /// let result: TypedProjVec<isize> = proj_set
+    /// let result: TypedProjVec<isize> = opaque_set
     ///     .iter::<isize, RandomState, Global>()
     ///     .cloned()
     ///     .collect();
@@ -7065,7 +7142,7 @@ impl OpaqueIndexSet {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_set = OpaqueIndexSet::from([
+    /// let mut opaque_set = OpaqueIndexSet::from([
     ///     1_isize,
     ///     2_isize,
     ///     3_isize,
@@ -7074,7 +7151,12 @@ impl OpaqueIndexSet {
     ///     6_isize,
     ///     7_isize,
     /// ]);
-    /// let inserted = proj_set.shift_insert::<isize, RandomState, Global>(proj_set.len(), isize::MAX);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<isize>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    /// let inserted = opaque_set.shift_insert::<isize, RandomState, Global>(opaque_set.len(), isize::MAX);
     /// let expected: TypedProjVec<isize> = TypedProjVec::from([
     ///     1_isize,
     ///     2_isize,
@@ -7085,7 +7167,7 @@ impl OpaqueIndexSet {
     ///     7_isize,
     ///     isize::MAX,
     /// ]);
-    /// let result: TypedProjVec<isize> = proj_set
+    /// let result: TypedProjVec<isize> = opaque_set
     ///     .iter::<isize, RandomState, Global>()
     ///     .cloned()
     ///     .collect();
@@ -7106,7 +7188,7 @@ impl OpaqueIndexSet {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_set = OpaqueIndexSet::from([
+    /// let mut opaque_set = OpaqueIndexSet::from([
     ///     1_isize,
     ///     2_isize,
     ///     3_isize,
@@ -7115,7 +7197,12 @@ impl OpaqueIndexSet {
     ///     6_isize,
     ///     7_isize,
     /// ]);
-    /// let inserted = proj_set.shift_insert::<isize, RandomState, Global>(3, 6_isize);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<isize>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    /// let inserted = opaque_set.shift_insert::<isize, RandomState, Global>(3, 6_isize);
     /// let expected: TypedProjVec<isize> = TypedProjVec::from([
     ///     1_isize,
     ///     2_isize,
@@ -7125,7 +7212,7 @@ impl OpaqueIndexSet {
     ///     5_isize,
     ///     7_isize,
     /// ]);
-    /// let result: TypedProjVec<isize> = proj_set
+    /// let result: TypedProjVec<isize> = opaque_set
     ///     .iter::<isize, RandomState, Global>()
     ///     .cloned()
     ///     .collect();
@@ -7151,6 +7238,12 @@ impl OpaqueIndexSet {
     ///
     /// This method does not change the storage order of the other elements in the set.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
     /// Replacing a value where two different string values are equal up to letter case.
@@ -7184,15 +7277,20 @@ impl OpaqueIndexSet {
     /// # }
     /// #
     ///
-    /// let mut proj_set = OpaqueIndexSet::from([
+    /// let mut opaque_set = OpaqueIndexSet::from([
     ///     CaseInsensitiveString(String::from("foo")),
     ///     CaseInsensitiveString(String::from("bar")),
     ///     CaseInsensitiveString(String::from("baz")),
     /// ]);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<CaseInsensitiveString>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
     ///
     /// let expected = Some(String::from("bar"));
     /// let result: Option<String> = {
-    ///     let _result = proj_set.replace::<CaseInsensitiveString, RandomState, Global>(
+    ///     let _result = opaque_set.replace::<CaseInsensitiveString, RandomState, Global>(
     ///         CaseInsensitiveString(String::from("BAR")),
     ///     );
     ///     _result.map(|s| s.0)
@@ -7205,7 +7303,7 @@ impl OpaqueIndexSet {
     ///     String::from("BAR"),
     ///     String::from("baz"),
     /// ]);
-    /// let result_entries: TypedProjVec<String> = proj_set
+    /// let result_entries: TypedProjVec<String> = opaque_set
     ///     .iter::<CaseInsensitiveString, RandomState, Global>()
     ///     .map(|s| s.0.clone())
     ///     .collect();
@@ -7229,6 +7327,12 @@ impl OpaqueIndexSet {
     ///
     /// This method does not change the storage order of the other elements in the set.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
     /// Replacing a value where two different string values are equal up to letter case.
@@ -7262,15 +7366,20 @@ impl OpaqueIndexSet {
     /// # }
     /// #
     ///
-    /// let mut proj_set = OpaqueIndexSet::from([
+    /// let mut opaque_set = OpaqueIndexSet::from([
     ///     CaseInsensitiveString(String::from("foo")),
     ///     CaseInsensitiveString(String::from("bar")),
     ///     CaseInsensitiveString(String::from("baz")),
     /// ]);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<CaseInsensitiveString>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
     ///
     /// let expected = (1, Some(String::from("bar")));
     /// let result: (usize, Option<String>) = {
-    ///     let (i, _result) = proj_set.replace_full::<CaseInsensitiveString, RandomState, Global>(
+    ///     let (i, _result) = opaque_set.replace_full::<CaseInsensitiveString, RandomState, Global>(
     ///         CaseInsensitiveString(String::from("BAR")),
     ///     );
     ///     (i, _result.map(|s| s.0))
@@ -7283,7 +7392,7 @@ impl OpaqueIndexSet {
     ///     String::from("BAR"),
     ///     String::from("baz"),
     /// ]);
-    /// let result_entries: TypedProjVec<String> = proj_set
+    /// let result_entries: TypedProjVec<String> = opaque_set
     ///     .iter::<CaseInsensitiveString, RandomState, Global>()
     ///     .map(|s| s.0.clone())
     ///     .collect();
@@ -7310,6 +7419,12 @@ impl OpaqueIndexSet {
     ///
     /// This iterator produces values in the same order that they appear in `self`.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
     /// ```
@@ -7322,12 +7437,22 @@ impl OpaqueIndexSet {
     /// # use std::hash::{Hash, Hasher, RandomState};
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_set1 = OpaqueIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32]);
-    /// let proj_set2 = OpaqueIndexSet::from([2_i32, 4_i32, 6_i32, 7_i32, 8_i32]);
+    /// let mut opaque_set1 = OpaqueIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32]);
+    /// #
+    /// # assert!(opaque_set1.has_value_type::<i32>());
+    /// # assert!(opaque_set1.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set1.has_allocator_type::<Global>());
+    /// #
+    /// let opaque_set2 = OpaqueIndexSet::from([2_i32, 4_i32, 6_i32, 7_i32, 8_i32]);
+    /// #
+    /// # assert!(opaque_set2.has_value_type::<i32>());
+    /// # assert!(opaque_set2.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set2.has_allocator_type::<Global>());
+    /// #
     ///
     /// let expected = TypedProjIndexSet::from([1_i32, 3_i32, 5_i32]);
-    /// let result: TypedProjIndexSet<i32> = proj_set1
-    ///     .difference::<RandomState, i32, RandomState, Global>(&proj_set2)
+    /// let result: TypedProjIndexSet<i32> = opaque_set1
+    ///     .difference::<RandomState, i32, RandomState, Global>(&opaque_set2)
     ///     .cloned()
     ///     .collect();
     ///
@@ -7365,6 +7490,12 @@ impl OpaqueIndexSet {
     /// The iterator produces the values from `self` storage order, followed by the values from
     /// `other` in their storage order.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
     /// ```
@@ -7377,12 +7508,22 @@ impl OpaqueIndexSet {
     /// # use std::hash::{Hash, Hasher, RandomState};
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_set1 = OpaqueIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32]);
-    /// let proj_set2 = OpaqueIndexSet::from([2_i32, 4_i32, 6_i32, 7_i32, 8_i32]);
+    /// let mut opaque_set1 = OpaqueIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32]);
+    /// #
+    /// # assert!(opaque_set1.has_value_type::<i32>());
+    /// # assert!(opaque_set1.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set1.has_allocator_type::<Global>());
+    /// #
+    /// let opaque_set2 = OpaqueIndexSet::from([2_i32, 4_i32, 6_i32, 7_i32, 8_i32]);
+    /// #
+    /// # assert!(opaque_set2.has_value_type::<i32>());
+    /// # assert!(opaque_set2.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set2.has_allocator_type::<Global>());
+    /// #
     ///
     /// let expected = TypedProjIndexSet::from([1_i32, 3_i32, 5_i32, 7_i32, 8_i32]);
-    /// let result: TypedProjIndexSet<i32> = proj_set1
-    ///     .symmetric_difference::<RandomState, i32, RandomState, Global>(&proj_set2)
+    /// let result: TypedProjIndexSet<i32> = opaque_set1
+    ///     .symmetric_difference::<RandomState, i32, RandomState, Global>(&opaque_set2)
     ///     .cloned()
     ///     .collect();
     ///
@@ -7413,6 +7554,17 @@ impl OpaqueIndexSet {
     ///
     /// This iterator produces values in the order that they appear in `self`.
     ///
+    /// # Panics
+    ///
+    /// This method panics under the following conditions:
+    /// * If the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash builder of `self`,
+    ///   and the [`TypeId`] of the memory allocator of `self` do not match the value type `T`, hash
+    ///   builder type `S`, and allocator type `A`, respectively.
+    /// * If the [`TypeId`] of the values of `other`, the [`TypeId`] for the hash builder of
+    ///   `other`, and the [`TypeId`] of the memory allocator of `self` do not match the value type
+    ///   `T`, hash builder type `S2`, and allocator type `A`, respectively.
+    ///
+    ///
     /// # Examples
     ///
     /// ```
@@ -7425,12 +7577,22 @@ impl OpaqueIndexSet {
     /// # use std::hash::{Hash, Hasher, RandomState};
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_set1 = OpaqueIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32]);
-    /// let proj_set2 = OpaqueIndexSet::from([2_i32, 4_i32, 6_i32, 7_i32, 8_i32]);
+    /// let mut opaque_set1 = OpaqueIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32]);
+    /// #
+    /// # assert!(opaque_set1.has_value_type::<i32>());
+    /// # assert!(opaque_set1.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set1.has_allocator_type::<Global>());
+    /// #
+    /// let opaque_set2 = OpaqueIndexSet::from([2_i32, 4_i32, 6_i32, 7_i32, 8_i32]);
+    /// #
+    /// # assert!(opaque_set2.has_value_type::<i32>());
+    /// # assert!(opaque_set2.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set2.has_allocator_type::<Global>());
+    /// #
     ///
     /// let expected = TypedProjIndexSet::from([2_i32, 4_i32, 6_i32]);
-    /// let result: TypedProjIndexSet<i32> = proj_set1
-    ///     .intersection::<RandomState, i32, RandomState, Global>(&proj_set2)
+    /// let result: TypedProjIndexSet<i32> = opaque_set1
+    ///     .intersection::<RandomState, i32, RandomState, Global>(&opaque_set2)
     ///     .cloned()
     ///     .collect();
     ///
@@ -7461,6 +7623,16 @@ impl OpaqueIndexSet {
     /// This iterator produces values in the same order as their storage order in `self`, followed
     /// by the storage order of the values unique to `other`.
     ///
+    /// # Panics
+    ///
+    /// This method panics under the following conditions:
+    /// * If the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash builder of `self`,
+    ///   and the [`TypeId`] of the memory allocator of `self` do not match the value type `T`, hash
+    ///   builder type `S`, and allocator type `A`, respectively.
+    /// * If the [`TypeId`] of the values of `other`, the [`TypeId`] for the hash builder of
+    ///   `other`, and the [`TypeId`] of the memory allocator of `self` do not match the value type
+    ///   `T`, hash builder type `S2`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
     /// ```
@@ -7473,12 +7645,22 @@ impl OpaqueIndexSet {
     /// # use std::hash::{Hash, Hasher, RandomState};
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_set1 = OpaqueIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32]);
-    /// let proj_set2 = OpaqueIndexSet::from([2_i32, 4_i32, 6_i32, 7_i32, 8_i32]);
+    /// let mut opaque_set1 = OpaqueIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32]);
+    /// #
+    /// # assert!(opaque_set1.has_value_type::<i32>());
+    /// # assert!(opaque_set1.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set1.has_allocator_type::<Global>());
+    /// #
+    /// let opaque_set2 = OpaqueIndexSet::from([2_i32, 4_i32, 6_i32, 7_i32, 8_i32]);
+    /// #
+    /// # assert!(opaque_set2.has_value_type::<i32>());
+    /// # assert!(opaque_set2.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set2.has_allocator_type::<Global>());
+    /// #
     ///
     /// let expected = TypedProjIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32, 7_i32, 8_i32]);
-    /// let result: TypedProjIndexSet<i32> = proj_set1
-    ///     .union::<RandomState, i32, RandomState, Global>(&proj_set2)
+    /// let result: TypedProjIndexSet<i32> = opaque_set1
+    ///     .union::<RandomState, i32, RandomState, Global>(&opaque_set2)
     ///     .cloned()
     ///     .collect();
     ///
@@ -7534,14 +7716,19 @@ impl OpaqueIndexSet {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_set = OpaqueIndexSet::from(["foo", "bar", "baz", "quux"]);
+    /// let mut opaque_set = OpaqueIndexSet::from(["foo", "bar", "baz", "quux"]);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<&str>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
     /// let new = ["garply", "corge", "grault"];
     /// let expected = TypedProjVec::from(["foo", "garply", "corge", "grault", "quux"]);
     /// let expected_removed = TypedProjVec::from(["bar", "baz"]);
-    /// let removed: TypedProjVec<&str> = proj_set
+    /// let removed: TypedProjVec<&str> = opaque_set
     ///     .splice::<_, _, &str, RandomState, Global>(1..3, new)
     ///     .collect();
-    /// let result: TypedProjVec<&str> = proj_set
+    /// let result: TypedProjVec<&str> = opaque_set
     ///     .iter::<&str, RandomState, Global>()
     ///     .cloned()
     ///     .collect();
@@ -7563,14 +7750,19 @@ impl OpaqueIndexSet {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_set = OpaqueIndexSet::from(["foo", "grault"]);
+    /// let mut opaque_set = OpaqueIndexSet::from(["foo", "grault"]);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<&str>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
     /// let new = ["bar", "baz", "quux"];
     /// let expected = TypedProjVec::from(["foo", "bar", "baz", "quux", "grault"]);
     /// let expected_removed = TypedProjVec::from([]);
-    /// let removed: TypedProjVec<&str> = proj_set
+    /// let removed: TypedProjVec<&str> = opaque_set
     ///     .splice::<_, _, &str, RandomState, Global>(1..1, new)
     ///     .collect();
-    /// let result: TypedProjVec<&str> = proj_set
+    /// let result: TypedProjVec<&str> = opaque_set
     ///     .iter::<&str, RandomState, Global>()
     ///     .cloned()
     ///     .collect();
@@ -7600,6 +7792,16 @@ impl OpaqueIndexSet {
     ///
     /// [`insert`]: TypedProjIndexSet::insert
     ///
+    /// # Panics
+    ///
+    /// This method panics under the following conditions:
+    /// * If the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash builder of `self`,
+    ///   and the [`TypeId`] of the memory allocator of `self` do not match the value type `T`, hash
+    ///   builder type `S`, and allocator type `A`, respectively.
+    /// * If the [`TypeId`] of the values of `other`, the [`TypeId`] for the hash builder of
+    ///   `other`, and the [`TypeId`] of the memory allocator of `other` do not match the value type
+    ///   `T`, hash builder type `S2`, and allocator type `A2`, respectively.
+    ///
     /// # Examples
     ///
     /// Appending one index set to another when they have no overlapping values.
@@ -7614,19 +7816,29 @@ impl OpaqueIndexSet {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_set1 = OpaqueIndexSet::from(["foo", "bar", "baz", "quux"]);
-    /// let mut proj_set2 = OpaqueIndexSet::from(["garply", "corge", "grault"]);
+    /// let mut opaque_set1 = OpaqueIndexSet::from(["foo", "bar", "baz", "quux"]);
+    /// #
+    /// # assert!(opaque_set1.has_value_type::<&str>());
+    /// # assert!(opaque_set1.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set1.has_allocator_type::<Global>());
+    /// #
+    /// let mut opaque_set2 = OpaqueIndexSet::from(["garply", "corge", "grault"]);
+    /// #
+    /// # assert!(opaque_set2.has_value_type::<&str>());
+    /// # assert!(opaque_set2.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set2.has_allocator_type::<Global>());
+    /// #
     ///
-    /// assert_eq!(proj_set1.len(), 4);
-    /// assert_eq!(proj_set2.len(), 3);
+    /// assert_eq!(opaque_set1.len(), 4);
+    /// assert_eq!(opaque_set2.len(), 3);
     ///
-    /// proj_set1.append::<RandomState, Global, &str, RandomState, Global>(&mut proj_set2);
+    /// opaque_set1.append::<RandomState, Global, &str, RandomState, Global>(&mut opaque_set2);
     ///
-    /// assert_eq!(proj_set1.len(), 7);
-    /// assert_eq!(proj_set2.len(), 0);
+    /// assert_eq!(opaque_set1.len(), 7);
+    /// assert_eq!(opaque_set2.len(), 0);
     ///
     /// let expected = &["foo", "bar", "baz", "quux", "garply", "corge", "grault"];
-    /// let result = proj_set1.as_slice::<&str, RandomState, Global>();
+    /// let result = opaque_set1.as_slice::<&str, RandomState, Global>();
     ///
     /// assert_eq!(result, expected);
     /// ```
@@ -7643,19 +7855,29 @@ impl OpaqueIndexSet {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let mut proj_set1 = OpaqueIndexSet::from(["foo", "bar", "baz", "quux"]);
-    /// let mut proj_set2 = OpaqueIndexSet::from(["garply", "corge", "grault", "baz"]);
+    /// let mut opaque_set1 = OpaqueIndexSet::from(["foo", "bar", "baz", "quux"]);
+    /// #
+    /// # assert!(opaque_set1.has_value_type::<&str>());
+    /// # assert!(opaque_set1.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set1.has_allocator_type::<Global>());
+    /// #
+    /// let mut opaque_set2 = OpaqueIndexSet::from(["garply", "corge", "grault", "baz"]);
+    /// #
+    /// # assert!(opaque_set2.has_value_type::<&str>());
+    /// # assert!(opaque_set2.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set2.has_allocator_type::<Global>());
+    /// #
     ///
-    /// assert_eq!(proj_set1.len(), 4);
-    /// assert_eq!(proj_set2.len(), 4);
+    /// assert_eq!(opaque_set1.len(), 4);
+    /// assert_eq!(opaque_set2.len(), 4);
     ///
-    /// proj_set1.append::<RandomState, Global, &str, RandomState, Global>(&mut proj_set2);
+    /// opaque_set1.append::<RandomState, Global, &str, RandomState, Global>(&mut opaque_set2);
     ///
-    /// assert_eq!(proj_set1.len(), 7);
-    /// assert_eq!(proj_set2.len(), 0);
+    /// assert_eq!(opaque_set1.len(), 7);
+    /// assert_eq!(opaque_set2.len(), 0);
     ///
     /// let expected =  &["foo", "bar", "baz", "quux", "garply", "corge", "grault"];
-    /// let result = proj_set1.as_slice::<&str, RandomState, Global>();
+    /// let result = opaque_set1.as_slice::<&str, RandomState, Global>();
     ///
     /// assert_eq!(result, expected);
     /// ```
