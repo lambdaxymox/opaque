@@ -5,7 +5,53 @@ use core::ptr::NonNull;
 use std::hash;
 use std::alloc;
 
-#[derive(Debug, Clone, Copy, Default)]
+#[derive(Clone)]
+pub struct WrappingBuildHasher1<S> {
+    build_hasher: S,
+}
+
+impl<S> WrappingBuildHasher1<S> {
+    #[inline]
+    pub const fn new(build_hasher: S) -> Self {
+        Self { build_hasher }
+    }
+}
+
+impl<S> hash::BuildHasher for WrappingBuildHasher1<S>
+where
+    S: any::Any + hash::BuildHasher + Send + Sync,
+{
+    type Hasher = S::Hasher;
+
+    fn build_hasher(&self) -> Self::Hasher {
+        self.build_hasher.build_hasher()
+    }
+}
+
+#[derive(Clone)]
+pub struct WrappingBuildHasher2<S> {
+    build_hasher: S,
+}
+
+impl<S> WrappingBuildHasher2<S> {
+    #[inline]
+    pub const fn new(build_hasher: S) -> Self {
+        Self { build_hasher }
+    }
+}
+
+impl<S> hash::BuildHasher for WrappingBuildHasher2<S>
+where
+    S: any::Any + hash::BuildHasher + Send + Sync,
+{
+    type Hasher = S::Hasher;
+
+    fn build_hasher(&self) -> Self::Hasher {
+        self.build_hasher.build_hasher()
+    }
+}
+
+#[derive(Clone)]
 pub struct WrappingAlloc1<A> {
     alloc: A,
 }
@@ -35,7 +81,7 @@ where
     }
 }
 
-#[derive(Debug, Clone, Copy, Default)]
+#[derive(Clone)]
 pub struct WrappingAlloc2<A> {
     alloc: A,
 }

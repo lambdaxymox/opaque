@@ -107,9 +107,9 @@ macro_rules! generate_tests {
             fn run_test_opaque_index_map_append_get_index_of_source_empty() {
                 let values1: [($key_typ, $value_typ); 0] = [];
                 let values2: [($key_typ, $value_typ); 0] = [];
-                let build_hasher1 = hash::RandomState::new();
+                let build_hasher1 = common::opaque_index_map::WrappingBuildHasher1::new(hash::RandomState::new());
                 let alloc1 = common::opaque_index_map::WrappingAlloc1::new(alloc::Global);
-                let build_hasher2 = hash::RandomState::new();
+                let build_hasher2 = common::opaque_index_map::WrappingBuildHasher2::new(hash::RandomState::new());
                 let alloc2 = common::opaque_index_map::WrappingAlloc2::new(alloc::Global);
                 run_test_opaque_index_map_append_get_index_of_source_values(&values1, &values2, build_hasher1, alloc1, build_hasher2, alloc2);
             }
@@ -118,9 +118,9 @@ macro_rules! generate_tests {
             fn test_opaque_index_map_append_get_index_of_source_range_values() {
                 let values1 = oimt::map::range_entries::<$key_typ, $value_typ>($src_range_spec);
                 let values2 = oimt::map::range_entries::<$key_typ, $value_typ>($dst_range_spec);
-                let build_hasher1 = hash::RandomState::new();
+                let build_hasher1 = common::opaque_index_map::WrappingBuildHasher1::new(hash::RandomState::new());
                 let alloc1 = common::opaque_index_map::WrappingAlloc1::new(alloc::Global);
-                let build_hasher2 = hash::RandomState::new();
+                let build_hasher2 = common::opaque_index_map::WrappingBuildHasher2::new(hash::RandomState::new());
                 let alloc2 = common::opaque_index_map::WrappingAlloc2::new(alloc::Global);
                 run_test_opaque_index_map_append_get_index_of_source_values(&values1, &values2, build_hasher1, alloc1, build_hasher2, alloc2);
             }
