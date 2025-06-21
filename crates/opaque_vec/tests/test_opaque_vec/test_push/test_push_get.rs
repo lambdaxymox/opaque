@@ -44,14 +44,14 @@ macro_rules! generate_tests {
 
             #[test]
             fn test_opaque_vec_push_get_range_values() {
-                let values = opaque_vec_testing::range_values::<$typ, $max_array_size>($range_spec);
+                let values = ovt::range_values::<$typ, $max_array_size>($range_spec);
                 let alloc = alloc::Global;
                 run_test_opaque_vec_push_get_values(&values, alloc);
             }
 
             #[test]
             fn test_opaque_vec_push_get_alternating_values() {
-                let values = opaque_vec_testing::alternating_values::<$typ, $max_array_size>($alt_spec);
+                let values = ovt::alternating_values::<$typ, $max_array_size>($alt_spec);
                 let alloc = alloc::Global;
                 run_test_opaque_vec_push_get_values(&values, alloc);
             }
@@ -63,14 +63,14 @@ generate_tests!(
     unit,
     (),
     128,
-    opaque_vec_testing::RangeValuesSpec::new(Box::new(iter::repeat(()))),
-    opaque_vec_testing::AlternatingValuesSpec::new((), ())
+    ovt::RangeValuesSpec::new(Box::new(iter::repeat(()))),
+    ovt::AlternatingValuesSpec::new((), ())
 );
 generate_tests!(
     u8,
     u8,
     128,
-    opaque_vec_testing::RangeValuesSpec::new(Box::new(ops::RangeFrom { start: 0 })),
+    ovt::RangeValuesSpec::new(Box::new(ops::RangeFrom { start: 0 })),
     opaque_vec_testing::AlternatingValuesSpec::new(u8::MIN, u8::MAX)
 );
 generate_tests!(

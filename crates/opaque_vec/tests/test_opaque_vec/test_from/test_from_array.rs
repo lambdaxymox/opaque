@@ -27,7 +27,7 @@ macro_rules! generate_tests {
             fn test_opaque_vec_from_array_range_values() {
                 $(
                     {
-                        let values = opaque_vec_testing::range_values::<$typ, $len>($range_spec);
+                        let values = ovt::range_values::<$typ, $len>($range_spec);
                         run_test_opaque_vec_from_array(values);
                     }
                 )+
@@ -37,7 +37,7 @@ macro_rules! generate_tests {
             fn test_opaque_vec_from_array_alternating_values() {
                 $(
                     {
-                        let values = opaque_vec_testing::alternating_values::<$typ, $len>($alt_spec);
+                        let values = ovt::alternating_values::<$typ, $len>($alt_spec);
                         run_test_opaque_vec_from_array(values);
                     }
                 )+
@@ -50,29 +50,29 @@ generate_tests!(
     unit,
     (),
     lengths = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 32, 64, 128 },
-    opaque_vec_testing::RangeValuesSpec::new(Box::new(iter::repeat(()))),
-    opaque_vec_testing::AlternatingValuesSpec::new((), ())
+    ovt::RangeValuesSpec::new(Box::new(iter::repeat(()))),
+    ovt::AlternatingValuesSpec::new((), ())
 );
 generate_tests!(
     u8,
     u8,
     lengths = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 32, 64, 128 },
-    opaque_vec_testing::RangeValuesSpec::new(Box::new(ops::RangeFrom { start: 0 })),
-    opaque_vec_testing::AlternatingValuesSpec::new(u8::MIN, 0)
+    ovt::RangeValuesSpec::new(Box::new(ops::RangeFrom { start: 0 })),
+    ovt::AlternatingValuesSpec::new(u8::MIN, 0)
 );
 generate_tests!(
     u16,
     u16,
     lengths = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 32, 64, 128 },
-    opaque_vec_testing::RangeValuesSpec::new(Box::new(ops::RangeFrom { start: 0 })),
-    opaque_vec_testing::AlternatingValuesSpec::new(u16::MIN, 0)
+    ovt::RangeValuesSpec::new(Box::new(ops::RangeFrom { start: 0 })),
+    ovt::AlternatingValuesSpec::new(u16::MIN, 0)
 );
 generate_tests!(
     u32,
     u32,
     lengths = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 32, 64, 128 },
-    opaque_vec_testing::RangeValuesSpec::new(Box::new(ops::RangeFrom { start: 0 })),
-    opaque_vec_testing::AlternatingValuesSpec::new(u32::MIN, 0)
+    ovt::RangeValuesSpec::new(Box::new(ops::RangeFrom { start: 0 })),
+    ovt::AlternatingValuesSpec::new(u32::MIN, 0)
 );
 generate_tests!(
     u64,

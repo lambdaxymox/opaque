@@ -44,7 +44,7 @@ macro_rules! generate_tests {
 
             #[test]
             fn test_opaque_vec_clear_is_empty_range_values() {
-                let values = opaque_vec_testing::range_values::<$typ, $max_array_size>($range_spec);
+                let values = ovt::range_values::<$typ, $max_array_size>($range_spec);
                 let alloc = alloc::Global;
                 run_test_opaque_vec_clear_is_empty_values(&values, alloc);
             }
