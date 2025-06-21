@@ -7832,7 +7832,7 @@ impl OpaqueIndexSet {
     /// assert_eq!(opaque_set1.len(), 4);
     /// assert_eq!(opaque_set2.len(), 3);
     ///
-    /// opaque_set1.append::<RandomState, Global, &str, RandomState, Global>(&mut opaque_set2);
+    /// opaque_set1.append::<&str, RandomState, Global, RandomState, Global>(&mut opaque_set2);
     ///
     /// assert_eq!(opaque_set1.len(), 7);
     /// assert_eq!(opaque_set2.len(), 0);
@@ -7871,7 +7871,7 @@ impl OpaqueIndexSet {
     /// assert_eq!(opaque_set1.len(), 4);
     /// assert_eq!(opaque_set2.len(), 4);
     ///
-    /// opaque_set1.append::<RandomState, Global, &str, RandomState, Global>(&mut opaque_set2);
+    /// opaque_set1.append::<&str, RandomState, Global, RandomState, Global>(&mut opaque_set2);
     ///
     /// assert_eq!(opaque_set1.len(), 7);
     /// assert_eq!(opaque_set2.len(), 0);
@@ -7881,17 +7881,17 @@ impl OpaqueIndexSet {
     ///
     /// assert_eq!(result, expected);
     /// ```
-    pub fn append<S2, A2, T, S, A>(&mut self, other: &mut OpaqueIndexSet)
+    pub fn append<T, S1, A1, S2, A2>(&mut self, other: &mut OpaqueIndexSet)
     where
         T: any::Any + hash::Hash + Eq,
-        S: any::Any + hash::BuildHasher + Send + Sync,
-        S::Hasher: any::Any + hash::Hasher + Send + Sync,
-        A: any::Any + alloc::Allocator + Send + Sync,
+        S1: any::Any + hash::BuildHasher + Send + Sync,
+        S1::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A1: any::Any + alloc::Allocator + Send + Sync,
         S2: any::Any + hash::BuildHasher + Send + Sync,
         S2::Hasher: any::Any + hash::Hasher + Send + Sync,
         A2: any::Any + alloc::Allocator + Send + Sync,
     {
-        let proj_self = self.as_proj_mut::<T, S, A>();
+        let proj_self = self.as_proj_mut::<T, S1, A1>();
         let proj_other = other.as_proj_mut::<T, S2, A2>();
 
         proj_self.append(proj_other)
