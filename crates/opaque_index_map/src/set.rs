@@ -3880,6 +3880,44 @@ where
     ///
     /// [`insert`]: TypedProjIndexSet::insert
     ///
+    /// # Formal Properties
+    ///
+    /// Let `set1` and `set2` be index sets, `set1_before` be the state of `set1` before this method is
+    /// called, `set2_before` be the state of `set2` before this method is called, `set1_after` be the
+    /// state of `set1` after this method completes, and `set2_after` be the state of `set2` after this
+    /// method completes.
+    ///
+    /// We say that a value `v` is in the set `set` provided that
+    ///
+    /// ```text
+    /// ∀ v :: T. (v ∈ set) ⇔ (∃ i ∈ [0, set.len()). set[i] = v).
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { true }
+    /// set1.append(set2)
+    /// {
+    ///     set1_after.len() ≤ set1_before.len() + set2_before.len()
+    ///     ∧ set2_after.len() = 0
+    ///     ∧ (∀ v ∈ set2_before. v ∈ set1_before ⇒ v ∈ set1_after)
+    ///     ∧ (∀ v ∈ set2_before. v ∉ set1_before ⇒ v ∈ set1_after)
+    ///     ∧ (∀ v ∈ set2_before. v ∉ set2_after)
+    ///     ∧ (∀ i ∈ [0, set1_before.len()). set1_after[i] = set1_before[i])
+    ///     ∧ (∀ j1, j2 ∈ [0, set2_before.len()).
+    ///          ((set2_before[j1] ∉ set1_before) ∧ (set2_before[j2] ∉ set1_before) ∧ (j1 < j2))
+    ///          ⇒ (∃ i1, i2 ∈ [set1_before.len(), set1_after.len()).
+    ///               i1 < i2
+    ///               ∧ set1_after[i1] = set2_before[j1]
+    ///               ∧ set1_after[i2] = set2_before[j2]
+    ///          )
+    ///     )
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
     /// # Examples
     ///
     /// Appending one index set to another when they have no overlapping values.
@@ -7801,6 +7839,44 @@ impl OpaqueIndexSet {
     /// * If the [`TypeId`] of the values of `other`, the [`TypeId`] for the hash builder of
     ///   `other`, and the [`TypeId`] of the memory allocator of `other` do not match the value type
     ///   `T`, hash builder type `S2`, and allocator type `A2`, respectively.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `set1` and `set2` be index sets, `set1_before` be the state of `set1` before this method is
+    /// called, `set2_before` be the state of `set2` before this method is called, `set1_after` be the
+    /// state of `set1` after this method completes, and `set2_after` be the state of `set2` after this
+    /// method completes.
+    ///
+    /// We say that a value `v` is in the set `set` provided that
+    ///
+    /// ```text
+    /// ∀ v :: T. (v ∈ set) ⇔ (∃ i ∈ [0, set.len()). set[i] = v).
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { true }
+    /// set1.append(set2)
+    /// {
+    ///     set1_after.len() ≤ set1_before.len() + set2_before.len()
+    ///     ∧ set2_after.len() = 0
+    ///     ∧ (∀ v ∈ set2_before. v ∈ set1_before ⇒ v ∈ set1_after)
+    ///     ∧ (∀ v ∈ set2_before. v ∉ set1_before ⇒ v ∈ set1_after)
+    ///     ∧ (∀ v ∈ set2_before. v ∉ set2_after)
+    ///     ∧ (∀ i ∈ [0, set1_before.len()). set1_after[i] = set1_before[i])
+    ///     ∧ (∀ j1, j2 ∈ [0, set2_before.len()).
+    ///          ((set2_before[j1] ∉ set1_before) ∧ (set2_before[j2] ∉ set1_before) ∧ (j1 < j2))
+    ///          ⇒ (∃ i1, i2 ∈ [set1_before.len(), set1_after.len()).
+    ///               i1 < i2
+    ///               ∧ set1_after[i1] = set2_before[j1]
+    ///               ∧ set1_after[i2] = set2_before[j2]
+    ///          )
+    ///     )
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
     ///
     /// # Examples
     ///

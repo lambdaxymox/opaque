@@ -10345,13 +10345,19 @@ where
     /// state of `map1` after this method completes, and `map2_after` be the state of `map2` after this
     /// method completes.
     ///
+    /// We say that a key `k` is in the map `map` provided that
+    ///
+    /// ```text
+    /// ∀ k :: K. (k ∈ map) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
+    /// ```
+    ///
     /// This method satisfies:
     ///
     /// ```text
     /// { true }
     /// map1.append(map2)
     /// {
-    ///     map1_after.len() = map1_before.len() + map2_before.len()
+    ///     map1_after.len() ≤ map1_before.len() + map2_before.len()
     ///     ∧ map2_after.len() = 0
     ///     ∧ (∀ k ∈ map2_before. k ∈ map1_before ⇒ map1_after[k] = map2_before[k])
     ///     ∧ (∀ k ∈ map2_before. k ∉ map1_before ⇒ map1_after[k] = map2_before[k])
@@ -17576,7 +17582,7 @@ impl OpaqueIndexMap {
     /// ```
     ///
     /// or equivalently over index-key-value triples
-    ///
+    ///f
     /// ```text
     /// ∀ i1, i2 ∈ [0, map.len()). ∀ k1, k2 :: K. ∀ v1, v2 :: V.
     /// ((i1, (k1, v1)) ∈ map ∧ (i2, (k2, v2)) ∈ map) ⇒ (i1 ≤ i2 ⇔ k1 ≤ k2).
@@ -18485,13 +18491,19 @@ impl OpaqueIndexMap {
     /// state of `map1` after this method completes, and `map2_after` be the state of `map2` after this
     /// method completes.
     ///
+    /// We say that a key `k` is in the map `map` provided that
+    ///
+    /// ```text
+    /// ∀ k :: K. (k ∈ map) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
+    /// ```
+    ///
     /// This method satisfies:
     ///
     /// ```text
     /// { true }
     /// map1.append(map2)
     /// {
-    ///     map1_after.len() = map1_before.len() + map2_before.len()
+    ///     map1_after.len() ≤ map1_before.len() + map2_before.len()
     ///     ∧ map2_after.len() = 0
     ///     ∧ (∀ k ∈ map2_before. k ∈ map1_before ⇒ map1_after[k] = map2_before[k])
     ///     ∧ (∀ k ∈ map2_before. k ∉ map1_before ⇒ map1_after[k] = map2_before[k])
