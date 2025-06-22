@@ -18,6 +18,7 @@ use std::hash;
 #[cfg(not(feature = "std"))]
 use core::hash;
 use std::mem;
+use std::prelude::rust_2015::Vec;
 use opaque_alloc::TypedProjAlloc;
 use opaque_hash::TypedProjBuildHasher;
 use opaque_vec::TypedProjVec;
@@ -3915,6 +3916,834 @@ where
     }
 }
 
+impl<T, S, A> TypedProjIndexSet<T, S, A>
+where
+    T: any::Any,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    /// Determines whether a given value exists in the index set.
+    ///
+    /// This method returns `true` if the value `value` exists in `self`. This method returns
+    /// `false` if the value `value` does not exist inside `self`.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `set` be an index set with values of type `T`. Let `v :: T` be an value of type `T`. We
+    /// say that `set` **contains** a value `v :: T`, or that `v` is an **entry of** `set` if the
+    /// following holds:
+    ///
+    /// ```text
+    /// ∀ v :: T. (v ∈ set) ⇔ (∃ i ∈ [0, set.len()). set[i] = v).
+    /// ```
+    ///
+    /// Then this method satisfies the following:
+    ///
+    /// ```text
+    /// ∀ v :: V. set.contains(v) ⇔ (v ∈ set) ⇔ (∃ i ∈ [0, set.len()). set[i] = v.
+    /// ```
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set = TypedProjIndexSet::from([1_usize, 2_usize, 3_usize]);
+    ///
+    /// assert!(proj_set.contains(&1_usize));
+    /// assert!(proj_set.contains(&2_usize));
+    /// assert!(proj_set.contains(&3_usize));
+    /// assert!(!proj_set.contains(&4_usize));
+    /// assert!(!proj_set.contains(&usize::MAX));
+    /// ```
+    pub fn contains<Q>(&self, value: &Q) -> bool
+    where
+        Q: any::Any + ?Sized + hash::Hash + Equivalent<T>,
+    {
+        self.inner.contains_key(value)
+    }
+
+    /// Returns a reference to the value corresponding equivalent to the given value, if it exists
+    /// in the index set.
+    ///
+    /// This method returns `Some(&eq_value)` where `eq_value` is the value stored in `self`
+    /// equivalent to the value `value`, if such a value exists in `self`. This method returns
+    /// `None` if a value equivalent to `value` does not exist inside `self`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set = TypedProjIndexSet::from([1_usize, 2_usize, 3_usize]);
+    ///
+    /// assert_eq!(proj_set.get(&1_usize), Some(&1_usize));
+    /// assert_eq!(proj_set.get(&2_usize), Some(&2_usize));
+    /// assert_eq!(proj_set.get(&3_usize), Some(&3_usize));
+    /// assert_eq!(proj_set.get(&4_usize), None);
+    /// assert_eq!(proj_set.get(&usize::MAX), None);
+    /// ```
+    pub fn get<Q>(&self, value: &Q) -> Option<&T>
+    where
+        Q: any::Any + ?Sized + hash::Hash + Equivalent<T>,
+    {
+        self.inner.get_key_value(value).map(|(x, &())| x)
+    }
+
+    /// Returns the storage index and a reference to the value, of the entry with the equivalent
+    /// value, if it exists in the index set.
+    ///
+    /// This method returns `Some((index, &eq_value))` where `index` is the storage index of the
+    /// value, `eq_value` is the equivalent value to the value provided stored in the set, if the
+    /// value equivalent to the value provided by the method argument exists inside `self`. This
+    /// method returns `None` if the equivalent value provided by the method argument does not
+    /// exist inside `self`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set = TypedProjIndexSet::from([1_usize, 2_usize, 3_usize]);
+    ///
+    /// assert_eq!(proj_set.get_full(&1_usize), Some((0, &1_usize)));
+    /// assert_eq!(proj_set.get_full(&2_usize), Some((1, &2_usize)));
+    /// assert_eq!(proj_set.get_full(&3_usize), Some((2, &3_usize)));
+    /// assert_eq!(proj_set.get_full(&4_usize), None);
+    /// assert_eq!(proj_set.get_full(&usize::MAX), None);
+    /// ```
+    pub fn get_full<Q>(&self, value: &Q) -> Option<(usize, &T)>
+    where
+        Q: any::Any + ?Sized + hash::Hash + Equivalent<T>,
+    {
+        self.inner.get_full(value).map(|(i, x, &())| (i, x))
+    }
+
+    /// Returns the storage index of the value equivalent to the given value, if it exists in the
+    /// index set.
+    ///
+    /// This method returns `Some(index)`, where `index` is the storage index of the value, if the
+    /// value equivalent to the provided `value` exists in `self`. This method returns `None` if the
+    /// value equivalent to `value` does not exist inside `self`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set = TypedProjIndexSet::from([1_usize, 2_usize, 3_usize]);
+    ///
+    /// assert_eq!(proj_set.get_index_of(&1_usize), Some(0));
+    /// assert_eq!(proj_set.get_index_of(&2_usize), Some(1));
+    /// assert_eq!(proj_set.get_index_of(&3_usize), Some(2));
+    /// assert_eq!(proj_set.get_index_of(&4_usize), None);
+    /// assert_eq!(proj_set.get_index_of(&usize::MAX), None);
+    /// ```
+    pub fn get_index_of<Q>(&self, value: &Q) -> Option<usize>
+    where
+        Q: any::Any + ?Sized + hash::Hash + Equivalent<T>,
+    {
+        self.inner.get_index_of(value)
+    }
+
+    /// Removes an entry from a type-projected index set, moving the last entry in storage order in
+    /// the collection to the index where the removed entry occupies the collection.
+    ///
+    /// This method behaves with respect to `value` as follows:
+    /// * If the value `value` exists in the index set, let `index` be its storage index.
+    ///   If `index < self.len() - 1`, it moves the last entry in the collection to the slot at
+    ///   `index`, leaving the rest of the entries in place. If `index == self.len() - 1`, it
+    ///   removes the entry from end of the collection with no reordering of the remaining entries
+    ///   in the collection. The method then returns `true`, indicating that it removed the value
+    ///   equivalent to the value `value` from the collection.
+    /// * If the value `value` does not exist in the index set, the method returns `false`.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set` before
+    /// this method is called, `set_after` be the state of `set` after this method completes.
+    ///
+    /// We say that a value `v` is in the set `set` provided that
+    ///
+    /// ```text
+    /// ∀ v :: T. (v ∈ set) ⇔ (∃ i ∈ [0, map.len()). set[i] = v).
+    /// ```
+    ///
+    /// The **index** of a value `v` in `set` is defined by
+    ///
+    /// ```text
+    /// index(set, v) := i such that set[i] = v ∧ (∀ j ∈ [0, set.len()). j ≠ i ⇒ set[j] ≠ v).
+    /// ```
+    ///
+    /// The **last entry** in the set `set` when `set` is non-empty is defined by
+    ///
+    /// ```text
+    /// last(set) := set[set.len() - 1].
+    /// ```
+    ///
+    /// We say that two sets `set1` and `set2` are **equal** if and only if
+    ///
+    /// ```text
+    /// set1 = set2 ⇔ (set1.len() = set2.len()) ∧ (∀ i ∈ [0, set1.len()). set1[i] = set2[i]).
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { value ∈ set_before }
+    /// set.swap_remove(value)
+    /// {
+    ///     result = true
+    ///     ∧ set_after.len() = set_before.len() - 1
+    ///     ∧ value ∉ set_after
+    ///     ∧ (set_after[index(set_before, value)] = last(set_before)
+    ///        ∧ (∀ v ∈ set_after. v ≠ last(set_before) ∧ (v ≠ value ⇒ set_after[v] = set_before[v])
+    ///     )
+    /// }
+    ///
+    /// { value ∉ set_before }
+    /// set.swap_remove(value)
+    /// { result = false ∧ set_after = set_before }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Examples
+    ///
+    /// Showing how swap removal happens.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set = TypedProjIndexSet::from([1_isize, 2_isize, 3_isize, isize::MAX]);
+    /// {
+    ///     let expected = TypedProjIndexSet::from([1_isize, 2_isize, 3_isize]);
+    ///     let mut result = proj_set.clone();
+    ///     let removed = result.swap_remove(&isize::MAX);
+    ///     assert_eq!(result, expected);
+    ///     assert!(removed);
+    /// }
+    /// {
+    ///     let expected = TypedProjIndexSet::from([1_isize, 2_isize, isize::MAX]);
+    ///     let mut result = proj_set.clone();
+    ///     let removed = result.swap_remove(&3_isize);
+    ///     assert_eq!(result, expected);
+    ///     assert_eq!(removed, true);
+    /// }
+    /// {
+    ///     let expected = TypedProjIndexSet::from([1_isize, isize::MAX, 3_isize]);
+    ///     let mut result = proj_set.clone();
+    ///     let removed = result.swap_remove(&2_isize);
+    ///     assert_eq!(result, expected);
+    ///     assert_eq!(removed, true);
+    /// }
+    /// {
+    ///     let expected = TypedProjIndexSet::from([isize::MAX, 2_isize, 3_isize]);
+    ///     let mut result = proj_set.clone();
+    ///     let removed = result.swap_remove(&1_isize);
+    ///     assert_eq!(result, expected);
+    ///     assert_eq!(removed, true);
+    /// }
+    /// ```
+    pub fn swap_remove<Q>(&mut self, value: &Q) -> bool
+    where
+        Q: any::Any + ?Sized + hash::Hash + Equivalent<T>,
+    {
+        self.inner.swap_remove(value).is_some()
+    }
+
+    /// Removes an entry from a type-projected index set, shifting every successive entry in the
+    /// collection in storage order down one index to fill where the removed entry occupies the
+    /// collection.
+    ///
+    /// This method behaves with respect to `value` as follows:
+    /// * If the value `value` exists in the index set, let `index` be its storage index.
+    ///   If `index < self.len() - 1`, it moves every successive entry in the collection to the
+    ///   entry at storage index `index` down one unit. Every entry preceding the entry at index
+    ///   `index` remains in the same location.  The method returns `true`, which indicates that
+    ///    the entry with value equivalent to `value` was removed from the index set.
+    /// * If the value `value` does not exist in the index set, the method returns `false`.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set` before
+    /// this method is called, `set_after` be the state of `set` after this method completes.
+    ///
+    /// We say that a value `v` is in the set `set` provided that
+    ///
+    /// ```text
+    /// ∀ v :: T. (v ∈ set) ⇔ (∃ i ∈ [0, set.len()). set[i] = v).
+    /// ```
+    ///
+    /// The **index** of a value `v` in `set` is defined by
+    ///
+    /// ```text
+    /// index(set, v) := i such that set[i] = v ∧ (∀ j ∈ [0, set.len()). j ≠ i ⇒ set[j] ≠ v).
+    /// ```
+    ///
+    /// We say that two sets `set1` and `set2` are **equal** if and only if
+    ///
+    /// ```text
+    /// set1 = set2 ⇔ (set1.len() = set2.len()) ∧ (∀ i ∈ [0, set1.len()). set1[i] = set2[i]).
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { value ∈ set_before }
+    /// set.shift_remove(value)
+    /// {
+    ///     result = true
+    ///     ∧ set_after.len() = set_before.len() - 1
+    ///     ∧ value ∉ set_after
+    ///     ∧ (let i = index(set_before, value);
+    ///        (∀ j ∈ [0, i). set_after[j] = set_before[j])
+    ///        ∧ (∀ j ∈ [i, set_after.len()). set_after[j] = set_before[j + 1])
+    ///     )
+    /// }
+    ///
+    /// { value ∉ set_before }
+    /// map.shift_remove(value)
+    /// { result = false ∧ set_after = set_before }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Examples
+    ///
+    /// Showing how shift removal happens.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set = TypedProjIndexSet::from([1_isize, 2_isize, 3_isize, isize::MAX]);
+    /// {
+    ///     let expected = TypedProjIndexSet::from([1_isize, 2_isize, 3_isize]);
+    ///     let mut result = proj_set.clone();
+    ///     let removed = result.shift_remove(&isize::MAX);
+    ///     assert_eq!(result, expected);
+    ///     assert_eq!(removed, true);
+    /// }
+    /// {
+    ///     let expected = TypedProjIndexSet::from([1_isize, 2_isize, isize::MAX]);
+    ///     let mut result = proj_set.clone();
+    ///     let removed = result.shift_remove(&3_isize);
+    ///     assert_eq!(result, expected);
+    ///     assert_eq!(removed, true);
+    /// }
+    /// {
+    ///     let expected = TypedProjIndexSet::from([1_isize, 3_isize, isize::MAX]);
+    ///     let mut result = proj_set.clone();
+    ///     let removed = result.shift_remove(&2_isize);
+    ///     assert_eq!(result, expected);
+    ///     assert_eq!(removed, true);
+    /// }
+    /// {
+    ///     let expected = TypedProjIndexSet::from([2_isize, 3_isize, isize::MAX]);
+    ///     let mut result = proj_set.clone();
+    ///     let removed = result.shift_remove(&1_isize);
+    ///     assert_eq!(result, expected);
+    ///     assert_eq!(removed, true);
+    /// }
+    /// ```
+    pub fn shift_remove<Q>(&mut self, value: &Q) -> bool
+    where
+        Q: any::Any + ?Sized + hash::Hash + Equivalent<T>,
+    {
+        self.inner.shift_remove(value).is_some()
+    }
+
+    /// Removes an entry from a type-projected index set, moving the last entry in storage order
+    /// in the collection to the index where the removed entry occupies the collection.
+    ///
+    /// This method behaves with respect to `value` as follows:
+    /// * If the value `value` exists in the index set, let `index` be its storage index.
+    ///   If `index < self.len() - 1`, it moves the last entry in the collection to the slot at
+    ///   `index`, leaving the rest of the entries in place. If `index == self.len() - 1`, it
+    ///   removes the entry from end of the collection with no reordering of the remaining entries
+    ///   in the collection. The method then returns `Some(eq_value)`, where `eq_value` where
+    ///   is the equivalent value to the value `value` stored in the index set.
+    /// * If the value `value` does not exist in the index set, the method returns `None`.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set` before
+    /// this method is called, `set_after` be the state of `set` after this method completes.
+    ///
+    /// We say that a value `v` is in the set `set` provided that
+    ///
+    /// ```text
+    /// ∀ v :: T. (v ∈ set) ⇔ (∃ i ∈ [0, map.len()). set[i] = v).
+    /// ```
+    ///
+    /// The **index** of a value `v` in `set` is defined by
+    ///
+    /// ```text
+    /// index(set, v) := i such that set[i] = v ∧ (∀ j ∈ [0, set.len()). j ≠ i ⇒ set[j] ≠ v).
+    /// ```
+    ///
+    /// The **last entry** in the set `set` when `set` is non-empty is defined by
+    ///
+    /// ```text
+    /// last(set) := set[set.len() - 1].
+    /// ```
+    ///
+    /// We say that two sets `set1` and `set2` are **equal** if and only if
+    ///
+    /// ```text
+    /// set1 = set2 ⇔ (set1.len() = set2.len()) ∧ (∀ i ∈ [0, set1.len()). set1[i] = set2[i]).
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { value ∈ set_before }
+    /// set.swap_take(value)
+    /// {
+    ///     result = Some(set_before[value])
+    ///     ∧ set_after.len() = set_before.len() - 1
+    ///     ∧ value ∉ set_after
+    ///     ∧ (set_after[index(set_before, value)] = last(set_before)
+    ///        ∧ (∀ v ∈ set_after. (v ≠ last(set_before) ∧ v ≠ value) ⇒ set_after[v] = set_before[v])
+    ///     )
+    /// }
+    ///
+    /// { value ∉ set_before }
+    /// set.swap_take(value)
+    /// { result = None ∧ set_after = set_before }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Examples
+    ///
+    /// Showing how swap removal happens.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set = TypedProjIndexSet::from([
+    ///     1_isize,
+    ///     2_isize,
+    ///     3_isize,
+    ///     isize::MAX,
+    /// ]);
+    /// {
+    ///     let expected = TypedProjIndexSet::from([1_isize, 2_isize, 3_isize]);
+    ///     let mut result = proj_set.clone();
+    ///     let removed = result.swap_take(&isize::MAX);
+    ///     assert_eq!(result, expected);
+    ///     assert_eq!(removed, Some(isize::MAX));
+    /// }
+    /// {
+    ///     let expected = TypedProjIndexSet::from([1_isize, 2_isize, isize::MAX]);
+    ///     let mut result = proj_set.clone();
+    ///     let removed = result.swap_take(&3_isize);
+    ///     assert_eq!(result, expected);
+    ///     assert_eq!(removed, Some(3_isize));
+    /// }
+    /// {
+    ///     let expected = TypedProjIndexSet::from([1_isize, isize::MAX, 3_isize]);
+    ///     let mut result = proj_set.clone();
+    ///     let removed = result.swap_take(&2_isize);
+    ///     assert_eq!(result, expected);
+    ///     assert_eq!(removed, Some(2_isize));
+    /// }
+    /// {
+    ///     let expected = TypedProjIndexSet::from([isize::MAX, 2_isize, 3_isize]);
+    ///     let mut result = proj_set.clone();
+    ///     let removed = result.swap_take(&1_isize);
+    ///     assert_eq!(result, expected);
+    ///     assert_eq!(removed, Some(1_isize));
+    /// }
+    /// ```
+    pub fn swap_take<Q>(&mut self, value: &Q) -> Option<T>
+    where
+        Q: any::Any + ?Sized + hash::Hash + Equivalent<T>,
+    {
+        self.inner.swap_remove_entry(value).map(|(x, ())| x)
+    }
+
+    /// Removes an entry from a type-projected index set, shifting every successive entry in the
+    /// collection in storage order down one index to fill where the removed entry occupies the
+    /// collection.
+    ///
+    /// This method behaves with respect to `value` as follows:
+    /// * If the value `value` exists in the index set, let `index` be its storage index.
+    ///   If `index < self.len() - 1`, it moves every successive entry in the collection to the
+    ///   entry at storage index `index` down one unit. Every entry preceding the entry at index
+    ///   `index` remains in the same location. The method returns `Some(eq_value)`, where
+    ///   `eq_value` is the equivalent value to the value `value` stored in the index set.
+    /// * If the value `value` does not exist in the index set, the method returns `None`.
+    ///
+    /// In particular, the method acts like a [`pop`] when the last value in the collection is
+    /// shift-removed, because the sub-collection of successor entries in the entry storage is empty.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
+    /// before this method is called, `set_after` be the state of `set` after this method completes.
+    ///
+    /// We say that a value `v` is in the set `set` provided that
+    ///
+    /// ```text
+    /// ∀ v :: T. (v ∈ set) ⇔ (∃ i ∈ [0, set.len()). set[i] = v).
+    /// ```
+    ///
+    /// The **index** of a value `v` in `set` is defined by
+    ///
+    /// ```text
+    /// index(set, v) := i such that set[i] = v ∧ (∀ j ∈ [0, set.len()). j ≠ i ⇒ set[j] ≠ v).
+    /// ```
+    ///
+    /// We say that two sets `set1` and `set2` are **equal** if and only if
+    ///
+    /// ```text
+    /// set1 = set2 ⇔ (set1.len() = set2.len()) ∧ (∀ i ∈ [0, set1.len()). set1[i] = set2[i]).
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { value ∈ set_before }
+    /// set.shift_take(value)
+    /// {
+    ///     result = Some(set_before[value])
+    ///     ∧ set_after.len() = set_before.len() - 1
+    ///     ∧ value ∉ set_after
+    ///     ∧ (let i = index(set_before, value);
+    ///        (∀ j ∈ [0, i). set_after[j] = set_before[j])
+    ///        ∧ (∀ j ∈ [i, set_after.len()). set_after[j] = set_before[j + 1])
+    ///     )
+    /// }
+    ///
+    /// { value ∉ set_before }
+    /// set.shift_take(value)
+    /// { result = None ∧ set_after = set_before }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Examples
+    ///
+    /// Showing how shift removal happens.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set = TypedProjIndexSet::from([1_isize, 2_isize, 3_isize, isize::MAX]);
+    /// {
+    ///     let expected = TypedProjIndexSet::from([1_isize, 2_isize, 3_isize]);
+    ///     let mut result = proj_set.clone();
+    ///     let removed = result.shift_take(&isize::MAX);
+    ///     assert_eq!(result, expected);
+    ///     assert_eq!(removed, Some(isize::MAX));
+    /// }
+    /// {
+    ///     let expected = TypedProjIndexSet::from([1_isize, 2_isize, isize::MAX]);
+    ///     let mut result = proj_set.clone();
+    ///     let removed = result.shift_take(&3_isize);
+    ///     assert_eq!(result, expected);
+    ///     assert_eq!(removed, Some(3_isize));
+    /// }
+    /// {
+    ///     let expected = TypedProjIndexSet::from([1_isize, 3_isize, isize::MAX]);
+    ///     let mut result = proj_set.clone();
+    ///     let removed = result.shift_take(&2_isize);
+    ///     assert_eq!(result, expected);
+    ///     assert_eq!(removed, Some(2_isize));
+    /// }
+    /// {
+    ///     let expected = TypedProjIndexSet::from([2_isize, 3_isize, isize::MAX]);
+    ///     let mut result = proj_set.clone();
+    ///     let removed = result.shift_take(&1_isize);
+    ///     assert_eq!(result, expected);
+    ///     assert_eq!(removed, Some(1_isize));
+    /// }
+    /// ```
+    ///
+    /// [`pop`]: TypedProjIndexSet::pop
+    pub fn shift_take<Q>(&mut self, value: &Q) -> Option<T>
+    where
+        Q: any::Any + ?Sized + hash::Hash + Equivalent<T>,
+    {
+        self.inner.shift_remove_entry(value).map(|(x, ())| x)
+    }
+
+    /// Removes an entry from a type-projected index set, moving the last entry in storage order in
+    /// the collection to the index where the removed entry occupies the collection.
+    ///
+    /// This method behaves with respect to `value` as follows:
+    /// * If the value `value` exists in the index set, let `index` be its storage index.
+    ///   If `index < self.len() - 1`, it moves the last entry in the collection to the slot at
+    ///   `index`, leaving the rest of the entries in place. If `index == self.len() - 1`, it
+    ///   removes the entry from end of the collection with no reordering of the remaining entries
+    ///   in the collection. The method then returns `Some((index, eq_value))`, where `eq_value` is
+    ///   the value stored in the index set equivalent to the value `value`.
+    /// * If the value `value` does not exist in the index set, the method returns `None`.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set` before
+    /// this method is called, `set_after` be the state of `set` after this method completes.
+    ///
+    /// We say that a value `v` is in the set `set` provided that
+    ///
+    /// ```text
+    /// ∀ v :: T. (v ∈ set) ⇔ (∃ i ∈ [0, set.len()). set[i] = v).
+    /// ```
+    ///
+    /// The **index** of a value `v` in `set` is defined by
+    ///
+    /// ```text
+    /// index(set, v) := i such that set[i] = v ∧ (∀ j ∈ [0, set.len()). j ≠ i ⇒ set[j] ≠ v).
+    /// ```
+    ///
+    /// We say that two sets `set1` and `set2` are **equal** if and only if
+    ///
+    /// ```text
+    /// set1 = set2 ⇔ (set1.len() = set2.len()) ∧ (∀ i ∈ [0, set1.len()). set1[i] = set2[i]).
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { value ∈ set_before }
+    /// set.swap_remove_full(value)
+    /// {
+    ///     result = Some((index(set_before, value), set_before[index(set_before, value)]))
+    ///     ∧ set_after.len() = set_before.len() - 1
+    ///     ∧ value ∉ set_after
+    ///     ∧ (set_after[index(set_before, value)] = last(set_before)
+    ///        ∧ (∀ v ∈ set_after. v ≠ last(set_before) ∧ v ≠ value ⇒ set_after[v] = set_before[v])
+    ///     )
+    /// }
+    ///
+    /// { value ∉ set_before }
+    /// set.swap_remove_full(value)
+    /// { result = None ∧ set_after = set_before }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Examples
+    ///
+    /// Showing how swap removal happens.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set = TypedProjIndexSet::from([1_isize, 2_isize, 3_isize, isize::MAX]);
+    /// {
+    ///     let expected = TypedProjIndexSet::from([1_isize, 2_isize, 3_isize]);
+    ///     let mut result = proj_set.clone();
+    ///     let removed = result.swap_remove_full(&isize::MAX);
+    ///     assert_eq!(result, expected);
+    ///     assert_eq!(removed, Some((3, isize::MAX)));
+    /// }
+    /// {
+    ///     let expected = TypedProjIndexSet::from([1_isize, 2_isize, isize::MAX]);
+    ///     let mut result = proj_set.clone();
+    ///     let removed = result.swap_remove_full(&3_isize);
+    ///     assert_eq!(result, expected);
+    ///     assert_eq!(removed, Some((2, 3_isize)));
+    /// }
+    /// {
+    ///     let expected = TypedProjIndexSet::from([1_isize, isize::MAX, 3_isize]);
+    ///     let mut result = proj_set.clone();
+    ///     let removed = result.swap_remove_full(&2_isize);
+    ///     assert_eq!(result, expected);
+    ///     assert_eq!(removed, Some((1, 2_isize)));
+    /// }
+    /// {
+    ///     let expected = TypedProjIndexSet::from([isize::MAX, 2_isize, 3_isize]);
+    ///     let mut result = proj_set.clone();
+    ///     let removed = result.swap_remove_full(&1_isize);
+    ///     assert_eq!(result, expected);
+    ///     assert_eq!(removed, Some((0, 1_isize)));
+    /// }
+    /// ```
+    pub fn swap_remove_full<Q>(&mut self, value: &Q) -> Option<(usize, T)>
+    where
+        Q: any::Any + ?Sized + hash::Hash + Equivalent<T>,
+    {
+        self.inner.swap_remove_full(value).map(|(i, x, ())| (i, x))
+    }
+
+    /// Removes an entry from a type-projected index set, shifting every successive entry in the
+    /// collection in storage order down one index to fill where the removed entry occupies the
+    /// collection.
+    ///
+    /// This method behaves with respect to `value` as follows:
+    /// * If the value `value` exists in the index set, let `index` be its storage index.
+    ///   If `index < self.len() - 1`, it moves every successive entry in the collection to the
+    ///   entry at storage index `index` down one unit. Every entry preceding the entry at index
+    ///   `index` remains in the same location. The method returns `Some((index, eq_value))`, where
+    ///   `eq_value` is the equivalent value to the value `value` stored in the index set.
+    /// * If the key `key` does not exist in the index set, the method returns `None`.
+    ///
+    /// In particular, the method acts like a [`pop`] when the last value in the collection is
+    /// shift-removed, because the sub-collection of successor entries in the entry storage is empty.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
+    /// before this method is called, `set_after` be the state of `set` after this method completes.
+    ///
+    /// We say that a value `v` is in the set `set` provided that
+    ///
+    /// ```text
+    /// ∀ v :: T. (v ∈ set) ⇔ (∃ i ∈ [0, set.len()). set[i] = v).
+    /// ```
+    ///
+    /// The **index** of a value `v` in `set` is defined by
+    ///
+    /// ```text
+    /// index(set, v) := i such that set[i] = v ∧ (∀ j ∈ [0, set.len()). j ≠ i ⇒ set[j] ≠ v).
+    /// ```
+    ///
+    /// We say that two sets `set1` and `set2` are **equal** if and only if
+    ///
+    /// ```text
+    /// set1 = set2 ⇔ (set1.len() = set2.len()) ∧ (∀ i ∈ [0, set1.len()). set1[i] = set2[i]).
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { value ∈ set_before }
+    /// set.shift_remove_full(value)
+    /// {
+    ///     result = Some((index(set_before, value), set_before[index(set_before, value)]))
+    ///     ∧ set_after.len() = set_before.len() - 1
+    ///     ∧ value ∉ set_after
+    ///     ∧ (let i = index(set_before, value);
+    ///        (∀ j ∈ [0, i). set_after[j] = set_before[j])
+    ///        ∧ (∀ j ∈ [i, set_after.len()). set_after[j] = set_before[j + 1])
+    ///     )
+    /// }
+    ///
+    /// { value ∉ set_before }
+    /// set.shift_remove_full(value)
+    /// { result = None ∧ set_after = set_before }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Examples
+    ///
+    /// Showing how shift removal happens.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set = TypedProjIndexSet::from([1_isize, 2_isize, 3_isize, isize::MAX]);
+    /// {
+    ///     let expected = TypedProjIndexSet::from([1_isize, 2_isize, 3_isize]);
+    ///     let mut result = proj_set.clone();
+    ///     let removed = result.shift_remove_full(&isize::MAX);
+    ///     assert_eq!(result, expected);
+    ///     assert_eq!(removed, Some((3, isize::MAX)));
+    /// }
+    /// {
+    ///     let expected = TypedProjIndexSet::from([1_isize, 2_isize, isize::MAX]);
+    ///     let mut result = proj_set.clone();
+    ///     let removed = result.shift_remove_full(&3_isize);
+    ///     assert_eq!(result, expected);
+    ///     assert_eq!(removed, Some((2, 3_isize)));
+    /// }
+    /// {
+    ///     let expected = TypedProjIndexSet::from([1_isize, 3_isize, isize::MAX]);
+    ///     let mut result = proj_set.clone();
+    ///     let removed = result.shift_remove_full(&2_isize);
+    ///     assert_eq!(result, expected);
+    ///     assert_eq!(removed, Some((1, 2_isize)));
+    /// }
+    /// {
+    ///     let expected = TypedProjIndexSet::from([2_isize, 3_isize, isize::MAX]);
+    ///     let mut result = proj_set.clone();
+    ///     let removed = result.shift_remove_full(&1_isize);
+    ///     assert_eq!(result, expected);
+    ///     assert_eq!(removed, Some((0, 1_isize)));
+    /// }
+    /// ```
+    ///
+    /// [`pop`]: TypedProjIndexSet::pop
+    pub fn shift_remove_full<Q>(&mut self, value: &Q) -> Option<(usize, T)>
+    where
+        Q: any::Any + ?Sized + hash::Hash + Equivalent<T>,
+    {
+        self.inner.shift_remove_full(value).map(|(i, x, ())| (i, x))
+    }
+}
+
 impl<T, S, A> Clone for TypedProjIndexSet<T, S, A>
 where
     T: any::Any + Clone,
@@ -3930,84 +4759,6 @@ where
 
     fn clone_from(&mut self, other: &Self) {
         self.inner.clone_from(&other.inner);
-    }
-}
-
-impl<T, S, A> TypedProjIndexSet<T, S, A>
-where
-    T: any::Any,
-    S: any::Any + hash::BuildHasher + Send + Sync,
-    S::Hasher: any::Any + hash::Hasher + Send + Sync,
-    A: any::Any + alloc::Allocator + Send + Sync,
-{
-    pub fn contains<Q>(&self, value: &Q) -> bool
-    where
-        Q: any::Any + ?Sized + hash::Hash + Equivalent<T>,
-    {
-        self.inner.contains_key(value)
-    }
-
-    pub fn get<Q>(&self, value: &Q) -> Option<&T>
-    where
-        Q: any::Any + ?Sized + hash::Hash + Equivalent<T>,
-    {
-        self.inner.get_key_value(value).map(|(x, &())| x)
-    }
-
-    pub fn get_full<Q>(&self, value: &Q) -> Option<(usize, &T)>
-    where
-        Q: any::Any + ?Sized + hash::Hash + Equivalent<T>,
-    {
-        self.inner.get_full(value).map(|(i, x, &())| (i, x))
-    }
-
-    pub fn get_index_of<Q>(&self, value: &Q) -> Option<usize>
-    where
-        Q: any::Any + ?Sized + hash::Hash + Equivalent<T>,
-    {
-        self.inner.get_index_of(value)
-    }
-
-    pub fn swap_remove<Q>(&mut self, value: &Q) -> bool
-    where
-        Q: any::Any + ?Sized + hash::Hash + Equivalent<T>,
-    {
-        self.inner.swap_remove(value).is_some()
-    }
-
-    pub fn shift_remove<Q>(&mut self, value: &Q) -> bool
-    where
-        Q: any::Any + ?Sized + hash::Hash + Equivalent<T>,
-    {
-        self.inner.shift_remove(value).is_some()
-    }
-
-    pub fn swap_take<Q>(&mut self, value: &Q) -> Option<T>
-    where
-        Q: any::Any + ?Sized + hash::Hash + Equivalent<T>,
-    {
-        self.inner.swap_remove_entry(value).map(|(x, ())| x)
-    }
-
-    pub fn shift_take<Q>(&mut self, value: &Q) -> Option<T>
-    where
-        Q: any::Any + ?Sized + hash::Hash + Equivalent<T>,
-    {
-        self.inner.shift_remove_entry(value).map(|(x, ())| x)
-    }
-
-    pub fn swap_remove_full<Q>(&mut self, value: &Q) -> Option<(usize, T)>
-    where
-        Q: any::Any + ?Sized + hash::Hash + Equivalent<T>,
-    {
-        self.inner.swap_remove_full(value).map(|(i, x, ())| (i, x))
-    }
-
-    pub fn shift_remove_full<Q>(&mut self, value: &Q) -> Option<(usize, T)>
-    where
-        Q: any::Any + ?Sized + hash::Hash + Equivalent<T>,
-    {
-        self.inner.shift_remove_full(value).map(|(i, x, ())| (i, x))
     }
 }
 
@@ -5780,7 +6531,7 @@ impl OpaqueIndexSet {
     /// Removes all the entries from the index set.
     ///
     /// After calling this method, the collection will be empty. This method does not change the
-    /// allocated capacity of the type-projected index set.
+    /// allocated capacity of the type-erased index set.
     ///
     /// # Panics
     ///
@@ -6209,7 +6960,7 @@ impl OpaqueIndexSet {
         proj_self.drain(range)
     }
 
-    /// Splits a type-projected index set into two type-erased index sets at the given index.
+    /// Splits a type-erased index set into two type-erased index sets at the given index.
     ///
     /// This method returns a newly allocated type-erased index set consisting of every entry from
     /// the original type-erased index set in the storage range `[at, len)`. The original
@@ -8015,6 +8766,57 @@ impl OpaqueIndexSet {
 }
 
 impl OpaqueIndexSet {
+    /// Determines whether a given key exists in the index set.
+    ///
+    /// This method returns `true` if the value `value` exists in `self`. This method returns
+    /// `false` if the value `value` does not exist inside `self`.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `set` be an index set with values of type `T`. Let `v :: T` be an value of type `T`. We
+    /// say that `set` **contains** a value `v :: T`, or that `v` is an **entry of** `set` if the
+    /// following holds:
+    ///
+    /// ```text
+    /// ∀ v :: T. (v ∈ set) ⇔ (∃ i ∈ [0, set.len()). set[i] = v).
+    /// ```
+    ///
+    /// Then this method satisfies the following:
+    ///
+    /// ```text
+    /// ∀ v :: V. set.contains(v) ⇔ (v ∈ set) ⇔ (∃ i ∈ [0, set.len()). set[i] = v.
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_set = OpaqueIndexSet::from([1_usize, 2_usize, 3_usize]);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<usize>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    ///
+    /// assert!(opaque_set.contains::<_, usize, RandomState, Global>(&1_usize));
+    /// assert!(opaque_set.contains::<_, usize, RandomState, Global>(&2_usize));
+    /// assert!(opaque_set.contains::<_, usize, RandomState, Global>(&3_usize));
+    /// assert!(!opaque_set.contains::<_, usize, RandomState, Global>(&4_usize));
+    /// assert!(!opaque_set.contains::<_, usize, RandomState, Global>(&usize::MAX));
+    /// ```
     pub fn contains<Q, T, S, A>(&self, value: &Q) -> bool
     where
         T: any::Any,
@@ -8028,6 +8830,43 @@ impl OpaqueIndexSet {
         proj_self.contains(value)
     }
 
+    /// Returns a reference to the value corresponding equivalent to the given value, if it exists
+    /// in the index set.
+    ///
+    /// This method returns `Some(&eq_value)` where `eq_value` is the value stored in `self`
+    /// equivalent to the value `value`, if such a value exists in `self`. This method returns
+    /// `None` if a value equivalent to `value` does not exist inside `self`.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_set = OpaqueIndexSet::from([1_usize, 2_usize, 3_usize]);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<usize>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    ///
+    /// assert_eq!(opaque_set.get::<_, usize, RandomState, Global>(&1_usize), Some(&1_usize));
+    /// assert_eq!(opaque_set.get::<_, usize, RandomState, Global>(&2_usize), Some(&2_usize));
+    /// assert_eq!(opaque_set.get::<_, usize, RandomState, Global>(&3_usize), Some(&3_usize));
+    /// assert_eq!(opaque_set.get::<_, usize, RandomState, Global>(&4_usize), None);
+    /// assert_eq!(opaque_set.get::<_, usize, RandomState, Global>(&usize::MAX), None);
+    /// ```
     pub fn get<Q, T, S, A>(&self, value: &Q) -> Option<&T>
     where
         T: any::Any,
@@ -8041,6 +8880,45 @@ impl OpaqueIndexSet {
         proj_self.get(value)
     }
 
+    /// Returns the storage index and a reference to the value, of the entry with the equivalent
+    /// value, if it exists in the index set.
+    ///
+    /// This method returns `Some((index, &eq_value))` where `index` is the storage index of the
+    /// value, `eq_value` is the equivalent value to the value provided stored in the set, if the
+    /// value equivalent to the value provided by the method argument exists inside `self`. This
+    /// method returns `None` if the equivalent value provided by the method argument does not
+    /// exist inside `self`.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_set = OpaqueIndexSet::from([1_usize, 2_usize, 3_usize]);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<usize>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    ///
+    /// assert_eq!(opaque_set.get_full::<_, usize, RandomState, Global>(&1_usize), Some((0, &1_usize)));
+    /// assert_eq!(opaque_set.get_full::<_, usize, RandomState, Global>(&2_usize), Some((1, &2_usize)));
+    /// assert_eq!(opaque_set.get_full::<_, usize, RandomState, Global>(&3_usize), Some((2, &3_usize)));
+    /// assert_eq!(opaque_set.get_full::<_, usize, RandomState, Global>(&4_usize), None);
+    /// assert_eq!(opaque_set.get_full::<_, usize, RandomState, Global>(&usize::MAX), None);
+    /// ```
     pub fn get_full<Q, T, S, A>(&self, value: &Q) -> Option<(usize, &T)>
     where
         T: any::Any,
@@ -8054,6 +8932,43 @@ impl OpaqueIndexSet {
         proj_self.get_full(value)
     }
 
+    /// Returns the storage index of the value equivalent to the given value, if it exists in the
+    /// index set.
+    ///
+    /// This method returns `Some(index)`, where `index` is the storage index of the value, if the
+    /// value equivalent to the provided `value` exists in `self`. This method returns `None` if the
+    /// value equivalent to `value` does not exist inside `self`.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_set = OpaqueIndexSet::from([1_usize, 2_usize, 3_usize]);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<usize>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    ///
+    /// assert_eq!(opaque_set.get_index_of::<_, usize, RandomState, Global>(&1_usize), Some(0));
+    /// assert_eq!(opaque_set.get_index_of::<_, usize, RandomState, Global>(&2_usize), Some(1));
+    /// assert_eq!(opaque_set.get_index_of::<_, usize, RandomState, Global>(&3_usize), Some(2));
+    /// assert_eq!(opaque_set.get_index_of::<_, usize, RandomState, Global>(&4_usize), None);
+    /// assert_eq!(opaque_set.get_index_of::<_, usize, RandomState, Global>(&usize::MAX), None);
+    /// ```
     pub fn get_index_of<Q, T, S, A>(&self, value: &Q) -> Option<usize>
     where
         T: any::Any,
@@ -8067,6 +8982,175 @@ impl OpaqueIndexSet {
         proj_self.get_index_of(value)
     }
 
+    /// Removes an entry from a type-erased index set, moving the last entry in storage order in
+    /// the collection to the index where the removed entry occupies the collection.
+    ///
+    /// This method behaves with respect to `value` as follows:
+    /// * If the value `value` exists in the index set, let `index` be its storage index.
+    ///   If `index < self.len() - 1`, it moves the last entry in the collection to the slot at
+    ///   `index`, leaving the rest of the entries in place. If `index == self.len() - 1`, it
+    ///   removes the entry from end of the collection with no reordering of the remaining entries
+    ///   in the collection. The method then returns `true`, indicating that it removed the value
+    ///   equivalent to the value `value` from the collection.
+    /// * If the value `value` does not exist in the index set, the method returns `false`.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set` before
+    /// this method is called, `set_after` be the state of `set` after this method completes.
+    ///
+    /// We say that a value `v` is in the set `set` provided that
+    ///
+    /// ```text
+    /// ∀ v :: T. (v ∈ set) ⇔ (∃ i ∈ [0, map.len()). set[i] = v).
+    /// ```
+    ///
+    /// The **index** of a value `v` in `set` is defined by
+    ///
+    /// ```text
+    /// index(set, v) := i such that set[i] = v ∧ (∀ j ∈ [0, set.len()). j ≠ i ⇒ set[j] ≠ v).
+    /// ```
+    ///
+    /// The **last entry** in the set `set` when `set` is non-empty is defined by
+    ///
+    /// ```text
+    /// last(set) := set[set.len() - 1].
+    /// ```
+    ///
+    /// We say that two sets `set1` and `set2` are **equal** if and only if
+    ///
+    /// ```text
+    /// set1 = set2 ⇔ (set1.len() = set2.len()) ∧ (∀ i ∈ [0, set1.len()). set1[i] = set2[i]).
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { value ∈ set_before }
+    /// set.swap_remove(value)
+    /// {
+    ///     result = true
+    ///     ∧ set_after.len() = set_before.len() - 1
+    ///     ∧ value ∉ set_after
+    ///     ∧ (set_after[index(set_before, value)] = last(set_before)
+    ///        ∧ (∀ v ∈ set_after. v ≠ last(set_before) ∧ (v ≠ value ⇒ set_after[v] = set_before[v])
+    ///     )
+    /// }
+    ///
+    /// { value ∉ set_before }
+    /// set.swap_remove(value)
+    /// { result = false ∧ set_after = set_before }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
+    /// # Examples
+    ///
+    /// Showing how swap removal happens.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_set = OpaqueIndexSet::from([1_isize, 2_isize, 3_isize, isize::MAX]);
+    /// #
+    /// #   assert!(opaque_set.has_value_type::<isize>());
+    /// #   assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// #   assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    /// {
+    ///     let expected = OpaqueIndexSet::from([1_isize, 2_isize, 3_isize]);
+    /// #
+    /// #   assert!(expected.has_value_type::<isize>());
+    /// #   assert!(expected.has_build_hasher_type::<RandomState>());
+    /// #   assert!(expected.has_allocator_type::<Global>());
+    /// #
+    ///     let mut result = opaque_set.clone::<isize, RandomState, Global>();
+    /// #
+    /// #   assert!(result.has_value_type::<isize>());
+    /// #   assert!(result.has_build_hasher_type::<RandomState>());
+    /// #   assert!(result.has_allocator_type::<Global>());
+    /// #
+    ///     let removed = result.swap_remove::<_, isize, RandomState, Global>(&isize::MAX);
+    ///     assert_eq!(
+    ///         result.as_slice::<isize, RandomState, Global>(),
+    ///         expected.as_slice::<isize, RandomState, Global>()
+    ///     );
+    ///     assert!(removed);
+    /// }
+    /// {
+    ///     let expected = OpaqueIndexSet::from([1_isize, 2_isize, isize::MAX]);
+    /// #
+    /// #   assert!(expected.has_value_type::<isize>());
+    /// #   assert!(expected.has_build_hasher_type::<RandomState>());
+    /// #   assert!(expected.has_allocator_type::<Global>());
+    /// #
+    ///     let mut result = opaque_set.clone::<isize, RandomState, Global>();
+    /// #
+    /// #   assert!(result.has_value_type::<isize>());
+    /// #   assert!(result.has_build_hasher_type::<RandomState>());
+    /// #   assert!(result.has_allocator_type::<Global>());
+    /// #
+    ///     let removed = result.swap_remove::<_, isize, RandomState, Global>(&3_isize);
+    ///     assert_eq!(
+    ///         result.as_slice::<isize, RandomState, Global>(),
+    ///         expected.as_slice::<isize, RandomState, Global>(),
+    ///     );
+    ///     assert_eq!(removed, true);
+    /// }
+    /// {
+    ///     let expected = OpaqueIndexSet::from([1_isize, isize::MAX, 3_isize]);
+    /// #
+    /// #   assert!(expected.has_value_type::<isize>());
+    /// #   assert!(expected.has_build_hasher_type::<RandomState>());
+    /// #   assert!(expected.has_allocator_type::<Global>());
+    /// #
+    ///     let mut result = opaque_set.clone::<isize, RandomState, Global>();
+    /// #
+    /// #   assert!(result.has_value_type::<isize>());
+    /// #   assert!(result.has_build_hasher_type::<RandomState>());
+    /// #   assert!(result.has_allocator_type::<Global>());
+    /// #
+    ///     let removed = result.swap_remove::<_, isize, RandomState, Global>(&2_isize);
+    ///     assert_eq!(
+    ///         result.as_slice::<isize, RandomState, Global>(),
+    ///         expected.as_slice::<isize, RandomState, Global>(),
+    ///     );
+    ///     assert_eq!(removed, true);
+    /// }
+    /// {
+    ///     let expected = OpaqueIndexSet::from([isize::MAX, 2_isize, 3_isize]);
+    /// #
+    /// #   assert!(expected.has_value_type::<isize>());
+    /// #   assert!(expected.has_build_hasher_type::<RandomState>());
+    /// #   assert!(expected.has_allocator_type::<Global>());
+    /// #
+    ///     let mut result = opaque_set.clone::<isize, RandomState, Global>();
+    /// #
+    /// #   assert!(result.has_value_type::<isize>());
+    /// #   assert!(result.has_build_hasher_type::<RandomState>());
+    /// #   assert!(result.has_allocator_type::<Global>());
+    /// #
+    ///     let removed = result.swap_remove::<_, isize, RandomState, Global>(&1_isize);
+    ///     assert_eq!(
+    ///         result.as_slice::<isize, RandomState, Global>(),
+    ///         expected.as_slice::<isize, RandomState, Global>(),
+    ///     );
+    ///     assert_eq!(removed, true);
+    /// }
+    /// ```
     pub fn swap_remove<Q, T, S, A>(&mut self, value: &Q) -> bool
     where
         T: any::Any,
@@ -8080,6 +9164,170 @@ impl OpaqueIndexSet {
         proj_self.swap_remove(value)
     }
 
+    /// Removes an entry from a type-erased index set, shifting every successive entry in the
+    /// collection in storage order down one index to fill where the removed entry occupies the
+    /// collection.
+    ///
+    /// This method behaves with respect to `value` as follows:
+    /// * If the value `value` exists in the index set, let `index` be its storage index.
+    ///   If `index < self.len() - 1`, it moves every successive entry in the collection to the
+    ///   entry at storage index `index` down one unit. Every entry preceding the entry at index
+    ///   `index` remains in the same location.  The method returns `true`, which indicates that
+    ///    the entry with value equivalent to `value` was removed from the index set.
+    /// * If the value `value` does not exist in the index set, the method returns `false`.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set` before
+    /// this method is called, `set_after` be the state of `set` after this method completes.
+    ///
+    /// We say that a value `v` is in the set `set` provided that
+    ///
+    /// ```text
+    /// ∀ v :: T. (v ∈ set) ⇔ (∃ i ∈ [0, set.len()). set[i] = v).
+    /// ```
+    ///
+    /// The **index** of a value `v` in `set` is defined by
+    ///
+    /// ```text
+    /// index(set, v) := i such that set[i] = v ∧ (∀ j ∈ [0, set.len()). j ≠ i ⇒ set[j] ≠ v).
+    /// ```
+    ///
+    /// We say that two sets `set1` and `set2` are **equal** if and only if
+    ///
+    /// ```text
+    /// set1 = set2 ⇔ (set1.len() = set2.len()) ∧ (∀ i ∈ [0, set1.len()). set1[i] = set2[i]).
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { value ∈ set_before }
+    /// set.shift_remove(value)
+    /// {
+    ///     result = true
+    ///     ∧ set_after.len() = set_before.len() - 1
+    ///     ∧ value ∉ set_after
+    ///     ∧ (let i = index(set_before, value);
+    ///        (∀ j ∈ [0, i). set_after[j] = set_before[j])
+    ///        ∧ (∀ j ∈ [i, set_after.len()). set_after[j] = set_before[j + 1])
+    ///     )
+    /// }
+    ///
+    /// { value ∉ set_before }
+    /// map.shift_remove(value)
+    /// { result = false ∧ set_after = set_before }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
+    /// # Examples
+    ///
+    /// Showing how shift removal happens.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_set = OpaqueIndexSet::from([1_isize, 2_isize, 3_isize, isize::MAX]);
+    /// #
+    /// #   assert!(opaque_set.has_value_type::<isize>());
+    /// #   assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// #   assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    /// {
+    ///     let expected = OpaqueIndexSet::from([1_isize, 2_isize, 3_isize]);
+    /// #
+    /// #   assert!(expected.has_value_type::<isize>());
+    /// #   assert!(expected.has_build_hasher_type::<RandomState>());
+    /// #   assert!(expected.has_allocator_type::<Global>());
+    /// #
+    ///     let mut result = opaque_set.clone::<isize, RandomState, Global>();
+    /// #
+    /// #   assert!(result.has_value_type::<isize>());
+    /// #   assert!(result.has_build_hasher_type::<RandomState>());
+    /// #   assert!(result.has_allocator_type::<Global>());
+    /// #
+    ///     let removed = result.shift_remove::<_, isize, RandomState, Global>(&isize::MAX);
+    ///     assert_eq!(
+    ///         result.as_slice::<isize, RandomState, Global>(),
+    ///         expected.as_slice::<isize, RandomState, Global>(),
+    ///     );
+    ///     assert_eq!(removed, true);
+    /// }
+    /// {
+    ///     let expected = OpaqueIndexSet::from([1_isize, 2_isize, isize::MAX]);
+    /// #
+    /// #   assert!(expected.has_value_type::<isize>());
+    /// #   assert!(expected.has_build_hasher_type::<RandomState>());
+    /// #   assert!(expected.has_allocator_type::<Global>());
+    /// #
+    ///     let mut result = opaque_set.clone::<isize, RandomState, Global>();
+    /// #
+    /// #   assert!(result.has_value_type::<isize>());
+    /// #   assert!(result.has_build_hasher_type::<RandomState>());
+    /// #   assert!(result.has_allocator_type::<Global>());
+    /// #
+    ///     let removed = result.shift_remove::<_, isize, RandomState, Global>(&3_isize);
+    ///     assert_eq!(
+    ///         result.as_slice::<isize, RandomState, Global>(),
+    ///         expected.as_slice::<isize, RandomState, Global>(),
+    ///     );
+    ///     assert_eq!(removed, true);
+    /// }
+    /// {
+    ///     let expected = OpaqueIndexSet::from([1_isize, 3_isize, isize::MAX]);
+    /// #
+    /// #   assert!(expected.has_value_type::<isize>());
+    /// #   assert!(expected.has_build_hasher_type::<RandomState>());
+    /// #   assert!(expected.has_allocator_type::<Global>());
+    /// #
+    ///     let mut result = opaque_set.clone::<isize, RandomState, Global>();
+    /// #
+    /// #   assert!(result.has_value_type::<isize>());
+    /// #   assert!(result.has_build_hasher_type::<RandomState>());
+    /// #   assert!(result.has_allocator_type::<Global>());
+    /// #
+    ///     let removed = result.shift_remove::<_, isize, RandomState, Global>(&2_isize);
+    ///     assert_eq!(
+    ///         result.as_slice::<isize, RandomState, Global>(),
+    ///         expected.as_slice::<isize, RandomState, Global>(),
+    ///     );
+    ///     assert_eq!(removed, true);
+    /// }
+    /// {
+    ///     let expected = OpaqueIndexSet::from([2_isize, 3_isize, isize::MAX]);
+    /// #
+    /// #   assert!(expected.has_value_type::<isize>());
+    /// #   assert!(expected.has_build_hasher_type::<RandomState>());
+    /// #   assert!(expected.has_allocator_type::<Global>());
+    /// #
+    ///     let mut result = opaque_set.clone::<isize, RandomState, Global>();
+    /// #
+    /// #   assert!(result.has_value_type::<isize>());
+    /// #   assert!(result.has_build_hasher_type::<RandomState>());
+    /// #   assert!(result.has_allocator_type::<Global>());
+    /// #
+    ///     let removed = result.shift_remove::<_, isize, RandomState, Global>(&1_isize);
+    ///     assert_eq!(
+    ///         result.as_slice::<isize, RandomState, Global>(),
+    ///         expected.as_slice::<isize, RandomState, Global>(),
+    ///     );
+    ///     assert_eq!(removed, true);
+    /// }
+    /// ```
     pub fn shift_remove<Q, T, S, A>(&mut self, value: &Q) -> bool
     where
         T: any::Any,
@@ -8093,6 +9341,175 @@ impl OpaqueIndexSet {
         proj_self.shift_remove(value)
     }
 
+    /// Removes an entry from a type-erased index set, moving the last entry in storage order
+    /// in the collection to the index where the removed entry occupies the collection.
+    ///
+    /// This method behaves with respect to `value` as follows:
+    /// * If the value `value` exists in the index set, let `index` be its storage index.
+    ///   If `index < self.len() - 1`, it moves the last entry in the collection to the slot at
+    ///   `index`, leaving the rest of the entries in place. If `index == self.len() - 1`, it
+    ///   removes the entry from end of the collection with no reordering of the remaining entries
+    ///   in the collection. The method then returns `Some(eq_value)`, where `eq_value` where
+    ///   is the equivalent value to the value `value` stored in the index set.
+    /// * If the value `value` does not exist in the index set, the method returns `None`.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set` before
+    /// this method is called, `set_after` be the state of `set` after this method completes.
+    ///
+    /// We say that a value `v` is in the set `set` provided that
+    ///
+    /// ```text
+    /// ∀ v :: T. (v ∈ set) ⇔ (∃ i ∈ [0, map.len()). set[i] = v).
+    /// ```
+    ///
+    /// The **index** of a value `v` in `set` is defined by
+    ///
+    /// ```text
+    /// index(set, v) := i such that set[i] = v ∧ (∀ j ∈ [0, set.len()). j ≠ i ⇒ set[j] ≠ v).
+    /// ```
+    ///
+    /// The **last entry** in the set `set` when `set` is non-empty is defined by
+    ///
+    /// ```text
+    /// last(set) := set[set.len() - 1].
+    /// ```
+    ///
+    /// We say that two sets `set1` and `set2` are **equal** if and only if
+    ///
+    /// ```text
+    /// set1 = set2 ⇔ (set1.len() = set2.len()) ∧ (∀ i ∈ [0, set1.len()). set1[i] = set2[i]).
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { value ∈ set_before }
+    /// set.swap_take(value)
+    /// {
+    ///     result = Some(set_before[value])
+    ///     ∧ set_after.len() = set_before.len() - 1
+    ///     ∧ value ∉ set_after
+    ///     ∧ (set_after[index(set_before, value)] = last(set_before)
+    ///        ∧ (∀ v ∈ set_after. (v ≠ last(set_before) ∧ v ≠ value) ⇒ set_after[v] = set_before[v])
+    ///     )
+    /// }
+    ///
+    /// { value ∉ set_before }
+    /// set.swap_take(value)
+    /// { result = None ∧ set_after = set_before }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
+    /// # Examples
+    ///
+    /// Showing how swap removal happens.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_set = OpaqueIndexSet::from([1_isize, 2_isize, 3_isize, isize::MAX]);
+    /// #
+    /// #   assert!(opaque_set.has_value_type::<isize>());
+    /// #   assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// #   assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    /// {
+    ///     let expected = OpaqueIndexSet::from([1_isize, 2_isize, 3_isize]);
+    /// #
+    /// #   assert!(expected.has_value_type::<isize>());
+    /// #   assert!(expected.has_build_hasher_type::<RandomState>());
+    /// #   assert!(expected.has_allocator_type::<Global>());
+    /// #
+    ///     let mut result = opaque_set.clone::<isize, RandomState, Global>();
+    /// #
+    /// #   assert!(result.has_value_type::<isize>());
+    /// #   assert!(result.has_build_hasher_type::<RandomState>());
+    /// #   assert!(result.has_allocator_type::<Global>());
+    /// #
+    ///     let removed = result.swap_take::<_, isize, RandomState, Global>(&isize::MAX);
+    ///     assert_eq!(
+    ///         result.as_slice::<isize, RandomState, Global>(),
+    ///         expected.as_slice::<isize, RandomState, Global>(),
+    ///     );
+    ///     assert_eq!(removed, Some(isize::MAX));
+    /// }
+    /// {
+    ///     let expected = OpaqueIndexSet::from([1_isize, 2_isize, isize::MAX]);
+    /// #
+    /// #   assert!(expected.has_value_type::<isize>());
+    /// #   assert!(expected.has_build_hasher_type::<RandomState>());
+    /// #   assert!(expected.has_allocator_type::<Global>());
+    /// #
+    ///     let mut result = opaque_set.clone::<isize, RandomState, Global>();
+    /// #
+    /// #   assert!(result.has_value_type::<isize>());
+    /// #   assert!(result.has_build_hasher_type::<RandomState>());
+    /// #   assert!(result.has_allocator_type::<Global>());
+    /// #
+    ///     let removed = result.swap_take::<_, isize, RandomState, Global>(&3_isize);
+    ///     assert_eq!(
+    ///         result.as_slice::<isize, RandomState, Global>(),
+    ///         expected.as_slice::<isize, RandomState, Global>(),
+    ///     );
+    ///     assert_eq!(removed, Some(3_isize));
+    /// }
+    /// {
+    ///     let expected = OpaqueIndexSet::from([1_isize, isize::MAX, 3_isize]);
+    /// #
+    /// #   assert!(expected.has_value_type::<isize>());
+    /// #   assert!(expected.has_build_hasher_type::<RandomState>());
+    /// #   assert!(expected.has_allocator_type::<Global>());
+    /// #
+    ///     let mut result = opaque_set.clone::<isize, RandomState, Global>();
+    /// #
+    /// #   assert!(result.has_value_type::<isize>());
+    /// #   assert!(result.has_build_hasher_type::<RandomState>());
+    /// #   assert!(result.has_allocator_type::<Global>());
+    /// #
+    ///     let removed = result.swap_take::<_, isize, RandomState, Global>(&2_isize);
+    ///     assert_eq!(
+    ///         result.as_slice::<isize, RandomState, Global>(),
+    ///         expected.as_slice::<isize, RandomState, Global>(),
+    ///     );
+    ///     assert_eq!(removed, Some(2_isize));
+    /// }
+    /// {
+    ///     let expected = OpaqueIndexSet::from([isize::MAX, 2_isize, 3_isize]);
+    /// #
+    /// #   assert!(expected.has_value_type::<isize>());
+    /// #   assert!(expected.has_build_hasher_type::<RandomState>());
+    /// #   assert!(expected.has_allocator_type::<Global>());
+    /// #
+    ///     let mut result = opaque_set.clone::<isize, RandomState, Global>();
+    /// #
+    /// #   assert!(result.has_value_type::<isize>());
+    /// #   assert!(result.has_build_hasher_type::<RandomState>());
+    /// #   assert!(result.has_allocator_type::<Global>());
+    /// #
+    ///     let removed = result.swap_take::<_, isize, RandomState, Global>(&1_isize);
+    ///     assert_eq!(
+    ///         result.as_slice::<isize, RandomState, Global>(),
+    ///         expected.as_slice::<isize, RandomState, Global>(),
+    ///     );
+    ///     assert_eq!(removed, Some(1_isize));
+    /// }
+    /// ```
     pub fn swap_take<Q, T, S, A>(&mut self, value: &Q) -> Option<T>
     where
         T: any::Any,
@@ -8106,6 +9523,175 @@ impl OpaqueIndexSet {
         proj_self.swap_take(value)
     }
 
+    /// Removes an entry from a type-erased index set, shifting every successive entry in the
+    /// collection in storage order down one index to fill where the removed entry occupies the
+    /// collection.
+    ///
+    /// This method behaves with respect to `value` as follows:
+    /// * If the value `value` exists in the index set, let `index` be its storage index.
+    ///   If `index < self.len() - 1`, it moves every successive entry in the collection to the
+    ///   entry at storage index `index` down one unit. Every entry preceding the entry at index
+    ///   `index` remains in the same location. The method returns `Some(eq_value)`, where
+    ///   `eq_value` is the equivalent value to the value `value` stored in the index set.
+    /// * If the value `value` does not exist in the index set, the method returns `None`.
+    ///
+    /// In particular, the method acts like a [`pop`] when the last value in the collection is
+    /// shift-removed, because the sub-collection of successor entries in the entry storage is empty.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
+    /// before this method is called, `set_after` be the state of `set` after this method completes.
+    ///
+    /// We say that a value `v` is in the set `set` provided that
+    ///
+    /// ```text
+    /// ∀ v :: T. (v ∈ set) ⇔ (∃ i ∈ [0, set.len()). set[i] = v).
+    /// ```
+    ///
+    /// The **index** of a value `v` in `set` is defined by
+    ///
+    /// ```text
+    /// index(set, v) := i such that set[i] = v ∧ (∀ j ∈ [0, set.len()). j ≠ i ⇒ set[j] ≠ v).
+    /// ```
+    ///
+    /// We say that two sets `set1` and `set2` are **equal** if and only if
+    ///
+    /// ```text
+    /// set1 = set2 ⇔ (set1.len() = set2.len()) ∧ (∀ i ∈ [0, set1.len()). set1[i] = set2[i]).
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { value ∈ set_before }
+    /// set.shift_take(value)
+    /// {
+    ///     result = Some(set_before[value])
+    ///     ∧ set_after.len() = set_before.len() - 1
+    ///     ∧ value ∉ set_after
+    ///     ∧ (let i = index(set_before, value);
+    ///        (∀ j ∈ [0, i). set_after[j] = set_before[j])
+    ///        ∧ (∀ j ∈ [i, set_after.len()). set_after[j] = set_before[j + 1])
+    ///     )
+    /// }
+    ///
+    /// { value ∉ set_before }
+    /// set.shift_take(value)
+    /// { result = None ∧ set_after = set_before }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
+    /// # Examples
+    ///
+    /// Showing how shift removal happens.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_set = OpaqueIndexSet::from([1_isize, 2_isize, 3_isize, isize::MAX]);
+    /// #
+    /// #   assert!(opaque_set.has_value_type::<isize>());
+    /// #   assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// #   assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    /// {
+    ///     let expected = OpaqueIndexSet::from([1_isize, 2_isize, 3_isize]);
+    /// #
+    /// #   assert!(expected.has_value_type::<isize>());
+    /// #   assert!(expected.has_build_hasher_type::<RandomState>());
+    /// #   assert!(expected.has_allocator_type::<Global>());
+    /// #
+    ///     let mut result = opaque_set.clone::<isize, RandomState, Global>();
+    /// #
+    /// #   assert!(result.has_value_type::<isize>());
+    /// #   assert!(result.has_build_hasher_type::<RandomState>());
+    /// #   assert!(result.has_allocator_type::<Global>());
+    /// #
+    ///     let removed = result.shift_take::<_, isize, RandomState, Global>(&isize::MAX);
+    ///     assert_eq!(
+    ///         result.as_slice::<isize, RandomState, Global>(),
+    ///         expected.as_slice::<isize, RandomState, Global>(),
+    ///     );
+    ///     assert_eq!(removed, Some(isize::MAX));
+    /// }
+    /// {
+    ///     let expected = OpaqueIndexSet::from([1_isize, 2_isize, isize::MAX]);
+    /// #
+    /// #   assert!(expected.has_value_type::<isize>());
+    /// #   assert!(expected.has_build_hasher_type::<RandomState>());
+    /// #   assert!(expected.has_allocator_type::<Global>());
+    /// #
+    ///     let mut result = opaque_set.clone::<isize, RandomState, Global>();
+    /// #
+    /// #   assert!(result.has_value_type::<isize>());
+    /// #   assert!(result.has_build_hasher_type::<RandomState>());
+    /// #   assert!(result.has_allocator_type::<Global>());
+    /// #
+    ///     let removed = result.shift_take::<_, isize, RandomState, Global>(&3_isize);
+    ///     assert_eq!(
+    ///         result.as_slice::<isize, RandomState, Global>(),
+    ///         expected.as_slice::<isize, RandomState, Global>(),
+    ///     );
+    ///     assert_eq!(removed, Some(3_isize));
+    /// }
+    /// {
+    ///     let expected = OpaqueIndexSet::from([1_isize, 3_isize, isize::MAX]);
+    /// #
+    /// #   assert!(expected.has_value_type::<isize>());
+    /// #   assert!(expected.has_build_hasher_type::<RandomState>());
+    /// #   assert!(expected.has_allocator_type::<Global>());
+    /// #
+    ///     let mut result = opaque_set.clone::<isize, RandomState, Global>();
+    /// #
+    /// #   assert!(result.has_value_type::<isize>());
+    /// #   assert!(result.has_build_hasher_type::<RandomState>());
+    /// #   assert!(result.has_allocator_type::<Global>());
+    /// #
+    ///     let removed = result.shift_take::<_, isize, RandomState, Global>(&2_isize);
+    ///     assert_eq!(
+    ///         result.as_slice::<isize, RandomState, Global>(),
+    ///         expected.as_slice::<isize, RandomState, Global>(),
+    ///     );
+    ///     assert_eq!(removed, Some(2_isize));
+    /// }
+    /// {
+    ///     let expected = OpaqueIndexSet::from([2_isize, 3_isize, isize::MAX]);
+    /// #
+    /// #   assert!(expected.has_value_type::<isize>());
+    /// #   assert!(expected.has_build_hasher_type::<RandomState>());
+    /// #   assert!(expected.has_allocator_type::<Global>());
+    /// #
+    ///     let mut result = opaque_set.clone::<isize, RandomState, Global>();
+    /// #
+    /// #   assert!(result.has_value_type::<isize>());
+    /// #   assert!(result.has_build_hasher_type::<RandomState>());
+    /// #   assert!(result.has_allocator_type::<Global>());
+    /// #
+    ///     let removed = result.shift_take::<_, isize, RandomState, Global>(&1_isize);
+    ///     assert_eq!(
+    ///         result.as_slice::<isize, RandomState, Global>(),
+    ///         expected.as_slice::<isize, RandomState, Global>(),
+    ///     );
+    ///     assert_eq!(removed, Some(1_isize));
+    /// }
+    /// ```
+    ///
+    /// [`pop`]: OpaqueIndexSet::pop
     pub fn shift_take<Q, T, S, A>(&mut self, value: &Q) -> Option<T>
     where
         T: any::Any,
@@ -8119,6 +9705,169 @@ impl OpaqueIndexSet {
         proj_self.shift_take(value)
     }
 
+    /// Removes an entry from a type-erased index set, moving the last entry in storage order in
+    /// the collection to the index where the removed entry occupies the collection.
+    ///
+    /// This method behaves with respect to `value` as follows:
+    /// * If the value `value` exists in the index set, let `index` be its storage index.
+    ///   If `index < self.len() - 1`, it moves the last entry in the collection to the slot at
+    ///   `index`, leaving the rest of the entries in place. If `index == self.len() - 1`, it
+    ///   removes the entry from end of the collection with no reordering of the remaining entries
+    ///   in the collection. The method then returns `Some((index, eq_value))`, where `eq_value` is
+    ///   the value stored in the index set equivalent to the value `value`.
+    /// * If the value `value` does not exist in the index set, the method returns `None`.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set` before
+    /// this method is called, `set_after` be the state of `set` after this method completes.
+    ///
+    /// We say that a value `v` is in the set `set` provided that
+    ///
+    /// ```text
+    /// ∀ v :: T. (v ∈ set) ⇔ (∃ i ∈ [0, set.len()). set[i] = v).
+    /// ```
+    ///
+    /// The **index** of a value `v` in `set` is defined by
+    ///
+    /// ```text
+    /// index(set, v) := i such that set[i] = v ∧ (∀ j ∈ [0, set.len()). j ≠ i ⇒ set[j] ≠ v).
+    /// ```
+    ///
+    /// We say that two sets `set1` and `set2` are **equal** if and only if
+    ///
+    /// ```text
+    /// set1 = set2 ⇔ (set1.len() = set2.len()) ∧ (∀ i ∈ [0, set1.len()). set1[i] = set2[i]).
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { value ∈ set_before }
+    /// set.swap_remove_full(value)
+    /// {
+    ///     result = Some((index(set_before, value), set_before[index(set_before, value)]))
+    ///     ∧ set_after.len() = set_before.len() - 1
+    ///     ∧ value ∉ set_after
+    ///     ∧ (set_after[index(set_before, value)] = last(set_before)
+    ///        ∧ (∀ v ∈ set_after. v ≠ last(set_before) ∧ v ≠ value ⇒ set_after[v] = set_before[v])
+    ///     )
+    /// }
+    ///
+    /// { value ∉ set_before }
+    /// set.swap_remove_full(value)
+    /// { result = None ∧ set_after = set_before }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
+    /// # Examples
+    ///
+    /// Showing how swap removal happens.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_set = OpaqueIndexSet::from([1_isize, 2_isize, 3_isize, isize::MAX]);
+    /// #
+    /// #   assert!(opaque_set.has_value_type::<isize>());
+    /// #   assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// #   assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    /// {
+    ///     let expected = OpaqueIndexSet::from([1_isize, 2_isize, 3_isize]);
+    /// #
+    /// #   assert!(expected.has_value_type::<isize>());
+    /// #   assert!(expected.has_build_hasher_type::<RandomState>());
+    /// #   assert!(expected.has_allocator_type::<Global>());
+    /// #
+    ///     let mut result = opaque_set.clone::<isize, RandomState, Global>();
+    /// #
+    /// #   assert!(result.has_value_type::<isize>());
+    /// #   assert!(result.has_build_hasher_type::<RandomState>());
+    /// #   assert!(result.has_allocator_type::<Global>());
+    /// #
+    ///     let removed = result.swap_remove_full::<_, isize, RandomState, Global>(&isize::MAX);
+    ///     assert_eq!(
+    ///         result.as_slice::<isize, RandomState, Global>(),
+    ///         expected.as_slice::<isize, RandomState, Global>(),
+    ///     );
+    ///     assert_eq!(removed, Some((3, isize::MAX)));
+    /// }
+    /// {
+    ///     let expected = OpaqueIndexSet::from([1_isize, 2_isize, isize::MAX]);
+    /// #
+    /// #   assert!(expected.has_value_type::<isize>());
+    /// #   assert!(expected.has_build_hasher_type::<RandomState>());
+    /// #   assert!(expected.has_allocator_type::<Global>());
+    /// #
+    ///     let mut result = opaque_set.clone::<isize, RandomState, Global>();
+    /// #
+    /// #   assert!(result.has_value_type::<isize>());
+    /// #   assert!(result.has_build_hasher_type::<RandomState>());
+    /// #   assert!(result.has_allocator_type::<Global>());
+    /// #
+    ///     let removed = result.swap_remove_full::<_, isize, RandomState, Global>(&3_isize);
+    ///     assert_eq!(
+    ///         result.as_slice::<isize, RandomState, Global>(),
+    ///         expected.as_slice::<isize, RandomState, Global>(),
+    ///     );
+    ///     assert_eq!(removed, Some((2, 3_isize)));
+    /// }
+    /// {
+    ///     let expected = OpaqueIndexSet::from([1_isize, isize::MAX, 3_isize]);
+    /// #
+    /// #   assert!(expected.has_value_type::<isize>());
+    /// #   assert!(expected.has_build_hasher_type::<RandomState>());
+    /// #   assert!(expected.has_allocator_type::<Global>());
+    /// #
+    ///     let mut result = opaque_set.clone::<isize, RandomState, Global>();
+    /// #
+    /// #   assert!(result.has_value_type::<isize>());
+    /// #   assert!(result.has_build_hasher_type::<RandomState>());
+    /// #   assert!(result.has_allocator_type::<Global>());
+    /// #
+    ///     let removed = result.swap_remove_full::<_, isize, RandomState, Global>(&2_isize);
+    ///     assert_eq!(
+    ///         result.as_slice::<isize, RandomState, Global>(),
+    ///         expected.as_slice::<isize, RandomState, Global>(),
+    ///     );
+    ///     assert_eq!(removed, Some((1, 2_isize)));
+    /// }
+    /// {
+    ///     let expected = OpaqueIndexSet::from([isize::MAX, 2_isize, 3_isize]);
+    /// #
+    /// #   assert!(expected.has_value_type::<isize>());
+    /// #   assert!(expected.has_build_hasher_type::<RandomState>());
+    /// #   assert!(expected.has_allocator_type::<Global>());
+    /// #
+    ///     let mut result = opaque_set.clone::<isize, RandomState, Global>();
+    /// #
+    /// #   assert!(result.has_value_type::<isize>());
+    /// #   assert!(result.has_build_hasher_type::<RandomState>());
+    /// #   assert!(result.has_allocator_type::<Global>());
+    /// #
+    ///     let removed = result.swap_remove_full::<_, isize, RandomState, Global>(&1_isize);
+    ///     assert_eq!(
+    ///         result.as_slice::<isize, RandomState, Global>(),
+    ///         expected.as_slice::<isize, RandomState, Global>(),
+    ///     );
+    ///     assert_eq!(removed, Some((0, 1_isize)));
+    /// }
+    /// ```
     pub fn swap_remove_full<Q, T, S, A>(&mut self, value: &Q) -> Option<(usize, T)>
     where
         T: any::Any,
@@ -8132,6 +9881,175 @@ impl OpaqueIndexSet {
         proj_self.swap_remove_full(value)
     }
 
+    /// Removes an entry from a type-erased index set, shifting every successive entry in the
+    /// collection in storage order down one index to fill where the removed entry occupies the
+    /// collection.
+    ///
+    /// This method behaves with respect to `value` as follows:
+    /// * If the value `value` exists in the index set, let `index` be its storage index.
+    ///   If `index < self.len() - 1`, it moves every successive entry in the collection to the
+    ///   entry at storage index `index` down one unit. Every entry preceding the entry at index
+    ///   `index` remains in the same location. The method returns `Some((index, eq_value))`, where
+    ///   `eq_value` is the equivalent value to the value `value` stored in the index set.
+    /// * If the key `key` does not exist in the index set, the method returns `None`.
+    ///
+    /// In particular, the method acts like a [`pop`] when the last value in the collection is
+    /// shift-removed, because the sub-collection of successor entries in the entry storage is empty.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
+    /// before this method is called, `set_after` be the state of `set` after this method completes.
+    ///
+    /// We say that a value `v` is in the set `set` provided that
+    ///
+    /// ```text
+    /// ∀ v :: T. (v ∈ set) ⇔ (∃ i ∈ [0, set.len()). set[i] = v).
+    /// ```
+    ///
+    /// The **index** of a value `v` in `set` is defined by
+    ///
+    /// ```text
+    /// index(set, v) := i such that set[i] = v ∧ (∀ j ∈ [0, set.len()). j ≠ i ⇒ set[j] ≠ v).
+    /// ```
+    ///
+    /// We say that two sets `set1` and `set2` are **equal** if and only if
+    ///
+    /// ```text
+    /// set1 = set2 ⇔ (set1.len() = set2.len()) ∧ (∀ i ∈ [0, set1.len()). set1[i] = set2[i]).
+    /// ```
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { value ∈ set_before }
+    /// set.shift_remove_full(value)
+    /// {
+    ///     result = Some((index(set_before, value), set_before[index(set_before, value)]))
+    ///     ∧ set_after.len() = set_before.len() - 1
+    ///     ∧ value ∉ set_after
+    ///     ∧ (let i = index(set_before, value);
+    ///        (∀ j ∈ [0, i). set_after[j] = set_before[j])
+    ///        ∧ (∀ j ∈ [i, set_after.len()). set_after[j] = set_before[j + 1])
+    ///     )
+    /// }
+    ///
+    /// { value ∉ set_before }
+    /// set.shift_remove_full(value)
+    /// { result = None ∧ set_after = set_before }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
+    /// # Examples
+    ///
+    /// Showing how shift removal happens.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_set = OpaqueIndexSet::from([1_isize, 2_isize, 3_isize, isize::MAX]);
+    /// #
+    /// #   assert!(opaque_set.has_value_type::<isize>());
+    /// #   assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// #   assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    /// {
+    ///     let expected = OpaqueIndexSet::from([1_isize, 2_isize, 3_isize]);
+    /// #
+    /// #   assert!(expected.has_value_type::<isize>());
+    /// #   assert!(expected.has_build_hasher_type::<RandomState>());
+    /// #   assert!(expected.has_allocator_type::<Global>());
+    /// #
+    ///     let mut result = opaque_set.clone::<isize, RandomState, Global>();
+    /// #
+    /// #   assert!(result.has_value_type::<isize>());
+    /// #   assert!(result.has_build_hasher_type::<RandomState>());
+    /// #   assert!(result.has_allocator_type::<Global>());
+    /// #
+    ///     let removed = result.shift_remove_full::<_, isize, RandomState, Global>(&isize::MAX);
+    ///     assert_eq!(
+    ///         result.as_slice::<isize, RandomState, Global>(),
+    ///         expected.as_slice::<isize, RandomState, Global>(),
+    ///     );
+    ///     assert_eq!(removed, Some((3, isize::MAX)));
+    /// }
+    /// {
+    ///     let expected = OpaqueIndexSet::from([1_isize, 2_isize, isize::MAX]);
+    /// #
+    /// #   assert!(expected.has_value_type::<isize>());
+    /// #   assert!(expected.has_build_hasher_type::<RandomState>());
+    /// #   assert!(expected.has_allocator_type::<Global>());
+    /// #
+    ///     let mut result = opaque_set.clone::<isize, RandomState, Global>();
+    /// #
+    /// #   assert!(result.has_value_type::<isize>());
+    /// #   assert!(result.has_build_hasher_type::<RandomState>());
+    /// #   assert!(result.has_allocator_type::<Global>());
+    /// #
+    ///     let removed = result.shift_remove_full::<_, isize, RandomState, Global>(&3_isize);
+    ///     assert_eq!(
+    ///         result.as_slice::<isize, RandomState, Global>(),
+    ///         expected.as_slice::<isize, RandomState, Global>(),
+    ///     );
+    ///     assert_eq!(removed, Some((2, 3_isize)));
+    /// }
+    /// {
+    ///     let expected = OpaqueIndexSet::from([1_isize, 3_isize, isize::MAX]);
+    /// #
+    /// #   assert!(expected.has_value_type::<isize>());
+    /// #   assert!(expected.has_build_hasher_type::<RandomState>());
+    /// #   assert!(expected.has_allocator_type::<Global>());
+    /// #
+    ///     let mut result = opaque_set.clone::<isize, RandomState, Global>();
+    /// #
+    /// #   assert!(result.has_value_type::<isize>());
+    /// #   assert!(result.has_build_hasher_type::<RandomState>());
+    /// #   assert!(result.has_allocator_type::<Global>());
+    /// #
+    ///     let removed = result.shift_remove_full::<_, isize, RandomState, Global>(&2_isize);
+    ///     assert_eq!(
+    ///         result.as_slice::<isize, RandomState, Global>(),
+    ///         expected.as_slice::<isize, RandomState, Global>(),
+    ///     );
+    ///     assert_eq!(removed, Some((1, 2_isize)));
+    /// }
+    /// {
+    ///     let expected = OpaqueIndexSet::from([2_isize, 3_isize, isize::MAX]);
+    /// #
+    /// #   assert!(expected.has_value_type::<isize>());
+    /// #   assert!(expected.has_build_hasher_type::<RandomState>());
+    /// #   assert!(expected.has_allocator_type::<Global>());
+    /// #
+    ///     let mut result = opaque_set.clone::<isize, RandomState, Global>();
+    /// #
+    /// #   assert!(result.has_value_type::<isize>());
+    /// #   assert!(result.has_build_hasher_type::<RandomState>());
+    /// #   assert!(result.has_allocator_type::<Global>());
+    /// #
+    ///     let removed = result.shift_remove_full::<_, isize, RandomState, Global>(&1_isize);
+    ///     assert_eq!(
+    ///         result.as_slice::<isize, RandomState, Global>(),
+    ///         expected.as_slice::<isize, RandomState, Global>(),
+    ///     );
+    ///     assert_eq!(removed, Some((0, 1_isize)));
+    /// }
+    /// ```
+    ///
+    /// [`pop`]: OpaqueIndexSet::pop
     pub fn shift_remove_full<Q, T, S, A>(&mut self, value: &Q) -> Option<(usize, T)>
     where
         T: any::Any,
@@ -8451,6 +10369,106 @@ impl OpaqueIndexSet {
         let proj_self = self.as_proj_mut::<T, S, A>();
 
         proj_self.swap_indices(a, b)
+    }
+}
+
+impl OpaqueIndexSet {
+    /// Clones a type-erased index set.
+    ///
+    /// This method acts identically to an implementation of the [`Clone`] trait on a type-projected
+    /// index set [`TypedProjIndexSet`], or a generic [`HashSet`].
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
+    /// # Examples
+    ///
+    /// Cloning an empty type-erased index set.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_set = OpaqueIndexSet::new::<i32>();
+    /// #
+    /// # assert!(opaque_set.has_value_type::<i32>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    /// assert!(opaque_set.is_empty());
+    ///
+    /// let cloned_opaque_set = opaque_set.clone::<i32, RandomState, Global>();
+    /// #
+    /// # assert!(cloned_opaque_set.has_value_type::<i32>());
+    /// # assert!(cloned_opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(cloned_opaque_set.has_allocator_type::<Global>());
+    /// #
+    /// assert!(cloned_opaque_set.is_empty());
+    ///
+    /// let expected = cloned_opaque_set.as_slice::<i32, RandomState, Global>();
+    /// let result = opaque_set.as_slice::<i32, RandomState, Global>();
+    ///
+    /// assert_eq!(result, expected);
+    /// ```
+    ///
+    /// Cloning a non-empty type-erased index set.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let array: [i32; 6] = [1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32];
+    /// let opaque_set = OpaqueIndexSet::from(array);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<i32>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    /// assert!(!opaque_set.is_empty());
+    ///
+    /// let cloned_opaque_set = opaque_set.clone::<i32, RandomState, Global>();
+    /// #
+    /// # assert!(cloned_opaque_set.has_value_type::<i32>());
+    /// # assert!(cloned_opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(cloned_opaque_set.has_allocator_type::<Global>());
+    /// #
+    /// assert!(!cloned_opaque_set.is_empty());
+    ///
+    /// assert_eq!(opaque_set.len(), cloned_opaque_set.len());
+    ///
+    /// let expected = cloned_opaque_set.as_slice::<i32, RandomState, Global>();
+    /// let result = opaque_set.as_slice::<i32, RandomState, Global>();
+    ///
+    /// assert_eq!(result, expected);
+    /// ```
+    #[inline]
+    pub fn clone<T, S, A>(&self) -> Self
+    where
+        T: any::Any + Clone,
+        S: any::Any + hash::BuildHasher + Send + Sync + Clone,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync + Clone,
+    {
+        let proj_self = self.as_proj::<T, S, A>();
+        let proj_cloned_self = Clone::clone(proj_self);
+        let cloned_self = OpaqueIndexSet::from_proj(proj_cloned_self);
+
+        cloned_self
     }
 }
 

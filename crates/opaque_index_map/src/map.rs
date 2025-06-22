@@ -7250,7 +7250,10 @@ where
     /// Then this method satisfies the following:
     ///
     /// ```text
-    /// ∀ e :: (K, V). map.contains_key(e.key()) ⇔ (e ∈ map) ⇔ (∃ i ∈ [0, map.len()). map[e.key()] = e.value()).
+    /// ∀ e :: (K, V).
+    ///     map.contains_key(e.key())
+    ///     ⇔ (e ∈ map)
+    ///     ⇔ (∃ i ∈ [0, map.len()). map[i] = e ∧ map[e.key()] = e.value()).
     /// ```
     ///
     /// # Examples
@@ -8639,8 +8642,8 @@ where
         self.inner.swap_remove_entry(key)
     }
 
-    /// Removes an entry from a type-projected index map, moving the last entry in storage order in the
-    /// collection to the index where the removed entry occupies the collection.
+    /// Removes an entry from a type-projected index map, moving the last entry in storage order in
+    /// the collection to the index where the removed entry occupies the collection.
     ///
     /// This method behaves with respect to `key` as follows:
     /// * If the key `key` exists in the index map, let `index` be its storage index.
@@ -8793,7 +8796,7 @@ where
     /// * If the key `key` exists in the index map, let `index` be its storage index.
     ///   If `index < self.len() - 1`, it moves every successive entry in the collection to the entry
     ///   at storage index `index` down one unit. Every entry preceding the entry at index
-    ///   `index` remains in the same location.  The method returns `Some(value)`, where `value` is
+    ///   `index` remains in the same location. The method returns `Some(value)`, where `value` is
     ///    the value stored in the entry corresponding to the key `key` in the index map.
     /// * If the key `key` does not exist in the index map, the method returns `None`.
     ///
@@ -14494,7 +14497,10 @@ impl OpaqueIndexMap {
     /// Then this method satisfies the following:
     ///
     /// ```text
-    /// ∀ e :: (K, V). map.contains_key(e.key()) ⇔ (e ∈ map) ⇔ (∃ i ∈ [0, map.len()). map[e.key()] = e.value()).
+    /// ∀ e :: (K, V).
+    ///     map.contains_key(e.key())
+    ///     ⇔ (e ∈ map)
+    ///     ⇔ (∃ i ∈ [0, map.len()). map[i] = e ∧ map[e.key()] = e.value()).
     /// ```
     ///
     /// # Panics
@@ -16651,7 +16657,7 @@ impl OpaqueIndexMap {
     /// * If the key `key` exists in the index map, let `index` be its storage index.
     ///   If `index < self.len() - 1`, it moves every successive entry in the collection to the entry
     ///   at storage index `index` down one unit. Every entry preceding the entry at index
-    ///   `index` remains in the same location.  The method returns `Some(value)`, where `value` is
+    ///   `index` remains in the same location. The method returns `Some(value)`, where `value` is
     ///    the value stored in the entry corresponding to the key `key` in the index map.
     /// * If the key `key` does not exist in the index map, the method returns `None`.
     ///
@@ -21851,7 +21857,7 @@ impl OpaqueIndexMap {
     /// assert_eq!(result, expected);
     /// ```
     ///
-    /// Cloning a non-empty [`OpaqueVec`].
+    /// Cloning a non-empty type-erased index map.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -21891,7 +21897,7 @@ impl OpaqueIndexMap {
     ///
     /// assert_eq!(opaque_map.len(), cloned_opaque_map.len());
     ///
-    /// let expected =  cloned_opaque_map.as_slice::<i32, f32, RandomState, Global>();
+    /// let expected = cloned_opaque_map.as_slice::<i32, f32, RandomState, Global>();
     /// let result = opaque_map.as_slice::<i32, f32, RandomState, Global>();
     ///
     /// assert_eq!(result, expected);
