@@ -17,8 +17,7 @@ use std::hash;
 
 #[cfg(not(feature = "std"))]
 use core::hash;
-use std::mem;
-use std::prelude::rust_2015::Vec;
+
 use opaque_alloc::TypedProjAlloc;
 use opaque_hash::TypedProjBuildHasher;
 use opaque_vec::TypedProjVec;

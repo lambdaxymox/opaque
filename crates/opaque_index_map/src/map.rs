@@ -19,9 +19,7 @@ use std::hash;
 use core::hash;
 
 use opaque_alloc::TypedProjAlloc;
-use opaque_error::{
-    TryReserveError,
-};
+use opaque_error::TryReserveError;
 use opaque_hash::TypedProjBuildHasher;
 use opaque_vec::TypedProjVec;
 
