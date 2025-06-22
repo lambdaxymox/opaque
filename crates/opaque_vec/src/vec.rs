@@ -2039,14 +2039,14 @@ where
     /// ```text
     /// { vec_before.len() = 0 }
     /// vec.pop()
-    /// { (vec_after.len() = 0) ∧ (result = None) }
+    /// { (result = None) ∧ (vec_after.len() = 0) }
     ///
     /// { vec_before.len() > 0 }
     /// vec.pop()
     /// {
-    ///     (vec_after.len() = vec_before.len() - 1)
+    ///     result = Some(vec_before[vec_before.len() - 1])
+    ///     ∧ (vec_after.len() = vec_before.len() - 1)
     ///     ∧ (∀ i ∈ [0, vec_after.len()). vec_after[i] = vec_before[i]).
-    ///     ∧ (result = Some(vec_before[vec_before.len() - 1]))
     /// }
     /// ```
     ///
@@ -2103,15 +2103,15 @@ where
     /// { vec_before.len() < vec_before.capacity() }
     /// vec.push_within_capacity(value)
     /// {
-    ///     vec_after.len() = vec_before.len() + 1
+    ///     result = Ok(())
+    ///     ∧ vec_after.len() = vec_before.len() + 1
     ///     ∧ vec_after[vec_before.len()] = value
     ///     ∧ (∀ i ∈ [0, vec_before.len()). vec_after[i] = vec_before[i])
-    ///     ∧ result = Ok(())
     /// }
     ///
     /// { vec_before.len() = vec_before.capacity() }
     /// vec.push_within_capacity(value)
-    /// { vec_after = vec_before ∧ result = Err(value) }
+    /// { result = Err(value) ∧ vec_after = vec_before }
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `vec`.
@@ -2308,7 +2308,8 @@ where
     /// # Formal Properties
     ///
     /// Let `vec` be a vector, `vec_before` be the state of `vec` before this method is called,
-    /// and let `vec_after` be the state of `vec` after this method completes.
+    /// and let `vec_after` be the state of `vec` after this method completes. Let `result` be the
+    /// value that this method returns after completing.
     ///
     /// This method satisfies:
     ///
@@ -2316,7 +2317,8 @@ where
     /// { index < vec_before.len() - 1 }
     /// vec.swap_remove(index)
     /// {
-    ///     vec_after.len() = vec_before.len() - 1
+    ///     result = vec_before[vec_before.len() - 1]
+    ///     ∧ vec_after.len() = vec_before.len() - 1
     ///     ∧ vec_after[index] = vec_before[vec_before.len() - 1]
     ///     ∧ (∀ i ∈ [0, vec_before.len() - 1). i ≠ index ⇒ vec_after[i] = vec_before[i])
     /// }
@@ -2324,7 +2326,8 @@ where
     /// { index = vec_before.len() - 1 }
     /// vec.swap_remove(index)
     /// {
-    ///     vec_after.len() = vec_before.len() - 1
+    ///     result = vec_before[vec_before.len() - 1]
+    ///     ∧ vec_after.len() = vec_before.len() - 1
     ///     ∧ (∀ i ∈ [0, vec_before.len() - 1). vec_after[i] = vec_before[i])
     /// }
     /// ```
@@ -2397,10 +2400,10 @@ where
     /// { index < vec_before.len() }
     /// vec.shift_remove(index)
     /// {
-    ///     vec_after.len() = vec_before.len() - 1
+    ///     result = vec_before[index]
+    ///     ∧ vec_after.len() = vec_before.len() - 1
     ///     ∧ (∀ i ∈ [0, index). vec_after[i] = vec_before[i])
     ///     ∧ (∀ i ∈ [index, vec_after.len()). vec_after[i] = vec_before[i + 1])
-    ///     ∧ result = vec_before[index]
     /// }
     /// ```
     ///
@@ -7389,14 +7392,14 @@ impl OpaqueVec {
     /// ```text
     /// { vec_before.len() = 0 }
     /// vec.pop()
-    /// { (vec_after.len() = 0) ∧ (result = None) }
+    /// { (result = None) ∧ (vec_after.len() = 0) }
     ///
     /// { vec_before.len() > 0 }
     /// vec.pop()
     /// {
-    ///     (vec_after.len() = vec_before.len() - 1)
+    ///     result = Some(vec_before[vec_before.len() - 1])
+    ///     ∧ (vec_after.len() = vec_before.len() - 1)
     ///     ∧ (∀ i ∈ [0, vec_after.len()). vec_after[i] = vec_before[i]).
-    ///     ∧ (result = Some(vec_before[vec_before.len() - 1]))
     /// }
     /// ```
     ///
@@ -7469,15 +7472,15 @@ impl OpaqueVec {
     /// { vec_before.len() < vec_before.capacity() }
     /// vec.push_within_capacity(value)
     /// {
-    ///     vec_after.len() = vec_before.len() + 1
+    ///     result = Ok(())
+    ///     ∧ vec_after.len() = vec_before.len() + 1
     ///     ∧ vec_after[vec_before.len()] = value
     ///     ∧ (∀ i ∈ [0, vec_before.len()). vec_after[i] = vec_before[i])
-    ///     ∧ result = Ok(())
     /// }
     ///
     /// { vec_before.len() = vec_before.capacity() }
     /// vec.push_within_capacity(value)
-    /// { vec_after = vec_before ∧ result = Err(value) }
+    /// { result = Err(value) ∧ vec_after = vec_before }
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `vec`.
@@ -7719,7 +7722,8 @@ impl OpaqueVec {
     /// # Formal Properties
     ///
     /// Let `vec` be a vector, `vec_before` be the state of `vec` before this method is called,
-    /// and let `vec_after` be the state of `vec` after this method completes.
+    /// and let `vec_after` be the state of `vec` after this method completes. Let `result` be the
+    /// value that this method returns after completing.
     ///
     /// This method satisfies:
     ///
@@ -7727,7 +7731,8 @@ impl OpaqueVec {
     /// { index < vec_before.len() - 1 }
     /// vec.swap_remove(index)
     /// {
-    ///     vec_after.len() = vec_before.len() - 1
+    ///     result = vec_before[vec_before.len() - 1]
+    ///     ∧ vec_after.len() = vec_before.len() - 1
     ///     ∧ vec_after[index] = vec_before[vec_before.len() - 1]
     ///     ∧ (∀ i ∈ [0, vec_before.len() - 1). i ≠ index ⇒ vec_after[i] = vec_before[i])
     /// }
@@ -7735,7 +7740,8 @@ impl OpaqueVec {
     /// { index = vec_before.len() - 1 }
     /// vec.swap_remove(index)
     /// {
-    ///     vec_after.len() = vec_before.len() - 1
+    ///     result = vec_before[vec_before.len() - 1]
+    ///     ∧ vec_after.len() = vec_before.len() - 1
     ///     ∧ (∀ i ∈ [0, vec_before.len() - 1). vec_after[i] = vec_before[i])
     /// }
     /// ```
@@ -7823,10 +7829,10 @@ impl OpaqueVec {
     /// { index < vec_before.len() }
     /// vec.shift_remove(index)
     /// {
-    ///     vec_after.len() = vec_before.len() - 1
+    ///     result = vec_before[index]
+    ///     ∧ vec_after.len() = vec_before.len() - 1
     ///     ∧ (∀ i ∈ [0, index). vec_after[i] = vec_before[i])
     ///     ∧ (∀ i ∈ [index, vec_after.len()). vec_after[i] = vec_before[i + 1])
-    ///     ∧ result = vec_before[index]
     /// }
     /// ```
     ///
