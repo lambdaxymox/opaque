@@ -7332,6 +7332,7 @@ impl OpaqueVec {
     /// # Panics
     ///
     /// This method panics if either condition occurs:
+    ///
     /// * The [`TypeId`] of the elements of `self` and the [`TypeId`] of the memory allocator of
     ///   `self` do not match the requested element type `T` and allocator type `A`, respectively.
     /// * The new capacity exceeds `isize::MAX` _bytes_ if the vector reallocates.
@@ -7569,6 +7570,7 @@ impl OpaqueVec {
     /// # Panics
     ///
     /// This method panics if one of the following conditions occurs:
+    ///
     /// * The [`TypeId`] of the elements of `self` and the [`TypeId`] of the memory allocator
     ///   of `self` do not match the requested element type `T` and allocator type `A`,
     ///   respectively.
@@ -7651,6 +7653,7 @@ impl OpaqueVec {
     /// # Panics
     ///
     /// This method panics if one of the following conditions occurs:
+    ///
     /// * The [`TypeId`] of the elements of `self` and the [`TypeId`] of the memory allocator
     ///   of `self` do not match the requested element type `T` and allocator type `A`, respectively.
     /// * The index `index` is larger than the length of the collection.
@@ -7730,6 +7733,7 @@ impl OpaqueVec {
     /// # Panics
     ///
     /// This method panics if one of the following conditions occurs:
+    ///
     /// * The [`TypeId`] of the elements of `self` and the [`TypeId`] of the memory allocator
     ///   of `self` do not match the requested element type `T` and allocator type `A`, respectively.
     /// * The index `index` is larger than the length of the collection. In particular, the method
@@ -7817,6 +7821,7 @@ impl OpaqueVec {
     /// # Panics
     ///
     /// This method panics if one of the following conditions occurs:
+    ///
     /// * The [`TypeId`] of the elements of `self` and the [`TypeId`] of the memory allocator
     ///   of `self` do not match the requested element type `T` and allocator type `A`, respectively.
     /// * The index `index` is larger than the length of the collection. In particular, the method
@@ -8127,6 +8132,7 @@ impl OpaqueVec {
     /// # Panics
     ///
     /// This method panics under one of the following conditions:
+    ///
     /// * if the [`TypeId`] of the elements of `self` and the [`TypeId`] of the memory allocator
     ///   of `self` do not match the requested element type `T` and allocator type `A`,
     ///   respectively. Similarly, the method panics if the [`TypeId`] of the elements of `self`
@@ -8195,6 +8201,7 @@ impl OpaqueVec {
     /// # Panics
     ///
     /// This method panics if one of the following conditions holds:
+    ///
     /// * The [`TypeId`] of the elements of `self` and the [`TypeId`] of the memory allocator of
     ///   `self` do not match the requested element type `T` and allocator type `A`, respectively.
     /// * If the range of the subslice falls outside the bounds of the collection. That is, if the
@@ -8963,6 +8970,7 @@ impl OpaqueVec {
     /// # Panics
     ///
     /// This method panics if one of the following conditions holds:
+    ///
     /// * If the [`TypeId`] of the elements of `self` and the [`TypeId`] of the memory allocator
     ///   of `self` do not match the requested element type `T` and allocator type `A`,
     ///   respectively.
@@ -9033,6 +9041,7 @@ impl OpaqueVec {
     /// # Panics
     ///
     /// This method panics if one of the following conditions holds:
+    ///
     /// * If the [`TypeId`] of the elements of `self` and the [`TypeId`] of the memory allocator
     ///   of `self` do not match the requested element type `T` and allocator type `A`,
     ///   respectively.
@@ -9559,6 +9568,7 @@ impl OpaqueVec {
     /// # Panics
     ///
     /// This method panics under one of the following conditions:
+    ///
     /// * If the [`TypeId`] of the elements of `self` and the [`TypeId`] of the memory allocator of
     ///   `self` do not match the requested element type `T` and allocator type `A`, respectively.
     /// * If the starting point is greater than the end point or if the end point is greater than
@@ -9711,6 +9721,7 @@ impl OpaqueVec {
     /// # Panics
     ///
     /// This method panics under one of the following conditions:
+    ///
     /// * If the [`TypeId`] of the elements of `self` and the [`TypeId`] of the memory allocator of
     ///   `self` do not match the requested element type `T` and allocator type `A`, respectively.
     /// * If `range` is out of bounds.
@@ -9856,6 +9867,7 @@ impl OpaqueVec {
     /// # Panics
     ///
     /// This method panics under one of the following conditions:
+    ///
     /// * If the [`TypeId`] of the elements of `self` and the [`TypeId`] of the memory allocator of
     ///   `self` do not match the requested element type `T` and allocator type `A`, respectively.
     /// * If the new capacity exceeds `isize::MAX` _bytes_.

@@ -4234,6 +4234,7 @@ where
     /// [`OccupiedEntry`].
     ///
     /// This method behaves as follows:
+    ///
     /// * If the entry is occupied, this method replaces the old value with the new value in the
     ///   entry, and returns an occupied entry. The entry retains its position in the storage order
     ///   of the index map.
@@ -4312,6 +4313,7 @@ where
     /// empty, and returns a mutable reference to the value in the entry.
     ///
     /// This method behaves as follows:
+    ///
     /// * If the entry is occupied, this method does nothing and returns a mutable reference to its
     ///   value.
     /// * If the entry is vacant, this method inserts the result of calling the provided function
@@ -4356,6 +4358,7 @@ where
     /// Ensures a value is in the entry, using the provided default function if necessary.
     ///
     /// This method behaves as follows:
+    ///
     /// * If the entry is occupied, this method does nothing, and returns a mutable reference to its
     ///   value.
     /// * Is the entry is vacant, this method inserts the result of the default function.
@@ -4408,6 +4411,7 @@ where
     /// Gets a reference to the entry's key in the index map.
     ///
     /// This method behaves as follows:
+    ///
     /// * If the entry is occupied, this method returns the key stored in the index map for that
     ///   entry.
     /// * If the entry is vacant, this method returns the key that was used to search for the entry
@@ -4490,6 +4494,7 @@ where
     /// Ensures that a value is in the entry by inserting the default value if necessary.
     ///
     /// This method behaves as follows:
+    ///
     /// * If the entry is vacant, this method inserts the default value and returns a mutable
     ///   reference to the value in the entry.
     /// * If the entry is occupied, the method does nothing and returns a mutable reference to the
@@ -5023,6 +5028,7 @@ where
     /// other pairs in between.
     ///
     /// This method behaves as follows:
+    ///
     /// * If `self.index() < to`, the other pairs will shift up while the targeted pair moves down.
     /// * If `self.index() > to`, the other pairs will shift down while the targeted pair moves up.
     ///
@@ -5416,6 +5422,7 @@ where
     /// updating it or calling [`insert_before`] for a new key.
     ///
     /// This method behaves as follows:
+    ///
     /// * If the index map is in sorted order and contains the sorted key `key`, its corresponding
     ///   value is updated with `value`, and the older value is returned as
     ///   `(index, Some(old_value))`, where `index` is the storage index of the sorted key.
@@ -6026,6 +6033,7 @@ where
     /// other pairs in between.
     ///
     /// This method behaves as follows:
+    ///
     /// * If `self.index() < to`, the other pairs will shift up while the targeted pair moves down.
     /// * If `self.index() > to`, the other pairs will shift down while the targeted pair moves up.
     ///
@@ -8369,6 +8377,7 @@ where
     /// the collection to the index where the removed entry occupies the collection.
     ///
     /// This method behaves with respect to `key` as follows:
+    ///
     /// * If the key `key` exists in the index map, let `index` be its storage index.
     ///   If `index < self.len() - 1`, it moves the last entry in the collection to the slot at
     ///   `index`, leaving the rest of the entries in place. If `index == self.len() - 1`, it
@@ -8516,6 +8525,7 @@ where
     /// the collection to the index where the removed entry occupies the collection.
     ///
     /// This method behaves with respect to `key` as follows:
+    ///
     /// * If the key `key` exists in the index map, let `index` be its storage index.
     ///   If `index < self.len() - 1`, it moves the last entry in the collection to the slot at
     ///   `index`, leaving the rest of the entries in place. If `index == self.len() - 1`, it
@@ -8663,6 +8673,7 @@ where
     /// the collection to the index where the removed entry occupies the collection.
     ///
     /// This method behaves with respect to `key` as follows:
+    /// 
     /// * If the key `key` exists in the index map, let `index` be its storage index.
     ///   If `index < self.len() - 1`, it moves the last entry in the collection to the slot at
     ///   `index`, leaving the rest of the entries in place. If `index == self.len() - 1`, it
@@ -8812,6 +8823,7 @@ where
     /// collection.
     ///
     /// This method behaves with respect to `key` as follows:
+    ///
     /// * If the key `key` exists in the index map, let `index` be its storage index.
     ///   If `index < self.len() - 1`, it moves every successive entry in the collection to the
     ///   entry at storage index `index` down one unit. Every entry preceding the entry at index
@@ -8948,6 +8960,7 @@ where
     /// collection.
     ///
     /// This method behaves with respect to `key` as follows:
+    ///
     /// * If the key `key` exists in the index map, let `index` be its storage index.
     ///   If `index < self.len() - 1`, it moves every successive entry in the collection to the
     ///   entry at storage index `index` down one unit. Every entry preceding the entry at index
@@ -9085,6 +9098,7 @@ where
     /// collection.
     ///
     /// This method behaves with respect to `key` as follows:
+    ///
     /// * If the key `key` exists in the index map, let `index` be its storage index.
     ///   If `index < self.len() - 1`, it moves every successive entry in the collection to the
     ///   entry at storage index `index` down one unit. Every entry preceding the entry at index
@@ -9295,6 +9309,7 @@ where
     /// Inserts a new entry into the index map.
     ///
     /// This method behaves as follows:
+    ///
     /// * If the equivalent key already exists in the index map, this method replaces the old value
     ///   with the new value in the map, and returns the old value as `Some(old_value)`. The entry
     ///   retains its position in the storage order of the index map.
@@ -9373,6 +9388,7 @@ where
     /// exists.
     ///
     /// This method behaves as follows:
+    ///
     /// * If the equivalent key already exists in the index map, this method replaces the old value
     ///   with the new value in the map, and returns the storage index and the old value as
     ///   `(index, Some(old_value))`. The entry retains its position in the storage order of the
@@ -9476,6 +9492,7 @@ where
     /// updating it or calling [`insert_before`] for a new key.
     ///
     /// This method behaves as follows:
+    ///
     /// * If the index map is in sorted order and contains the sorted key `key`, its corresponding
     ///   value is updated with `value`, and the older value is returned as
     ///   `(index, Some(old_value))`, where `index` is the storage index of the sorted key.
@@ -9630,6 +9647,7 @@ where
     /// `index` is in `[0, self.len()]`. Otherwise, the index `index` is **out of bounds**.
     ///
     /// This method behaves as follows:
+    ///
     /// * If an equivalent key to the key `key` exists in the index map, let `current_index` be the
     ///   storage index of the entry with the equivalent key to `key`.
     ///   - If `index > current_index`, this method moves the entry at `current_index` to
@@ -9873,13 +9891,16 @@ where
     ///
     /// The index `index` must be in bounds. The index `index` is **in bounds** provided that one
     /// of the following conditions holds:
+    ///
     /// * If an entry with a key equivalent to the key `key` exists in the index map, and `index` is
     ///   in `[0, self.len())`.
     /// * If an entry with a key equivalent to the key `key` does not exist in the index map, and
     ///   index is in `[0, self.len()]`.
+    ///
     /// Otherwise, the index `index` is **out of bounds**.
     ///
     /// This method behaves as follows:
+    ///
     /// * If an equivalent key already exists in the map, let `current_index` be the storage index
     ///   of the entry with key equivalent to `key`.
     ///   - If `index < current_index`, every entry in range `[index, current_index)` is shifted up
@@ -11512,6 +11533,7 @@ where
     /// # Panics
     ///
     /// This method panics if one of the following conditions occurs:
+    ///
     /// * If the capacity of the index map overflows.
     /// * If the allocator reports a failure.
     ///
@@ -11562,6 +11584,7 @@ where
     /// # Panics
     ///
     /// This method panics if one of the following conditions occurs:
+    ///
     /// * If the capacity of the index map overflows.
     /// * If the allocator reports a failure.
     ///
@@ -12406,6 +12429,7 @@ where
     /// Swap removes an entry from the index map by storage index.
     ///
     /// This method behaves as follows:
+    ///
     /// * If `index < self.len() - 1`, this method removes the entry at storage index `index`, and
     ///   swaps the last entry in `self` into the slot at `index`. This method removes and returns
     ///   `Some((key, value))`, where `key` is the key, and `value` is the value from the removed
@@ -12485,11 +12509,13 @@ where
     /// Shift removes an entry from the index map by storage index.
     ///
     /// This method behaves as follows:
+    ///
     /// * If `index < self.len()`, this method removes the entry at storage index `index`, and
     ///   shifts each entry in `(index, self.len())` down one unit. This method removes and returns
     ///   `Some((key, value))`, where `key` is the key, and `value` is the value from the entry.
     /// * If `index >= self.len()`, the index `index` is out of bounds, so the method returns
     ///   `None`.
+    ///
     /// Note that when `self.len() == 1`, `self` is empty, so no shifting occurs.
     ///
     /// # Formal Properties
@@ -12555,6 +12581,7 @@ where
     /// pairs in between.
     ///
     /// This method behaves as follows:
+    ///
     /// * If `from < to`, the other pairs will shift up while the targeted pair moves down.
     /// * If `from > to`, the other pairs will shift down while the targeted pair moves up.
     ///
@@ -15753,6 +15780,7 @@ impl OpaqueIndexMap {
     /// # Panics
     ///
     /// This method panics under one of the following conditions:
+    ///
     /// * If the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
     ///   `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
     ///   allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
@@ -15962,6 +15990,7 @@ impl OpaqueIndexMap {
     /// # Panics
     ///
     /// This method panics under one of the following conditions:
+    ///
     /// * If the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
     ///  `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
     ///   allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
@@ -16055,6 +16084,7 @@ impl OpaqueIndexMap {
     /// the collection to the index where the removed entry occupies the collection.
     ///
     /// This method behaves with respect to `key` as follows:
+    ///
     /// * If the key `key` exists in the index map, let `index` be its storage index.
     ///   If `index < self.len() - 1`, it moves the last entry in the collection to the slot at
     ///   `index`, leaving the rest of the entries in place. If `index == self.len() - 1`, it
@@ -16270,6 +16300,7 @@ impl OpaqueIndexMap {
     /// the collection to the index where the removed entry occupies the collection.
     ///
     /// This method behaves with respect to `key` as follows:
+    ///
     /// * If the key `key` exists in the index map, let `index` be its storage index.
     ///   If `index < self.len() - 1`, it moves the last entry in the collection to the slot at
     ///   `index`, leaving the rest of the entries in place. If `index == self.len() - 1`, it
@@ -16485,6 +16516,7 @@ impl OpaqueIndexMap {
     /// the collection to the index where the removed entry occupies the collection.
     ///
     /// This method behaves with respect to `key` as follows:
+    ///
     /// * If the key `key` exists in the index map, let `index` be its storage index.
     ///   If `index < self.len() - 1`, it moves the last entry in the collection to the slot at
     ///   `index`, leaving the rest of the entries in place. If `index == self.len() - 1`, it
@@ -16702,6 +16734,7 @@ impl OpaqueIndexMap {
     /// collection.
     ///
     /// This method behaves with respect to `key` as follows:
+    ///
     /// * If the key `key` exists in the index map, let `index` be its storage index.
     ///   If `index < self.len() - 1`, it moves every successive entry in the collection to the
     ///   entry at storage index `index` down one unit. Every entry preceding the entry at index
@@ -16906,6 +16939,7 @@ impl OpaqueIndexMap {
     /// collection.
     ///
     /// This method behaves with respect to `key` as follows:
+    ///
     /// * If the key `key` exists in the index map, let `index` be its storage index.
     ///   If `index < self.len() - 1`, it moves every successive entry in the collection to the
     ///   entry at storage index `index` down one unit. Every entry preceding the entry at index
@@ -17111,6 +17145,7 @@ impl OpaqueIndexMap {
     /// collection.
     ///
     /// This method behaves with respect to `key` as follows:
+    ///
     /// * If the key `key` exists in the index map, let `index` be its storage index.
     ///   If `index < self.len() - 1`, it moves every successive entry in the collection to the
     ///   entry at storage index `index` down one unit. Every entry preceding the entry at index
@@ -17426,6 +17461,7 @@ impl OpaqueIndexMap {
     /// Inserts a new entry into the index map.
     ///
     /// This method behaves as follows:
+    ///
     /// * If the equivalent key already exists in the index map, this method replaces the old value
     ///   with the new value in the map, and returns the old value as `Some(old_value)`. The entry
     ///   retains its position in the storage order of the index map.
@@ -17523,6 +17559,7 @@ impl OpaqueIndexMap {
     /// exists.
     ///
     /// This method behaves as follows:
+    ///
     /// * If the equivalent key already exists in the index map, this method replaces the old value
     ///   with the new value in the map, and returns the storage index and the old value as
     ///   `(index, Some(old_value))`. The entry retains its position in the storage order of the
@@ -17645,6 +17682,7 @@ impl OpaqueIndexMap {
     /// updating it or calling [`insert_before`] for a new key.
     ///
     /// This method behaves as follows:
+    ///
     /// * If the index map is in sorted order and contains the sorted key `key`, its corresponding
     ///   value is updated with `value`, and the older value is returned as
     ///   `(index, Some(old_value))`, where `index` is the storage index of the sorted key.
@@ -17824,6 +17862,7 @@ impl OpaqueIndexMap {
     /// `index` is in `[0, self.len()]`. Otherwise, the index `index` is **out of bounds**.
     ///
     /// This method behaves as follows:
+    ///
     /// * If an equivalent key to the key `key` exists in the index map, let `current_index` be the
     ///   storage index of the entry with the equivalent key to `key`.
     ///   - If `index > current_index`, this method moves the entry at `current_index` to
@@ -17892,6 +17931,7 @@ impl OpaqueIndexMap {
     /// # Panics
     ///
     /// This method panics under one of the following conditions:
+    ///
     /// * If the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
     ///   `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
     ///   allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
@@ -18102,13 +18142,16 @@ impl OpaqueIndexMap {
     ///
     /// The index `index` must be in bounds. The index `index` is **in bounds** provided that one
     /// of the following conditions holds:
+    ///
     /// * If an entry with a key equivalent to the key `key` exists in the index map, and `index` is
     ///   in `[0, self.len())`.
     /// * If an entry with a key equivalent to the key `key` does not exist in the index map, and
     ///   index is in `[0, self.len()]`.
+    ///
     /// Otherwise, the index `index` is **out of bounds**.
     ///
     /// This method behaves as follows:
+    ///
     /// * If an equivalent key already exists in the map, let `current_index` be the storage index
     ///   of the entry with key equivalent to `key`.
     ///   - If `index < current_index`, every entry in range `[index, current_index)` is shifted up
@@ -18200,6 +18243,7 @@ impl OpaqueIndexMap {
     /// # Panics
     ///
     /// This method panics under one of the following conditions:
+    ///
     /// * If the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
     ///   `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
     ///   allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
@@ -18458,6 +18502,7 @@ impl OpaqueIndexMap {
     /// # Panics
     ///
     /// This method panics under one of the following conditions:
+    ///
     /// * If the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
     ///   `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
     ///   allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
@@ -18626,6 +18671,7 @@ impl OpaqueIndexMap {
     /// # Panics
     ///
     /// This method panics under the following conditions:
+    ///
     /// * If the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of `self`, the
     ///   [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory allocator of
     ///   `self` do not match the requested key type `K`, value type `V`, hash builder type `S1`, and
@@ -20162,6 +20208,7 @@ impl OpaqueIndexMap {
     /// # Panics
     ///
     /// This method panics if one of the following conditions occurs:
+    ///
     /// * If the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
     ///   `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
     ///   allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
@@ -20231,6 +20278,7 @@ impl OpaqueIndexMap {
     /// # Panics
     ///
     /// This method panics if one of the following conditions occurs:
+    ///
     /// * If the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
     ///   `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
     ///   allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
@@ -21472,6 +21520,7 @@ impl OpaqueIndexMap {
     /// Swap removes an entry from the index map by storage index.
     ///
     /// This method behaves as follows:
+    ///
     /// * If `index < self.len() - 1`, this method removes the entry at storage index `index`, and
     ///   swaps the last entry in `self` into the slot at `index`. This method removes and returns
     ///   `Some((key, value))`, where `key` is the key, and `value` is the value from the removed
@@ -21573,11 +21622,13 @@ impl OpaqueIndexMap {
     /// Shift removes an entry from the index map by storage index.
     ///
     /// This method behaves as follows:
+    ///
     /// * If `index < self.len()`, this method removes the entry at storage index `index`, and
     ///   shifts each entry in `(index, self.len())` down one unit. This method removes and returns
     ///   `Some((key, value))`, where `key` is the key, and `value` is the value from the entry.
     /// * If `index >= self.len()`, the index `index` is out of bounds, so the method returns
     ///   `None`.
+    ///
     /// Note that when `self.len() == 1`, `self` is empty, so no shifting occurs.
     ///
     /// # Formal Properties
@@ -21665,6 +21716,7 @@ impl OpaqueIndexMap {
     /// pairs in between.
     ///
     /// This method behaves as follows:
+    ///
     /// * If `from < to`, the other pairs will shift up while the targeted pair moves down.
     /// * If `from > to`, the other pairs will shift down while the targeted pair moves up.
     ///
@@ -21713,6 +21765,7 @@ impl OpaqueIndexMap {
     /// # Panics
     ///
     /// This method panics if one of the following conditions occurs:
+    ///
     /// * If the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
     ///   `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
     ///   allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
@@ -21820,6 +21873,7 @@ impl OpaqueIndexMap {
     /// # Panics
     ///
     /// This method panics if one of the following conditions occurs:
+    ///
     /// * If the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
     ///   `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
     ///   allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
