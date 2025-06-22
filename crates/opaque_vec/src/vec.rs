@@ -1988,6 +1988,7 @@ where
     ///
     /// Let `vec` be a vector. Let `vec_before` be the state of `vec` before this method is called,
     /// and let `vec_after` be the state of `vec` after this method is completed.
+    ///
     /// This method satisfies:
     ///
     /// ```text
@@ -2031,7 +2032,9 @@ where
     ///
     /// Let `vec` be a vector. Let `vec_before` be the state of `vec` before this method is called,
     /// let `vec_after` be the state of `vec` after this method completes. Let `result` be the
-    /// value that this method returns after completing. This method satisfies:
+    /// value that this method returns after completing.
+    ///
+    /// This method satisfies:
     ///
     /// ```text
     /// { vec_before.len() = 0 }
@@ -2176,8 +2179,9 @@ where
     /// # Formal Properties
     ///
     /// Let `vec` be a vector, `vec_before` be the state of `vec` before this method is called,
-    /// and let `vec_after` be the state of `vec` after this method completes. This method
-    /// satisfies
+    /// and let `vec_after` be the state of `vec` after this method completes.
+    ///
+    /// This method satisfies:
     ///
     /// ```text
     /// { index < vec_before.len() }
@@ -2385,7 +2389,9 @@ where
     ///
     /// Let `vec` be a vector, `vec_before` be the state of `vec` before this method is called,
     /// let `vec_after` be the state of `vec` after this method completes, and let `result` be the
-    /// value that this method returns after completing. This method satisfies:
+    /// value that this method returns after completing.
+    ///
+    /// This method satisfies:
     ///
     /// ```text
     /// { index < vec_before.len() }
@@ -2458,7 +2464,7 @@ where
     /// ∀ e :: T. (e ∈ vec) ⇔ (∃ i ∈ [0, vec.len()). vec[i] = e).
     /// ```
     ///
-    /// Then this method satisfies the following:
+    /// This method satisfies the following:
     ///
     /// ```text
     /// ∀ e :: T. vec.contains(v) ⇔ (e ∈ vec) ⇔ (∃ i ∈ [0, vec.len()). vec[i] = e).
@@ -3596,7 +3602,7 @@ where
     /// ∀ e :: T. (e ∈ vec) ⇔ (∃ i ∈ [0, vec.len()). vec[i] = e).
     /// ```
     ///
-    /// The method satisfies:
+    /// This method satisfies:
     ///
     /// ```text
     /// { true }
@@ -7215,6 +7221,7 @@ impl OpaqueVec {
     ///
     /// * If `index` is a scalar index, and `index` is out of bounds.
     /// * If `index` is a slice range, and a subslice of `index` falls out of bounds.
+    ///
     /// The method returns some value or range of values otherwise.
     ///
     /// # Panics
@@ -7266,6 +7273,7 @@ impl OpaqueVec {
     ///
     /// * If `index` is a scalar index, and `index` is out of bounds.
     /// * If `index` is a slice range, and a subslice of `index` falls out of bounds.
+    ///
     /// The method returns some value or range of values otherwise.
     ///
     /// # Panics
@@ -7316,6 +7324,7 @@ impl OpaqueVec {
     ///
     /// Let `vec` be a vector. Let `vec_before` be the state of `vec` before this method is called,
     /// and let `vec_after` be the state of `vec` after this method is completed.
+    ///
     /// This method satisfies:
     ///
     /// ```text
@@ -7373,7 +7382,9 @@ impl OpaqueVec {
     ///
     /// Let `vec` be a vector. Let `vec_before` be the state of `vec` before this method is called,
     /// let `vec_after` be the state of `vec` after this method completes. Let `result` be the
-    /// value that this method returns after completing. This method satisfies:
+    /// value that this method returns after completing.
+    ///
+    /// This method satisfies:
     ///
     /// ```text
     /// { vec_before.len() = 0 }
@@ -7552,8 +7563,9 @@ impl OpaqueVec {
     /// # Formal Properties
     ///
     /// Let `vec` be a vector, `vec_before` be the state of `vec` before this method is called,
-    /// and let `vec_after` be the state of `vec` after this method completes. This method
-    /// satisfies
+    /// and let `vec_after` be the state of `vec` after this method completes.
+    ///
+    /// This method satisfies:
     ///
     /// ```text
     /// { index < vec_before.len() }
@@ -7803,7 +7815,9 @@ impl OpaqueVec {
     ///
     /// Let `vec` be a vector, `vec_before` be the state of `vec` before this method is called,
     /// let `vec_after` be the state of `vec` after this method completes, and let `result` be the
-    /// value that this method returns after completing. This method satisfies:
+    /// value that this method returns after completing.
+    ///
+    /// This method satisfies:
     ///
     /// ```text
     /// { index < vec_before.len() }
@@ -7891,7 +7905,7 @@ impl OpaqueVec {
     /// ∀ e :: T. (e ∈ vec) ⇔ (∃ i ∈ [0, vec.len()). vec[i] = e).
     /// ```
     ///
-    /// Then this method satisfies the following:
+    /// This method satisfies the following:
     ///
     /// ```text
     /// ∀ e :: T. vec.contains(v) ⇔ (e ∈ vec) ⇔ (∃ i ∈ [0, vec.len()). vec[i] = e).
@@ -9495,7 +9509,7 @@ impl OpaqueVec {
     /// ∀ e :: T. (e ∈ vec) ⇔ (∃ i ∈ [0, vec.len()). vec[i] = e).
     /// ```
     ///
-    /// The method satisfies:
+    /// This method satisfies:
     ///
     /// ```text
     /// { true }

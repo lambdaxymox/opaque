@@ -7271,7 +7271,7 @@ where
     /// ∀ e :: (K, V). (e ∈ map) ⇔ (∃ i ∈ [0, map.len()). map[i] = e ∧ map[e.key()] = e.value())
     /// ```
     ///
-    /// Then this method satisfies the following:
+    /// This method satisfies the following:
     ///
     /// ```text
     /// ∀ e :: (K, V).
@@ -7906,7 +7906,7 @@ where
     /// ∀ e :: (K, V). e ∈ map ⇔ (∃ i ∈ [0, map.len()). map[i] = e).
     /// ```
     ///
-    /// The method satisfies:
+    /// This method satisfies:
     ///
     /// ```text
     /// { true }
@@ -8673,7 +8673,7 @@ where
     /// the collection to the index where the removed entry occupies the collection.
     ///
     /// This method behaves with respect to `key` as follows:
-    /// 
+    ///
     /// * If the key `key` exists in the index map, let `index` be its storage index.
     ///   If `index < self.len() - 1`, it moves the last entry in the collection to the slot at
     ///   `index`, leaving the rest of the entries in place. If `index == self.len() - 1`, it
@@ -9329,6 +9329,8 @@ where
     /// ∀ k :: K. (k ∈ map) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
     /// ```
     ///
+    /// This method satisfies:
+    ///
     /// ```text
     /// { key ∈ map_before }
     /// map.insert(key, value)
@@ -9409,6 +9411,8 @@ where
     /// ```text
     /// ∀ k :: K. (k ∈ map) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
     /// ```
+    ///
+    /// This method satisfies:
     ///
     /// ```text
     /// { key ∈ map_before }
@@ -9544,7 +9548,7 @@ where
     /// index(map, k) := i such that map[i].key() = k ∧ (∀ j ∈ [0, map.len()). j ≠ i ⇒ map[j].key() ≠ k).
     /// ```
     ///
-    /// This method satisfies
+    /// This method satisfies:
     ///
     /// ```text
     /// { key ∈ map_before ∧ sorted(map_before) }
@@ -14566,7 +14570,7 @@ impl OpaqueIndexMap {
     /// ∀ e :: (K, V). (e ∈ map) ⇔ (∃ i ∈ [0, map.len()). map[i] = e ∧ map[e.key()] = e.value())
     /// ```
     ///
-    /// Then this method satisfies the following:
+    /// This method satisfies the following:
     ///
     /// ```text
     /// ∀ e :: (K, V).
@@ -15494,7 +15498,7 @@ impl OpaqueIndexMap {
     /// ∀ e :: (K, V). e ∈ map ⇔ (∃ i ∈ [0, map.len()). map[i] = e).
     /// ```
     ///
-    /// The method satisfies:
+    /// This method satisfies:
     ///
     /// ```text
     /// { true }
@@ -17481,6 +17485,8 @@ impl OpaqueIndexMap {
     /// ∀ k :: K. (k ∈ map) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
     /// ```
     ///
+    /// This method satisfies:
+    ///
     /// ```text
     /// { key ∈ map_before }
     /// map.insert(key, value)
@@ -17580,6 +17586,8 @@ impl OpaqueIndexMap {
     /// ```text
     /// ∀ k :: K. (k ∈ map) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
     /// ```
+    ///
+    /// This method satisfies:
     ///
     /// ```text
     /// { key ∈ map_before }
@@ -17734,7 +17742,7 @@ impl OpaqueIndexMap {
     /// index(map, k) := i such that map[i].key() = k ∧ (∀ j ∈ [0, map.len()). j ≠ i ⇒ map[j].key() ≠ k).
     /// ```
     ///
-    /// This method satisfies
+    /// This method satisfies:
     ///
     /// ```text
     /// { key ∈ map_before ∧ sorted(map_before) }

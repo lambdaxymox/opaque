@@ -2623,7 +2623,7 @@ where
     /// # Panics
     ///
     /// This method panics if one of the following conditions occurs:
-    /// 
+    ///
     /// * If the capacity of the index set overflows.
     /// * If the allocator reports a failure.
     ///
@@ -2667,7 +2667,7 @@ where
     /// # Panics
     ///
     /// This method panics if one of the following conditions occurs:
-    /// 
+    ///
     /// * If the capacity of the index set overflows.
     /// * If the allocator reports a failure.
     ///
@@ -2877,7 +2877,7 @@ where
     /// Inserts a new entry into the index set.
     ///
     /// This method behaves as follows:
-    /// 
+    ///
     /// * If the equivalent value already exists in the index set, this method returns `false`. The
     ///   entry retains its position in the storage order of the index set.
     /// * If the entry with the equivalent value does not exist in the set, it is appended to the
@@ -2914,7 +2914,7 @@ where
     /// exists.
     ///
     /// This method behaves as follows:
-    /// 
+    ///
     /// * If the equivalent value already exists in the index set, this method returns the storage
     ///   index of the value as `(index, false)`. The entry retains its position in the storage
     ///   order of the index set.
@@ -2954,7 +2954,7 @@ where
     /// Inserts a new entry in the index set at its ordered position among sorted values.
     ///
     /// An index set is in **sorted order by value** if it satisfies the following property: let
-    /// `e1` and `e2` be entries in `self`. Then `e1.value() <= e2.value()` if and only if
+    /// `e1` and `e2` be entries in `self`. The `e1.value() <= e2.value()` if and only if
     /// `e1.index() <= e2.index()`. More precisely, given the index set `self`
     ///
     /// ```text
@@ -2978,7 +2978,7 @@ where
     /// updating it or calling [`insert_before`] for a new value.
     ///
     /// This method behaves as follows:
-    /// 
+    ///
     /// * If the index set is in sorted order and contains the sorted value `value`, this method
     ///   returns `(index, false)`, where `index` is the storage index of the sorted value.
     /// * If the index set is in sorted order and does not contain the sorted value `value`, this
@@ -3072,7 +3072,7 @@ where
     /// `index` is in `[0, self.len()]`. Otherwise, the index `index` is **out of bounds**.
     ///
     /// This method behaves as follows:
-    /// 
+    ///
     /// * If an equivalent value to the value `value` exists in the index set, let `current_index`
     ///   be the storage index of the entry with the equivalent value to `value`.
     ///   - If `index > current_index`, this method moves the entry at `current_index` to
@@ -3265,16 +3265,16 @@ where
     ///
     /// The index `index` must be in bounds. The index `index` is **in bounds** provided that one
     /// of the following conditions holds:
-    /// 
+    ///
     /// * If an entry with a value equivalent to the value `value` exists in the index set, and
     ///   `index` is in `[0, self.len())`.
     /// * If an entry with a value equivalent to the value `value` does not exist in the index set,
     ///   and index is in `[0, self.len()]`.
-    /// 
+    ///
     /// Otherwise, the index `index` is **out of bounds**.
     ///
     /// This method behaves as follows:
-    /// 
+    ///
     /// * If an equivalent value already exists in the set, let `current_index` be the storage
     ///   index of the entry with value equivalent to `value`.
     ///   - If `index < current_index`, every entry in range `[index, current_index)` is shifted up
@@ -3955,7 +3955,7 @@ where
     /// ∀ v :: T. (v ∈ set) ⇔ (∃ i ∈ [0, set.len()). set[i] = v).
     /// ```
     ///
-    /// Then this method satisfies the following:
+    /// This method satisfies the following:
     ///
     /// ```text
     /// ∀ v :: V. set.contains(v) ⇔ (v ∈ set) ⇔ (∃ i ∈ [0, set.len()). set[i] = v.
@@ -4092,7 +4092,7 @@ where
     /// the collection to the index where the removed entry occupies the collection.
     ///
     /// This method behaves with respect to `value` as follows:
-    /// 
+    ///
     /// * If the value `value` exists in the index set, let `index` be its storage index.
     ///   If `index < self.len() - 1`, it moves the last entry in the collection to the slot at
     ///   `index`, leaving the rest of the entries in place. If `index == self.len() - 1`, it
@@ -4208,7 +4208,7 @@ where
     /// collection.
     ///
     /// This method behaves with respect to `value` as follows:
-    /// 
+    ///
     /// * If the value `value` exists in the index set, let `index` be its storage index.
     ///   If `index < self.len() - 1`, it moves every successive entry in the collection to the
     ///   entry at storage index `index` down one unit. Every entry preceding the entry at index
@@ -4317,7 +4317,7 @@ where
     /// in the collection to the index where the removed entry occupies the collection.
     ///
     /// This method behaves with respect to `value` as follows:
-    /// 
+    ///
     /// * If the value `value` exists in the index set, let `index` be its storage index.
     ///   If `index < self.len() - 1`, it moves the last entry in the collection to the slot at
     ///   `index`, leaving the rest of the entries in place. If `index == self.len() - 1`, it
@@ -4438,7 +4438,7 @@ where
     /// collection.
     ///
     /// This method behaves with respect to `value` as follows:
-    /// 
+    ///
     /// * If the value `value` exists in the index set, let `index` be its storage index.
     ///   If `index < self.len() - 1`, it moves every successive entry in the collection to the
     ///   entry at storage index `index` down one unit. Every entry preceding the entry at index
@@ -4553,7 +4553,7 @@ where
     /// the collection to the index where the removed entry occupies the collection.
     ///
     /// This method behaves with respect to `value` as follows:
-    /// 
+    ///
     /// * If the value `value` exists in the index set, let `index` be its storage index.
     ///   If `index < self.len() - 1`, it moves the last entry in the collection to the slot at
     ///   `index`, leaving the rest of the entries in place. If `index == self.len() - 1`, it
@@ -4663,7 +4663,7 @@ where
     /// collection.
     ///
     /// This method behaves with respect to `value` as follows:
-    /// 
+    ///
     /// * If the value `value` exists in the index set, let `index` be its storage index.
     ///   If `index < self.len() - 1`, it moves every successive entry in the collection to the
     ///   entry at storage index `index` down one unit. Every entry preceding the entry at index
@@ -6813,7 +6813,7 @@ impl OpaqueIndexSet {
     /// # Panics
     ///
     /// This method panics under one of the following conditions:
-    /// 
+    ///
     /// * If the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
     ///   builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
     ///   value type `T`, hash builder type `S`, and allocator type `A`, respectively.
@@ -7009,7 +7009,7 @@ impl OpaqueIndexSet {
     /// # Panics
     ///
     /// This method panics under one of the following conditions:
-    /// 
+    ///
     /// * If the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash builder of `self`,
     ///   and the [`TypeId`] of the memory allocator of `self` do not match the value type `T`,
     ///   hash builder type `S`, and allocator type `A`, respectively.
@@ -7097,7 +7097,7 @@ impl OpaqueIndexSet {
     /// # Panics
     ///
     /// This method panics if one of the following conditions occurs:
-    /// 
+    ///
     /// * If the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash builder of `self`,
     ///   and the [`TypeId`] of the memory allocator of `self` do not match the value type `T`,
     ///   hash builder type `S`, and allocator type `A`, respectively.
@@ -7157,7 +7157,7 @@ impl OpaqueIndexSet {
     /// # Panics
     ///
     /// This method panics if one of the following conditions occurs:
-    /// 
+    ///
     /// * If the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash builder of `self`,
     ///   and the [`TypeId`] of the memory allocator of `self` do not match the value type `T`,
     ///   hash builder type `S`, and allocator type `A`, respectively.
@@ -7453,7 +7453,7 @@ impl OpaqueIndexSet {
     /// Inserts a new entry into the index set.
     ///
     /// This method behaves as follows:
-    /// 
+    ///
     /// * If the equivalent value already exists in the index set, this method returns `false`. The
     ///   entry retains its position in the storage order of the index set.
     /// * If the entry with the equivalent value does not exist in the set, it is appended to the
@@ -7509,7 +7509,7 @@ impl OpaqueIndexSet {
     /// exists.
     ///
     /// This method behaves as follows:
-    /// 
+    ///
     /// * If the equivalent value already exists in the index set, this method returns the storage
     ///   index of the value as `(index, false)`. The entry retains its position in the storage
     ///   order of the index set.
@@ -7590,7 +7590,7 @@ impl OpaqueIndexSet {
     /// updating it or calling [`insert_before`] for a new value.
     ///
     /// This method behaves as follows:
-    /// 
+    ///
     /// * If the index set is in sorted order and contains the sorted value `value`, this method
     ///   returns `(index, false)`, where `index` is the storage index of the sorted value.
     /// * If the index set is in sorted order and does not contain the sorted value `value`, this
@@ -7704,7 +7704,7 @@ impl OpaqueIndexSet {
     /// `index` is in `[0, self.len()]`. Otherwise, the index `index` is **out of bounds**.
     ///
     /// This method behaves as follows:
-    /// 
+    ///
     /// * If an equivalent value to the value `value` exists in the index set, let `current_index`
     ///   be the storage index of the entry with the equivalent value to `value`.
     ///   - If `index > current_index`, this method moves the entry at `current_index` to
@@ -7724,7 +7724,7 @@ impl OpaqueIndexSet {
     /// # Panics
     ///
     /// This method panics under one of the following conditions:
-    /// 
+    ///
     /// * If the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash builder of `self`,
     ///   and the [`TypeId`] of the memory allocator of `self` do not match the value type `T`,
     ///   hash builder type `S`, and allocator type `A`, respectively.
@@ -7929,16 +7929,16 @@ impl OpaqueIndexSet {
     ///
     /// The index `index` must be in bounds. The index `index` is **in bounds** provided that one
     /// of the following conditions holds:
-    /// 
+    ///
     /// * If an entry with a value equivalent to the value `value` exists in the index set, and
     ///   `index` is in `[0, self.len())`.
     /// * If an entry with a value equivalent to the value `value` does not exist in the index set,
     ///   and index is in `[0, self.len()]`.
-    /// 
+    ///
     /// Otherwise, the index `index` is **out of bounds**.
     ///
     /// This method behaves as follows:
-    /// 
+    ///
     /// * If an equivalent value already exists in the set, let `current_index` be the storage
     ///   index of the entry with value equivalent to `value`.
     ///   - If `index < current_index`, every entry in range `[index, current_index)` is shifted up
@@ -7958,7 +7958,7 @@ impl OpaqueIndexSet {
     /// # Panics
     ///
     /// This method panics under one of the following conditions:
-    /// 
+    ///
     /// * This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
     ///   builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
     ///   value type `T`, hash builder type `S`, and allocator type `A`, respectively.
@@ -8439,7 +8439,7 @@ impl OpaqueIndexSet {
     /// # Panics
     ///
     /// This method panics under the following conditions:
-    /// 
+    ///
     /// * If the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash builder of `self`,
     ///   and the [`TypeId`] of the memory allocator of `self` do not match the value type `T`,
     ///   hash builder type `S`, and allocator type `A`, respectively.
@@ -8509,7 +8509,7 @@ impl OpaqueIndexSet {
     /// # Panics
     ///
     /// This method panics under the following conditions:
-    /// 
+    ///
     /// * If the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash builder of `self`,
     ///   and the [`TypeId`] of the memory allocator of `self` do not match the value type `T`,
     ///   hash builder type `S`, and allocator type `A`, respectively.
@@ -8679,7 +8679,7 @@ impl OpaqueIndexSet {
     /// # Panics
     ///
     /// This method panics under the following conditions:
-    /// 
+    ///
     /// * If the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash builder of `self`,
     ///   and the [`TypeId`] of the memory allocator of `self` do not match the value type `T`, hash
     ///   builder type `S`, and allocator type `A`, respectively.
@@ -8837,7 +8837,7 @@ impl OpaqueIndexSet {
     /// ∀ v :: T. (v ∈ set) ⇔ (∃ i ∈ [0, set.len()). set[i] = v).
     /// ```
     ///
-    /// Then this method satisfies the following:
+    /// This method satisfies the following:
     ///
     /// ```text
     /// ∀ v :: V. set.contains(v) ⇔ (v ∈ set) ⇔ (∃ i ∈ [0, set.len()). set[i] = v.
@@ -9042,7 +9042,7 @@ impl OpaqueIndexSet {
     /// the collection to the index where the removed entry occupies the collection.
     ///
     /// This method behaves with respect to `value` as follows:
-    /// 
+    ///
     /// * If the value `value` exists in the index set, let `index` be its storage index.
     ///   If `index < self.len() - 1`, it moves the last entry in the collection to the slot at
     ///   `index`, leaving the rest of the entries in place. If `index == self.len() - 1`, it
@@ -9227,7 +9227,7 @@ impl OpaqueIndexSet {
     /// collection.
     ///
     /// This method behaves with respect to `value` as follows:
-    /// 
+    ///
     /// * If the value `value` exists in the index set, let `index` be its storage index.
     ///   If `index < self.len() - 1`, it moves every successive entry in the collection to the
     ///   entry at storage index `index` down one unit. Every entry preceding the entry at index
@@ -9405,7 +9405,7 @@ impl OpaqueIndexSet {
     /// in the collection to the index where the removed entry occupies the collection.
     ///
     /// This method behaves with respect to `value` as follows:
-    /// 
+    ///
     /// * If the value `value` exists in the index set, let `index` be its storage index.
     ///   If `index < self.len() - 1`, it moves the last entry in the collection to the slot at
     ///   `index`, leaving the rest of the entries in place. If `index == self.len() - 1`, it
@@ -9590,7 +9590,7 @@ impl OpaqueIndexSet {
     /// collection.
     ///
     /// This method behaves with respect to `value` as follows:
-    /// 
+    ///
     /// * If the value `value` exists in the index set, let `index` be its storage index.
     ///   If `index < self.len() - 1`, it moves every successive entry in the collection to the
     ///   entry at storage index `index` down one unit. Every entry preceding the entry at index
@@ -9774,7 +9774,7 @@ impl OpaqueIndexSet {
     /// the collection to the index where the removed entry occupies the collection.
     ///
     /// This method behaves with respect to `value` as follows:
-    /// 
+    ///
     /// * If the value `value` exists in the index set, let `index` be its storage index.
     ///   If `index < self.len() - 1`, it moves the last entry in the collection to the slot at
     ///   `index`, leaving the rest of the entries in place. If `index == self.len() - 1`, it
@@ -9953,7 +9953,7 @@ impl OpaqueIndexSet {
     /// collection.
     ///
     /// This method behaves with respect to `value` as follows:
-    /// 
+    ///
     /// * If the value `value` exists in the index set, let `index` be its storage index.
     ///   If `index < self.len() - 1`, it moves every successive entry in the collection to the
     ///   entry at storage index `index` down one unit. Every entry preceding the entry at index
