@@ -7,7 +7,8 @@ use crate::drain::Drain;
 /// An iterator that drains a slice of a vector, then splices a new slice in place of the drained
 /// slice.
 ///
-/// Splicing iterators are created by the [`TypedProjVec::splice`] and [`OpaqueVec::splice`] methods.
+/// Splicing iterators are created by the [`TypedProjVec::splice`] and [`OpaqueVec::splice`] 
+/// methods.
 ///
 /// # Examples
 ///

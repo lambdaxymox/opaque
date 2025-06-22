@@ -269,7 +269,8 @@ where
         // 2. Move [tail] to a new start at `start + len(unyielded)`
         // 3. Update length of the original vec to `len(head) + len(unyielded) + len(tail)`
         //    a. In case of ZST, this is the only thing we want to do
-        // 4. Do **not** drop self, as everything is put in a consistent state already, there is nothing to do
+        // 4. Do **not** drop self, as everything is put in a consistent state already, there is 
+        //    nothing to do
         let mut this = ManuallyDrop::new(self);
 
         unsafe {
@@ -445,8 +446,9 @@ where
         let mut vec = self.vec;
 
         if crate::zst::is_zst::<T>() {
-            // ZSTs have no identity, so we don't need to move them around, we only need to drop the correct amount.
-            // this can be achieved by manipulating the Vec length instead of moving values out from `iter`.
+            // ZSTs have no identity, so we don't need to move them around, we only need to drop 
+            // the correct amount. this can be achieved by manipulating the Vec length instead of 
+            // moving values out from `iter`.
             unsafe {
                 let vec = vec.as_mut();
                 let old_len = vec.len();
@@ -457,7 +459,8 @@ where
             return;
         }
 
-        // ensure elements are moved back into their appropriate places, even when drop_in_place panics
+        // ensure elements are moved back into their appropriate places, even when drop_in_place 
+        // panics
         let _guard = DropGuard { inner: self };
 
         if drop_len == 0 {

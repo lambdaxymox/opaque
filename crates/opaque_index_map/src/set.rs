@@ -1179,8 +1179,8 @@ impl<I: fmt::Debug> fmt::Debug for UnitValue<I> {
 /// structures, plugin systems, and managing foreign function interface data. There are two data
 /// types that are dual to each other: [`TypedProjIndexSet`] and [`OpaqueIndexSet`].
 ///
-/// By laying out both data types identically, we can project the underlying types in **O(1)**-time,
-/// and erase the underlying types in **O(1)**-time, though the conversion is often zero-cost.
+/// By laying out both data types identically, we can project the underlying types in **O(1)** time,
+/// and erase the underlying types in **O(1)** time, though the conversion is often zero-cost.
 ///
 /// # See Also
 ///
@@ -1219,7 +1219,7 @@ impl<I: fmt::Debug> fmt::Debug for UnitValue<I> {
 /// assert!(!party.contains("jenova"));
 /// assert!(!party.contains("emerald weapon"));
 ///
-/// // Elements of a `TypedProjIndexSet` are stored in their insertion order, independent of their values.
+/// // Elements of an index set are stored in their insertion order, independent of their values.
 /// assert_eq!(party.get_index_of("cloud"),     Some(0));
 /// assert_eq!(party.get_index_of("tifa"),      Some(1));
 /// assert_eq!(party.get_index_of("aerith"),    Some(2));
@@ -1238,7 +1238,7 @@ impl<I: fmt::Debug> fmt::Debug for UnitValue<I> {
 ///
 /// assert!(party.contains("sephiroth"));
 ///
-/// // Elements of a `TypedProjIndexMap` are stored in their insertion order, independent of their values.
+/// // Elements of an index set are stored in their insertion order, independent of their values.
 /// assert_eq!(party.get_index_of("cloud"),     Some(0));
 /// assert_eq!(party.get_index_of("tifa"),      Some(1));
 /// assert_eq!(party.get_index_of("aerith"),    Some(2));
@@ -1388,9 +1388,9 @@ where
     /// Constructs a new index set with the given type-projected hash builder and type-projected
     /// memory allocator.
     ///
-    /// This method **does not** allocate memory. In particular, the index set has zero capacity and will
-    /// not allocate memory until values are inserted into it. The index set will have length zero
-    /// until values are inserted into it.
+    /// This method **does not** allocate memory. In particular, the index set has zero capacity
+    /// and will not allocate memory until values are inserted into it. The index set will have
+    /// length zero until values are inserted into it.
     ///
     /// # Examples
     ///
@@ -1422,12 +1422,13 @@ where
         }
     }
 
-    /// Constructs a new index set with the given capacity, type-projected hash builder, and type-projected
-    /// memory allocator.
+    /// Constructs a new index set with the given capacity, type-projected hash builder, and
+    /// type-projected memory allocator.
     ///
-    /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular, the
-    /// index set has capacity at least `capacity`, and will allocate enough memory to store at least
-    /// `capacity` values. The index set will have length zero until values are inserted into it.
+    /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular,
+    /// the index set has capacity at least `capacity`, and will allocate enough memory to store at
+    /// least `capacity` values. The index set will have length zero until values are inserted into
+    /// it.
     ///
     /// # Examples
     ///
@@ -1499,8 +1500,8 @@ where
 {
     /// Constructs a new index set with the given type-projected memory allocator.
     ///
-    /// This method **does not** allocate memory. In particular, the index set has zero capacity and will
-    /// not allocate memory until values are inserted into it. The index set will have
+    /// This method **does not** allocate memory. In particular, the index set has zero capacity
+    /// and will not allocate memory until values are inserted into it. The index set will have
     /// length zero until values are inserted into it.
     ///
     /// # Examples
@@ -1530,9 +1531,10 @@ where
 
     /// Constructs a new index set with the given capacity and type-projected memory allocator.
     ///
-    /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular, the
-    /// index set has capacity at least `capacity`, and will allocate enough memory to store at least
-    /// `capacity` values. The index set will have length zero until values are inserted into it.
+    /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular,
+    /// the index set has capacity at least `capacity`, and will allocate enough memory to store at
+    /// least `capacity` values. The index set will have length zero until values are inserted into
+    /// it.
     ///
     /// # Examples
     ///
@@ -1596,8 +1598,8 @@ where
 {
     /// Constructs a new index set with the given hash builder and memory allocator.
     ///
-    /// This method **does not** allocate memory. In particular, the index set has zero capacity and will
-    /// not allocate memory until values are inserted into it. The index set will have
+    /// This method **does not** allocate memory. In particular, the index set has zero capacity
+    /// and will not allocate memory until values are inserted into it. The index set will have
     /// length zero until values are inserted into it.
     ///
     /// # Examples
@@ -1629,9 +1631,10 @@ where
 
     /// Constructs a new index set with the given capacity, hash builder, and memory allocator.
     ///
-    /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular, the
-    /// index set has capacity at least `capacity`, and will allocate enough memory to store at least
-    /// `capacity` values. The index set will have length zero until values are inserted into it.
+    /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular,
+    /// the index set has capacity at least `capacity`, and will allocate enough memory to store at
+    /// least `capacity` values. The index set will have length zero until values are inserted into
+    /// it.
     ///
     /// # Examples
     ///
@@ -1694,8 +1697,8 @@ where
 {
     /// Constructs a new index set with the given memory allocator.
     ///
-    /// This method **does not** allocate memory. In particular, the index set has zero capacity and will
-    /// not allocate memory until values are inserted into it. The index set will have
+    /// This method **does not** allocate memory. In particular, the index set has zero capacity
+    /// and will not allocate memory until values are inserted into it. The index set will have
     /// length zero until values are inserted into it.
     ///
     /// # Examples
@@ -1724,9 +1727,10 @@ where
 
     /// Constructs a new index set with the given capacity and memory allocator.
     ///
-    /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular, the
-    /// index set has capacity at least `capacity`, and will allocate enough memory to store at least
-    /// `capacity` values. The index set will have length zero until values are inserted into it.
+    /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular,
+    /// the index set has capacity at least `capacity`, and will allocate enough memory to store at
+    /// least `capacity` values. The index set will have length zero until values are inserted into
+    /// it.
     ///
     /// # Examples
     ///
@@ -1787,8 +1791,8 @@ where
 {
     /// Constructs a new index set with the given hash builder.
     ///
-    /// This method **does not** allocate memory. In particular, the index set has zero capacity and will
-    /// not allocate memory until values are inserted into it. The index set will have
+    /// This method **does not** allocate memory. In particular, the index set has zero capacity
+    /// and will not allocate memory until values are inserted into it. The index set will have
     /// length zero until values are inserted into it.
     ///
     /// # Examples
@@ -1815,9 +1819,10 @@ where
 
     /// Constructs a new index set with the given capacity and hash builder.
     ///
-    /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular, the
-    /// index set has capacity at least `capacity`, and will allocate enough memory to store at least
-    /// `capacity` values. The index set will have length zero until values are inserted into it.
+    /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular,
+    /// the index set has capacity at least `capacity`, and will allocate enough memory to store at
+    /// least `capacity` values. The index set will have length zero until values are inserted into
+    /// it.
     ///
     /// # Examples
     ///
@@ -1875,9 +1880,9 @@ where
 {
     /// Constructs a new index set.
     ///
-    /// This method **does not** allocate memory. In particular, the index set has zero capacity and
-    /// will not allocate memory until values are inserted into it. The index set will have length
-    /// zero until values are inserted into it.
+    /// This method **does not** allocate memory. In particular, the index set has zero capacity
+    /// and will not allocate memory until values are inserted into it. The index set will have
+    /// length zero until values are inserted into it.
     ///
     /// # Examples
     ///
@@ -1903,9 +1908,10 @@ where
 
     /// Constructs a new index set with the given capacity.
     ///
-    /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular, the
-    /// index set has capacity at least `capacity`, and will allocate enough memory to store at least
-    /// `capacity` values. The index set will have length zero until values are inserted into it.
+    /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular,
+    /// the index set has capacity at least `capacity`, and will allocate enough memory to store at
+    /// least `capacity` values. The index set will have length zero until values are inserted into
+    /// it.
     ///
     /// # Examples
     ///
@@ -2363,16 +2369,17 @@ where
     /// returning a double-ended iterator over the removed subslice.
     ///
     /// If the iterator is dropped before being fully consumed, it drops the remaining removed
-    /// elements. The draining iterator shifts the remaining entries in the index set above the range
-    /// down to fill in the removed entries.
+    /// elements. The draining iterator shifts the remaining entries in the index set above the
+    /// range down to fill in the removed entries.
     ///
-    /// The returned iterator keeps a mutable borrow on the index set to optimize its implementation.
+    /// The returned iterator keeps a mutable borrow on the index set to optimize its
+    /// implementation.
     ///
     /// # Panics
     ///
     /// This method panics if the range of the subslice falls outside the bounds of the collection.
-    /// That is, if the starting point of the subslice being removed starts after the end of `self`,
-    /// or if the ending point is larger than the length of the index set.
+    /// That is, if the starting point of the subslice being removed starts after the end of
+    /// `self`, or if the ending point is larger than the length of the index set.
     ///
     /// # Leaking
     ///
@@ -2533,10 +2540,10 @@ where
 
     /// Splits a type-projected index set into two type-projected index sets at the given index.
     ///
-    /// This method returns a newly allocated type-projected index set consisting of every entry from
-    /// the original type-projected index set in the storage range `[at, len)`. The original
-    /// type-projected index set will consist of the entries in the range `[0, at)` with its capacity
-    /// unchanged.
+    /// This method returns a newly allocated type-projected index set consisting of every entry
+    /// from the original type-projected index set in the storage range `[at, len)`. The original
+    /// type-projected index set will consist of the entries in the range `[0, at)` with its
+    /// capacity unchanged.
     ///
     /// # Panics
     ///
@@ -2649,10 +2656,10 @@ where
     /// Attempts to reserve capacity for **at least** `additional` more elements to be inserted
     /// in the given index set.
     ///
-    /// Unlike [`reserve`], this will not deliberately over-allocate to speculatively avoid frequent
-    /// allocations. After calling `reserve_exact`, the capacity of `self` will be greater than or
-    /// equal to `self.len() + additional`. This method does nothing if the capacity is already
-    /// sufficient.
+    /// Unlike [`reserve`], this will not deliberately over-allocate to speculatively avoid
+    /// frequent allocations. After calling `reserve_exact`, the capacity of `self` will be greater
+    /// than or equal to `self.len() + additional`. This method does nothing if the capacity is
+    /// already sufficient.
     ///
     /// [`reserve`]: TypedProjIndexSet::reserve
     ///
@@ -2694,8 +2701,9 @@ where
     ///
     /// The collection may reserve more space to speculatively avoid frequent reallocations.
     /// After calling this method, the capacity will be greater than or equal to
-    /// `self.len() + additional` if it returns `Ok(())`. This method does nothing if the collection
-    /// capacity is already sufficient. This method preserves the contents even if an error occurs.
+    /// `self.len() + additional` if it returns `Ok(())`. This method does nothing if the
+    /// collection capacity is already sufficient. This method preserves the contents even if an
+    /// error occurs.
     ///
     /// # Errors
     ///
@@ -2732,10 +2740,10 @@ where
     /// Attempts to reserve capacity for **at least** `additional` more elements to be inserted
     /// in the given index set.
     ///
-    /// Unlike [`try_reserve`], this will not deliberately over-allocate to speculatively avoid frequent
-    /// allocations. After calling `reserve_exact`, the capacity of `self` will be greater than or
-    /// equal to `self.len() + additional`. This method does nothing if the capacity is already
-    /// sufficient.
+    /// Unlike [`try_reserve`], this will not deliberately over-allocate to speculatively avoid
+    /// frequent allocations. After calling `reserve_exact`, the capacity of `self` will be greater
+    /// than or equal to `self.len() + additional`. This method does nothing if the capacity is
+    /// already sufficient.
     ///
     /// [`try_reserve`]: TypedProjIndexSet::try_reserve
     ///
@@ -2869,9 +2877,9 @@ where
     /// This method behaves as follows:
     /// * If the equivalent value already exists in the index set, this method returns `false`. The
     ///   entry retains its position in the storage order of the index set.
-    /// * If the entry with the equivalent value does not exist in the set, it is appended to the end
-    ///   of the set, so the resulting entry is in last place in the storage order, and the method
-    ///   returns `true`.
+    /// * If the entry with the equivalent value does not exist in the set, it is appended to the
+    ///   end of the set, so the resulting entry is in last place in the storage order, and the
+    ///   method returns `true`.
     ///
     /// # Examples
     ///
@@ -2904,12 +2912,12 @@ where
     ///
     /// This method behaves as follows:
     /// * If the equivalent value already exists in the index set, this method returns the storage
-    ///   index of the value as `(index, false)`. The entry retains its position in the storage order
-    ///   of the index set.
-    /// * If the entry with the equivalent value does not exist in the set, it is appended to the end
-    ///   of the set, so the resulting entry is in last place in the storage order, and the method
-    ///   returns `(index, true)`, where `index` is the index of the last entry in the set in storage
-    ///   order.
+    ///   index of the value as `(index, false)`. The entry retains its position in the storage
+    ///   order of the index set.
+    /// * If the entry with the equivalent value does not exist in the set, it is appended to the
+    ///   end of the set, so the resulting entry is in last place in the storage order, and the
+    ///   method returns `(index, true)`, where `index` is the index of the last entry in the set
+    ///   in storage order.
     ///
     /// # Examples
     ///
@@ -3251,22 +3259,23 @@ where
     ///
     /// The index `index` must be in bounds. The index `index` is **in bounds** provided that one
     /// of the following conditions holds:
-    /// * If an entry with a value equivalent to the value `value` exists in the index set, and `index` is
-    ///   in `[0, self.len())`.
-    /// * If an entry with a value equivalent to the value `value` does not exist in the index set, and
-    ///   index is in `[0, self.len()]`.
+    /// * If an entry with a value equivalent to the value `value` exists in the index set, and
+    ///   `index` is in `[0, self.len())`.
+    /// * If an entry with a value equivalent to the value `value` does not exist in the index set,
+    ///   and index is in `[0, self.len()]`.
     /// Otherwise, the index `index` is **out of bounds**.
     ///
     /// This method behaves as follows:
-    /// * If an equivalent value already exists in the set, let `current_index` be the storage index of
-    ///   the entry with value equivalent to `value`.
+    /// * If an equivalent value already exists in the set, let `current_index` be the storage
+    ///   index of the entry with value equivalent to `value`.
     ///   - If `index < current_index`, every entry in range `[index, current_index)` is shifted up
-    ///     one entry in the storage order, the current entry is moved from `current_index` to `index`,
-    ///     and the method returns `(index, false)`.
-    ///   - If `index > current_index`, every entry in range `(current_index, index]` is shifted down
-    ///     one entry in the storage order, the current entry is moved from `current_index` to `index`,
-    ///     and the method returns `(index, false)`.
-    ///   - If `index == current_index`, no shifting occurs, and the method returns `(index, false)`.
+    ///     one entry in the storage order, the current entry is moved from `current_index` to
+    ///     `index`, and the method returns `(index, false)`.
+    ///   - If `index > current_index`, every entry in range `(current_index, index]` is shifted
+    ///     down one entry in the storage order, the current entry is moved from `current_index` to
+    ///     `index`, and the method returns `(index, false)`.
+    ///   - If `index == current_index`, no shifting occurs, and the method returns
+    ///     `(index, false)`.
     /// * If an equivalent value does not exist in the index set, the new entry is inserted at the
     ///   storage index `index`, and each entry in the range `[index, self.len())` is shifted
     ///   up one index, and the method returns `(index, true)`.
@@ -3638,9 +3647,9 @@ where
     /// Return an iterator over the values in the set-theoretic intersection of two index sets.
     ///
     /// This iterator behaves as follows. Let `self` and `other` be index sets. Let `v` be a value
-    /// produced by the iterator. Then `v` satisfies `(v in self) && (v in other)`. More informally,
-    /// this iterator produces those elements that are in both sets, and none of the elements that
-    /// are only in one set.
+    /// produced by the iterator. Then `v` satisfies `(v in self) && (v in other)`. More
+    /// informally, this iterator produces those elements that are in both sets, and none of the
+    /// elements that are only in one set.
     ///
     /// This iterator produces values in the order that they appear in `self`.
     ///
@@ -3679,8 +3688,8 @@ where
     /// Return an iterator over the values in the set-theoretic union of two index sets.
     ///
     /// This iterator behaves as follows. Let `self` and `other` be index sets. Let `v` be a value
-    /// produced by the iterator. Then `v` satisfies `(v in self) || (v in other)`. More informally,
-    /// this iterator produces every value in `self` and `other` exactly once.
+    /// produced by the iterator. Then `v` satisfies `(v in self) || (v in other)`. More
+    /// informally, this iterator produces every value in `self` and `other` exactly once.
     ///
     /// This iterator produces values in the same order as their storage order in `self`, followed
     /// by the storage order of the values unique to `other`.
@@ -3728,9 +3737,9 @@ where
     /// if the `Splice` value is leaked.
     ///
     /// The input iterator `replace_with` is only consumed when the `Splice` value is dropped.
-    /// If a key from the iterator matches an existing entry in the set (i.e. outside the range `range`),
-    /// then the value will be updated in that position. Otherwise, the new entry will be inserted
-    /// in the replaced `range`.
+    /// If a key from the iterator matches an existing entry in the set (i.e. outside the range
+    /// `range`), then the value will be updated in that position. Otherwise, the new entry will be
+    /// inserted in the replaced `range`.
     ///
     /// # Panics
     ///
@@ -3810,10 +3819,10 @@ where
     ///
     /// # Formal Properties
     ///
-    /// Let `set1` and `set2` be index sets, `set1_before` be the state of `set1` before this method is
-    /// called, `set2_before` be the state of `set2` before this method is called, `set1_after` be the
-    /// state of `set1` after this method completes, and `set2_after` be the state of `set2` after this
-    /// method completes.
+    /// Let `set1` and `set2` be index sets, `set1_before` be the state of `set1` before this
+    /// method is called, `set2_before` be the state of `set2` before this method is called,
+    /// `set1_after` be the state of `set1` after this method completes, and `set2_after` be the
+    /// state of `set2` after this method completes.
     ///
     /// We say that a value `v` is in the set `set` provided that
     ///
@@ -4041,8 +4050,8 @@ where
     /// index set.
     ///
     /// This method returns `Some(index)`, where `index` is the storage index of the value, if the
-    /// value equivalent to the provided `value` exists in `self`. This method returns `None` if the
-    /// value equivalent to `value` does not exist inside `self`.
+    /// value equivalent to the provided `value` exists in `self`. This method returns `None` if
+    /// the value equivalent to `value` does not exist inside `self`.
     ///
     /// # Examples
     ///
@@ -4084,8 +4093,9 @@ where
     ///
     /// # Formal Properties
     ///
-    /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set` before
-    /// this method is called, `set_after` be the state of `set` after this method completes.
+    /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
+    /// before this method is called, `set_after` be the state of `set` after this method
+    /// completes.
     ///
     /// We say that a value `v` is in the set `set` provided that
     ///
@@ -4197,8 +4207,9 @@ where
     ///
     /// # Formal Properties
     ///
-    /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set` before
-    /// this method is called, `set_after` be the state of `set` after this method completes.
+    /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
+    /// before this method is called, `set_after` be the state of `set` after this method
+    /// completes.
     ///
     /// We say that a value `v` is in the set `set` provided that
     ///
@@ -4305,8 +4316,9 @@ where
     ///
     /// # Formal Properties
     ///
-    /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set` before
-    /// this method is called, `set_after` be the state of `set` after this method completes.
+    /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
+    /// before this method is called, `set_after` be the state of `set` after this method
+    /// completes.
     ///
     /// We say that a value `v` is in the set `set` provided that
     ///
@@ -4422,12 +4434,14 @@ where
     /// * If the value `value` does not exist in the index set, the method returns `None`.
     ///
     /// In particular, the method acts like a [`pop`] when the last value in the collection is
-    /// shift-removed, because the sub-collection of successor entries in the entry storage is empty.
+    /// shift-removed, because the sub-collection of successor entries in the entry storage is
+    /// empty.
     ///
     /// # Formal Properties
     ///
     /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
-    /// before this method is called, `set_after` be the state of `set` after this method completes.
+    /// before this method is called, `set_after` be the state of `set` after this method
+    /// completes.
     ///
     /// We say that a value `v` is in the set `set` provided that
     ///
@@ -4536,8 +4550,9 @@ where
     ///
     /// # Formal Properties
     ///
-    /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set` before
-    /// this method is called, `set_after` be the state of `set` after this method completes.
+    /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
+    /// before this method is called, `set_after` be the state of `set` after this method
+    /// completes.
     ///
     /// We say that a value `v` is in the set `set` provided that
     ///
@@ -4642,12 +4657,14 @@ where
     /// * If the key `key` does not exist in the index set, the method returns `None`.
     ///
     /// In particular, the method acts like a [`pop`] when the last value in the collection is
-    /// shift-removed, because the sub-collection of successor entries in the entry storage is empty.
+    /// shift-removed, because the sub-collection of successor entries in the entry storage is
+    /// empty.
     ///
     /// # Formal Properties
     ///
     /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
-    /// before this method is called, `set_after` be the state of `set` after this method completes.
+    /// before this method is called, `set_after` be the state of `set` after this method
+    /// completes.
     ///
     /// We say that a value `v` is in the set `set` provided that
     ///
@@ -5254,8 +5271,8 @@ where
 /// structures, plugin systems, and managing foreign function interface data. There are two data
 /// types that are dual to each other: [`TypedProjIndexSet`] and [`OpaqueIndexSet`].
 ///
-/// By laying out both data types identically, we can project the underlying types in **O(1)**-time,
-/// and erase the underlying types in **O(1)**-time, though the conversion is often zero-cost.
+/// By laying out both data types identically, we can project the underlying types in **O(1)** time,
+/// and erase the underlying types in **O(1)** time, though the conversion is often zero-cost.
 ///
 /// # See Also
 ///
@@ -5301,7 +5318,7 @@ where
 /// assert!(!party.contains::<_, String, RandomState, Global>("jenova"));
 /// assert!(!party.contains::<_, String, RandomState, Global>("emerald weapon"));
 ///
-/// // Elements of an `OpaqueIndexSet` are stored in their insertion order, independent of their values.
+/// // Elements of an index set are stored in their insertion order, independent of their values.
 /// assert_eq!(party.get_index_of::<_, String, RandomState, Global>("cloud"),     Some(0));
 /// assert_eq!(party.get_index_of::<_, String, RandomState, Global>("tifa"),      Some(1));
 /// assert_eq!(party.get_index_of::<_, String, RandomState, Global>("aerith"),    Some(2));
@@ -5320,7 +5337,7 @@ where
 ///
 /// assert!(party.contains::<_, String, RandomState, Global>("sephiroth"));
 ///
-/// // Elements of a `TypedProjIndexMap` are stored in their insertion order, independent of their values.
+/// // Elements of an index set are stored in their insertion order, independent of their values.
 /// assert_eq!(party.get_index_of::<_, String, RandomState, Global>("cloud"),     Some(0));
 /// assert_eq!(party.get_index_of::<_, String, RandomState, Global>("tifa"),      Some(1));
 /// assert_eq!(party.get_index_of::<_, String, RandomState, Global>("aerith"),    Some(2));
@@ -5690,9 +5707,9 @@ impl OpaqueIndexSet {
     /// Constructs a new index set with the given type-projected hash builder and type-projected
     /// memory allocator.
     ///
-    /// This method **does not** allocate memory. In particular, the index set has zero capacity and will
-    /// not allocate memory until values are inserted into it. The index set will have length zero
-    /// until values are inserted into it.
+    /// This method **does not** allocate memory. In particular, the index set has zero capacity
+    /// and will not allocate memory until values are inserted into it. The index set will have
+    /// length zero until values are inserted into it.
     ///
     /// # Examples
     ///
@@ -5728,12 +5745,13 @@ impl OpaqueIndexSet {
         Self::from_proj(proj_index_set)
     }
 
-    /// Constructs a new index set with the given capacity, type-projected hash builder, and type-projected
-    /// memory allocator.
+    /// Constructs a new index set with the given capacity, type-projected hash builder, and
+    /// type-projected memory allocator.
     ///
-    /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular, the
-    /// index set has capacity at least `capacity`, and will allocate enough memory to store at least
-    /// `capacity` values. The index set will have length zero until values are inserted into it.
+    /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular,
+    /// the index set has capacity at least `capacity`, and will allocate enough memory to store at
+    /// least `capacity` values. The index set will have length zero until values are inserted into
+    /// it.
     ///
     /// # Examples
     ///
@@ -5801,8 +5819,8 @@ impl OpaqueIndexSet {
 impl OpaqueIndexSet {
     /// Constructs a new index set with the given type-projected memory allocator.
     ///
-    /// This method **does not** allocate memory. In particular, the index set has zero capacity and will
-    /// not allocate memory until values are inserted into it. The index set will have
+    /// This method **does not** allocate memory. In particular, the index set has zero capacity
+    /// and will not allocate memory until values are inserted into it. The index set will have
     /// length zero until values are inserted into it.
     ///
     /// # Examples
@@ -5834,9 +5852,10 @@ impl OpaqueIndexSet {
 
     /// Constructs a new index set with the given capacity and type-projected memory allocator.
     ///
-    /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular, the
-    /// index set has capacity at least `capacity`, and will allocate enough memory to store at least
-    /// `capacity` values. The index set will have length zero until values are inserted into it.
+    /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular,
+    /// the index set has capacity at least `capacity`, and will allocate enough memory to store at
+    /// least `capacity` values. The index set will have length zero until values are inserted into
+    /// it.
     ///
     /// # Examples
     ///
@@ -5896,8 +5915,8 @@ impl OpaqueIndexSet {
 impl OpaqueIndexSet {
     /// Constructs a new index set with the given hash builder and memory allocator.
     ///
-    /// This method **does not** allocate memory. In particular, the index set has zero capacity and will
-    /// not allocate memory until values are inserted into it. The index set will have
+    /// This method **does not** allocate memory. In particular, the index set has zero capacity
+    /// and will not allocate memory until values are inserted into it. The index set will have
     /// length zero until values are inserted into it.
     ///
     /// # Examples
@@ -5934,9 +5953,10 @@ impl OpaqueIndexSet {
 
     /// Constructs a new index set with the given capacity, hash builder, and memory allocator.
     ///
-    /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular, the
-    /// index set has capacity at least `capacity`, and will allocate enough memory to store at least
-    /// `capacity` values. The index set will have length zero until values are inserted into it.
+    /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular,
+    /// the index set has capacity at least `capacity`, and will allocate enough memory to store at
+    /// least `capacity` values. The index set will have length zero until values are inserted into
+    /// it.
     ///
     /// # Examples
     ///
@@ -5999,8 +6019,8 @@ impl OpaqueIndexSet {
 impl OpaqueIndexSet {
     /// Constructs a new index set with the given memory allocator.
     ///
-    /// This method **does not** allocate memory. In particular, the index set has zero capacity and will
-    /// not allocate memory until values are inserted into it. The index set will have
+    /// This method **does not** allocate memory. In particular, the index set has zero capacity
+    /// and will not allocate memory until values are inserted into it. The index set will have
     /// length zero until values are inserted into it.
     ///
     /// # Examples
@@ -6031,9 +6051,10 @@ impl OpaqueIndexSet {
 
     /// Constructs a new index set with the given capacity and memory allocator.
     ///
-    /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular, the
-    /// index set has capacity at least `capacity`, and will allocate enough memory to store at least
-    /// `capacity` values. The index set will have length zero until values are inserted into it.
+    /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular,
+    /// the index set has capacity at least `capacity`, and will allocate enough memory to store at
+    /// least `capacity` values. The index set will have length zero until values are inserted into
+    /// it.
     ///
     /// # Examples
     ///
@@ -6091,8 +6112,8 @@ impl OpaqueIndexSet {
 impl OpaqueIndexSet {
     /// Constructs a new index set with the given hash builder.
     ///
-    /// This method **does not** allocate memory. In particular, the index set has zero capacity and will
-    /// not allocate memory until values are inserted into it. The index set will have
+    /// This method **does not** allocate memory. In particular, the index set has zero capacity
+    /// and will not allocate memory until values are inserted into it. The index set will have
     /// length zero until values are inserted into it.
     ///
     /// # Examples
@@ -6125,9 +6146,10 @@ impl OpaqueIndexSet {
 
     /// Constructs a new index set with the given capacity and hash builder.
     ///
-    /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular, the
-    /// index set has capacity at least `capacity`, and will allocate enough memory to store at least
-    /// `capacity` values. The index set will have length zero until values are inserted into it.
+    /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular,
+    /// the index set has capacity at least `capacity`, and will allocate enough memory to store at
+    /// least `capacity` values. The index set will have length zero until values are inserted into
+    /// it.
     ///
     /// # Examples
     ///
@@ -6187,9 +6209,9 @@ impl OpaqueIndexSet {
 impl OpaqueIndexSet {
     /// Constructs a new index set.
     ///
-    /// This method **does not** allocate memory. In particular, the index set has zero capacity and
-    /// will not allocate memory until values are inserted into it. The index set will have length
-    /// zero until values are inserted into it.
+    /// This method **does not** allocate memory. In particular, the index set has zero capacity
+    /// and will not allocate memory until values are inserted into it. The index set will have
+    /// length zero until values are inserted into it.
     ///
     /// # Examples
     ///
@@ -6217,9 +6239,10 @@ impl OpaqueIndexSet {
 
     /// Constructs a new index set with the given capacity.
     ///
-    /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular, the
-    /// index set has capacity at least `capacity`, and will allocate enough memory to store at least
-    /// `capacity` values. The index set will have length zero until values are inserted into it.
+    /// This method **does** allocate memory if the capacity `capacity` is non-zero. In particular,
+    /// the index set has capacity at least `capacity`, and will allocate enough memory to store at
+    /// least `capacity` values. The index set will have length zero until values are inserted into
+    /// it.
     ///
     /// # Examples
     ///
@@ -6766,10 +6789,11 @@ impl OpaqueIndexSet {
     /// returning a double-ended iterator over the removed subslice.
     ///
     /// If the iterator is dropped before being fully consumed, it drops the remaining removed
-    /// elements. The draining iterator shifts the remaining entries in the index set above the range
-    /// down to fill in the removed entries.
+    /// elements. The draining iterator shifts the remaining entries in the index set above the
+    /// range down to fill in the removed entries.
     ///
-    /// The returned iterator keeps a mutable borrow on the index set to optimize its implementation.
+    /// The returned iterator keeps a mutable borrow on the index set to optimize its
+    /// implementation.
     ///
     /// # Panics
     ///
@@ -6961,17 +6985,17 @@ impl OpaqueIndexSet {
 
     /// Splits a type-erased index set into two type-erased index sets at the given index.
     ///
-    /// This method returns a newly allocated type-erased index set consisting of every entry from
-    /// the original type-erased index set in the storage range `[at, len)`. The original
-    /// type-erased index set will consist of the entries in the range `[0, at)` with its capacity
-    /// unchanged.
+    /// This method returns a newly allocated type-erased index set consisting of every entry
+    /// from the original type-erased index set in the storage range `[at, len)`. The original
+    /// type-erased index set will consist of the entries in the range `[0, at)` with its
+    /// capacity unchanged.
     ///
     /// # Panics
     ///
     /// This method panics under one of the following conditions:
-    /// * If the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
-    ///   builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
-    ///   value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    /// * If the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash builder of `self`,
+    ///   and the [`TypeId`] of the memory allocator of `self` do not match the value type `T`,
+    ///   hash builder type `S`, and allocator type `A`, respectively.
     /// * If `at > self.len()`.
     ///
     /// # Examples
@@ -7056,9 +7080,9 @@ impl OpaqueIndexSet {
     /// # Panics
     ///
     /// This method panics if one of the following conditions occurs:
-    /// * If the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
-    ///   builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
-    ///   value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    /// * If the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash builder of `self`,
+    ///   and the [`TypeId`] of the memory allocator of `self` do not match the value type `T`,
+    ///   hash builder type `S`, and allocator type `A`, respectively.
     /// * If the capacity of the index set overflows.
     /// * If the allocator reports a failure.
     ///
@@ -7105,19 +7129,19 @@ impl OpaqueIndexSet {
     /// Attempts to reserve capacity for **at least** `additional` more elements to be inserted
     /// in the given index set.
     ///
-    /// Unlike [`reserve`], this will not deliberately over-allocate to speculatively avoid frequent
-    /// allocations. After calling `reserve_exact`, the capacity of `self` will be greater than or
-    /// equal to `self.len() + additional`. This method does nothing if the capacity is already
-    /// sufficient.
+    /// Unlike [`reserve`], this will not deliberately over-allocate to speculatively avoid
+    /// frequent allocations. After calling `reserve_exact`, the capacity of `self` will be greater
+    /// than or equal to `self.len() + additional`. This method does nothing if the capacity is
+    /// already sufficient.
     ///
     /// [`reserve`]: OpaqueIndexSet::reserve
     ///
     /// # Panics
     ///
     /// This method panics if one of the following conditions occurs:
-    /// * If the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
-    ///   builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
-    ///   value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    /// * If the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash builder of `self`,
+    ///   and the [`TypeId`] of the memory allocator of `self` do not match the value type `T`,
+    ///   hash builder type `S`, and allocator type `A`, respectively.
     /// * If the capacity of the index set overflows.
     /// * If the allocator reports a failure.
     ///
@@ -7166,8 +7190,9 @@ impl OpaqueIndexSet {
     ///
     /// The collection may reserve more space to speculatively avoid frequent reallocations.
     /// After calling this method, the capacity will be greater than or equal to
-    /// `self.len() + additional` if it returns `Ok(())`. This method does nothing if the collection
-    /// capacity is already sufficient. This method preserves the contents even if an error occurs.
+    /// `self.len() + additional` if it returns `Ok(())`. This method does nothing if the
+    /// collection capacity is already sufficient. This method preserves the contents even if an
+    /// error occurs.
     ///
     /// # Errors
     ///
@@ -7223,10 +7248,10 @@ impl OpaqueIndexSet {
     /// Attempts to reserve capacity for **at least** `additional` more elements to be inserted
     /// in the given index set.
     ///
-    /// Unlike [`try_reserve`], this will not deliberately over-allocate to speculatively avoid frequent
-    /// allocations. After calling `reserve_exact`, the capacity of `self` will be greater than or
-    /// equal to `self.len() + additional`. This method does nothing if the capacity is already
-    /// sufficient.
+    /// Unlike [`try_reserve`], this will not deliberately over-allocate to speculatively avoid
+    /// frequent allocations. After calling `reserve_exact`, the capacity of `self` will be greater
+    /// than or equal to `self.len() + additional`. This method does nothing if the capacity is
+    /// already sufficient.
     ///
     /// [`try_reserve`]: OpaqueIndexSet::try_reserve
     ///
@@ -7411,9 +7436,9 @@ impl OpaqueIndexSet {
     /// This method behaves as follows:
     /// * If the equivalent value already exists in the index set, this method returns `false`. The
     ///   entry retains its position in the storage order of the index set.
-    /// * If the entry with the equivalent value does not exist in the set, it is appended to the end
-    ///   of the set, so the resulting entry is in last place in the storage order, and the method
-    ///   returns `true`.
+    /// * If the entry with the equivalent value does not exist in the set, it is appended to the
+    ///   end of the set, so the resulting entry is in last place in the storage order, and the
+    ///   method returns `true`.
     ///
     /// # Panics
     ///
@@ -7465,12 +7490,12 @@ impl OpaqueIndexSet {
     ///
     /// This method behaves as follows:
     /// * If the equivalent value already exists in the index set, this method returns the storage
-    ///   index of the value as `(index, false)`. The entry retains its position in the storage order
-    ///   of the index set.
-    /// * If the entry with the equivalent value does not exist in the set, it is appended to the end
-    ///   of the set, so the resulting entry is in last place in the storage order, and the method
-    ///   returns `(index, true)`, where `index` is the index of the last entry in the set in storage
-    ///   order.
+    ///   index of the value as `(index, false)`. The entry retains its position in the storage
+    ///   order of the index set.
+    /// * If the entry with the equivalent value does not exist in the set, it is appended to the
+    ///   end of the set, so the resulting entry is in last place in the storage order, and the
+    ///   method returns `(index, true)`, where `index` is the index of the last entry in the set
+    ///   in storage order.
     ///
     /// # Panics
     ///
@@ -7677,8 +7702,8 @@ impl OpaqueIndexSet {
     ///
     /// This method panics under one of the following conditions:
     /// * If the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash builder of `self`,
-    ///   and the [`TypeId`] of the memory allocator of `self` do not match the value type `T`, hash
-    ///   builder type `S`, and allocator type `A`, respectively.
+    ///   and the [`TypeId`] of the memory allocator of `self` do not match the value type `T`,
+    ///   hash builder type `S`, and allocator type `A`, respectively.
     /// * If the index `index` is out of bounds.
     ///
     /// # Examples
@@ -7880,22 +7905,23 @@ impl OpaqueIndexSet {
     ///
     /// The index `index` must be in bounds. The index `index` is **in bounds** provided that one
     /// of the following conditions holds:
-    /// * If an entry with a value equivalent to the value `value` exists in the index set, and `index` is
-    ///   in `[0, self.len())`.
-    /// * If an entry with a value equivalent to the value `value` does not exist in the index set, and
-    ///   index is in `[0, self.len()]`.
+    /// * If an entry with a value equivalent to the value `value` exists in the index set, and
+    ///   `index` is in `[0, self.len())`.
+    /// * If an entry with a value equivalent to the value `value` does not exist in the index set,
+    ///   and index is in `[0, self.len()]`.
     /// Otherwise, the index `index` is **out of bounds**.
     ///
     /// This method behaves as follows:
-    /// * If an equivalent value already exists in the set, let `current_index` be the storage index of
-    ///   the entry with value equivalent to `value`.
+    /// * If an equivalent value already exists in the set, let `current_index` be the storage
+    ///   index of the entry with value equivalent to `value`.
     ///   - If `index < current_index`, every entry in range `[index, current_index)` is shifted up
-    ///     one entry in the storage order, the current entry is moved from `current_index` to `index`,
-    ///     and the method returns `(index, false)`.
-    ///   - If `index > current_index`, every entry in range `(current_index, index]` is shifted down
-    ///     one entry in the storage order, the current entry is moved from `current_index` to `index`,
-    ///     and the method returns `(index, false)`.
-    ///   - If `index == current_index`, no shifting occurs, and the method returns `(index, false)`.
+    ///     one entry in the storage order, the current entry is moved from `current_index` to
+    ///     `index`, and the method returns `(index, false)`.
+    ///   - If `index > current_index`, every entry in range `(current_index, index]` is shifted
+    ///     down one entry in the storage order, the current entry is moved from `current_index` to
+    ///     `index`, and the method returns `(index, false)`.
+    ///   - If `index == current_index`, no shifting occurs, and the method returns
+    ///     `(index, false)`.
     /// * If an equivalent value does not exist in the index set, the new entry is inserted at the
     ///   storage index `index`, and each entry in the range `[index, self.len())` is shifted
     ///   up one index, and the method returns `(index, true)`.
@@ -8376,9 +8402,9 @@ impl OpaqueIndexSet {
     /// Return an iterator over the values in the set-theoretic intersection of two index sets.
     ///
     /// This iterator behaves as follows. Let `self` and `other` be index sets. Let `v` be a value
-    /// produced by the iterator. Then `v` satisfies `(v in self) && (v in other)`. More informally,
-    /// this iterator produces those elements that are in both sets, and none of the elements that
-    /// are only in one set.
+    /// produced by the iterator. Then `v` satisfies `(v in self) && (v in other)`. More
+    /// informally, this iterator produces those elements that are in both sets, and none of the
+    /// elements that are only in one set.
     ///
     /// This iterator produces values in the order that they appear in `self`.
     ///
@@ -8386,8 +8412,8 @@ impl OpaqueIndexSet {
     ///
     /// This method panics under the following conditions:
     /// * If the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash builder of `self`,
-    ///   and the [`TypeId`] of the memory allocator of `self` do not match the value type `T`, hash
-    ///   builder type `S`, and allocator type `A`, respectively.
+    ///   and the [`TypeId`] of the memory allocator of `self` do not match the value type `T`,
+    ///   hash builder type `S`, and allocator type `A`, respectively.
     /// * If the [`TypeId`] of the values of `other`, the [`TypeId`] for the hash builder of
     ///   `other`, and the [`TypeId`] of the memory allocator of `self` do not match the value type
     ///   `T`, hash builder type `S2`, and allocator type `A`, respectively.
@@ -8445,8 +8471,8 @@ impl OpaqueIndexSet {
     /// Return an iterator over the values in the set-theoretic union of two index sets.
     ///
     /// This iterator behaves as follows. Let `self` and `other` be index sets. Let `v` be a value
-    /// produced by the iterator. Then `v` satisfies `(v in self) || (v in other)`. More informally,
-    /// this iterator produces every value in `self` and `other` exactly once.
+    /// produced by the iterator. Then `v` satisfies `(v in self) || (v in other)`. More
+    /// informally, this iterator produces every value in `self` and `other` exactly once.
     ///
     /// This iterator produces values in the same order as their storage order in `self`, followed
     /// by the storage order of the values unique to `other`.
@@ -8455,8 +8481,8 @@ impl OpaqueIndexSet {
     ///
     /// This method panics under the following conditions:
     /// * If the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash builder of `self`,
-    ///   and the [`TypeId`] of the memory allocator of `self` do not match the value type `T`, hash
-    ///   builder type `S`, and allocator type `A`, respectively.
+    ///   and the [`TypeId`] of the memory allocator of `self` do not match the value type `T`,
+    ///   hash builder type `S`, and allocator type `A`, respectively.
     /// * If the [`TypeId`] of the values of `other`, the [`TypeId`] for the hash builder of
     ///   `other`, and the [`TypeId`] of the memory allocator of `self` do not match the value type
     ///   `T`, hash builder type `S2`, and allocator type `A`, respectively.
@@ -8521,9 +8547,9 @@ impl OpaqueIndexSet {
     /// if the `Splice` value is leaked.
     ///
     /// The input iterator `replace_with` is only consumed when the `Splice` value is dropped.
-    /// If a key from the iterator matches an existing entry in the set (i.e. outside the range `range`),
-    /// then the value will be updated in that position. Otherwise, the new entry will be inserted
-    /// in the replaced `range`.
+    /// If a key from the iterator matches an existing entry in the set (i.e. outside the range
+    /// `range`), then the value will be updated in that position. Otherwise, the new entry will be
+    /// inserted in the replaced `range`.
     ///
     /// # Panics
     ///
@@ -8632,10 +8658,10 @@ impl OpaqueIndexSet {
     ///
     /// # Formal Properties
     ///
-    /// Let `set1` and `set2` be index sets, `set1_before` be the state of `set1` before this method is
-    /// called, `set2_before` be the state of `set2` before this method is called, `set1_after` be the
-    /// state of `set1` after this method completes, and `set2_after` be the state of `set2` after this
-    /// method completes.
+    /// Let `set1` and `set2` be index sets, `set1_before` be the state of `set1` before this
+    /// method is called, `set2_before` be the state of `set2` before this method is called,
+    /// `set1_after` be the state of `set1` after this method completes, and `set2_after` be the
+    /// state of `set2` after this method completes.
     ///
     /// We say that a value `v` is in the set `set` provided that
     ///
@@ -8935,8 +8961,8 @@ impl OpaqueIndexSet {
     /// index set.
     ///
     /// This method returns `Some(index)`, where `index` is the storage index of the value, if the
-    /// value equivalent to the provided `value` exists in `self`. This method returns `None` if the
-    /// value equivalent to `value` does not exist inside `self`.
+    /// value equivalent to the provided `value` exists in `self`. This method returns `None` if
+    /// the value equivalent to `value` does not exist inside `self`.
     ///
     /// # Panics
     ///
@@ -8995,8 +9021,9 @@ impl OpaqueIndexSet {
     ///
     /// # Formal Properties
     ///
-    /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set` before
-    /// this method is called, `set_after` be the state of `set` after this method completes.
+    /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
+    /// before this method is called, `set_after` be the state of `set` after this method
+    /// completes.
     ///
     /// We say that a value `v` is in the set `set` provided that
     ///
@@ -9177,8 +9204,9 @@ impl OpaqueIndexSet {
     ///
     /// # Formal Properties
     ///
-    /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set` before
-    /// this method is called, `set_after` be the state of `set` after this method completes.
+    /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
+    /// before this method is called, `set_after` be the state of `set` after this method
+    /// completes.
     ///
     /// We say that a value `v` is in the set `set` provided that
     ///
@@ -9354,8 +9382,9 @@ impl OpaqueIndexSet {
     ///
     /// # Formal Properties
     ///
-    /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set` before
-    /// this method is called, `set_after` be the state of `set` after this method completes.
+    /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
+    /// before this method is called, `set_after` be the state of `set` after this method
+    /// completes.
     ///
     /// We say that a value `v` is in the set `set` provided that
     ///
@@ -9535,12 +9564,14 @@ impl OpaqueIndexSet {
     /// * If the value `value` does not exist in the index set, the method returns `None`.
     ///
     /// In particular, the method acts like a [`pop`] when the last value in the collection is
-    /// shift-removed, because the sub-collection of successor entries in the entry storage is empty.
+    /// shift-removed, because the sub-collection of successor entries in the entry storage is
+    /// empty.
     ///
     /// # Formal Properties
     ///
     /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
-    /// before this method is called, `set_after` be the state of `set` after this method completes.
+    /// before this method is called, `set_after` be the state of `set` after this method
+    /// completes.
     ///
     /// We say that a value `v` is in the set `set` provided that
     ///
@@ -9718,8 +9749,9 @@ impl OpaqueIndexSet {
     ///
     /// # Formal Properties
     ///
-    /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set` before
-    /// this method is called, `set_after` be the state of `set` after this method completes.
+    /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
+    /// before this method is called, `set_after` be the state of `set` after this method
+    /// completes.
     ///
     /// We say that a value `v` is in the set `set` provided that
     ///
@@ -9893,12 +9925,14 @@ impl OpaqueIndexSet {
     /// * If the key `key` does not exist in the index set, the method returns `None`.
     ///
     /// In particular, the method acts like a [`pop`] when the last value in the collection is
-    /// shift-removed, because the sub-collection of successor entries in the entry storage is empty.
+    /// shift-removed, because the sub-collection of successor entries in the entry storage is
+    /// empty.
     ///
     /// # Formal Properties
     ///
     /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
-    /// before this method is called, `set_after` be the state of `set` after this method completes.
+    /// before this method is called, `set_after` be the state of `set` after this method
+    /// completes.
     ///
     /// We say that a value `v` is in the set `set` provided that
     ///
@@ -10374,8 +10408,8 @@ impl OpaqueIndexSet {
 impl OpaqueIndexSet {
     /// Clones a type-erased index set.
     ///
-    /// This method acts identically to an implementation of the [`Clone`] trait on a type-projected
-    /// index set [`TypedProjIndexSet`], or a generic [`HashSet`].
+    /// This method acts identically to an implementation of the [`Clone`] trait on a
+    /// type-projected index set [`TypedProjIndexSet`], or a generic [`HashSet`].
     ///
     /// # Panics
     ///
@@ -10474,8 +10508,8 @@ impl OpaqueIndexSet {
 impl OpaqueIndexSet {
     /// Extends a type-erased index set.
     ///
-    /// This method acts identically to an implementation of the [`Extend`] trait on a type-projected
-    /// index set [`TypedProjIndexSet`], or a generic [`HashSet`].
+    /// This method acts identically to an implementation of the [`Extend`] trait on a
+    /// type-projected index set [`TypedProjIndexSet`], or a generic [`HashSet`].
     ///
     /// If any entry from the iterable has an equivalent value in `self`, the value of the entry
     /// will not be included from the iterator.

@@ -10,8 +10,8 @@ use opaque_alloc::TypedProjAlloc;
 
 /// An iterator that extracts the elements of a vector that satisfy a predicate.
 ///
-/// Extracting iterators are created by the [`TypedProjVec::extract_if`] and [`OpaqueVec::extract_if`]
-/// methods.
+/// Extracting iterators are created by the [`TypedProjVec::extract_if`] and 
+/// [`OpaqueVec::extract_if`] methods.
 ///
 /// # Examples
 ///

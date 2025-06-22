@@ -10,9 +10,9 @@ use alloc_crate::boxed::Box;
 /// A type-projected memory allocator.
 ///
 /// Wrapping the memory allocator like this allows us to type-erase and type-project allocators
-/// as **O(1)**-time operations. When passing references to type-projected or type-erased allocators
-/// around, type-erasure and type-projection are zero-cost operations, since they have identical
-/// layout.
+/// as **O(1)** time operations. When passing references to type-projected or type-erased
+/// allocators around, type-erasure and type-projection are zero-cost operations, since they have
+/// identical layout.
 ///
 /// For a given allocator type `A`, the [`TypedProjAlloc<A>`] and [`OpaqueAlloc`] data types also
 /// implement the [`Allocator`] trait, so we can allocate memory with it just as well as the
@@ -22,20 +22,20 @@ use alloc_crate::boxed::Box;
 ///
 /// This allows for more flexible and dynamic data handling, especially when working with
 /// collections of unknown or dynamic types. Some applications of this include implementing
-/// heterogeneous data structures, plugin systems, and managing foreign function interface data. There
-/// are two data types that are dual to each other: [`TypedProjAlloc`] and [`OpaqueAlloc`].
+/// heterogeneous data structures, plugin systems, and managing foreign function interface data.
+/// There are two data types that are dual to each other: [`TypedProjAlloc`] and [`OpaqueAlloc`].
 ///
 /// # Tradeoffs Compared To A Non-Projected Allocator
 ///
 /// There are some tradeoffs to gaining type-erasability and type-projectability. The projected and
-/// erased allocators have identical memory layout to ensure that type projection and type erasure are
-/// both **O(1)**-time operations. Thus, the underlying memory allocator must be stored in the equivalent
-/// of a [`Box`], which carries a small performance penalty. Moreover, the allocators must carry extra
-/// metadata about the type of the underlying allocator through its [`TypeId`]. Boxing the allocator
-/// imposes a small performance penalty at runtime, and the extra metadata makes the allocator itself
-/// a little bigger in memory, though this is very minor. This also puts a slight restriction on what
-/// kinds of memory allocators can be held inside the container: the underlying memory
-/// allocator must be [`any::Any`], i.e. it must have a `'static` lifetime.
+/// erased allocators have identical memory layout to ensure that type projection and type erasure
+/// are both **O(1)** time operations. Thus, the underlying memory allocator must be stored in the
+/// equivalent of a [`Box`], which carries a small performance penalty. Moreover, the allocators
+/// must carry extra metadata about the type of the underlying allocator through its [`TypeId`].
+/// Boxing the allocator imposes a small performance penalty at runtime, and the extra metadata
+/// makes the allocator itself a little bigger in memory, though this is very minor. This also puts
+/// a slight restriction on what kinds of memory allocators can be held inside the container: the
+/// underlying memory allocator must be [`any::Any`], i.e. it must have a `'static` lifetime.
 ///
 /// # See Also
 ///
@@ -244,9 +244,9 @@ where
 /// A type-erased memory allocator.
 ///
 /// Wrapping the memory allocator like this allows us to type-erase and type-project allocators
-/// as **O(1)**-time operations. When passing references to type-projected or type-erased allocators
-/// around, type-erasure and type-projection are zero-cost operations, since they have identical
-/// layout.
+/// as **O(1)** time operations. When passing references to type-projected or type-erased
+/// allocators around, type-erasure and type-projection are zero-cost operations, since they have
+/// identical layout.
 ///
 /// For a given allocator type `A`, the [`TypedProjAlloc<A>`] and [`OpaqueAlloc`] data types also
 /// implement the [`Allocator`] trait, so we can allocate memory with it just as well as the
@@ -256,20 +256,20 @@ where
 ///
 /// This allows for more flexible and dynamic data handling, especially when working with
 /// collections of unknown or dynamic types. Some applications of this include implementing
-/// heterogeneous data structures, plugin systems, and managing foreign function interface data. There
-/// are two data types that are dual to each other: [`TypedProjAlloc`] and [`OpaqueAlloc`].
+/// heterogeneous data structures, plugin systems, and managing foreign function interface data.
+/// There are two data types that are dual to each other: [`TypedProjAlloc`] and [`OpaqueAlloc`].
 ///
 /// # Tradeoffs Compared To A Non-Projected Allocator
 ///
 /// There are some tradeoffs to gaining type-erasability and type-projectability. The projected and
-/// erased allocators have identical memory layout to ensure that type projection and type erasure are
-/// both **O(1)**-time operations. Thus, the underlying memory allocator must be stored in the equivalent
-/// of a [`Box`], which carries a small performance penalty. Moreover, the allocators must carry extra
-/// metadata about the type of the underlying allocator through its [`TypeId`]. Boxing the allocator
-/// imposes a small performance penalty at runtime, and the extra metadata makes the allocator itself
-/// a little bigger in memory, though this is very minor. This also puts a slight restriction on what
-/// kinds of memory allocators can be held inside the container: the underlying memory
-/// allocator must be [`any::Any`], i.e. it must have a `'static` lifetime.
+/// erased allocators have identical memory layout to ensure that type projection and type erasure
+/// are both **O(1)** time operations. Thus, the underlying memory allocator must be stored in the
+/// equivalent of a [`Box`], which carries a small performance penalty. Moreover, the allocators
+/// must carry extra metadata about the type of the underlying allocator through its [`TypeId`].
+/// Boxing the allocator imposes a small performance penalty at runtime, and the extra metadata
+/// makes the allocator itself a little bigger in memory, though this is very minor. This also puts
+/// a slight restriction on what kinds of memory allocators can be held inside the container: the
+/// underlying memory allocator must be [`any::Any`], i.e. it must have a `'static` lifetime.
 ///
 /// # See Also
 ///
@@ -323,7 +323,8 @@ impl OpaqueAlloc {
 impl OpaqueAlloc {
     /// Determines whether the underlying memory allocator has the given allocator type.
     ///
-    /// Returns `true` if `self` has the specified memory allocator type. Returns `false` otherwise.
+    /// Returns `true` if `self` has the specified memory allocator type. Returns `false`
+    /// otherwise.
     ///
     /// # Examples
     ///
@@ -388,61 +389,6 @@ impl OpaqueAlloc {
         if !self.has_allocator_type::<A>() {
             type_check_failed(self.inner.allocator_type_id(), any::TypeId::of::<A>());
         }
-    }
-}
-
-impl OpaqueAlloc {
-    /// Constructs a new type-erased memory allocator.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # #![feature(allocator_api)]
-    /// # use opaque_alloc::OpaqueAlloc;
-    /// # use std::any::TypeId;
-    /// # use std::alloc::Global;
-    /// #
-    /// let proj_alloc = OpaqueAlloc::new(Global);
-    ///
-    /// assert_eq!(proj_alloc.allocator_type_id(), TypeId::of::<Global>());
-    /// assert_ne!(proj_alloc.allocator_type_id(), TypeId::of::<Box<Global>>());
-    /// ```
-    #[inline]
-    pub fn new<A>(alloc: A) -> Self
-    where
-        A: any::Any + alloc::Allocator + Send + Sync,
-    {
-        let proj_alloc = TypedProjAlloc::<A>::new(alloc);
-
-        Self::from_proj(proj_alloc)
-    }
-
-    /// Constructs a new type-erased memory allocator from a boxed memory allocator.
-    ///
-    /// The underlying type of the type-erased memory allocator will be the type of the memory
-    /// allocator held by the box.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # #![feature(allocator_api)]
-    /// # use opaque_alloc::OpaqueAlloc;
-    /// # use std::any::TypeId;
-    /// # use std::alloc::Global;
-    /// #
-    /// let opaque_alloc = OpaqueAlloc::from_boxed_alloc(Box::new(Global));
-    ///
-    /// assert_eq!(opaque_alloc.allocator_type_id(), TypeId::of::<Global>());
-    /// assert_ne!(opaque_alloc.allocator_type_id(), TypeId::of::<Box<Global>>());
-    /// ```
-    #[inline]
-    pub fn from_boxed_alloc<A>(alloc: Box<A>) -> Self
-    where
-        A: any::Any + alloc::Allocator + Send + Sync,
-    {
-        let proj_alloc = TypedProjAlloc::<A>::from_boxed_alloc(alloc);
-
-        Self::from_proj(proj_alloc)
     }
 }
 
@@ -570,6 +516,61 @@ impl OpaqueAlloc {
         Self {
             inner: OpaqueAllocInner::from_proj(proj_self.inner),
         }
+    }
+}
+
+impl OpaqueAlloc {
+    /// Constructs a new type-erased memory allocator.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_alloc::OpaqueAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_alloc = OpaqueAlloc::new(Global);
+    ///
+    /// assert_eq!(proj_alloc.allocator_type_id(), TypeId::of::<Global>());
+    /// assert_ne!(proj_alloc.allocator_type_id(), TypeId::of::<Box<Global>>());
+    /// ```
+    #[inline]
+    pub fn new<A>(alloc: A) -> Self
+    where
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_alloc = TypedProjAlloc::<A>::new(alloc);
+
+        Self::from_proj(proj_alloc)
+    }
+
+    /// Constructs a new type-erased memory allocator from a boxed memory allocator.
+    ///
+    /// The underlying type of the type-erased memory allocator will be the type of the memory
+    /// allocator held by the box.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_alloc::OpaqueAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_alloc = OpaqueAlloc::from_boxed_alloc(Box::new(Global));
+    ///
+    /// assert_eq!(opaque_alloc.allocator_type_id(), TypeId::of::<Global>());
+    /// assert_ne!(opaque_alloc.allocator_type_id(), TypeId::of::<Box<Global>>());
+    /// ```
+    #[inline]
+    pub fn from_boxed_alloc<A>(alloc: Box<A>) -> Self
+    where
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_alloc = TypedProjAlloc::<A>::from_boxed_alloc(alloc);
+
+        Self::from_proj(proj_alloc)
     }
 }
 

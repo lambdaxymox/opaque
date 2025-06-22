@@ -19,7 +19,8 @@ const fn assuming_non_null<T>(item: *const T) -> NonNull<T> {
 
 /// An iterator that moves elements out of a collection.
 ///
-/// Moving iterators are created by the [`TypedProjVec::into_iter`] and [`OpaqueVec::into_iter`] methods.
+/// Moving iterators are created by the [`TypedProjVec::into_iter`] and [`OpaqueVec::into_iter`]
+/// methods.
 ///
 /// # Examples
 ///
@@ -379,8 +380,8 @@ where
         }
 
         if len < N {
-            // Safety: `len` indicates that this many elements are available, and we just checked that
-            // it fits into the array.
+            // Safety: `len` indicates that this many elements are available, and we just checked
+            // that it fits into the array.
             unsafe {
                 core::ptr::copy_nonoverlapping(self.ptr.as_ptr(), raw_ary.as_mut_ptr() as *mut T, len);
                 self.forget_remaining_elements();
