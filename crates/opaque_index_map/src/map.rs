@@ -7234,23 +7234,23 @@ where
     ///
     /// ## Hashing And Equivalence
     ///
-    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
-    /// `T`, and `h` is a hash function such that
+    /// A **hashing type** is a triple `(X, ~, h)` where `~` is an equivalence relation on
+    /// `X`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
+    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b)`.
     /// ```
     ///
-    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
-    /// function `h` such that `(T, ~, h)` is a hashing type.
+    /// A type `X` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(X, ~, h)` is a hashing type.
     ///
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
-    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
-    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
+    /// `f: Q → X` and `g: K → X` be functions. We say that
     /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
     ///
     /// ```test
-    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
     /// ```
     ///
     /// Note that by the definition of `~`
@@ -7260,20 +7260,21 @@ where
     /// ```
     ///
     /// This is an implication, not an equivalence, because practical hashing functions can have
-    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
-    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    /// collisions, i.e. for a practical hashing function `h`,
+    /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
+    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
     ///
     /// ```text
-    /// equiv(T, f, g)(Q, K) :=
-    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
-    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// equiv(X, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(X, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
     /// if and only if
     ///
     /// ```text
-    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
     /// We say that the type **`Q` is **equivalent to key type `K`**, or
@@ -7283,11 +7284,11 @@ where
     /// equiv(Q, K) := equiv(K, Q, K).
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
     /// identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// equiv(q, k) := equiv(X, f, id)(q, k).
     /// ```
     ///
     /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
@@ -7368,23 +7369,23 @@ where
     ///
     /// ## Hashing And Equivalence
     ///
-    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
-    /// `T`, and `h` is a hash function such that
+    /// A **hashing type** is a triple `(X, ~, h)` where `~` is an equivalence relation on
+    /// `X`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
+    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b)`.
     /// ```
     ///
-    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
-    /// function `h` such that `(T, ~, h)` is a hashing type.
+    /// A type `X` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(X, ~, h)` is a hashing type.
     ///
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
-    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
-    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
+    /// `f: Q → X` and `g: K → X` be functions. We say that
     /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
     ///
     /// ```test
-    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
     /// ```
     ///
     /// Note that by the definition of `~`
@@ -7394,20 +7395,21 @@ where
     /// ```
     ///
     /// This is an implication, not an equivalence, because practical hashing functions can have
-    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
-    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    /// collisions, i.e. for a practical hashing function `h`,
+    /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
+    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
     ///
     /// ```text
-    /// equiv(T, f, g)(Q, K) :=
-    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
-    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// equiv(X, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(X, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
     /// if and only if
     ///
     /// ```text
-    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
     /// We say that the type **`Q` is **equivalent to key type `K`**, or
@@ -7417,11 +7419,11 @@ where
     /// equiv(Q, K) := equiv(K, Q, K).
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
     /// identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// equiv(q, k) := equiv(X, f, id)(q, k).
     /// ```
     ///
     /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
@@ -7505,23 +7507,23 @@ where
     ///
     /// ## Hashing And Equivalence
     ///
-    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
-    /// `T`, and `h` is a hash function such that
+    /// A **hashing type** is a triple `(X, ~, h)` where `~` is an equivalence relation on
+    /// `X`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
+    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b)`.
     /// ```
     ///
-    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
-    /// function `h` such that `(T, ~, h)` is a hashing type.
+    /// A type `X` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(X, ~, h)` is a hashing type.
     ///
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
-    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
-    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
+    /// `f: Q → X` and `g: K → X` be functions. We say that
     /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
     ///
     /// ```test
-    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
     /// ```
     ///
     /// Note that by the definition of `~`
@@ -7531,20 +7533,21 @@ where
     /// ```
     ///
     /// This is an implication, not an equivalence, because practical hashing functions can have
-    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
-    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    /// collisions, i.e. for a practical hashing function `h`,
+    /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
+    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
     ///
     /// ```text
-    /// equiv(T, f, g)(Q, K) :=
-    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
-    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// equiv(X, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(X, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
     /// if and only if
     ///
     /// ```text
-    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
     /// We say that the type **`Q` is **equivalent to key type `K`**, or
@@ -7554,11 +7557,11 @@ where
     /// equiv(Q, K) := equiv(K, Q, K).
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
     /// identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// equiv(q, k) := equiv(X, f, id)(q, k).
     /// ```
     ///
     /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
@@ -7642,23 +7645,23 @@ where
     ///
     /// ## Hashing And Equivalence
     ///
-    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
-    /// `T`, and `h` is a hash function such that
+    /// A **hashing type** is a triple `(X, ~, h)` where `~` is an equivalence relation on
+    /// `X`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
+    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b)`.
     /// ```
     ///
-    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
-    /// function `h` such that `(T, ~, h)` is a hashing type.
+    /// A type `X` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(X, ~, h)` is a hashing type.
     ///
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
-    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
-    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
+    /// `f: Q → X` and `g: K → X` be functions. We say that
     /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
     ///
     /// ```test
-    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
     /// ```
     ///
     /// Note that by the definition of `~`
@@ -7668,20 +7671,21 @@ where
     /// ```
     ///
     /// This is an implication, not an equivalence, because practical hashing functions can have
-    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
-    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    /// collisions, i.e. for a practical hashing function `h`,
+    /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
+    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
     ///
     /// ```text
-    /// equiv(T, f, g)(Q, K) :=
-    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
-    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// equiv(X, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(X, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
     /// if and only if
     ///
     /// ```text
-    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
     /// We say that the type **`Q` is **equivalent to key type `K`**, or
@@ -7691,11 +7695,11 @@ where
     /// equiv(Q, K) := equiv(K, Q, K).
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
     /// identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// equiv(q, k) := equiv(X, f, id)(q, k).
     /// ```
     ///
     /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
@@ -7780,23 +7784,23 @@ where
     ///
     /// ## Hashing And Equivalence
     ///
-    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
-    /// `T`, and `h` is a hash function such that
+    /// A **hashing type** is a triple `(X, ~, h)` where `~` is an equivalence relation on
+    /// `X`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
+    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b)`.
     /// ```
     ///
-    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
-    /// function `h` such that `(T, ~, h)` is a hashing type.
+    /// A type `X` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(X, ~, h)` is a hashing type.
     ///
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
-    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
-    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
+    /// `f: Q → X` and `g: K → X` be functions. We say that
     /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
     ///
     /// ```test
-    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
     /// ```
     ///
     /// Note that by the definition of `~`
@@ -7806,20 +7810,21 @@ where
     /// ```
     ///
     /// This is an implication, not an equivalence, because practical hashing functions can have
-    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
-    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    /// collisions, i.e. for a practical hashing function `h`,
+    /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
+    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
     ///
     /// ```text
-    /// equiv(T, f, g)(Q, K) :=
-    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
-    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// equiv(X, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(X, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
     /// if and only if
     ///
     /// ```text
-    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
     /// We say that the type **`Q` is **equivalent to key type `K`**, or
@@ -7829,11 +7834,11 @@ where
     /// equiv(Q, K) := equiv(K, Q, K).
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
     /// identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// equiv(q, k) := equiv(X, f, id)(q, k).
     /// ```
     ///
     /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
@@ -7916,23 +7921,23 @@ where
     ///
     /// ## Hashing And Equivalence
     ///
-    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
-    /// `T`, and `h` is a hash function such that
+    /// A **hashing type** is a triple `(X, ~, h)` where `~` is an equivalence relation on
+    /// `X`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
+    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b)`.
     /// ```
     ///
-    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
-    /// function `h` such that `(T, ~, h)` is a hashing type.
+    /// A type `X` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(X, ~, h)` is a hashing type.
     ///
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
-    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
-    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
+    /// `f: Q → X` and `g: K → X` be functions. We say that
     /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
     ///
     /// ```test
-    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
     /// ```
     ///
     /// Note that by the definition of `~`
@@ -7942,20 +7947,21 @@ where
     /// ```
     ///
     /// This is an implication, not an equivalence, because practical hashing functions can have
-    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
-    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    /// collisions, i.e. for a practical hashing function `h`,
+    /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
+    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
     ///
     /// ```text
-    /// equiv(T, f, g)(Q, K) :=
-    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
-    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// equiv(X, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(X, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
     /// if and only if
     ///
     /// ```text
-    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
     /// We say that the type **`Q` is **equivalent to key type `K`**, or
@@ -7965,11 +7971,11 @@ where
     /// equiv(Q, K) := equiv(K, Q, K).
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
     /// identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// equiv(q, k) := equiv(X, f, id)(q, k).
     /// ```
     ///
     /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
@@ -8054,23 +8060,23 @@ where
     ///
     /// ## Hashing And Equivalence
     ///
-    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
-    /// `T`, and `h` is a hash function such that
+    /// A **hashing type** is a triple `(X, ~, h)` where `~` is an equivalence relation on
+    /// `X`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
+    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b)`.
     /// ```
     ///
-    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
-    /// function `h` such that `(T, ~, h)` is a hashing type.
+    /// A type `X` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(X, ~, h)` is a hashing type.
     ///
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
-    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
-    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
+    /// `f: Q → X` and `g: K → X` be functions. We say that
     /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
     ///
     /// ```test
-    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
     /// ```
     ///
     /// Note that by the definition of `~`
@@ -8080,20 +8086,21 @@ where
     /// ```
     ///
     /// This is an implication, not an equivalence, because practical hashing functions can have
-    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
-    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    /// collisions, i.e. for a practical hashing function `h`,
+    /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
+    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
     ///
     /// ```text
-    /// equiv(T, f, g)(Q, K) :=
-    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
-    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// equiv(X, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(X, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
     /// if and only if
     ///
     /// ```text
-    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
     /// We say that the type **`Q` is **equivalent to key type `K`**, or
@@ -8103,11 +8110,11 @@ where
     /// equiv(Q, K) := equiv(K, Q, K).
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
     /// identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// equiv(q, k) := equiv(X, f, id)(q, k).
     /// ```
     ///
     /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
@@ -9077,23 +9084,23 @@ where
     ///
     /// ## Hashing And Equivalence
     ///
-    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
-    /// `T`, and `h` is a hash function such that
+    /// A **hashing type** is a triple `(X, ~, h)` where `~` is an equivalence relation on
+    /// `X`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
+    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b)`.
     /// ```
     ///
-    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
-    /// function `h` such that `(T, ~, h)` is a hashing type.
+    /// A type `X` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(X, ~, h)` is a hashing type.
     ///
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
-    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
-    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
+    /// `f: Q → X` and `g: K → X` be functions. We say that
     /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
     ///
     /// ```test
-    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
     /// ```
     ///
     /// Note that by the definition of `~`
@@ -9103,20 +9110,21 @@ where
     /// ```
     ///
     /// This is an implication, not an equivalence, because practical hashing functions can have
-    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
-    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    /// collisions, i.e. for a practical hashing function `h`,
+    /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
+    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
     ///
     /// ```text
-    /// equiv(T, f, g)(Q, K) :=
-    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
-    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// equiv(X, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(X, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
     /// if and only if
     ///
     /// ```text
-    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
     /// We say that the type **`Q` is **equivalent to key type `K`**, or
@@ -9126,15 +9134,16 @@ where
     /// equiv(Q, K) := equiv(K, Q, K).
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
     /// identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// equiv(q, k) := equiv(X, f, id)(q, k).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an **equivalent element
-    /// of** the map `map`, or that **`map` equivalently contains `q`** if and only if
+    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
+    /// only if
     ///
     /// ```text
     /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
@@ -9304,23 +9313,23 @@ where
     ///
     /// ## Hashing And Equivalence
     ///
-    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
-    /// `T`, and `h` is a hash function such that
+    /// A **hashing type** is a triple `(X, ~, h)` where `~` is an equivalence relation on
+    /// `X`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
+    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b)`.
     /// ```
     ///
-    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
-    /// function `h` such that `(T, ~, h)` is a hashing type.
+    /// A type `X` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(X, ~, h)` is a hashing type.
     ///
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
-    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
-    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
+    /// `f: Q → X` and `g: K → X` be functions. We say that
     /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
     ///
     /// ```test
-    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
     /// ```
     ///
     /// Note that by the definition of `~`
@@ -9330,20 +9339,21 @@ where
     /// ```
     ///
     /// This is an implication, not an equivalence, because practical hashing functions can have
-    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
-    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    /// collisions, i.e. for a practical hashing function `h`,
+    /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
+    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
     ///
     /// ```text
-    /// equiv(T, f, g)(Q, K) :=
-    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
-    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// equiv(X, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(X, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
     /// if and only if
     ///
     /// ```text
-    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
     /// We say that the type **`Q` is **equivalent to key type `K`**, or
@@ -9353,15 +9363,16 @@ where
     /// equiv(Q, K) := equiv(K, Q, K).
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
     /// identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// equiv(q, k) := equiv(X, f, id)(q, k).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an **equivalent element
-    /// of** the map `map`, or that **`map` equivalently contains `q`** if and only if
+    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
+    /// only if
     ///
     /// ```text
     /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
@@ -9531,23 +9542,23 @@ where
     ///
     /// ## Hashing And Equivalence
     ///
-    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
-    /// `T`, and `h` is a hash function such that
+    /// A **hashing type** is a triple `(X, ~, h)` where `~` is an equivalence relation on
+    /// `X`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
+    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b)`.
     /// ```
     ///
-    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
-    /// function `h` such that `(T, ~, h)` is a hashing type.
+    /// A type `X` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(X, ~, h)` is a hashing type.
     ///
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
-    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
-    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
+    /// `f: Q → X` and `g: K → X` be functions. We say that
     /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
     ///
     /// ```test
-    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
     /// ```
     ///
     /// Note that by the definition of `~`
@@ -9557,20 +9568,21 @@ where
     /// ```
     ///
     /// This is an implication, not an equivalence, because practical hashing functions can have
-    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
-    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    /// collisions, i.e. for a practical hashing function `h`,
+    /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
+    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
     ///
     /// ```text
-    /// equiv(T, f, g)(Q, K) :=
-    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
-    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// equiv(X, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(X, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
     /// if and only if
     ///
     /// ```text
-    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
     /// We say that the type **`Q` is **equivalent to key type `K`**, or
@@ -9580,15 +9592,16 @@ where
     /// equiv(Q, K) := equiv(K, Q, K).
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
     /// identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// equiv(q, k) := equiv(X, f, id)(q, k).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an **equivalent element
-    /// of** the map `map`, or that **`map` equivalently contains `q`** if and only if
+    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
+    /// only if
     ///
     /// ```text
     /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
@@ -9761,23 +9774,23 @@ where
     ///
     /// ## Hashing And Equivalence
     ///
-    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
-    /// `T`, and `h` is a hash function such that
+    /// A **hashing type** is a triple `(X, ~, h)` where `~` is an equivalence relation on
+    /// `X`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
+    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b)`.
     /// ```
     ///
-    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
-    /// function `h` such that `(T, ~, h)` is a hashing type.
+    /// A type `X` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(X, ~, h)` is a hashing type.
     ///
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
-    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
-    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
+    /// `f: Q → X` and `g: K → X` be functions. We say that
     /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
     ///
     /// ```test
-    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
     /// ```
     ///
     /// Note that by the definition of `~`
@@ -9787,20 +9800,21 @@ where
     /// ```
     ///
     /// This is an implication, not an equivalence, because practical hashing functions can have
-    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
-    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    /// collisions, i.e. for a practical hashing function `h`,
+    /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
+    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
     ///
     /// ```text
-    /// equiv(T, f, g)(Q, K) :=
-    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
-    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// equiv(X, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(X, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
     /// if and only if
     ///
     /// ```text
-    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
     /// We say that the type **`Q` is **equivalent to key type `K`**, or
@@ -9810,15 +9824,16 @@ where
     /// equiv(Q, K) := equiv(K, Q, K).
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
     /// identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// equiv(q, k) := equiv(X, f, id)(q, k).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an **equivalent element
-    /// of** the map `map`, or that **`map` equivalently contains `q`** if and only if
+    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
+    /// only if
     ///
     /// ```text
     /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
@@ -9985,23 +10000,23 @@ where
     ///
     /// ## Hashing And Equivalence
     ///
-    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
-    /// `T`, and `h` is a hash function such that
+    /// A **hashing type** is a triple `(X, ~, h)` where `~` is an equivalence relation on
+    /// `X`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
+    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b)`.
     /// ```
     ///
-    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
-    /// function `h` such that `(T, ~, h)` is a hashing type.
+    /// A type `X` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(X, ~, h)` is a hashing type.
     ///
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
-    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
-    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
+    /// `f: Q → X` and `g: K → X` be functions. We say that
     /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
     ///
     /// ```test
-    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
     /// ```
     ///
     /// Note that by the definition of `~`
@@ -10011,20 +10026,21 @@ where
     /// ```
     ///
     /// This is an implication, not an equivalence, because practical hashing functions can have
-    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
-    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    /// collisions, i.e. for a practical hashing function `h`,
+    /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
+    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
     ///
     /// ```text
-    /// equiv(T, f, g)(Q, K) :=
-    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
-    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// equiv(X, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(X, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
     /// if and only if
     ///
     /// ```text
-    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
     /// We say that the type **`Q` is **equivalent to key type `K`**, or
@@ -10034,15 +10050,16 @@ where
     /// equiv(Q, K) := equiv(K, Q, K).
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
     /// identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// equiv(q, k) := equiv(X, f, id)(q, k).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an **equivalent element
-    /// of** the map `map`, or that **`map` equivalently contains `q`** if and only if
+    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
+    /// only if
     ///
     /// ```text
     /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
@@ -10208,23 +10225,23 @@ where
     ///
     /// ## Hashing And Equivalence
     ///
-    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
-    /// `T`, and `h` is a hash function such that
+    /// A **hashing type** is a triple `(X, ~, h)` where `~` is an equivalence relation on
+    /// `X`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
+    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b)`.
     /// ```
     ///
-    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
-    /// function `h` such that `(T, ~, h)` is a hashing type.
+    /// A type `X` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(X, ~, h)` is a hashing type.
     ///
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
-    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
-    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
+    /// `f: Q → X` and `g: K → X` be functions. We say that
     /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
     ///
     /// ```test
-    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
     /// ```
     ///
     /// Note that by the definition of `~`
@@ -10234,20 +10251,21 @@ where
     /// ```
     ///
     /// This is an implication, not an equivalence, because practical hashing functions can have
-    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
-    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    /// collisions, i.e. for a practical hashing function `h`,
+    /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
+    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
     ///
     /// ```text
-    /// equiv(T, f, g)(Q, K) :=
-    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
-    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// equiv(X, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(X, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
     /// if and only if
     ///
     /// ```text
-    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
     /// We say that the type **`Q` is **equivalent to key type `K`**, or
@@ -10257,15 +10275,16 @@ where
     /// equiv(Q, K) := equiv(K, Q, K).
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
     /// identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// equiv(q, k) := equiv(X, f, id)(q, k).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an **equivalent element
-    /// of** the map `map`, or that **`map` equivalently contains `q`** if and only if
+    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
+    /// only if
     ///
     /// ```text
     /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
@@ -15849,23 +15868,23 @@ impl OpaqueIndexMap {
     ///
     /// ## Hashing And Equivalence
     ///
-    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
-    /// `T`, and `h` is a hash function such that
+    /// A **hashing type** is a triple `(X, ~, h)` where `~` is an equivalence relation on
+    /// `X`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
+    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b)`.
     /// ```
     ///
-    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
-    /// function `h` such that `(T, ~, h)` is a hashing type.
+    /// A type `X` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(X, ~, h)` is a hashing type.
     ///
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
-    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
-    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
+    /// `f: Q → X` and `g: K → X` be functions. We say that
     /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
     ///
     /// ```test
-    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
     /// ```
     ///
     /// Note that by the definition of `~`
@@ -15875,20 +15894,21 @@ impl OpaqueIndexMap {
     /// ```
     ///
     /// This is an implication, not an equivalence, because practical hashing functions can have
-    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
-    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    /// collisions, i.e. for a practical hashing function `h`,
+    /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
+    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
     ///
     /// ```text
-    /// equiv(T, f, g)(Q, K) :=
-    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
-    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// equiv(X, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(X, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
     /// if and only if
     ///
     /// ```text
-    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
     /// We say that the type **`Q` is **equivalent to key type `K`**, or
@@ -15898,11 +15918,11 @@ impl OpaqueIndexMap {
     /// equiv(Q, K) := equiv(K, Q, K).
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
     /// identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// equiv(q, k) := equiv(X, f, id)(q, k).
     /// ```
     ///
     /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
@@ -16003,23 +16023,23 @@ impl OpaqueIndexMap {
     ///
     /// ## Hashing And Equivalence
     ///
-    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
-    /// `T`, and `h` is a hash function such that
+    /// A **hashing type** is a triple `(X, ~, h)` where `~` is an equivalence relation on
+    /// `X`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
+    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b)`.
     /// ```
     ///
-    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
-    /// function `h` such that `(T, ~, h)` is a hashing type.
+    /// A type `X` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(X, ~, h)` is a hashing type.
     ///
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
-    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
-    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
+    /// `f: Q → X` and `g: K → X` be functions. We say that
     /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
     ///
     /// ```test
-    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
     /// ```
     ///
     /// Note that by the definition of `~`
@@ -16029,20 +16049,21 @@ impl OpaqueIndexMap {
     /// ```
     ///
     /// This is an implication, not an equivalence, because practical hashing functions can have
-    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
-    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    /// collisions, i.e. for a practical hashing function `h`,
+    /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
+    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
     ///
     /// ```text
-    /// equiv(T, f, g)(Q, K) :=
-    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
-    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// equiv(X, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(X, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
     /// if and only if
     ///
     /// ```text
-    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
     /// We say that the type **`Q` is **equivalent to key type `K`**, or
@@ -16052,11 +16073,11 @@ impl OpaqueIndexMap {
     /// equiv(Q, K) := equiv(K, Q, K).
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
     /// identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// equiv(q, k) := equiv(X, f, id)(q, k).
     /// ```
     ///
     /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
@@ -16160,23 +16181,23 @@ impl OpaqueIndexMap {
     ///
     /// ## Hashing And Equivalence
     ///
-    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
-    /// `T`, and `h` is a hash function such that
+    /// A **hashing type** is a triple `(X, ~, h)` where `~` is an equivalence relation on
+    /// `X`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
+    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b)`.
     /// ```
     ///
-    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
-    /// function `h` such that `(T, ~, h)` is a hashing type.
+    /// A type `X` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(X, ~, h)` is a hashing type.
     ///
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
-    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
-    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
+    /// `f: Q → X` and `g: K → X` be functions. We say that
     /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
     ///
     /// ```test
-    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
     /// ```
     ///
     /// Note that by the definition of `~`
@@ -16186,20 +16207,21 @@ impl OpaqueIndexMap {
     /// ```
     ///
     /// This is an implication, not an equivalence, because practical hashing functions can have
-    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
-    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    /// collisions, i.e. for a practical hashing function `h`,
+    /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
+    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
     ///
     /// ```text
-    /// equiv(T, f, g)(Q, K) :=
-    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
-    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// equiv(X, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(X, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
     /// if and only if
     ///
     /// ```text
-    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
     /// We say that the type **`Q` is **equivalent to key type `K`**, or
@@ -16209,11 +16231,11 @@ impl OpaqueIndexMap {
     /// equiv(Q, K) := equiv(K, Q, K).
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
     /// identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// equiv(q, k) := equiv(X, f, id)(q, k).
     /// ```
     ///
     /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
@@ -16317,23 +16339,23 @@ impl OpaqueIndexMap {
     ///
     /// ## Hashing And Equivalence
     ///
-    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
-    /// `T`, and `h` is a hash function such that
+    /// A **hashing type** is a triple `(X, ~, h)` where `~` is an equivalence relation on
+    /// `X`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
+    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b)`.
     /// ```
     ///
-    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
-    /// function `h` such that `(T, ~, h)` is a hashing type.
+    /// A type `X` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(X, ~, h)` is a hashing type.
     ///
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
-    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
-    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
+    /// `f: Q → X` and `g: K → X` be functions. We say that
     /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
     ///
     /// ```test
-    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
     /// ```
     ///
     /// Note that by the definition of `~`
@@ -16343,20 +16365,21 @@ impl OpaqueIndexMap {
     /// ```
     ///
     /// This is an implication, not an equivalence, because practical hashing functions can have
-    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
-    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    /// collisions, i.e. for a practical hashing function `h`,
+    /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
+    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
     ///
     /// ```text
-    /// equiv(T, f, g)(Q, K) :=
-    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
-    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// equiv(X, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(X, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
     /// if and only if
     ///
     /// ```text
-    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
     /// We say that the type **`Q` is **equivalent to key type `K`**, or
@@ -16366,11 +16389,11 @@ impl OpaqueIndexMap {
     /// equiv(Q, K) := equiv(K, Q, K).
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
     /// identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// equiv(q, k) := equiv(X, f, id)(q, k).
     /// ```
     ///
     /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
@@ -16475,23 +16498,23 @@ impl OpaqueIndexMap {
     ///
     /// ## Hashing And Equivalence
     ///
-    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
-    /// `T`, and `h` is a hash function such that
+    /// A **hashing type** is a triple `(X, ~, h)` where `~` is an equivalence relation on
+    /// `X`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
+    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b)`.
     /// ```
     ///
-    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
-    /// function `h` such that `(T, ~, h)` is a hashing type.
+    /// A type `X` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(X, ~, h)` is a hashing type.
     ///
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
-    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
-    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
+    /// `f: Q → X` and `g: K → X` be functions. We say that
     /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
     ///
     /// ```test
-    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
     /// ```
     ///
     /// Note that by the definition of `~`
@@ -16501,20 +16524,21 @@ impl OpaqueIndexMap {
     /// ```
     ///
     /// This is an implication, not an equivalence, because practical hashing functions can have
-    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
-    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    /// collisions, i.e. for a practical hashing function `h`,
+    /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
+    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
     ///
     /// ```text
-    /// equiv(T, f, g)(Q, K) :=
-    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
-    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// equiv(X, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(X, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
     /// if and only if
     ///
     /// ```text
-    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
     /// We say that the type **`Q` is **equivalent to key type `K`**, or
@@ -16524,11 +16548,11 @@ impl OpaqueIndexMap {
     /// equiv(Q, K) := equiv(K, Q, K).
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
     /// identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// equiv(q, k) := equiv(X, f, id)(q, k).
     /// ```
     ///
     /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
@@ -16631,23 +16655,23 @@ impl OpaqueIndexMap {
     ///
     /// ## Hashing And Equivalence
     ///
-    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
-    /// `T`, and `h` is a hash function such that
+    /// A **hashing type** is a triple `(X, ~, h)` where `~` is an equivalence relation on
+    /// `X`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
+    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b)`.
     /// ```
     ///
-    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
-    /// function `h` such that `(T, ~, h)` is a hashing type.
+    /// A type `X` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(X, ~, h)` is a hashing type.
     ///
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
-    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
-    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
+    /// `f: Q → X` and `g: K → X` be functions. We say that
     /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
     ///
     /// ```test
-    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
     /// ```
     ///
     /// Note that by the definition of `~`
@@ -16657,20 +16681,21 @@ impl OpaqueIndexMap {
     /// ```
     ///
     /// This is an implication, not an equivalence, because practical hashing functions can have
-    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
-    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    /// collisions, i.e. for a practical hashing function `h`,
+    /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
+    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
     ///
     /// ```text
-    /// equiv(T, f, g)(Q, K) :=
-    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
-    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// equiv(X, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(X, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
     /// if and only if
     ///
     /// ```text
-    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
     /// We say that the type **`Q` is **equivalent to key type `K`**, or
@@ -16680,11 +16705,11 @@ impl OpaqueIndexMap {
     /// equiv(Q, K) := equiv(K, Q, K).
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
     /// identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// equiv(q, k) := equiv(X, f, id)(q, k).
     /// ```
     ///
     /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
@@ -16789,23 +16814,23 @@ impl OpaqueIndexMap {
     ///
     /// ## Hashing And Equivalence
     ///
-    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
-    /// `T`, and `h` is a hash function such that
+    /// A **hashing type** is a triple `(X, ~, h)` where `~` is an equivalence relation on
+    /// `X`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
+    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b)`.
     /// ```
     ///
-    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
-    /// function `h` such that `(T, ~, h)` is a hashing type.
+    /// A type `X` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(X, ~, h)` is a hashing type.
     ///
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
-    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
-    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
+    /// `f: Q → X` and `g: K → X` be functions. We say that
     /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
     ///
     /// ```test
-    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
     /// ```
     ///
     /// Note that by the definition of `~`
@@ -16815,20 +16840,21 @@ impl OpaqueIndexMap {
     /// ```
     ///
     /// This is an implication, not an equivalence, because practical hashing functions can have
-    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
-    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    /// collisions, i.e. for a practical hashing function `h`,
+    /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
+    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
     ///
     /// ```text
-    /// equiv(T, f, g)(Q, K) :=
-    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
-    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// equiv(X, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(X, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
     /// if and only if
     ///
     /// ```text
-    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
     /// We say that the type **`Q` is **equivalent to key type `K`**, or
@@ -16838,11 +16864,11 @@ impl OpaqueIndexMap {
     /// equiv(Q, K) := equiv(K, Q, K).
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
     /// identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// equiv(q, k) := equiv(X, f, id)(q, k).
     /// ```
     ///
     /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
@@ -18124,23 +18150,23 @@ impl OpaqueIndexMap {
     ///
     /// ## Hashing And Equivalence
     ///
-    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
-    /// `T`, and `h` is a hash function such that
+    /// A **hashing type** is a triple `(X, ~, h)` where `~` is an equivalence relation on
+    /// `X`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
+    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b)`.
     /// ```
     ///
-    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
-    /// function `h` such that `(T, ~, h)` is a hashing type.
+    /// A type `X` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(X, ~, h)` is a hashing type.
     ///
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
-    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
-    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
+    /// `f: Q → X` and `g: K → X` be functions. We say that
     /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
     ///
     /// ```test
-    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
     /// ```
     ///
     /// Note that by the definition of `~`
@@ -18150,20 +18176,21 @@ impl OpaqueIndexMap {
     /// ```
     ///
     /// This is an implication, not an equivalence, because practical hashing functions can have
-    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
-    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    /// collisions, i.e. for a practical hashing function `h`,
+    /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
+    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
     ///
     /// ```text
-    /// equiv(T, f, g)(Q, K) :=
-    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
-    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// equiv(X, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(X, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
     /// if and only if
     ///
     /// ```text
-    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
     /// We say that the type **`Q` is **equivalent to key type `K`**, or
@@ -18173,15 +18200,16 @@ impl OpaqueIndexMap {
     /// equiv(Q, K) := equiv(K, Q, K).
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
     /// identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// equiv(q, k) := equiv(X, f, id)(q, k).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an **equivalent element
-    /// of** the map `map`, or that **`map` equivalently contains `q`** if and only if
+    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
+    /// only if
     ///
     /// ```text
     /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
@@ -18418,23 +18446,23 @@ impl OpaqueIndexMap {
     ///
     /// ## Hashing And Equivalence
     ///
-    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
-    /// `T`, and `h` is a hash function such that
+    /// A **hashing type** is a triple `(X, ~, h)` where `~` is an equivalence relation on
+    /// `X`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
+    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b)`.
     /// ```
     ///
-    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
-    /// function `h` such that `(T, ~, h)` is a hashing type.
+    /// A type `X` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(X, ~, h)` is a hashing type.
     ///
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
-    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
-    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
+    /// `f: Q → X` and `g: K → X` be functions. We say that
     /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
     ///
     /// ```test
-    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
     /// ```
     ///
     /// Note that by the definition of `~`
@@ -18444,20 +18472,21 @@ impl OpaqueIndexMap {
     /// ```
     ///
     /// This is an implication, not an equivalence, because practical hashing functions can have
-    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
-    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    /// collisions, i.e. for a practical hashing function `h`,
+    /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
+    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
     ///
     /// ```text
-    /// equiv(T, f, g)(Q, K) :=
-    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
-    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// equiv(X, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(X, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
     /// if and only if
     ///
     /// ```text
-    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
     /// We say that the type **`Q` is **equivalent to key type `K`**, or
@@ -18467,15 +18496,16 @@ impl OpaqueIndexMap {
     /// equiv(Q, K) := equiv(K, Q, K).
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
     /// identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// equiv(q, k) := equiv(X, f, id)(q, k).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an **equivalent element
-    /// of** the map `map`, or that **`map` equivalently contains `q`** if and only if
+    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
+    /// only if
     ///
     /// ```text
     /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
@@ -18713,23 +18743,23 @@ impl OpaqueIndexMap {
     ///
     /// ## Hashing And Equivalence
     ///
-    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
-    /// `T`, and `h` is a hash function such that
+    /// A **hashing type** is a triple `(X, ~, h)` where `~` is an equivalence relation on
+    /// `X`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
+    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b)`.
     /// ```
     ///
-    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
-    /// function `h` such that `(T, ~, h)` is a hashing type.
+    /// A type `X` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(X, ~, h)` is a hashing type.
     ///
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
-    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
-    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
+    /// `f: Q → X` and `g: K → X` be functions. We say that
     /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
     ///
     /// ```test
-    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
     /// ```
     ///
     /// Note that by the definition of `~`
@@ -18739,20 +18769,21 @@ impl OpaqueIndexMap {
     /// ```
     ///
     /// This is an implication, not an equivalence, because practical hashing functions can have
-    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
-    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    /// collisions, i.e. for a practical hashing function `h`,
+    /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
+    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
     ///
     /// ```text
-    /// equiv(T, f, g)(Q, K) :=
-    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
-    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// equiv(X, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(X, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
     /// if and only if
     ///
     /// ```text
-    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
     /// We say that the type **`Q` is **equivalent to key type `K`**, or
@@ -18762,15 +18793,16 @@ impl OpaqueIndexMap {
     /// equiv(Q, K) := equiv(K, Q, K).
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
     /// identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// equiv(q, k) := equiv(X, f, id)(q, k).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an **equivalent element
-    /// of** the map `map`, or that **`map` equivalently contains `q`** if and only if
+    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
+    /// only if
     ///
     /// ```text
     /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
@@ -19012,23 +19044,23 @@ impl OpaqueIndexMap {
     ///
     /// ## Hashing And Equivalence
     ///
-    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
-    /// `T`, and `h` is a hash function such that
+    /// A **hashing type** is a triple `(X, ~, h)` where `~` is an equivalence relation on
+    /// `X`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
+    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b)`.
     /// ```
     ///
-    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
-    /// function `h` such that `(T, ~, h)` is a hashing type.
+    /// A type `X` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(X, ~, h)` is a hashing type.
     ///
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
-    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
-    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
+    /// `f: Q → X` and `g: K → X` be functions. We say that
     /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
     ///
     /// ```test
-    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
     /// ```
     ///
     /// Note that by the definition of `~`
@@ -19038,20 +19070,21 @@ impl OpaqueIndexMap {
     /// ```
     ///
     /// This is an implication, not an equivalence, because practical hashing functions can have
-    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
-    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    /// collisions, i.e. for a practical hashing function `h`,
+    /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
+    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
     ///
     /// ```text
-    /// equiv(T, f, g)(Q, K) :=
-    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
-    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// equiv(X, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(X, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
     /// if and only if
     ///
     /// ```text
-    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
     /// We say that the type **`Q` is **equivalent to key type `K`**, or
@@ -19061,15 +19094,16 @@ impl OpaqueIndexMap {
     /// equiv(Q, K) := equiv(K, Q, K).
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
     /// identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// equiv(q, k) := equiv(X, f, id)(q, k).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an **equivalent element
-    /// of** the map `map`, or that **`map` equivalently contains `q`** if and only if
+    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
+    /// only if
     ///
     /// ```text
     /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
@@ -19304,23 +19338,23 @@ impl OpaqueIndexMap {
     ///
     /// ## Hashing And Equivalence
     ///
-    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
-    /// `T`, and `h` is a hash function such that
+    /// A **hashing type** is a triple `(X, ~, h)` where `~` is an equivalence relation on
+    /// `X`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
+    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b)`.
     /// ```
     ///
-    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
-    /// function `h` such that `(T, ~, h)` is a hashing type.
+    /// A type `X` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(X, ~, h)` is a hashing type.
     ///
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
-    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
-    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
+    /// `f: Q → X` and `g: K → X` be functions. We say that
     /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
     ///
     /// ```test
-    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
     /// ```
     ///
     /// Note that by the definition of `~`
@@ -19330,20 +19364,21 @@ impl OpaqueIndexMap {
     /// ```
     ///
     /// This is an implication, not an equivalence, because practical hashing functions can have
-    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
-    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    /// collisions, i.e. for a practical hashing function `h`,
+    /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
+    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
     ///
     /// ```text
-    /// equiv(T, f, g)(Q, K) :=
-    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
-    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// equiv(X, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(X, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
     /// if and only if
     ///
     /// ```text
-    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
     /// We say that the type **`Q` is **equivalent to key type `K`**, or
@@ -19353,15 +19388,16 @@ impl OpaqueIndexMap {
     /// equiv(Q, K) := equiv(K, Q, K).
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
     /// identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// equiv(q, k) := equiv(X, f, id)(q, k).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an **equivalent element
-    /// of** the map `map`, or that **`map` equivalently contains `q`** if and only if
+    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
+    /// only if
     ///
     /// ```text
     /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
@@ -19595,23 +19631,23 @@ impl OpaqueIndexMap {
     ///
     /// ## Hashing And Equivalence
     ///
-    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
-    /// `T`, and `h` is a hash function such that
+    /// A **hashing type** is a triple `(X, ~, h)` where `~` is an equivalence relation on
+    /// `X`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
+    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b)`.
     /// ```
     ///
-    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
-    /// function `h` such that `(T, ~, h)` is a hashing type.
+    /// A type `X` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(X, ~, h)` is a hashing type.
     ///
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
-    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
-    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
+    /// `f: Q → X` and `g: K → X` be functions. We say that
     /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
     ///
     /// ```test
-    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
     /// ```
     ///
     /// Note that by the definition of `~`
@@ -19621,20 +19657,21 @@ impl OpaqueIndexMap {
     /// ```
     ///
     /// This is an implication, not an equivalence, because practical hashing functions can have
-    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
-    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    /// collisions, i.e. for a practical hashing function `h`,
+    /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
+    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
     ///
     /// ```text
-    /// equiv(T, f, g)(Q, K) :=
-    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
-    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// equiv(X, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(X, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
     /// if and only if
     ///
     /// ```text
-    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
     /// We say that the type **`Q` is **equivalent to key type `K`**, or
@@ -19644,15 +19681,16 @@ impl OpaqueIndexMap {
     /// equiv(Q, K) := equiv(K, Q, K).
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
     /// identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// equiv(q, k) := equiv(X, f, id)(q, k).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an **equivalent element
-    /// of** the map `map`, or that **`map` equivalently contains `q`** if and only if
+    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
+    /// only if
     ///
     /// ```text
     /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).

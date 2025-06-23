@@ -3833,11 +3833,15 @@ where
     /// `set1_after` be the state of `set1` after this method completes, and `set2_after` be the
     /// state of `set2` after this method completes.
     ///
+    /// ## Specification Definitions
+    ///
     /// We say that a value `v` is in the set `set` provided that
     ///
     /// ```text
     /// ∀ v :: T. (v ∈ set) ⇔ (∃ i ∈ [0, set.len()). set[i] = v).
     /// ```
+    ///
+    /// ## Method Specification
     ///
     /// This method satisfies:
     ///
@@ -3947,19 +3951,104 @@ where
     ///
     /// # Formal Properties
     ///
-    /// Let `set` be an index set with values of type `T`. Let `v :: T` be an value of type `T`. We
-    /// say that `set` **contains** a value `v :: T`, or that `v` is an **entry of** `set` if the
-    /// following holds:
+    /// Let `set` be an index set with values of type `T`.
+    ///
+    /// ## Hashing And Equivalence
+    ///
+    /// A **hashing type** is a triple `(X, ~, h)` where `~` is an equivalence relation on
+    /// `X`, and `h` is a hash function such that
+    ///
+    /// ```text
+    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b)`.
+    /// ```
+    ///
+    /// A type `X` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(X, ~, h)` is a hashing type.
+    ///
+    /// Let `T` be the type of the value of the index set `set`. Let `Q` be a data type. Let
+    /// `q :: Q` be a value of type `Q`, and let `v :: T` be a value. let `X` be a hashable type.
+    /// Let `f: Q → X` and `g: K → X` be functions. We say that
+    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    ///
+    /// ```test
+    /// equiv(X, f, g)(q, v) := f(q) ∼ g(v).
+    /// ```
+    ///
+    /// Note that by the definition of `~`
+    ///
+    /// ```text
+    /// ∀ q :: Q. ∀ v :: T. f(q) ∼ g(v) ⇒ h(f(q)) = h(g(v))`.
+    /// ```
+    ///
+    /// This is an implication, not an equivalence, because practical hashing functions can have
+    /// collisions, i.e. for a practical hashing function `h`,
+    /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
+    /// **`Q` is equivalent to `T` under `f` and `g`** if and only if
+    ///
+    /// ```text
+    /// equiv(X, f, g)(Q, T) :=
+    ///     (∀ q :: Q. ∃ v :: T. equiv(X, f, g)(q, v))
+    ///     ∧ (∀ v :: T. ∃ q :: Q. equiv(X, f, g)(q, v)).
+    /// ```
+    ///
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `T` under X**
+    /// if and only if
+    ///
+    /// ```text
+    /// equiv(X, Q, T) := ∃ f: Q → X. ∃ g: T → X. equiv(X, f, g)(Q, T).
+    /// ```
+    ///
+    /// We say that the type **`Q` is **equivalent to value type `T`**, or
+    /// **`Q` is equivalent to `T`**, if and only if
+    ///
+    /// ```text
+    /// equiv(Q, T) := equiv(T, Q, T).
+    /// ```
+    ///
+    /// Let `Q` be a type equivalent to the value type `T`. Let `f: Q → X` and `id: T → X` be the
+    /// identity. We say that **`q` is equivalent to `v`** if and only if
+    ///
+    /// ```text
+    /// equiv(q, v) := equiv(X, f, id)(q, v).
+    /// ```
+    ///
+    /// Let `Q` be a data type equivalent to value type `T`. We say that `q` is an
+    /// **equivalent element of** the set `set`, or that **`set` equivalently contains `q`** if and
+    /// only if
+    ///
+    /// ```text
+    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i].value()).
+    /// ```
+    ///
+    /// If `q` is not an equivalent element of `map`, we write `q ~∉ set`.
+    ///
+    /// Value equality is a special case of value equivalence because we can take `Q = T` and
+    /// `f = g = id` provided that `T` is a hashable type.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// Let `v :: T` be a value of type `T`. We say that `set` **contains** a value `v :: T`, or
+    /// that `v` is an **element of** `set` if the following holds:
     ///
     /// ```text
     /// ∀ v :: T. (v ∈ set) ⇔ (∃ i ∈ [0, set.len()). set[i] = v).
     /// ```
     ///
+    /// ## Method Specification
+    ///
     /// This method satisfies the following:
     ///
     /// ```text
-    /// ∀ v :: V. set.contains(v) ⇔ (v ∈ set) ⇔ (∃ i ∈ [0, set.len()). set[i] = v.
+    /// { value ~∈ set }
+    /// set.contains(value)
+    /// { result = true }
+    ///
+    /// { value ~∉ set }
+    /// set.contains(value)
+    /// { result = false }
     /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
     ///
     /// # Examples
     ///
@@ -8688,11 +8777,15 @@ impl OpaqueIndexSet {
     /// `set1_after` be the state of `set1` after this method completes, and `set2_after` be the
     /// state of `set2` after this method completes.
     ///
+    /// ## Specification Definitions
+    ///
     /// We say that a value `v` is in the set `set` provided that
     ///
     /// ```text
     /// ∀ v :: T. (v ∈ set) ⇔ (∃ i ∈ [0, set.len()). set[i] = v).
     /// ```
+    ///
+    /// ## Method Specification
     ///
     /// This method satisfies:
     ///
@@ -8834,19 +8927,104 @@ impl OpaqueIndexSet {
     ///
     /// # Formal Properties
     ///
-    /// Let `set` be an index set with values of type `T`. Let `v :: T` be an value of type `T`. We
-    /// say that `set` **contains** a value `v :: T`, or that `v` is an **entry of** `set` if the
-    /// following holds:
+    /// Let `set` be an index set with values of type `T`.
+    ///
+    /// ## Hashing And Equivalence
+    ///
+    /// A **hashing type** is a triple `(X, ~, h)` where `~` is an equivalence relation on
+    /// `X`, and `h` is a hash function such that
+    ///
+    /// ```text
+    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b)`.
+    /// ```
+    ///
+    /// A type `X` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(X, ~, h)` is a hashing type.
+    ///
+    /// Let `T` be the type of the value of the index set `set`. Let `Q` be a data type. Let
+    /// `q :: Q` be a value of type `Q`, and let `v :: T` be a value. let `X` be a hashable type.
+    /// Let `f: Q → X` and `g: K → X` be functions. We say that
+    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    ///
+    /// ```test
+    /// equiv(X, f, g)(q, v) := f(q) ∼ g(v).
+    /// ```
+    ///
+    /// Note that by the definition of `~`
+    ///
+    /// ```text
+    /// ∀ q :: Q. ∀ v :: T. f(q) ∼ g(v) ⇒ h(f(q)) = h(g(v))`.
+    /// ```
+    ///
+    /// This is an implication, not an equivalence, because practical hashing functions can have
+    /// collisions, i.e. for a practical hashing function `h`,
+    /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
+    /// **`Q` is equivalent to `T` under `f` and `g`** if and only if
+    ///
+    /// ```text
+    /// equiv(X, f, g)(Q, T) :=
+    ///     (∀ q :: Q. ∃ v :: T. equiv(X, f, g)(q, v))
+    ///     ∧ (∀ v :: T. ∃ q :: Q. equiv(X, f, g)(q, v)).
+    /// ```
+    ///
+    /// Let `X` be a hashable type. Then the type `Q` is **equivalent to** the type `T` **under X**
+    /// if and only if
+    ///
+    /// ```text
+    /// equiv(X, Q, T) := ∃ f: Q → X. ∃ g: T → X. equiv(X, f, g)(Q, T).
+    /// ```
+    ///
+    /// We say that the type **`Q` is **equivalent to value type `T`**, or
+    /// **`Q` is equivalent to `T`**, if and only if
+    ///
+    /// ```text
+    /// equiv(Q, T) := equiv(T, Q, T).
+    /// ```
+    ///
+    /// Let `Q` be a type equivalent to the value type `T`. Let `f: Q → X` and `id: T → X` be the
+    /// identity. We say that **`q` is equivalent to `v`** if and only if
+    ///
+    /// ```text
+    /// equiv(q, v) := equiv(X, f, id)(q, v).
+    /// ```
+    ///
+    /// Let `Q` be a data type equivalent to value type `T`. We say that `q` is an
+    /// **equivalent element of** the set `set`, or that **`set` equivalently contains `q`** if and
+    /// only if
+    ///
+    /// ```text
+    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i].value()).
+    /// ```
+    ///
+    /// If `q` is not an equivalent element of `map`, we write `q ~∉ set`.
+    ///
+    /// Value equality is a special case of value equivalence because we can take `Q = T` and
+    /// `f = g = id` provided that `T` is a hashable type.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// Let `v :: T` be a value of type `T`. We say that `set` **contains** a value `v :: T`, or
+    /// that `v` is an **element of** `set` if the following holds:
     ///
     /// ```text
     /// ∀ v :: T. (v ∈ set) ⇔ (∃ i ∈ [0, set.len()). set[i] = v).
     /// ```
     ///
+    /// ## Method Specification
+    ///
     /// This method satisfies the following:
     ///
     /// ```text
-    /// ∀ v :: V. set.contains(v) ⇔ (v ∈ set) ⇔ (∃ i ∈ [0, set.len()). set[i] = v.
+    /// { value ~∈ set }
+    /// set.contains(value)
+    /// { result = true }
+    ///
+    /// { value ~∉ set }
+    /// set.contains(value)
+    /// { result = false }
     /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
     ///
     /// # Panics
     ///
