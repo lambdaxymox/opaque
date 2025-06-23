@@ -10760,7 +10760,7 @@ where
     /// The index map `map` is **sorted**, or in **sorted order** if and only if
     ///
     /// ```text
-    /// sorted(map) := ∀ i1, i2 ∈ [0, map.len()). (i1 ≤ i2) ⇒ (map[i1].key() ≤ map[i2].key())
+    /// is_sorted(map) := ∀ i1, i2 ∈ [0, map.len()). (i1 ≤ i2) ⇒ (map[i1].key() ≤ map[i2].key())
     /// ```
     ///
     /// or equivalently over index-key-value triples
@@ -10777,17 +10777,17 @@ where
     /// This method satisfies:
     ///
     /// ```text
-    /// { key ∈ map_before ∧ sorted(map_before) }
+    /// { key ∈ map_before ∧ is_sorted(map_before) }
     /// map.insert_sorted(key, value)
     /// {
     ///     result = Some(map_before[index(map_before, key)])
     ///     ∧ map_after[index(map_after, key)] = value
     ///     ∧ map_after.len() = map_before.len()
     ///     ∧ (∀ k ∈ map_before. k ≠ key ⇒ map_after[index(map_after, k)] = map_before[index(map_before, k)])
-    ///     ∧ sorted(map_after)
+    ///     ∧ is_sorted(map_after)
     /// }
     ///
-    /// { key ∉ map_before ∧ sorted(map_before) }
+    /// { key ∉ map_before ∧ is_sorted(map_before) }
     /// map.insert_sorted(key, value)
     /// {
     ///     result = None
@@ -10797,7 +10797,7 @@ where
     ///     ∧ (∀ i < index(map_after, key). map_after[i].key() ≤ key
     ///        ∧ ∀ i > index(map_after, key). key ≤ map_after[i].key()
     ///     )
-    ///     ∧ sorted(map_after)
+    ///     ∧ is_sorted(map_after)
     /// }
     /// ```
     ///
@@ -20309,7 +20309,7 @@ impl OpaqueIndexMap {
     /// The index map `map` is **sorted**, or in **sorted order** if and only if
     ///
     /// ```text
-    /// sorted(map) := ∀ i1, i2 ∈ [0, map.len()). (i1 ≤ i2) ⇒ (map[i1].key() ≤ map[i2].key())
+    /// is_sorted(map) := ∀ i1, i2 ∈ [0, map.len()). (i1 ≤ i2) ⇒ (map[i1].key() ≤ map[i2].key())
     /// ```
     ///
     /// or equivalently over index-key-value triples
@@ -20326,17 +20326,17 @@ impl OpaqueIndexMap {
     /// This method satisfies:
     ///
     /// ```text
-    /// { key ∈ map_before ∧ sorted(map_before) }
+    /// { key ∈ map_before ∧ is_sorted(map_before) }
     /// map.insert_sorted(key, value)
     /// {
     ///     result = Some(map_before[index(map_before, key)])
     ///     ∧ map_after[index(map_after, key)] = value
     ///     ∧ map_after.len() = map_before.len()
     ///     ∧ (∀ k ∈ map_before. k ≠ key ⇒ map_after[index(map_after, k)] = map_before[index(map_before, k)])
-    ///     ∧ sorted(map_after)
+    ///     ∧ is_sorted(map_after)
     /// }
     ///
-    /// { key ∉ map_before ∧ sorted(map_before) }
+    /// { key ∉ map_before ∧ is_sorted(map_before) }
     /// map.insert_sorted(key, value)
     /// {
     ///     result = None
@@ -20346,7 +20346,7 @@ impl OpaqueIndexMap {
     ///     ∧ (∀ i < index(map_after, key). map_after[i].key() ≤ key
     ///        ∧ ∀ i > index(map_after, key). key ≤ map_after[i].key()
     ///     )
-    ///     ∧ sorted(map_after)
+    ///     ∧ is_sorted(map_after)
     /// }
     /// ```
     ///
