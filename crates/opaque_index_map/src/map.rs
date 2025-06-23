@@ -7226,6 +7226,105 @@ where
     /// if the key `key` exists in `self`. This method returns `None` if the key `key` does not
     /// exist inside `self`.
     ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with keys of type `K` and values of type `V`.
+    ///
+    /// ## Hashing And Equivalence
+    ///
+    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
+    /// `T`, and `h` is a hash function such that
+    ///
+    /// ```text
+    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
+    /// ```
+    ///
+    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(T, ~, h)` is a hashing type.
+    ///
+    /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
+    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    ///
+    /// ```test
+    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// ```
+    ///
+    /// Note that by the definition of `~`
+    ///
+    /// ```text
+    /// ∀ q :: Q. ∀ k :: K. f(q) ∼ g(k) ⇒ h(f(q)) = h(g(k))`.
+    /// ```
+    ///
+    /// This is an implication, not an equivalence, because practical hashing functions can have
+    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
+    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    ///
+    /// ```text
+    /// equiv(T, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// ```
+    ///
+    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// if and only if
+    ///
+    /// ```text
+    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// ```
+    ///
+    /// We say that the type **`Q` is **equivalent to key type `K`**, or
+    /// **`Q` is equivalent to `K`**, if and only if
+    ///
+    /// ```text
+    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ```
+    ///
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    ///
+    /// ```text
+    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// ```
+    ///
+    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
+    /// only if
+    ///
+    /// ```text
+    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// ```
+    ///
+    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
+    ///
+    /// Key equality is a special case of key equivalence because we can take `Q = K` and
+    /// `f = g = id`.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// The **index** of an equivalent key `q :: Q` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, q) := i such that equiv(q, map[i].key()).
+    /// ```
+    ///
+    /// ## Method Specification
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { key ~∈ map }
+    /// map.get_index_of(key)
+    /// { result = Some(index(map, key)) }
+    ///
+    /// { key ~∉ map }
+    /// map.get_index_of(key)
+    /// { result = None }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
     /// # Examples
     ///
     /// ```
@@ -7258,27 +7357,108 @@ where
 
     /// Determines whether a given key exists in the index map.
     ///
-    /// This method returns `true` if the key `key` exists in `self`. This method returns `false` if
-    /// the key `key` does not exist inside `self`.
+    /// This method returns `true` if the key `key` exists in `self`. This method returns `false`
+    /// if the key `key` does not exist inside `self`.
     ///
     /// # Formal Properties
     ///
-    /// Let `map` be an index map with keys of type `K` and values of type `V`. Let `e :: (K, V)` be
-    /// an entry of type `(K, V)`. We say that `map` **contains** a key-value pair `e :: (K, V)`, or
-    /// that `e` is an **entry of** `map` if the following holds:
+    /// Let `map` be an index map with keys of type `K` and values of type `V`.
+    ///
+    /// ## Hashing And Equivalence
+    ///
+    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
+    /// `T`, and `h` is a hash function such that
+    ///
+    /// ```text
+    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
+    /// ```
+    ///
+    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(T, ~, h)` is a hashing type.
+    ///
+    /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
+    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    ///
+    /// ```test
+    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// ```
+    ///
+    /// Note that by the definition of `~`
+    ///
+    /// ```text
+    /// ∀ q :: Q. ∀ k :: K. f(q) ∼ g(k) ⇒ h(f(q)) = h(g(k))`.
+    /// ```
+    ///
+    /// This is an implication, not an equivalence, because practical hashing functions can have
+    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
+    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    ///
+    /// ```text
+    /// equiv(T, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// ```
+    ///
+    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// if and only if
+    ///
+    /// ```text
+    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// ```
+    ///
+    /// We say that the type **`Q` is **equivalent to key type `K`**, or
+    /// **`Q` is equivalent to `K`**, if and only if
+    ///
+    /// ```text
+    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ```
+    ///
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    ///
+    /// ```text
+    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// ```
+    ///
+    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
+    /// only if
+    ///
+    /// ```text
+    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// ```
+    ///
+    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
+    ///
+    /// Key equality is a special case of key equivalence because we can take `Q = K` and
+    /// `f = g = id`.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// Let `e :: (K, V)` be an entry of type `(K, V)`. We say that `map` **contains** a key-value
+    /// pair `e :: (K, V)`, or that `e` is an **entry of** `map` if the following holds:
     ///
     /// ```text
     /// ∀ e :: (K, V). (e ∈ map) ⇔ (∃ i ∈ [0, map.len()). map[i] = e ∧ map[e.key()] = e.value())
     /// ```
     ///
+    /// ## Method Specification
+    ///
     /// This method satisfies the following:
     ///
     /// ```text
-    /// ∀ e :: (K, V).
-    ///     map.contains_key(e.key())
-    ///     ⇔ (e ∈ map)
-    ///     ⇔ (∃ i ∈ [0, map.len()). map[i] = e ∧ map[e.key()] = e.value()).
+    /// { key ~∈ map }
+    /// map.contains_key(key)
+    /// { result = true }
+    ///
+    /// { key ~∉ map }
+    /// map.contains_key(key)
+    /// { result = false }
     /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
     /// # Examples
     ///
@@ -7315,6 +7495,105 @@ where
     ///
     /// This method returns `Some(&value)` where `value` is the value corresponding to the key `key`
     /// in `self`. This method returns `None` if the key `key` does not exist inside `self`.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with keys of type `K` and values of type `V`.
+    ///
+    /// ## Hashing And Equivalence
+    ///
+    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
+    /// `T`, and `h` is a hash function such that
+    ///
+    /// ```text
+    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
+    /// ```
+    ///
+    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(T, ~, h)` is a hashing type.
+    ///
+    /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
+    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    ///
+    /// ```test
+    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// ```
+    ///
+    /// Note that by the definition of `~`
+    ///
+    /// ```text
+    /// ∀ q :: Q. ∀ k :: K. f(q) ∼ g(k) ⇒ h(f(q)) = h(g(k))`.
+    /// ```
+    ///
+    /// This is an implication, not an equivalence, because practical hashing functions can have
+    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
+    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    ///
+    /// ```text
+    /// equiv(T, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// ```
+    ///
+    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// if and only if
+    ///
+    /// ```text
+    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// ```
+    ///
+    /// We say that the type **`Q` is **equivalent to key type `K`**, or
+    /// **`Q` is equivalent to `K`**, if and only if
+    ///
+    /// ```text
+    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ```
+    ///
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    ///
+    /// ```text
+    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// ```
+    ///
+    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
+    /// only if
+    ///
+    /// ```text
+    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// ```
+    ///
+    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
+    ///
+    /// Key equality is a special case of key equivalence because we can take `Q = K` and
+    /// `f = g = id`.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// The **index** of an equivalent key `q :: Q` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, q) := i such that equiv(q, map[i].key()).
+    /// ```
+    ///
+    /// ## Method Specification
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { key ~∈ map }
+    /// map.get(key)
+    /// { result = Some(map[index(map, key)]) }
+    ///
+    /// { key ~∉ map }
+    /// map.get(key)
+    /// { result = None }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
     /// # Examples
     ///
@@ -7355,6 +7634,105 @@ where
     /// argument exists inside `self`. This method returns `None` if the equivalent key provided by
     /// the method argument does not exist inside `self`.
     ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with keys of type `K` and values of type `V`.
+    ///
+    /// ## Hashing And Equivalence
+    ///
+    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
+    /// `T`, and `h` is a hash function such that
+    ///
+    /// ```text
+    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
+    /// ```
+    ///
+    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(T, ~, h)` is a hashing type.
+    ///
+    /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
+    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    ///
+    /// ```test
+    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// ```
+    ///
+    /// Note that by the definition of `~`
+    ///
+    /// ```text
+    /// ∀ q :: Q. ∀ k :: K. f(q) ∼ g(k) ⇒ h(f(q)) = h(g(k))`.
+    /// ```
+    ///
+    /// This is an implication, not an equivalence, because practical hashing functions can have
+    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
+    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    ///
+    /// ```text
+    /// equiv(T, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// ```
+    ///
+    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// if and only if
+    ///
+    /// ```text
+    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// ```
+    ///
+    /// We say that the type **`Q` is **equivalent to key type `K`**, or
+    /// **`Q` is equivalent to `K`**, if and only if
+    ///
+    /// ```text
+    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ```
+    ///
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    ///
+    /// ```text
+    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// ```
+    ///
+    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
+    /// only if
+    ///
+    /// ```text
+    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// ```
+    ///
+    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
+    ///
+    /// Key equality is a special case of key equivalence because we can take `Q = K` and
+    /// `f = g = id`.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// The **index** of an equivalent key `q :: Q` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, q) := i such that equiv(q, map[i].key()).
+    /// ```
+    ///
+    /// ## Method Specification
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { key ~∈ map }
+    /// map.get_key_value(key)
+    /// { result = Some(map[index(map, key)]) }
+    ///
+    /// { key ~∉ map }
+    /// map.get_key_value(key)
+    /// { result = None }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
     /// # Examples
     ///
     /// ```
@@ -7394,6 +7772,105 @@ where
     /// equivalent key provided by the method argument exists inside `self`. This method returns
     /// `None` if the equivalent key provided by the method argument does not exist inside `self`.
     ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with keys of type `K` and values of type `V`.
+    ///
+    /// ## Hashing And Equivalence
+    ///
+    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
+    /// `T`, and `h` is a hash function such that
+    ///
+    /// ```text
+    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
+    /// ```
+    ///
+    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(T, ~, h)` is a hashing type.
+    ///
+    /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
+    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    ///
+    /// ```test
+    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// ```
+    ///
+    /// Note that by the definition of `~`
+    ///
+    /// ```text
+    /// ∀ q :: Q. ∀ k :: K. f(q) ∼ g(k) ⇒ h(f(q)) = h(g(k))`.
+    /// ```
+    ///
+    /// This is an implication, not an equivalence, because practical hashing functions can have
+    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
+    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    ///
+    /// ```text
+    /// equiv(T, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// ```
+    ///
+    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// if and only if
+    ///
+    /// ```text
+    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// ```
+    ///
+    /// We say that the type **`Q` is **equivalent to key type `K`**, or
+    /// **`Q` is equivalent to `K`**, if and only if
+    ///
+    /// ```text
+    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ```
+    ///
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    ///
+    /// ```text
+    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// ```
+    ///
+    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
+    /// only if
+    ///
+    /// ```text
+    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// ```
+    ///
+    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
+    ///
+    /// Key equality is a special case of key equivalence because we can take `Q = K` and
+    /// `f = g = id`.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// The **index** of an equivalent key `q :: Q` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, q) := i such that equiv(q, map[i].key()).
+    /// ```
+    ///
+    /// ## Method Specification
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { key ~∈ map }
+    /// map.get_full(key)
+    /// { result = Some((index(map, key), map[index(map, key)])) }
+    ///
+    /// { key ~∉ map }
+    /// map.get_full(key)
+    /// { result = None }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
     /// # Examples
     ///
     /// ```
@@ -7429,6 +7906,105 @@ where
     ///
     /// This method returns `Some(&mut value)` where `value` is the value corresponding to the key
     /// `key` in `self`. This method returns `None` if the key `key` does not exist inside `self`.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with keys of type `K` and values of type `V`.
+    ///
+    /// ## Hashing And Equivalence
+    ///
+    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
+    /// `T`, and `h` is a hash function such that
+    ///
+    /// ```text
+    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
+    /// ```
+    ///
+    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(T, ~, h)` is a hashing type.
+    ///
+    /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
+    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    ///
+    /// ```test
+    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// ```
+    ///
+    /// Note that by the definition of `~`
+    ///
+    /// ```text
+    /// ∀ q :: Q. ∀ k :: K. f(q) ∼ g(k) ⇒ h(f(q)) = h(g(k))`.
+    /// ```
+    ///
+    /// This is an implication, not an equivalence, because practical hashing functions can have
+    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
+    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    ///
+    /// ```text
+    /// equiv(T, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// ```
+    ///
+    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// if and only if
+    ///
+    /// ```text
+    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// ```
+    ///
+    /// We say that the type **`Q` is **equivalent to key type `K`**, or
+    /// **`Q` is equivalent to `K`**, if and only if
+    ///
+    /// ```text
+    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ```
+    ///
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    ///
+    /// ```text
+    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// ```
+    ///
+    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
+    /// only if
+    ///
+    /// ```text
+    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// ```
+    ///
+    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
+    ///
+    /// Key equality is a special case of key equivalence because we can take `Q = K` and
+    /// `f = g = id`.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// The **index** of an equivalent key `q :: Q` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, q) := i such that equiv(q, map[i].key()).
+    /// ```
+    ///
+    /// ## Method Specification
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { key ~∈ map }
+    /// map.get_mut(key)
+    /// { result = Some(map[index(map, key)]) }
+    ///
+    /// { key ~∉ map }
+    /// map.get_mut(key)
+    /// { result = None }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
     /// # Examples
     ///
@@ -7468,6 +8044,105 @@ where
     /// method argument, and `value` is the value corresponding to the key `key` in `self`, if the
     /// equivalent key provided by the method argument exists inside `self`. This method returns
     /// `None` if the equivalent key provided by the method argument does not exist inside `self`.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with keys of type `K` and values of type `V`.
+    ///
+    /// ## Hashing And Equivalence
+    ///
+    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
+    /// `T`, and `h` is a hash function such that
+    ///
+    /// ```text
+    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
+    /// ```
+    ///
+    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(T, ~, h)` is a hashing type.
+    ///
+    /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
+    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    ///
+    /// ```test
+    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// ```
+    ///
+    /// Note that by the definition of `~`
+    ///
+    /// ```text
+    /// ∀ q :: Q. ∀ k :: K. f(q) ∼ g(k) ⇒ h(f(q)) = h(g(k))`.
+    /// ```
+    ///
+    /// This is an implication, not an equivalence, because practical hashing functions can have
+    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
+    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    ///
+    /// ```text
+    /// equiv(T, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// ```
+    ///
+    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// if and only if
+    ///
+    /// ```text
+    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// ```
+    ///
+    /// We say that the type **`Q` is **equivalent to key type `K`**, or
+    /// **`Q` is equivalent to `K`**, if and only if
+    ///
+    /// ```text
+    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ```
+    ///
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    ///
+    /// ```text
+    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// ```
+    ///
+    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
+    /// only if
+    ///
+    /// ```text
+    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// ```
+    ///
+    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
+    ///
+    /// Key equality is a special case of key equivalence because we can take `Q = K` and
+    /// `f = g = id`.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// The **index** of an equivalent key `q :: Q` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, q) := i such that equiv(q, map[i].key()).
+    /// ```
+    ///
+    /// ## Method Specification
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { key ~∈ map }
+    /// map.get_full_mut(key)
+    /// { result = Some((index(map, key), map[index(map, key)])) }
+    ///
+    /// { key ~∉ map }
+    /// map.get_full_mut(key)
+    /// { result = None }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
     /// # Examples
     ///
@@ -7900,11 +8575,15 @@ where
     /// state of `map` before this method is called, and `map_after` be the state of `map` after
     /// this method completes.
     ///
+    /// ## Specification Definitions
+    ///
     /// We say that a key-value pair `e :: (K, V)` is an **entry** in the map `map` if and only if
     ///
     /// ```text
     /// ∀ e :: (K, V). e ∈ map ⇔ (∃ i ∈ [0, map.len()). map[i] = e).
     /// ```
+    ///
+    /// ## Method Specification
     ///
     /// This method satisfies:
     ///
@@ -8392,6 +9071,78 @@ where
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
     /// method completes.
     ///
+    /// ## Hashing And Equivalence
+    ///
+    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
+    /// `T`, and `h` is a hash function such that
+    ///
+    /// ```text
+    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
+    /// ```
+    ///
+    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(T, ~, h)` is a hashing type.
+    ///
+    /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
+    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    ///
+    /// ```test
+    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// ```
+    ///
+    /// Note that by the definition of `~`
+    ///
+    /// ```text
+    /// ∀ q :: Q. ∀ k :: K. f(q) ∼ g(k) ⇒ h(f(q)) = h(g(k))`.
+    /// ```
+    ///
+    /// This is an implication, not an equivalence, because practical hashing functions can have
+    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
+    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    ///
+    /// ```text
+    /// equiv(T, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// ```
+    ///
+    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// if and only if
+    ///
+    /// ```text
+    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// ```
+    ///
+    /// We say that the type **`Q` is **equivalent to key type `K`**, or
+    /// **`Q` is equivalent to `K`**, if and only if
+    ///
+    /// ```text
+    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ```
+    ///
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    ///
+    /// ```text
+    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// ```
+    ///
+    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an **equivalent element
+    /// of** the map `map`, or that **`map` equivalently contains `q`** if and only if
+    ///
+    /// ```text
+    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// ```
+    ///
+    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
+    ///
+    /// Key equality is a special case of key equivalence because we can take `Q = K` and
+    /// `f = g = id`.
+    ///
+    /// ## Specification Definitions
+    ///
     /// The set of **keys** in the map `map` is defined as
     ///
     /// ```text
@@ -8410,10 +9161,16 @@ where
     /// ∀ k :: K. k ∈ map ⇔ k ∈ keys(map).
     /// ```
     ///
-    /// The **index** of a key `k` in `map` is defined by
+    /// We say that two maps `map1` and `map2` are **equal** if and only if
     ///
     /// ```text
-    /// index(map, k) := i such that map[i].key() = k ∧ (∀ j ∈ [0, map.len()). j ≠ i ⇒ map[j].key() ≠ k).
+    /// map1 = map2 ⇔ (map1.len() = map2.len()) ∧ (∀ i ∈ [0, map1.len()). map1[i] = map2[i]).
+    /// ```
+    ///
+    /// The **index** of an equivalent key `q :: Q` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, q) := i such that equiv(q, map[i].key()).
     /// ```
     ///
     /// The **last entry** in the map `map` when `map` is non-empty is defined by
@@ -8422,27 +9179,26 @@ where
     /// last(map) := map[map.len() - 1].
     /// ```
     ///
-    /// We say that two maps `map1` and `map2` are **equal** if and only if
-    ///
-    /// ```text
-    /// map1 = map2 ⇔ (map1.len() = map2.len()) ∧ (∀ i ∈ [0, map1.len()). map1[i] = map2[i]).
-    /// ```
+    /// ## Method Specification
     ///
     /// This method satisfies:
     ///
     /// ```text
-    /// { key ∈ map_before }
+    /// { key ~∈ map_before }
     /// map.swap_remove(key)
     /// {
-    ///     result = Some(map_before[key])
+    ///     result = Some(map_before[index(map_before, key)])
     ///     ∧ map_after.len() = map_before.len() - 1
-    ///     ∧ key ∉ map_after
+    ///     ∧ key ~∉ map_after
     ///     ∧ (map_after[index(map_before, key)] = last(map_before)
-    ///        ∧ (∀ k ∈ keys(map_after). k ≠ last(map_before).key() ∧ k ≠ key ⇒ map_after[k] = map_before[k])
+    ///       ∧ (∀ k ∈ keys(map_after). k ≠ last(map_before).key() ∧ ¬equiv(key, k)
+    ///         ⇒ index(map_after, k) = index(map_before, k)
+    ///         ∧ map_after[index(map_after, k)] = map_before[index(map_before, k)]
+    ///       )
     ///     )
     /// }
     ///
-    /// { key ∉ map_before }
+    /// { key ~∉ map_before }
     /// map.swap_remove(key)
     /// { result = None ∧ map_after = map_before }
     /// ```
@@ -8540,6 +9296,78 @@ where
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
     /// method completes.
     ///
+    /// ## Hashing And Equivalence
+    ///
+    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
+    /// `T`, and `h` is a hash function such that
+    ///
+    /// ```text
+    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
+    /// ```
+    ///
+    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(T, ~, h)` is a hashing type.
+    ///
+    /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
+    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    ///
+    /// ```test
+    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// ```
+    ///
+    /// Note that by the definition of `~`
+    ///
+    /// ```text
+    /// ∀ q :: Q. ∀ k :: K. f(q) ∼ g(k) ⇒ h(f(q)) = h(g(k))`.
+    /// ```
+    ///
+    /// This is an implication, not an equivalence, because practical hashing functions can have
+    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
+    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    ///
+    /// ```text
+    /// equiv(T, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// ```
+    ///
+    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// if and only if
+    ///
+    /// ```text
+    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// ```
+    ///
+    /// We say that the type **`Q` is **equivalent to key type `K`**, or
+    /// **`Q` is equivalent to `K`**, if and only if
+    ///
+    /// ```text
+    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ```
+    ///
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    ///
+    /// ```text
+    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// ```
+    ///
+    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an **equivalent element
+    /// of** the map `map`, or that **`map` equivalently contains `q`** if and only if
+    ///
+    /// ```text
+    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// ```
+    ///
+    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
+    ///
+    /// Key equality is a special case of key equivalence because we can take `Q = K` and
+    /// `f = g = id`.
+    ///
+    /// ## Specification Definitions
+    ///
     /// The set of **keys** in the map `map` is defined as
     ///
     /// ```text
@@ -8558,10 +9386,16 @@ where
     /// ∀ k :: K. k ∈ map ⇔ k ∈ keys(map).
     /// ```
     ///
-    /// The **index** of a key `k` in `map` is defined by
+    /// We say that two maps `map1` and `map2` are **equal** if and only if
     ///
     /// ```text
-    /// index(map, k) := i such that map[i].key() = k ∧ (∀ j ∈ [0, map.len()). j ≠ i ⇒ map[j].key() ≠ k).
+    /// map1 = map2 ⇔ (map1.len() = map2.len()) ∧ (∀ i ∈ [0, map1.len()). map1[i] = map2[i]).
+    /// ```
+    ///
+    /// The **index** of an equivalent key `q` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, q) := i such that equiv(q, map[i].key()).
     /// ```
     ///
     /// The **last entry** in the map `map` when `map` is non-empty is defined by
@@ -8570,27 +9404,26 @@ where
     /// last(map) := map[map.len() - 1].
     /// ```
     ///
-    /// We say that two maps `map1` and `map2` are **equal** if and only if
-    ///
-    /// ```text
-    /// map1 = map2 ⇔ (map1.len() = map2.len()) ∧ (∀ i ∈ [0, map1.len()). map1[i] = map2[i]).
-    /// ```
+    /// ## Method Specification
     ///
     /// This method satisfies:
     ///
     /// ```text
-    /// { key ∈ map_before }
+    /// { key ~∈ map_before }
     /// map.swap_remove_entry(key)
     /// {
-    ///     result = Some(map_before[key])
+    ///     result = Some(map_before[index(map_before, key)])
     ///     ∧ map_after.len() = map_before.len() - 1
-    ///     ∧ key ∉ map_after
+    ///     ∧ key ~∉ map_after
     ///     ∧ (map_after[index(map_before, key)] = last(map_before)
-    ///        ∧ (∀ k ∈ keys(map_after). k ≠ last(map_before).key() ∧ k ≠ key ⇒ map_after[k] = map_before[k])
+    ///       ∧ (∀ k ∈ keys(map_after). k ≠ last(map_before).key() ∧ ¬equiv(key, k)
+    ///         ⇒ index(map_after, k) = index(map_before, k)
+    ///         ∧ map_after[index(map_after, k)] = map_before[index(map_before, k)]
+    ///       )
     ///     )
     /// }
     ///
-    /// { key ∉ map_before }
+    /// { key ~∉ map_before }
     /// map.swap_remove_entry(key)
     /// { result = None ∧ map_after = map_before }
     /// ```
@@ -8689,6 +9522,78 @@ where
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
     /// method completes.
     ///
+    /// ## Hashing And Equivalence
+    ///
+    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
+    /// `T`, and `h` is a hash function such that
+    ///
+    /// ```text
+    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
+    /// ```
+    ///
+    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(T, ~, h)` is a hashing type.
+    ///
+    /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
+    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    ///
+    /// ```test
+    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// ```
+    ///
+    /// Note that by the definition of `~`
+    ///
+    /// ```text
+    /// ∀ q :: Q. ∀ k :: K. f(q) ∼ g(k) ⇒ h(f(q)) = h(g(k))`.
+    /// ```
+    ///
+    /// This is an implication, not an equivalence, because practical hashing functions can have
+    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
+    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    ///
+    /// ```text
+    /// equiv(T, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// ```
+    ///
+    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// if and only if
+    ///
+    /// ```text
+    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// ```
+    ///
+    /// We say that the type **`Q` is **equivalent to key type `K`**, or
+    /// **`Q` is equivalent to `K`**, if and only if
+    ///
+    /// ```text
+    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ```
+    ///
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    ///
+    /// ```text
+    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// ```
+    ///
+    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an **equivalent element
+    /// of** the map `map`, or that **`map` equivalently contains `q`** if and only if
+    ///
+    /// ```text
+    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// ```
+    ///
+    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
+    ///
+    /// Key equality is a special case of key equivalence because we can take `Q = K` and
+    /// `f = g = id`.
+    ///
+    /// ## Specification Definitions
+    ///
     /// The set of **keys** in the map `map` is defined as
     ///
     /// ```text
@@ -8707,10 +9612,16 @@ where
     /// ∀ k :: K. k ∈ map ⇔ k ∈ keys(map).
     /// ```
     ///
-    /// The **index** of a key `k` in `map` is defined by
+    /// We say that two maps `map1` and `map2` are **equal** if and only if
     ///
     /// ```text
-    /// index(map, k) := i such that map[i].key() = k ∧ (∀ j ∈ [0, map.len()). j ≠ i ⇒ map[j].key() ≠ k).
+    /// map1 = map2 ⇔ (map1.len() = map2.len()) ∧ (∀ i ∈ [0, map1.len()). map1[i] = map2[i]).
+    /// ```
+    ///
+    /// The **index** of an equivalent key `q` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, q) := i such that equiv(q, map[i].key()).
     /// ```
     ///
     /// The **last entry** in the map `map` when `map` is non-empty is defined by
@@ -8719,27 +9630,26 @@ where
     /// last(map) := map[map.len() - 1].
     /// ```
     ///
-    /// We say that two maps `map1` and `map2` are **equal** if and only if
-    ///
-    /// ```text
-    /// map1 = map2 ⇔ (map1.len() = map2.len()) ∧ (∀ i ∈ [0, map1.len()). map1[i] = map2[i]).
-    /// ```
+    /// ## Method Specification
     ///
     /// This method satisfies:
     ///
     /// ```text
-    /// { key ∈ map_before }
+    /// { key ~∈ map_before }
     /// map.swap_remove_full(key)
     /// {
-    ///     result = Some(map_before[key])
+    ///     result = Some(map_before[index(map_before, key)])
     ///     ∧ map_after.len() = map_before.len() - 1
-    ///     ∧ key ∉ map_after
+    ///     ∧ key ~∉ map_after
     ///     ∧ (map_after[index(map_before, key)] = last(map_before)
-    ///        ∧ (∀ k ∈ keys(map_after). k ≠ last(map_before).key() ∧ k ≠ key ⇒ map_after[k] = map_before[k])
+    ///       ∧ (∀ k ∈ keys(map_after). k ≠ last(map_before).key() ∧ ¬equiv(key, k)
+    ///         ⇒ index(map_after, k) = index(map_before, k)
+    ///         ∧ map_after[index(map_after, k)] = map_before[index(map_before, k)]
+    ///       )
     ///     )
     /// }
     ///
-    /// { key ∉ map_before }
+    /// { key ~∉ map_before }
     /// map.swap_remove_full(key)
     /// { result = None ∧ map_after = map_before }
     /// ```
@@ -8841,16 +9751,94 @@ where
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
     /// method completes.
     ///
-    /// We say that a key `k` is in the map `map` provided that
+    /// ## Hashing And Equivalence
+    ///
+    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
+    /// `T`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ k :: K. (k ∈ map) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
+    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
     /// ```
     ///
-    /// The **index** of a key `k` in `map` is defined by
+    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(T, ~, h)` is a hashing type.
+    ///
+    /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
+    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    ///
+    /// ```test
+    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// ```
+    ///
+    /// Note that by the definition of `~`
     ///
     /// ```text
-    /// index(map, k) := i such that map[i].key() = k ∧ (∀ j ∈ [0, map.len()). j ≠ i ⇒ map[j].key() ≠ k).
+    /// ∀ q :: Q. ∀ k :: K. f(q) ∼ g(k) ⇒ h(f(q)) = h(g(k))`.
+    /// ```
+    ///
+    /// This is an implication, not an equivalence, because practical hashing functions can have
+    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
+    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    ///
+    /// ```text
+    /// equiv(T, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// ```
+    ///
+    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// if and only if
+    ///
+    /// ```text
+    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// ```
+    ///
+    /// We say that the type **`Q` is **equivalent to key type `K`**, or
+    /// **`Q` is equivalent to `K`**, if and only if
+    ///
+    /// ```text
+    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ```
+    ///
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    ///
+    /// ```text
+    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// ```
+    ///
+    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an **equivalent element
+    /// of** the map `map`, or that **`map` equivalently contains `q`** if and only if
+    ///
+    /// ```text
+    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// ```
+    ///
+    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
+    ///
+    /// Key equality is a special case of key equivalence because we can take `Q = K` and
+    /// `f = g = id`.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// The set of **keys** in the map `map` is defined as
+    ///
+    /// ```text
+    /// keys(map) := { k :: K | ∃ i ∈ [0, map.len()). map[i].key() = k }
+    /// ```
+    ///
+    /// or equivalently
+    ///
+    /// ```text
+    /// ∀ k :: K. (k ∈ keys(map)) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
+    /// ```
+    ///
+    /// We also say that a key `k` is in the map `map` provided that
+    ///
+    /// ```text
+    /// ∀ k :: K. k ∈ map ⇔ k ∈ keys(map).
     /// ```
     ///
     /// We say that two maps `map1` and `map2` are **equal** if and only if
@@ -8859,22 +9847,29 @@ where
     /// map1 = map2 ⇔ (map1.len() = map2.len()) ∧ (∀ i ∈ [0, map1.len()). map1[i] = map2[i]).
     /// ```
     ///
+    /// The **index** of an equivalent key `q` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, q) := i such that equiv(q, map[i].key()).
+    /// ```
+    ///
+    /// ## Method Specification
+    ///
     /// This method satisfies:
     ///
     /// ```text
-    /// { key ∈ map_before }
+    /// { key ~∈ map_before }
     /// map.shift_remove(key)
     /// {
-    ///     result = Some(map_before[key])
+    ///     result = Some(map_before[index(map_before, key)])
     ///     ∧ map_after.len() = map_before.len() - 1
-    ///     ∧ key ∉ map_after
-    ///     ∧ (let i = index(map_before, key);
-    ///        (∀ j ∈ [0, i). map_after[j] = map_before[j])
-    ///        ∧ (∀ j ∈ [i, map_after.len()). map_after[j] = map_before[j + 1])
+    ///     ∧ key ~∉ map_after
+    ///     ∧ ((∀ j ∈ [0, index(map_before, key)). map_after[j] = map_before[j])
+    ///        ∧ (∀ j ∈ [index(map_before, key), map_after.len()). map_after[j] = map_before[j + 1])
     ///     )
     /// }
     ///
-    /// { key ∉ map_before }
+    /// { key ~∉ map_before }
     /// map.shift_remove(key)
     /// { result = None ∧ map_after = map_before }
     /// ```
@@ -8979,16 +9974,94 @@ where
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
     /// method completes.
     ///
-    /// We say that a key `k` is in the map `map` provided that
+    /// ## Hashing And Equivalence
+    ///
+    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
+    /// `T`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ k :: K. (k ∈ map) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
+    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
     /// ```
     ///
-    /// The **index** of a key `k` in `map` is defined by
+    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(T, ~, h)` is a hashing type.
+    ///
+    /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
+    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    ///
+    /// ```test
+    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// ```
+    ///
+    /// Note that by the definition of `~`
     ///
     /// ```text
-    /// index(map, k) := i such that map[i].key() = k ∧ (∀ j ∈ [0, map.len()). j ≠ i ⇒ map[j].key() ≠ k).
+    /// ∀ q :: Q. ∀ k :: K. f(q) ∼ g(k) ⇒ h(f(q)) = h(g(k))`.
+    /// ```
+    ///
+    /// This is an implication, not an equivalence, because practical hashing functions can have
+    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
+    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    ///
+    /// ```text
+    /// equiv(T, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// ```
+    ///
+    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// if and only if
+    ///
+    /// ```text
+    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// ```
+    ///
+    /// We say that the type **`Q` is **equivalent to key type `K`**, or
+    /// **`Q` is equivalent to `K`**, if and only if
+    ///
+    /// ```text
+    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ```
+    ///
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    ///
+    /// ```text
+    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// ```
+    ///
+    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an **equivalent element
+    /// of** the map `map`, or that **`map` equivalently contains `q`** if and only if
+    ///
+    /// ```text
+    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// ```
+    ///
+    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
+    ///
+    /// Key equality is a special case of key equivalence because we can take `Q = K` and
+    /// `f = g = id`.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// The set of **keys** in the map `map` is defined as
+    ///
+    /// ```text
+    /// keys(map) := { k :: K | ∃ i ∈ [0, map.len()). map[i].key() = k }
+    /// ```
+    ///
+    /// or equivalently
+    ///
+    /// ```text
+    /// ∀ k :: K. (k ∈ keys(map)) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
+    /// ```
+    ///
+    /// We also say that a key `k` is in the map `map` provided that
+    ///
+    /// ```text
+    /// ∀ k :: K. k ∈ map ⇔ k ∈ keys(map).
     /// ```
     ///
     /// We say that two maps `map1` and `map2` are **equal** if and only if
@@ -8997,22 +10070,29 @@ where
     /// map1 = map2 ⇔ (map1.len() = map2.len()) ∧ (∀ i ∈ [0, map1.len()). map1[i] = map2[i]).
     /// ```
     ///
+    /// The **index** of an equivalent key `q` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, q) := i such that equiv(q, map[i].key()).
+    /// ```
+    ///
+    /// ## Method Specification
+    ///
     /// This method satisfies:
     ///
     /// ```text
-    /// { key ∈ map_before }
+    /// { key ~∈ map_before }
     /// map.shift_remove_entry(key)
     /// {
-    ///     result = Some(map_before[key])
+    ///     result = Some(map_before[index(map_before, key)])
     ///     ∧ map_after.len() = map_before.len() - 1
     ///     ∧ key ∉ map_after
-    ///     ∧ (let i = index(map_before, key);
-    ///        (∀ j ∈ [0, i). map_after[j] = map_before[j])
-    ///        ∧ (∀ j ∈ [i, map_after.len()). map_after[j] = map_before[j + 1])
+    ///     ∧ ((∀ j ∈ [0, index(map_before, key)). map_after[j] = map_before[j])
+    ///        ∧ (∀ j ∈ [index(map_before, key), map_after.len()). map_after[j] = map_before[j + 1])
     ///     )
     /// }
     ///
-    /// { key ∉ map_before }
+    /// { key ~∉ map_before }
     /// map.shift_remove_entry(key)
     /// { result = None ∧ map_after = map_before }
     /// ```
@@ -9117,16 +10197,94 @@ where
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
     /// method completes.
     ///
-    /// We say that a key `k` is in the map `map` provided that
+    /// ## Hashing And Equivalence
+    ///
+    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
+    /// `T`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ k :: K. (k ∈ map) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
+    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
     /// ```
     ///
-    /// The **index** of a key `k` in `map` is defined by
+    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(T, ~, h)` is a hashing type.
+    ///
+    /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
+    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    ///
+    /// ```test
+    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// ```
+    ///
+    /// Note that by the definition of `~`
     ///
     /// ```text
-    /// index(map, k) := i such that map[i].key() = k ∧ (∀ j ∈ [0, map.len()). j ≠ i ⇒ map[j].key() ≠ k).
+    /// ∀ q :: Q. ∀ k :: K. f(q) ∼ g(k) ⇒ h(f(q)) = h(g(k))`.
+    /// ```
+    ///
+    /// This is an implication, not an equivalence, because practical hashing functions can have
+    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
+    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    ///
+    /// ```text
+    /// equiv(T, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// ```
+    ///
+    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// if and only if
+    ///
+    /// ```text
+    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// ```
+    ///
+    /// We say that the type **`Q` is **equivalent to key type `K`**, or
+    /// **`Q` is equivalent to `K`**, if and only if
+    ///
+    /// ```text
+    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ```
+    ///
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    ///
+    /// ```text
+    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// ```
+    ///
+    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an **equivalent element
+    /// of** the map `map`, or that **`map` equivalently contains `q`** if and only if
+    ///
+    /// ```text
+    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// ```
+    ///
+    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
+    ///
+    /// Key equality is a special case of key equivalence because we can take `Q = K` and
+    /// `f = g = id`.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// The set of **keys** in the map `map` is defined as
+    ///
+    /// ```text
+    /// keys(map) := { k :: K | ∃ i ∈ [0, map.len()). map[i].key() = k }
+    /// ```
+    ///
+    /// or equivalently
+    ///
+    /// ```text
+    /// ∀ k :: K. (k ∈ keys(map)) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
+    /// ```
+    ///
+    /// We also say that a key `k` is in the map `map` provided that
+    ///
+    /// ```text
+    /// ∀ k :: K. k ∈ map ⇔ k ∈ keys(map).
     /// ```
     ///
     /// We say that two maps `map1` and `map2` are **equal** if and only if
@@ -9135,18 +10293,25 @@ where
     /// map1 = map2 ⇔ (map1.len() = map2.len()) ∧ (∀ i ∈ [0, map1.len()). map1[i] = map2[i]).
     /// ```
     ///
+    /// The **index** of an equivalent key `q` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, q) := i such that equiv(q, map[i].key()).
+    /// ```
+    ///
+    /// ## Method Specification
+    ///
     /// This method satisfies:
     ///
     /// ```text
     /// { key ∈ map_before }
     /// map.shift_remove_full(key)
     /// {
-    ///     result = Some(map_before[key])
+    ///     result = Some(map_before[index(map_before, key)])
     ///     ∧ map_after.len() = map_before.len() - 1
     ///     ∧ key ∉ map_after
-    ///     ∧ (let i = index(map_before, key);
-    ///        (∀ j ∈ [0, i). map_after[j] = map_before[j])
-    ///        ∧ (∀ j ∈ [i, map_after.len()). map_after[j] = map_before[j + 1])
+    ///     ∧ ((∀ j ∈ [0, index(map_before, key)). map_after[j] = map_before[j])
+    ///        ∧ (∀ j ∈ [index(map_before, key), map_after.len()). map_after[j] = map_before[j + 1])
     ///     )
     /// }
     ///
@@ -9323,11 +10488,21 @@ where
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
     /// method completes.
     ///
+    /// ## Specification Definitions
+    ///
     /// We say that a key `k` is in the map `map` provided that
     ///
     /// ```text
     /// ∀ k :: K. (k ∈ map) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
     /// ```
+    ///
+    /// The **index** of a key `k` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, k) := i such that map[i].key() = k.
+    /// ```
+    ///
+    /// ## Method Specification
     ///
     /// This method satisfies:
     ///
@@ -9335,10 +10510,12 @@ where
     /// { key ∈ map_before }
     /// map.insert(key, value)
     /// {
-    ///     result = Some(map_before[key])
+    ///     result = Some(map_before[index(map_before, key)])
     ///     ∧ map_after.len() = map_before.len()
-    ///     ∧ map_after[key] = value
-    ///     ∧ (∀ k ∈ map_before. k ≠ key ⇒ map_after[k] = map_before[k])
+    ///     ∧ map_after[index(map_after, key)] = value
+    ///     ∧ (∀ k ∈ map_before. k ≠ key ⇒ index(map_after, k) = index(map_before, k)
+    ///       ∧ map_after[index(map_after, k)] = map_before[index(map_before, k)]
+    ///     )
     /// }
     ///
     /// { key ∉ map_before }
@@ -9346,8 +10523,10 @@ where
     /// {
     ///     result = None
     ///     ∧ map_after.len() = map_before.len() + 1
-    ///     ∧ map_after[key] = value
-    ///     ∧ (∀ k ∈ map_before. map_after[k] = map_before[k])
+    ///     ∧ map_after[index(map_after, key)] = value
+    ///     ∧ (∀ k ∈ map_before. index(map_after, k) = index(map_before, k)
+    ///       ∧ map_after[index(map_after, k)] = map_before[index(map_before, k)]
+    ///     )
     /// }
     /// ```
     ///
@@ -9406,11 +10585,21 @@ where
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
     /// method completes.
     ///
+    /// ## Specification Definitions
+    ///
     /// We say that a key `k` is in the map `map` provided that
     ///
     /// ```text
     /// ∀ k :: K. (k ∈ map) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
     /// ```
+    ///
+    /// The **index** of a key `k` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, k) := i such that map[i].key() = k.
+    /// ```
+    ///
+    /// ## Method Specification
     ///
     /// This method satisfies:
     ///
@@ -9418,10 +10607,13 @@ where
     /// { key ∈ map_before }
     /// map.insert_full(key, value)
     /// {
-    ///     result = Some(map_before[key])
+    ///     result = Some(map_before[index(map_before, key)])
     ///     ∧ map_after.len() = map_before.len()
-    ///     ∧ map_after[key] = value
-    ///     ∧ (∀ k ∈ map_before. k ≠ key ⇒ map_after[k] = map_before[k])
+    ///     ∧ map_after[index(map_after, key)] = value
+    ///     ∧ (∀ k ∈ map_before. k ≠ key
+    ///       ⇒ index(map_after, k) = index(map_before, k)
+    ///       ∧ map_after[index(map_after, k)] = map_before[index(map_before, k)]
+    ///     )
     /// }
     ///
     /// { key ∉ map_before }
@@ -9429,8 +10621,10 @@ where
     /// {
     ///     result = None
     ///     ∧ map_after.len() = map_before.len() + 1
-    ///     ∧ map_after[key] = value
-    ///     ∧ (∀ k ∈ map_before. map_after[k] = map_before[k])
+    ///     ∧ map_after[index(map_after, key)] = value
+    ///     ∧ (∀ k ∈ map_before. index(map_after, k) = index(map_before, k)
+    ///       ∧ map_after[index(map_after, k)] = map_before[index(map_before, k)]
+    ///     )
     /// }
     /// ```
     ///
@@ -9521,10 +10715,18 @@ where
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
     /// method completes.
     ///
+    /// ## Specification Definitions
+    ///
     /// We say that a key `k` is in the map `map` provided that
     ///
     /// ```text
     /// ∀ k :: K. (k ∈ map) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
+    /// ```
+    ///
+    /// The **index** of a key `k` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, k) := i such that map[i].key() = k.
     /// ```
     ///
     /// The index map `map` is **sorted**, or in **sorted order** if and only if
@@ -9542,11 +10744,7 @@ where
     ///
     /// Otherwise, the index map is in **unsorted order by key**, or is **unsorted** for short.
     ///
-    /// The **index** of a key `k` in `map` is defined by
-    ///
-    /// ```text
-    /// index(map, k) := i such that map[i].key() = k ∧ (∀ j ∈ [0, map.len()). j ≠ i ⇒ map[j].key() ≠ k).
-    /// ```
+    /// ## Method Specification
     ///
     /// This method satisfies:
     ///
@@ -9554,10 +10752,10 @@ where
     /// { key ∈ map_before ∧ sorted(map_before) }
     /// map.insert_sorted(key, value)
     /// {
-    ///     result = Some(map_before[key])
-    ///     ∧ map_after[key] = value
+    ///     result = Some(map_before[index(map_before, key)])
+    ///     ∧ map_after[index(map_after, key)] = value
     ///     ∧ map_after.len() = map_before.len()
-    ///     ∧ (∀ k ∈ map_before. k ≠ key ⇒ map_after[k] = map_before[k])
+    ///     ∧ (∀ k ∈ map_before. k ≠ key ⇒ map_after[index(map_after, k)] = map_before[index(map_before, k)])
     ///     ∧ sorted(map_after)
     /// }
     ///
@@ -9565,11 +10763,12 @@ where
     /// map.insert_sorted(key, value)
     /// {
     ///     result = None
-    ///     ∧ map_after[key] = value
+    ///     ∧ map_after[index(map_after, key)] = value
     ///     ∧ map_after.len() = map_before.len() + 1
-    ///     ∧ (∀ k ∈ map_before. map_after[k] = map_before[k])
+    ///     ∧ (∀ k ∈ map_before. map_after[index(map_after, k)] = map_before[index(map_before, k)])
     ///     ∧ (∀ i < index(map_after, key). map_after[i].key() ≤ key
-    ///        ∧ ∀ i > index(map_after, key). key ≤ map_after[i].key())
+    ///        ∧ ∀ i > index(map_after, key). key ≤ map_after[i].key()
+    ///     )
     ///     ∧ sorted(map_after)
     /// }
     /// ```
@@ -9677,6 +10876,8 @@ where
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
     /// method completes. Let `result` be the return value of this method after it completes.
     ///
+    /// ## Specification Definitions
+    ///
     /// We say that a key `k` is in the map `map` provided that
     ///
     /// ```text
@@ -9686,8 +10887,10 @@ where
     /// The **index** of a key `k` in `map` is defined by
     ///
     /// ```text
-    /// index(map, k) := i such that map[i].key() = k ∧ (∀ j ∈ [0, map.len()). j ≠ i ⇒ map[j].key() ≠ k)
+    /// index(map, k) := i such that map[i].key() = k
     /// ```
+    ///
+    /// ## Method Specification
     ///
     /// This method satisfies:
     ///
@@ -9695,10 +10898,10 @@ where
     /// { index ∈ [0, map_before.len()] ∧ key ∈ map_before }
     /// map.insert_before(index, key, value)
     /// {
-    ///     result = (new_index, Some(map_before[key]))
-    ///     ∧ map_after[key] = value
+    ///     result = (new_index, Some(map_before[index(map_before, key)]))
+    ///     ∧ map_after[index(map_after, key)] = value
     ///     ∧ map_after.len() = map_before.len()
-    ///     ∧ (∀ k ∈ map_before. k ≠ key ⇒ map_after[k] = map_before[k])
+    ///     ∧ (∀ k ∈ map_before. k ≠ key ⇒ map_after[index(map_after, k)] = map_before[index(map_before, k)])
     ///     ∧ new_index = index(map_after, key)
     ///     ∧ ((new_index = index) ∨ (new_index = index - 1))
     /// }
@@ -9707,9 +10910,9 @@ where
     /// map.insert_before(index, key, value)
     /// {
     ///     result = (index, None)
-    ///     ∧ map_after[key] = value
+    ///     ∧ map_after[index(map_after, key)] = value
     ///     ∧ map_after.len() = map_before.len() + 1
-    ///     ∧ (∀ k ∈ map_before. map_after[k] = map_before[k])
+    ///     ∧ (∀ k ∈ map_before. map_after[index(map_after, k)] = map_before[index(map_before, k)])
     ///     ∧ map_after[index].key() = key
     ///     ∧ (∀ i ∈ [0, map_after.len()). i ≠ index ⇒ map_after[i].key() ≠ key)
     /// }
@@ -9929,6 +11132,8 @@ where
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
     /// method completes. Let `result` be the return value of this method after it completes.
     ///
+    /// ## Specification Definitions
+    ///
     /// We say that a key `k` is in the map `map` provided that
     ///
     /// ```text
@@ -9938,8 +11143,10 @@ where
     /// The **index** of a key `k` in `map` is defined by
     ///
     /// ```text
-    /// index(map, k) := i such that map[i].key() = k ∧ (∀ j ∈ [0, map.len()). j ≠ i ⇒ map[j].key() ≠ k)
+    /// index(map, k) := i such that map[i].key() = k.
     /// ```
+    ///
+    /// ## Method Specification
     ///
     /// This method satisfies:
     ///
@@ -9947,44 +11154,44 @@ where
     /// { index ∈ [0, map_before.len()) ∧ key ∈ map_before ∧ index(map_before, key) = index }
     /// map.shift_insert(index, key, value)
     /// {
-    ///     result = Some(map_before[key])
-    ///     ∧ map_after[key] = value
-    ///     ∧ map_after.len() = map_before.len()
-    ///     ∧ (∀ k ∈ map_before. map_after[k] = map_before[k])
+    ///     result = Some(map_before[index(map_before, key)])
+    ///     ∧ map_after[index(map_after, key)] = value
     ///     ∧ map_after[index].key() = key
+    ///     ∧ map_after.len() = map_before.len()
+    ///     ∧ (∀ k ∈ map_before. map_after[index(map_after, k)] = map_before[index(map_before, k)])
     /// }
     ///
     /// { index ∈ [0, map_before.len()) ∧ key ∈ map_before ∧ index(map_before, key) < index }
     /// map.shift_insert(index, key, value)
     /// {
-    ///     result = Some(map_before[key])
-    ///     ∧ map_after[key] = value
-    ///     ∧ map_after.len() = map_before.len()
-    ///     ∧ (∀ i ∈ [0, old_index). map_after[i] = map_before[i])
-    ///     ∧ (∀ i ∈ [old_index, index - 1]. map_after[i] = map_before[i + 1])
+    ///     result = Some(map_before[index(map_before, key)])
+    ///     ∧ map_after[index(map_after, key)] = value
     ///     ∧ map_after[index].key() = key
+    ///     ∧ map_after.len() = map_before.len()
+    ///     ∧ (∀ i ∈ [0, index(map_fore, key). map_after[i] = map_before[i])
+    ///     ∧ (∀ i ∈ [index(map_before, key), index - 1]. map_after[i] = map_before[i + 1])
     ///     ∧ (∀ i ∈ [index + 1, map_after.len()). map_after[i] = map_before[i])
     /// }
     ///
     /// { index ∈ [0, map_before.len()) ∧ key ∈ map_before ∧ index(map_before, key) > index }
     /// map.shift_insert(index, key, value)
     /// {
-    ///     result = Some(map_before[key])
-    ///     ∧ map_after[key] = value
+    ///     result = Some(map_before[index(map_before, key)])
+    ///     ∧ map_after[index(map_after, key)] = value
+    ///     ∧ map_after[index].key() = key
     ///     ∧ map_after.len() = map_before.len()
     ///     ∧ (∀ i ∈ [0, index). map_after[i] = map_before[i])
-    ///     ∧ map_after[index].key() = key
-    ///     ∧ (∀ i ∈ [index + 1, old_index + 1]. map_after[i] = map_before[i - 1])
-    ///     ∧ (∀ i ∈ [old_index + 1, map_after.len()). map_after[i] = map_before[i])
+    ///     ∧ (∀ i ∈ [index + 1, index(map_before, key) + 1]. map_after[i] = map_before[i - 1])
+    ///     ∧ (∀ i ∈ [index(map_before, key) + 1, map_after.len()). map_after[i] = map_before[i])
     /// }
     ///
     /// { index ∈ [0, map_before.len()] ∧ key ∉ map_before }
     /// map.shift_insert(index, key, value)
     /// {
     ///     result = None
-    ///     ∧ map_after[key] = value
-    ///     ∧ map_after.len() = map_before.len() + 1
+    ///     ∧ map_after[index(map_after, key)] = value
     ///     ∧ map_after[index].key() = key
+    ///     ∧ map_after.len() = map_before.len() + 1
     ///     ∧ (∀ j ∈ [0, map_after.len()). j ≠ index ⇒ map_after[j].key() ≠ key)
     ///     ∧ (∀ i ∈ [0, index). map_after[i] = map_before[i])
     ///     ∧ (∀ i ∈ [index + 1, map_after.len()). map_after[i] = map_before[i - 1])
@@ -10316,16 +11523,32 @@ where
     ///
     /// # Formal Properties
     ///
-    /// Let `map1` and `map2` be index maps, `map1_before` be the state of `map1` before this method
-    /// is called, `map2_before` be the state of `map2` before this method is called, `map1_after`
-    /// be the state of `map1` after this method completes, and `map2_after` be the state of `map2`
-    /// after this method completes.
+    /// Let `map1` and `map2` be index maps, `map1_before` be the state of `map1` before this
+    /// method is called, `map2_before` be the state of `map2` before this method is called,
+    /// `map1_after` be the state of `map1` after this method completes, and `map2_after` be the
+    /// state of `map2` after this method completes.
+    ///
+    /// ## Specification Definitions
     ///
     /// We say that a key `k` is in the map `map` provided that
     ///
     /// ```text
     /// ∀ k :: K. (k ∈ map) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
     /// ```
+    ///
+    /// The **index** of a key `k` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, k) := i such that map[i].key() = k.
+    /// ```
+    ///
+    /// We can index an index map `map` by a key `k` by defining
+    ///
+    /// ```text
+    /// map[key] := map[index(map, key)].
+    /// ```
+    ///
+    /// ## Method Specification
     ///
     /// This method satisfies:
     ///
@@ -10472,13 +11695,23 @@ where
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
     /// method completes. Let `result` be the return value of this method after it completes.
     ///
+    /// ## Specification Definitions
+    ///
+    /// The **last entry** in the map `map` when `map` is non-empty is defined by
+    ///
+    /// ```text
+    /// last(map) := map[map.len() - 1].
+    /// ```
+    ///
+    /// ## Method Specification
+    ///
     /// This method satisfies:
     ///
     /// ```text
     /// { map_before.len() > 0 }
     /// map.pop()
     /// {
-    ///     result = Some(map_before[map_before.len() - 1])
+    ///     result = Some(last(map_before))
     ///     ∧ map_after.len() = map_before.len() - 1
     ///     ∧ (∀ i ∈ [0, map_after.len()). map_after[i] = map_before[i])
     /// }
@@ -10561,23 +11794,33 @@ where
     /// method completes. Let `result` be the return value of this method after it completes. Let
     /// `keep` be the filtering function for entries in `map`.
     ///
+    /// ## Specification Definitions
+    ///
     /// We say that a key-value pair `e :: (K, V)` is an **entry** in the map `map` if and only if
     ///
     /// ```text
     /// ∀ e :: (K, V). e ∈ map ⇔ (∃ i ∈ [0, map.len()). map[i] = e).
     /// ```
     ///
-    /// We say that a key `k` is in the map `map` provided that
+    /// The set of **keys** in the map `map` is defined as
     ///
     /// ```text
-    /// ∀ k :: K. (k ∈ map) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
+    /// keys(map) := { k :: K | ∃ i ∈ [0, map.len()). map[i].key() = k }
+    /// ```
+    ///
+    /// or equivalently
+    ///
+    /// ```text
+    /// ∀ k :: K. (k ∈ keys(map)) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
     /// ```
     ///
     /// The **index** of a key `k` in `map` is defined by
     ///
     /// ```text
-    /// index(map, k) := i such that map[i].key() = k ∧ (∀ j ∈ [0, map.len()). j ≠ i ⇒ map[j].key() ≠ k)
+    /// index(map, k) := i such that map[i].key() = k.
     /// ```
+    ///
+    /// ## Method Specification
     ///
     /// This method satisfies:
     ///
@@ -10586,10 +11829,15 @@ where
     /// map.retain(f)
     /// {
     ///     map_after.len() ≤ map_before.len()
-    ///     ∧ (∀ (k, v) ∈ map_after. k ∈ map_before ∧ f(k, v))
-    ///     ∧ (∀ (k, v) ∈ map_before. f(k, v) ⇒ (k, v') ∈ map_after ∧ (if f mutated v, then v' is the updated value, else v' = v))
-    ///     ∧ (∀ (k, v) ∈ map_before. ¬f(k, v) ⇒ k ∉ map_after)
-    ///     ∧ (∀ k1, k2 ∈ map_after. index(map_before, k1) < index(map_before, k2) ⇒ index(map_after, k1) < index(map_after, k2))
+    ///     ∧ (∀ (k, v) ∈ map_after. k ∈ map_before ∧ keep(k, v))
+    ///     ∧ (∀ (k, v) ∈ map_before. keep(k, v) ⇒
+    ///         (k, v') ∈ map_after
+    ///         ∧ (if f mutated v, then v' is the updated value, else v' = v)
+    ///       )
+    ///     ∧ (∀ (k, v) ∈ map_before. ¬keep(k, v) ⇒ k ∉ keys(map_after))
+    ///     ∧ (∀ k1, k2 ∈ keys(map_after).
+    ///         index(map_before, k1) < index(map_before, k2) ⇒ index(map_after, k1) < index(map_after, k2)
+    ///       )
     /// }
     /// ```
     ///
@@ -10674,6 +11922,8 @@ where
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
     /// method completes.
     ///
+    /// ## Specification Definitions
+    ///
     /// We say that a key-value pair `(k, v) :: (K, V)` is an **entry** in the map `map` if and
     /// only if
     ///
@@ -10695,8 +11945,10 @@ where
     /// The index map `map` is **sorted** with respect to its keys if
     ///
     /// ```text
-    /// sorted(map) := ∀ i ∈ [0, map.len() - 1). map[i].key() ≤ map[i + 1].key().
+    /// is_sorted(map) := ∀ i ∈ [0, map.len() - 1). map[i].key() ≤ map[i + 1].key().
     /// ```
+    ///
+    /// ## Method Specification
     ///
     /// This method satisfies:
     ///
@@ -10706,12 +11958,13 @@ where
     /// {
     ///     map_after.len() = map_before.len()
     ///     ∧ is_permutation(map_after, map_before)
-    ///     ∧ sorted(map_after)
+    ///     ∧ is_sorted(map_after)
     /// }
     /// ```
     ///
-    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`. This sort is
-    /// stable because keys are unique.
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
+    /// This sort is stable because keys are unique.
     ///
     /// # Examples
     ///
@@ -10756,8 +12009,11 @@ where
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
     /// method completes.
     ///
+    /// ## Specification Definitions
+    ///
     /// A **comparator** is a map `cmp : K ⨯ V ⨯ K ⨯ V → Ordering` such that given entries
-    /// `(k1, v1) :: (K, V)` and `(k2, v2) :: (K, V)` from a partially ordered collection of entries
+    /// `(k1, v1) :: (K, V)` and `(k2, v2) :: (K, V)` from a partially ordered collection of
+    /// entries
     ///
     /// ```text
     /// cmp(k1, v1, k2, v2) = Ordering::Greater when (k1, v1) > (k2, v2)
@@ -10779,21 +12035,21 @@ where
     /// The **index** of a key `k` in `map` is defined by
     ///
     /// ```text
-    /// index(map, k) := i such that map[i].key() = k ∧ (∀ j ∈ [0, map.len()). j ≠ i ⇒ map[j].key() ≠ k)
+    /// index(map, k) := i such that map[i].key() = k.
     /// ```
     ///
     /// The index map `map` is **sorted** with respect to the comparator `cmp` if
     ///
     /// ```text
-    /// sorted(map, cmp) := ∀ i ∈ [0, map.len() - 1).
+    /// is_sorted(map, cmp) := ∀ i ∈ [0, map.len() - 1).
     ///     cmp(map[i].key(), map[i].value(), map[i + 1].key(), map[i + 1].value()) != Greater
     /// ```
     ///
     /// holds. We say that the sort is **stable** if and only if
     ///
     /// ```text
-    /// stable_sorted(map, original, cmp) :=
-    ///     sorted(map, cmp)
+    /// is_stable_sorted(map, original, cmp) :=
+    ///     is_sorted(map, cmp)
     ///     ∧ ∀ i, j ∈ [0, original.len()).
     ///         (cmp(original[i].key(), original[i].value(), original[j].key(), original[j].value()) = Equal ∧ (i < j))
     ///         ⇒
@@ -10801,6 +12057,8 @@ where
     /// ```
     ///
     /// holds.
+    ///
+    /// ## Method Specification
     ///
     /// This method satisfies:
     ///
@@ -10810,7 +12068,7 @@ where
     /// {
     ///     map_after.len() = map_before.len()
     ///     ∧ is_permutation(map_after, map_before)
-    ///     ∧ stable_sorted(map_after, map_before, cmp)
+    ///     ∧ is_stable_sorted(map_after, map_before, cmp)
     /// }
     /// ```
     ///
@@ -10902,6 +12160,8 @@ where
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
     /// method completes.
     ///
+    /// ## Specification Definitions
+    ///
     /// We say that a key-value pair `(k, v) :: (K, V)` is an **entry** in the map `map` if and
     /// only if
     ///
@@ -10923,8 +12183,10 @@ where
     /// The index map `map` is **sorted** with respect to its keys if
     ///
     /// ```text
-    /// sorted(map) := ∀ i ∈ [0, map.len() - 1). map[i].key() ≤ map[i + 1].key().
+    /// is_sorted(map) := ∀ i ∈ [0, map.len() - 1). map[i].key() ≤ map[i + 1].key().
     /// ```
+    ///
+    /// ## Method Specification
     ///
     /// This method satisfies:
     ///
@@ -10934,12 +12196,13 @@ where
     /// {
     ///     map_after.len() = map_before.len()
     ///     ∧ is_permutation(map_after, map_before)
-    ///     ∧ sorted(map_after)
+    ///     ∧ is_sorted(map_after)
     /// }
     /// ```
     ///
-    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`. This sort is
-    /// stable because keys are unique.
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
+    /// This sort is stable because keys are unique.
     ///
     /// # Examples
     ///
@@ -10990,6 +12253,8 @@ where
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
     /// method completes.
     ///
+    /// ## Specification Definitions
+    ///
     /// A **comparator** is a map `cmp : K ⨯ V ⨯ K ⨯ V → Ordering` such that given entries
     /// `(k1, v1) :: (K, V)` and `(k2, v2) :: (K, V)` from a partially ordered collection of
     /// entries
@@ -11011,20 +12276,16 @@ where
     ///
     /// Note that multiset equality is not needed here because every key is unique in an index map.
     ///
-    /// The **index** of a key `k` in `map` is defined by
-    ///
-    /// ```text
-    /// index(map, k) := i such that map[i].key() = k ∧ (∀ j ∈ [0, map.len()). j ≠ i ⇒ map[j].key() ≠ k)
-    /// ```
-    ///
     /// The index map `map` is **sorted** with respect to the comparator `cmp` if
     ///
     /// ```text
-    /// sorted(map, cmp) := ∀ i ∈ [0, map.len() - 1).
+    /// is_sorted(map, cmp) := ∀ i ∈ [0, map.len() - 1).
     ///     cmp(map[i].key(), map[i].value(), map[i + 1].key(), map[i + 1].value()) != Greater
     /// ```
     ///
     /// holds.
+    ///
+    /// ## Method Specification
     ///
     /// This method satisfies:
     ///
@@ -11034,7 +12295,7 @@ where
     /// {
     ///     map_after.len() = map_before.len()
     ///     ∧ is_permutation(map_after, map_before)
-    ///     ∧ sorted(map_after cmp)
+    ///     ∧ is_sorted(map_after cmp)
     /// }
     /// ```
     ///
@@ -12450,6 +13711,8 @@ where
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
     /// method completes.
     ///
+    /// ## Specification Definitions
+    ///
     /// The **last entry** in the map `map` when `map` is non-empty is defined by
     ///
     /// ```text
@@ -12461,6 +13724,8 @@ where
     /// ```text
     /// map1 = map2 ⇔ (map1.len() = map2.len()) ∧ (∀ i ∈ [0, map1.len()). map1[i] = map2[i]).
     /// ```
+    ///
+    /// ## Method Specification
     ///
     /// This method satisfies:
     ///
@@ -12528,11 +13793,15 @@ where
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
     /// method completes.
     ///
+    /// ## Specification Definitions
+    ///
     /// We say that two maps `map1` and `map2` are **equal** if and only if
     ///
     /// ```text
     /// map1 = map2 ⇔ (map1.len() = map2.len()) ∧ (∀ i ∈ [0, map1.len()). map1[i] = map2[i]).
     /// ```
+    ///
+    /// ## Method Specification
     ///
     /// This method satisfies:
     ///
@@ -12594,6 +13863,8 @@ where
     /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
     /// method completes.
+    ///
+    /// ## Specification Definitions
     ///
     /// We say that two maps `map1` and `map2` are **equal** if and only if
     ///
@@ -12696,6 +13967,8 @@ where
     /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
     /// method completes.
+    ///
+    /// ## Method Specification
     ///
     /// This method satisfies:
     ///
@@ -14505,6 +15778,105 @@ impl OpaqueIndexMap {
     /// if the key `key` exists in `self`. This method returns `None` if the key `key` does not
     /// exist inside `self`.
     ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with keys of type `K` and values of type `V`.
+    ///
+    /// ## Hashing And Equivalence
+    ///
+    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
+    /// `T`, and `h` is a hash function such that
+    ///
+    /// ```text
+    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
+    /// ```
+    ///
+    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(T, ~, h)` is a hashing type.
+    ///
+    /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
+    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    ///
+    /// ```test
+    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// ```
+    ///
+    /// Note that by the definition of `~`
+    ///
+    /// ```text
+    /// ∀ q :: Q. ∀ k :: K. f(q) ∼ g(k) ⇒ h(f(q)) = h(g(k))`.
+    /// ```
+    ///
+    /// This is an implication, not an equivalence, because practical hashing functions can have
+    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
+    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    ///
+    /// ```text
+    /// equiv(T, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// ```
+    ///
+    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// if and only if
+    ///
+    /// ```text
+    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// ```
+    ///
+    /// We say that the type **`Q` is **equivalent to key type `K`**, or
+    /// **`Q` is equivalent to `K`**, if and only if
+    ///
+    /// ```text
+    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ```
+    ///
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    ///
+    /// ```text
+    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// ```
+    ///
+    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
+    /// only if
+    ///
+    /// ```text
+    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// ```
+    ///
+    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
+    ///
+    /// Key equality is a special case of key equivalence because we can take `Q = K` and
+    /// `f = g = id`.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// The **index** of an equivalent key `q :: Q` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, q) := i such that equiv(q, map[i].key()).
+    /// ```
+    ///
+    /// ## Method Specification
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { key ~∈ map }
+    /// map.get_index_of(key)
+    /// { result = Some(index(map, key)) }
+    ///
+    /// { key ~∉ map }
+    /// map.get_index_of(key)
+    /// { result = None }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
@@ -14557,27 +15929,108 @@ impl OpaqueIndexMap {
 
     /// Determines whether a given key exists in the index map.
     ///
-    /// This method returns `true` if the key `key` exists in `self`. This method returns `false` if
-    /// the key `key` does not exist inside `self`.
+    /// This method returns `true` if the key `key` exists in `self`. This method returns `false`
+    /// if the key `key` does not exist inside `self`.
     ///
     /// # Formal Properties
     ///
-    /// Let `map` be an index map with keys of type `K` and values of type `V`. Let `e :: (K, V)` be
-    /// an entry of type `(K, V)`. We say that `map` **contains** a key-value pair `e :: (K, V)`, or
-    /// that `e` is an **entry of** `map` if the following holds:
+    /// Let `map` be an index map with keys of type `K` and values of type `V`.
+    ///
+    /// ## Hashing And Equivalence
+    ///
+    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
+    /// `T`, and `h` is a hash function such that
+    ///
+    /// ```text
+    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
+    /// ```
+    ///
+    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(T, ~, h)` is a hashing type.
+    ///
+    /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
+    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    ///
+    /// ```test
+    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// ```
+    ///
+    /// Note that by the definition of `~`
+    ///
+    /// ```text
+    /// ∀ q :: Q. ∀ k :: K. f(q) ∼ g(k) ⇒ h(f(q)) = h(g(k))`.
+    /// ```
+    ///
+    /// This is an implication, not an equivalence, because practical hashing functions can have
+    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
+    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    ///
+    /// ```text
+    /// equiv(T, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// ```
+    ///
+    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// if and only if
+    ///
+    /// ```text
+    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// ```
+    ///
+    /// We say that the type **`Q` is **equivalent to key type `K`**, or
+    /// **`Q` is equivalent to `K`**, if and only if
+    ///
+    /// ```text
+    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ```
+    ///
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    ///
+    /// ```text
+    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// ```
+    ///
+    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
+    /// only if
+    ///
+    /// ```text
+    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// ```
+    ///
+    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
+    ///
+    /// Key equality is a special case of key equivalence because we can take `Q = K` and
+    /// `f = g = id`.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// Let `e :: (K, V)` be an entry of type `(K, V)`. We say that `map` **contains** a key-value
+    /// pair `e :: (K, V)`, or that `e` is an **entry of** `map` if the following holds:
     ///
     /// ```text
     /// ∀ e :: (K, V). (e ∈ map) ⇔ (∃ i ∈ [0, map.len()). map[i] = e ∧ map[e.key()] = e.value())
     /// ```
     ///
+    /// ## Method Specification
+    ///
     /// This method satisfies the following:
     ///
     /// ```text
-    /// ∀ e :: (K, V).
-    ///     map.contains_key(e.key())
-    ///     ⇔ (e ∈ map)
-    ///     ⇔ (∃ i ∈ [0, map.len()). map[i] = e ∧ map[e.key()] = e.value()).
+    /// { key ~∈ map }
+    /// map.contains_key(key)
+    /// { result = true }
+    ///
+    /// { key ~∉ map }
+    /// map.contains_key(key)
+    /// { result = false }
     /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
     /// # Panics
     ///
@@ -14642,6 +16095,105 @@ impl OpaqueIndexMap {
     /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
     /// type `S`, and allocator type `A`, respectively.
     ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with keys of type `K` and values of type `V`.
+    ///
+    /// ## Hashing And Equivalence
+    ///
+    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
+    /// `T`, and `h` is a hash function such that
+    ///
+    /// ```text
+    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
+    /// ```
+    ///
+    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(T, ~, h)` is a hashing type.
+    ///
+    /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
+    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    ///
+    /// ```test
+    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// ```
+    ///
+    /// Note that by the definition of `~`
+    ///
+    /// ```text
+    /// ∀ q :: Q. ∀ k :: K. f(q) ∼ g(k) ⇒ h(f(q)) = h(g(k))`.
+    /// ```
+    ///
+    /// This is an implication, not an equivalence, because practical hashing functions can have
+    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
+    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    ///
+    /// ```text
+    /// equiv(T, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// ```
+    ///
+    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// if and only if
+    ///
+    /// ```text
+    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// ```
+    ///
+    /// We say that the type **`Q` is **equivalent to key type `K`**, or
+    /// **`Q` is equivalent to `K`**, if and only if
+    ///
+    /// ```text
+    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ```
+    ///
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    ///
+    /// ```text
+    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// ```
+    ///
+    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
+    /// only if
+    ///
+    /// ```text
+    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// ```
+    ///
+    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
+    ///
+    /// Key equality is a special case of key equivalence because we can take `Q = K` and
+    /// `f = g = id`.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// The **index** of an equivalent key `q :: Q` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, q) := i such that equiv(q, map[i].key()).
+    /// ```
+    ///
+    /// ## Method Specification
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { key ~∈ map }
+    /// map.get(key)
+    /// { result = Some(map[index(map, key)]) }
+    ///
+    /// { key ~∉ map }
+    /// map.get(key)
+    /// { result = None }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
     /// # Examples
     ///
     /// ```
@@ -14693,6 +16245,105 @@ impl OpaqueIndexMap {
     /// corresponding to the key `key` in `self`, if the equivalent key provided by the method
     /// argument exists inside `self`. This method returns `None` if the equivalent key provided by
     /// the method argument does not exist inside `self`.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with keys of type `K` and values of type `V`.
+    ///
+    /// ## Hashing And Equivalence
+    ///
+    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
+    /// `T`, and `h` is a hash function such that
+    ///
+    /// ```text
+    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
+    /// ```
+    ///
+    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(T, ~, h)` is a hashing type.
+    ///
+    /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
+    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    ///
+    /// ```test
+    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// ```
+    ///
+    /// Note that by the definition of `~`
+    ///
+    /// ```text
+    /// ∀ q :: Q. ∀ k :: K. f(q) ∼ g(k) ⇒ h(f(q)) = h(g(k))`.
+    /// ```
+    ///
+    /// This is an implication, not an equivalence, because practical hashing functions can have
+    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
+    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    ///
+    /// ```text
+    /// equiv(T, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// ```
+    ///
+    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// if and only if
+    ///
+    /// ```text
+    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// ```
+    ///
+    /// We say that the type **`Q` is **equivalent to key type `K`**, or
+    /// **`Q` is equivalent to `K`**, if and only if
+    ///
+    /// ```text
+    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ```
+    ///
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    ///
+    /// ```text
+    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// ```
+    ///
+    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
+    /// only if
+    ///
+    /// ```text
+    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// ```
+    ///
+    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
+    ///
+    /// Key equality is a special case of key equivalence because we can take `Q = K` and
+    /// `f = g = id`.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// The **index** of an equivalent key `q :: Q` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, q) := i such that equiv(q, map[i].key()).
+    /// ```
+    ///
+    /// ## Method Specification
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { key ~∈ map }
+    /// map.get_key_value(key)
+    /// { result = Some(map[index(map, key)]) }
+    ///
+    /// { key ~∉ map }
+    /// map.get_key_value(key)
+    /// { result = None }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
     /// # Panics
     ///
@@ -14752,6 +16403,105 @@ impl OpaqueIndexMap {
     /// method argument, and `value` is the value corresponding to the key `key` in `self`, if the
     /// equivalent key provided by the method argument exists inside `self`. This method returns
     /// `None` if the equivalent key provided by the method argument does not exist inside `self`.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with keys of type `K` and values of type `V`.
+    ///
+    /// ## Hashing And Equivalence
+    ///
+    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
+    /// `T`, and `h` is a hash function such that
+    ///
+    /// ```text
+    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
+    /// ```
+    ///
+    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(T, ~, h)` is a hashing type.
+    ///
+    /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
+    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    ///
+    /// ```test
+    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// ```
+    ///
+    /// Note that by the definition of `~`
+    ///
+    /// ```text
+    /// ∀ q :: Q. ∀ k :: K. f(q) ∼ g(k) ⇒ h(f(q)) = h(g(k))`.
+    /// ```
+    ///
+    /// This is an implication, not an equivalence, because practical hashing functions can have
+    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
+    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    ///
+    /// ```text
+    /// equiv(T, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// ```
+    ///
+    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// if and only if
+    ///
+    /// ```text
+    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// ```
+    ///
+    /// We say that the type **`Q` is **equivalent to key type `K`**, or
+    /// **`Q` is equivalent to `K`**, if and only if
+    ///
+    /// ```text
+    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ```
+    ///
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    ///
+    /// ```text
+    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// ```
+    ///
+    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
+    /// only if
+    ///
+    /// ```text
+    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// ```
+    ///
+    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
+    ///
+    /// Key equality is a special case of key equivalence because we can take `Q = K` and
+    /// `f = g = id`.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// The **index** of an equivalent key `q :: Q` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, q) := i such that equiv(q, map[i].key()).
+    /// ```
+    ///
+    /// ## Method Specification
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { key ~∈ map }
+    /// map.get_full(key)
+    /// { result = Some((index(map, key), map[index(map, key)])) }
+    ///
+    /// { key ~∉ map }
+    /// map.get_full(key)
+    /// { result = None }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
     /// # Panics
     ///
@@ -14816,6 +16566,105 @@ impl OpaqueIndexMap {
     /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
     /// type `S`, and allocator type `A`, respectively.
     ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with keys of type `K` and values of type `V`.
+    ///
+    /// ## Hashing And Equivalence
+    ///
+    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
+    /// `T`, and `h` is a hash function such that
+    ///
+    /// ```text
+    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
+    /// ```
+    ///
+    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(T, ~, h)` is a hashing type.
+    ///
+    /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
+    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    ///
+    /// ```test
+    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// ```
+    ///
+    /// Note that by the definition of `~`
+    ///
+    /// ```text
+    /// ∀ q :: Q. ∀ k :: K. f(q) ∼ g(k) ⇒ h(f(q)) = h(g(k))`.
+    /// ```
+    ///
+    /// This is an implication, not an equivalence, because practical hashing functions can have
+    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
+    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    ///
+    /// ```text
+    /// equiv(T, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// ```
+    ///
+    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// if and only if
+    ///
+    /// ```text
+    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// ```
+    ///
+    /// We say that the type **`Q` is **equivalent to key type `K`**, or
+    /// **`Q` is equivalent to `K`**, if and only if
+    ///
+    /// ```text
+    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ```
+    ///
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    ///
+    /// ```text
+    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// ```
+    ///
+    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
+    /// only if
+    ///
+    /// ```text
+    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// ```
+    ///
+    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
+    ///
+    /// Key equality is a special case of key equivalence because we can take `Q = K` and
+    /// `f = g = id`.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// The **index** of an equivalent key `q :: Q` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, q) := i such that equiv(q, map[i].key()).
+    /// ```
+    ///
+    /// ## Method Specification
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { key ~∈ map }
+    /// map.get_mut(key)
+    /// { result = Some(map[index(map, key)]) }
+    ///
+    /// { key ~∉ map }
+    /// map.get_mut(key)
+    /// { result = None }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
     /// # Examples
     ///
     /// ```
@@ -14867,6 +16716,105 @@ impl OpaqueIndexMap {
     /// method argument, and `value` is the value corresponding to the key `key` in `self`, if the
     /// equivalent key provided by the method argument exists inside `self`. This method returns
     /// `None` if the equivalent key provided by the method argument does not exist inside `self`.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with keys of type `K` and values of type `V`.
+    ///
+    /// ## Hashing And Equivalence
+    ///
+    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
+    /// `T`, and `h` is a hash function such that
+    ///
+    /// ```text
+    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
+    /// ```
+    ///
+    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(T, ~, h)` is a hashing type.
+    ///
+    /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
+    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    ///
+    /// ```test
+    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// ```
+    ///
+    /// Note that by the definition of `~`
+    ///
+    /// ```text
+    /// ∀ q :: Q. ∀ k :: K. f(q) ∼ g(k) ⇒ h(f(q)) = h(g(k))`.
+    /// ```
+    ///
+    /// This is an implication, not an equivalence, because practical hashing functions can have
+    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
+    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    ///
+    /// ```text
+    /// equiv(T, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// ```
+    ///
+    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// if and only if
+    ///
+    /// ```text
+    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// ```
+    ///
+    /// We say that the type **`Q` is **equivalent to key type `K`**, or
+    /// **`Q` is equivalent to `K`**, if and only if
+    ///
+    /// ```text
+    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ```
+    ///
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    ///
+    /// ```text
+    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// ```
+    ///
+    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
+    /// only if
+    ///
+    /// ```text
+    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// ```
+    ///
+    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
+    ///
+    /// Key equality is a special case of key equivalence because we can take `Q = K` and
+    /// `f = g = id`.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// The **index** of an equivalent key `q :: Q` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, q) := i such that equiv(q, map[i].key()).
+    /// ```
+    ///
+    /// ## Method Specification
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { key ~∈ map }
+    /// map.get_full_mut(key)
+    /// { result = Some((index(map, key), map[index(map, key)])) }
+    ///
+    /// { key ~∉ map }
+    /// map.get_full_mut(key)
+    /// { result = None }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
     /// # Panics
     ///
@@ -15492,11 +17440,15 @@ impl OpaqueIndexMap {
     /// state of `map` before this method is called, and `map_after` be the state of `map` after
     /// this method completes.
     ///
+    /// ## Specification Definitions
+    ///
     /// We say that a key-value pair `e :: (K, V)` is an **entry** in the map `map` if and only if
     ///
     /// ```text
     /// ∀ e :: (K, V). e ∈ map ⇔ (∃ i ∈ [0, map.len()). map[i] = e).
     /// ```
+    ///
+    /// ## Method Specification
     ///
     /// This method satisfies:
     ///
@@ -16103,6 +18055,78 @@ impl OpaqueIndexMap {
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
     /// method completes.
     ///
+    /// ## Hashing And Equivalence
+    ///
+    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
+    /// `T`, and `h` is a hash function such that
+    ///
+    /// ```text
+    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
+    /// ```
+    ///
+    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(T, ~, h)` is a hashing type.
+    ///
+    /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
+    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    ///
+    /// ```test
+    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// ```
+    ///
+    /// Note that by the definition of `~`
+    ///
+    /// ```text
+    /// ∀ q :: Q. ∀ k :: K. f(q) ∼ g(k) ⇒ h(f(q)) = h(g(k))`.
+    /// ```
+    ///
+    /// This is an implication, not an equivalence, because practical hashing functions can have
+    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
+    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    ///
+    /// ```text
+    /// equiv(T, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// ```
+    ///
+    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// if and only if
+    ///
+    /// ```text
+    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// ```
+    ///
+    /// We say that the type **`Q` is **equivalent to key type `K`**, or
+    /// **`Q` is equivalent to `K`**, if and only if
+    ///
+    /// ```text
+    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ```
+    ///
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    ///
+    /// ```text
+    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// ```
+    ///
+    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an **equivalent element
+    /// of** the map `map`, or that **`map` equivalently contains `q`** if and only if
+    ///
+    /// ```text
+    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// ```
+    ///
+    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
+    ///
+    /// Key equality is a special case of key equivalence because we can take `Q = K` and
+    /// `f = g = id`.
+    ///
+    /// ## Specification Definitions
+    ///
     /// The set of **keys** in the map `map` is defined as
     ///
     /// ```text
@@ -16121,10 +18145,16 @@ impl OpaqueIndexMap {
     /// ∀ k :: K. k ∈ map ⇔ k ∈ keys(map).
     /// ```
     ///
-    /// The **index** of a key `k` in `map` is defined by
+    /// We say that two maps `map1` and `map2` are **equal** if and only if
     ///
     /// ```text
-    /// index(map, k) := i such that map[i].key() = k ∧ (∀ j ∈ [0, map.len()). j ≠ i ⇒ map[j].key() ≠ k).
+    /// map1 = map2 ⇔ (map1.len() = map2.len()) ∧ (∀ i ∈ [0, map1.len()). map1[i] = map2[i]).
+    /// ```
+    ///
+    /// The **index** of an equivalent key `q :: Q` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, q) := i such that equiv(q, map[i].key()).
     /// ```
     ///
     /// The **last entry** in the map `map` when `map` is non-empty is defined by
@@ -16133,27 +18163,25 @@ impl OpaqueIndexMap {
     /// last(map) := map[map.len() - 1].
     /// ```
     ///
-    /// We say that two maps `map1` and `map2` are **equal** if and only if
-    ///
-    /// ```text
-    /// map1 = map2 ⇔ (map1.len() = map2.len()) ∧ (∀ i ∈ [0, map1.len()). map1[i] = map2[i]).
-    /// ```
+    /// ## Method Specification
     ///
     /// This method satisfies:
     ///
     /// ```text
-    /// { key ∈ map_before }
+    /// { key ~∈ map_before }
     /// map.swap_remove(key)
     /// {
-    ///     result = Some(map_before[key])
+    ///     result = Some(map_before[index(map, key)])
     ///     ∧ map_after.len() = map_before.len() - 1
-    ///     ∧ key ∉ map_after
+    ///     ∧ key ~∉ map_after
     ///     ∧ (map_after[index(map_before, key)] = last(map_before)
-    ///        ∧ (∀ k ∈ keys(map_after). k ≠ last(map_before).key() ∧ k ≠ key ⇒ map_after[k] = map_before[k])
+    ///       ∧ (∀ k ∈ keys(map_after). k ≠ last(map_before).key() ∧ ¬equiv(key, k)
+    ///         ⇒ map_after[index(map_after, k)] = map_before[index(map_before, k)]
+    ///       )
     ///     )
     /// }
     ///
-    /// { key ∉ map_before }
+    /// { key ~∉ map_before }
     /// map.swap_remove(key)
     /// { result = None ∧ map_after = map_before }
     /// ```
@@ -16319,6 +18347,78 @@ impl OpaqueIndexMap {
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
     /// method completes.
     ///
+    /// ## Hashing And Equivalence
+    ///
+    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
+    /// `T`, and `h` is a hash function such that
+    ///
+    /// ```text
+    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
+    /// ```
+    ///
+    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(T, ~, h)` is a hashing type.
+    ///
+    /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
+    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    ///
+    /// ```test
+    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// ```
+    ///
+    /// Note that by the definition of `~`
+    ///
+    /// ```text
+    /// ∀ q :: Q. ∀ k :: K. f(q) ∼ g(k) ⇒ h(f(q)) = h(g(k))`.
+    /// ```
+    ///
+    /// This is an implication, not an equivalence, because practical hashing functions can have
+    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
+    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    ///
+    /// ```text
+    /// equiv(T, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// ```
+    ///
+    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// if and only if
+    ///
+    /// ```text
+    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// ```
+    ///
+    /// We say that the type **`Q` is **equivalent to key type `K`**, or
+    /// **`Q` is equivalent to `K`**, if and only if
+    ///
+    /// ```text
+    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ```
+    ///
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    ///
+    /// ```text
+    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// ```
+    ///
+    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an **equivalent element
+    /// of** the map `map`, or that **`map` equivalently contains `q`** if and only if
+    ///
+    /// ```text
+    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// ```
+    ///
+    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
+    ///
+    /// Key equality is a special case of key equivalence because we can take `Q = K` and
+    /// `f = g = id`.
+    ///
+    /// ## Specification Definitions
+    ///
     /// The set of **keys** in the map `map` is defined as
     ///
     /// ```text
@@ -16337,10 +18437,16 @@ impl OpaqueIndexMap {
     /// ∀ k :: K. k ∈ map ⇔ k ∈ keys(map).
     /// ```
     ///
-    /// The **index** of a key `k` in `map` is defined by
+    /// We say that two maps `map1` and `map2` are **equal** if and only if
     ///
     /// ```text
-    /// index(map, k) := i such that map[i].key() = k ∧ (∀ j ∈ [0, map.len()). j ≠ i ⇒ map[j].key() ≠ k).
+    /// map1 = map2 ⇔ (map1.len() = map2.len()) ∧ (∀ i ∈ [0, map1.len()). map1[i] = map2[i]).
+    /// ```
+    ///
+    /// The **index** of an equivalent key `q` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, q) := i such that equiv(q, map[i].key()).
     /// ```
     ///
     /// The **last entry** in the map `map` when `map` is non-empty is defined by
@@ -16349,27 +18455,26 @@ impl OpaqueIndexMap {
     /// last(map) := map[map.len() - 1].
     /// ```
     ///
-    /// We say that two maps `map1` and `map2` are **equal** if and only if
-    ///
-    /// ```text
-    /// map1 = map2 ⇔ (map1.len() = map2.len()) ∧ (∀ i ∈ [0, map1.len()). map1[i] = map2[i]).
-    /// ```
+    /// ## Method Specification
     ///
     /// This method satisfies:
     ///
     /// ```text
-    /// { key ∈ map_before }
+    /// { key ~∈ map_before }
     /// map.swap_remove_entry(key)
     /// {
-    ///     result = Some(map_before[key])
+    ///     result = Some(map_before[index(map_before, key)])
     ///     ∧ map_after.len() = map_before.len() - 1
-    ///     ∧ key ∉ map_after
+    ///     ∧ key ~∉ map_after
     ///     ∧ (map_after[index(map_before, key)] = last(map_before)
-    ///        ∧ (∀ k ∈ keys(map_after). k ≠ last(map_before).key() ∧ k ≠ key ⇒ map_after[k] = map_before[k])
+    ///       ∧ (∀ k ∈ keys(map_after). k ≠ last(map_before).key() ∧ ¬equiv(key, k)
+    ///         ⇒ index(map_after, k) ≠ index(map_before, k)
+    ///         ∧ map_after[index(map_after, k)] = map_before[index(map_before, k)]
+    ///       )
     ///     )
     /// }
     ///
-    /// { key ∉ map_before }
+    /// { key ~∉ map_before }
     /// map.swap_remove_entry(key)
     /// { result = None ∧ map_after = map_before }
     /// ```
@@ -16536,6 +18641,78 @@ impl OpaqueIndexMap {
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
     /// method completes.
     ///
+    /// ## Hashing And Equivalence
+    ///
+    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
+    /// `T`, and `h` is a hash function such that
+    ///
+    /// ```text
+    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
+    /// ```
+    ///
+    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(T, ~, h)` is a hashing type.
+    ///
+    /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
+    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    ///
+    /// ```test
+    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// ```
+    ///
+    /// Note that by the definition of `~`
+    ///
+    /// ```text
+    /// ∀ q :: Q. ∀ k :: K. f(q) ∼ g(k) ⇒ h(f(q)) = h(g(k))`.
+    /// ```
+    ///
+    /// This is an implication, not an equivalence, because practical hashing functions can have
+    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
+    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    ///
+    /// ```text
+    /// equiv(T, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// ```
+    ///
+    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// if and only if
+    ///
+    /// ```text
+    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// ```
+    ///
+    /// We say that the type **`Q` is **equivalent to key type `K`**, or
+    /// **`Q` is equivalent to `K`**, if and only if
+    ///
+    /// ```text
+    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ```
+    ///
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    ///
+    /// ```text
+    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// ```
+    ///
+    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an **equivalent element
+    /// of** the map `map`, or that **`map` equivalently contains `q`** if and only if
+    ///
+    /// ```text
+    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// ```
+    ///
+    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
+    ///
+    /// Key equality is a special case of key equivalence because we can take `Q = K` and
+    /// `f = g = id`.
+    ///
+    /// ## Specification Definitions
+    ///
     /// The set of **keys** in the map `map` is defined as
     ///
     /// ```text
@@ -16554,10 +18731,16 @@ impl OpaqueIndexMap {
     /// ∀ k :: K. k ∈ map ⇔ k ∈ keys(map).
     /// ```
     ///
-    /// The **index** of a key `k` in `map` is defined by
+    /// We say that two maps `map1` and `map2` are **equal** if and only if
     ///
     /// ```text
-    /// index(map, k) := i such that map[i].key() = k ∧ (∀ j ∈ [0, map.len()). j ≠ i ⇒ map[j].key() ≠ k).
+    /// map1 = map2 ⇔ (map1.len() = map2.len()) ∧ (∀ i ∈ [0, map1.len()). map1[i] = map2[i]).
+    /// ```
+    ///
+    /// The **index** of an equivalent key `q` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, q) := i such that equiv(q, map[i].key()).
     /// ```
     ///
     /// The **last entry** in the map `map` when `map` is non-empty is defined by
@@ -16566,27 +18749,26 @@ impl OpaqueIndexMap {
     /// last(map) := map[map.len() - 1].
     /// ```
     ///
-    /// We say that two maps `map1` and `map2` are **equal** if and only if
-    ///
-    /// ```text
-    /// map1 = map2 ⇔ (map1.len() = map2.len()) ∧ (∀ i ∈ [0, map1.len()). map1[i] = map2[i]).
-    /// ```
+    /// ## Method Specification
     ///
     /// This method satisfies:
     ///
     /// ```text
-    /// { key ∈ map_before }
+    /// { key ~∈ map_before }
     /// map.swap_remove_full(key)
     /// {
-    ///     result = Some(map_before[key])
+    ///     result = Some(map_before[index(map_before, key)])
     ///     ∧ map_after.len() = map_before.len() - 1
-    ///     ∧ key ∉ map_after
+    ///     ∧ key ~∉ map_after
     ///     ∧ (map_after[index(map_before, key)] = last(map_before)
-    ///        ∧ (∀ k ∈ keys(map_after). k ≠ last(map_before).key() ∧ k ≠ key ⇒ map_after[k] = map_before[k])
+    ///       ∧ (∀ k ∈ keys(map_after). k ≠ last(map_before).key() ∧ ¬equiv(key, k)
+    ///         ⇒ index(map_after, k) = index(map_before, k)
+    ///         ∧ map_after[index(map_after, k)] = map_before[index(map_before, k)]
+    ///       )
     ///     )
     /// }
     ///
-    /// { key ∉ map_before }
+    /// { key ~∉ map_before }
     /// map.swap_remove_full(key)
     /// { result = None ∧ map_after = map_before }
     /// ```
@@ -16756,16 +18938,94 @@ impl OpaqueIndexMap {
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
     /// method completes.
     ///
-    /// We say that a key `k` is in the map `map` provided that
+    /// ## Hashing And Equivalence
+    ///
+    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
+    /// `T`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ k :: K. (k ∈ map) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
+    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
     /// ```
     ///
-    /// The **index** of a key `k` in `map` is defined by
+    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(T, ~, h)` is a hashing type.
+    ///
+    /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
+    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    ///
+    /// ```test
+    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// ```
+    ///
+    /// Note that by the definition of `~`
     ///
     /// ```text
-    /// index(map, k) := i such that map[i].key() = k ∧ (∀ j ∈ [0, map.len()). j ≠ i ⇒ map[j].key() ≠ k).
+    /// ∀ q :: Q. ∀ k :: K. f(q) ∼ g(k) ⇒ h(f(q)) = h(g(k))`.
+    /// ```
+    ///
+    /// This is an implication, not an equivalence, because practical hashing functions can have
+    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
+    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    ///
+    /// ```text
+    /// equiv(T, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// ```
+    ///
+    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// if and only if
+    ///
+    /// ```text
+    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// ```
+    ///
+    /// We say that the type **`Q` is **equivalent to key type `K`**, or
+    /// **`Q` is equivalent to `K`**, if and only if
+    ///
+    /// ```text
+    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ```
+    ///
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    ///
+    /// ```text
+    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// ```
+    ///
+    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an **equivalent element
+    /// of** the map `map`, or that **`map` equivalently contains `q`** if and only if
+    ///
+    /// ```text
+    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// ```
+    ///
+    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
+    ///
+    /// Key equality is a special case of key equivalence because we can take `Q = K` and
+    /// `f = g = id`.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// The set of **keys** in the map `map` is defined as
+    ///
+    /// ```text
+    /// keys(map) := { k :: K | ∃ i ∈ [0, map.len()). map[i].key() = k }
+    /// ```
+    ///
+    /// or equivalently
+    ///
+    /// ```text
+    /// ∀ k :: K. (k ∈ keys(map)) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
+    /// ```
+    ///
+    /// We also say that a key `k` is in the map `map` provided that
+    ///
+    /// ```text
+    /// ∀ k :: K. k ∈ map ⇔ k ∈ keys(map).
     /// ```
     ///
     /// We say that two maps `map1` and `map2` are **equal** if and only if
@@ -16774,22 +19034,29 @@ impl OpaqueIndexMap {
     /// map1 = map2 ⇔ (map1.len() = map2.len()) ∧ (∀ i ∈ [0, map1.len()). map1[i] = map2[i]).
     /// ```
     ///
+    /// The **index** of an equivalent key `q` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, q) := i such that equiv(q, map[i].key()).
+    /// ```
+    ///
+    /// ## Method Specification
+    ///
     /// This method satisfies:
     ///
     /// ```text
-    /// { key ∈ map_before }
+    /// { key ~∈ map_before }
     /// map.shift_remove(key)
     /// {
-    ///     result = Some(map_before[key])
+    ///     result = Some(map_before[index(map_before, key)])
     ///     ∧ map_after.len() = map_before.len() - 1
-    ///     ∧ key ∉ map_after
-    ///     ∧ (let i = index(map_before, key);
-    ///        (∀ j ∈ [0, i). map_after[j] = map_before[j])
-    ///        ∧ (∀ j ∈ [i, map_after.len()). map_after[j] = map_before[j + 1])
+    ///     ∧ key ~∉ map_after
+    ///     ∧ ((∀ j ∈ [0, index(map_before, key)). map_after[j] = map_before[j])
+    ///        ∧ (∀ j ∈ [index(map_before, key), map_after.len()). map_after[j] = map_before[j + 1])
     ///     )
     /// }
     ///
-    /// { key ∉ map_before }
+    /// { key ~∉ map_before }
     /// map.shift_remove(key)
     /// { result = None ∧ map_after = map_before }
     /// ```
@@ -16962,16 +19229,94 @@ impl OpaqueIndexMap {
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
     /// method completes.
     ///
-    /// We say that a key `k` is in the map `map` provided that
+    /// ## Hashing And Equivalence
+    ///
+    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
+    /// `T`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ k :: K. (k ∈ map) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
+    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
     /// ```
     ///
-    /// The **index** of a key `k` in `map` is defined by
+    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(T, ~, h)` is a hashing type.
+    ///
+    /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
+    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    ///
+    /// ```test
+    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// ```
+    ///
+    /// Note that by the definition of `~`
     ///
     /// ```text
-    /// index(map, k) := i such that map[i].key() = k ∧ (∀ j ∈ [0, map.len()). j ≠ i ⇒ map[j].key() ≠ k).
+    /// ∀ q :: Q. ∀ k :: K. f(q) ∼ g(k) ⇒ h(f(q)) = h(g(k))`.
+    /// ```
+    ///
+    /// This is an implication, not an equivalence, because practical hashing functions can have
+    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
+    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    ///
+    /// ```text
+    /// equiv(T, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// ```
+    ///
+    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// if and only if
+    ///
+    /// ```text
+    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// ```
+    ///
+    /// We say that the type **`Q` is **equivalent to key type `K`**, or
+    /// **`Q` is equivalent to `K`**, if and only if
+    ///
+    /// ```text
+    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ```
+    ///
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    ///
+    /// ```text
+    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// ```
+    ///
+    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an **equivalent element
+    /// of** the map `map`, or that **`map` equivalently contains `q`** if and only if
+    ///
+    /// ```text
+    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// ```
+    ///
+    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
+    ///
+    /// Key equality is a special case of key equivalence because we can take `Q = K` and
+    /// `f = g = id`.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// The set of **keys** in the map `map` is defined as
+    ///
+    /// ```text
+    /// keys(map) := { k :: K | ∃ i ∈ [0, map.len()). map[i].key() = k }
+    /// ```
+    ///
+    /// or equivalently
+    ///
+    /// ```text
+    /// ∀ k :: K. (k ∈ keys(map)) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
+    /// ```
+    ///
+    /// We also say that a key `k` is in the map `map` provided that
+    ///
+    /// ```text
+    /// ∀ k :: K. k ∈ map ⇔ k ∈ keys(map).
     /// ```
     ///
     /// We say that two maps `map1` and `map2` are **equal** if and only if
@@ -16980,22 +19325,29 @@ impl OpaqueIndexMap {
     /// map1 = map2 ⇔ (map1.len() = map2.len()) ∧ (∀ i ∈ [0, map1.len()). map1[i] = map2[i]).
     /// ```
     ///
+    /// The **index** of an equivalent key `q` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, q) := i such that equiv(q, map[i].key()).
+    /// ```
+    ///
+    /// ## Method Specification
+    ///
     /// This method satisfies:
     ///
     /// ```text
-    /// { key ∈ map_before }
+    /// { key ~∈ map_before }
     /// map.shift_remove_entry(key)
     /// {
-    ///     result = Some(map_before[key])
+    ///     result = Some(map_before[index(map_before, key)])
     ///     ∧ map_after.len() = map_before.len() - 1
     ///     ∧ key ∉ map_after
-    ///     ∧ (let i = index(map_before, key);
-    ///        (∀ j ∈ [0, i). map_after[j] = map_before[j])
-    ///        ∧ (∀ j ∈ [i, map_after.len()). map_after[j] = map_before[j + 1])
+    ///     ∧ ((∀ j ∈ [0, index(map_before, key)). map_after[j] = map_before[j])
+    ///        ∧ (∀ j ∈ [index(map_before, key), map_after.len()). map_after[j] = map_before[j + 1])
     ///     )
     /// }
     ///
-    /// { key ∉ map_before }
+    /// { key ~∉ map_before }
     /// map.shift_remove_entry(key)
     /// { result = None ∧ map_after = map_before }
     /// ```
@@ -17168,16 +19520,94 @@ impl OpaqueIndexMap {
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
     /// method completes.
     ///
-    /// We say that a key `k` is in the map `map` provided that
+    /// ## Hashing And Equivalence
+    ///
+    /// A **hashing type** is a triple `(T, ~, h)` where `~` is an equivalence relation on
+    /// `T`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ k :: K. (k ∈ map) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
+    /// ∀ a :: T. ∀ b :: T. a ~ b ⇒ h(a) = h(b)`.
     /// ```
     ///
-    /// The **index** of a key `k` in `map` is defined by
+    /// A type `T` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(T, ~, h)` is a hashing type.
+    ///
+    /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `T` be a hashable type. Let
+    /// `f: Q → T` and `g: K → T` be functions. We say that
+    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    ///
+    /// ```test
+    /// equiv(T, f, g)(q, k) := f(q) ∼ g(k).
+    /// ```
+    ///
+    /// Note that by the definition of `~`
     ///
     /// ```text
-    /// index(map, k) := i such that map[i].key() = k ∧ (∀ j ∈ [0, map.len()). j ≠ i ⇒ map[j].key() ≠ k).
+    /// ∀ q :: Q. ∀ k :: K. f(q) ∼ g(k) ⇒ h(f(q)) = h(g(k))`.
+    /// ```
+    ///
+    /// This is an implication, not an equivalence, because practical hashing functions can have
+    /// collisions, i.e. for a practical hashing function `h`, `∃ a, b :: T. a ~ b ∧ h(a) = h(b)`.
+    /// We say that the type **`Q` is equivalent to `K` under `f`  and `g`** if and only if
+    ///
+    /// ```text
+    /// equiv(T, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(T, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(T, f, g)(q, k)).
+    /// ```
+    ///
+    /// Let `T` be a hashable type. Then the type `Q` is **equivalent to** the type `K` **under T**
+    /// if and only if
+    ///
+    /// ```text
+    /// equiv(T, Q, K) := ∃ f: Q → T. ∃ g: K → T. equiv(T, f, g)(Q, K).
+    /// ```
+    ///
+    /// We say that the type **`Q` is **equivalent to key type `K`**, or
+    /// **`Q` is equivalent to `K`**, if and only if
+    ///
+    /// ```text
+    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ```
+    ///
+    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q  → K` and `id: K → K` be the
+    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    ///
+    /// ```text
+    /// equiv(q, k) := equiv(T, f, id)(q, k).
+    /// ```
+    ///
+    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an **equivalent element
+    /// of** the map `map`, or that **`map` equivalently contains `q`** if and only if
+    ///
+    /// ```text
+    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// ```
+    ///
+    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
+    ///
+    /// Key equality is a special case of key equivalence because we can take `Q = K` and
+    /// `f = g = id`.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// The set of **keys** in the map `map` is defined as
+    ///
+    /// ```text
+    /// keys(map) := { k :: K | ∃ i ∈ [0, map.len()). map[i].key() = k }
+    /// ```
+    ///
+    /// or equivalently
+    ///
+    /// ```text
+    /// ∀ k :: K. (k ∈ keys(map)) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
+    /// ```
+    ///
+    /// We also say that a key `k` is in the map `map` provided that
+    ///
+    /// ```text
+    /// ∀ k :: K. k ∈ map ⇔ k ∈ keys(map).
     /// ```
     ///
     /// We say that two maps `map1` and `map2` are **equal** if and only if
@@ -17186,18 +19616,25 @@ impl OpaqueIndexMap {
     /// map1 = map2 ⇔ (map1.len() = map2.len()) ∧ (∀ i ∈ [0, map1.len()). map1[i] = map2[i]).
     /// ```
     ///
+    /// The **index** of an equivalent key `q` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, q) := i such that equiv(q, map[i].key()).
+    /// ```
+    ///
+    /// ## Method Specification
+    ///
     /// This method satisfies:
     ///
     /// ```text
     /// { key ∈ map_before }
     /// map.shift_remove_full(key)
     /// {
-    ///     result = Some(map_before[key])
+    ///     result = Some(map_before[index(map_before, key)])
     ///     ∧ map_after.len() = map_before.len() - 1
     ///     ∧ key ∉ map_after
-    ///     ∧ (let i = index(map_before, key);
-    ///        (∀ j ∈ [0, i). map_after[j] = map_before[j])
-    ///        ∧ (∀ j ∈ [i, map_after.len()). map_after[j] = map_before[j + 1])
+    ///     ∧ ((∀ j ∈ [0, index(map_before, key)). map_after[j] = map_before[j])
+    ///        ∧ (∀ j ∈ [index(map_before, key), map_after.len()). map_after[j] = map_before[j + 1])
     ///     )
     /// }
     ///
@@ -17479,11 +19916,21 @@ impl OpaqueIndexMap {
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
     /// method completes.
     ///
+    /// ## Specification Definitions
+    ///
     /// We say that a key `k` is in the map `map` provided that
     ///
     /// ```text
     /// ∀ k :: K. (k ∈ map) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
     /// ```
+    ///
+    /// The **index** of a key `k` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, k) := i such that map[i].key() = k.
+    /// ```
+    ///
+    /// ## Method Specification
     ///
     /// This method satisfies:
     ///
@@ -17491,10 +19938,12 @@ impl OpaqueIndexMap {
     /// { key ∈ map_before }
     /// map.insert(key, value)
     /// {
-    ///     result = Some(map_before[key])
+    ///     result = Some(map_before[index(map_before, key)])
     ///     ∧ map_after.len() = map_before.len()
-    ///     ∧ map_after[key] = value
-    ///     ∧ (∀ k ∈ map_before. k ≠ key ⇒ map_after[k] = map_before[k])
+    ///     ∧ map_after[index(map_after, key)] = value
+    ///     ∧ (∀ k ∈ map_before. k ≠ key ⇒ index(map_after, k) = index(map_before, k)
+    ///       ∧ map_after[index(map_after, k)] = map_before[index(map_before, k)]
+    ///     )
     /// }
     ///
     /// { key ∉ map_before }
@@ -17502,8 +19951,10 @@ impl OpaqueIndexMap {
     /// {
     ///     result = None
     ///     ∧ map_after.len() = map_before.len() + 1
-    ///     ∧ map_after[key] = value
-    ///     ∧ (∀ k ∈ map_before. map_after[k] = map_before[k])
+    ///     ∧ map_after[index(map_after, key)] = value
+    ///     ∧ (∀ k ∈ map_before. index(map_after, k) = index(map_before, k)
+    ///       ∧ map_after[index(map_after, k)] = map_before[index(map_before, k)]
+    ///     )
     /// }
     /// ```
     ///
@@ -17581,11 +20032,21 @@ impl OpaqueIndexMap {
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
     /// method completes.
     ///
+    /// ## Specification Definitions
+    ///
     /// We say that a key `k` is in the map `map` provided that
     ///
     /// ```text
     /// ∀ k :: K. (k ∈ map) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
     /// ```
+    ///
+    /// The **index** of a key `k` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, k) := i such that map[i].key() = k.
+    /// ```
+    ///
+    /// ## Method Specification
     ///
     /// This method satisfies:
     ///
@@ -17593,10 +20054,13 @@ impl OpaqueIndexMap {
     /// { key ∈ map_before }
     /// map.insert_full(key, value)
     /// {
-    ///     result = Some(map_before[key])
+    ///     result = Some(map_before[index(map_before, key)])
     ///     ∧ map_after.len() = map_before.len()
-    ///     ∧ map_after[key] = value
-    ///     ∧ (∀ k ∈ map_before. k ≠ key ⇒ map_after[k] = map_before[k])
+    ///     ∧ map_after[index(map_after, key)] = value
+    ///     ∧ (∀ k ∈ map_before. k ≠ key
+    ///       ⇒ index(map_after, k) = index(map_before, k)
+    ///       ∧ map_after[index(map_after, k)] = map_before[index(map_before, k)]
+    ///     )
     /// }
     ///
     /// { key ∉ map_before }
@@ -17604,8 +20068,10 @@ impl OpaqueIndexMap {
     /// {
     ///     result = None
     ///     ∧ map_after.len() = map_before.len() + 1
-    ///     ∧ map_after[key] = value
-    ///     ∧ (∀ k ∈ map_before. map_after[k] = map_before[k])
+    ///     ∧ map_after[index(map_after, key)] = value
+    ///     ∧ (∀ k ∈ map_before. index(map_after, k) = index(map_before, k)
+    ///       ∧ map_after[index(map_after, k)] = map_before[index(map_before, k)]
+    ///     )
     /// }
     /// ```
     ///
@@ -17715,10 +20181,18 @@ impl OpaqueIndexMap {
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
     /// method completes.
     ///
+    /// ## Specification Definitions
+    ///
     /// We say that a key `k` is in the map `map` provided that
     ///
     /// ```text
     /// ∀ k :: K. (k ∈ map) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
+    /// ```
+    ///
+    /// The **index** of a key `k` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, k) := i such that map[i].key() = k.
     /// ```
     ///
     /// The index map `map` is **sorted**, or in **sorted order** if and only if
@@ -17728,7 +20202,7 @@ impl OpaqueIndexMap {
     /// ```
     ///
     /// or equivalently over index-key-value triples
-    ///f
+    ///
     /// ```text
     /// ∀ i1, i2 ∈ [0, map.len()). ∀ k1, k2 :: K. ∀ v1, v2 :: V.
     /// ((i1, (k1, v1)) ∈ map ∧ (i2, (k2, v2)) ∈ map) ⇒ (i1 ≤ i2 ⇔ k1 ≤ k2).
@@ -17736,11 +20210,7 @@ impl OpaqueIndexMap {
     ///
     /// Otherwise, the index map is in **unsorted order by key**, or is **unsorted** for short.
     ///
-    /// The **index** of a key `k` in `map` is defined by
-    ///
-    /// ```text
-    /// index(map, k) := i such that map[i].key() = k ∧ (∀ j ∈ [0, map.len()). j ≠ i ⇒ map[j].key() ≠ k).
-    /// ```
+    /// ## Method Specification
     ///
     /// This method satisfies:
     ///
@@ -17748,10 +20218,10 @@ impl OpaqueIndexMap {
     /// { key ∈ map_before ∧ sorted(map_before) }
     /// map.insert_sorted(key, value)
     /// {
-    ///     result = Some(map_before[key])
-    ///     ∧ map_after[key] = value
+    ///     result = Some(map_before[index(map_before, key)])
+    ///     ∧ map_after[index(map_after, key)] = value
     ///     ∧ map_after.len() = map_before.len()
-    ///     ∧ (∀ k ∈ map_before. k ≠ key ⇒ map_after[k] = map_before[k])
+    ///     ∧ (∀ k ∈ map_before. k ≠ key ⇒ map_after[index(map_after, k)] = map_before[index(map_before, k)])
     ///     ∧ sorted(map_after)
     /// }
     ///
@@ -17759,11 +20229,12 @@ impl OpaqueIndexMap {
     /// map.insert_sorted(key, value)
     /// {
     ///     result = None
-    ///     ∧ map_after[key] = value
+    ///     ∧ map_after[index(map_after, key)] = value
     ///     ∧ map_after.len() = map_before.len() + 1
-    ///     ∧ (∀ k ∈ map_before. map_after[k] = map_before[k])
+    ///     ∧ (∀ k ∈ map_before. map_after[index(map_after, k)] = map_before[index(map_before, k)])
     ///     ∧ (∀ i < index(map_after, key). map_after[i].key() ≤ key
-    ///        ∧ ∀ i > index(map_after, key). key ≤ map_after[i].key())
+    ///        ∧ ∀ i > index(map_after, key). key ≤ map_after[i].key()
+    ///     )
     ///     ∧ sorted(map_after)
     /// }
     /// ```
@@ -17896,6 +20367,8 @@ impl OpaqueIndexMap {
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
     /// method completes. Let `result` be the return value of this method after it completes.
     ///
+    /// ## Specification Definitions
+    ///
     /// We say that a key `k` is in the map `map` provided that
     ///
     /// ```text
@@ -17905,8 +20378,10 @@ impl OpaqueIndexMap {
     /// The **index** of a key `k` in `map` is defined by
     ///
     /// ```text
-    /// index(map, k) := i such that map[i].key() = k ∧ (∀ j ∈ [0, map.len()). j ≠ i ⇒ map[j].key() ≠ k)
+    /// index(map, k) := i such that map[i].key() = k
     /// ```
+    ///
+    /// ## Method Specification
     ///
     /// This method satisfies:
     ///
@@ -17914,10 +20389,10 @@ impl OpaqueIndexMap {
     /// { index ∈ [0, map_before.len()] ∧ key ∈ map_before }
     /// map.insert_before(index, key, value)
     /// {
-    ///     result = (new_index, Some(map_before[key]))
-    ///     ∧ map_after[key] = value
+    ///     result = (new_index, Some(map_before[index(map_before, key)]))
+    ///     ∧ map_after[index(map_after, key)] = value
     ///     ∧ map_after.len() = map_before.len()
-    ///     ∧ (∀ k ∈ map_before. k ≠ key ⇒ map_after[k] = map_before[k])
+    ///     ∧ (∀ k ∈ map_before. k ≠ key ⇒ map_after[index(map_after, k)] = map_before[index(map_before, k)])
     ///     ∧ new_index = index(map_after, key)
     ///     ∧ ((new_index = index) ∨ (new_index = index - 1))
     /// }
@@ -17926,9 +20401,9 @@ impl OpaqueIndexMap {
     /// map.insert_before(index, key, value)
     /// {
     ///     result = (index, None)
-    ///     ∧ map_after[key] = value
+    ///     ∧ map_after[index(map_after, key)] = value
     ///     ∧ map_after.len() = map_before.len() + 1
-    ///     ∧ (∀ k ∈ map_before. map_after[k] = map_before[k])
+    ///     ∧ (∀ k ∈ map_before. map_after[index(map_after, k)] = map_before[index(map_before, k)])
     ///     ∧ map_after[index].key() = key
     ///     ∧ (∀ i ∈ [0, map_after.len()). i ≠ index ⇒ map_after[i].key() ≠ key)
     /// }
@@ -18184,6 +20659,8 @@ impl OpaqueIndexMap {
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
     /// method completes. Let `result` be the return value of this method after it completes.
     ///
+    /// ## Specification Definitions
+    ///
     /// We say that a key `k` is in the map `map` provided that
     ///
     /// ```text
@@ -18193,8 +20670,10 @@ impl OpaqueIndexMap {
     /// The **index** of a key `k` in `map` is defined by
     ///
     /// ```text
-    /// index(map, k) := i such that map[i].key() = k ∧ (∀ j ∈ [0, map.len()). j ≠ i ⇒ map[j].key() ≠ k)
+    /// index(map, k) := i such that map[i].key() = k.
     /// ```
+    ///
+    /// ## Method Specification
     ///
     /// This method satisfies:
     ///
@@ -18202,44 +20681,44 @@ impl OpaqueIndexMap {
     /// { index ∈ [0, map_before.len()) ∧ key ∈ map_before ∧ index(map_before, key) = index }
     /// map.shift_insert(index, key, value)
     /// {
-    ///     result = Some(map_before[key])
-    ///     ∧ map_after[key] = value
-    ///     ∧ map_after.len() = map_before.len()
-    ///     ∧ (∀ k ∈ map_before. map_after[k] = map_before[k])
+    ///     result = Some(map_before[index(map_before, key)])
+    ///     ∧ map_after[index(map_after, key)] = value
     ///     ∧ map_after[index].key() = key
+    ///     ∧ map_after.len() = map_before.len()
+    ///     ∧ (∀ k ∈ map_before. map_after[index(map_after, k)] = map_before[index(map_before, k)])
     /// }
     ///
     /// { index ∈ [0, map_before.len()) ∧ key ∈ map_before ∧ index(map_before, key) < index }
     /// map.shift_insert(index, key, value)
     /// {
-    ///     result = Some(map_before[key])
-    ///     ∧ map_after[key] = value
-    ///     ∧ map_after.len() = map_before.len()
-    ///     ∧ (∀ i ∈ [0, old_index). map_after[i] = map_before[i])
-    ///     ∧ (∀ i ∈ [old_index, index - 1]. map_after[i] = map_before[i + 1])
+    ///     result = Some(map_before[index(map_before, key)])
+    ///     ∧ map_after[index(map_after, key)] = value
     ///     ∧ map_after[index].key() = key
+    ///     ∧ map_after.len() = map_before.len()
+    ///     ∧ (∀ i ∈ [0, index(map_fore, key). map_after[i] = map_before[i])
+    ///     ∧ (∀ i ∈ [index(map_before, key), index - 1]. map_after[i] = map_before[i + 1])
     ///     ∧ (∀ i ∈ [index + 1, map_after.len()). map_after[i] = map_before[i])
     /// }
     ///
     /// { index ∈ [0, map_before.len()) ∧ key ∈ map_before ∧ index(map_before, key) > index }
     /// map.shift_insert(index, key, value)
     /// {
-    ///     result = Some(map_before[key])
-    ///     ∧ map_after[key] = value
+    ///     result = Some(map_before[index(map_before, key)])
+    ///     ∧ map_after[index(map_after, key)] = value
+    ///     ∧ map_after[index].key() = key
     ///     ∧ map_after.len() = map_before.len()
     ///     ∧ (∀ i ∈ [0, index). map_after[i] = map_before[i])
-    ///     ∧ map_after[index].key() = key
-    ///     ∧ (∀ i ∈ [index + 1, old_index + 1]. map_after[i] = map_before[i - 1])
-    ///     ∧ (∀ i ∈ [old_index + 1, map_after.len()). map_after[i] = map_before[i])
+    ///     ∧ (∀ i ∈ [index + 1, index(map_before, key) + 1]. map_after[i] = map_before[i - 1])
+    ///     ∧ (∀ i ∈ [index(map_before, key) + 1, map_after.len()). map_after[i] = map_before[i])
     /// }
     ///
     /// { index ∈ [0, map_before.len()] ∧ key ∉ map_before }
     /// map.shift_insert(index, key, value)
     /// {
     ///     result = None
-    ///     ∧ map_after[key] = value
-    ///     ∧ map_after.len() = map_before.len() + 1
+    ///     ∧ map_after[index(map_after, key)] = value
     ///     ∧ map_after[index].key() = key
+    ///     ∧ map_after.len() = map_before.len() + 1
     ///     ∧ (∀ j ∈ [0, map_after.len()). j ≠ index ⇒ map_after[j].key() ≠ key)
     ///     ∧ (∀ i ∈ [0, index). map_after[i] = map_before[i])
     ///     ∧ (∀ i ∈ [index + 1, map_after.len()). map_after[i] = map_before[i - 1])
@@ -18640,16 +21119,32 @@ impl OpaqueIndexMap {
     ///
     /// # Formal Properties
     ///
-    /// Let `map1` and `map2` be index maps, `map1_before` be the state of `map1` before this method
-    /// is called, `map2_before` be the state of `map2` before this method is called, `map1_after`
-    /// be the state of `map1` after this method completes, and `map2_after` be the state of `map2`
-    /// after this method completes.
+    /// Let `map1` and `map2` be index maps, `map1_before` be the state of `map1` before this
+    /// method is called, `map2_before` be the state of `map2` before this method is called,
+    /// `map1_after` be the state of `map1` after this method completes, and `map2_after` be the
+    /// state of `map2` after this method completes.
+    ///
+    /// ## Specification Definitions
     ///
     /// We say that a key `k` is in the map `map` provided that
     ///
     /// ```text
     /// ∀ k :: K. (k ∈ map) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
     /// ```
+    ///
+    /// The **index** of a key `k` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, k) := i such that map[i].key() = k.
+    /// ```
+    ///
+    /// We can index an index map `map` by a key `k` by defining
+    ///
+    /// ```text
+    /// map[key] := map[index(map, key)].
+    /// ```
+    ///
+    /// ## Method Specification
     ///
     /// This method satisfies:
     ///
@@ -18840,13 +21335,23 @@ impl OpaqueIndexMap {
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
     /// method completes. Let `result` be the return value of this method after it completes.
     ///
+    /// ## Specification Definitions
+    ///
+    /// The **last entry** in the map `map` when `map` is non-empty is defined by
+    ///
+    /// ```text
+    /// last(map) := map[map.len() - 1].
+    /// ```
+    ///
+    /// ## Method Specification
+    ///
     /// This method satisfies:
     ///
     /// ```text
     /// { map_before.len() > 0 }
     /// map.pop()
     /// {
-    ///     result = Some(map_before[map_before.len() - 1])
+    ///     result = Some(last(map_before))
     ///     ∧ map_after.len() = map_before.len() - 1
     ///     ∧ (∀ i ∈ [0, map_after.len()). map_after[i] = map_before[i])
     /// }
@@ -18957,23 +21462,33 @@ impl OpaqueIndexMap {
     /// method completes. Let `result` be the return value of this method after it completes. Let
     /// `keep` be the filtering function for entries in `map`.
     ///
+    /// ## Specification Definitions
+    ///
     /// We say that a key-value pair `e :: (K, V)` is an **entry** in the map `map` if and only if
     ///
     /// ```text
     /// ∀ e :: (K, V). e ∈ map ⇔ (∃ i ∈ [0, map.len()). map[i] = e).
     /// ```
     ///
-    /// We say that a key `k` is in the map `map` provided that
+    /// The set of **keys** in the map `map` is defined as
     ///
     /// ```text
-    /// ∀ k :: K. (k ∈ map) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
+    /// keys(map) := { k :: K | ∃ i ∈ [0, map.len()). map[i].key() = k }
+    /// ```
+    ///
+    /// or equivalently
+    ///
+    /// ```text
+    /// ∀ k :: K. (k ∈ keys(map)) ⇔ (∃ i ∈ [0, map.len()). map[i].key() = k).
     /// ```
     ///
     /// The **index** of a key `k` in `map` is defined by
     ///
     /// ```text
-    /// index(map, k) := i such that map[i].key() = k ∧ (∀ j ∈ [0, map.len()). j ≠ i ⇒ map[j].key() ≠ k)
+    /// index(map, k) := i such that map[i].key() = k.
     /// ```
+    ///
+    /// ## Method Specification
     ///
     /// This method satisfies:
     ///
@@ -18982,10 +21497,15 @@ impl OpaqueIndexMap {
     /// map.retain(f)
     /// {
     ///     map_after.len() ≤ map_before.len()
-    ///     ∧ (∀ (k, v) ∈ map_after. k ∈ map_before ∧ f(k, v))
-    ///     ∧ (∀ (k, v) ∈ map_before. f(k, v) ⇒ (k, v') ∈ map_after ∧ (if f mutated v, then v' is the updated value, else v' = v))
-    ///     ∧ (∀ (k, v) ∈ map_before. ¬f(k, v) ⇒ k ∉ map_after)
-    ///     ∧ (∀ k1, k2 ∈ map_after. index(map_before, k1) < index(map_before, k2) ⇒ index(map_after, k1) < index(map_after, k2))
+    ///     ∧ (∀ (k, v) ∈ map_after. k ∈ map_before ∧ keep(k, v))
+    ///     ∧ (∀ (k, v) ∈ map_before. keep(k, v) ⇒
+    ///         (k, v') ∈ map_after
+    ///         ∧ (if f mutated v, then v' is the updated value, else v' = v)
+    ///       )
+    ///     ∧ (∀ (k, v) ∈ map_before. ¬keep(k, v) ⇒ k ∉ keys(map_after))
+    ///     ∧ (∀ k1, k2 ∈ keys(map_after).
+    ///         index(map_before, k1) < index(map_before, k2) ⇒ index(map_after, k1) < index(map_after, k2)
+    ///       )
     /// }
     /// ```
     ///
@@ -19090,6 +21610,8 @@ impl OpaqueIndexMap {
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
     /// method completes.
     ///
+    /// ## Specification Definitions
+    ///
     /// We say that a key-value pair `(k, v) :: (K, V)` is an **entry** in the map `map` if and
     /// only if
     ///
@@ -19111,8 +21633,10 @@ impl OpaqueIndexMap {
     /// The index map `map` is **sorted** with respect to its keys if
     ///
     /// ```text
-    /// sorted(map) := ∀ i ∈ [0, map.len() - 1). map[i].key() ≤ map[i + 1].key().
+    /// is_sorted(map) := ∀ i ∈ [0, map.len() - 1). map[i].key() ≤ map[i + 1].key().
     /// ```
+    ///
+    /// ## Method Specification
     ///
     /// This method satisfies:
     ///
@@ -19122,12 +21646,13 @@ impl OpaqueIndexMap {
     /// {
     ///     map_after.len() = map_before.len()
     ///     ∧ is_permutation(map_after, map_before)
-    ///     ∧ sorted(map_after)
+    ///     ∧ is_sorted(map_after)
     /// }
     /// ```
     ///
-    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`. This sort is
-    /// stable because keys are unique.
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
+    /// This sort is stable because keys are unique.
     ///
     /// # Panics
     ///
@@ -19191,8 +21716,11 @@ impl OpaqueIndexMap {
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
     /// method completes.
     ///
+    /// ## Specification Definitions
+    ///
     /// A **comparator** is a map `cmp : K ⨯ V ⨯ K ⨯ V → Ordering` such that given entries
-    /// `(k1, v1) :: (K, V)` and `(k2, v2) :: (K, V)` from a partially ordered collection of entries
+    /// `(k1, v1) :: (K, V)` and `(k2, v2) :: (K, V)` from a partially ordered collection of
+    /// entries
     ///
     /// ```text
     /// cmp(k1, v1, k2, v2) = Ordering::Greater when (k1, v1) > (k2, v2)
@@ -19214,21 +21742,21 @@ impl OpaqueIndexMap {
     /// The **index** of a key `k` in `map` is defined by
     ///
     /// ```text
-    /// index(map, k) := i such that map[i].key() = k ∧ (∀ j ∈ [0, map.len()). j ≠ i ⇒ map[j].key() ≠ k)
+    /// index(map, k) := i such that map[i].key() = k.
     /// ```
     ///
     /// The index map `map` is **sorted** with respect to the comparator `cmp` if
     ///
     /// ```text
-    /// sorted(map, cmp) := ∀ i ∈ [0, map.len() - 1).
+    /// is_sorted(map, cmp) := ∀ i ∈ [0, map.len() - 1).
     ///     cmp(map[i].key(), map[i].value(), map[i + 1].key(), map[i + 1].value()) != Greater
     /// ```
     ///
     /// holds. We say that the sort is **stable** if and only if
     ///
     /// ```text
-    /// stable_sorted(map, original, cmp) :=
-    ///     sorted(map, cmp)
+    /// is_stable_sorted(map, original, cmp) :=
+    ///     is_sorted(map, cmp)
     ///     ∧ ∀ i, j ∈ [0, original.len()).
     ///         (cmp(original[i].key(), original[i].value(), original[j].key(), original[j].value()) = Equal ∧ (i < j))
     ///         ⇒
@@ -19236,6 +21764,8 @@ impl OpaqueIndexMap {
     /// ```
     ///
     /// holds.
+    ///
+    /// ## Method Specification
     ///
     /// This method satisfies:
     ///
@@ -19245,7 +21775,7 @@ impl OpaqueIndexMap {
     /// {
     ///     map_after.len() = map_before.len()
     ///     ∧ is_permutation(map_after, map_before)
-    ///     ∧ stable_sorted(map_after, map_before, cmp)
+    ///     ∧ is_stable_sorted(map_after, map_before, cmp)
     /// }
     /// ```
     ///
@@ -19377,6 +21907,8 @@ impl OpaqueIndexMap {
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
     /// method completes.
     ///
+    /// ## Specification Definitions
+    ///
     /// We say that a key-value pair `(k, v) :: (K, V)` is an **entry** in the map `map` if and
     /// only if
     ///
@@ -19398,8 +21930,10 @@ impl OpaqueIndexMap {
     /// The index map `map` is **sorted** with respect to its keys if
     ///
     /// ```text
-    /// sorted(map) := ∀ i ∈ [0, map.len() - 1). map[i].key() ≤ map[i + 1].key().
+    /// is_sorted(map) := ∀ i ∈ [0, map.len() - 1). map[i].key() ≤ map[i + 1].key().
     /// ```
+    ///
+    /// ## Method Specification
     ///
     /// This method satisfies:
     ///
@@ -19409,12 +21943,13 @@ impl OpaqueIndexMap {
     /// {
     ///     map_after.len() = map_before.len()
     ///     ∧ is_permutation(map_after, map_before)
-    ///     ∧ sorted(map_after)
+    ///     ∧ is_sorted(map_after)
     /// }
     /// ```
     ///
-    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`. This sort is
-    /// stable because keys are unique.
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
+    /// This sort is stable because keys are unique.
     ///
     /// # Panics
     ///
@@ -19484,6 +22019,8 @@ impl OpaqueIndexMap {
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
     /// method completes.
     ///
+    /// ## Specification Definitions
+    ///
     /// A **comparator** is a map `cmp : K ⨯ V ⨯ K ⨯ V → Ordering` such that given entries
     /// `(k1, v1) :: (K, V)` and `(k2, v2) :: (K, V)` from a partially ordered collection of
     /// entries
@@ -19505,20 +22042,16 @@ impl OpaqueIndexMap {
     ///
     /// Note that multiset equality is not needed here because every key is unique in an index map.
     ///
-    /// The **index** of a key `k` in `map` is defined by
-    ///
-    /// ```text
-    /// index(map, k) := i such that map[i].key() = k ∧ (∀ j ∈ [0, map.len()). j ≠ i ⇒ map[j].key() ≠ k)
-    /// ```
-    ///
     /// The index map `map` is **sorted** with respect to the comparator `cmp` if
     ///
     /// ```text
-    /// sorted(map, cmp) := ∀ i ∈ [0, map.len() - 1).
+    /// is_sorted(map, cmp) := ∀ i ∈ [0, map.len() - 1).
     ///     cmp(map[i].key(), map[i].value(), map[i + 1].key(), map[i + 1].value()) != Greater
     /// ```
     ///
     /// holds.
+    ///
+    /// ## Method Specification
     ///
     /// This method satisfies:
     ///
@@ -19528,7 +22061,7 @@ impl OpaqueIndexMap {
     /// {
     ///     map_after.len() = map_before.len()
     ///     ∧ is_permutation(map_after, map_before)
-    ///     ∧ sorted(map_after cmp)
+    ///     ∧ is_sorted(map_after cmp)
     /// }
     /// ```
     ///
@@ -21545,6 +24078,8 @@ impl OpaqueIndexMap {
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
     /// method completes.
     ///
+    /// ## Specification Definitions
+    ///
     /// The **last entry** in the map `map` when `map` is non-empty is defined by
     ///
     /// ```text
@@ -21556,6 +24091,8 @@ impl OpaqueIndexMap {
     /// ```text
     /// map1 = map2 ⇔ (map1.len() = map2.len()) ∧ (∀ i ∈ [0, map1.len()). map1[i] = map2[i]).
     /// ```
+    ///
+    /// ## Method Specification
     ///
     /// This method satisfies:
     ///
@@ -21645,11 +24182,15 @@ impl OpaqueIndexMap {
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
     /// method completes.
     ///
+    /// ## Specification Definitions
+    ///
     /// We say that two maps `map1` and `map2` are **equal** if and only if
     ///
     /// ```text
     /// map1 = map2 ⇔ (map1.len() = map2.len()) ∧ (∀ i ∈ [0, map1.len()). map1[i] = map2[i]).
     /// ```
+    ///
+    /// ## Method Specification
     ///
     /// This method satisfies:
     ///
@@ -21733,6 +24274,8 @@ impl OpaqueIndexMap {
     /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
     /// method completes.
+    ///
+    /// ## Specification Definitions
     ///
     /// We say that two maps `map1` and `map2` are **equal** if and only if
     ///
@@ -21862,6 +24405,8 @@ impl OpaqueIndexMap {
     /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
     /// method completes.
+    ///
+    /// ## Method Specification
     ///
     /// This method satisfies:
     ///
