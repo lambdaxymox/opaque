@@ -3940,10 +3940,10 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    /// Determines whether a given value exists in the index set.
+    /// Determines whether a given lookup value exists in the index set.
     ///
-    /// This method returns `true` if the value `value` exists in `self`. This method returns
-    /// `false` if the value `value` does not exist inside `self`.
+    /// This method returns `true` if the equivalent value to `value` exists in `self`. This method
+    /// returns `false` if the equivalent value to `value` does not exist in `self`.
     ///
     /// # Formal Properties
     ///
@@ -3987,12 +3987,12 @@ where
         self.inner.contains_key(value)
     }
 
-    /// Returns a reference to the value corresponding equivalent to the given value, if it exists
-    /// in the index set.
+    /// Returns a reference to the value corresponding equivalent to the given lookup value, if it
+    /// exists in the index set.
     ///
     /// This method returns `Some(&eq_value)` where `eq_value` is the value stored in `self`
     /// equivalent to the value `value`, if such a value exists in `self`. This method returns
-    /// `None` if a value equivalent to `value` does not exist inside `self`.
+    /// `None` if a value equivalent to `value` does not exist in `self`.
     ///
     /// # Examples
     ///
@@ -4020,14 +4020,13 @@ where
         self.inner.get_key_value(value).map(|(x, &())| x)
     }
 
-    /// Returns the storage index and a reference to the value, of the entry with the equivalent
-    /// value, if it exists in the index set.
+    /// Returns the storage index and a reference to the value of the entry with the equivalent
+    /// value to the lookup value, if it exists in the index set.
     ///
     /// This method returns `Some((index, &eq_value))` where `index` is the storage index of the
-    /// value, `eq_value` is the equivalent value to the value provided stored in the set, if the
-    /// value equivalent to the value provided by the method argument exists inside `self`. This
-    /// method returns `None` if the equivalent value provided by the method argument does not
-    /// exist inside `self`.
+    /// entry, `eq_value` is the equivalent value to the lookup value `value` stored in the set, if
+    /// the entry exists in `self`. This method returns `None` if the equivalent value to `value`
+    /// does not exist in `self`.
     ///
     /// # Examples
     ///
@@ -4055,12 +4054,12 @@ where
         self.inner.get_full(value).map(|(i, x, &())| (i, x))
     }
 
-    /// Returns the storage index of the value equivalent to the given value, if it exists in the
-    /// index set.
+    /// Returns the storage index of the equivalent value to the given lookup value, if it exists
+    /// in the index set.
     ///
-    /// This method returns `Some(index)`, where `index` is the storage index of the value, if the
-    /// value equivalent to the provided `value` exists in `self`. This method returns `None` if
-    /// the value equivalent to `value` does not exist inside `self`.
+    /// This method returns `Some(index)`, where `index` is the storage index of the equivalent
+    /// value to `value`, if the equivalent value exists in `self`. This method returns `None` if
+    /// the equivalent value to `value` does not exist in `self`.
     ///
     /// # Examples
     ///
@@ -4091,15 +4090,16 @@ where
     /// Removes an entry from a type-projected index set, moving the last entry in storage order in
     /// the collection to the index where the removed entry occupies the collection.
     ///
-    /// This method behaves with respect to `value` as follows:
+    /// This method behaves with respect to the lookup value `value` as follows:
     ///
-    /// * If the value `value` exists in the index set, let `index` be its storage index.
-    ///   If `index < self.len() - 1`, it moves the last entry in the collection to the slot at
-    ///   `index`, leaving the rest of the entries in place. If `index == self.len() - 1`, it
-    ///   removes the entry from end of the collection with no reordering of the remaining entries
-    ///   in the collection. The method then returns `true`, indicating that it removed the value
-    ///   equivalent to the value `value` from the collection.
-    /// * If the value `value` does not exist in the index set, the method returns `false`.
+    /// * If the equivalent value to `value` exists in the index set, let `index` be its storage
+    ///   index. If `index < self.len() - 1`, it moves the last entry in the collection to the slot
+    ///   at `index`, leaving the rest of the entries in place. If `index == self.len() - 1`, it
+    ///   removes the entry from the end of the collection with no reordering of the remaining
+    ///   entries in the collection. The method then returns `true`, indicating that it removed the
+    ///   equivalent value to `value` from the collection.
+    /// * If the equivalent value to `value` does not exist in the index set, the method returns
+    ///   `false`.
     ///
     /// # Formal Properties
     ///
@@ -4207,14 +4207,15 @@ where
     /// collection in storage order down one index to fill where the removed entry occupies the
     /// collection.
     ///
-    /// This method behaves with respect to `value` as follows:
+    /// This method behaves with respect to the lookup value `value` as follows:
     ///
-    /// * If the value `value` exists in the index set, let `index` be its storage index.
-    ///   If `index < self.len() - 1`, it moves every successive entry in the collection to the
-    ///   entry at storage index `index` down one unit. Every entry preceding the entry at index
-    ///   `index` remains in the same location.  The method returns `true`, which indicates that
-    ///    the entry with value equivalent to `value` was removed from the index set.
-    /// * If the value `value` does not exist in the index set, the method returns `false`.
+    /// * If the equivalent value to `value` exists in the index set, let `index` be its storage
+    ///   index. If `index < self.len() - 1`, it moves every successive entry in the collection to
+    ///   the entry at storage index `index` down one unit. Every entry preceding the entry at
+    ///   index `index` remains in the same location.  The method returns `true`, which indicates
+    ///   that the entry with equivalent value to `value` was removed from the index set.
+    /// * If the equivalent value to `value` does not exist in the index set, the method returns
+    ///   `false`.
     ///
     /// # Formal Properties
     ///
@@ -4316,15 +4317,16 @@ where
     /// Removes an entry from a type-projected index set, moving the last entry in storage order
     /// in the collection to the index where the removed entry occupies the collection.
     ///
-    /// This method behaves with respect to `value` as follows:
+    /// This method behaves with respect to the lookup value `value` as follows:
     ///
-    /// * If the value `value` exists in the index set, let `index` be its storage index.
-    ///   If `index < self.len() - 1`, it moves the last entry in the collection to the slot at
-    ///   `index`, leaving the rest of the entries in place. If `index == self.len() - 1`, it
+    /// * If the equivalent value to `value` exists in the index set, let `index` be its storage
+    ///   index. If `index < self.len() - 1`, it moves the last entry in the collection to the slot
+    ///   at `index`, leaving the rest of the entries in place. If `index == self.len() - 1`, it
     ///   removes the entry from end of the collection with no reordering of the remaining entries
-    ///   in the collection. The method then returns `Some(eq_value)`, where `eq_value` where
-    ///   is the equivalent value to the value `value` stored in the index set.
-    /// * If the value `value` does not exist in the index set, the method returns `None`.
+    ///   in the collection. The method then returns `Some(eq_value)`, where `eq_value` is the
+    ///   equivalent value to the value `value` stored in the index set.
+    /// * If the equivalent value to `value` does not exist in the index set, the method returns
+    ///   `None`.
     ///
     /// # Formal Properties
     ///
@@ -4437,14 +4439,15 @@ where
     /// collection in storage order down one index to fill where the removed entry occupies the
     /// collection.
     ///
-    /// This method behaves with respect to `value` as follows:
+    /// This method behaves with respect to the lookup value `value` as follows:
     ///
-    /// * If the value `value` exists in the index set, let `index` be its storage index.
-    ///   If `index < self.len() - 1`, it moves every successive entry in the collection to the
-    ///   entry at storage index `index` down one unit. Every entry preceding the entry at index
-    ///   `index` remains in the same location. The method returns `Some(eq_value)`, where
+    /// * If the equivalent value to `value` exists in the index set, let `index` be its storage
+    ///   index. If `index < self.len() - 1`, it moves every successive entry in the collection to
+    ///   the entry at storage index `index` down one unit. Every entry preceding the entry at
+    ///   index `index` remains in the same location. The method returns `Some(eq_value)`, where
     ///   `eq_value` is the equivalent value to the value `value` stored in the index set.
-    /// * If the value `value` does not exist in the index set, the method returns `None`.
+    /// * If the equivalent value to `value` does not exist in the index set, the method returns
+    ///   `None`.
     ///
     /// In particular, the method acts like a [`pop`] when the last value in the collection is
     /// shift-removed, because the sub-collection of successor entries in the entry storage is
@@ -4552,15 +4555,16 @@ where
     /// Removes an entry from a type-projected index set, moving the last entry in storage order in
     /// the collection to the index where the removed entry occupies the collection.
     ///
-    /// This method behaves with respect to `value` as follows:
+    /// This method behaves with respect to lookup value `value` as follows:
     ///
-    /// * If the value `value` exists in the index set, let `index` be its storage index.
-    ///   If `index < self.len() - 1`, it moves the last entry in the collection to the slot at
-    ///   `index`, leaving the rest of the entries in place. If `index == self.len() - 1`, it
+    /// * If the equivalent value to `value` exists in the index set, let `index` be its storage
+    ///   index. If `index < self.len() - 1`, it moves the last entry in the collection to the slot
+    ///   at `index`, leaving the rest of the entries in place. If `index == self.len() - 1`, it
     ///   removes the entry from end of the collection with no reordering of the remaining entries
     ///   in the collection. The method then returns `Some((index, eq_value))`, where `eq_value` is
-    ///   the value stored in the index set equivalent to the value `value`.
-    /// * If the value `value` does not exist in the index set, the method returns `None`.
+    ///   the equivalent value to `value` stored in the index set..
+    /// * If the equivalent value to `value` does not exist in the index set, the method returns
+    ///   `None`.
     ///
     /// # Formal Properties
     ///
@@ -4662,14 +4666,15 @@ where
     /// collection in storage order down one index to fill where the removed entry occupies the
     /// collection.
     ///
-    /// This method behaves with respect to `value` as follows:
+    /// This method behaves with respect to the lookup value `value` as follows:
     ///
-    /// * If the value `value` exists in the index set, let `index` be its storage index.
-    ///   If `index < self.len() - 1`, it moves every successive entry in the collection to the
-    ///   entry at storage index `index` down one unit. Every entry preceding the entry at index
-    ///   `index` remains in the same location. The method returns `Some((index, eq_value))`, where
-    ///   `eq_value` is the equivalent value to the value `value` stored in the index set.
-    /// * If the key `key` does not exist in the index set, the method returns `None`.
+    /// * If the equivalent value to `value` exists in the index set, let `index` be its storage
+    ///   index. If `index < self.len() - 1`, it moves every successive entry in the collection to
+    ///   the entry at storage index `index` down one unit. Every entry preceding the entry at
+    ///   index `index` remains in the same location. The method returns `Some((index, eq_value))`,
+    ///   where `eq_value` is the equivalent value to the value `value` stored in the index set.
+    /// * If the equivalent value to `value` does not exist in the index set, the method returns
+    ///   `None`.
     ///
     /// In particular, the method acts like a [`pop`] when the last value in the collection is
     /// shift-removed, because the sub-collection of successor entries in the entry storage is
@@ -8676,17 +8681,6 @@ impl OpaqueIndexSet {
     ///
     /// [`insert`]: TypedProjIndexSet::insert
     ///
-    /// # Panics
-    ///
-    /// This method panics under the following conditions:
-    ///
-    /// * If the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash builder of `self`,
-    ///   and the [`TypeId`] of the memory allocator of `self` do not match the value type `T`, hash
-    ///   builder type `S`, and allocator type `A`, respectively.
-    /// * If the [`TypeId`] of the values of `other`, the [`TypeId`] for the hash builder of
-    ///   `other`, and the [`TypeId`] of the memory allocator of `other` do not match the value type
-    ///   `T`, hash builder type `S2`, and allocator type `A2`, respectively.
-    ///
     /// # Formal Properties
     ///
     /// Let `set1` and `set2` be index sets, `set1_before` be the state of `set1` before this
@@ -8724,6 +8718,17 @@ impl OpaqueIndexSet {
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Panics
+    ///
+    /// This method panics under the following conditions:
+    ///
+    /// * If the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash builder of `self`,
+    ///   and the [`TypeId`] of the memory allocator of `self` do not match the value type `T`, hash
+    ///   builder type `S`, and allocator type `A`, respectively.
+    /// * If the [`TypeId`] of the values of `other`, the [`TypeId`] for the hash builder of
+    ///   `other`, and the [`TypeId`] of the memory allocator of `other` do not match the value type
+    ///   `T`, hash builder type `S2`, and allocator type `A2`, respectively.
     ///
     /// # Examples
     ///
@@ -8822,10 +8827,10 @@ impl OpaqueIndexSet {
 }
 
 impl OpaqueIndexSet {
-    /// Determines whether a given key exists in the index set.
+    /// Determines whether a given lookup value exists in the index set.
     ///
-    /// This method returns `true` if the value `value` exists in `self`. This method returns
-    /// `false` if the value `value` does not exist inside `self`.
+    /// This method returns `true` if the equivalent value to `value` exists in `self`. This method
+    /// returns `false` if the equivalent value to `value` does not exist in `self`.
     ///
     /// # Formal Properties
     ///
@@ -8886,12 +8891,12 @@ impl OpaqueIndexSet {
         proj_self.contains(value)
     }
 
-    /// Returns a reference to the value corresponding equivalent to the given value, if it exists
-    /// in the index set.
+    /// Returns a reference to the value corresponding equivalent to the given lookup value, if it
+    /// exists in the index set.
     ///
     /// This method returns `Some(&eq_value)` where `eq_value` is the value stored in `self`
     /// equivalent to the value `value`, if such a value exists in `self`. This method returns
-    /// `None` if a value equivalent to `value` does not exist inside `self`.
+    /// `None` if a value equivalent to `value` does not exist in `self`.
     ///
     /// # Panics
     ///
@@ -8936,14 +8941,13 @@ impl OpaqueIndexSet {
         proj_self.get(value)
     }
 
-    /// Returns the storage index and a reference to the value, of the entry with the equivalent
-    /// value, if it exists in the index set.
+    /// Returns the storage index and a reference to the value of the entry with the equivalent
+    /// value to the lookup value, if it exists in the index set.
     ///
     /// This method returns `Some((index, &eq_value))` where `index` is the storage index of the
-    /// value, `eq_value` is the equivalent value to the value provided stored in the set, if the
-    /// value equivalent to the value provided by the method argument exists inside `self`. This
-    /// method returns `None` if the equivalent value provided by the method argument does not
-    /// exist inside `self`.
+    /// entry, `eq_value` is the equivalent value to the lookup value `value` stored in the set, if
+    /// the entry exists in `self`. This method returns `None` if the equivalent value to `value`
+    /// does not exist in `self`.
     ///
     /// # Panics
     ///
@@ -8988,12 +8992,12 @@ impl OpaqueIndexSet {
         proj_self.get_full(value)
     }
 
-    /// Returns the storage index of the value equivalent to the given value, if it exists in the
-    /// index set.
+    /// Returns the storage index of the equivalent value to the given lookup value, if it exists
+    /// in the index set.
     ///
-    /// This method returns `Some(index)`, where `index` is the storage index of the value, if the
-    /// value equivalent to the provided `value` exists in `self`. This method returns `None` if
-    /// the value equivalent to `value` does not exist inside `self`.
+    /// This method returns `Some(index)`, where `index` is the storage index of the equivalent
+    /// value to `value`, if the equivalent value exists in `self`. This method returns `None` if
+    /// the equivalent value to `value` does not exist in `self`.
     ///
     /// # Panics
     ///
@@ -9041,15 +9045,16 @@ impl OpaqueIndexSet {
     /// Removes an entry from a type-erased index set, moving the last entry in storage order in
     /// the collection to the index where the removed entry occupies the collection.
     ///
-    /// This method behaves with respect to `value` as follows:
+    /// This method behaves with respect to the lookup value `value` as follows:
     ///
-    /// * If the value `value` exists in the index set, let `index` be its storage index.
-    ///   If `index < self.len() - 1`, it moves the last entry in the collection to the slot at
-    ///   `index`, leaving the rest of the entries in place. If `index == self.len() - 1`, it
-    ///   removes the entry from end of the collection with no reordering of the remaining entries
-    ///   in the collection. The method then returns `true`, indicating that it removed the value
-    ///   equivalent to the value `value` from the collection.
-    /// * If the value `value` does not exist in the index set, the method returns `false`.
+    /// * If the equivalent value to `value` exists in the index set, let `index` be its storage
+    ///   index. If `index < self.len() - 1`, it moves the last entry in the collection to the slot
+    ///   at `index`, leaving the rest of the entries in place. If `index == self.len() - 1`, it
+    ///   removes the entry from the end of the collection with no reordering of the remaining
+    ///   entries in the collection. The method then returns `true`, indicating that it removed the
+    ///   equivalent value to `value` from the collection.
+    /// * If the equivalent value to `value` does not exist in the index set, the method returns
+    ///   `false`.
     ///
     /// # Formal Properties
     ///
@@ -9226,14 +9231,15 @@ impl OpaqueIndexSet {
     /// collection in storage order down one index to fill where the removed entry occupies the
     /// collection.
     ///
-    /// This method behaves with respect to `value` as follows:
+    /// This method behaves with respect to the lookup value `value` as follows:
     ///
-    /// * If the value `value` exists in the index set, let `index` be its storage index.
-    ///   If `index < self.len() - 1`, it moves every successive entry in the collection to the
-    ///   entry at storage index `index` down one unit. Every entry preceding the entry at index
-    ///   `index` remains in the same location.  The method returns `true`, which indicates that
-    ///    the entry with value equivalent to `value` was removed from the index set.
-    /// * If the value `value` does not exist in the index set, the method returns `false`.
+    /// * If the equivalent value to `value` exists in the index set, let `index` be its storage
+    ///   index. If `index < self.len() - 1`, it moves every successive entry in the collection to
+    ///   the entry at storage index `index` down one unit. Every entry preceding the entry at
+    ///   index `index` remains in the same location.  The method returns `true`, which indicates
+    ///   that the entry with equivalent value to `value` was removed from the index set.
+    /// * If the equivalent value to `value` does not exist in the index set, the method returns
+    ///   `false`.
     ///
     /// # Formal Properties
     ///
@@ -9404,15 +9410,16 @@ impl OpaqueIndexSet {
     /// Removes an entry from a type-erased index set, moving the last entry in storage order
     /// in the collection to the index where the removed entry occupies the collection.
     ///
-    /// This method behaves with respect to `value` as follows:
+    /// This method behaves with respect to the lookup value `value` as follows:
     ///
-    /// * If the value `value` exists in the index set, let `index` be its storage index.
-    ///   If `index < self.len() - 1`, it moves the last entry in the collection to the slot at
-    ///   `index`, leaving the rest of the entries in place. If `index == self.len() - 1`, it
+    /// * If the equivalent value to `value` exists in the index set, let `index` be its storage
+    ///   index. If `index < self.len() - 1`, it moves the last entry in the collection to the slot
+    ///   at `index`, leaving the rest of the entries in place. If `index == self.len() - 1`, it
     ///   removes the entry from end of the collection with no reordering of the remaining entries
-    ///   in the collection. The method then returns `Some(eq_value)`, where `eq_value` where
-    ///   is the equivalent value to the value `value` stored in the index set.
-    /// * If the value `value` does not exist in the index set, the method returns `None`.
+    ///   in the collection. The method then returns `Some(eq_value)`, where `eq_value` is the
+    ///   equivalent value to the value `value` stored in the index set.
+    /// * If the equivalent value to `value` does not exist in the index set, the method returns
+    ///   `None`.
     ///
     /// # Formal Properties
     ///
@@ -9589,14 +9596,15 @@ impl OpaqueIndexSet {
     /// collection in storage order down one index to fill where the removed entry occupies the
     /// collection.
     ///
-    /// This method behaves with respect to `value` as follows:
+    /// This method behaves with respect to the lookup value `value` as follows:
     ///
-    /// * If the value `value` exists in the index set, let `index` be its storage index.
-    ///   If `index < self.len() - 1`, it moves every successive entry in the collection to the
-    ///   entry at storage index `index` down one unit. Every entry preceding the entry at index
-    ///   `index` remains in the same location. The method returns `Some(eq_value)`, where
+    /// * If the equivalent value to `value` exists in the index set, let `index` be its storage
+    ///   index. If `index < self.len() - 1`, it moves every successive entry in the collection to
+    ///   the entry at storage index `index` down one unit. Every entry preceding the entry at
+    ///   index `index` remains in the same location. The method returns `Some(eq_value)`, where
     ///   `eq_value` is the equivalent value to the value `value` stored in the index set.
-    /// * If the value `value` does not exist in the index set, the method returns `None`.
+    /// * If the equivalent value to `value` does not exist in the index set, the method returns
+    ///   `None`.
     ///
     /// In particular, the method acts like a [`pop`] when the last value in the collection is
     /// shift-removed, because the sub-collection of successor entries in the entry storage is
@@ -9770,18 +9778,19 @@ impl OpaqueIndexSet {
         proj_self.shift_take(value)
     }
 
-    /// Removes an entry from a type-erased index set, moving the last entry in storage order in
+    /// Removes an entry from a type-projected index set, moving the last entry in storage order in
     /// the collection to the index where the removed entry occupies the collection.
     ///
-    /// This method behaves with respect to `value` as follows:
+    /// This method behaves with respect to lookup value `value` as follows:
     ///
-    /// * If the value `value` exists in the index set, let `index` be its storage index.
-    ///   If `index < self.len() - 1`, it moves the last entry in the collection to the slot at
-    ///   `index`, leaving the rest of the entries in place. If `index == self.len() - 1`, it
+    /// * If the equivalent value to `value` exists in the index set, let `index` be its storage
+    ///   index. If `index < self.len() - 1`, it moves the last entry in the collection to the slot
+    ///   at `index`, leaving the rest of the entries in place. If `index == self.len() - 1`, it
     ///   removes the entry from end of the collection with no reordering of the remaining entries
     ///   in the collection. The method then returns `Some((index, eq_value))`, where `eq_value` is
-    ///   the value stored in the index set equivalent to the value `value`.
-    /// * If the value `value` does not exist in the index set, the method returns `None`.
+    ///   the equivalent value to `value` stored in the index set..
+    /// * If the equivalent value to `value` does not exist in the index set, the method returns
+    ///   `None`.
     ///
     /// # Formal Properties
     ///
@@ -9952,14 +9961,15 @@ impl OpaqueIndexSet {
     /// collection in storage order down one index to fill where the removed entry occupies the
     /// collection.
     ///
-    /// This method behaves with respect to `value` as follows:
+    /// This method behaves with respect to the lookup value `value` as follows:
     ///
-    /// * If the value `value` exists in the index set, let `index` be its storage index.
-    ///   If `index < self.len() - 1`, it moves every successive entry in the collection to the
-    ///   entry at storage index `index` down one unit. Every entry preceding the entry at index
-    ///   `index` remains in the same location. The method returns `Some((index, eq_value))`, where
-    ///   `eq_value` is the equivalent value to the value `value` stored in the index set.
-    /// * If the key `key` does not exist in the index set, the method returns `None`.
+    /// * If the equivalent value to `value` exists in the index set, let `index` be its storage
+    ///   index. If `index < self.len() - 1`, it moves every successive entry in the collection to
+    ///   the entry at storage index `index` down one unit. Every entry preceding the entry at
+    ///   index `index` remains in the same location. The method returns `Some((index, eq_value))`,
+    ///   where `eq_value` is the equivalent value to the value `value` stored in the index set.
+    /// * If the equivalent value to `value` does not exist in the index set, the method returns
+    ///   `None`.
     ///
     /// In particular, the method acts like a [`pop`] when the last value in the collection is
     /// shift-removed, because the sub-collection of successor entries in the entry storage is

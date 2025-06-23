@@ -113,7 +113,8 @@ where
     ///
     /// # Examples
     ///
-    /// Getting a slice of remaining elements from a draining iterator of a type-projected index map.
+    /// Getting a slice of remaining elements from a draining iterator of a type-projected index
+    /// map.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -146,7 +147,8 @@ where
     /// assert!(drain.as_slice().is_empty());
     /// ```
     ///
-    /// Getting a slice of remaining elements from a draining iterator of a type-erased index map.
+    /// Getting a slice of remaining elements from a draining iterator of a type-erased index
+    /// map.
     ///
     /// ```
     /// # #![feature(allocator_api)]
@@ -7219,12 +7221,12 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    /// Returns the storage index of the key-value pair with the given key, if it exists in the
-    /// index map.
+    /// Returns the storage index of the key-value pair with the given lookup key, if it exists
+    /// in the index map.
     ///
     /// This method returns `Some(index)`, where `index` is the storage index of the key-value pair,
-    /// if the key `key` exists in `self`. This method returns `None` if the key `key` does not
-    /// exist inside `self`.
+    /// if the equivalent key to `key` exists in `self`. This method returns `None` if the lookup
+    /// key `key` does not exist in `self`.
     ///
     /// # Formal Properties
     ///
@@ -7355,10 +7357,10 @@ where
         self.inner.get_index_of(key)
     }
 
-    /// Determines whether a given key exists in the index map.
+    /// Determines whether a given lookup key exists in the index map.
     ///
-    /// This method returns `true` if the key `key` exists in `self`. This method returns `false`
-    /// if the key `key` does not exist inside `self`.
+    /// This method returns `true` if the equivalent key to `key` exists in `self`. This method
+    /// returns `false` if the equivalent key to `key` does not exist in `self`.
     ///
     /// # Formal Properties
     ///
@@ -7490,11 +7492,12 @@ where
         self.inner.contains_key(key)
     }
 
-    /// Returns a reference to the value corresponding to a key-value pair with the given key, if it
-    /// exists in the index map.
+    /// Returns a reference to the value corresponding to a key-value pair with the given lookup
+    /// key, if it exists in the index map.
     ///
-    /// This method returns `Some(&value)` where `value` is the value corresponding to the key `key`
-    /// in `self`. This method returns `None` if the key `key` does not exist inside `self`.
+    /// This method returns `Some(&value)` where `value` is the value corresponding to the
+    /// equivalent key to `key` in `self` if the equivalent key to key exists in `self`. This
+    /// method returns `None` if the equivalent key to `key` does not exist in `self`.
     ///
     /// # Formal Properties
     ///
@@ -7626,13 +7629,12 @@ where
     }
 
     /// Returns a reference to the key and a reference to the value, of the key-value pair with the
-    /// given key, if it exists in the index map.
+    /// given lookup key, if it exists in the index map.
     ///
-    /// This method returns `Some((&key, &value))` where `key` is the key stored in the map
-    /// equivalent to the key provided by the method argument, and `value` is the value
-    /// corresponding to the key `key` in `self`, if the equivalent key provided by the method
-    /// argument exists inside `self`. This method returns `None` if the equivalent key provided by
-    /// the method argument does not exist inside `self`.
+    /// This method returns `Some((&eq_key, &value))` where `eq_key` is the equivalent key to `key`
+    /// stored in the map, and `value` is the value corresponding to the key `eq_key` in `self`,
+    /// if the equivalent key `eq_key` to `key` exists in `self`. This method returns `None` if the
+    /// equivalent key to `key` does not exist in `self`.
     ///
     /// # Formal Properties
     ///
@@ -7764,13 +7766,13 @@ where
     }
 
     /// Returns the storage index, a reference to the key and a reference to the value, of the
-    /// key-value pair with the given key, if it exists in the index map.
+    /// key-value pair with the given lookup key, if it exists in the index map.
     ///
-    /// This method returns `Some((index, &key, &value))` where `index` is the storage index of the
-    /// key-value pair, `key` is the key stored in the map equivalent to the key provided by the
-    /// method argument, and `value` is the value corresponding to the key `key` in `self`, if the
-    /// equivalent key provided by the method argument exists inside `self`. This method returns
-    /// `None` if the equivalent key provided by the method argument does not exist inside `self`.
+    /// This method returns `Some((index, &eq_key, &value))` where `index` is the storage index of
+    /// the key-value pair, `eq_key` is the equivalent key to `key` stored in the map, and `value`
+    /// is the value corresponding to the key `eq_key` in `self`, if the equivalent key `eq_key`
+    /// to `key` exists in `self`. This method returns `None` if the equivalent key to `key` does
+    /// not exist in `self`.
     ///
     /// # Formal Properties
     ///
@@ -7902,10 +7904,11 @@ where
     }
 
     /// Returns a mutable reference to the value corresponding to a key-value pair with the given
-    /// key, if it exists in the index map.
+    /// lookup key, if it exists in the index map.
     ///
-    /// This method returns `Some(&mut value)` where `value` is the value corresponding to the key
-    /// `key` in `self`. This method returns `None` if the key `key` does not exist inside `self`.
+    /// This method returns `Some(&mut value)` where `value` is the value corresponding to the
+    /// equivalent key to `key` in `self`. This method returns `None` if the equivalent key to
+    /// `key` does not exist in `self`.
     ///
     /// # Formal Properties
     ///
@@ -8037,13 +8040,13 @@ where
     }
 
     /// Returns the storage index, a reference to the key and a mutable reference to the value, of
-    /// the key-value pair with the given key, if it exists in the index map.
+    /// the key-value pair with the given lookup key, if it exists in the index map.
     ///
-    /// This method returns `Some((index, &key, &mut value))` where `index` is the storage index of
-    /// the key-value pair, `key` is the key stored in the map equivalent to the key provided by the
-    /// method argument, and `value` is the value corresponding to the key `key` in `self`, if the
-    /// equivalent key provided by the method argument exists inside `self`. This method returns
-    /// `None` if the equivalent key provided by the method argument does not exist inside `self`.
+    /// This method returns `Some((index, &eq_key, &mut value))` where `index` is the storage index
+    /// of the key-value pair, `eq_key` is the equivalent key to `key` stored in the map and
+    /// `value` is the value corresponding to the key `eq_key` in `self`, if the equivalent key to
+    /// `key` exists in `self`. This method returns `None` if the equivalent key to `key` does
+    /// not exist in `self`.
     ///
     /// # Formal Properties
     ///
@@ -8174,11 +8177,11 @@ where
         self.inner.get_full_mut(key)
     }
 
-    /// Returns multiple references to the values of multiple keys at once.
+    /// Returns multiple references to the values of multiple lookup keys at once.
     ///
     /// # Panics
     ///
-    /// This method panics if there are any duplicate keys.
+    /// This method panics if there are any duplicate lookup keys.
     ///
     /// # Examples
     ///
@@ -9055,15 +9058,16 @@ where
     /// Removes an entry from a type-projected index map, moving the last entry in storage order in
     /// the collection to the index where the removed entry occupies the collection.
     ///
-    /// This method behaves with respect to `key` as follows:
+    /// This method behaves with respect to the lookup key `key` as follows:
     ///
-    /// * If the key `key` exists in the index map, let `index` be its storage index.
+    /// * If the equivalent key to `key` exists in the index map, let `index` be its storage index.
     ///   If `index < self.len() - 1`, it moves the last entry in the collection to the slot at
     ///   `index`, leaving the rest of the entries in place. If `index == self.len() - 1`, it
     ///   removes the entry from end of the collection with no reordering of the remaining entries
     ///   in the collection. The method then returns `Some(value)`, where `value` is the value
-    ///   stored in the index map corresponding to the key `key`.
-    /// * If the key `key` does not exist in the index map, the method returns `None`.
+    ///   stored in the index map corresponding to the equivalent key to `key`.
+    /// * If the equivalent key to `key` does not exist in the index map, the method returns
+    ///   `None`.
     ///
     /// # Formal Properties
     ///
@@ -9280,15 +9284,17 @@ where
     /// Removes an entry from a type-projected index map, moving the last entry in storage order in
     /// the collection to the index where the removed entry occupies the collection.
     ///
-    /// This method behaves with respect to `key` as follows:
+    /// This method behaves with respect to the lookup key `key` as follows:
     ///
-    /// * If the key `key` exists in the index map, let `index` be its storage index.
+    /// * If the equivalent key to `key` exists in the index map, let `index` be its storage index.
     ///   If `index < self.len() - 1`, it moves the last entry in the collection to the slot at
     ///   `index`, leaving the rest of the entries in place. If `index == self.len() - 1`, it
     ///   removes the entry from end of the collection with no reordering of the remaining entries
-    ///   in the collection. The method then returns `Some((key, value))`, where `(key, value)` is
-    ///   the key-value pair stored in the index map corresponding to the key `key`.
-    /// * If the key `key` does not exist in the index map, the method returns `None`.
+    ///   in the collection. The method then returns `Some((eq_key, value))`, where
+    ///   `(eq_key, value)` is the key-value pair with equivalent key `eq_key` to `key` in the
+    ///   index map.
+    /// * If the equivalent key to `key` does not exist in the index map, the method returns
+    ///   `None`.
     ///
     /// # Formal Properties
     ///
@@ -9505,16 +9511,17 @@ where
     /// Removes an entry from a type-projected index map, moving the last entry in storage order in
     /// the collection to the index where the removed entry occupies the collection.
     ///
-    /// This method behaves with respect to `key` as follows:
+    /// This method behaves with respect to the lookup key `key` as follows:
     ///
-    /// * If the key `key` exists in the index map, let `index` be its storage index.
+    /// * If the equivalent key to `key` exists in the index map, let `index` be its storage index.
     ///   If `index < self.len() - 1`, it moves the last entry in the collection to the slot at
     ///   `index`, leaving the rest of the entries in place. If `index == self.len() - 1`, it
     ///   removes the entry from end of the collection with no reordering of the remaining entries
-    ///   in the collection. The method then returns `Some((index, key, value))`, where
-    ///   `(key, value)` is the key-value pair stored in the index map corresponding to the key
-    ///   `key`.
-    /// * If the key `key` does not exist in the index map, the method returns `None`.
+    ///   in the collection. The method then returns `Some((index, eq_key, value))`, where
+    ///   `(eq_key, value)` is the key-value pair with the equivalent key `eq_key` to `key `stored
+    ///   in the index map.
+    /// * If the equivalent key to `key` does not exist in the index map, the method returns
+    ///   `None`.
     ///
     /// # Formal Properties
     ///
@@ -9732,14 +9739,15 @@ where
     /// collection in storage order down one index to fill where the removed entry occupies the
     /// collection.
     ///
-    /// This method behaves with respect to `key` as follows:
+    /// This method behaves with respect to the lookup key `key` as follows:
     ///
-    /// * If the key `key` exists in the index map, let `index` be its storage index.
+    /// * If the equivalent key to `key` exists in the index map, let `index` be its storage index.
     ///   If `index < self.len() - 1`, it moves every successive entry in the collection to the
     ///   entry at storage index `index` down one unit. Every entry preceding the entry at index
     ///   `index` remains in the same location. The method returns `Some(value)`, where `value` is
-    ///    the value stored in the entry corresponding to the key `key` in the index map.
-    /// * If the key `key` does not exist in the index map, the method returns `None`.
+    ///    the value stored in the entry with equivalent key to key `key` in the index map.
+    /// * If the equivalent key to `key` does not exist in the index map, the method returns
+    ///   `None`.
     ///
     /// In particular, the method acts like a [`pop`] when the last value in the collection is
     /// shift-removed, because the sub-collection of successor entries in the entry storage is
@@ -9954,15 +9962,16 @@ where
     /// collection in storage order down one index to fill where the removed entry occupies the
     /// collection.
     ///
-    /// This method behaves with respect to `key` as follows:
+    /// This method behaves with respect to the lookup key `key` as follows:
     ///
-    /// * If the key `key` exists in the index map, let `index` be its storage index.
+    /// * If the equivalent key to `key` exists in the index map, let `index` be its storage index.
     ///   If `index < self.len() - 1`, it moves every successive entry in the collection to the
     ///   entry at storage index `index` down one unit. Every entry preceding the entry at index
-    ///   `index` remains in the same location. The method returns `Some((key, value))`, where
-    ///   `(key, value)` is the key-value pair stored in the entry corresponding to the key `key` in
-    ///    the index map.
-    /// * If the key `key` does not exist in the index map, the method returns `None`.
+    ///   `index` remains in the same location. The method returns `Some((eq_key, value))`, where
+    ///   `(eq_key, value)` is the key-value pair with equivalent key `eq_key` to `key` in the
+    ///   index map.
+    /// * If the equivalent key to `key` does not exist in the index map, the method returns
+    ///   `None`.
     ///
     /// In particular, the method acts like a [`pop`] when the last value in the collection is
     /// shift-removed, because the sub-collection of successor entries in the entry storage is
@@ -10177,14 +10186,14 @@ where
     /// collection in storage order down one index to fill where the removed entry occupies the
     /// collection.
     ///
-    /// This method behaves with respect to `key` as follows:
+    /// This method behaves with respect to the lookup key `key` as follows:
     ///
-    /// * If the key `key` exists in the index map, let `index` be its storage index.
+    /// * If the equivalent key to `key` exists in the index map, let `index` be its storage index.
     ///   If `index < self.len() - 1`, it moves every successive entry in the collection to the
     ///   entry at storage index `index` down one unit. Every entry preceding the entry at index
-    ///   `index` remains in the same location. The method returns `Some((index, key, value))`,
-    ///   where `(key, value)` is the key-value pair stored in the entry corresponding to the key
-    ///   `key` in the index map.
+    ///   `index` remains in the same location. The method returns `Some((index, eq_key, value))`,
+    ///   where `(eq_key, value)` is the key-value pair with equivalent key `eq_key` to `key` in
+    ///   the index map.
     /// * If the key `key` does not exist in the index map, the method returns `None`.
     ///
     /// In particular, the method acts like a [`pop`] when the last value in the collection is
@@ -13111,6 +13120,34 @@ where
     /// of the entry at index `index` in the map, and `value` is the value of the entry at index
     /// `index`. If `index >= self.len()`, this method returns `None`.
     ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with keys of type `K` and values of type `V`.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// The **index** of a key `k :: K` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, k) := i such that map[i].key() = k.
+    /// ```
+    ///
+    /// ## Method Specification
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { index < map.len() }
+    /// map.get_index(index)
+    /// { result = Some(map[index(map, key)]) }
+    ///
+    /// { index >= map.len() }
+    /// map.get_index(index)
+    /// { result = None }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
     /// # Examples
     ///
     /// ```
@@ -13145,6 +13182,34 @@ where
     /// If `index < self.len()`, this method returns `Some((&key, &mut value))`, where `key` is the
     /// key of the entry at index `index` in the map, and `value` is the value of the entry at
     /// index `index`. If `index >= self.len()`, this method returns `None`.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with keys of type `K` and values of type `V`.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// The **index** of a key `k :: K` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, k) := i such that map[i].key() = k.
+    /// ```
+    ///
+    /// ## Method Specification
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { index < map.len() }
+    /// map.get_index_mut(index)
+    /// { result = Some(map[index(map, key)]) }
+    ///
+    /// { index >= map.len() }
+    /// map.get_index_mut(index)
+    /// { result = None }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
     /// # Examples
     ///
@@ -15771,12 +15836,12 @@ impl OpaqueIndexMap {
 }
 
 impl OpaqueIndexMap {
-    /// Returns the storage index of the key-value pair with the given key, if it exists in the
-    /// index map.
+    /// Returns the storage index of the key-value pair with the given lookup key, if it exists
+    /// in the index map.
     ///
     /// This method returns `Some(index)`, where `index` is the storage index of the key-value pair,
-    /// if the key `key` exists in `self`. This method returns `None` if the key `key` does not
-    /// exist inside `self`.
+    /// if the equivalent key to `key` exists in `self`. This method returns `None` if the lookup
+    /// key `key` does not exist in `self`.
     ///
     /// # Formal Properties
     ///
@@ -15927,10 +15992,10 @@ impl OpaqueIndexMap {
         proj_self.get_index_of(key)
     }
 
-    /// Determines whether a given key exists in the index map.
+    /// Determines whether a given lookup key exists in the index map.
     ///
-    /// This method returns `true` if the key `key` exists in `self`. This method returns `false`
-    /// if the key `key` does not exist inside `self`.
+    /// This method returns `true` if the equivalent key to `key` exists in `self`. This method
+    /// returns `false` if the equivalent key to `key` does not exist in `self`.
     ///
     /// # Formal Properties
     ///
@@ -16082,18 +16147,12 @@ impl OpaqueIndexMap {
         proj_self.contains_key(key)
     }
 
-    /// Returns a reference to the value corresponding to a key-value pair with the given key, if it
-    /// exists in the index map.
+    /// Returns a reference to the value corresponding to a key-value pair with the given lookup
+    /// key, if it exists in the index map.
     ///
-    /// This method returns `Some(&value)` where `value` is the value corresponding to the key `key`
-    /// in `self`. This method returns `None` if the key `key` does not exist inside `self`.
-    ///
-    /// # Panics
-    ///
-    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
-    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
-    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
-    /// type `S`, and allocator type `A`, respectively.
+    /// This method returns `Some(&value)` where `value` is the value corresponding to the
+    /// equivalent key to `key` in `self` if the equivalent key to key exists in `self`. This
+    /// method returns `None` if the equivalent key to `key` does not exist in `self`.
     ///
     /// # Formal Properties
     ///
@@ -16194,6 +16253,13 @@ impl OpaqueIndexMap {
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
     /// ```
@@ -16238,13 +16304,12 @@ impl OpaqueIndexMap {
     }
 
     /// Returns a reference to the key and a reference to the value, of the key-value pair with the
-    /// given key, if it exists in the index map.
+    /// given lookup key, if it exists in the index map.
     ///
-    /// This method returns `Some((&key, &value))` where `key` is the key stored in the map
-    /// equivalent to the key provided by the method argument, and `value` is the value
-    /// corresponding to the key `key` in `self`, if the equivalent key provided by the method
-    /// argument exists inside `self`. This method returns `None` if the equivalent key provided by
-    /// the method argument does not exist inside `self`.
+    /// This method returns `Some((&eq_key, &value))` where `eq_key` is the equivalent key to `key`
+    /// stored in the map, and `value` is the value corresponding to the key `eq_key` in `self`,
+    /// if the equivalent key `eq_key` to `key` exists in `self`. This method returns `None` if the
+    /// equivalent key to `key` does not exist in `self`.
     ///
     /// # Formal Properties
     ///
@@ -16395,14 +16460,14 @@ impl OpaqueIndexMap {
         proj_self.get_key_value(key)
     }
 
-    /// Returns the storage index, a reference to the key and a reference to the value, of the key-value
-    /// pair with the given key, if it exists in the index map.
+    /// Returns the storage index, a reference to the key and a reference to the value, of the
+    /// key-value pair with the given lookup key, if it exists in the index map.
     ///
-    /// This method returns `Some((index, &key, &value))` where `index` is the storage index of the
-    /// key-value pair, `key` is the key stored in the map equivalent to the key provided by the
-    /// method argument, and `value` is the value corresponding to the key `key` in `self`, if the
-    /// equivalent key provided by the method argument exists inside `self`. This method returns
-    /// `None` if the equivalent key provided by the method argument does not exist inside `self`.
+    /// This method returns `Some((index, &eq_key, &value))` where `index` is the storage index of
+    /// the key-value pair, `eq_key` is the equivalent key to `key` stored in the map, and `value`
+    /// is the value corresponding to the key `eq_key` in `self`, if the equivalent key `eq_key`
+    /// to `key` exists in `self`. This method returns `None` if the equivalent key to `key` does
+    /// not exist in `self`.
     ///
     /// # Formal Properties
     ///
@@ -16554,17 +16619,11 @@ impl OpaqueIndexMap {
     }
 
     /// Returns a mutable reference to the value corresponding to a key-value pair with the given
-    /// key, if it exists in the index map.
+    /// lookup key, if it exists in the index map.
     ///
-    /// This method returns `Some(&mut value)` where `value` is the value corresponding to the key
-    /// `key` in `self`. This method returns `None` if the key `key` does not exist inside `self`.
-    ///
-    /// # Panics
-    ///
-    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
-    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
-    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
-    /// type `S`, and allocator type `A`, respectively.
+    /// This method returns `Some(&mut value)` where `value` is the value corresponding to the
+    /// equivalent key to `key` in `self`. This method returns `None` if the equivalent key to
+    /// `key` does not exist in `self`.
     ///
     /// # Formal Properties
     ///
@@ -16665,6 +16724,13 @@ impl OpaqueIndexMap {
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
+    ///
     /// # Examples
     ///
     /// ```
@@ -16709,13 +16775,13 @@ impl OpaqueIndexMap {
     }
 
     /// Returns the storage index, a reference to the key and a mutable reference to the value, of
-    /// the key-value pair with the given key, if it exists in the index map.
+    /// the key-value pair with the given lookup key, if it exists in the index map.
     ///
-    /// This method returns `Some((index, &key, &mut value))` where `index` is the storage index of
-    /// the key-value pair, `key` is the key stored in the map equivalent to the key provided by the
-    /// method argument, and `value` is the value corresponding to the key `key` in `self`, if the
-    /// equivalent key provided by the method argument exists inside `self`. This method returns
-    /// `None` if the equivalent key provided by the method argument does not exist inside `self`.
+    /// This method returns `Some((index, &eq_key, &mut value))` where `index` is the storage index
+    /// of the key-value pair, `eq_key` is the equivalent key to `key` stored in the map and
+    /// `value` is the value corresponding to the key `eq_key` in `self`, if the equivalent key to
+    /// `key` exists in `self`. This method returns `None` if the equivalent key to `key` does
+    /// not exist in `self`.
     ///
     /// # Formal Properties
     ///
@@ -16866,11 +16932,11 @@ impl OpaqueIndexMap {
         proj_self.get_full_mut(key)
     }
 
-    /// Returns multiple references to the values of multiple keys at once.
+    /// Returns multiple references to the values of multiple lookup keys at once.
     ///
     /// # Panics
     ///
-    /// This method panics if there are any duplicate keys.
+    /// This method panics if there are any duplicate lookup keys.
     ///
     /// # Examples
     ///
@@ -18039,15 +18105,16 @@ impl OpaqueIndexMap {
     /// Removes an entry from a type-erased index map, moving the last entry in storage order in
     /// the collection to the index where the removed entry occupies the collection.
     ///
-    /// This method behaves with respect to `key` as follows:
+    /// This method behaves with respect to the lookup key `key` as follows:
     ///
-    /// * If the key `key` exists in the index map, let `index` be its storage index.
+    /// * If the equivalent key to `key` exists in the index map, let `index` be its storage index.
     ///   If `index < self.len() - 1`, it moves the last entry in the collection to the slot at
     ///   `index`, leaving the rest of the entries in place. If `index == self.len() - 1`, it
     ///   removes the entry from end of the collection with no reordering of the remaining entries
     ///   in the collection. The method then returns `Some(value)`, where `value` is the value
-    ///   stored in the index map corresponding to the key `key`.
-    /// * If the key `key` does not exist in the index map, the method returns `None`.
+    ///   stored in the index map corresponding to the equivalent key to `key`.
+    /// * If the equivalent key to `key` does not exist in the index map, the method returns
+    ///   `None`.
     ///
     /// # Formal Properties
     ///
@@ -18331,15 +18398,17 @@ impl OpaqueIndexMap {
     /// Removes an entry from a type-erased index map, moving the last entry in storage order in
     /// the collection to the index where the removed entry occupies the collection.
     ///
-    /// This method behaves with respect to `key` as follows:
+    /// This method behaves with respect to the lookup key `key` as follows:
     ///
-    /// * If the key `key` exists in the index map, let `index` be its storage index.
+    /// * If the equivalent key to `key` exists in the index map, let `index` be its storage index.
     ///   If `index < self.len() - 1`, it moves the last entry in the collection to the slot at
     ///   `index`, leaving the rest of the entries in place. If `index == self.len() - 1`, it
     ///   removes the entry from end of the collection with no reordering of the remaining entries
-    ///   in the collection. The method then returns `Some((key, value))`, where `(key, value)` is
-    ///   the key-value pair stored in the index map corresponding to the key `key`.
-    /// * If the key `key` does not exist in the index map, the method returns `None`.
+    ///   in the collection. The method then returns `Some((eq_key, value))`, where
+    ///   `(eq_key, value)` is the key-value pair with equivalent key `eq_key` to `key` in the
+    ///   index map.
+    /// * If the equivalent key to `key` does not exist in the index map, the method returns
+    ///   `None`.
     ///
     /// # Formal Properties
     ///
@@ -18624,16 +18693,17 @@ impl OpaqueIndexMap {
     /// Removes an entry from a type-erased index map, moving the last entry in storage order in
     /// the collection to the index where the removed entry occupies the collection.
     ///
-    /// This method behaves with respect to `key` as follows:
+    /// This method behaves with respect to the lookup key `key` as follows:
     ///
-    /// * If the key `key` exists in the index map, let `index` be its storage index.
+    /// * If the equivalent key to `key` exists in the index map, let `index` be its storage index.
     ///   If `index < self.len() - 1`, it moves the last entry in the collection to the slot at
     ///   `index`, leaving the rest of the entries in place. If `index == self.len() - 1`, it
     ///   removes the entry from end of the collection with no reordering of the remaining entries
-    ///   in the collection. The method then returns `Some((index, key, value))`, where
-    ///   `(key, value)` is the key-value pair stored in the index map corresponding to the key
-    ///   `key`.
-    /// * If the key `key` does not exist in the index map, the method returns `None`.
+    ///   in the collection. The method then returns `Some((index, eq_key, value))`, where
+    ///   `(eq_key, value)` is the key-value pair with the equivalent key `eq_key` to `key `stored
+    ///   in the index map.
+    /// * If the equivalent key to `key` does not exist in the index map, the method returns
+    ///   `None`.
     ///
     /// # Formal Properties
     ///
@@ -18919,18 +18989,20 @@ impl OpaqueIndexMap {
     /// collection in storage order down one index to fill where the removed entry occupies the
     /// collection.
     ///
-    /// This method behaves with respect to `key` as follows:
+    /// This method behaves with respect to the lookup key `key` as follows:
     ///
-    /// * If the key `key` exists in the index map, let `index` be its storage index.
+    /// * If the equivalent key to `key` exists in the index map, let `index` be its storage index.
     ///   If `index < self.len() - 1`, it moves every successive entry in the collection to the
     ///   entry at storage index `index` down one unit. Every entry preceding the entry at index
     ///   `index` remains in the same location. The method returns `Some(value)`, where `value` is
-    ///    the value stored in the entry corresponding to the key `key` in the index map.
-    /// * If the key `key` does not exist in the index map, the method returns `None`.
+    ///    the value stored in the entry with equivalent key to key `key` in the index map.
+    /// * If the equivalent key to `key` does not exist in the index map, the method returns
+    ///   `None`.
     ///
     /// In particular, the method acts like a [`pop`] when the last value in the collection is
     /// shift-removed, because the sub-collection of successor entries in the entry storage is
     /// empty.
+    ///
     ///
     /// # Formal Properties
     ///
@@ -19209,15 +19281,16 @@ impl OpaqueIndexMap {
     /// collection in storage order down one index to fill where the removed entry occupies the
     /// collection.
     ///
-    /// This method behaves with respect to `key` as follows:
+    /// This method behaves with respect to the lookup key `key` as follows:
     ///
-    /// * If the key `key` exists in the index map, let `index` be its storage index.
+    /// * If the equivalent key to `key` exists in the index map, let `index` be its storage index.
     ///   If `index < self.len() - 1`, it moves every successive entry in the collection to the
     ///   entry at storage index `index` down one unit. Every entry preceding the entry at index
-    ///   `index` remains in the same location. The method returns `Some((key, value))`, where
-    ///   `(key, value)` is the key-value pair stored in the entry corresponding to the key `key` in
-    ///    the index map.
-    /// * If the key `key` does not exist in the index map, the method returns `None`.
+    ///   `index` remains in the same location. The method returns `Some((eq_key, value))`, where
+    ///   `(eq_key, value)` is the key-value pair with equivalent key `eq_key` to `key` in the
+    ///   index map.
+    /// * If the equivalent key to `key` does not exist in the index map, the method returns
+    ///   `None`.
     ///
     /// In particular, the method acts like a [`pop`] when the last value in the collection is
     /// shift-removed, because the sub-collection of successor entries in the entry storage is
@@ -19500,14 +19573,14 @@ impl OpaqueIndexMap {
     /// collection in storage order down one index to fill where the removed entry occupies the
     /// collection.
     ///
-    /// This method behaves with respect to `key` as follows:
+    /// This method behaves with respect to the lookup key `key` as follows:
     ///
-    /// * If the key `key` exists in the index map, let `index` be its storage index.
+    /// * If the equivalent key to `key` exists in the index map, let `index` be its storage index.
     ///   If `index < self.len() - 1`, it moves every successive entry in the collection to the
     ///   entry at storage index `index` down one unit. Every entry preceding the entry at index
-    ///   `index` remains in the same location. The method returns `Some((index, key, value))`,
-    ///   where `(key, value)` is the key-value pair stored in the entry corresponding to the key
-    ///   `key` in the index map.
+    ///   `index` remains in the same location. The method returns `Some((index, eq_key, value))`,
+    ///   where `(eq_key, value)` is the key-value pair with equivalent key `eq_key` to `key` in
+    ///   the index map.
     /// * If the key `key` does not exist in the index map, the method returns `None`.
     ///
     /// In particular, the method acts like a [`pop`] when the last value in the collection is
@@ -23210,6 +23283,34 @@ impl OpaqueIndexMap {
     /// of the entry at index `index` in the map, and `value` is the value of the entry at index
     /// `index`. If `index >= self.len()`, this method returns `None`.
     ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with keys of type `K` and values of type `V`.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// The **index** of a key `k :: K` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, k) := i such that map[i].key() = k.
+    /// ```
+    ///
+    /// ## Method Specification
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { index < map.len() }
+    /// map.get_index(index)
+    /// { result = Some(map[index(map, key)]) }
+    ///
+    /// { index >= map.len() }
+    /// map.get_index(index)
+    /// { result = None }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
@@ -23266,6 +23367,34 @@ impl OpaqueIndexMap {
     /// If `index < self.len()`, this method returns `Some((&key, &mut value))`, where `key` is the
     /// key of the entry at index `index` in the map, and `value` is the value of the entry at
     /// index `index`. If `index >= self.len()`, this method returns `None`.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `map` be an index map with keys of type `K` and values of type `V`.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// The **index** of a key `k :: K` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, k) := i such that map[i].key() = k.
+    /// ```
+    ///
+    /// ## Method Specification
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { index < map.len() }
+    /// map.get_index_mut(index)
+    /// { result = Some(map[index(map, key)]) }
+    ///
+    /// { index >= map.len() }
+    /// map.get_index_mut(index)
+    /// { result = None }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
     /// # Panics
     ///
