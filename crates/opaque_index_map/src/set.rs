@@ -3577,7 +3577,7 @@ where
     ///     result = false
     ///     ∧ set_after[index(set_after, value)] = value
     ///     ∧ set_after.len() = set_before.len()
-    ///     ∧ (∀ i ∈ [0, index(map_fore, value). set_after[i] = set_before[i])
+    ///     ∧ (∀ i ∈ [0, index(set_before, value). set_after[i] = set_before[i])
     ///     ∧ (∀ i ∈ [index(set_before, value), index - 1]. set_after[i] = set_before[i + 1])
     ///     ∧ (∀ i ∈ [index + 1, set_after.len()). set_after[i] = set_before[i])
     /// }
@@ -9409,7 +9409,7 @@ impl OpaqueIndexSet {
     ///     result = false
     ///     ∧ set_after[index(set_after, value)] = value
     ///     ∧ set_after.len() = set_before.len()
-    ///     ∧ (∀ i ∈ [0, index(map_fore, value). set_after[i] = set_before[i])
+    ///     ∧ (∀ i ∈ [0, index(set_before, value). set_after[i] = set_before[i])
     ///     ∧ (∀ i ∈ [index(set_before, value), index - 1]. set_after[i] = set_before[i + 1])
     ///     ∧ (∀ i ∈ [index + 1, set_after.len()). set_after[i] = set_before[i])
     /// }
