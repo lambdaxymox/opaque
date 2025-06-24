@@ -116,7 +116,7 @@ use opaque_error::TryReserveError;
 /// extra metadata makes the container itself a little bigger in memory, though this is very minor.
 /// This also puts a slight restriction on what kinds of data types can be held inside the
 /// collections: the underlying memory allocator and the underlying elements must both implement
-/// [`any::Any`], i.e. they must have`'static` lifetimes.
+/// [`any::Any`], i.e. they must have `'static` lifetimes.
 ///
 /// # Capacity And Reallocation
 ///
@@ -5006,7 +5006,7 @@ where
 /// extra metadata makes the container itself a little bigger in memory, though this is very minor.
 /// This also puts a slight restriction on what kinds of data types can be held inside the
 /// collections: the underlying memory allocator and the underlying elements must both implement
-/// [`any::Any`], i.e. they must have`'static` lifetimes.
+/// [`any::Any`], i.e. they must have `'static` lifetimes.
 ///
 /// # Capacity And Reallocation
 ///

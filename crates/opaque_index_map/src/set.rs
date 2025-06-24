@@ -1,4 +1,4 @@
-use crate::{map_inner, OpaqueIndexMap, TypedProjIndexMap};
+use crate::map_inner;
 use crate::map_inner::{Bucket, OpaqueIndexMapInner};
 use crate::range_ops;
 use crate::slice_eq;
@@ -13775,7 +13775,7 @@ impl OpaqueIndexSet {
     ///   at `index`, leaving the rest of the entries in place. If `index == self.len() - 1`, it
     ///   removes the entry from end of the collection with no reordering of the remaining entries
     ///   in the collection. The method then returns `Some((index, eq_value))`, where `eq_value` is
-    ///   the equivalent value to `value` stored in the index set..
+    ///   the equivalent value to `value` stored in the index set.
     /// * If the equivalent value to `value` does not exist in the index set, the method returns
     ///   `None`.
     ///
@@ -17029,13 +17029,13 @@ mod dummy {
 
     impl hash::Hasher for DummyHasher {
         #[inline]
-        fn write(&mut self, _bytes: &[u8]) {
-            panic!("[`DummyHasher::write`] should never actually be called. Its purpose is to test struct layouts.");
+        fn finish(&self) -> u64 {
+            panic!("[`DummyHasher::finish`] should never actually be called. Its purpose is to test struct layouts.");
         }
 
         #[inline]
-        fn finish(&self) -> u64 {
-            panic!("[`DummyHasher::finish`] should never actually be called. Its purpose is to test struct layouts.");
+        fn write(&mut self, _bytes: &[u8]) {
+            panic!("[`DummyHasher::write`] should never actually be called. Its purpose is to test struct layouts.");
         }
     }
 
