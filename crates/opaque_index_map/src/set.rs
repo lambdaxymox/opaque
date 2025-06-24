@@ -1,4 +1,4 @@
-use crate::{map_inner, OpaqueIndexMap, TypedProjIndexMap};
+use crate::map_inner;
 use crate::map_inner::{Bucket, OpaqueIndexMapInner};
 use crate::range_ops;
 use crate::slice_eq;
@@ -26,7 +26,7 @@ use opaque_error::TryReserveError;
 /// A dynamically-sized slice of values in an index set.
 ///
 /// This supports indexed operations much like a `[T]` slice, but no hashed operations on the
-/// index set keys.
+/// index set values.
 ///
 /// Unlike [`TypedProjIndexSet`] and [`OpaqueIndexSet`], `Slice` **does** consider the order for
 /// [`PartialEq`] and [`Eq`], and it also implements [`PartialOrd`], [`Ord`], and [`Hash`].
@@ -47,14 +47,14 @@ use opaque_error::TryReserveError;
 /// # use std::hash::RandomState;
 /// # use std::alloc::Global;
 /// #
-/// let mut proj_map = TypedProjIndexSet::from([
+/// let mut proj_set = TypedProjIndexSet::from([
 ///     "City Ruins",
 ///     "Desert Zone",
 ///     "Amusement Park",
 ///     "Factory",
 ///     "Forest Zone",
 /// ]);
-/// let slice = proj_map.as_slice();
+/// let slice = proj_set.as_slice();
 ///
 /// assert_eq!(slice.get_index(0), Some(&"City Ruins"));
 /// assert_eq!(slice.get_index(1), Some(&"Desert Zone"));
@@ -500,8 +500,8 @@ impl<T> Slice<T> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let proj_map = TypedProjIndexSet::from([1_usize, 2_usize, 3_usize]);
-    /// let slice = proj_map.as_slice();
+    /// let proj_set = TypedProjIndexSet::from([1_usize, 2_usize, 3_usize]);
+    /// let slice = proj_set.as_slice();
     /// let result: TypedProjVec<usize> = slice
     ///     .iter()
     ///     .cloned()
@@ -4465,7 +4465,7 @@ where
     /// set.insert_before(index, value)
     /// {
     ///     result = (index, true)
-    ///     ∧ set_after[index(set_after, key)] = value
+    ///     ∧ set_after[index(set_after, value)] = value
     ///     ∧ set_after.len() = set_before.len() + 1
     ///     ∧ (∀ v ∈ set_before. set_after[index(set_after, v)] = set_before[index(set_before, v)])
     ///     ∧ set_after[index] = value
@@ -5202,7 +5202,7 @@ where
     /// if the `Splice` value is leaked.
     ///
     /// The input iterator `replace_with` is only consumed when the `Splice` value is dropped.
-    /// If a key from the iterator matches an existing entry in the set (i.e. outside the range
+    /// If a value from the iterator matches an existing entry in the set (i.e. outside the range
     /// `range`), then the value will be updated in that position. Otherwise, the new entry will be
     /// inserted in the replaced `range`.
     ///
@@ -5278,7 +5278,7 @@ where
     /// Moves all entries from `other` into `self`, leaving `other` empty.
     ///
     /// This is equivalent to calling [`insert`] for each entry from `other` in order, which means
-    /// that for keys that already exist in `self`, their value is updated in the current position.
+    /// that for values that already exist in `self`, they remain in the current position.
     ///
     /// [`insert`]: TypedProjIndexSet::insert
     ///
@@ -7201,7 +7201,7 @@ where
         self.inner.pop().map(|(x, ())| x)
     }
 
-    /// Retains only the key-value pairs specified by the predicate.
+    /// Retains only the values specified by the predicate.
     ///
     /// This method removes all values `v` for which `keep(&v)` returns `false`. This method
     /// operates in place, visiting each value exactly once in the original order, and preserves
@@ -7290,7 +7290,7 @@ where
         self.inner.retain(move |x, &mut ()| keep(x))
     }
 
-    /// Sorts the entries in the index set into the sorted ordering of the keys as defined by the
+    /// Sorts the entries in the index set into the sorted ordering of the values as defined by the
     /// default ordering of the values.
     ///
     /// An index set is in **sorted order by value** if it satisfies the following property: let
@@ -7542,8 +7542,8 @@ where
         IntoIter::new(map_inner::IntoIter::new(entries))
     }
 
-    /// Sorts the entries in the index set into the sorted ordering of the keys as defined by the
-    /// default ordering of the keys, but may not preserve the order of equal values.
+    /// Sorts the entries in the index set into the sorted ordering of the values as defined by the
+    /// default ordering of the values, but may not preserve the order of equal values.
     ///
     /// After this method completes, the index set will be in unstable sorted order.
     ///
@@ -12080,7 +12080,7 @@ impl OpaqueIndexSet {
     /// set.insert_before(index, value)
     /// {
     ///     result = (index, true)
-    ///     ∧ set_after[index(set_after, key)] = value
+    ///     ∧ set_after[index(set_after, value)] = value
     ///     ∧ set_after.len() = set_before.len() + 1
     ///     ∧ (∀ v ∈ set_before. set_after[index(set_after, v)] = set_before[index(set_before, v)])
     ///     ∧ set_after[index] = value
@@ -13016,7 +13016,7 @@ impl OpaqueIndexSet {
     /// if the `Splice` value is leaked.
     ///
     /// The input iterator `replace_with` is only consumed when the `Splice` value is dropped.
-    /// If a key from the iterator matches an existing entry in the set (i.e. outside the range
+    /// If a value from the iterator matches an existing entry in the set (i.e. outside the range
     /// `range`), then the value will be updated in that position. Otherwise, the new entry will be
     /// inserted in the replaced `range`.
     ///
@@ -13111,9 +13111,9 @@ impl OpaqueIndexSet {
     /// Moves all entries from `other` into `self`, leaving `other` empty.
     ///
     /// This is equivalent to calling [`insert`] for each entry from `other` in order, which means
-    /// that for keys that already exist in `self`, their value is updated in the current position.
+    /// that for values that already exist in `self`, they remain in the current position.
     ///
-    /// [`insert`]: TypedProjIndexSet::insert
+    /// [`insert`]: OpaqueIndexSet::insert
     ///
     /// # Formal Properties
     ///
@@ -15543,7 +15543,7 @@ impl OpaqueIndexSet {
         proj_self.pop()
     }
 
-    /// Retains only the key-value pairs specified by the predicate.
+    /// Retains only the values specified by the predicate.
     ///
     /// This method removes all values `v` for which `keep(&v)` returns `false`. This method
     /// operates in place, visiting each value exactly once in the original order, and preserves
@@ -15649,7 +15649,7 @@ impl OpaqueIndexSet {
         proj_self.retain(&mut keep);
     }
 
-    /// Sorts the entries in the index set into the sorted ordering of the keys as defined by the
+    /// Sorts the entries in the index set into the sorted ordering of the values as defined by the
     /// default ordering of the values.
     ///
     /// An index set is in **sorted order by value** if it satisfies the following property: let
@@ -15948,8 +15948,8 @@ impl OpaqueIndexSet {
         proj_self.sorted_by(&mut cmp)
     }
 
-    /// Sorts the entries in the index set into the sorted ordering of the keys as defined by the
-    /// default ordering of the keys, but may not preserve the order of equal values.
+    /// Sorts the entries in the index set into the sorted ordering of the values as defined by the
+    /// default ordering of the values, but may not preserve the order of equal values.
     ///
     /// After this method completes, the index set will be in unstable sorted order.
     ///
