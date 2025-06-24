@@ -10486,7 +10486,7 @@ impl OpaqueVec {
     /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &[10, 20, 30, 40]);
     /// ```
     #[inline]
-    pub fn dedup_by_key<F, K, T, A>(&mut self, mut key: F)
+    pub fn dedup_by_key<F, K, T, A>(&mut self, key: F)
     where
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
@@ -10495,7 +10495,7 @@ impl OpaqueVec {
     {
         let proj_self = self.as_proj_mut::<T, A>();
 
-        proj_self.dedup_by_key(&mut key);
+        proj_self.dedup_by_key(key);
     }
 
     /// Removes all but the first of consecutive elements in the vector satisfying a given equality
