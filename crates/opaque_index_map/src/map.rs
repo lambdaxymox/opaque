@@ -926,14 +926,48 @@ where
 
 /// A dynamically-sized slice of entries in an index map.
 ///
-/// This supports indexed operations much like a `[(K, V)]` slice, but no hashed operations on the
-/// index map keys.
+/// This supports indexed operations much like a `[(K, V)]` slice, but there are no hashed
+/// operations on the index map keys.
 ///
-/// Unlike [`TypedProjIndexMap`] and [`OpaqueIndexMap`], `Slice` does consider the order for
+/// Unlike [`TypedProjIndexMap`] and [`OpaqueIndexMap`], `Slice` **does** consider the order for
 /// [`PartialEq`] and [`Eq`], and it also implements [`PartialOrd`], [`Ord`], and [`Hash`].
 ///
 /// Slices are created by the [`TypedProjIndexMap::as_slice`], [`TypedProjIndexMap::as_mut_slice`],
 /// [`OpaqueIndexMap::as_slice`], and [`OpaqueIndexMap::as_mut_slice`] methods.
+///
+/// # Examples
+///
+/// ```
+/// # #![feature(allocator_api)]
+/// # use opaque_index_map::TypedProjIndexMap;
+/// # use opaque_hash::TypedProjBuildHasher;
+/// # use opaque_alloc::TypedProjAlloc;
+/// # use opaque_vec::TypedProjVec;
+/// # use std::any::TypeId;
+/// # use std::cmp::Ordering;
+/// # use std::hash::RandomState;
+/// # use std::alloc::Global;
+/// #
+/// let mut proj_map = TypedProjIndexMap::from([
+///     ("Amnesia", "City Ruins"),
+///     ("The Wandering Couple", "Desert Zone"),
+///     ("Find a Present", "Amusement Park"),
+///     ("Data Analysis Freak", "Factory"),
+///     ("Supply Recon", "Forest Zone"),
+/// ]);
+/// let slice = proj_map.as_slice();
+///
+/// assert_eq!(slice.get_index(0), Some((&"Amnesia", &"City Ruins")));
+/// assert_eq!(slice.get_index(1), Some((&"The Wandering Couple", &"Desert Zone")));
+/// assert_eq!(slice.get_index(4), Some((&"Supply Recon", &"Forest Zone")));
+///
+/// let mid_slice = slice.get_range(1..3).unwrap();
+/// assert_eq!(mid_slice.get_index(0), Some((&"The Wandering Couple", &"Desert Zone")));
+/// assert_eq!(mid_slice.get_index(1), Some((&"Find a Present", &"Amusement Park")));
+///
+/// // Out of bounds access is safe.
+/// assert_eq!(slice.get_index(5), None);
+/// ```
 #[repr(transparent)]
 pub struct Slice<K, V> {
     entries: map_inner::Slice<K, V>,
@@ -1872,6 +1906,10 @@ impl<K, V> Slice<K, V> {
 
     /// Divides an index map slice in two slices at the given index.
     ///
+    /// # Panics
+    ///
+    /// This method panics if `index > self.len()`.
+    ///
     /// # Examples
     ///
     /// Splitting a slice from a type-projected index map.
@@ -1931,6 +1969,10 @@ impl<K, V> Slice<K, V> {
 
     /// Divides a mutable index map slice in two mutable slices at the given index.
     ///
+    /// # Panics
+    ///
+    /// This method panics if `index > self.len()`.
+    ///
     /// # Examples
     ///
     /// Splitting a slice from a type-projected index map.
@@ -1989,6 +2031,10 @@ impl<K, V> Slice<K, V> {
     }
 
     /// Divides an index map slice into the first entry and the remainder of the original slice.
+    ///
+    /// If `self` is nonempty, this method returns `Some(first, suffix)` where `first` is a
+    /// reference to the first entry in the slice, and `suffix` is the remainder of the slice. If
+    /// `self` is empty, this method returns `None`.
     ///
     /// # Examples
     ///
@@ -2058,6 +2104,10 @@ impl<K, V> Slice<K, V> {
     /// Divides a mutable index map slice into the first entry and the remainder of the original
     /// slice.
     ///
+    /// If `self` is nonempty, this method returns `Some(first, suffix)` where `first` is a
+    /// mutable reference to the first entry in the slice, and `suffix` is the remainder of the
+    /// slice. If `self` is empty, this method returns `None`.
+    ///
     /// # Examples
     ///
     /// Splitting a type-projected index map slice.
@@ -2124,6 +2174,10 @@ impl<K, V> Slice<K, V> {
     }
 
     /// Divides an index map slice into the last entry and a prefix of the original slice.
+    ///
+    /// If `self` is nonempty, this method returns `Some(last, prefix)` where `last` is a
+    /// reference to the last entry in the slice, and `prefix` is a slice of the elements before
+    /// `last`. If `self` is empty, this method returns `None`.
     ///
     /// # Examples
     ///
@@ -2192,6 +2246,10 @@ impl<K, V> Slice<K, V> {
     }
 
     /// Divides a mutable index map slice into the last entry and a prefix of the original slice.
+    ///
+    /// If `self` is nonempty, this method returns `Some(last, prefix)` where `last` is a mutable
+    /// reference to the last entry in the slice, and `prefix` is a slice of the elements before
+    /// `last`. If `self` is empty, this method returns `None`.
     ///
     /// # Examples
     ///

@@ -1,4 +1,4 @@
-use crate::map_inner;
+use crate::{map_inner, OpaqueIndexMap, TypedProjIndexMap};
 use crate::map_inner::{Bucket, OpaqueIndexMapInner};
 use crate::range_ops;
 use crate::slice_eq;
@@ -23,16 +23,62 @@ use opaque_hash::TypedProjBuildHasher;
 use opaque_vec::TypedProjVec;
 use opaque_error::TryReserveError;
 
+/// A dynamically-sized slice of values in an index set.
+///
+/// This supports indexed operations much like a `[T]` slice, but no hashed operations on the
+/// index set keys.
+///
+/// Unlike [`TypedProjIndexSet`] and [`OpaqueIndexSet`], `Slice` **does** consider the order for
+/// [`PartialEq`] and [`Eq`], and it also implements [`PartialOrd`], [`Ord`], and [`Hash`].
+///
+/// Slices are created by the [`TypedProjIndexSet::as_slice`] and [`OpaqueIndexSet::as_slice`]
+/// methods.
+///
+/// # Examples
+///
+/// ```
+/// # #![feature(allocator_api)]
+/// # use opaque_index_map::TypedProjIndexSet;
+/// # use opaque_hash::TypedProjBuildHasher;
+/// # use opaque_alloc::TypedProjAlloc;
+/// # use opaque_vec::TypedProjVec;
+/// # use std::any::TypeId;
+/// # use std::cmp::Ordering;
+/// # use std::hash::RandomState;
+/// # use std::alloc::Global;
+/// #
+/// let mut proj_map = TypedProjIndexSet::from([
+///     "City Ruins",
+///     "Desert Zone",
+///     "Amusement Park",
+///     "Factory",
+///     "Forest Zone",
+/// ]);
+/// let slice = proj_map.as_slice();
+///
+/// assert_eq!(slice.get_index(0), Some(&"City Ruins"));
+/// assert_eq!(slice.get_index(1), Some(&"Desert Zone"));
+/// assert_eq!(slice.get_index(4), Some(&"Forest Zone"));
+///
+/// let mid_slice = slice.get_range(1..3).unwrap();
+/// assert_eq!(mid_slice.get_index(0), Some(&"Desert Zone"));
+/// assert_eq!(mid_slice.get_index(1), Some(&"Amusement Park"));
+///
+/// // Out of bounds access is safe.
+/// assert_eq!(slice.get_index(5), None);
+/// ```
 #[repr(transparent)]
 pub struct Slice<T> {
     entries: map_inner::Slice<T, ()>,
 }
 
 impl<T> Slice<T> {
+    /// Constructs a new index set slice from an inner index set slice.
     const fn from_slice(entries: &map_inner::Slice<T, ()>) -> &Self {
         unsafe { &*(entries as *const map_inner::Slice<T, ()> as *const Self) }
     }
 
+    /// Constructs a new index set slice from a boxed inner index set slice.
     fn from_boxed_slice<A>(entries: Box<map_inner::Slice<T, ()>, TypedProjAlloc<A>>) -> Box<Self, TypedProjAlloc<A>>
     where
         A: any::Any + alloc::Allocator + Send + Sync,
@@ -43,6 +89,7 @@ impl<T> Slice<T> {
         }
     }
 
+    /// Converts an index set slice into a boxed inner index set slice.
     fn into_boxed_slice<A>(self: Box<Self, TypedProjAlloc<A>>) -> Box<map_inner::Slice<T, ()>, TypedProjAlloc<A>>
     where
         A: any::Any + alloc::Allocator + Send + Sync,
@@ -55,6 +102,7 @@ impl<T> Slice<T> {
 }
 
 impl<T> Slice<T> {
+    /// Converts an index set slice into a vector of entries.
     pub(crate) fn into_entries<A>(self: Box<Self, TypedProjAlloc<A>>) -> TypedProjVec<Bucket<T, ()>, A>
     where
         T: any::Any,
@@ -65,6 +113,7 @@ impl<T> Slice<T> {
 
     }
 
+    /// Constructs a boxed index set slice from a vector of entries.
     fn from_entries_in<A>(vec: TypedProjVec<Bucket<T, ()>, A>) -> Box<Self, TypedProjAlloc<A>>
     where
         T: any::Any,
@@ -80,22 +129,150 @@ impl<T> Slice<T> {
         boxed_slice
     }
 
+    /// Construct a new empty index set slice.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::set::{Slice, TypedProjIndexSet};
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let slice = Slice::new();
+    ///
+    /// assert!(slice.is_empty());
+    /// ```
     pub const fn new<'a>() -> &'a Self {
         Self::from_slice(map_inner::Slice::new())
     }
 
+    /// Returns the length of an index set slice.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set = TypedProjIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32]);
+    /// let slice = proj_set.as_slice();
+    ///
+    /// assert_eq!(slice.len(), 6);
+    /// ```
     pub const fn len(&self) -> usize {
         self.entries.len()
     }
 
+    /// Determines whether an index set slice is empty.
+    ///
+    /// This method returns `true` is the slice is empty, i.e. it's length is zero. This method
+    /// returns `false` if the length of the slice is non-zero.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set = TypedProjIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32]);
+    /// let slice = proj_set.as_slice();
+    ///
+    /// assert!(!slice.is_empty());
+    /// assert!(slice[1..1].is_empty());
+    /// ```
     pub const fn is_empty(&self) -> bool {
         self.entries.is_empty()
     }
 
+    /// Returns a reference to the value stored at a given index in the index set slice, if it
+    /// exists.
+    ///
+    /// If `index < self.len()`, this method returns `Some(&value)`, where `value` is the value of
+    /// the entry at index `index`. If `index >= self.len()`, this method returns `None`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set = TypedProjIndexSet::from([10_i32, 40_i32, 30_i32]);
+    /// let slice = proj_set.as_slice();
+    ///
+    /// assert_eq!(slice.get_index(0), Some(&10_i32));
+    /// assert_eq!(slice.get_index(1), Some(&40_i32));
+    /// assert_eq!(slice.get_index(2), Some(&30_i32));
+    /// assert_eq!(slice.get_index(3), None);
+    /// ```
     pub fn get_index(&self, index: usize) -> Option<&T> {
         self.entries.get_index(index).map(|tuple| tuple.0)
     }
 
+    /// Returns a subslice of entries in the index set slice from the given storage range in the
+    /// set.
+    ///
+    /// If the range `range` is in bounds, this method returns `Some(&slice)`, where `slice` is the
+    /// slice of entries from the index set slice in the storage range `range`. if the range `range`
+    /// is out of bounds, this method returns `None`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set = TypedProjIndexSet::from([10_i32, 40_i32, 30_i32, 60_i32]);
+    ///
+    /// let maybe_slice = proj_set.get_range(1..);
+    ///
+    /// assert!(maybe_slice.is_some());
+    ///
+    /// let slice = maybe_slice.unwrap();
+    ///
+    /// assert_eq!(slice.len(), 3);
+    /// assert_eq!(slice[0], 40_i32);
+    /// assert_eq!(slice[1], 30_i32);
+    /// assert_eq!(slice[2], 60_i32);
+    ///
+    /// let maybe_subslice = slice.get_range(1..);
+    ///
+    /// assert!(maybe_subslice.is_some());
+    ///
+    /// let subslice = maybe_subslice.unwrap();
+    ///
+    /// assert_eq!(subslice.len(), 2);
+    /// assert_eq!(subslice[0], 30_i32);
+    /// assert_eq!(subslice[1], 60_i32);
+    /// ```
     pub fn get_range<R>(&self, range: R) -> Option<&Self>
     where
         R: ops::RangeBounds<usize>,
@@ -104,31 +281,270 @@ impl<T> Slice<T> {
         self.entries.get_range(range).map(Self::from_slice)
     }
 
+    /// Returns a reference to the first value in the index set slice, if it exists.
+    ///
+    /// If the index set slice is nonempty, this method returns `Some(&value)` where `value` is the
+    /// value of the first entry in the index set slice. If the index set slice is empty, this
+    /// method returns `None`.
+    ///
+    /// # Examples
+    ///
+    /// Getting the first entry of a non-empty type-projected index set slice.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set = TypedProjIndexSet::from([
+    ///     String::from("foo"),
+    ///     String::from("bar"),
+    ///     String::from("baz"),
+    ///     String::from("quux"),
+    /// ]);
+    /// let slice = proj_set.as_slice();
+    /// let result = slice.first();
+    ///
+    /// assert_eq!(result, Some(&String::from("foo")));
+    /// ```
+    ///
+    /// Getting the first entry from an empty typed-projected index set slice.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set: TypedProjIndexSet<String> = TypedProjIndexSet::new();
+    /// let slice = proj_set.as_slice();
+    /// let maybe_entry = slice.first();
+    ///
+    /// assert!(maybe_entry.is_none());
+    /// ```
     pub fn first(&self) -> Option<&T> {
         self.entries.first().map(|tuple| tuple.0)
     }
 
+    /// Returns a reference to the last value in the index set slice, if it exists.
+    ///
+    /// If the index set slice is nonempty, this method returns `Some(&value)` where `value` is the
+    /// value of the last entry in the index set slice. If the index set slice is empty, this
+    /// method returns `None`.
+    ///
+    /// # Examples
+    ///
+    /// Getting the last entry of a non-empty type-projected index set slice.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set = TypedProjIndexSet::from([
+    ///     String::from("foo"),
+    ///     String::from("bar"),
+    ///     String::from("baz"),
+    ///     String::from("quux"),
+    /// ]);
+    /// let slice = proj_set.as_slice();
+    /// let result = slice.last();
+    ///
+    /// assert_eq!(result, Some(&String::from("quux")));
+    /// ```
+    ///
+    /// Getting the last entry from an empty typed-projected index set slice.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set: TypedProjIndexSet<String> = TypedProjIndexSet::new();
+    /// let slice = proj_set.as_slice();
+    /// let maybe_entry = slice.last();
+    ///
+    /// assert!(maybe_entry.is_none());
+    /// ```
     pub fn last(&self) -> Option<&T> {
         self.entries.last().map(|tuple| tuple.0)
     }
 
+    /// Divides an index set slice in two slices at the given index.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if `index > self.len()`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set = TypedProjIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32]);
+    /// let (prefix, suffix) = proj_set.as_slice().split_at(2);
+    ///
+    /// assert_eq!(prefix, &[1_i32, 2_i32]);
+    /// assert_eq!(suffix, &[3_i32, 4_i32, 5_i32]);
+    /// ```
     pub fn split_at(&self, index: usize) -> (&Self, &Self) {
         let (first, second) = self.entries.split_at(index);
         (Self::from_slice(first), Self::from_slice(second))
     }
 
+    /// Divides an index set slice into the first entry and the remainder of the original slice.
+    ///
+    /// If `self` is nonempty, this method returns `Some(first, suffix)` where `first` is a
+    /// reference to the first value in the slice, and `suffix` is the remainder of the slice. If
+    /// `self` is empty, this method returns `None`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set = TypedProjIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32]);
+    /// let result = proj_set.as_slice().split_first();
+    ///
+    /// assert!(result.is_some());
+    ///
+    /// let (head, tail) = result.unwrap();
+    ///
+    /// assert_eq!(head, &1_i32);
+    /// assert_eq!(tail, &[2_i32, 3_i32, 4_i32, 5_i32]);
+    /// ```
     pub fn split_first(&self) -> Option<(&T, &Self)> {
         self.entries.split_first().map(|((first, _), rest)| (first, Self::from_slice(rest)))
     }
 
+    /// Divides an index set slice into the last entry and a prefix of the original slice.
+    ///
+    /// If `self` is nonempty, this method returns `Some(last, prefix)` where `last` is a
+    /// reference to the last entry in the slice, and `prefix` is a slice of the elements before
+    /// `last`. If `self` is empty, this method returns `None`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set = TypedProjIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32]);
+    /// let result = proj_set.as_slice().split_last();
+    ///
+    /// assert!(result.is_some());
+    ///
+    /// let (last, prefix) = result.unwrap();
+    ///
+    /// assert_eq!(last, &5_i32);
+    /// assert_eq!(prefix, &[1_i32, 2_i32, 3_i32,4_i32]);
+    /// ```
     pub fn split_last(&self) -> Option<(&T, &Self)> {
         self.entries.split_last().map(|((last, _), rest)| (last, Self::from_slice(rest)))
     }
 
+    /// Returns an iterator over the values in the index set slice.
+    ///
+    /// The iterator returns the values in their storage order in the index set slice.
+    ///
+    /// # Examples
+    ///
+    /// Iterating over the values of an index set slice.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_map = TypedProjIndexSet::from([1_usize, 2_usize, 3_usize]);
+    /// let slice = proj_map.as_slice();
+    /// let result: TypedProjVec<usize> = slice
+    ///     .iter()
+    ///     .cloned()
+    ///     .collect();
+    ///
+    /// assert_eq!(result.as_slice(), &[1_usize, 2_usize, 3_usize]);
+    /// ```
     pub fn iter(&self) -> Iter<'_, T> {
         Iter::new(&self.entries)
     }
 
+    /// Binary searches a sorted index set slice for the given value. If the index set slice is
+    /// unsorted, the returned result is unspecified and meaningless.
+    ///
+    /// If the entry with the value `value` is found in the slice, then this method returns
+    /// `Ok(index)`, where `index` is the storage index of the entry with value `value` in the
+    /// slice. If the entry with the value `value` is not found in the slice, then this method
+    /// returns `Err(new_index)` where `new_index` is the position in the storage where an entry
+    /// with the value `value` could be inserted to maintain the sorted order.
+    ///
+    /// # Examples
+    ///
+    /// Binary searching a sorted index set slice.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set: TypedProjIndexSet<(isize, char)> = TypedProjIndexSet::from_iter((1_isize..=26_isize).zip('a'..='z'));
+    /// let slice = proj_set.as_slice();
+    ///
+    /// for (i, tuple) in (1_isize..=26_isize).zip('a'..='z').enumerate() {
+    ///     let result = slice.binary_search(&tuple);
+    ///     assert_eq!(result, Ok(i));
+    /// }
+    /// ```
     pub fn binary_search(&self, x: &T) -> Result<usize, usize>
     where
         T: Ord,
@@ -136,6 +552,54 @@ impl<T> Slice<T> {
         self.binary_search_by(|p| p.cmp(x))
     }
 
+    /// Binary searches a sorted index set slice using a given comparator function. If the index
+    /// set slice is unsorted, the returned result is unspecified and meaningless.
+    ///
+    /// The comparator function should return an order code that indicates whether its argument is
+    /// `Less`, `Equal` or `Greater` than the desired target.
+    ///
+    /// If the index set slice is not in sorted order or if the comparator function does not
+    /// implement an order consistent with the sorted order of the underlying index set, the
+    /// returned result is unspecified and meaningless.
+    ///
+    /// If an entry satisfying the comparator is found in the slice, then this method returns
+    /// `Ok(index)`, where `index` is the storage index of the entry found in the slice. If an
+    /// entry satisfying the comparator is not found in the slice, then this method returns
+    /// `Err(new_index)` where `new_index` is the position in the storage where an entry with the
+    /// value `value` could be inserted to maintain the sorted order. If multiple entries in the
+    /// index set satisfy the comparator, then any one of them could be returned. The index is
+    /// chosen deterministically, but this method makes no guarantees as to how it picks that
+    /// index.
+    ///
+    /// # Examples
+    ///
+    /// Binary searching a sorted index set slice.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set: TypedProjIndexSet<(isize, char)> = TypedProjIndexSet::from_iter((1_isize..=26_isize).zip('a'..='z'));
+    /// let slice = proj_set.as_slice();
+    /// let expected = Ok(23);
+    /// let result = slice.binary_search_by(|v| v.1.cmp(&'x'));
+    ///
+    /// assert_eq!(result, expected);
+    ///
+    /// assert!('*' < 'a');
+    ///
+    /// let expected = Err(0);
+    /// let result = slice.binary_search_by(|v| v.1.cmp(&'*'));
+    ///
+    /// assert_eq!(result, expected);
+    /// ```
     #[inline]
     pub fn binary_search_by<F>(&self, mut f: F) -> Result<usize, usize>
     where
@@ -144,6 +608,62 @@ impl<T> Slice<T> {
         self.entries.binary_search_by(move |a, b| f(a))
     }
 
+    /// Binary searches the index set slice with a key extraction function.
+    ///
+    /// This method assumes that the index set underlying the slice is in sorted order by the
+    /// value, for instance with [`sort_by`] using the same key extraction function. If the index
+    /// set slice is not sorted by the value, the returned result is unspecified and meaningless.
+    ///
+    /// If an entry matching the value is found in the slice, then this method returns `Ok(index)`,
+    /// where `index` is the storage index of the entry found in the slice. If an entry matching
+    /// the value is not found in the slice, then this method returns `Err(new_index)` where
+    /// `new_index` is the position in the storage where an entry with the matching value could be
+    /// inserted to maintain the sorted order. If multiple entries in the index set slice match the
+    /// value, then any one of them could be returned. The index is chosen deterministically, but
+    /// this method makes no guarantees as to how it picks that index.
+    ///
+    /// See also [`binary_search`], [`binary_search_by`], and [`partition_point`].
+    ///
+    /// [`sort_by_key`]: TypedProjIndexSet::sort_by_key
+    /// [`binary_search`]: TypedProjIndexSet::binary_search
+    /// [`binary_search_by`]: TypedProjIndexSet::binary_search_by
+    /// [`partition_point`]: TypedProjIndexSet::partition_point
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set = TypedProjIndexSet::from([
+    ///     (0_usize,  0_isize),
+    ///     (1_usize,  1_isize), (2_usize, 1_isize), (3_usize, 1_isize), (4_usize, 1_isize),
+    ///     (5_usize,  2_isize),
+    ///     (6_usize,  3_isize),
+    ///     (7_usize,  5_isize),
+    ///     (8_usize,  8_isize),
+    ///     (9_usize,  13_isize),
+    ///     (10_usize, 21_isize),
+    ///     (11_usize, 34_isize),
+    ///     (12_usize, 55_isize),
+    /// ]);
+    /// let slice = proj_set.as_slice();
+    ///
+    /// assert_eq!(slice.binary_search_by_key(&13, |&a| a.1),  Ok(9));
+    /// assert_eq!(slice.binary_search_by_key(&4, |&a| a.1),   Err(7));
+    /// assert_eq!(slice.binary_search_by_key(&100, |&a| a.1), Err(13));
+    ///
+    /// let result = slice.binary_search_by_key(&1, |&a| a.1);
+    ///
+    /// assert!(match result { Ok(1..=4) => true, _ => false, });
+    /// ```
     #[inline]
     pub fn binary_search_by_key<B, F>(&self, b: &B, mut f: F) -> Result<usize, usize>
     where
@@ -153,6 +673,109 @@ impl<T> Slice<T> {
         self.binary_search_by(|k| f(k).cmp(b))
     }
 
+    /// Returns the index of the partition point of a sorted index set slice according to the given
+    /// predicate (the index of the first element of the second partition).
+    ///
+    /// This method assumes that the storage order of the entries in the index set slice is
+    /// partitioned according to the predicate. That is, all entries for which the predicate
+    /// returns `true` are at the start of the storage, and all entries for which the predicate
+    /// returns `false` are at the end of the index set slice's storage. If the index set slice's
+    /// storage order does not partition according to the predicate, the result is unspecified and
+    /// meaningless.
+    ///
+    /// # Examples
+    ///
+    /// Finding the partition point of a partitioned index set slice where not every entry matches
+    /// the predicate.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set = TypedProjIndexSet::from([
+    ///     (0_usize, 1_isize),
+    ///     (1_usize, 2_isize),
+    ///     (2_usize, 2_isize),
+    ///     (3_usize, 3_isize),
+    ///     (4_usize, 5_isize),
+    ///     (5_usize, 5_isize),
+    ///     (6_usize, 5_isize),
+    ///     (7_usize, 6_isize),
+    ///     (8_usize, 9_isize),
+    /// ]);
+    /// let slice = proj_set.as_slice();
+    ///
+    /// assert_eq!(slice.partition_point(|&v| v.1 < 5_isize), 4);
+    /// ```
+    ///
+    /// Finding the partition point of an index set slice where every entry matches the predicate.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// fn is_power_of_two(n: usize) -> bool {
+    ///     n != 0 && (n & (n - 1)) == 0
+    /// }
+    ///
+    /// let proj_set = TypedProjIndexSet::from([
+    ///     (0_usize, 1_usize),
+    ///     (1_usize, 2_usize),
+    ///     (2_usize, 4_usize),
+    ///     (3_usize, 8_usize),
+    ///     (4_usize, 16_usize),
+    ///     (5_usize, 32_usize),
+    ///     (6_usize, 64_usize),
+    /// ]);
+    /// let slice = proj_set.as_slice();
+    ///
+    /// assert_eq!(slice.partition_point(|&v| is_power_of_two(v.1)), proj_set.len());
+    /// ```
+    ///
+    /// Finding the partition point of an index set slice where no entry matches the predicate.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// fn is_power_of_two(n: usize) -> bool {
+    ///     n != 0 && (n & (n - 1)) == 0
+    /// }
+    ///
+    /// let proj_set = TypedProjIndexSet::from([
+    ///     (0_usize, 3_usize),
+    ///     (1_usize, 5_usize),
+    ///     (2_usize, 7_usize),
+    ///     (3_usize, 11_usize),
+    ///     (4_usize, 13_usize),
+    ///     (5_usize, 17_usize),
+    ///     (6_usize, 19_usize),
+    /// ]);
+    /// let slice = proj_set.as_slice();
+    ///
+    /// assert_eq!(slice.partition_point(|&v| is_power_of_two(v.1)), 0);
+    /// ```
     #[must_use]
     pub fn partition_point<P>(&self, mut pred: P) -> usize
     where
@@ -7223,7 +7846,7 @@ where
         });
     }
 
-    /// Binary searches a sorted index set for the given key. If the index set is unsorted, the
+    /// Binary searches a sorted index set for the given value. If the index set is unsorted, the
     /// returned result is unspecified and meaningless.
     ///
     /// If the entry with the value `value` is found in the set, then this method returns
@@ -15691,7 +16314,7 @@ impl OpaqueIndexSet {
         proj_self.sort_by_cached_key(&mut sort_key)
     }
 
-    /// Binary searches a sorted index set for the given key. If the index set is unsorted, the
+    /// Binary searches a sorted index set for the given value. If the index set is unsorted, the
     /// returned result is unspecified and meaningless.
     ///
     /// If the entry with the value `value` is found in the set, then this method returns
