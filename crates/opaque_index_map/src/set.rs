@@ -3323,7 +3323,11 @@ where
     /// After calling this method, the collection will be empty. This method does not change the
     /// allocated capacity of the type-projected index set.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
     /// before this method is called, `set_after` be the state of `set` after this method
@@ -4051,7 +4055,11 @@ where
     ///   end of the set, so the resulting entry is in last place in the storage order, and the
     ///   method returns `true`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
     /// before this method is called, `set_after` be the state of `set` after this method
@@ -4141,7 +4149,11 @@ where
     ///   method returns `(index, true)`, where `index` is the index of the last entry in the set
     ///   in storage order.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
     /// before this method is called, `set_after` be the state of `set` after this method
@@ -4265,7 +4277,11 @@ where
     /// [`sort_keys`]: TypedProjIndexSet::sort_keys
     /// [`sort_unstable_keys`]: TypedProjIndexSet::sort_unstable_keys
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
     /// before this method is called, `set_after` be the state of `set` after this method
@@ -4424,7 +4440,11 @@ where
     ///   the interval `[index, self.len()] == [self.len(), self.len())` is empty, so no shifting
     ///   occurs.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
     /// before this method is called, `set_after` be the state of `set` after this method
@@ -4676,7 +4696,11 @@ where
     ///
     /// Note that an existing entry **cannot** be moved to the index `self.len()`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
     /// before this method is called, `set_after` be the state of `set` after this method
@@ -5282,7 +5306,11 @@ where
     ///
     /// [`insert`]: TypedProjIndexSet::insert
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set1` and `set2` be index sets, `set1_before` be the state of `set1` before this
     /// method is called, `set2_before` be the state of `set2` before this method is called,
@@ -5406,7 +5434,11 @@ where
     /// This method returns `true` if the equivalent value to `value` exists in `self`. This method
     /// returns `false` if the equivalent value to `value` does not exist in `self`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with values of type `T`.
     ///
@@ -5543,7 +5575,11 @@ where
     /// equivalent to the value `value`, if such a value exists in `self`. This method returns
     /// `None` if a value equivalent to `value` does not exist in `self`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with values of type `T`.
     ///
@@ -5680,7 +5716,11 @@ where
     /// the entry exists in `self`. This method returns `None` if the equivalent value to `value`
     /// does not exist in `self`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with values of type `T`.
     ///
@@ -5816,7 +5856,11 @@ where
     /// value to `value`, if the equivalent value exists in `self`. This method returns `None` if
     /// the equivalent value to `value` does not exist in `self`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with values of type `T`.
     ///
@@ -5959,7 +6003,11 @@ where
     /// * If the equivalent value to `value` does not exist in the index set, the method returns
     ///   `false`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
     /// before this method is called, `set_after` be the state of `set` after this method
@@ -6150,7 +6198,11 @@ where
     /// * If the equivalent value to `value` does not exist in the index set, the method returns
     ///   `false`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
     /// before this method is called, `set_after` be the state of `set` after this method
@@ -6341,7 +6393,11 @@ where
     /// * If the equivalent value to `value` does not exist in the index set, the method returns
     ///   `None`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
     /// before this method is called, `set_after` be the state of `set` after this method
@@ -6546,7 +6602,11 @@ where
     /// shift-removed, because the sub-collection of successor entries in the entry storage is
     /// empty.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
     /// before this method is called, `set_after` be the state of `set` after this method
@@ -6739,7 +6799,11 @@ where
     /// * If the equivalent value to `value` does not exist in the index set, the method returns
     ///   `None`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
     /// before this method is called, `set_after` be the state of `set` after this method
@@ -6933,7 +6997,11 @@ where
     /// shift-removed, because the sub-collection of successor entries in the entry storage is
     /// empty.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
     /// before this method is called, `set_after` be the state of `set` after this method
@@ -7145,7 +7213,11 @@ where
     ///
     /// This method preserves the order of the remaining elements in the collection.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
     /// before this method is called, `set_after` be the state of `set` after this method
@@ -7238,7 +7310,11 @@ where
     /// the storage order of the retained values. Stated differently, this method keeps only those
     /// values `v` for which `keep(&v)` returns `true`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
     /// before this method is called, `set_after` be the state of `set` after this method
@@ -7346,7 +7422,11 @@ where
     ///
     /// After this method completes, the index set will be in stable sorted order.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
     /// before this method is called, `set_after` be the state of `set` after this method
@@ -7425,7 +7505,11 @@ where
     /// After this method completes, the index set will be in stable sorted order with the ordering
     /// defined by the comparison function.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
     /// before this method is called, `set_after` be the state of `set` after this method
@@ -7577,7 +7661,11 @@ where
     ///
     /// After this method completes, the index set will be in unstable sorted order.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
     /// before this method is called, `set_after` be the state of `set` after this method
@@ -7662,7 +7750,11 @@ where
     /// After this method completes, the index set will be in unstable sorted order with the
     /// ordering defined by the comparison function.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
     /// before this method is called, `set_after` be the state of `set` after this method
@@ -8278,7 +8370,11 @@ where
     /// If `index < self.len()`, this method returns `Some(&value)`, where `value` is the value of
     /// the entry at index `index`. If `index >= self.len()`, this method returns `None`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with value type `T`.
     ///
@@ -8494,7 +8590,11 @@ where
     /// * If `index >= self.len()`, the index `index` is out of bounds, so the method returns
     ///   `None`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
     /// before this method is called, `set_after` be the state of `set` after this method
@@ -8581,7 +8681,11 @@ where
     ///
     /// Note that when `self.len() == 1`, `self` is empty, so no shifting occurs.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
     /// before this method is called, `set_after` be the state of `set` after this method
@@ -8655,7 +8759,11 @@ where
     /// * If `from < to`, the other values will shift up while the targeted value moves down.
     /// * If `from > to`, the other values will shift down while the targeted value moves up.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
     /// before this method is called, `set_after` be the state of `set` after this method
@@ -8761,7 +8869,11 @@ where
 
     /// Swaps the position of two entries in the index set.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
     /// before this method is called, `set_after` be the state of `set` after this method
@@ -8830,7 +8942,11 @@ where
     /// value of `other` is not a value of `self`. This method returns `false` if a value of `self`
     /// is also value of `other`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set1` be an index set with values of type `T`. Let `set2` be an index set with values
     /// of type `T`.
@@ -8926,7 +9042,11 @@ where
     ///
     /// This method returns `true` if `self` is setwise equal to other `other` as well.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set1` be an index set with values of type `T`. Let `set2` be an index set with values
     /// of type `T`.
@@ -9039,7 +9159,11 @@ where
     ///
     /// This method returns `true` if `self` is setwise equal to `other` as well.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set1` be an index set with values of type `T`. Let `set2` be an index set with values
     /// of type `T`.
@@ -10723,7 +10847,11 @@ impl OpaqueIndexSet {
     /// After calling this method, the collection will be empty. This method does not change the
     /// allocated capacity of the type-erased index set.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
     /// before this method is called, `set_after` be the state of `set` after this method
@@ -11640,7 +11768,11 @@ impl OpaqueIndexSet {
     ///   end of the set, so the resulting entry is in last place in the storage order, and the
     ///   method returns `true`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
     /// before this method is called, `set_after` be the state of `set` after this method
@@ -11749,7 +11881,11 @@ impl OpaqueIndexSet {
     ///   method returns `(index, true)`, where `index` is the index of the last entry in the set
     ///   in storage order.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
     /// before this method is called, `set_after` be the state of `set` after this method
@@ -11890,7 +12026,11 @@ impl OpaqueIndexSet {
     /// [`sort_keys`]: TypedProjIndexSet::sort_keys
     /// [`sort_unstable_keys`]: TypedProjIndexSet::sort_unstable_keys
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
     /// before this method is called, `set_after` be the state of `set` after this method
@@ -12069,7 +12209,11 @@ impl OpaqueIndexSet {
     ///   the interval `[index, self.len()] == [self.len(), self.len())` is empty, so no shifting
     ///   occurs.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
     /// before this method is called, `set_after` be the state of `set` after this method
@@ -12353,7 +12497,11 @@ impl OpaqueIndexSet {
     ///
     /// Note that an existing entry **cannot** be moved to the index `self.len()`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
     /// before this method is called, `set_after` be the state of `set` after this method
@@ -13145,7 +13293,11 @@ impl OpaqueIndexSet {
     ///
     /// [`insert`]: OpaqueIndexSet::insert
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set1` and `set2` be index sets, `set1_before` be the state of `set1` before this
     /// method is called, `set2_before` be the state of `set2` before this method is called,
@@ -13301,7 +13453,11 @@ impl OpaqueIndexSet {
     /// This method returns `true` if the equivalent value to `value` exists in `self`. This method
     /// returns `false` if the equivalent value to `value` does not exist in `self`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with values of type `T`.
     ///
@@ -13455,7 +13611,11 @@ impl OpaqueIndexSet {
     /// equivalent to the value `value`, if such a value exists in `self`. This method returns
     /// `None` if a value equivalent to `value` does not exist in `self`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with values of type `T`.
     ///
@@ -13609,7 +13769,11 @@ impl OpaqueIndexSet {
     /// the entry exists in `self`. This method returns `None` if the equivalent value to `value`
     /// does not exist in `self`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with values of type `T`.
     ///
@@ -13762,7 +13926,11 @@ impl OpaqueIndexSet {
     /// value to `value`, if the equivalent value exists in `self`. This method returns `None` if
     /// the equivalent value to `value` does not exist in `self`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with values of type `T`.
     ///
@@ -13922,7 +14090,11 @@ impl OpaqueIndexSet {
     /// * If the equivalent value to `value` does not exist in the index set, the method returns
     ///   `false`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
     /// before this method is called, `set_after` be the state of `set` after this method
@@ -14182,7 +14354,11 @@ impl OpaqueIndexSet {
     /// * If the equivalent value to `value` does not exist in the index set, the method returns
     ///   `false`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
     /// before this method is called, `set_after` be the state of `set` after this method
@@ -14442,7 +14618,11 @@ impl OpaqueIndexSet {
     /// * If the equivalent value to `value` does not exist in the index set, the method returns
     ///   `None`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
     /// before this method is called, `set_after` be the state of `set` after this method
@@ -14711,7 +14891,11 @@ impl OpaqueIndexSet {
     /// shift-removed, because the sub-collection of successor entries in the entry storage is
     /// empty.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
     /// before this method is called, `set_after` be the state of `set` after this method
@@ -14973,7 +15157,11 @@ impl OpaqueIndexSet {
     /// * If the equivalent value to `value` does not exist in the index set, the method returns
     ///   `None`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
     /// before this method is called, `set_after` be the state of `set` after this method
@@ -15236,7 +15424,11 @@ impl OpaqueIndexSet {
     /// shift-removed, because the sub-collection of successor entries in the entry storage is
     /// empty.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
     /// before this method is called, `set_after` be the state of `set` after this method
@@ -15493,7 +15685,11 @@ impl OpaqueIndexSet {
     ///
     /// This method preserves the order of the remaining elements in the collection.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
     /// before this method is called, `set_after` be the state of `set` after this method
@@ -15610,7 +15806,11 @@ impl OpaqueIndexSet {
     /// the storage order of the retained values. Stated differently, this method keeps only those
     /// values `v` for which `keep(&v)` returns `true`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
     /// before this method is called, `set_after` be the state of `set` after this method
@@ -15735,7 +15935,11 @@ impl OpaqueIndexSet {
     ///
     /// After this method completes, the index set will be in stable sorted order.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
     /// before this method is called, `set_after` be the state of `set` after this method
@@ -15830,7 +16034,11 @@ impl OpaqueIndexSet {
     /// After this method completes, the index set will be in stable sorted order with the ordering
     /// defined by the comparison function.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
     /// before this method is called, `set_after` be the state of `set` after this method
@@ -16013,7 +16221,11 @@ impl OpaqueIndexSet {
     ///
     /// After this method completes, the index set will be in unstable sorted order.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
     /// before this method is called, `set_after` be the state of `set` after this method
@@ -16114,7 +16326,11 @@ impl OpaqueIndexSet {
     /// After this method completes, the index set will be in unstable sorted order with the
     /// ordering defined by the comparison function.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
     /// before this method is called, `set_after` be the state of `set` after this method
@@ -16964,7 +17180,11 @@ impl OpaqueIndexSet {
     /// If `index < self.len()`, this method returns `Some(&value)`, where `value` is the value of
     /// the entry at index `index`. If `index >= self.len()`, this method returns `None`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with value type `T`.
     ///
@@ -17257,7 +17477,11 @@ impl OpaqueIndexSet {
     /// * If `index >= self.len()`, the index `index` is out of bounds, so the method returns
     ///   `None`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
     /// before this method is called, `set_after` be the state of `set` after this method
@@ -17363,7 +17587,11 @@ impl OpaqueIndexSet {
     ///
     /// Note that when `self.len() == 1`, `self` is empty, so no shifting occurs.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
     /// before this method is called, `set_after` be the state of `set` after this method
@@ -17456,7 +17684,11 @@ impl OpaqueIndexSet {
     /// * If `from < to`, the other values will shift up while the targeted value moves down.
     /// * If `from > to`, the other values will shift down while the targeted value moves up.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
     /// before this method is called, `set_after` be the state of `set` after this method
@@ -17585,7 +17817,11 @@ impl OpaqueIndexSet {
 
     /// Swaps the position of two entries in the index set.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
     /// before this method is called, `set_after` be the state of `set` after this method
@@ -17666,7 +17902,11 @@ impl OpaqueIndexSet {
     /// value of `other` is not a value of `self`. This method returns `false` if a value of `self`
     /// is also value of `other`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set1` be an index set with values of type `T`. Let `set2` be an index set with values
     /// of type `T`.
@@ -17785,7 +18025,11 @@ impl OpaqueIndexSet {
     ///
     /// This method returns `true` if `self` is setwise equal to other `other` as well.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set1` be an index set with values of type `T`. Let `set2` be an index set with values
     /// of type `T`.
@@ -17938,7 +18182,11 @@ impl OpaqueIndexSet {
     ///
     /// This method returns `true` if `self` is setwise equal to `other` as well.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `set1` be an index set with values of type `T`. Let `set2` be an index set with values
     /// of type `T`.

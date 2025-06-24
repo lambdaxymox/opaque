@@ -1984,7 +1984,11 @@ where
 
     /// Appends a new element to the end of a type-projected vector.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `vec` be a vector. Let `vec_before` be the state of `vec` before this method is called,
     /// and let `vec_after` be the state of `vec` after this method is completed.
@@ -2028,7 +2032,11 @@ where
     /// Removes and returns the last element in a type-projected vector if the vector is non-empty,
     /// and returns `None` if the collection is empty.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `vec` be a vector. Let `vec_before` be the state of `vec` before this method is called,
     /// let `vec_after` be the state of `vec` after this method completes. Let `result` be the
@@ -2083,7 +2091,11 @@ where
     /// capacity. The caller should use [`reserve`] or [`try_reserve`] to ensure that
     /// there is enough capacity.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `vec` be a vector. Let `vec_before` be the state of `vec` before this method is called,
     /// let `vec_after` be the state of `vec` after this method completes. Let `result` be the
@@ -2176,7 +2188,11 @@ where
     /// * If `index == self.len()`, it pushes `value` to the end of the collection.
     /// * If `index > self.len()`, it panics.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `vec` be a vector, `vec_before` be the state of `vec` before this method is called,
     /// and let `vec_after` be the state of `vec` after this method completes.
@@ -2236,7 +2252,11 @@ where
     /// * If `index == self.len()`, it pushes `value` to the end of the collection.
     /// * If `index > self.len()`, it panics.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `vec` be a vector, `vec_before` be the state of `vec` before this method is called,
     /// and let `vec_after` be the state of `vec` after this method completes.
@@ -2305,7 +2325,11 @@ where
     ///   reordering of the remaining values in the collection.
     /// * If `index >= self.len()`, it panics.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `vec` be a vector, `vec_before` be the state of `vec` before this method is called,
     /// and let `vec_after` be the state of `vec` after this method completes. Let `result` be the
@@ -2388,7 +2412,11 @@ where
     /// In particular, the method acts like a [`pop`] when the last value in the collection is
     /// shift-removed, because the sub-collection of successor values is empty.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `vec` be a vector, `vec_before` be the state of `vec` before this method is called,
     /// let `vec_after` be the state of `vec` after this method completes, and let `result` be the
@@ -2457,7 +2485,11 @@ where
     /// The method returns `true` if `self` contains the value `value`. Returns `false` otherwise.
     /// In particular, the method always returns `false` when `self` is empty.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `vec` be a vector with values of type `T`, and let `e :: T` be a value of type `T`. We
     /// say that `vec` **contains** a value `e :: T`, or that `e` is an **element of** `vec` if the
@@ -2574,7 +2606,11 @@ where
     /// This method drains `other` into `self`, i.e. every element of `other` will be appended
     /// to `self`, and `other` will be empty after the operation finishes.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `vec1` and `vec2` be vectors, `vec1_before` be the state of `vec1` before this method
     /// is called, `vec2_before` be the state of `vec2` before this method is called, `vec1_after`
@@ -3593,7 +3629,11 @@ where
     /// After calling this method, the collection will be empty. This method does not change the
     /// allocated capacity of the type-projected vector.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `vec` be a vector, `vec_before` be the state of `vec` before this method is called,
     /// and `vec_after` be the state of `vec` after this method completes.
@@ -4052,7 +4092,11 @@ where
     /// In other words, after calling this method, the vector contains only elements for which
     /// `keep(e)` is true, in the same order as they appeared originally.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `vec` be a vector, `vec_before` be the state of `vec` before this method is called,
     /// `vec_after` be the state of `vec` after this method completes, and `keep: T → bool` be the
@@ -4118,7 +4162,11 @@ where
     /// In other words, after calling this method, the vector contains only elements for which
     /// `keep(e)` is true, in the same order as they appeared originally.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `vec` be a vector, `vec_before` be the state of `vec` before this method is called,
     /// `vec_after` be the state of `vec` after this method completes, and `keep: T → bool` be the
@@ -4183,7 +4231,11 @@ where
     ///
     /// This method removes all duplicates if the collection is sorted.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `vec` be a vector, `vec_before` be the state of `vec` before this method is called,
     /// and `vec_after` be the state of `vec` after this method completes. A function `g: A → B` is
@@ -4268,7 +4320,11 @@ where
     /// This removes all duplicates if the collection is sorted (since each duplicate value
     /// trivially resolves to the same key).
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `vec` be a vector, `vec_before` be the state of `vec` before this method is called,
     /// `vec_after` be the state of `vec` after this method completes, and `key: T → K` be the
@@ -4339,7 +4395,11 @@ where
     ///
     /// This method removes all duplicates if the collection is sorted.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `vec` be a vector, `vec_before` be the state of `vec` before this method is called,
     /// `vec_after` be the state of `vec` after this method completes, and
@@ -7323,7 +7383,11 @@ impl OpaqueVec {
 
     /// Appends a new element to the end of a type-erased vector.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `vec` be a vector. Let `vec_before` be the state of `vec` before this method is called,
     /// and let `vec_after` be the state of `vec` after this method is completed.
@@ -7381,7 +7445,11 @@ impl OpaqueVec {
     /// Removes and returns the last element in a type-erased vector if the vector is non-empty,
     /// and returns `None` if the collection is empty.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `vec` be a vector. Let `vec_before` be the state of `vec` before this method is called,
     /// let `vec_after` be the state of `vec` after this method completes. Let `result` be the
@@ -7452,7 +7520,11 @@ impl OpaqueVec {
     /// capacity. The caller should use [`reserve`] or [`try_reserve`] to ensure that
     /// there is enough capacity.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `vec` be a vector. Let `vec_before` be the state of `vec` before this method is called,
     /// let `vec_after` be the state of `vec` after this method completes. Let `result` be the
@@ -7563,7 +7635,11 @@ impl OpaqueVec {
     /// * If `index == self.len()`, it pushes `value` to the end of the collection.
     /// * If `index > self.len()`, it panics.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `vec` be a vector, `vec_before` be the state of `vec` before this method is called,
     /// and let `vec_after` be the state of `vec` after this method completes.
@@ -7637,7 +7713,11 @@ impl OpaqueVec {
     /// * If `index == self.len()`, it pushes `value` to the end of the collection.
     /// * If `index > self.len()`, it panics.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `vec` be a vector, `vec_before` be the state of `vec` before this method is called,
     /// and let `vec_after` be the state of `vec` after this method completes.
@@ -7719,7 +7799,11 @@ impl OpaqueVec {
     ///   reordering of the remaining values in the collection.
     /// * If `index >= self.len()`, it panics.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `vec` be a vector, `vec_before` be the state of `vec` before this method is called,
     /// and let `vec_after` be the state of `vec` after this method completes. Let `result` be the
@@ -7817,7 +7901,11 @@ impl OpaqueVec {
     /// In particular, the method acts like a [`pop`] when the last value in the collection is
     /// shift-removed, because the sub-collection of successor values is empty.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `vec` be a vector, `vec_before` be the state of `vec` before this method is called,
     /// let `vec_after` be the state of `vec` after this method completes, and let `result` be the
@@ -7901,7 +7989,11 @@ impl OpaqueVec {
     /// The method returns `true` if `self` contains the value `value`. Returns `false` otherwise.
     /// In particular, the method always returns `false` when `self` is empty.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `vec` be a vector with values of type `T`, and let `e :: T` be a value of type `T`. We
     /// say that `vec` **contains** a value `e :: T`, or that `e` is an **element of** `vec` if the
@@ -8127,7 +8219,11 @@ impl OpaqueVec {
     /// This method drains `other` into `self`, i.e. every element of `other` will be appended
     /// to `self`, and `other` will be empty after the operation finishes.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `vec1` and `vec2` be vectors, `vec1_before` be the state of `vec1` before this method
     /// is called, `vec2_before` be the state of `vec2` before this method is called, `vec1_after`
@@ -9503,7 +9599,11 @@ impl OpaqueVec {
     /// After calling this method, the collection will be empty. This method does not change the
     /// allocated capacity of the type-erased vector.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `vec` be a vector, `vec_before` be the state of `vec` before this method is called,
     /// and `vec_after` be the state of `vec` after this method completes.
@@ -10137,7 +10237,11 @@ impl OpaqueVec {
     /// In other words, after calling this method, the vector contains only elements for which
     /// `keep(e)` is true, in the same order as they appeared originally.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `vec` be a vector, `vec_before` be the state of `vec` before this method is called,
     /// `vec_after` be the state of `vec` after this method completes, and `keep: T → bool` be the
@@ -10220,7 +10324,11 @@ impl OpaqueVec {
     /// In other words, after calling this method, the vector contains only elements for which
     /// `keep(e)` is true, in the same order as they appeared originally.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `vec` be a vector, `vec_before` be the state of `vec` before this method is called,
     /// `vec_after` be the state of `vec` after this method completes, and `keep: T → bool` be the
@@ -10303,7 +10411,11 @@ impl OpaqueVec {
     ///
     /// This method removes all duplicates if the collection is sorted.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `vec` be a vector, `vec_before` be the state of `vec` before this method is called,
     /// and `vec_after` be the state of `vec` after this method completes. A function `g: A → B` is
@@ -10418,7 +10530,11 @@ impl OpaqueVec {
     /// This removes all duplicates if the collection is sorted (since each duplicate value
     /// trivially resolves to the same key).
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `vec` be a vector, `vec_before` be the state of `vec` before this method is called,
     /// `vec_after` be the state of `vec` after this method completes, and `key: T → K` be the
@@ -10507,7 +10623,11 @@ impl OpaqueVec {
     ///
     /// This method removes all duplicates if the collection is sorted.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `vec` be a vector, `vec_before` be the state of `vec` before this method is called,
     /// `vec_after` be the state of `vec` after this method completes, and

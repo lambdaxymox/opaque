@@ -7286,7 +7286,11 @@ where
     /// if the equivalent key to `key` exists in `self`. This method returns `None` if the lookup
     /// key `key` does not exist in `self`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with keys of type `K` and values of type `V`.
     ///
@@ -7424,7 +7428,11 @@ where
     /// This method returns `true` if the equivalent key to `key` exists in `self`. This method
     /// returns `false` if the equivalent key to `key` does not exist in `self`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with keys of type `K` and values of type `V`.
     ///
@@ -7565,7 +7573,11 @@ where
     /// equivalent key to `key` in `self` if the equivalent key to key exists in `self`. This
     /// method returns `None` if the equivalent key to `key` does not exist in `self`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with keys of type `K` and values of type `V`.
     ///
@@ -7706,7 +7718,11 @@ where
     /// if the equivalent key `eq_key` to `key` exists in `self`. This method returns `None` if the
     /// equivalent key to `key` does not exist in `self`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with keys of type `K` and values of type `V`.
     ///
@@ -7848,7 +7864,11 @@ where
     /// to `key` exists in `self`. This method returns `None` if the equivalent key to `key` does
     /// not exist in `self`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with keys of type `K` and values of type `V`.
     ///
@@ -7988,7 +8008,11 @@ where
     /// equivalent key to `key` in `self`. This method returns `None` if the equivalent key to
     /// `key` does not exist in `self`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with keys of type `K` and values of type `V`.
     ///
@@ -8130,7 +8154,11 @@ where
     /// `key` exists in `self`. This method returns `None` if the equivalent key to `key` does
     /// not exist in `self`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with keys of type `K` and values of type `V`.
     ///
@@ -8658,7 +8686,11 @@ where
     /// After calling this method, the collection will be empty. This method does not change the
     /// allocated capacity of the type-projected index map.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the
     /// state of `map` before this method is called, and `map_after` be the state of `map` after
@@ -9155,7 +9187,11 @@ where
     /// * If the equivalent key to `key` does not exist in the index map, the method returns
     ///   `None`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
@@ -9387,7 +9423,11 @@ where
     /// * If the equivalent key to `key` does not exist in the index map, the method returns
     ///   `None`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
@@ -9619,7 +9659,11 @@ where
     /// * If the equivalent key to `key` does not exist in the index map, the method returns
     ///   `None`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
@@ -9854,7 +9898,11 @@ where
     /// shift-removed, because the sub-collection of successor entries in the entry storage is
     /// empty.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
@@ -10083,7 +10131,11 @@ where
     /// shift-removed, because the sub-collection of successor entries in the entry storage is
     /// empty.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
@@ -10311,7 +10363,11 @@ where
     /// shift-removed, because the sub-collection of successor entries in the entry storage is
     /// empty.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
@@ -10607,7 +10663,11 @@ where
     ///   of the map, so the resulting entry is in last place in the storage order, and the method
     ///   returns `None`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
@@ -10704,7 +10764,11 @@ where
     ///   returns `(index, None)`, where `index` is the index of the last entry in the map in
     ///   storage order.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
@@ -10834,7 +10898,11 @@ where
     /// [`sort_keys`]: TypedProjIndexMap::sort_keys
     /// [`sort_unstable_keys`]: TypedProjIndexMap::sort_unstable_keys
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
@@ -10995,7 +11063,11 @@ where
     ///   the interval `[index, self.len()] == [self.len(), self.len())` is empty, so no shifting
     ///   occurs.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
@@ -11251,7 +11323,11 @@ where
     ///
     /// Note that an existing entry **cannot** be moved to the index `self.len()`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
@@ -11646,7 +11722,11 @@ where
     ///
     /// [`insert`]: TypedProjIndexMap::insert
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map1` and `map2` be index maps, `map1_before` be the state of `map1` before this
     /// method is called, `map2_before` be the state of `map2` before this method is called,
@@ -11814,7 +11894,11 @@ where
     ///
     /// This method preserves the order of the remaining elements in the collection.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
@@ -11912,7 +11996,11 @@ where
     /// the storage order of the retained entries. Stated differently, this method keeps only those
     /// entries `e` for which `keep(&e)` returns `true`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
@@ -12041,7 +12129,11 @@ where
     ///
     /// After this method completes, the index map will be in stable sorted order.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
@@ -12128,7 +12220,11 @@ where
     /// After this method completes, the index map will be in stable sorted order with the ordering
     /// defined by the comparison function.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
@@ -12279,7 +12375,11 @@ where
     ///
     /// After this method completes, the index map will be in unstable sorted order.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
@@ -12370,7 +12470,11 @@ where
     /// After this method completes, the index map will be in unstable sorted order with the
     /// ordering defined by the comparison function.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
@@ -13234,7 +13338,11 @@ where
     /// of the entry at index `index` in the map, and `value` is the value of the entry at index
     /// `index`. If `index >= self.len()`, this method returns `None`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with keys of type `K` and values of type `V`.
     ///
@@ -13289,7 +13397,11 @@ where
     /// key of the entry at index `index` in the map, and `value` is the value of the entry at
     /// index `index`. If `index >= self.len()`, this method returns `None`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with keys of type `K` and values of type `V`.
     ///
@@ -13868,7 +13980,11 @@ where
     /// * If `index >= self.len()`, the index `index` is out of bounds, so the method returns
     ///   `None`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
@@ -13962,7 +14078,11 @@ where
     ///
     /// Note that when `self.len() == 1`, `self` is empty, so no shifting occurs.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
@@ -14041,7 +14161,11 @@ where
     /// * If `from < to`, the other pairs will shift up while the targeted pair moves down.
     /// * If `from > to`, the other pairs will shift down while the targeted pair moves up.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
@@ -14147,7 +14271,11 @@ where
 
     /// Swaps the position of two entries in the index map.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
@@ -15963,7 +16091,11 @@ impl OpaqueIndexMap {
     /// if the equivalent key to `key` exists in `self`. This method returns `None` if the lookup
     /// key `key` does not exist in `self`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with keys of type `K` and values of type `V`.
     ///
@@ -16121,7 +16253,11 @@ impl OpaqueIndexMap {
     /// This method returns `true` if the equivalent key to `key` exists in `self`. This method
     /// returns `false` if the equivalent key to `key` does not exist in `self`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with keys of type `K` and values of type `V`.
     ///
@@ -16282,7 +16418,11 @@ impl OpaqueIndexMap {
     /// equivalent key to `key` in `self` if the equivalent key to key exists in `self`. This
     /// method returns `None` if the equivalent key to `key` does not exist in `self`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with keys of type `K` and values of type `V`.
     ///
@@ -16443,7 +16583,11 @@ impl OpaqueIndexMap {
     /// if the equivalent key `eq_key` to `key` exists in `self`. This method returns `None` if the
     /// equivalent key to `key` does not exist in `self`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with keys of type `K` and values of type `V`.
     ///
@@ -16605,7 +16749,11 @@ impl OpaqueIndexMap {
     /// to `key` exists in `self`. This method returns `None` if the equivalent key to `key` does
     /// not exist in `self`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with keys of type `K` and values of type `V`.
     ///
@@ -16765,7 +16913,11 @@ impl OpaqueIndexMap {
     /// equivalent key to `key` in `self`. This method returns `None` if the equivalent key to
     /// `key` does not exist in `self`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with keys of type `K` and values of type `V`.
     ///
@@ -16927,7 +17079,11 @@ impl OpaqueIndexMap {
     /// `key` exists in `self`. This method returns `None` if the equivalent key to `key` does
     /// not exist in `self`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with keys of type `K` and values of type `V`.
     ///
@@ -17648,7 +17804,11 @@ impl OpaqueIndexMap {
     /// After calling this method, the collection will be empty. This method does not change the
     /// allocated capacity of the type-erased index map.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the
     /// state of `map` before this method is called, and `map_after` be the state of `map` after
@@ -18264,7 +18424,11 @@ impl OpaqueIndexMap {
     /// * If the equivalent key to `key` does not exist in the index map, the method returns
     ///   `None`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
@@ -18563,7 +18727,11 @@ impl OpaqueIndexMap {
     /// * If the equivalent key to `key` does not exist in the index map, the method returns
     ///   `None`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
@@ -18863,7 +19031,11 @@ impl OpaqueIndexMap {
     /// * If the equivalent key to `key` does not exist in the index map, the method returns
     ///   `None`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
@@ -19167,7 +19339,11 @@ impl OpaqueIndexMap {
     /// empty.
     ///
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
@@ -19464,7 +19640,11 @@ impl OpaqueIndexMap {
     /// shift-removed, because the sub-collection of successor entries in the entry storage is
     /// empty.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
@@ -19760,7 +19940,11 @@ impl OpaqueIndexMap {
     /// shift-removed, because the sub-collection of successor entries in the entry storage is
     /// empty.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
@@ -20161,7 +20345,11 @@ impl OpaqueIndexMap {
     ///   of the map, so the resulting entry is in last place in the storage order, and the method
     ///   returns `None`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
@@ -20277,7 +20465,11 @@ impl OpaqueIndexMap {
     ///   returns `(index, None)`, where `index` is the index of the last entry in the map in
     ///   storage order.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
@@ -20426,7 +20618,11 @@ impl OpaqueIndexMap {
     /// [`sort_keys`]: OpaqueIndexMap::sort_keys
     /// [`sort_unstable_keys`]: OpaqueIndexMap::sort_unstable_keys
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
@@ -20612,7 +20808,11 @@ impl OpaqueIndexMap {
     ///   the interval `[index, self.len()] == [self.len(), self.len())` is empty, so no shifting
     ///   occurs.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
@@ -20904,7 +21104,11 @@ impl OpaqueIndexMap {
     ///
     /// Note that an existing entry **cannot** be moved to the index `self.len()`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
@@ -21368,7 +21572,11 @@ impl OpaqueIndexMap {
     ///
     /// [`insert`]: OpaqueIndexMap::insert
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map1` and `map2` be index maps, `map1_before` be the state of `map1` before this
     /// method is called, `map2_before` be the state of `map2` before this method is called,
@@ -21580,7 +21788,11 @@ impl OpaqueIndexMap {
     ///
     /// This method preserves the order of the remaining elements in the collection.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
@@ -21706,7 +21918,11 @@ impl OpaqueIndexMap {
     /// the storage order of the retained entries. Stated differently, this method keeps only those
     /// entries `e` for which `keep(&e)` returns `true`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
@@ -21855,7 +22071,11 @@ impl OpaqueIndexMap {
     ///
     /// After this method completes, the index map will be in stable sorted order.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
@@ -21961,7 +22181,11 @@ impl OpaqueIndexMap {
     /// After this method completes, the index map will be in stable sorted order with the ordering
     /// defined by the comparison function.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
@@ -22152,7 +22376,11 @@ impl OpaqueIndexMap {
     ///
     /// After this method completes, the index map will be in unstable sorted order.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
@@ -22262,7 +22490,11 @@ impl OpaqueIndexMap {
     /// After this method completes, the index map will be in unstable sorted order with the
     /// ordering defined by the comparison function.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
@@ -23459,7 +23691,11 @@ impl OpaqueIndexMap {
     /// of the entry at index `index` in the map, and `value` is the value of the entry at index
     /// `index`. If `index >= self.len()`, this method returns `None`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with keys of type `K` and values of type `V`.
     ///
@@ -23536,7 +23772,11 @@ impl OpaqueIndexMap {
     /// key of the entry at index `index` in the map, and `value` is the value of the entry at
     /// index `index`. If `index >= self.len()`, this method returns `None`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with keys of type `K` and values of type `V`.
     ///
@@ -24361,7 +24601,11 @@ impl OpaqueIndexMap {
     /// * If `index >= self.len()`, the index `index` is out of bounds, so the method returns
     ///   `None`.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
@@ -24477,7 +24721,11 @@ impl OpaqueIndexMap {
     ///
     /// Note that when `self.len() == 1`, `self` is empty, so no shifting occurs.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
@@ -24578,7 +24826,11 @@ impl OpaqueIndexMap {
     /// * If `from < to`, the other pairs will shift up while the targeted pair moves down.
     /// * If `from > to`, the other pairs will shift down while the targeted pair moves up.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
@@ -24711,7 +24963,11 @@ impl OpaqueIndexMap {
 
     /// Swaps the position of two entries in the index map.
     ///
-    /// # Formal Properties
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
     ///
     /// Let `map` be an index map with key type `K` and value type `V`. Let `map_before` be the
     /// state of `map` before this method is called, `map_after` be the state of `map` after this
