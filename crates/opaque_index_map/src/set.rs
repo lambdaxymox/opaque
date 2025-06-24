@@ -5505,16 +5505,16 @@ where
     /// ```
     ///
     /// Let `Q` be a data type equivalent to value type `T` using `T`. We say that `q` is an
-    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
+    /// **equivalent element of** the set `set`, or that **`set` equivalently contains `q`** if and
     /// only if
     ///
     /// ```text
-    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i]).
     /// ```
     ///
-    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
+    /// If `q` is not an equivalent element of `set`, we write `q ~∉ set`.
     ///
-    /// When `T` is a hashable type, we see that `v ~∈ map ⇔ v ∈ map`, so that equivalent
+    /// When `T` is a hashable type, we see that `v ~∈ set ⇔ v ∈ set`, so that equivalent
     /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
@@ -5646,16 +5646,16 @@ where
     /// ```
     ///
     /// Let `Q` be a data type equivalent to value type `T` using `T`. We say that `q` is an
-    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
+    /// **equivalent element of** the set `set`, or that **`set` equivalently contains `q`** if and
     /// only if
     ///
     /// ```text
-    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i]).
     /// ```
     ///
-    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
+    /// If `q` is not an equivalent element of `set`, we write `q ~∉ set`.
     ///
-    /// When `T` is a hashable type, we see that `v ~∈ map ⇔ v ∈ map`, so that equivalent
+    /// When `T` is a hashable type, we see that `v ~∈ set ⇔ v ∈ set`, so that equivalent
     /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
@@ -5787,16 +5787,16 @@ where
     /// ```
     ///
     /// Let `Q` be a data type equivalent to value type `T` using `T`. We say that `q` is an
-    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
+    /// **equivalent element of** the set `set`, or that **`set` equivalently contains `q`** if and
     /// only if
     ///
     /// ```text
-    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i]).
     /// ```
     ///
-    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
+    /// If `q` is not an equivalent element of `set`, we write `q ~∉ set`.
     ///
-    /// When `T` is a hashable type, we see that `v ~∈ map ⇔ v ∈ map`, so that equivalent
+    /// When `T` is a hashable type, we see that `v ~∈ set ⇔ v ∈ set`, so that equivalent
     /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
@@ -5927,16 +5927,16 @@ where
     /// ```
     ///
     /// Let `Q` be a data type equivalent to value type `T` using `T`. We say that `q` is an
-    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
+    /// **equivalent element of** the set `set`, or that **`set` equivalently contains `q`** if and
     /// only if
     ///
     /// ```text
-    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i]).
     /// ```
     ///
-    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
+    /// If `q` is not an equivalent element of `set`, we write `q ~∉ set`.
     ///
-    /// When `T` is a hashable type, we see that `v ~∈ map ⇔ v ∈ map`, so that equivalent
+    /// When `T` is a hashable type, we see that `v ~∈ set ⇔ v ∈ set`, so that equivalent
     /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
@@ -6076,16 +6076,16 @@ where
     /// ```
     ///
     /// Let `Q` be a data type equivalent to value type `T` using `T`. We say that `q` is an
-    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
+    /// **equivalent element of** the set `set`, or that **`set` equivalently contains `q`** if and
     /// only if
     ///
     /// ```text
-    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i]).
     /// ```
     ///
-    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
+    /// If `q` is not an equivalent element of `set`, we write `q ~∉ set`.
     ///
-    /// When `T` is a hashable type, we see that `v ~∈ map ⇔ v ∈ map`, so that equivalent
+    /// When `T` is a hashable type, we see that `v ~∈ set ⇔ v ∈ set`, so that equivalent
     /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
@@ -6271,16 +6271,16 @@ where
     /// ```
     ///
     /// Let `Q` be a data type equivalent to value type `T` using `T`. We say that `q` is an
-    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
+    /// **equivalent element of** the set `set`, or that **`set` equivalently contains `q`** if and
     /// only if
     ///
     /// ```text
-    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i]).
     /// ```
     ///
-    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
+    /// If `q` is not an equivalent element of `set`, we write `q ~∉ set`.
     ///
-    /// When `T` is a hashable type, we see that `v ~∈ map ⇔ v ∈ map`, so that equivalent
+    /// When `T` is a hashable type, we see that `v ~∈ set ⇔ v ∈ set`, so that equivalent
     /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
@@ -6466,16 +6466,16 @@ where
     /// ```
     ///
     /// Let `Q` be a data type equivalent to value type `T` using `T`. We say that `q` is an
-    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
+    /// **equivalent element of** the set `set`, or that **`set` equivalently contains `q`** if and
     /// only if
     ///
     /// ```text
-    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i]).
     /// ```
     ///
-    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
+    /// If `q` is not an equivalent element of `set`, we write `q ~∉ set`.
     ///
-    /// When `T` is a hashable type, we see that `v ~∈ map ⇔ v ∈ map`, so that equivalent
+    /// When `T` is a hashable type, we see that `v ~∈ set ⇔ v ∈ set`, so that equivalent
     /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
@@ -6675,16 +6675,16 @@ where
     /// ```
     ///
     /// Let `Q` be a data type equivalent to value type `T` using `T`. We say that `q` is an
-    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
+    /// **equivalent element of** the set `set`, or that **`set` equivalently contains `q`** if and
     /// only if
     ///
     /// ```text
-    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i]).
     /// ```
     ///
-    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
+    /// If `q` is not an equivalent element of `set`, we write `q ~∉ set`.
     ///
-    /// When `T` is a hashable type, we see that `v ~∈ map ⇔ v ∈ map`, so that equivalent
+    /// When `T` is a hashable type, we see that `v ~∈ set ⇔ v ∈ set`, so that equivalent
     /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
@@ -6872,16 +6872,16 @@ where
     /// ```
     ///
     /// Let `Q` be a data type equivalent to value type `T` using `T`. We say that `q` is an
-    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
+    /// **equivalent element of** the set `set`, or that **`set` equivalently contains `q`** if and
     /// only if
     ///
     /// ```text
-    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i]).
     /// ```
     ///
-    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
+    /// If `q` is not an equivalent element of `set`, we write `q ~∉ set`.
     ///
-    /// When `T` is a hashable type, we see that `v ~∈ map ⇔ v ∈ map`, so that equivalent
+    /// When `T` is a hashable type, we see that `v ~∈ set ⇔ v ∈ set`, so that equivalent
     /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
@@ -7070,16 +7070,16 @@ where
     /// ```
     ///
     /// Let `Q` be a data type equivalent to value type `T` using `T`. We say that `q` is an
-    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
+    /// **equivalent element of** the set `set`, or that **`set` equivalently contains `q`** if and
     /// only if
     ///
     /// ```text
-    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i]).
     /// ```
     ///
-    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
+    /// If `q` is not an equivalent element of `set`, we write `q ~∉ set`.
     ///
-    /// When `T` is a hashable type, we see that `v ~∈ map ⇔ v ∈ map`, so that equivalent
+    /// When `T` is a hashable type, we see that `v ~∈ set ⇔ v ∈ set`, so that equivalent
     /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
@@ -13524,16 +13524,16 @@ impl OpaqueIndexSet {
     /// ```
     ///
     /// Let `Q` be a data type equivalent to value type `T` using `T`. We say that `q` is an
-    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
+    /// **equivalent element of** the set `set`, or that **`set` equivalently contains `q`** if and
     /// only if
     ///
     /// ```text
-    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i]).
     /// ```
     ///
-    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
+    /// If `q` is not an equivalent element of `set`, we write `q ~∉ set`.
     ///
-    /// When `T` is a hashable type, we see that `v ~∈ map ⇔ v ∈ map`, so that equivalent
+    /// When `T` is a hashable type, we see that `v ~∈ set ⇔ v ∈ set`, so that equivalent
     /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
@@ -13682,16 +13682,16 @@ impl OpaqueIndexSet {
     /// ```
     ///
     /// Let `Q` be a data type equivalent to value type `T` using `T`. We say that `q` is an
-    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
+    /// **equivalent element of** the set `set`, or that **`set` equivalently contains `q`** if and
     /// only if
     ///
     /// ```text
-    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i]).
     /// ```
     ///
-    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
+    /// If `q` is not an equivalent element of `set`, we write `q ~∉ set`.
     ///
-    /// When `T` is a hashable type, we see that `v ~∈ map ⇔ v ∈ map`, so that equivalent
+    /// When `T` is a hashable type, we see that `v ~∈ set ⇔ v ∈ set`, so that equivalent
     /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
@@ -13840,16 +13840,16 @@ impl OpaqueIndexSet {
     /// ```
     ///
     /// Let `Q` be a data type equivalent to value type `T` using `T`. We say that `q` is an
-    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
+    /// **equivalent element of** the set `set`, or that **`set` equivalently contains `q`** if and
     /// only if
     ///
     /// ```text
-    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i]).
     /// ```
     ///
-    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
+    /// If `q` is not an equivalent element of `set`, we write `q ~∉ set`.
     ///
-    /// When `T` is a hashable type, we see that `v ~∈ map ⇔ v ∈ map`, so that equivalent
+    /// When `T` is a hashable type, we see that `v ~∈ set ⇔ v ∈ set`, so that equivalent
     /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
@@ -13997,16 +13997,16 @@ impl OpaqueIndexSet {
     /// ```
     ///
     /// Let `Q` be a data type equivalent to value type `T` using `T`. We say that `q` is an
-    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
+    /// **equivalent element of** the set `set`, or that **`set` equivalently contains `q`** if and
     /// only if
     ///
     /// ```text
-    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i]).
     /// ```
     ///
-    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
+    /// If `q` is not an equivalent element of `set`, we write `q ~∉ set`.
     ///
-    /// When `T` is a hashable type, we see that `v ~∈ map ⇔ v ∈ map`, so that equivalent
+    /// When `T` is a hashable type, we see that `v ~∈ set ⇔ v ∈ set`, so that equivalent
     /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
@@ -14163,16 +14163,16 @@ impl OpaqueIndexSet {
     /// ```
     ///
     /// Let `Q` be a data type equivalent to value type `T` using `T`. We say that `q` is an
-    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
+    /// **equivalent element of** the set `set`, or that **`set` equivalently contains `q`** if and
     /// only if
     ///
     /// ```text
-    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i]).
     /// ```
     ///
-    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
+    /// If `q` is not an equivalent element of `set`, we write `q ~∉ set`.
     ///
-    /// When `T` is a hashable type, we see that `v ~∈ map ⇔ v ∈ map`, so that equivalent
+    /// When `T` is a hashable type, we see that `v ~∈ set ⇔ v ∈ set`, so that equivalent
     /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
@@ -14427,16 +14427,16 @@ impl OpaqueIndexSet {
     /// ```
     ///
     /// Let `Q` be a data type equivalent to value type `T` using `T`. We say that `q` is an
-    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
+    /// **equivalent element of** the set `set`, or that **`set` equivalently contains `q`** if and
     /// only if
     ///
     /// ```text
-    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i]).
     /// ```
     ///
-    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
+    /// If `q` is not an equivalent element of `set`, we write `q ~∉ set`.
     ///
-    /// When `T` is a hashable type, we see that `v ~∈ map ⇔ v ∈ map`, so that equivalent
+    /// When `T` is a hashable type, we see that `v ~∈ set ⇔ v ∈ set`, so that equivalent
     /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
@@ -14691,16 +14691,16 @@ impl OpaqueIndexSet {
     /// ```
     ///
     /// Let `Q` be a data type equivalent to value type `T` using `T`. We say that `q` is an
-    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
+    /// **equivalent element of** the set `set`, or that **`set` equivalently contains `q`** if and
     /// only if
     ///
     /// ```text
-    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i]).
     /// ```
     ///
-    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
+    /// If `q` is not an equivalent element of `set`, we write `q ~∉ set`.
     ///
-    /// When `T` is a hashable type, we see that `v ~∈ map ⇔ v ∈ map`, so that equivalent
+    /// When `T` is a hashable type, we see that `v ~∈ set ⇔ v ∈ set`, so that equivalent
     /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
@@ -14964,16 +14964,16 @@ impl OpaqueIndexSet {
     /// ```
     ///
     /// Let `Q` be a data type equivalent to value type `T` using `T`. We say that `q` is an
-    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
+    /// **equivalent element of** the set `set`, or that **`set` equivalently contains `q`** if and
     /// only if
     ///
     /// ```text
-    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i]).
     /// ```
     ///
-    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
+    /// If `q` is not an equivalent element of `set`, we write `q ~∉ set`.
     ///
-    /// When `T` is a hashable type, we see that `v ~∈ map ⇔ v ∈ map`, so that equivalent
+    /// When `T` is a hashable type, we see that `v ~∈ set ⇔ v ∈ set`, so that equivalent
     /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
@@ -15230,16 +15230,16 @@ impl OpaqueIndexSet {
     /// ```
     ///
     /// Let `Q` be a data type equivalent to value type `T` using `T`. We say that `q` is an
-    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
+    /// **equivalent element of** the set `set`, or that **`set` equivalently contains `q`** if and
     /// only if
     ///
     /// ```text
-    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i]).
     /// ```
     ///
-    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
+    /// If `q` is not an equivalent element of `set`, we write `q ~∉ set`.
     ///
-    /// When `T` is a hashable type, we see that `v ~∈ map ⇔ v ∈ map`, so that equivalent
+    /// When `T` is a hashable type, we see that `v ~∈ set ⇔ v ∈ set`, so that equivalent
     /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
@@ -15497,17 +15497,17 @@ impl OpaqueIndexSet {
     /// ```
     ///
     /// Let `Q` be a data type equivalent to value type `T` using `T`. We say that `q` is an
-    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
+    /// **equivalent element of** the set `set`, or that **`set` equivalently contains `q`** if and
     /// only if
     ///
     /// ```text
-    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i]).
     /// ```
     ///
-    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
+    /// If `q` is not an equivalent element of `set`, we write `q ~∉ set`.
     ///
-    /// When `T` is a hashable type, we see that `v ~∈ map ⇔ v ∈ map`, so that equivalent
-    /// containment indeed generalizes containment.zx
+    /// When `T` is a hashable type, we see that `v ~∈ set ⇔ v ∈ set`, so that equivalent
+    /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
     ///
