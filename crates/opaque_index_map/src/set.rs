@@ -5571,7 +5571,7 @@ where
     ///   at `index`, leaving the rest of the entries in place. If `index == self.len() - 1`, it
     ///   removes the entry from end of the collection with no reordering of the remaining entries
     ///   in the collection. The method then returns `Some((index, eq_value))`, where `eq_value` is
-    ///   the equivalent value to `value` stored in the index set..
+    ///   the equivalent value to `value` stored in the index set.
     /// * If the equivalent value to `value` does not exist in the index set, the method returns
     ///   `None`.
     ///
@@ -7654,6 +7654,88 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
+    /// Determines whether two index sets have common elements.
+    ///
+    /// This method returns `true` if every value in `self` is not a value of `other`, and every
+    /// value of `other` is not a value of `self`. This method returns `false` if a value of `self`
+    /// is also value of `other`.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `set1` be an index set with values of type `T`. Let `set2` be an index set with values
+    /// of type `T`.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// Let `set` be an index set with values of type `T`. Let `v :: T` be a value of type `T`. We
+    /// say that `set` **contains** a value `v :: T`, or that `v` is a **value of** `set` if the
+    /// following holds:
+    ///
+    /// ```text
+    /// ∀ v :: T. (v ∈ set) ⇔ (∃ i ∈ [0, set.len()). set[i] = v).
+    /// ```
+    ///
+    /// If `v` is not a value of `set`, we write `v ∉ set`.
+    ///
+    /// The index set `set1` is **disjoint** from the index set `set2` if and only if
+    ///
+    /// ```text
+    /// is_disjoint(set1, set2) := ∀ v :: T. (v ∈ set1 ⇒ v ∉ set2) ∧ (v ∈ set2 ⇒ v ∉ set1).
+    /// ```
+    ///
+    /// ## Method Specification
+    ///
+    /// This method satisfies the following:
+    ///
+    /// ```text
+    /// { is_disjoint(set1, set2) }
+    /// set1.is_disjoint(set2)
+    /// { result = true }
+    ///
+    /// { ¬is_disjoint(set1, set2) }
+    /// set1.is_disjoint(set2)
+    /// { result = false }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Examples
+    ///
+    /// Testing the case where two index sets are disjoint.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::{Hash, Hasher, RandomState};
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set1 = TypedProjIndexSet::from([1_i32, 3_i32, 5_i32]);
+    /// let proj_set2 = TypedProjIndexSet::from([2_i32, 4_i32]);
+    ///
+    /// assert!(proj_set1.is_disjoint(&proj_set2));
+    /// ```
+    ///
+    /// Testing the case where two index sets are not disjoint.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::{Hash, Hasher, RandomState};
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set1 = TypedProjIndexSet::from([1_i32, 3_i32, 4_i32]);
+    /// let proj_set2 = TypedProjIndexSet::from([2_i32, 4_i32]);
+    ///
+    /// assert!(!proj_set1.is_disjoint(&proj_set2));
+    /// ```
     pub fn is_disjoint<S2, A2>(&self, other: &TypedProjIndexSet<T, S2, A2>) -> bool
     where
         S2: any::Any + hash::BuildHasher + Send + Sync,
@@ -7667,6 +7749,110 @@ where
         }
     }
 
+    /// Determines whether one index set is a subset of the other index set.
+    ///
+    /// This method returns `true` if every value in `self` is a value in `other`. This method
+    /// returns `false` if there is a value of `self` that is not a value of `other`.
+    ///
+    /// This method returns `true` if `self` is setwise equal to other `other` as well.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `set1` be an index set with values of type `T`. Let `set2` be an index set with values
+    /// of type `T`.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// Let `set` be an index set with values of type `T`. Let `v :: T` be a value of type `T`. We
+    /// say that `set` **contains** a value `v :: T`, or that `v` is a **value of** `set` if the
+    /// following holds:
+    ///
+    /// ```text
+    /// ∀ v :: T. (v ∈ set) ⇔ (∃ i ∈ [0, set.len()). set[i] = v).
+    /// ```
+    ///
+    /// If `v` is not a value of `set`, we write `v ∉ set`.
+    ///
+    /// The index set `set1` is a **subset** of the index set `set2` if and only if
+    ///
+    /// ```text
+    /// is_subset(set1, set2) := ∀ v :: T. v ∈ set1 ⇒ v ∈ set2.
+    /// ```
+    ///
+    /// ## Method Specification
+    ///
+    /// This method satisfies the following:
+    ///
+    /// ```text
+    /// { is_subset(set1, set2) }
+    /// set1.is_subset(set2)
+    /// { result = true }
+    ///
+    /// { ¬is_subset(set1, set2) }
+    /// set1.is_subset(set2)
+    /// { result = false }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Examples
+    ///
+    /// Testing the case where one index set is a subset of the other index set.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::{Hash, Hasher, RandomState};
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set1 = TypedProjIndexSet::from([1_i32, 5_i32]);
+    /// let proj_set2 = TypedProjIndexSet::from([1_i32, 3_i32, 5_i32]);
+    ///
+    /// assert!(proj_set1.is_subset(&proj_set2));
+    /// ```
+    ///
+    /// Testing the case where one index set is not a subset of the other index set.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::{Hash, Hasher, RandomState};
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set1 = TypedProjIndexSet::from([1_i32, 5_i32, 7_i32]);
+    /// let proj_set2 = TypedProjIndexSet::from([1_i32, 3_i32, 5_i32]);
+    ///
+    /// assert!(!proj_set1.is_subset(&proj_set2));
+    /// ```
+    ///
+    /// Testing the case where two index sets are equal.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::{Hash, Hasher, RandomState};
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set1 = TypedProjIndexSet::from([1_i32, 3_i32, 5_i32]);
+    /// let proj_set2 = TypedProjIndexSet::from([1_i32, 3_i32, 5_i32]);
+    ///
+    /// assert_eq!(proj_set1, proj_set2);
+    ///
+    /// assert!(proj_set1.is_subset(&proj_set2));
+    /// assert!(proj_set2.is_subset(&proj_set1));
+    /// ```
     pub fn is_subset<S2, A2>(&self, other: &TypedProjIndexSet<T, S2, A2>) -> bool
     where
         S2: any::Any + hash::BuildHasher + Send + Sync,
@@ -7676,6 +7862,112 @@ where
         self.len() <= other.len() && self.iter().all(move |value| other.contains(value))
     }
 
+    /// Determines whether one index set is a subset of the other index set.
+    ///
+    /// This method returns `true` if every value in `other` is a value in `self`. This method
+    /// returns `false` if there is a value of `other` that is not a value of `self`.
+    ///
+    /// This method returns `true` if `self` is setwise equal to `other` as well.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `set1` be an index set with values of type `T`. Let `set2` be an index set with values
+    /// of type `T`.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// Let `set` be an index set with values of type `T`. Let `v :: T` be a value of type `T`. We
+    /// say that `set` **contains** a value `v :: T`, or that `v` is a **value of** `set` if the
+    /// following holds:
+    ///
+    /// ```text
+    /// ∀ v :: T. (v ∈ set) ⇔ (∃ i ∈ [0, set.len()). set[i] = v).
+    /// ```
+    ///
+    /// If `v` is not a value of `set`, we write `v ∉ set`.
+    ///
+    /// The index set `set1` is a **superset** of the index set `set2` if and only if
+    ///
+    /// ```text
+    /// is_superset(set1, set2) := ∀ v :: T. v ∈ set2 ⇒ v ∈ set1.
+    /// ```
+    ///
+    /// ## Method Specification
+    ///
+    /// This method satisfies the following:
+    ///
+    /// ```text
+    /// { is_superset(set1, set2) }
+    /// set1.is_superset(set2)
+    /// { result = true }
+    ///
+    /// { ¬is_superset(set1, set2) }
+    /// set1.is_superset(set2)
+    /// { result = false }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Examples
+    ///
+    /// Testing the case where one index set is a superset of the other index set.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::{Hash, Hasher, RandomState};
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set1 = TypedProjIndexSet::from([1_i32, 3_i32, 5_i32]);
+    /// let proj_set2 = TypedProjIndexSet::from([1_i32, 5_i32]);
+    ///
+    /// assert!(proj_set1.is_superset(&proj_set2));
+    /// ```
+    ///
+    /// # Examples
+    ///
+    /// Testing the case where one index set is not a superset of the other index set.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::{Hash, Hasher, RandomState};
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set1 = TypedProjIndexSet::from([1_i32, 3_i32, 5_i32]);
+    /// let proj_set2 = TypedProjIndexSet::from([1_i32, 4_i32]);
+    ///
+    /// assert!(!proj_set1.is_superset(&proj_set2));
+    /// ```
+    ///
+    /// Testing the case where two index sets are equal.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::{Hash, Hasher, RandomState};
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set1 = TypedProjIndexSet::from([1_i32, 3_i32, 5_i32]);
+    /// let proj_set2 = TypedProjIndexSet::from([1_i32, 3_i32, 5_i32]);
+    ///
+    /// assert_eq!(proj_set1, proj_set2);
+    ///
+    /// assert!(proj_set1.is_superset(&proj_set2));
+    /// assert!(proj_set2.is_superset(&proj_set1));
+    /// ```
     pub fn is_superset<S2, A2>(&self, other: &TypedProjIndexSet<T, S2, A2>) -> bool
     where
         S2: any::Any + hash::BuildHasher + Send + Sync,
@@ -16168,6 +16460,88 @@ impl OpaqueIndexSet {
 }
 
 impl OpaqueIndexSet {
+    /// Determines whether two index sets have common elements.
+    ///
+    /// This method returns `true` if every value in `self` is not a value of `other`, and every
+    /// value of `other` is not a value of `self`. This method returns `false` if a value of `self`
+    /// is also value of `other`.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `set1` be an index set with values of type `T`. Let `set2` be an index set with values
+    /// of type `T`.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// Let `set` be an index set with values of type `T`. Let `v :: T` be a value of type `T`. We
+    /// say that `set` **contains** a value `v :: T`, or that `v` is a **value of** `set` if the
+    /// following holds:
+    ///
+    /// ```text
+    /// ∀ v :: T. (v ∈ set) ⇔ (∃ i ∈ [0, set.len()). set[i] = v).
+    /// ```
+    ///
+    /// If `v` is not a value of `set`, we write `v ∉ set`.
+    ///
+    /// The index set `set1` is **disjoint** from the index set `set2` if and only if
+    ///
+    /// ```text
+    /// is_disjoint(set1, set2) := ∀ v :: T. (v ∈ set1 ⇒ v ∉ set2) ∧ (v ∈ set2 ⇒ v ∉ set1).
+    /// ```
+    ///
+    /// ## Method Specification
+    ///
+    /// This method satisfies the following:
+    ///
+    /// ```text
+    /// { is_disjoint(set1, set2) }
+    /// set1.is_disjoint(set2)
+    /// { result = true }
+    ///
+    /// { ¬is_disjoint(set1, set2) }
+    /// set1.is_disjoint(set2)
+    /// { result = false }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Examples
+    ///
+    /// Testing the case where two index sets are disjoint.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::{Hash, Hasher, RandomState};
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_set1 = OpaqueIndexSet::from([1_i32, 3_i32, 5_i32]);
+    /// let opaque_set2 = OpaqueIndexSet::from([2_i32, 4_i32]);
+    ///
+    /// assert!(opaque_set1.is_disjoint::<i32, RandomState, Global, RandomState, Global>(&opaque_set2));
+    /// ```
+    ///
+    /// Testing the case where two index sets are not disjoint.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::{Hash, Hasher, RandomState};
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_set1 = OpaqueIndexSet::from([1_i32, 3_i32, 4_i32]);
+    /// let opaque_set2 = OpaqueIndexSet::from([2_i32, 4_i32]);
+    ///
+    /// assert!(!opaque_set1.is_disjoint::<i32, RandomState, Global, RandomState, Global>(&opaque_set2));
+    /// ```
     pub fn is_disjoint<T, S1, A1, S2, A2>(&self, other: &OpaqueIndexSet) -> bool
     where
         T: any::Any + hash::Hash + Eq,
@@ -16184,6 +16558,113 @@ impl OpaqueIndexSet {
         proj_self.is_disjoint(&proj_other)
     }
 
+    /// Determines whether one index set is a subset of the other index set.
+    ///
+    /// This method returns `true` if every value in `self` is a value in `other`. This method
+    /// returns `false` if there is a value of `self` that is not a value of `other`.
+    ///
+    /// This method returns `true` if `self` is setwise equal to other `other` as well.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `set1` be an index set with values of type `T`. Let `set2` be an index set with values
+    /// of type `T`.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// Let `set` be an index set with values of type `T`. Let `v :: T` be a value of type `T`. We
+    /// say that `set` **contains** a value `v :: T`, or that `v` is a **value of** `set` if the
+    /// following holds:
+    ///
+    /// ```text
+    /// ∀ v :: T. (v ∈ set) ⇔ (∃ i ∈ [0, set.len()). set[i] = v).
+    /// ```
+    ///
+    /// If `v` is not a value of `set`, we write `v ∉ set`.
+    ///
+    /// The index set `set1` is a **subset** of the index set `set2` if and only if
+    ///
+    /// ```text
+    /// is_subset(set1, set2) := ∀ v :: T. v ∈ set1 ⇒ v ∈ set2.
+    /// ```
+    ///
+    /// ## Method Specification
+    ///
+    /// This method satisfies the following:
+    ///
+    /// ```text
+    /// { is_subset(set1, set2) }
+    /// set1.is_subset(set2)
+    /// { result = true }
+    ///
+    /// { ¬is_subset(set1, set2) }
+    /// set1.is_subset(set2)
+    /// { result = false }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Examples
+    ///
+    /// Testing the case where one index set is a subset of the other index set.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::{Hash, Hasher, RandomState};
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_set1 = OpaqueIndexSet::from([1_i32, 5_i32]);
+    /// let opaque_set2 = OpaqueIndexSet::from([1_i32, 3_i32, 5_i32]);
+    ///
+    /// assert!(opaque_set1.is_subset::<i32, RandomState, Global, RandomState, Global>(&opaque_set2));
+    /// ```
+    ///
+    /// Testing the case where one index set is not a subset of the other index set.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::{Hash, Hasher, RandomState};
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_set1 = OpaqueIndexSet::from([1_i32, 5_i32, 7_i32]);
+    /// let opaque_set2 = OpaqueIndexSet::from([1_i32, 3_i32, 5_i32]);
+    ///
+    /// assert!(!opaque_set1.is_subset::<i32, RandomState, Global, RandomState, Global>(&opaque_set2));
+    /// ```
+    ///
+    /// Testing the case where two index sets are equal.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::{Hash, Hasher, RandomState};
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_set1 = OpaqueIndexSet::from([1_i32, 3_i32, 5_i32]);
+    /// let opaque_set2 = OpaqueIndexSet::from([1_i32, 3_i32, 5_i32]);
+    ///
+    /// assert_eq!(
+    ///     opaque_set1.as_slice::<i32, RandomState, Global>(),
+    ///     opaque_set2.as_slice::<i32, RandomState, Global>(),
+    /// );
+    ///
+    /// assert!(opaque_set1.is_subset::<i32, RandomState, Global, RandomState, Global>(&opaque_set2));
+    /// assert!(opaque_set2.is_subset::<i32, RandomState, Global, RandomState, Global>(&opaque_set1));
+    /// ```
     pub fn is_subset<T, S1, A1, S2, A2>(&self, other: &OpaqueIndexSet) -> bool
     where
         T: any::Any + hash::Hash + Eq,
@@ -16200,6 +16681,115 @@ impl OpaqueIndexSet {
         proj_self.is_subset(&proj_other)
     }
 
+    /// Determines whether one index set is a subset of the other index set.
+    ///
+    /// This method returns `true` if every value in `other` is a value in `self`. This method
+    /// returns `false` if there is a value of `other` that is not a value of `self`.
+    ///
+    /// This method returns `true` if `self` is setwise equal to `other` as well.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `set1` be an index set with values of type `T`. Let `set2` be an index set with values
+    /// of type `T`.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// Let `set` be an index set with values of type `T`. Let `v :: T` be a value of type `T`. We
+    /// say that `set` **contains** a value `v :: T`, or that `v` is a **value of** `set` if the
+    /// following holds:
+    ///
+    /// ```text
+    /// ∀ v :: T. (v ∈ set) ⇔ (∃ i ∈ [0, set.len()). set[i] = v).
+    /// ```
+    ///
+    /// If `v` is not a value of `set`, we write `v ∉ set`.
+    ///
+    /// The index set `set1` is a **superset** of the index set `set2` if and only if
+    ///
+    /// ```text
+    /// is_superset(set1, set2) := ∀ v :: T. v ∈ set2 ⇒ v ∈ set1.
+    /// ```
+    ///
+    /// ## Method Specification
+    ///
+    /// This method satisfies the following:
+    ///
+    /// ```text
+    /// { is_superset(set1, set2) }
+    /// set1.is_superset(set2)
+    /// { result = true }
+    ///
+    /// { ¬is_superset(set1, set2) }
+    /// set1.is_superset(set2)
+    /// { result = false }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Examples
+    ///
+    /// Testing the case where one index set is a superset of the other index set.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::{Hash, Hasher, RandomState};
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_set1 = OpaqueIndexSet::from([1_i32, 3_i32, 5_i32]);
+    /// let opaque_set2 = OpaqueIndexSet::from([1_i32, 5_i32]);
+    ///
+    /// assert!(opaque_set1.is_superset::<i32, RandomState, Global, RandomState, Global>(&opaque_set2));
+    /// ```
+    ///
+    /// # Examples
+    ///
+    /// Testing the case where one index set is not a superset of the other index set.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::{Hash, Hasher, RandomState};
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_set1 = OpaqueIndexSet::from([1_i32, 3_i32, 5_i32]);
+    /// let opaque_set2 = OpaqueIndexSet::from([1_i32, 4_i32]);
+    ///
+    /// assert!(!opaque_set1.is_superset::<i32, RandomState, Global, RandomState, Global>(&opaque_set2));
+    /// ```
+    ///
+    /// Testing the case where two index sets are equal.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::{Hash, Hasher, RandomState};
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_set1 = OpaqueIndexSet::from([1_i32, 3_i32, 5_i32]);
+    /// let opaque_set2 = OpaqueIndexSet::from([1_i32, 3_i32, 5_i32]);
+    ///
+    /// assert_eq!(
+    ///     opaque_set1.as_slice::<i32, RandomState, Global>(),
+    ///     opaque_set2.as_slice::<i32, RandomState, Global>(),
+    /// );
+    ///
+    /// assert!(opaque_set1.is_superset::<i32, RandomState, Global, RandomState, Global>(&opaque_set2));
+    /// assert!(opaque_set2.is_superset::<i32, RandomState, Global, RandomState, Global>(&opaque_set1));
+    /// ```
     pub fn is_superset<T, S1, A1, S2, A2>(&self, other: &OpaqueIndexSet) -> bool
     where
         T: any::Any + hash::Hash + Eq,
