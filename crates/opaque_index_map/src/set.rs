@@ -16168,6 +16168,56 @@ impl OpaqueIndexSet {
 }
 
 impl OpaqueIndexSet {
+    pub fn is_disjoint<T, S1, A1, S2, A2>(&self, other: &OpaqueIndexSet) -> bool
+    where
+        T: any::Any + hash::Hash + Eq,
+        S1: any::Any + hash::BuildHasher + Send + Sync,
+        S1::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A1: any::Any + alloc::Allocator + Send + Sync,
+        S2: any::Any + hash::BuildHasher + Send + Sync,
+        S2::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A2: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_self = self.as_proj::<T, S1, A1>();
+        let proj_other = other.as_proj::<T, S2, A2>();
+
+        proj_self.is_disjoint(&proj_other)
+    }
+
+    pub fn is_subset<T, S1, A1, S2, A2>(&self, other: &OpaqueIndexSet) -> bool
+    where
+        T: any::Any + hash::Hash + Eq,
+        S1: any::Any + hash::BuildHasher + Send + Sync,
+        S1::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A1: any::Any + alloc::Allocator + Send + Sync,
+        S2: any::Any + hash::BuildHasher + Send + Sync,
+        S2::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A2: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_self = self.as_proj::<T, S1, A1>();
+        let proj_other = other.as_proj::<T, S2, A2>();
+
+        proj_self.is_subset(&proj_other)
+    }
+
+    pub fn is_superset<T, S1, A1, S2, A2>(&self, other: &OpaqueIndexSet) -> bool
+    where
+        T: any::Any + hash::Hash + Eq,
+        S1: any::Any + hash::BuildHasher + Send + Sync,
+        S1::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A1: any::Any + alloc::Allocator + Send + Sync,
+        S2: any::Any + hash::BuildHasher + Send + Sync,
+        S2::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A2: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_self = self.as_proj::<T, S1, A1>();
+        let proj_other = other.as_proj::<T, S2, A2>();
+
+        proj_self.is_superset(&proj_other)
+    }
+}
+
+impl OpaqueIndexSet {
     /// Clones a type-erased index set.
     ///
     /// This method acts identically to an implementation of the [`Clone`] trait on a
