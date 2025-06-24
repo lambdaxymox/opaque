@@ -3619,8 +3619,8 @@ impl<K, V> Default for IterMut<'_, K, V> {
 
 /// A moving iterator over the entries of an index map.
 ///
-/// Moving iterators are created by the [`TypedProjIndexMap::into_iter`] and [`OpaqueIndexMap::into_iter`]
-/// methods.
+/// Moving iterators are created by the [`TypedProjIndexMap::into_iter`] and
+/// [`OpaqueIndexMap::into_iter`] methods.
 ///
 /// # Examples
 ///
@@ -10915,7 +10915,7 @@ where
     /// The **index** of a key `k` in `map` is defined by
     ///
     /// ```text
-    /// index(map, k) := i such that map[i].key() = k
+    /// index(map, k) := i such that map[i].key() = k.
     /// ```
     ///
     /// ## Method Specification
@@ -20493,7 +20493,7 @@ impl OpaqueIndexMap {
     /// The **index** of a key `k` in `map` is defined by
     ///
     /// ```text
-    /// index(map, k) := i such that map[i].key() = k
+    /// index(map, k) := i such that map[i].key() = k.
     /// ```
     ///
     /// ## Method Specification

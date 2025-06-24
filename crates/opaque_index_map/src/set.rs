@@ -350,17 +350,74 @@ impl_index_for_index_set_slice!(
     (ops::Bound<usize>, ops::Bound<usize>)
 );
 
+/// An iterator over the values of an index set.
+///
+/// Iterator is created by the [`TypedProjIndexSet::iter`] and [`OpaqueIndexSet::iter`]
+/// methods.
+///
+/// # Examples
+///
+/// ```
+/// # #![feature(allocator_api)]
+/// # use opaque_index_map::TypedProjIndexSet;
+/// # use opaque_hash::TypedProjBuildHasher;
+/// # use opaque_alloc::TypedProjAlloc;
+/// # use opaque_vec::TypedProjVec;
+/// # use std::any::TypeId;
+/// # use std::hash::RandomState;
+/// # use std::alloc::Global;
+/// #
+/// let proj_set: TypedProjIndexSet<i32> = TypedProjIndexSet::from([1_i32, 2_i32, 3_i32]);
+/// let entries: TypedProjVec<i32> = proj_set
+///     .iter()
+///     .cloned()
+///     .collect();
+///
+/// assert_eq!(entries.as_slice(), &[1_i32, 2_i32, 3_i32]);
+///
+/// // The entries come back in storage or insertion order from the index set.
+/// for i in 0..entries.len() {
+///     let expected = i;
+///     let result = proj_set.get_index_of(&entries[i]).unwrap();
+///     assert_eq!(result, expected);
+/// }
+/// ```
 pub struct Iter<'a, T> {
     iter: map_inner::Iter<'a, T, ()>,
 }
 
 impl<'a, T> Iter<'a, T> {
+    /// Constructs a new iterator.
     fn new(entries: &'a map_inner::Slice<T, ()>) -> Self {
         Self {
             iter: entries.iter(),
         }
     }
 
+    /// Returns a slice of the remaining items in the iterator.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set: TypedProjIndexSet<i32> = TypedProjIndexSet::from([1_i32, 2_i32, 3_i32]);
+    /// let mut iterator = proj_set.iter();
+    /// assert_eq!(iterator.as_slice(), &[1_i32, 2_i32, 3_i32]);
+    /// let _ = iterator.next().unwrap();
+    /// assert_eq!(iterator.as_slice(), &[2_i32, 3_i32]);
+    /// let _ = iterator.next().unwrap();
+    /// assert_eq!(iterator.as_slice(), &[3_i32]);
+    /// let _ = iterator.next().unwrap();
+    /// assert!(iterator.as_slice().is_empty());
+    /// ```
     pub fn as_slice(&self) -> &Slice<T> {
         Slice::from_slice(self.iter.as_slice())
     }
@@ -415,6 +472,33 @@ impl<T> Default for Iter<'_, T> {
     }
 }
 
+/// A moving iterator over the values of an index set.
+///
+/// Moving iterators is created by the [`TypedProjIndexSet::into_iter`] and
+/// [`OpaqueIndexSet::into_iter`] methods.
+///
+/// # Examples
+///
+/// ```
+/// # #![feature(allocator_api)]
+/// # use opaque_index_map::TypedProjIndexSet;
+/// # use opaque_hash::TypedProjBuildHasher;
+/// # use opaque_alloc::TypedProjAlloc;
+/// # use opaque_vec::TypedProjVec;
+/// # use std::any::TypeId;
+/// # use std::hash::RandomState;
+/// # use std::alloc::Global;
+/// #
+/// let proj_set: TypedProjIndexSet<i32> = TypedProjIndexSet::from([1_i32, 2_i32, 3_i32]);
+/// let mut iterator = proj_set.into_iter();
+///
+/// assert_eq!(iterator.as_slice(), &[1_i32, 2_i32, 3_i32]);
+///
+/// assert_eq!(iterator.next(), Some(1_i32));
+/// assert_eq!(iterator.next(), Some(2_i32));
+/// assert_eq!(iterator.next(), Some(3_i32));
+/// assert_eq!(iterator.next(), None);
+/// ```
 #[derive(Clone)]
 pub struct IntoIter<T, A = alloc::Global>
 where
@@ -429,6 +513,7 @@ where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
+    /// Constructs a new moving iterator.
     #[inline]
     const fn new(iter: map_inner::IntoIter<T, (), A>) -> Self {
         Self {
@@ -436,6 +521,30 @@ where
         }
     }
 
+    /// Returns a slice of the remaining values in the moving iterator.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set: TypedProjIndexSet<i32> = TypedProjIndexSet::from([1_i32, 2_i32, 3_i32]);
+    /// let mut iterator = proj_set.into_iter();
+    /// assert_eq!(iterator.as_slice(), &[1_i32, 2_i32, 3_i32]);
+    /// let _ = iterator.next().unwrap();
+    /// assert_eq!(iterator.as_slice(), &[2_i32, 3_i32]);
+    /// let _ = iterator.next().unwrap();
+    /// assert_eq!(iterator.as_slice(), &[3_i32]);
+    /// let _ = iterator.next().unwrap();
+    /// assert!(iterator.as_slice().is_empty());
+    /// ```
     pub fn as_slice(&self) -> &Slice<T> {
         Slice::from_slice(self.iter.as_slice())
     }
@@ -507,6 +616,36 @@ where
     }
 }
 
+/// A draining iterator over the entries of an index set.
+///
+/// Draining iterators are created by the [`TypedProjIndexSet::drain`] or [`OpaqueIndexSet::entry`]
+/// methods.
+///
+/// # Examples
+///
+/// ```
+/// # #![feature(allocator_api)]
+/// # use opaque_index_map::TypedProjIndexSet;
+/// # use opaque_hash::TypedProjBuildHasher;
+/// # use opaque_alloc::TypedProjAlloc;
+/// # use opaque_vec::TypedProjVec;
+/// # use std::any::TypeId;
+/// # use std::hash::RandomState;
+/// # use std::alloc::Global;
+/// #
+/// let mut result = TypedProjIndexSet::from([
+///     1_i32,
+///     i32::MAX - 2_i32,
+///     i32::MAX - 1_i32,
+///     i32::MAX - 0_i32,
+///     2_i32,
+///     3_i32,
+/// ]);
+/// let expected = TypedProjIndexSet::from([1_i32, 2_i32, 3_i32]);
+/// result.drain(1..4);
+///
+/// assert_eq!(result.as_slice(), expected.as_slice());
+/// ```
 pub struct Drain<'a, T, A = alloc::Global>
 where
     T: any::Any,
@@ -520,10 +659,42 @@ where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
+    /// Constructs a new draining iterator.
     fn new(iter: map_inner::Drain<'a, T, (), A>) -> Self {
         Self { iter, }
     }
 
+    /// Returns a slice of the remaining values in the draining iterator.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set = TypedProjIndexSet::from([
+    ///     "spam",
+    ///     "eggs",
+    ///     "bacon",
+    ///     "baked beans",
+    /// ]);
+    /// let mut drain = proj_set.drain(..);
+    /// assert_eq!(drain.as_slice(), &["spam", "eggs", "bacon", "baked beans"]);
+    /// let _ = drain.next().unwrap();
+    /// assert_eq!(drain.as_slice(), &["eggs", "bacon", "baked beans"]);
+    /// let _ = drain.next().unwrap();
+    /// assert_eq!(drain.as_slice(), &["bacon", "baked beans"]);
+    /// let _ = drain.next().unwrap();
+    /// assert_eq!(drain.as_slice(), &["baked beans"]);
+    /// let _ = drain.next().unwrap();
+    /// assert!(drain.as_slice().is_empty());
+    /// ```
     pub fn as_slice(&self) -> &Slice<T> {
         Slice::from_slice(self.iter.as_slice())
     }
@@ -583,6 +754,74 @@ where
     }
 }
 
+/// An iterator that produces values in the set-theoretic difference of two index sets.
+///
+/// Difference iterators are created by the [`TypedProjIndexSet::difference`] and
+/// [`OpaqueIndexSet::difference`] methods.
+///
+/// # Examples
+///
+/// Taking the difference of two type-projected index sets.
+///
+/// ```
+/// # #![feature(allocator_api)]
+/// # use opaque_index_map::TypedProjIndexSet;
+/// # use opaque_hash::TypedProjBuildHasher;
+/// # use opaque_alloc::TypedProjAlloc;
+/// # use opaque_vec::TypedProjVec;
+/// # use std::any::TypeId;
+/// # use std::cmp::Ordering;
+/// # use std::hash::RandomState;
+/// # use std::alloc::Global;
+/// #
+/// let proj_set1 = TypedProjIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32]);
+/// let proj_set2 = TypedProjIndexSet::from([2_i32, 4_i32]);
+/// let expected = TypedProjIndexSet::from([1_i32, 3_i32, 5_i32]);
+/// let result: TypedProjIndexSet<i32> = TypedProjIndexSet::from_iter(
+///     proj_set1.difference(&proj_set2).cloned()
+/// );
+///
+/// assert_eq!(result, expected);
+/// ```
+///
+/// Taking the difference of two type-erased index sets.
+///
+/// ```
+/// # #![feature(allocator_api)]
+/// # use opaque_index_map::{OpaqueIndexSet, TypedProjIndexSet};
+/// # use opaque_hash::TypedProjBuildHasher;
+/// # use opaque_alloc::TypedProjAlloc;
+/// # use opaque_vec::TypedProjVec;
+/// # use std::any::TypeId;
+/// # use std::cmp::Ordering;
+/// # use std::hash::RandomState;
+/// # use std::alloc::Global;
+/// #
+/// let opaque_set1 = OpaqueIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32]);
+/// #
+/// # assert!(opaque_set1.has_value_type::<i32>());
+/// # assert!(opaque_set1.has_build_hasher_type::<RandomState>());
+/// # assert!(opaque_set1.has_allocator_type::<Global>());
+/// #
+/// let opaque_set2 = OpaqueIndexSet::from([2_i32, 4_i32]);
+/// #
+/// # assert!(opaque_set2.has_value_type::<i32>());
+/// # assert!(opaque_set2.has_build_hasher_type::<RandomState>());
+/// # assert!(opaque_set2.has_allocator_type::<Global>());
+/// #
+/// let expected = TypedProjIndexSet::from([1_i32, 3_i32, 5_i32]);
+/// let opaque_result = OpaqueIndexSet::from_iter(
+///     opaque_set1.difference::<RandomState, i32, RandomState, Global>(&opaque_set2).cloned()
+/// );
+/// #
+/// # assert!(opaque_result.has_value_type::<i32>());
+/// # assert!(opaque_result.has_build_hasher_type::<RandomState>());
+/// # assert!(opaque_result.has_allocator_type::<Global>());
+/// #
+/// let result = opaque_result.into_proj::<i32, RandomState, Global>();
+///
+/// assert_eq!(result, expected);
+/// ```
 pub struct Difference<'a, T, S, A = alloc::Global>
 where
     T: any::Any,
@@ -601,6 +840,7 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
+    /// Constructs a new difference iterator.
     fn new<S1>(set: &'a TypedProjIndexSet<T, S1, A>, other: &'a TypedProjIndexSet<T, S, A>) -> Self
     where
         S1: any::Any + hash::BuildHasher + Send + Sync,
@@ -689,6 +929,74 @@ where
     }
 }
 
+/// An iterator that produces values in the set-theoretic intersection of two index sets.
+///
+/// Intersection iterators are created by the [`TypedProjIndexSet::intersection`] and
+/// [`OpaqueIndexSet::intersection`] methods.
+///
+/// # Examples
+///
+/// Taking the intersection of two type-projected index sets.
+///
+/// ```
+/// # #![feature(allocator_api)]
+/// # use opaque_index_map::TypedProjIndexSet;
+/// # use opaque_hash::TypedProjBuildHasher;
+/// # use opaque_alloc::TypedProjAlloc;
+/// # use opaque_vec::TypedProjVec;
+/// # use std::any::TypeId;
+/// # use std::cmp::Ordering;
+/// # use std::hash::RandomState;
+/// # use std::alloc::Global;
+/// #
+/// let proj_set1 = TypedProjIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32]);
+/// let proj_set2 = TypedProjIndexSet::from([2_i32, 4_i32, 6_i32]);
+/// let expected = TypedProjIndexSet::from([2_i32, 4_i32]);
+/// let result: TypedProjIndexSet<i32> = TypedProjIndexSet::from_iter(
+///     proj_set1.intersection(&proj_set2).cloned()
+/// );
+///
+/// assert_eq!(result, expected);
+/// ```
+///
+/// Taking the intersection of two type-erased index sets.
+///
+/// ```
+/// # #![feature(allocator_api)]
+/// # use opaque_index_map::{OpaqueIndexSet, TypedProjIndexSet};
+/// # use opaque_hash::TypedProjBuildHasher;
+/// # use opaque_alloc::TypedProjAlloc;
+/// # use opaque_vec::TypedProjVec;
+/// # use std::any::TypeId;
+/// # use std::cmp::Ordering;
+/// # use std::hash::RandomState;
+/// # use std::alloc::Global;
+/// #
+/// let opaque_set1 = OpaqueIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32]);
+/// #
+/// # assert!(opaque_set1.has_value_type::<i32>());
+/// # assert!(opaque_set1.has_build_hasher_type::<RandomState>());
+/// # assert!(opaque_set1.has_allocator_type::<Global>());
+/// #
+/// let opaque_set2 = OpaqueIndexSet::from([2_i32, 4_i32, 6_i32]);
+/// #
+/// # assert!(opaque_set2.has_value_type::<i32>());
+/// # assert!(opaque_set2.has_build_hasher_type::<RandomState>());
+/// # assert!(opaque_set2.has_allocator_type::<Global>());
+/// #
+/// let expected = TypedProjIndexSet::from([2_i32, 4_i32]);
+/// let opaque_result = OpaqueIndexSet::from_iter(
+///     opaque_set1.intersection::<RandomState, i32, RandomState, Global>(&opaque_set2).cloned()
+/// );
+/// #
+/// # assert!(opaque_result.has_value_type::<i32>());
+/// # assert!(opaque_result.has_build_hasher_type::<RandomState>());
+/// # assert!(opaque_result.has_allocator_type::<Global>());
+/// #
+/// let result = opaque_result.into_proj::<i32, RandomState, Global>();
+///
+/// assert_eq!(result, expected);
+/// ```
 pub struct Intersection<'a, T, S, A = alloc::Global>
 where
     T: any::Any,
@@ -707,6 +1015,7 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
+    /// Constructs a new intersection iterator.
     fn new<S1>(set: &'a TypedProjIndexSet<T, S1, A>, other: &'a TypedProjIndexSet<T, S, A>) -> Self
     where
         S1: any::Any + hash::BuildHasher + Send + Sync,
@@ -795,6 +1104,74 @@ where
     }
 }
 
+/// An iterator that produces values in the set-theoretic symmetric difference of two index sets.
+///
+/// Symmetric difference iterators are created by the [`TypedProjIndexSet::symmetric_difference`]
+/// and [`OpaqueIndexSet::symmetric_difference`] methods.
+///
+/// # Examples
+///
+/// Taking the symmetric difference of two type-projected index sets.
+///
+/// ```
+/// # #![feature(allocator_api)]
+/// # use opaque_index_map::TypedProjIndexSet;
+/// # use opaque_hash::TypedProjBuildHasher;
+/// # use opaque_alloc::TypedProjAlloc;
+/// # use opaque_vec::TypedProjVec;
+/// # use std::any::TypeId;
+/// # use std::cmp::Ordering;
+/// # use std::hash::RandomState;
+/// # use std::alloc::Global;
+/// #
+/// let proj_set1 = TypedProjIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32]);
+/// let proj_set2 = TypedProjIndexSet::from([2_i32, 4_i32, 5_i32, 8_i32]);
+/// let expected = TypedProjIndexSet::from([1_i32, 3_i32, 8_i32]);
+/// let result: TypedProjIndexSet<i32> = TypedProjIndexSet::from_iter(
+///     proj_set1.symmetric_difference(&proj_set2).cloned()
+/// );
+///
+/// assert_eq!(result, expected);
+/// ```
+///
+/// Taking the symmetric difference of two type-erased index sets.
+///
+/// ```
+/// # #![feature(allocator_api)]
+/// # use opaque_index_map::{OpaqueIndexSet, TypedProjIndexSet};
+/// # use opaque_hash::TypedProjBuildHasher;
+/// # use opaque_alloc::TypedProjAlloc;
+/// # use opaque_vec::TypedProjVec;
+/// # use std::any::TypeId;
+/// # use std::cmp::Ordering;
+/// # use std::hash::RandomState;
+/// # use std::alloc::Global;
+/// #
+/// let opaque_set1 = OpaqueIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32]);
+/// #
+/// # assert!(opaque_set1.has_value_type::<i32>());
+/// # assert!(opaque_set1.has_build_hasher_type::<RandomState>());
+/// # assert!(opaque_set1.has_allocator_type::<Global>());
+/// #
+/// let opaque_set2 = OpaqueIndexSet::from([2_i32, 4_i32, 5_i32, 8_i32]);
+/// #
+/// # assert!(opaque_set2.has_value_type::<i32>());
+/// # assert!(opaque_set2.has_build_hasher_type::<RandomState>());
+/// # assert!(opaque_set2.has_allocator_type::<Global>());
+/// #
+/// let expected = TypedProjIndexSet::from([1_i32, 3_i32, 8_i32]);
+/// let opaque_result = OpaqueIndexSet::from_iter(
+///     opaque_set1.symmetric_difference::<RandomState, i32, RandomState, Global>(&opaque_set2).cloned()
+/// );
+/// #
+/// # assert!(opaque_result.has_value_type::<i32>());
+/// # assert!(opaque_result.has_build_hasher_type::<RandomState>());
+/// # assert!(opaque_result.has_allocator_type::<Global>());
+/// #
+/// let result = opaque_result.into_proj::<i32, RandomState, Global>();
+///
+/// assert_eq!(result, expected);
+/// ```
 pub struct SymmetricDifference<'a, T, S1, S2, A = alloc::Global>
 where
     T: any::Any,
@@ -816,6 +1193,7 @@ where
     S2::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
+    /// Constructs a new symmetric difference iterator.
     fn new(set1: &'a TypedProjIndexSet<T, S1, A>, set2: &'a TypedProjIndexSet<T, S2, A>) -> Self {
         let diff1 = set1.difference(set2);
         let diff2 = set2.difference(set1);
@@ -914,6 +1292,74 @@ where
     }
 }
 
+/// An iterator that produces values in the set-theoretic union of two index sets.
+///
+/// Union iterators are created by the [`TypedProjIndexSet::union`] and [`OpaqueIndexSet::union`]
+/// methods.
+///
+/// # Examples
+///
+/// Taking the union of two type-projected index sets.
+///
+/// ```
+/// # #![feature(allocator_api)]
+/// # use opaque_index_map::TypedProjIndexSet;
+/// # use opaque_hash::TypedProjBuildHasher;
+/// # use opaque_alloc::TypedProjAlloc;
+/// # use opaque_vec::TypedProjVec;
+/// # use std::any::TypeId;
+/// # use std::cmp::Ordering;
+/// # use std::hash::RandomState;
+/// # use std::alloc::Global;
+/// #
+/// let proj_set1 = TypedProjIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32]);
+/// let proj_set2 = TypedProjIndexSet::from([2_i32, 4_i32, 5_i32, 6_i32]);
+/// let expected = TypedProjIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32]);
+/// let result: TypedProjIndexSet<i32> = TypedProjIndexSet::from_iter(
+///     proj_set1.union(&proj_set2).cloned()
+/// );
+///
+/// assert_eq!(result, expected);
+/// ```
+///
+/// Taking the union of two type-erased index sets.
+///
+/// ```
+/// # #![feature(allocator_api)]
+/// # use opaque_index_map::{OpaqueIndexSet, TypedProjIndexSet};
+/// # use opaque_hash::TypedProjBuildHasher;
+/// # use opaque_alloc::TypedProjAlloc;
+/// # use opaque_vec::TypedProjVec;
+/// # use std::any::TypeId;
+/// # use std::cmp::Ordering;
+/// # use std::hash::RandomState;
+/// # use std::alloc::Global;
+/// #
+/// let opaque_set1 = OpaqueIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32]);
+/// #
+/// # assert!(opaque_set1.has_value_type::<i32>());
+/// # assert!(opaque_set1.has_build_hasher_type::<RandomState>());
+/// # assert!(opaque_set1.has_allocator_type::<Global>());
+/// #
+/// let opaque_set2 = OpaqueIndexSet::from([2_i32, 4_i32, 5_i32, 6_i32]);
+/// #
+/// # assert!(opaque_set2.has_value_type::<i32>());
+/// # assert!(opaque_set2.has_build_hasher_type::<RandomState>());
+/// # assert!(opaque_set2.has_allocator_type::<Global>());
+/// #
+/// let expected = TypedProjIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32]);
+/// let opaque_result = OpaqueIndexSet::from_iter(
+///     opaque_set1.union::<RandomState, i32, RandomState, Global>(&opaque_set2).cloned()
+/// );
+/// #
+/// # assert!(opaque_result.has_value_type::<i32>());
+/// # assert!(opaque_result.has_build_hasher_type::<RandomState>());
+/// # assert!(opaque_result.has_allocator_type::<Global>());
+/// #
+/// let result = opaque_result.into_proj::<i32, RandomState, Global>();
+///
+/// assert_eq!(result, expected);
+/// ```
 pub struct Union<'a, T, S, A = alloc::Global>
 where
     T: any::Any,
@@ -931,6 +1377,7 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
+    /// Constructs a new union iterator.
     fn new<S2>(set1: &'a TypedProjIndexSet<T, S, A>, set2: &'a TypedProjIndexSet<T, S2, A>) -> Self
     where
         S2: any::Any + hash::BuildHasher + Send + Sync,
@@ -1021,6 +1468,75 @@ where
     }
 }
 
+/// An iterator that drains a slice of an index set, then splices a new slice in place of the
+/// drained slice.
+///
+/// If a value in the new slice is same as a value in the remaining values of the index set, the
+/// value in the old slice remains in the same storage position in the index set.
+///
+/// Splicing iterators are created by the [`TypedProjIndexSet::splice`] and
+/// [`OpaqueIndexSet::splice`] methods.
+///
+/// # Examples
+///
+/// Using a splicing iterator on a type-projected index set.
+///
+/// ```
+/// # #![feature(allocator_api)]
+/// # use opaque_index_map::TypedProjIndexSet;
+/// # use opaque_hash::TypedProjBuildHasher;
+/// # use opaque_alloc::TypedProjAlloc;
+/// # use opaque_vec::TypedProjVec;
+/// # use std::any::TypeId;
+/// # use std::cmp::Ordering;
+/// # use std::hash::RandomState;
+/// # use std::alloc::Global;
+/// #
+/// let proj_set = TypedProjIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32]);
+/// let mut result = proj_set.clone();
+/// let splice_data = [8_i32, 9_i32, 10_i32, 11_i32];
+/// let expected = TypedProjIndexSet::from([1_i32, 8_i32, 9_i32, 10_i32, 11_i32, 5_i32]);
+/// result.splice(1..4, splice_data);
+///
+/// assert_eq!(result.as_slice(), expected.as_slice());
+/// ```
+///
+/// Using a splicing iterator on a type-erased index set.
+///
+/// ```
+/// # #![feature(allocator_api)]
+/// # use opaque_index_map::OpaqueIndexSet;
+/// # use opaque_hash::TypedProjBuildHasher;
+/// # use opaque_alloc::TypedProjAlloc;
+/// # use opaque_vec::TypedProjVec;
+/// # use std::any::TypeId;
+/// # use std::cmp::Ordering;
+/// # use std::hash::RandomState;
+/// # use std::alloc::Global;
+/// #
+/// let opaque_set = OpaqueIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32]);
+/// #
+/// # assert!(opaque_set.has_value_type::<i32>());
+/// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+/// # assert!(opaque_set.has_allocator_type::<Global>());
+/// #
+/// let mut result = opaque_set.clone::<i32, RandomState, Global>();
+/// #
+/// # assert!(result.has_value_type::<i32>());
+/// # assert!(result.has_build_hasher_type::<RandomState>());
+/// # assert!(result.has_allocator_type::<Global>());
+/// #
+/// let splice_data = [8_i32, 9_i32, 10_i32, 11_i32];
+/// let expected = OpaqueIndexSet::from([1_i32, 8_i32, 9_i32, 10_i32, 11_i32, 5_i32]);
+/// #
+/// # assert!(expected.has_value_type::<i32>());
+/// # assert!(expected.has_build_hasher_type::<RandomState>());
+/// # assert!(expected.has_allocator_type::<Global>());
+/// #
+/// result.splice::<_, _, i32, RandomState, Global>(1..4, splice_data);
+///
+/// assert_eq!(result.as_slice::<i32, RandomState, Global>(), expected.as_slice::<i32, RandomState, Global>());
+/// ```
 #[cfg(feature = "std")]
 pub struct Splice<'a, I, T, S = hash::RandomState, A = alloc::Global>
 where
@@ -1053,6 +1569,7 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
+    /// Constructs a new splicing iterator.
     #[track_caller]
     fn new<R>(set: &'a mut TypedProjIndexSet<T, S, A>, range: R, replace_with: I) -> Self
     where
@@ -16520,7 +17037,17 @@ impl OpaqueIndexSet {
     /// # use std::alloc::Global;
     /// #
     /// let opaque_set1 = OpaqueIndexSet::from([1_i32, 3_i32, 5_i32]);
+    /// #
+    /// # assert!(opaque_set1.has_value_type::<i32>());
+    /// # assert!(opaque_set1.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set1.has_allocator_type::<Global>());
+    /// #
     /// let opaque_set2 = OpaqueIndexSet::from([2_i32, 4_i32]);
+    /// #
+    /// # assert!(opaque_set2.has_value_type::<i32>());
+    /// # assert!(opaque_set2.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set2.has_allocator_type::<Global>());
+    /// #
     ///
     /// assert!(opaque_set1.is_disjoint::<i32, RandomState, Global, RandomState, Global>(&opaque_set2));
     /// ```
@@ -16538,7 +17065,17 @@ impl OpaqueIndexSet {
     /// # use std::alloc::Global;
     /// #
     /// let opaque_set1 = OpaqueIndexSet::from([1_i32, 3_i32, 4_i32]);
+    /// #
+    /// # assert!(opaque_set1.has_value_type::<i32>());
+    /// # assert!(opaque_set1.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set1.has_allocator_type::<Global>());
+    /// #
     /// let opaque_set2 = OpaqueIndexSet::from([2_i32, 4_i32]);
+    /// #
+    /// # assert!(opaque_set2.has_value_type::<i32>());
+    /// # assert!(opaque_set2.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set2.has_allocator_type::<Global>());
+    /// #
     ///
     /// assert!(!opaque_set1.is_disjoint::<i32, RandomState, Global, RandomState, Global>(&opaque_set2));
     /// ```
@@ -16619,7 +17156,17 @@ impl OpaqueIndexSet {
     /// # use std::alloc::Global;
     /// #
     /// let opaque_set1 = OpaqueIndexSet::from([1_i32, 5_i32]);
+    /// #
+    /// # assert!(opaque_set1.has_value_type::<i32>());
+    /// # assert!(opaque_set1.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set1.has_allocator_type::<Global>());
+    /// #
     /// let opaque_set2 = OpaqueIndexSet::from([1_i32, 3_i32, 5_i32]);
+    /// #
+    /// # assert!(opaque_set2.has_value_type::<i32>());
+    /// # assert!(opaque_set2.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set2.has_allocator_type::<Global>());
+    /// #
     ///
     /// assert!(opaque_set1.is_subset::<i32, RandomState, Global, RandomState, Global>(&opaque_set2));
     /// ```
@@ -16637,7 +17184,17 @@ impl OpaqueIndexSet {
     /// # use std::alloc::Global;
     /// #
     /// let opaque_set1 = OpaqueIndexSet::from([1_i32, 5_i32, 7_i32]);
+    /// #
+    /// # assert!(opaque_set1.has_value_type::<i32>());
+    /// # assert!(opaque_set1.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set1.has_allocator_type::<Global>());
+    /// #
     /// let opaque_set2 = OpaqueIndexSet::from([1_i32, 3_i32, 5_i32]);
+    /// #
+    /// # assert!(opaque_set2.has_value_type::<i32>());
+    /// # assert!(opaque_set2.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set2.has_allocator_type::<Global>());
+    /// #
     ///
     /// assert!(!opaque_set1.is_subset::<i32, RandomState, Global, RandomState, Global>(&opaque_set2));
     /// ```
@@ -16655,7 +17212,17 @@ impl OpaqueIndexSet {
     /// # use std::alloc::Global;
     /// #
     /// let opaque_set1 = OpaqueIndexSet::from([1_i32, 3_i32, 5_i32]);
+    /// #
+    /// # assert!(opaque_set1.has_value_type::<i32>());
+    /// # assert!(opaque_set1.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set1.has_allocator_type::<Global>());
+    /// #
     /// let opaque_set2 = OpaqueIndexSet::from([1_i32, 3_i32, 5_i32]);
+    /// #
+    /// # assert!(opaque_set2.has_value_type::<i32>());
+    /// # assert!(opaque_set2.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set2.has_allocator_type::<Global>());
+    /// #
     ///
     /// assert_eq!(
     ///     opaque_set1.as_slice::<i32, RandomState, Global>(),
@@ -16742,7 +17309,17 @@ impl OpaqueIndexSet {
     /// # use std::alloc::Global;
     /// #
     /// let opaque_set1 = OpaqueIndexSet::from([1_i32, 3_i32, 5_i32]);
+    /// #
+    /// # assert!(opaque_set1.has_value_type::<i32>());
+    /// # assert!(opaque_set1.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set1.has_allocator_type::<Global>());
+    /// #
     /// let opaque_set2 = OpaqueIndexSet::from([1_i32, 5_i32]);
+    /// #
+    /// # assert!(opaque_set2.has_value_type::<i32>());
+    /// # assert!(opaque_set2.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set2.has_allocator_type::<Global>());
+    /// #
     ///
     /// assert!(opaque_set1.is_superset::<i32, RandomState, Global, RandomState, Global>(&opaque_set2));
     /// ```
@@ -16762,7 +17339,17 @@ impl OpaqueIndexSet {
     /// # use std::alloc::Global;
     /// #
     /// let opaque_set1 = OpaqueIndexSet::from([1_i32, 3_i32, 5_i32]);
+    /// #
+    /// # assert!(opaque_set1.has_value_type::<i32>());
+    /// # assert!(opaque_set1.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set1.has_allocator_type::<Global>());
+    /// #
     /// let opaque_set2 = OpaqueIndexSet::from([1_i32, 4_i32]);
+    /// #
+    /// # assert!(opaque_set2.has_value_type::<i32>());
+    /// # assert!(opaque_set2.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set2.has_allocator_type::<Global>());
+    /// #
     ///
     /// assert!(!opaque_set1.is_superset::<i32, RandomState, Global, RandomState, Global>(&opaque_set2));
     /// ```
@@ -16780,7 +17367,17 @@ impl OpaqueIndexSet {
     /// # use std::alloc::Global;
     /// #
     /// let opaque_set1 = OpaqueIndexSet::from([1_i32, 3_i32, 5_i32]);
+    /// #
+    /// # assert!(opaque_set1.has_value_type::<i32>());
+    /// # assert!(opaque_set1.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set1.has_allocator_type::<Global>());
+    /// #
     /// let opaque_set2 = OpaqueIndexSet::from([1_i32, 3_i32, 5_i32]);
+    /// #
+    /// # assert!(opaque_set2.has_value_type::<i32>());
+    /// # assert!(opaque_set2.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set2.has_allocator_type::<Global>());
+    /// #
     ///
     /// assert_eq!(
     ///     opaque_set1.as_slice::<i32, RandomState, Global>(),
