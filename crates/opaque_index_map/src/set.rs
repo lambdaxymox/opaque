@@ -5448,39 +5448,42 @@ where
     ///     ∧ (∀ v :: T. ∃ q :: Q. equiv(X, f, g)(q, v)).
     /// ```
     ///
-    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `T` under X**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `T` using `X`**
     /// if and only if
     ///
     /// ```text
     /// equiv(X, Q, T) := ∃ f: Q → X. ∃ g: T → X. equiv(X, f, g)(Q, T).
     /// ```
     ///
-    /// We say that the type **`Q` is **equivalent to value type `T`**, or
-    /// **`Q` is equivalent to `T`**, if and only if
+    /// Value equality is a special case of value equivalence. Let `T` be a hashable data type. Let
+    /// `Q = T`, and `f = g = id`. Then
     ///
     /// ```text
-    /// equiv(Q, T) := equiv(T, Q, T).
+    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)`
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the value type `T`. Let `f: Q → X` and `id: T → X` be the
-    /// identity. We say that **`q` is equivalent to `v`** if and only if
+    /// so that we have `equiv(T, id, id)(T, T)` which implies `equiv(T, T, T)`, i.e. `T` is
+    /// equivalent to `T` using `T` when `T` is a hashable type.
+    ///
+    /// Let `Q` be a type equivalent to the value type `T` using `T`. Let `f: Q → T` and `id: T → T`
+    /// be the identity. We say that **`q` is equivalent to `v`** if and only if
     ///
     /// ```text
-    /// equiv(q, v) := equiv(X, f, id)(q, v).
+    /// equiv(q, v) := equiv(T, f, id)(q, v).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to value type `T`. We say that `q` is an
-    /// **equivalent value of** the set `set`, or that **`set` equivalently contains `q`** if and
+    /// Let `Q` be a data type equivalent to value type `T` using `T`. We say that `q` is an
+    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
     /// only if
     ///
     /// ```text
-    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i].value()).
+    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
     /// ```
     ///
-    /// If `q` is not an equivalent value of `set`, we write `q ~∉ set`.
+    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
     ///
-    /// Value equality is a special case of value equivalence because we can take `Q = T` and
-    /// `f = g = id` provided that `T` is a hashable type.
+    /// When `T` is a hashable type, we see that `v ~∈ map ⇔ v ∈ map`, so that equivalent
+    /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
     ///
@@ -5582,39 +5585,42 @@ where
     ///     ∧ (∀ v :: T. ∃ q :: Q. equiv(X, f, g)(q, v)).
     /// ```
     ///
-    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `T` under X**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `T` using `X`**
     /// if and only if
     ///
     /// ```text
     /// equiv(X, Q, T) := ∃ f: Q → X. ∃ g: T → X. equiv(X, f, g)(Q, T).
     /// ```
     ///
-    /// We say that the type **`Q` is **equivalent to value type `T`**, or
-    /// **`Q` is equivalent to `T`**, if and only if
+    /// Value equality is a special case of value equivalence. Let `T` be a hashable data type. Let
+    /// `Q = T`, and `f = g = id`. Then
     ///
     /// ```text
-    /// equiv(Q, T) := equiv(T, Q, T).
+    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)`
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the value type `T`. Let `f: Q → X` and `id: T → X` be the
-    /// identity. We say that **`q` is equivalent to `v`** if and only if
+    /// so that we have `equiv(T, id, id)(T, T)` which implies `equiv(T, T, T)`, i.e. `T` is
+    /// equivalent to `T` using `T` when `T` is a hashable type.
+    ///
+    /// Let `Q` be a type equivalent to the value type `T` using `T`. Let `f: Q → T` and `id: T → T`
+    /// be the identity. We say that **`q` is equivalent to `v`** if and only if
     ///
     /// ```text
-    /// equiv(q, v) := equiv(X, f, id)(q, v).
+    /// equiv(q, v) := equiv(T, f, id)(q, v).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to value type `T`. We say that `q` is an
-    /// **equivalent value of** the set `set`, or that **`set` equivalently contains `q`** if and
+    /// Let `Q` be a data type equivalent to value type `T` using `T`. We say that `q` is an
+    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
     /// only if
     ///
     /// ```text
-    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i].value()).
+    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
     /// ```
     ///
-    /// If `q` is not an equivalent value of `set`, we write `q ~∉ set`.
+    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
     ///
-    /// Value equality is a special case of value equivalence because we can take `Q = T` and
-    /// `f = g = id` provided that `T` is a hashable type.
+    /// When `T` is a hashable type, we see that `v ~∈ map ⇔ v ∈ map`, so that equivalent
+    /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
     ///
@@ -5716,39 +5722,42 @@ where
     ///     ∧ (∀ v :: T. ∃ q :: Q. equiv(X, f, g)(q, v)).
     /// ```
     ///
-    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `T` under X**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `T` using `X`**
     /// if and only if
     ///
     /// ```text
     /// equiv(X, Q, T) := ∃ f: Q → X. ∃ g: T → X. equiv(X, f, g)(Q, T).
     /// ```
     ///
-    /// We say that the type **`Q` is **equivalent to value type `T`**, or
-    /// **`Q` is equivalent to `T`**, if and only if
+    /// Value equality is a special case of value equivalence. Let `T` be a hashable data type. Let
+    /// `Q = T`, and `f = g = id`. Then
     ///
     /// ```text
-    /// equiv(Q, T) := equiv(T, Q, T).
+    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)`
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the value type `T`. Let `f: Q → X` and `id: T → X` be the
-    /// identity. We say that **`q` is equivalent to `v`** if and only if
+    /// so that we have `equiv(T, id, id)(T, T)` which implies `equiv(T, T, T)`, i.e. `T` is
+    /// equivalent to `T` using `T` when `T` is a hashable type.
+    ///
+    /// Let `Q` be a type equivalent to the value type `T` using `T`. Let `f: Q → T` and `id: T → T`
+    /// be the identity. We say that **`q` is equivalent to `v`** if and only if
     ///
     /// ```text
-    /// equiv(q, v) := equiv(X, f, id)(q, v).
+    /// equiv(q, v) := equiv(T, f, id)(q, v).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to value type `T`. We say that `q` is an
-    /// **equivalent value of** the set `set`, or that **`set` equivalently contains `q`** if and
+    /// Let `Q` be a data type equivalent to value type `T` using `T`. We say that `q` is an
+    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
     /// only if
     ///
     /// ```text
-    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i].value()).
+    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
     /// ```
     ///
-    /// If `q` is not an equivalent value of `set`, we write `q ~∉ set`.
+    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
     ///
-    /// Value equality is a special case of value equivalence because we can take `Q = T` and
-    /// `f = g = id` provided that `T` is a hashable type.
+    /// When `T` is a hashable type, we see that `v ~∈ map ⇔ v ∈ map`, so that equivalent
+    /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
     ///
@@ -5849,39 +5858,42 @@ where
     ///     ∧ (∀ v :: T. ∃ q :: Q. equiv(X, f, g)(q, v)).
     /// ```
     ///
-    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `T` under X**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `T` using `X`**
     /// if and only if
     ///
     /// ```text
     /// equiv(X, Q, T) := ∃ f: Q → X. ∃ g: T → X. equiv(X, f, g)(Q, T).
     /// ```
     ///
-    /// We say that the type **`Q` is **equivalent to value type `T`**, or
-    /// **`Q` is equivalent to `T`**, if and only if
+    /// Value equality is a special case of value equivalence. Let `T` be a hashable data type. Let
+    /// `Q = T`, and `f = g = id`. Then
     ///
     /// ```text
-    /// equiv(Q, T) := equiv(T, Q, T).
+    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)`
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the value type `T`. Let `f: Q → X` and `id: T → X` be the
-    /// identity. We say that **`q` is equivalent to `v`** if and only if
+    /// so that we have `equiv(T, id, id)(T, T)` which implies `equiv(T, T, T)`, i.e. `T` is
+    /// equivalent to `T` using `T` when `T` is a hashable type.
+    ///
+    /// Let `Q` be a type equivalent to the value type `T` using `T`. Let `f: Q → T` and `id: T → T`
+    /// be the identity. We say that **`q` is equivalent to `v`** if and only if
     ///
     /// ```text
-    /// equiv(q, v) := equiv(X, f, id)(q, v).
+    /// equiv(q, v) := equiv(T, f, id)(q, v).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to value type `T`. We say that `q` is an
-    /// **equivalent value of** the set `set`, or that **`set` equivalently contains `q`** if and
+    /// Let `Q` be a data type equivalent to value type `T` using `T`. We say that `q` is an
+    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
     /// only if
     ///
     /// ```text
-    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i].value()).
+    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
     /// ```
     ///
-    /// If `q` is not an equivalent value of `set`, we write `q ~∉ set`.
+    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
     ///
-    /// Value equality is a special case of value equivalence because we can take `Q = T` and
-    /// `f = g = id` provided that `T` is a hashable type.
+    /// When `T` is a hashable type, we see that `v ~∈ map ⇔ v ∈ map`, so that equivalent
+    /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
     ///
@@ -5991,39 +6003,42 @@ where
     ///     ∧ (∀ v :: T. ∃ q :: Q. equiv(X, f, g)(q, v)).
     /// ```
     ///
-    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `T` under X**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `T` using `X`**
     /// if and only if
     ///
     /// ```text
     /// equiv(X, Q, T) := ∃ f: Q → X. ∃ g: T → X. equiv(X, f, g)(Q, T).
     /// ```
     ///
-    /// We say that the type **`Q` is **equivalent to value type `T`**, or
-    /// **`Q` is equivalent to `T`**, if and only if
+    /// Value equality is a special case of value equivalence. Let `T` be a hashable data type. Let
+    /// `Q = T`, and `f = g = id`. Then
     ///
     /// ```text
-    /// equiv(Q, T) := equiv(T, Q, T).
+    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)`
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the value type `T`. Let `f: Q → X` and `id: T → X` be the
-    /// identity. We say that **`q` is equivalent to `v`** if and only if
+    /// so that we have `equiv(T, id, id)(T, T)` which implies `equiv(T, T, T)`, i.e. `T` is
+    /// equivalent to `T` using `T` when `T` is a hashable type.
+    ///
+    /// Let `Q` be a type equivalent to the value type `T` using `T`. Let `f: Q → T` and `id: T → T`
+    /// be the identity. We say that **`q` is equivalent to `v`** if and only if
     ///
     /// ```text
-    /// equiv(q, v) := equiv(X, f, id)(q, v).
+    /// equiv(q, v) := equiv(T, f, id)(q, v).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to value type `T`. We say that `q` is an
-    /// **equivalent value of** the set `set`, or that **`set` equivalently contains `q`** if and
+    /// Let `Q` be a data type equivalent to value type `T` using `T`. We say that `q` is an
+    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
     /// only if
     ///
     /// ```text
-    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i].value()).
+    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
     /// ```
     ///
-    /// If `q` is not an equivalent value of `set`, we write `q ~∉ set`.
+    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
     ///
-    /// Value equality is a special case of value equivalence because we can take `Q = T` and
-    /// `f = g = id` provided that `T` is a hashable type.
+    /// When `T` is a hashable type, we see that `v ~∈ map ⇔ v ∈ map`, so that equivalent
+    /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
     ///
@@ -6179,39 +6194,42 @@ where
     ///     ∧ (∀ v :: T. ∃ q :: Q. equiv(X, f, g)(q, v)).
     /// ```
     ///
-    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `T` under X**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `T` using `X`**
     /// if and only if
     ///
     /// ```text
     /// equiv(X, Q, T) := ∃ f: Q → X. ∃ g: T → X. equiv(X, f, g)(Q, T).
     /// ```
     ///
-    /// We say that the type **`Q` is **equivalent to value type `T`**, or
-    /// **`Q` is equivalent to `T`**, if and only if
+    /// Value equality is a special case of value equivalence. Let `T` be a hashable data type. Let
+    /// `Q = T`, and `f = g = id`. Then
     ///
     /// ```text
-    /// equiv(Q, T) := equiv(T, Q, T).
+    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)`
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the value type `T`. Let `f: Q → X` and `id: T → X` be the
-    /// identity. We say that **`q` is equivalent to `v`** if and only if
+    /// so that we have `equiv(T, id, id)(T, T)` which implies `equiv(T, T, T)`, i.e. `T` is
+    /// equivalent to `T` using `T` when `T` is a hashable type.
+    ///
+    /// Let `Q` be a type equivalent to the value type `T` using `T`. Let `f: Q → T` and `id: T → T`
+    /// be the identity. We say that **`q` is equivalent to `v`** if and only if
     ///
     /// ```text
-    /// equiv(q, v) := equiv(X, f, id)(q, v).
+    /// equiv(q, v) := equiv(T, f, id)(q, v).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to value type `T`. We say that `q` is an
-    /// **equivalent value of** the set `set`, or that **`set` equivalently contains `q`** if and
+    /// Let `Q` be a data type equivalent to value type `T` using `T`. We say that `q` is an
+    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
     /// only if
     ///
     /// ```text
-    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i].value()).
+    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
     /// ```
     ///
-    /// If `q` is not an equivalent value of `set`, we write `q ~∉ set`.
+    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
     ///
-    /// Value equality is a special case of value equivalence because we can take `Q = T` and
-    /// `f = g = id` provided that `T` is a hashable type.
+    /// When `T` is a hashable type, we see that `v ~∈ map ⇔ v ∈ map`, so that equivalent
+    /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
     ///
@@ -6367,39 +6385,42 @@ where
     ///     ∧ (∀ v :: T. ∃ q :: Q. equiv(X, f, g)(q, v)).
     /// ```
     ///
-    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `T` under X**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `T` using `X`**
     /// if and only if
     ///
     /// ```text
     /// equiv(X, Q, T) := ∃ f: Q → X. ∃ g: T → X. equiv(X, f, g)(Q, T).
     /// ```
     ///
-    /// We say that the type **`Q` is **equivalent to value type `T`**, or
-    /// **`Q` is equivalent to `T`**, if and only if
+    /// Value equality is a special case of value equivalence. Let `T` be a hashable data type. Let
+    /// `Q = T`, and `f = g = id`. Then
     ///
     /// ```text
-    /// equiv(Q, T) := equiv(T, Q, T).
+    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)`
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the value type `T`. Let `f: Q → X` and `id: T → X` be the
-    /// identity. We say that **`q` is equivalent to `v`** if and only if
+    /// so that we have `equiv(T, id, id)(T, T)` which implies `equiv(T, T, T)`, i.e. `T` is
+    /// equivalent to `T` using `T` when `T` is a hashable type.
+    ///
+    /// Let `Q` be a type equivalent to the value type `T` using `T`. Let `f: Q → T` and `id: T → T`
+    /// be the identity. We say that **`q` is equivalent to `v`** if and only if
     ///
     /// ```text
-    /// equiv(q, v) := equiv(X, f, id)(q, v).
+    /// equiv(q, v) := equiv(T, f, id)(q, v).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to value type `T`. We say that `q` is an
-    /// **equivalent value of** the set `set`, or that **`set` equivalently contains `q`** if and
+    /// Let `Q` be a data type equivalent to value type `T` using `T`. We say that `q` is an
+    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
     /// only if
     ///
     /// ```text
-    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i].value()).
+    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
     /// ```
     ///
-    /// If `q` is not an equivalent value of `set`, we write `q ~∉ set`.
+    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
     ///
-    /// Value equality is a special case of value equivalence because we can take `Q = T` and
-    /// `f = g = id` provided that `T` is a hashable type.
+    /// When `T` is a hashable type, we see that `v ~∈ map ⇔ v ∈ map`, so that equivalent
+    /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
     ///
@@ -6569,39 +6590,42 @@ where
     ///     ∧ (∀ v :: T. ∃ q :: Q. equiv(X, f, g)(q, v)).
     /// ```
     ///
-    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `T` under X**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `T` using `X`**
     /// if and only if
     ///
     /// ```text
     /// equiv(X, Q, T) := ∃ f: Q → X. ∃ g: T → X. equiv(X, f, g)(Q, T).
     /// ```
     ///
-    /// We say that the type **`Q` is **equivalent to value type `T`**, or
-    /// **`Q` is equivalent to `T`**, if and only if
+    /// Value equality is a special case of value equivalence. Let `T` be a hashable data type. Let
+    /// `Q = T`, and `f = g = id`. Then
     ///
     /// ```text
-    /// equiv(Q, T) := equiv(T, Q, T).
+    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)`
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the value type `T`. Let `f: Q → X` and `id: T → X` be the
-    /// identity. We say that **`q` is equivalent to `v`** if and only if
+    /// so that we have `equiv(T, id, id)(T, T)` which implies `equiv(T, T, T)`, i.e. `T` is
+    /// equivalent to `T` using `T` when `T` is a hashable type.
+    ///
+    /// Let `Q` be a type equivalent to the value type `T` using `T`. Let `f: Q → T` and `id: T → T`
+    /// be the identity. We say that **`q` is equivalent to `v`** if and only if
     ///
     /// ```text
-    /// equiv(q, v) := equiv(X, f, id)(q, v).
+    /// equiv(q, v) := equiv(T, f, id)(q, v).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to value type `T`. We say that `q` is an
-    /// **equivalent value of** the set `set`, or that **`set` equivalently contains `q`** if and
+    /// Let `Q` be a data type equivalent to value type `T` using `T`. We say that `q` is an
+    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
     /// only if
     ///
     /// ```text
-    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i].value()).
+    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
     /// ```
     ///
-    /// If `q` is not an equivalent value of `set`, we write `q ~∉ set`.
+    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
     ///
-    /// Value equality is a special case of value equivalence because we can take `Q = T` and
-    /// `f = g = id` provided that `T` is a hashable type.
+    /// When `T` is a hashable type, we see that `v ~∈ map ⇔ v ∈ map`, so that equivalent
+    /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
     ///
@@ -6759,39 +6783,42 @@ where
     ///     ∧ (∀ v :: T. ∃ q :: Q. equiv(X, f, g)(q, v)).
     /// ```
     ///
-    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `T` under X**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `T` using `X`**
     /// if and only if
     ///
     /// ```text
     /// equiv(X, Q, T) := ∃ f: Q → X. ∃ g: T → X. equiv(X, f, g)(Q, T).
     /// ```
     ///
-    /// We say that the type **`Q` is **equivalent to value type `T`**, or
-    /// **`Q` is equivalent to `T`**, if and only if
+    /// Value equality is a special case of value equivalence. Let `T` be a hashable data type. Let
+    /// `Q = T`, and `f = g = id`. Then
     ///
     /// ```text
-    /// equiv(Q, T) := equiv(T, Q, T).
+    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)`
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the value type `T`. Let `f: Q → X` and `id: T → X` be the
-    /// identity. We say that **`q` is equivalent to `v`** if and only if
+    /// so that we have `equiv(T, id, id)(T, T)` which implies `equiv(T, T, T)`, i.e. `T` is
+    /// equivalent to `T` using `T` when `T` is a hashable type.
+    ///
+    /// Let `Q` be a type equivalent to the value type `T` using `T`. Let `f: Q → T` and `id: T → T`
+    /// be the identity. We say that **`q` is equivalent to `v`** if and only if
     ///
     /// ```text
-    /// equiv(q, v) := equiv(X, f, id)(q, v).
+    /// equiv(q, v) := equiv(T, f, id)(q, v).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to value type `T`. We say that `q` is an
-    /// **equivalent value of** the set `set`, or that **`set` equivalently contains `q`** if and
+    /// Let `Q` be a data type equivalent to value type `T` using `T`. We say that `q` is an
+    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
     /// only if
     ///
     /// ```text
-    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i].value()).
+    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
     /// ```
     ///
-    /// If `q` is not an equivalent value of `set`, we write `q ~∉ set`.
+    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
     ///
-    /// Value equality is a special case of value equivalence because we can take `Q = T` and
-    /// `f = g = id` provided that `T` is a hashable type.
+    /// When `T` is a hashable type, we see that `v ~∈ map ⇔ v ∈ map`, so that equivalent
+    /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
     ///
@@ -6950,39 +6977,42 @@ where
     ///     ∧ (∀ v :: T. ∃ q :: Q. equiv(X, f, g)(q, v)).
     /// ```
     ///
-    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `T` under X**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `T` using `X`**
     /// if and only if
     ///
     /// ```text
     /// equiv(X, Q, T) := ∃ f: Q → X. ∃ g: T → X. equiv(X, f, g)(Q, T).
     /// ```
     ///
-    /// We say that the type **`Q` is **equivalent to value type `T`**, or
-    /// **`Q` is equivalent to `T`**, if and only if
+    /// Value equality is a special case of value equivalence. Let `T` be a hashable data type. Let
+    /// `Q = T`, and `f = g = id`. Then
     ///
     /// ```text
-    /// equiv(Q, T) := equiv(T, Q, T).
+    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)`
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the value type `T`. Let `f: Q → X` and `id: T → X` be the
-    /// identity. We say that **`q` is equivalent to `v`** if and only if
+    /// so that we have `equiv(T, id, id)(T, T)` which implies `equiv(T, T, T)`, i.e. `T` is
+    /// equivalent to `T` using `T` when `T` is a hashable type.
+    ///
+    /// Let `Q` be a type equivalent to the value type `T` using `T`. Let `f: Q → T` and `id: T → T`
+    /// be the identity. We say that **`q` is equivalent to `v`** if and only if
     ///
     /// ```text
-    /// equiv(q, v) := equiv(X, f, id)(q, v).
+    /// equiv(q, v) := equiv(T, f, id)(q, v).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to value type `T`. We say that `q` is an
-    /// **equivalent value of** the set `set`, or that **`set` equivalently contains `q`** if and
+    /// Let `Q` be a data type equivalent to value type `T` using `T`. We say that `q` is an
+    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
     /// only if
     ///
     /// ```text
-    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i].value()).
+    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
     /// ```
     ///
-    /// If `q` is not an equivalent value of `set`, we write `q ~∉ set`.
+    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
     ///
-    /// Value equality is a special case of value equivalence because we can take `Q = T` and
-    /// `f = g = id` provided that `T` is a hashable type.
+    /// When `T` is a hashable type, we see that `v ~∈ map ⇔ v ∈ map`, so that equivalent
+    /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
     ///
@@ -13313,39 +13343,42 @@ impl OpaqueIndexSet {
     ///     ∧ (∀ v :: T. ∃ q :: Q. equiv(X, f, g)(q, v)).
     /// ```
     ///
-    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `T` under X**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `T` using `X`**
     /// if and only if
     ///
     /// ```text
     /// equiv(X, Q, T) := ∃ f: Q → X. ∃ g: T → X. equiv(X, f, g)(Q, T).
     /// ```
     ///
-    /// We say that the type **`Q` is **equivalent to value type `T`**, or
-    /// **`Q` is equivalent to `T`**, if and only if
+    /// Value equality is a special case of value equivalence. Let `T` be a hashable data type. Let
+    /// `Q = T`, and `f = g = id`. Then
     ///
     /// ```text
-    /// equiv(Q, T) := equiv(T, Q, T).
+    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)`
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the value type `T`. Let `f: Q → X` and `id: T → X` be the
-    /// identity. We say that **`q` is equivalent to `v`** if and only if
+    /// so that we have `equiv(T, id, id)(T, T)` which implies `equiv(T, T, T)`, i.e. `T` is
+    /// equivalent to `T` using `T` when `T` is a hashable type.
+    ///
+    /// Let `Q` be a type equivalent to the value type `T` using `T`. Let `f: Q → T` and `id: T → T`
+    /// be the identity. We say that **`q` is equivalent to `v`** if and only if
     ///
     /// ```text
-    /// equiv(q, v) := equiv(X, f, id)(q, v).
+    /// equiv(q, v) := equiv(T, f, id)(q, v).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to value type `T`. We say that `q` is an
-    /// **equivalent value of** the set `set`, or that **`set` equivalently contains `q`** if and
+    /// Let `Q` be a data type equivalent to value type `T` using `T`. We say that `q` is an
+    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
     /// only if
     ///
     /// ```text
-    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i].value()).
+    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
     /// ```
     ///
-    /// If `q` is not an equivalent value of `set`, we write `q ~∉ set`.
+    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
     ///
-    /// Value equality is a special case of value equivalence because we can take `Q = T` and
-    /// `f = g = id` provided that `T` is a hashable type.
+    /// When `T` is a hashable type, we see that `v ~∈ map ⇔ v ∈ map`, so that equivalent
+    /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
     ///
@@ -13464,39 +13497,42 @@ impl OpaqueIndexSet {
     ///     ∧ (∀ v :: T. ∃ q :: Q. equiv(X, f, g)(q, v)).
     /// ```
     ///
-    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `T` under X**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `T` using `X`**
     /// if and only if
     ///
     /// ```text
     /// equiv(X, Q, T) := ∃ f: Q → X. ∃ g: T → X. equiv(X, f, g)(Q, T).
     /// ```
     ///
-    /// We say that the type **`Q` is **equivalent to value type `T`**, or
-    /// **`Q` is equivalent to `T`**, if and only if
+    /// Value equality is a special case of value equivalence. Let `T` be a hashable data type. Let
+    /// `Q = T`, and `f = g = id`. Then
     ///
     /// ```text
-    /// equiv(Q, T) := equiv(T, Q, T).
+    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)`
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the value type `T`. Let `f: Q → X` and `id: T → X` be the
-    /// identity. We say that **`q` is equivalent to `v`** if and only if
+    /// so that we have `equiv(T, id, id)(T, T)` which implies `equiv(T, T, T)`, i.e. `T` is
+    /// equivalent to `T` using `T` when `T` is a hashable type.
+    ///
+    /// Let `Q` be a type equivalent to the value type `T` using `T`. Let `f: Q → T` and `id: T → T`
+    /// be the identity. We say that **`q` is equivalent to `v`** if and only if
     ///
     /// ```text
-    /// equiv(q, v) := equiv(X, f, id)(q, v).
+    /// equiv(q, v) := equiv(T, f, id)(q, v).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to value type `T`. We say that `q` is an
-    /// **equivalent value of** the set `set`, or that **`set` equivalently contains `q`** if and
+    /// Let `Q` be a data type equivalent to value type `T` using `T`. We say that `q` is an
+    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
     /// only if
     ///
     /// ```text
-    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i].value()).
+    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
     /// ```
     ///
-    /// If `q` is not an equivalent value of `set`, we write `q ~∉ set`.
+    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
     ///
-    /// Value equality is a special case of value equivalence because we can take `Q = T` and
-    /// `f = g = id` provided that `T` is a hashable type.
+    /// When `T` is a hashable type, we see that `v ~∈ map ⇔ v ∈ map`, so that equivalent
+    /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
     ///
@@ -13615,39 +13651,42 @@ impl OpaqueIndexSet {
     ///     ∧ (∀ v :: T. ∃ q :: Q. equiv(X, f, g)(q, v)).
     /// ```
     ///
-    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `T` under X**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `T` using `X`**
     /// if and only if
     ///
     /// ```text
     /// equiv(X, Q, T) := ∃ f: Q → X. ∃ g: T → X. equiv(X, f, g)(Q, T).
     /// ```
     ///
-    /// We say that the type **`Q` is **equivalent to value type `T`**, or
-    /// **`Q` is equivalent to `T`**, if and only if
+    /// Value equality is a special case of value equivalence. Let `T` be a hashable data type. Let
+    /// `Q = T`, and `f = g = id`. Then
     ///
     /// ```text
-    /// equiv(Q, T) := equiv(T, Q, T).
+    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)`
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the value type `T`. Let `f: Q → X` and `id: T → X` be the
-    /// identity. We say that **`q` is equivalent to `v`** if and only if
+    /// so that we have `equiv(T, id, id)(T, T)` which implies `equiv(T, T, T)`, i.e. `T` is
+    /// equivalent to `T` using `T` when `T` is a hashable type.
+    ///
+    /// Let `Q` be a type equivalent to the value type `T` using `T`. Let `f: Q → T` and `id: T → T`
+    /// be the identity. We say that **`q` is equivalent to `v`** if and only if
     ///
     /// ```text
-    /// equiv(q, v) := equiv(X, f, id)(q, v).
+    /// equiv(q, v) := equiv(T, f, id)(q, v).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to value type `T`. We say that `q` is an
-    /// **equivalent value of** the set `set`, or that **`set` equivalently contains `q`** if and
+    /// Let `Q` be a data type equivalent to value type `T` using `T`. We say that `q` is an
+    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
     /// only if
     ///
     /// ```text
-    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i].value()).
+    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
     /// ```
     ///
-    /// If `q` is not an equivalent value of `set`, we write `q ~∉ set`.
+    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
     ///
-    /// Value equality is a special case of value equivalence because we can take `Q = T` and
-    /// `f = g = id` provided that `T` is a hashable type.
+    /// When `T` is a hashable type, we see that `v ~∈ map ⇔ v ∈ map`, so that equivalent
+    /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
     ///
@@ -13765,39 +13804,42 @@ impl OpaqueIndexSet {
     ///     ∧ (∀ v :: T. ∃ q :: Q. equiv(X, f, g)(q, v)).
     /// ```
     ///
-    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `T` under X**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `T` using `X`**
     /// if and only if
     ///
     /// ```text
     /// equiv(X, Q, T) := ∃ f: Q → X. ∃ g: T → X. equiv(X, f, g)(Q, T).
     /// ```
     ///
-    /// We say that the type **`Q` is **equivalent to value type `T`**, or
-    /// **`Q` is equivalent to `T`**, if and only if
+    /// Value equality is a special case of value equivalence. Let `T` be a hashable data type. Let
+    /// `Q = T`, and `f = g = id`. Then
     ///
     /// ```text
-    /// equiv(Q, T) := equiv(T, Q, T).
+    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)`
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the value type `T`. Let `f: Q → X` and `id: T → X` be the
-    /// identity. We say that **`q` is equivalent to `v`** if and only if
+    /// so that we have `equiv(T, id, id)(T, T)` which implies `equiv(T, T, T)`, i.e. `T` is
+    /// equivalent to `T` using `T` when `T` is a hashable type.
+    ///
+    /// Let `Q` be a type equivalent to the value type `T` using `T`. Let `f: Q → T` and `id: T → T`
+    /// be the identity. We say that **`q` is equivalent to `v`** if and only if
     ///
     /// ```text
-    /// equiv(q, v) := equiv(X, f, id)(q, v).
+    /// equiv(q, v) := equiv(T, f, id)(q, v).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to value type `T`. We say that `q` is an
-    /// **equivalent value of** the set `set`, or that **`set` equivalently contains `q`** if and
+    /// Let `Q` be a data type equivalent to value type `T` using `T`. We say that `q` is an
+    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
     /// only if
     ///
     /// ```text
-    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i].value()).
+    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
     /// ```
     ///
-    /// If `q` is not an equivalent value of `set`, we write `q ~∉ set`.
+    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
     ///
-    /// Value equality is a special case of value equivalence because we can take `Q = T` and
-    /// `f = g = id` provided that `T` is a hashable type.
+    /// When `T` is a hashable type, we see that `v ~∈ map ⇔ v ∈ map`, so that equivalent
+    /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
     ///
@@ -13924,39 +13966,42 @@ impl OpaqueIndexSet {
     ///     ∧ (∀ v :: T. ∃ q :: Q. equiv(X, f, g)(q, v)).
     /// ```
     ///
-    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `T` under X**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `T` using `X`**
     /// if and only if
     ///
     /// ```text
     /// equiv(X, Q, T) := ∃ f: Q → X. ∃ g: T → X. equiv(X, f, g)(Q, T).
     /// ```
     ///
-    /// We say that the type **`Q` is **equivalent to value type `T`**, or
-    /// **`Q` is equivalent to `T`**, if and only if
+    /// Value equality is a special case of value equivalence. Let `T` be a hashable data type. Let
+    /// `Q = T`, and `f = g = id`. Then
     ///
     /// ```text
-    /// equiv(Q, T) := equiv(T, Q, T).
+    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)`
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the value type `T`. Let `f: Q → X` and `id: T → X` be the
-    /// identity. We say that **`q` is equivalent to `v`** if and only if
+    /// so that we have `equiv(T, id, id)(T, T)` which implies `equiv(T, T, T)`, i.e. `T` is
+    /// equivalent to `T` using `T` when `T` is a hashable type.
+    ///
+    /// Let `Q` be a type equivalent to the value type `T` using `T`. Let `f: Q → T` and `id: T → T`
+    /// be the identity. We say that **`q` is equivalent to `v`** if and only if
     ///
     /// ```text
-    /// equiv(q, v) := equiv(X, f, id)(q, v).
+    /// equiv(q, v) := equiv(T, f, id)(q, v).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to value type `T`. We say that `q` is an
-    /// **equivalent value of** the set `set`, or that **`set` equivalently contains `q`** if and
+    /// Let `Q` be a data type equivalent to value type `T` using `T`. We say that `q` is an
+    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
     /// only if
     ///
     /// ```text
-    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i].value()).
+    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
     /// ```
     ///
-    /// If `q` is not an equivalent value of `set`, we write `q ~∉ set`.
+    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
     ///
-    /// Value equality is a special case of value equivalence because we can take `Q = T` and
-    /// `f = g = id` provided that `T` is a hashable type.
+    /// When `T` is a hashable type, we see that `v ~∈ map ⇔ v ∈ map`, so that equivalent
+    /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
     ///
@@ -14181,39 +14226,42 @@ impl OpaqueIndexSet {
     ///     ∧ (∀ v :: T. ∃ q :: Q. equiv(X, f, g)(q, v)).
     /// ```
     ///
-    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `T` under X**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `T` using `X`**
     /// if and only if
     ///
     /// ```text
     /// equiv(X, Q, T) := ∃ f: Q → X. ∃ g: T → X. equiv(X, f, g)(Q, T).
     /// ```
     ///
-    /// We say that the type **`Q` is **equivalent to value type `T`**, or
-    /// **`Q` is equivalent to `T`**, if and only if
+    /// Value equality is a special case of value equivalence. Let `T` be a hashable data type. Let
+    /// `Q = T`, and `f = g = id`. Then
     ///
     /// ```text
-    /// equiv(Q, T) := equiv(T, Q, T).
+    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)`
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the value type `T`. Let `f: Q → X` and `id: T → X` be the
-    /// identity. We say that **`q` is equivalent to `v`** if and only if
+    /// so that we have `equiv(T, id, id)(T, T)` which implies `equiv(T, T, T)`, i.e. `T` is
+    /// equivalent to `T` using `T` when `T` is a hashable type.
+    ///
+    /// Let `Q` be a type equivalent to the value type `T` using `T`. Let `f: Q → T` and `id: T → T`
+    /// be the identity. We say that **`q` is equivalent to `v`** if and only if
     ///
     /// ```text
-    /// equiv(q, v) := equiv(X, f, id)(q, v).
+    /// equiv(q, v) := equiv(T, f, id)(q, v).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to value type `T`. We say that `q` is an
-    /// **equivalent value of** the set `set`, or that **`set` equivalently contains `q`** if and
+    /// Let `Q` be a data type equivalent to value type `T` using `T`. We say that `q` is an
+    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
     /// only if
     ///
     /// ```text
-    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i].value()).
+    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
     /// ```
     ///
-    /// If `q` is not an equivalent value of `set`, we write `q ~∉ set`.
+    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
     ///
-    /// Value equality is a special case of value equivalence because we can take `Q = T` and
-    /// `f = g = id` provided that `T` is a hashable type.
+    /// When `T` is a hashable type, we see that `v ~∈ map ⇔ v ∈ map`, so that equivalent
+    /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
     ///
@@ -14438,39 +14486,42 @@ impl OpaqueIndexSet {
     ///     ∧ (∀ v :: T. ∃ q :: Q. equiv(X, f, g)(q, v)).
     /// ```
     ///
-    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `T` under X**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `T` using `X`**
     /// if and only if
     ///
     /// ```text
     /// equiv(X, Q, T) := ∃ f: Q → X. ∃ g: T → X. equiv(X, f, g)(Q, T).
     /// ```
     ///
-    /// We say that the type **`Q` is **equivalent to value type `T`**, or
-    /// **`Q` is equivalent to `T`**, if and only if
+    /// Value equality is a special case of value equivalence. Let `T` be a hashable data type. Let
+    /// `Q = T`, and `f = g = id`. Then
     ///
     /// ```text
-    /// equiv(Q, T) := equiv(T, Q, T).
+    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)`
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the value type `T`. Let `f: Q → X` and `id: T → X` be the
-    /// identity. We say that **`q` is equivalent to `v`** if and only if
+    /// so that we have `equiv(T, id, id)(T, T)` which implies `equiv(T, T, T)`, i.e. `T` is
+    /// equivalent to `T` using `T` when `T` is a hashable type.
+    ///
+    /// Let `Q` be a type equivalent to the value type `T` using `T`. Let `f: Q → T` and `id: T → T`
+    /// be the identity. We say that **`q` is equivalent to `v`** if and only if
     ///
     /// ```text
-    /// equiv(q, v) := equiv(X, f, id)(q, v).
+    /// equiv(q, v) := equiv(T, f, id)(q, v).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to value type `T`. We say that `q` is an
-    /// **equivalent value of** the set `set`, or that **`set` equivalently contains `q`** if and
+    /// Let `Q` be a data type equivalent to value type `T` using `T`. We say that `q` is an
+    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
     /// only if
     ///
     /// ```text
-    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i].value()).
+    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
     /// ```
     ///
-    /// If `q` is not an equivalent value of `set`, we write `q ~∉ set`.
+    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
     ///
-    /// Value equality is a special case of value equivalence because we can take `Q = T` and
-    /// `f = g = id` provided that `T` is a hashable type.
+    /// When `T` is a hashable type, we see that `v ~∈ map ⇔ v ∈ map`, so that equivalent
+    /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
     ///
@@ -14704,39 +14755,42 @@ impl OpaqueIndexSet {
     ///     ∧ (∀ v :: T. ∃ q :: Q. equiv(X, f, g)(q, v)).
     /// ```
     ///
-    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `T` under X**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `T` using `X`**
     /// if and only if
     ///
     /// ```text
     /// equiv(X, Q, T) := ∃ f: Q → X. ∃ g: T → X. equiv(X, f, g)(Q, T).
     /// ```
     ///
-    /// We say that the type **`Q` is **equivalent to value type `T`**, or
-    /// **`Q` is equivalent to `T`**, if and only if
+    /// Value equality is a special case of value equivalence. Let `T` be a hashable data type. Let
+    /// `Q = T`, and `f = g = id`. Then
     ///
     /// ```text
-    /// equiv(Q, T) := equiv(T, Q, T).
+    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)`
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the value type `T`. Let `f: Q → X` and `id: T → X` be the
-    /// identity. We say that **`q` is equivalent to `v`** if and only if
+    /// so that we have `equiv(T, id, id)(T, T)` which implies `equiv(T, T, T)`, i.e. `T` is
+    /// equivalent to `T` using `T` when `T` is a hashable type.
+    ///
+    /// Let `Q` be a type equivalent to the value type `T` using `T`. Let `f: Q → T` and `id: T → T`
+    /// be the identity. We say that **`q` is equivalent to `v`** if and only if
     ///
     /// ```text
-    /// equiv(q, v) := equiv(X, f, id)(q, v).
+    /// equiv(q, v) := equiv(T, f, id)(q, v).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to value type `T`. We say that `q` is an
-    /// **equivalent value of** the set `set`, or that **`set` equivalently contains `q`** if and
+    /// Let `Q` be a data type equivalent to value type `T` using `T`. We say that `q` is an
+    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
     /// only if
     ///
     /// ```text
-    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i].value()).
+    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
     /// ```
     ///
-    /// If `q` is not an equivalent value of `set`, we write `q ~∉ set`.
+    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
     ///
-    /// Value equality is a special case of value equivalence because we can take `Q = T` and
-    /// `f = g = id` provided that `T` is a hashable type.
+    /// When `T` is a hashable type, we see that `v ~∈ map ⇔ v ∈ map`, so that equivalent
+    /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
     ///
@@ -14963,39 +15017,42 @@ impl OpaqueIndexSet {
     ///     ∧ (∀ v :: T. ∃ q :: Q. equiv(X, f, g)(q, v)).
     /// ```
     ///
-    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `T` under X**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `T` using `X`**
     /// if and only if
     ///
     /// ```text
     /// equiv(X, Q, T) := ∃ f: Q → X. ∃ g: T → X. equiv(X, f, g)(Q, T).
     /// ```
     ///
-    /// We say that the type **`Q` is **equivalent to value type `T`**, or
-    /// **`Q` is equivalent to `T`**, if and only if
+    /// Value equality is a special case of value equivalence. Let `T` be a hashable data type. Let
+    /// `Q = T`, and `f = g = id`. Then
     ///
     /// ```text
-    /// equiv(Q, T) := equiv(T, Q, T).
+    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)`
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the value type `T`. Let `f: Q → X` and `id: T → X` be the
-    /// identity. We say that **`q` is equivalent to `v`** if and only if
+    /// so that we have `equiv(T, id, id)(T, T)` which implies `equiv(T, T, T)`, i.e. `T` is
+    /// equivalent to `T` using `T` when `T` is a hashable type.
+    ///
+    /// Let `Q` be a type equivalent to the value type `T` using `T`. Let `f: Q → T` and `id: T → T`
+    /// be the identity. We say that **`q` is equivalent to `v`** if and only if
     ///
     /// ```text
-    /// equiv(q, v) := equiv(X, f, id)(q, v).
+    /// equiv(q, v) := equiv(T, f, id)(q, v).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to value type `T`. We say that `q` is an
-    /// **equivalent value of** the set `set`, or that **`set` equivalently contains `q`** if and
+    /// Let `Q` be a data type equivalent to value type `T` using `T`. We say that `q` is an
+    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
     /// only if
     ///
     /// ```text
-    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i].value()).
+    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
     /// ```
     ///
-    /// If `q` is not an equivalent value of `set`, we write `q ~∉ set`.
+    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
     ///
-    /// Value equality is a special case of value equivalence because we can take `Q = T` and
-    /// `f = g = id` provided that `T` is a hashable type.
+    /// When `T` is a hashable type, we see that `v ~∈ map ⇔ v ∈ map`, so that equivalent
+    /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
     ///
@@ -15223,39 +15280,42 @@ impl OpaqueIndexSet {
     ///     ∧ (∀ v :: T. ∃ q :: Q. equiv(X, f, g)(q, v)).
     /// ```
     ///
-    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `T` under X**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `T` using `X`**
     /// if and only if
     ///
     /// ```text
     /// equiv(X, Q, T) := ∃ f: Q → X. ∃ g: T → X. equiv(X, f, g)(Q, T).
     /// ```
     ///
-    /// We say that the type **`Q` is **equivalent to value type `T`**, or
-    /// **`Q` is equivalent to `T`**, if and only if
+    /// Value equality is a special case of value equivalence. Let `T` be a hashable data type. Let
+    /// `Q = T`, and `f = g = id`. Then
     ///
     /// ```text
-    /// equiv(Q, T) := equiv(T, Q, T).
+    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)`
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the value type `T`. Let `f: Q → X` and `id: T → X` be the
-    /// identity. We say that **`q` is equivalent to `v`** if and only if
+    /// so that we have `equiv(T, id, id)(T, T)` which implies `equiv(T, T, T)`, i.e. `T` is
+    /// equivalent to `T` using `T` when `T` is a hashable type.
+    ///
+    /// Let `Q` be a type equivalent to the value type `T` using `T`. Let `f: Q → T` and `id: T → T`
+    /// be the identity. We say that **`q` is equivalent to `v`** if and only if
     ///
     /// ```text
-    /// equiv(q, v) := equiv(X, f, id)(q, v).
+    /// equiv(q, v) := equiv(T, f, id)(q, v).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to value type `T`. We say that `q` is an
-    /// **equivalent value of** the set `set`, or that **`set` equivalently contains `q`** if and
+    /// Let `Q` be a data type equivalent to value type `T` using `T`. We say that `q` is an
+    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
     /// only if
     ///
     /// ```text
-    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i].value()).
+    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
     /// ```
     ///
-    /// If `q` is not an equivalent value of `set`, we write `q ~∉ set`.
+    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
     ///
-    /// Value equality is a special case of value equivalence because we can take `Q = T` and
-    /// `f = g = id` provided that `T` is a hashable type.
+    /// When `T` is a hashable type, we see that `v ~∈ map ⇔ v ∈ map`, so that equivalent
+    /// containment indeed generalizes containment.zx
     ///
     /// ## Specification Definitions
     ///

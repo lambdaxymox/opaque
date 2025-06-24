@@ -7328,28 +7328,31 @@ where
     ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` using `X`**
     /// if and only if
     ///
     /// ```text
     /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
-    /// We say that the type **`Q` is **equivalent to key type `K`**, or
-    /// **`Q` is equivalent to `K`**, if and only if
+    /// Key equality is a special case of key equivalence. Let `K` be a hashable data type. Let
+    /// `Q = K`, and `f = g = id`. Then
     ///
     /// ```text
-    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ∀ k1, k2 :: K. k1 = k2 = id(k1) = id(k2) ⇒ h(id(k1)) = h(id(k2)) = h(k1) = h(k2)`
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
-    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    /// so that we have `equiv(K, id, id)(K, K)` which implies `equiv(K, K, K)`, i.e. `K` is
+    /// equivalent to `K` using `K` when `K` is a hashable type.
+    ///
+    /// Let `Q` be a type equivalent to the key type `K` using `K`. Let `f: Q → K` and `id: K → K`
+    /// be the identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(X, f, id)(q, k).
+    /// equiv(q, k) := equiv(K, f, id)(q, k).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// Let `Q` be a data type equivalent to key type `K` using `K`. We say that `q` is an
     /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
     /// only if
     ///
@@ -7359,8 +7362,8 @@ where
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
     ///
-    /// Key equality is a special case of key equivalence because we can take `Q = K` and
-    /// `f = g = id`.
+    /// When `K` is a hashable type, we see that `k ~∈ map ⇔ k ∈ map`, so that equivalent
+    /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
     ///
@@ -7463,28 +7466,31 @@ where
     ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` using `X`**
     /// if and only if
     ///
     /// ```text
     /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
-    /// We say that the type **`Q` is **equivalent to key type `K`**, or
-    /// **`Q` is equivalent to `K`**, if and only if
+    /// Key equality is a special case of key equivalence. Let `K` be a hashable data type. Let
+    /// `Q = K`, and `f = g = id`. Then
     ///
     /// ```text
-    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ∀ k1, k2 :: K. k1 = k2 = id(k1) = id(k2) ⇒ h(id(k1)) = h(id(k2)) = h(k1) = h(k2)`
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
-    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    /// so that we have `equiv(K, id, id)(K, K)` which implies `equiv(K, K, K)`, i.e. `K` is
+    /// equivalent to `K` using `K` when `K` is a hashable type.
+    ///
+    /// Let `Q` be a type equivalent to the key type `K` using `K`. Let `f: Q → K` and `id: K → K`
+    /// be the identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(X, f, id)(q, k).
+    /// equiv(q, k) := equiv(K, f, id)(q, k).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// Let `Q` be a data type equivalent to key type `K` using `K`. We say that `q` is an
     /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
     /// only if
     ///
@@ -7494,8 +7500,8 @@ where
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
     ///
-    /// Key equality is a special case of key equivalence because we can take `Q = K` and
-    /// `f = g = id`.
+    /// When `K` is a hashable type, we see that `k ~∈ map ⇔ k ∈ map`, so that equivalent
+    /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
     ///
@@ -7601,28 +7607,31 @@ where
     ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` using `X`**
     /// if and only if
     ///
     /// ```text
     /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
-    /// We say that the type **`Q` is **equivalent to key type `K`**, or
-    /// **`Q` is equivalent to `K`**, if and only if
+    /// Key equality is a special case of key equivalence. Let `K` be a hashable data type. Let
+    /// `Q = K`, and `f = g = id`. Then
     ///
     /// ```text
-    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ∀ k1, k2 :: K. k1 = k2 = id(k1) = id(k2) ⇒ h(id(k1)) = h(id(k2)) = h(k1) = h(k2)`
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
-    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    /// so that we have `equiv(K, id, id)(K, K)` which implies `equiv(K, K, K)`, i.e. `K` is
+    /// equivalent to `K` using `K` when `K` is a hashable type.
+    ///
+    /// Let `Q` be a type equivalent to the key type `K` using `K`. Let `f: Q → K` and `id: K → K`
+    /// be the identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(X, f, id)(q, k).
+    /// equiv(q, k) := equiv(K, f, id)(q, k).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// Let `Q` be a data type equivalent to key type `K` using `K`. We say that `q` is an
     /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
     /// only if
     ///
@@ -7632,8 +7641,8 @@ where
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
     ///
-    /// Key equality is a special case of key equivalence because we can take `Q = K` and
-    /// `f = g = id`.
+    /// When `K` is a hashable type, we see that `k ~∈ map ⇔ k ∈ map`, so that equivalent
+    /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
     ///
@@ -7739,28 +7748,31 @@ where
     ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` using `X`**
     /// if and only if
     ///
     /// ```text
     /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
-    /// We say that the type **`Q` is **equivalent to key type `K`**, or
-    /// **`Q` is equivalent to `K`**, if and only if
+    /// Key equality is a special case of key equivalence. Let `K` be a hashable data type. Let
+    /// `Q = K`, and `f = g = id`. Then
     ///
     /// ```text
-    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ∀ k1, k2 :: K. k1 = k2 = id(k1) = id(k2) ⇒ h(id(k1)) = h(id(k2)) = h(k1) = h(k2)`
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
-    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    /// so that we have `equiv(K, id, id)(K, K)` which implies `equiv(K, K, K)`, i.e. `K` is
+    /// equivalent to `K` using `K` when `K` is a hashable type.
+    ///
+    /// Let `Q` be a type equivalent to the key type `K` using `K`. Let `f: Q → K` and `id: K → K`
+    /// be the identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(X, f, id)(q, k).
+    /// equiv(q, k) := equiv(K, f, id)(q, k).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// Let `Q` be a data type equivalent to key type `K` using `K`. We say that `q` is an
     /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
     /// only if
     ///
@@ -7770,8 +7782,8 @@ where
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
     ///
-    /// Key equality is a special case of key equivalence because we can take `Q = K` and
-    /// `f = g = id`.
+    /// When `K` is a hashable type, we see that `k ~∈ map ⇔ k ∈ map`, so that equivalent
+    /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
     ///
@@ -7878,28 +7890,31 @@ where
     ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` using `X`**
     /// if and only if
     ///
     /// ```text
     /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
-    /// We say that the type **`Q` is **equivalent to key type `K`**, or
-    /// **`Q` is equivalent to `K`**, if and only if
+    /// Key equality is a special case of key equivalence. Let `K` be a hashable data type. Let
+    /// `Q = K`, and `f = g = id`. Then
     ///
     /// ```text
-    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ∀ k1, k2 :: K. k1 = k2 = id(k1) = id(k2) ⇒ h(id(k1)) = h(id(k2)) = h(k1) = h(k2)`
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
-    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    /// so that we have `equiv(K, id, id)(K, K)` which implies `equiv(K, K, K)`, i.e. `K` is
+    /// equivalent to `K` using `K` when `K` is a hashable type.
+    ///
+    /// Let `Q` be a type equivalent to the key type `K` using `K`. Let `f: Q → K` and `id: K → K`
+    /// be the identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(X, f, id)(q, k).
+    /// equiv(q, k) := equiv(K, f, id)(q, k).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// Let `Q` be a data type equivalent to key type `K` using `K`. We say that `q` is an
     /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
     /// only if
     ///
@@ -7909,8 +7924,8 @@ where
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
     ///
-    /// Key equality is a special case of key equivalence because we can take `Q = K` and
-    /// `f = g = id`.
+    /// When `K` is a hashable type, we see that `k ~∈ map ⇔ k ∈ map`, so that equivalent
+    /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
     ///
@@ -8015,28 +8030,31 @@ where
     ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` using `X`**
     /// if and only if
     ///
     /// ```text
     /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
-    /// We say that the type **`Q` is **equivalent to key type `K`**, or
-    /// **`Q` is equivalent to `K`**, if and only if
+    /// Key equality is a special case of key equivalence. Let `K` be a hashable data type. Let
+    /// `Q = K`, and `f = g = id`. Then
     ///
     /// ```text
-    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ∀ k1, k2 :: K. k1 = k2 = id(k1) = id(k2) ⇒ h(id(k1)) = h(id(k2)) = h(k1) = h(k2)`
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
-    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    /// so that we have `equiv(K, id, id)(K, K)` which implies `equiv(K, K, K)`, i.e. `K` is
+    /// equivalent to `K` using `K` when `K` is a hashable type.
+    ///
+    /// Let `Q` be a type equivalent to the key type `K` using `K`. Let `f: Q → K` and `id: K → K`
+    /// be the identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(X, f, id)(q, k).
+    /// equiv(q, k) := equiv(K, f, id)(q, k).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// Let `Q` be a data type equivalent to key type `K` using `K`. We say that `q` is an
     /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
     /// only if
     ///
@@ -8046,8 +8064,8 @@ where
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
     ///
-    /// Key equality is a special case of key equivalence because we can take `Q = K` and
-    /// `f = g = id`.
+    /// When `K` is a hashable type, we see that `k ~∈ map ⇔ k ∈ map`, so that equivalent
+    /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
     ///
@@ -8154,28 +8172,31 @@ where
     ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` using `X`**
     /// if and only if
     ///
     /// ```text
     /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
-    /// We say that the type **`Q` is **equivalent to key type `K`**, or
-    /// **`Q` is equivalent to `K`**, if and only if
+    /// Key equality is a special case of key equivalence. Let `K` be a hashable data type. Let
+    /// `Q = K`, and `f = g = id`. Then
     ///
     /// ```text
-    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ∀ k1, k2 :: K. k1 = k2 = id(k1) = id(k2) ⇒ h(id(k1)) = h(id(k2)) = h(k1) = h(k2)`
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
-    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    /// so that we have `equiv(K, id, id)(K, K)` which implies `equiv(K, K, K)`, i.e. `K` is
+    /// equivalent to `K` using `K` when `K` is a hashable type.
+    ///
+    /// Let `Q` be a type equivalent to the key type `K` using `K`. Let `f: Q → K` and `id: K → K`
+    /// be the identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(X, f, id)(q, k).
+    /// equiv(q, k) := equiv(K, f, id)(q, k).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// Let `Q` be a data type equivalent to key type `K` using `K`. We say that `q` is an
     /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
     /// only if
     ///
@@ -8185,8 +8206,8 @@ where
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
     ///
-    /// Key equality is a special case of key equivalence because we can take `Q = K` and
-    /// `f = g = id`.
+    /// When `K` is a hashable type, we see that `k ~∈ map ⇔ k ∈ map`, so that equivalent
+    /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
     ///
@@ -9178,28 +9199,31 @@ where
     ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` using `X`**
     /// if and only if
     ///
     /// ```text
     /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
-    /// We say that the type **`Q` is **equivalent to key type `K`**, or
-    /// **`Q` is equivalent to `K`**, if and only if
+    /// Key equality is a special case of key equivalence. Let `K` be a hashable data type. Let
+    /// `Q = K`, and `f = g = id`. Then
     ///
     /// ```text
-    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ∀ k1, k2 :: K. k1 = k2 = id(k1) = id(k2) ⇒ h(id(k1)) = h(id(k2)) = h(k1) = h(k2)`
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
-    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    /// so that we have `equiv(K, id, id)(K, K)` which implies `equiv(K, K, K)`, i.e. `K` is
+    /// equivalent to `K` using `K` when `K` is a hashable type.
+    ///
+    /// Let `Q` be a type equivalent to the key type `K` using `K`. Let `f: Q → K` and `id: K → K`
+    /// be the identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(X, f, id)(q, k).
+    /// equiv(q, k) := equiv(K, f, id)(q, k).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// Let `Q` be a data type equivalent to key type `K` using `K`. We say that `q` is an
     /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
     /// only if
     ///
@@ -9209,8 +9233,8 @@ where
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
     ///
-    /// Key equality is a special case of key equivalence because we can take `Q = K` and
-    /// `f = g = id`.
+    /// When `K` is a hashable type, we see that `k ~∈ map ⇔ k ∈ map`, so that equivalent
+    /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
     ///
@@ -9407,28 +9431,31 @@ where
     ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` using `X`**
     /// if and only if
     ///
     /// ```text
     /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
-    /// We say that the type **`Q` is **equivalent to key type `K`**, or
-    /// **`Q` is equivalent to `K`**, if and only if
+    /// Key equality is a special case of key equivalence. Let `K` be a hashable data type. Let
+    /// `Q = K`, and `f = g = id`. Then
     ///
     /// ```text
-    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ∀ k1, k2 :: K. k1 = k2 = id(k1) = id(k2) ⇒ h(id(k1)) = h(id(k2)) = h(k1) = h(k2)`
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
-    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    /// so that we have `equiv(K, id, id)(K, K)` which implies `equiv(K, K, K)`, i.e. `K` is
+    /// equivalent to `K` using `K` when `K` is a hashable type.
+    ///
+    /// Let `Q` be a type equivalent to the key type `K` using `K`. Let `f: Q → K` and `id: K → K`
+    /// be the identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(X, f, id)(q, k).
+    /// equiv(q, k) := equiv(K, f, id)(q, k).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// Let `Q` be a data type equivalent to key type `K` using `K`. We say that `q` is an
     /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
     /// only if
     ///
@@ -9438,8 +9465,8 @@ where
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
     ///
-    /// Key equality is a special case of key equivalence because we can take `Q = K` and
-    /// `f = g = id`.
+    /// When `K` is a hashable type, we see that `k ~∈ map ⇔ k ∈ map`, so that equivalent
+    /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
     ///
@@ -9636,28 +9663,31 @@ where
     ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` using `X`**
     /// if and only if
     ///
     /// ```text
     /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
-    /// We say that the type **`Q` is **equivalent to key type `K`**, or
-    /// **`Q` is equivalent to `K`**, if and only if
+    /// Key equality is a special case of key equivalence. Let `K` be a hashable data type. Let
+    /// `Q = K`, and `f = g = id`. Then
     ///
     /// ```text
-    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ∀ k1, k2 :: K. k1 = k2 = id(k1) = id(k2) ⇒ h(id(k1)) = h(id(k2)) = h(k1) = h(k2)`
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
-    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    /// so that we have `equiv(K, id, id)(K, K)` which implies `equiv(K, K, K)`, i.e. `K` is
+    /// equivalent to `K` using `K` when `K` is a hashable type.
+    ///
+    /// Let `Q` be a type equivalent to the key type `K` using `K`. Let `f: Q → K` and `id: K → K`
+    /// be the identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(X, f, id)(q, k).
+    /// equiv(q, k) := equiv(K, f, id)(q, k).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// Let `Q` be a data type equivalent to key type `K` using `K`. We say that `q` is an
     /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
     /// only if
     ///
@@ -9667,8 +9697,8 @@ where
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
     ///
-    /// Key equality is a special case of key equivalence because we can take `Q = K` and
-    /// `f = g = id`.
+    /// When `K` is a hashable type, we see that `k ~∈ map ⇔ k ∈ map`, so that equivalent
+    /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
     ///
@@ -9868,28 +9898,31 @@ where
     ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` using `X`**
     /// if and only if
     ///
     /// ```text
     /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
-    /// We say that the type **`Q` is **equivalent to key type `K`**, or
-    /// **`Q` is equivalent to `K`**, if and only if
+    /// Key equality is a special case of key equivalence. Let `K` be a hashable data type. Let
+    /// `Q = K`, and `f = g = id`. Then
     ///
     /// ```text
-    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ∀ k1, k2 :: K. k1 = k2 = id(k1) = id(k2) ⇒ h(id(k1)) = h(id(k2)) = h(k1) = h(k2)`
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
-    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    /// so that we have `equiv(K, id, id)(K, K)` which implies `equiv(K, K, K)`, i.e. `K` is
+    /// equivalent to `K` using `K` when `K` is a hashable type.
+    ///
+    /// Let `Q` be a type equivalent to the key type `K` using `K`. Let `f: Q → K` and `id: K → K`
+    /// be the identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(X, f, id)(q, k).
+    /// equiv(q, k) := equiv(K, f, id)(q, k).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// Let `Q` be a data type equivalent to key type `K` using `K`. We say that `q` is an
     /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
     /// only if
     ///
@@ -9899,8 +9932,8 @@ where
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
     ///
-    /// Key equality is a special case of key equivalence because we can take `Q = K` and
-    /// `f = g = id`.
+    /// When `K` is a hashable type, we see that `k ~∈ map ⇔ k ∈ map`, so that equivalent
+    /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
     ///
@@ -10094,28 +10127,31 @@ where
     ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` using `X`**
     /// if and only if
     ///
     /// ```text
     /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
-    /// We say that the type **`Q` is **equivalent to key type `K`**, or
-    /// **`Q` is equivalent to `K`**, if and only if
+    /// Key equality is a special case of key equivalence. Let `K` be a hashable data type. Let
+    /// `Q = K`, and `f = g = id`. Then
     ///
     /// ```text
-    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ∀ k1, k2 :: K. k1 = k2 = id(k1) = id(k2) ⇒ h(id(k1)) = h(id(k2)) = h(k1) = h(k2)`
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
-    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    /// so that we have `equiv(K, id, id)(K, K)` which implies `equiv(K, K, K)`, i.e. `K` is
+    /// equivalent to `K` using `K` when `K` is a hashable type.
+    ///
+    /// Let `Q` be a type equivalent to the key type `K` using `K`. Let `f: Q → K` and `id: K → K`
+    /// be the identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(X, f, id)(q, k).
+    /// equiv(q, k) := equiv(K, f, id)(q, k).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// Let `Q` be a data type equivalent to key type `K` using `K`. We say that `q` is an
     /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
     /// only if
     ///
@@ -10125,8 +10161,8 @@ where
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
     ///
-    /// Key equality is a special case of key equivalence because we can take `Q = K` and
-    /// `f = g = id`.
+    /// When `K` is a hashable type, we see that `k ~∈ map ⇔ k ∈ map`, so that equivalent
+    /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
     ///
@@ -10319,28 +10355,31 @@ where
     ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` using `X`**
     /// if and only if
     ///
     /// ```text
     /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
-    /// We say that the type **`Q` is **equivalent to key type `K`**, or
-    /// **`Q` is equivalent to `K`**, if and only if
+    /// Key equality is a special case of key equivalence. Let `K` be a hashable data type. Let
+    /// `Q = K`, and `f = g = id`. Then
     ///
     /// ```text
-    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ∀ k1, k2 :: K. k1 = k2 = id(k1) = id(k2) ⇒ h(id(k1)) = h(id(k2)) = h(k1) = h(k2)`
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
-    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    /// so that we have `equiv(K, id, id)(K, K)` which implies `equiv(K, K, K)`, i.e. `K` is
+    /// equivalent to `K` using `K` when `K` is a hashable type.
+    ///
+    /// Let `Q` be a type equivalent to the key type `K` using `K`. Let `f: Q → K` and `id: K → K`
+    /// be the identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(X, f, id)(q, k).
+    /// equiv(q, k) := equiv(K, f, id)(q, k).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// Let `Q` be a data type equivalent to key type `K` using `K`. We say that `q` is an
     /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
     /// only if
     ///
@@ -10350,8 +10389,8 @@ where
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
     ///
-    /// Key equality is a special case of key equivalence because we can take `Q = K` and
-    /// `f = g = id`.
+    /// When `K` is a hashable type, we see that `k ~∈ map ⇔ k ∈ map`, so that equivalent
+    /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
     ///
@@ -15966,28 +16005,31 @@ impl OpaqueIndexMap {
     ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` using `X`**
     /// if and only if
     ///
     /// ```text
     /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
-    /// We say that the type **`Q` is **equivalent to key type `K`**, or
-    /// **`Q` is equivalent to `K`**, if and only if
+    /// Key equality is a special case of key equivalence. Let `K` be a hashable data type. Let
+    /// `Q = K`, and `f = g = id`. Then
     ///
     /// ```text
-    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ∀ k1, k2 :: K. k1 = k2 = id(k1) = id(k2) ⇒ h(id(k1)) = h(id(k2)) = h(k1) = h(k2)`
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
-    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    /// so that we have `equiv(K, id, id)(K, K)` which implies `equiv(K, K, K)`, i.e. `K` is
+    /// equivalent to `K` using `K` when `K` is a hashable type.
+    ///
+    /// Let `Q` be a type equivalent to the key type `K` using `K`. Let `f: Q → K` and `id: K → K`
+    /// be the identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(X, f, id)(q, k).
+    /// equiv(q, k) := equiv(K, f, id)(q, k).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// Let `Q` be a data type equivalent to key type `K` using `K`. We say that `q` is an
     /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
     /// only if
     ///
@@ -15997,8 +16039,8 @@ impl OpaqueIndexMap {
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
     ///
-    /// Key equality is a special case of key equivalence because we can take `Q = K` and
-    /// `f = g = id`.
+    /// When `K` is a hashable type, we see that `k ~∈ map ⇔ k ∈ map`, so that equivalent
+    /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
     ///
@@ -16121,28 +16163,31 @@ impl OpaqueIndexMap {
     ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` using `X`**
     /// if and only if
     ///
     /// ```text
     /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
-    /// We say that the type **`Q` is **equivalent to key type `K`**, or
-    /// **`Q` is equivalent to `K`**, if and only if
+    /// Key equality is a special case of key equivalence. Let `K` be a hashable data type. Let
+    /// `Q = K`, and `f = g = id`. Then
     ///
     /// ```text
-    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ∀ k1, k2 :: K. k1 = k2 = id(k1) = id(k2) ⇒ h(id(k1)) = h(id(k2)) = h(k1) = h(k2)`
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
-    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    /// so that we have `equiv(K, id, id)(K, K)` which implies `equiv(K, K, K)`, i.e. `K` is
+    /// equivalent to `K` using `K` when `K` is a hashable type.
+    ///
+    /// Let `Q` be a type equivalent to the key type `K` using `K`. Let `f: Q → K` and `id: K → K`
+    /// be the identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(X, f, id)(q, k).
+    /// equiv(q, k) := equiv(K, f, id)(q, k).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// Let `Q` be a data type equivalent to key type `K` using `K`. We say that `q` is an
     /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
     /// only if
     ///
@@ -16152,8 +16197,8 @@ impl OpaqueIndexMap {
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
     ///
-    /// Key equality is a special case of key equivalence because we can take `Q = K` and
-    /// `f = g = id`.
+    /// When `K` is a hashable type, we see that `k ~∈ map ⇔ k ∈ map`, so that equivalent
+    /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
     ///
@@ -16279,28 +16324,31 @@ impl OpaqueIndexMap {
     ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` using `X`**
     /// if and only if
     ///
     /// ```text
     /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
-    /// We say that the type **`Q` is **equivalent to key type `K`**, or
-    /// **`Q` is equivalent to `K`**, if and only if
+    /// Key equality is a special case of key equivalence. Let `K` be a hashable data type. Let
+    /// `Q = K`, and `f = g = id`. Then
     ///
     /// ```text
-    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ∀ k1, k2 :: K. k1 = k2 = id(k1) = id(k2) ⇒ h(id(k1)) = h(id(k2)) = h(k1) = h(k2)`
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
-    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    /// so that we have `equiv(K, id, id)(K, K)` which implies `equiv(K, K, K)`, i.e. `K` is
+    /// equivalent to `K` using `K` when `K` is a hashable type.
+    ///
+    /// Let `Q` be a type equivalent to the key type `K` using `K`. Let `f: Q → K` and `id: K → K`
+    /// be the identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(X, f, id)(q, k).
+    /// equiv(q, k) := equiv(K, f, id)(q, k).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// Let `Q` be a data type equivalent to key type `K` using `K`. We say that `q` is an
     /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
     /// only if
     ///
@@ -16310,8 +16358,8 @@ impl OpaqueIndexMap {
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
     ///
-    /// Key equality is a special case of key equivalence because we can take `Q = K` and
-    /// `f = g = id`.
+    /// When `K` is a hashable type, we see that `k ~∈ map ⇔ k ∈ map`, so that equivalent
+    /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
     ///
@@ -16437,28 +16485,31 @@ impl OpaqueIndexMap {
     ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` using `X`**
     /// if and only if
     ///
     /// ```text
     /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
-    /// We say that the type **`Q` is **equivalent to key type `K`**, or
-    /// **`Q` is equivalent to `K`**, if and only if
+    /// Key equality is a special case of key equivalence. Let `K` be a hashable data type. Let
+    /// `Q = K`, and `f = g = id`. Then
     ///
     /// ```text
-    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ∀ k1, k2 :: K. k1 = k2 = id(k1) = id(k2) ⇒ h(id(k1)) = h(id(k2)) = h(k1) = h(k2)`
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
-    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    /// so that we have `equiv(K, id, id)(K, K)` which implies `equiv(K, K, K)`, i.e. `K` is
+    /// equivalent to `K` using `K` when `K` is a hashable type.
+    ///
+    /// Let `Q` be a type equivalent to the key type `K` using `K`. Let `f: Q → K` and `id: K → K`
+    /// be the identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(X, f, id)(q, k).
+    /// equiv(q, k) := equiv(K, f, id)(q, k).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// Let `Q` be a data type equivalent to key type `K` using `K`. We say that `q` is an
     /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
     /// only if
     ///
@@ -16468,8 +16519,8 @@ impl OpaqueIndexMap {
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
     ///
-    /// Key equality is a special case of key equivalence because we can take `Q = K` and
-    /// `f = g = id`.
+    /// When `K` is a hashable type, we see that `k ~∈ map ⇔ k ∈ map`, so that equivalent
+    /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
     ///
@@ -16596,28 +16647,31 @@ impl OpaqueIndexMap {
     ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` using `X`**
     /// if and only if
     ///
     /// ```text
     /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
-    /// We say that the type **`Q` is **equivalent to key type `K`**, or
-    /// **`Q` is equivalent to `K`**, if and only if
+    /// Key equality is a special case of key equivalence. Let `K` be a hashable data type. Let
+    /// `Q = K`, and `f = g = id`. Then
     ///
     /// ```text
-    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ∀ k1, k2 :: K. k1 = k2 = id(k1) = id(k2) ⇒ h(id(k1)) = h(id(k2)) = h(k1) = h(k2)`
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
-    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    /// so that we have `equiv(K, id, id)(K, K)` which implies `equiv(K, K, K)`, i.e. `K` is
+    /// equivalent to `K` using `K` when `K` is a hashable type.
+    ///
+    /// Let `Q` be a type equivalent to the key type `K` using `K`. Let `f: Q → K` and `id: K → K`
+    /// be the identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(X, f, id)(q, k).
+    /// equiv(q, k) := equiv(K, f, id)(q, k).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// Let `Q` be a data type equivalent to key type `K` using `K`. We say that `q` is an
     /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
     /// only if
     ///
@@ -16627,8 +16681,8 @@ impl OpaqueIndexMap {
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
     ///
-    /// Key equality is a special case of key equivalence because we can take `Q = K` and
-    /// `f = g = id`.
+    /// When `K` is a hashable type, we see that `k ~∈ map ⇔ k ∈ map`, so that equivalent
+    /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
     ///
@@ -16753,28 +16807,31 @@ impl OpaqueIndexMap {
     ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` using `X`**
     /// if and only if
     ///
     /// ```text
     /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
-    /// We say that the type **`Q` is **equivalent to key type `K`**, or
-    /// **`Q` is equivalent to `K`**, if and only if
+    /// Key equality is a special case of key equivalence. Let `K` be a hashable data type. Let
+    /// `Q = K`, and `f = g = id`. Then
     ///
     /// ```text
-    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ∀ k1, k2 :: K. k1 = k2 = id(k1) = id(k2) ⇒ h(id(k1)) = h(id(k2)) = h(k1) = h(k2)`
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
-    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    /// so that we have `equiv(K, id, id)(K, K)` which implies `equiv(K, K, K)`, i.e. `K` is
+    /// equivalent to `K` using `K` when `K` is a hashable type.
+    ///
+    /// Let `Q` be a type equivalent to the key type `K` using `K`. Let `f: Q → K` and `id: K → K`
+    /// be the identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(X, f, id)(q, k).
+    /// equiv(q, k) := equiv(K, f, id)(q, k).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// Let `Q` be a data type equivalent to key type `K` using `K`. We say that `q` is an
     /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
     /// only if
     ///
@@ -16784,8 +16841,8 @@ impl OpaqueIndexMap {
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
     ///
-    /// Key equality is a special case of key equivalence because we can take `Q = K` and
-    /// `f = g = id`.
+    /// When `K` is a hashable type, we see that `k ~∈ map ⇔ k ∈ map`, so that equivalent
+    /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
     ///
@@ -16912,28 +16969,31 @@ impl OpaqueIndexMap {
     ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` using `X`**
     /// if and only if
     ///
     /// ```text
     /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
-    /// We say that the type **`Q` is **equivalent to key type `K`**, or
-    /// **`Q` is equivalent to `K`**, if and only if
+    /// Key equality is a special case of key equivalence. Let `K` be a hashable data type. Let
+    /// `Q = K`, and `f = g = id`. Then
     ///
     /// ```text
-    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ∀ k1, k2 :: K. k1 = k2 = id(k1) = id(k2) ⇒ h(id(k1)) = h(id(k2)) = h(k1) = h(k2)`
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
-    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    /// so that we have `equiv(K, id, id)(K, K)` which implies `equiv(K, K, K)`, i.e. `K` is
+    /// equivalent to `K` using `K` when `K` is a hashable type.
+    ///
+    /// Let `Q` be a type equivalent to the key type `K` using `K`. Let `f: Q → K` and `id: K → K`
+    /// be the identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(X, f, id)(q, k).
+    /// equiv(q, k) := equiv(K, f, id)(q, k).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// Let `Q` be a data type equivalent to key type `K` using `K`. We say that `q` is an
     /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
     /// only if
     ///
@@ -16943,8 +17003,8 @@ impl OpaqueIndexMap {
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
     ///
-    /// Key equality is a special case of key equivalence because we can take `Q = K` and
-    /// `f = g = id`.
+    /// When `K` is a hashable type, we see that `k ~∈ map ⇔ k ∈ map`, so that equivalent
+    /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
     ///
@@ -18248,28 +18308,31 @@ impl OpaqueIndexMap {
     ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` using `X`**
     /// if and only if
     ///
     /// ```text
     /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
-    /// We say that the type **`Q` is **equivalent to key type `K`**, or
-    /// **`Q` is equivalent to `K`**, if and only if
+    /// Key equality is a special case of key equivalence. Let `K` be a hashable data type. Let
+    /// `Q = K`, and `f = g = id`. Then
     ///
     /// ```text
-    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ∀ k1, k2 :: K. k1 = k2 = id(k1) = id(k2) ⇒ h(id(k1)) = h(id(k2)) = h(k1) = h(k2)`
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
-    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    /// so that we have `equiv(K, id, id)(K, K)` which implies `equiv(K, K, K)`, i.e. `K` is
+    /// equivalent to `K` using `K` when `K` is a hashable type.
+    ///
+    /// Let `Q` be a type equivalent to the key type `K` using `K`. Let `f: Q → K` and `id: K → K`
+    /// be the identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(X, f, id)(q, k).
+    /// equiv(q, k) := equiv(K, f, id)(q, k).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// Let `Q` be a data type equivalent to key type `K` using `K`. We say that `q` is an
     /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
     /// only if
     ///
@@ -18279,8 +18342,8 @@ impl OpaqueIndexMap {
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
     ///
-    /// Key equality is a special case of key equivalence because we can take `Q = K` and
-    /// `f = g = id`.
+    /// When `K` is a hashable type, we see that `k ~∈ map ⇔ k ∈ map`, so that equivalent
+    /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
     ///
@@ -18544,28 +18607,31 @@ impl OpaqueIndexMap {
     ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` using `X`**
     /// if and only if
     ///
     /// ```text
     /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
-    /// We say that the type **`Q` is **equivalent to key type `K`**, or
-    /// **`Q` is equivalent to `K`**, if and only if
+    /// Key equality is a special case of key equivalence. Let `K` be a hashable data type. Let
+    /// `Q = K`, and `f = g = id`. Then
     ///
     /// ```text
-    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ∀ k1, k2 :: K. k1 = k2 = id(k1) = id(k2) ⇒ h(id(k1)) = h(id(k2)) = h(k1) = h(k2)`
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
-    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    /// so that we have `equiv(K, id, id)(K, K)` which implies `equiv(K, K, K)`, i.e. `K` is
+    /// equivalent to `K` using `K` when `K` is a hashable type.
+    ///
+    /// Let `Q` be a type equivalent to the key type `K` using `K`. Let `f: Q → K` and `id: K → K`
+    /// be the identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(X, f, id)(q, k).
+    /// equiv(q, k) := equiv(K, f, id)(q, k).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// Let `Q` be a data type equivalent to key type `K` using `K`. We say that `q` is an
     /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
     /// only if
     ///
@@ -18575,8 +18641,8 @@ impl OpaqueIndexMap {
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
     ///
-    /// Key equality is a special case of key equivalence because we can take `Q = K` and
-    /// `f = g = id`.
+    /// When `K` is a hashable type, we see that `k ~∈ map ⇔ k ∈ map`, so that equivalent
+    /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
     ///
@@ -18841,28 +18907,31 @@ impl OpaqueIndexMap {
     ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` using `X`**
     /// if and only if
     ///
     /// ```text
     /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
-    /// We say that the type **`Q` is **equivalent to key type `K`**, or
-    /// **`Q` is equivalent to `K`**, if and only if
+    /// Key equality is a special case of key equivalence. Let `K` be a hashable data type. Let
+    /// `Q = K`, and `f = g = id`. Then
     ///
     /// ```text
-    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ∀ k1, k2 :: K. k1 = k2 = id(k1) = id(k2) ⇒ h(id(k1)) = h(id(k2)) = h(k1) = h(k2)`
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
-    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    /// so that we have `equiv(K, id, id)(K, K)` which implies `equiv(K, K, K)`, i.e. `K` is
+    /// equivalent to `K` using `K` when `K` is a hashable type.
+    ///
+    /// Let `Q` be a type equivalent to the key type `K` using `K`. Let `f: Q → K` and `id: K → K`
+    /// be the identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(X, f, id)(q, k).
+    /// equiv(q, k) := equiv(K, f, id)(q, k).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// Let `Q` be a data type equivalent to key type `K` using `K`. We say that `q` is an
     /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
     /// only if
     ///
@@ -18872,8 +18941,8 @@ impl OpaqueIndexMap {
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
     ///
-    /// Key equality is a special case of key equivalence because we can take `Q = K` and
-    /// `f = g = id`.
+    /// When `K` is a hashable type, we see that `k ~∈ map ⇔ k ∈ map`, so that equivalent
+    /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
     ///
@@ -19142,28 +19211,31 @@ impl OpaqueIndexMap {
     ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` using `X`**
     /// if and only if
     ///
     /// ```text
     /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
-    /// We say that the type **`Q` is **equivalent to key type `K`**, or
-    /// **`Q` is equivalent to `K`**, if and only if
+    /// Key equality is a special case of key equivalence. Let `K` be a hashable data type. Let
+    /// `Q = K`, and `f = g = id`. Then
     ///
     /// ```text
-    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ∀ k1, k2 :: K. k1 = k2 = id(k1) = id(k2) ⇒ h(id(k1)) = h(id(k2)) = h(k1) = h(k2)`
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
-    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    /// so that we have `equiv(K, id, id)(K, K)` which implies `equiv(K, K, K)`, i.e. `K` is
+    /// equivalent to `K` using `K` when `K` is a hashable type.
+    ///
+    /// Let `Q` be a type equivalent to the key type `K` using `K`. Let `f: Q → K` and `id: K → K`
+    /// be the identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(X, f, id)(q, k).
+    /// equiv(q, k) := equiv(K, f, id)(q, k).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// Let `Q` be a data type equivalent to key type `K` using `K`. We say that `q` is an
     /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
     /// only if
     ///
@@ -19173,8 +19245,8 @@ impl OpaqueIndexMap {
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
     ///
-    /// Key equality is a special case of key equivalence because we can take `Q = K` and
-    /// `f = g = id`.
+    /// When `K` is a hashable type, we see that `k ~∈ map ⇔ k ∈ map`, so that equivalent
+    /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
     ///
@@ -19436,28 +19508,31 @@ impl OpaqueIndexMap {
     ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` using `X`**
     /// if and only if
     ///
     /// ```text
     /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
-    /// We say that the type **`Q` is **equivalent to key type `K`**, or
-    /// **`Q` is equivalent to `K`**, if and only if
+    /// Key equality is a special case of key equivalence. Let `K` be a hashable data type. Let
+    /// `Q = K`, and `f = g = id`. Then
     ///
     /// ```text
-    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ∀ k1, k2 :: K. k1 = k2 = id(k1) = id(k2) ⇒ h(id(k1)) = h(id(k2)) = h(k1) = h(k2)`
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
-    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    /// so that we have `equiv(K, id, id)(K, K)` which implies `equiv(K, K, K)`, i.e. `K` is
+    /// equivalent to `K` using `K` when `K` is a hashable type.
+    ///
+    /// Let `Q` be a type equivalent to the key type `K` using `K`. Let `f: Q → K` and `id: K → K`
+    /// be the identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(X, f, id)(q, k).
+    /// equiv(q, k) := equiv(K, f, id)(q, k).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// Let `Q` be a data type equivalent to key type `K` using `K`. We say that `q` is an
     /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
     /// only if
     ///
@@ -19467,8 +19542,8 @@ impl OpaqueIndexMap {
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
     ///
-    /// Key equality is a special case of key equivalence because we can take `Q = K` and
-    /// `f = g = id`.
+    /// When `K` is a hashable type, we see that `k ~∈ map ⇔ k ∈ map`, so that equivalent
+    /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
     ///
@@ -19729,28 +19804,31 @@ impl OpaqueIndexMap {
     ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
     /// ```
     ///
-    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` under X**
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` using `X`**
     /// if and only if
     ///
     /// ```text
     /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
     /// ```
     ///
-    /// We say that the type **`Q` is **equivalent to key type `K`**, or
-    /// **`Q` is equivalent to `K`**, if and only if
+    /// Key equality is a special case of key equivalence. Let `K` be a hashable data type. Let
+    /// `Q = K`, and `f = g = id`. Then
     ///
     /// ```text
-    /// equiv(Q, K) := equiv(K, Q, K).
+    /// ∀ k1, k2 :: K. k1 = k2 = id(k1) = id(k2) ⇒ h(id(k1)) = h(id(k2)) = h(k1) = h(k2)`
     /// ```
     ///
-    /// Let `Q` be a type equivalent to the key type `K`. Let `f: Q → K` and `id: K → K` be the
-    /// identity. We say that **`q` is equivalent to `k`** if and only if
+    /// so that we have `equiv(K, id, id)(K, K)` which implies `equiv(K, K, K)`, i.e. `K` is
+    /// equivalent to `K` using `K` when `K` is a hashable type.
+    ///
+    /// Let `Q` be a type equivalent to the key type `K` using `K`. Let `f: Q → K` and `id: K → K`
+    /// be the identity. We say that **`q` is equivalent to `k`** if and only if
     ///
     /// ```text
-    /// equiv(q, k) := equiv(X, f, id)(q, k).
+    /// equiv(q, k) := equiv(K, f, id)(q, k).
     /// ```
     ///
-    /// Let `Q` be a data type equivalent to key type `K`. We say that `q` is an
+    /// Let `Q` be a data type equivalent to key type `K` using `K`. We say that `q` is an
     /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
     /// only if
     ///
@@ -19760,8 +19838,8 @@ impl OpaqueIndexMap {
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
     ///
-    /// Key equality is a special case of key equivalence because we can take `Q = K` and
-    /// `f = g = id`.
+    /// When `K` is a hashable type, we see that `k ~∈ map ⇔ k ∈ map`, so that equivalent
+    /// containment indeed generalizes containment.
     ///
     /// ## Specification Definitions
     ///
