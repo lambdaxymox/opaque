@@ -5968,11 +5968,181 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
+    /// Removes and returns the last entry in the index set.
+    ///
+    /// If `self` is nonempty, this method returns the last value in the index set
+    /// as `Some(value)`. If `self` is empty, this method returns `None`.
+    ///
+    /// This method preserves the order of the remaining elements in the collection.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
+    /// before this method is called, `set_after` be the state of `set` after this method
+    /// completes.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// The **last entry** in the set `set` when `set` is non-empty is defined by
+    ///
+    /// ```text
+    /// last(set) := set[set.len() - 1].
+    /// ```
+    ///
+    /// ## Method Specification
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { set_before.len() > 0 }
+    /// set.pop()
+    /// {
+    ///     result = Some(last(set_before))
+    ///     ∧ set_after.len() = set_before.len() - 1
+    ///     ∧ (∀ i ∈ [0, set_after.len()). set_after[i] = set_before[i])
+    /// }
+    ///
+    /// { set_before.len() = 0 }
+    /// set.pop()
+    /// { result = None ∧ set_after.len() = 0 }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Examples
+    ///
+    /// Popping from a nonempty index set.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set = TypedProjIndexSet::from(["foo", "bar", "baz", "quux"]);
+    ///
+    /// assert_eq!(proj_set.len(), 4);
+    ///
+    /// let expected = Some("quux");
+    /// let result = proj_set.pop();
+    ///
+    /// assert_eq!(result, expected);
+    /// assert_eq!(proj_set.len(), 3);
+    /// ```
+    ///
+    /// Popping from an empty index set.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set: TypedProjIndexSet<&str> = TypedProjIndexSet::new();
+    ///
+    /// assert!(proj_set.is_empty());
+    ///
+    /// let expected = None;
+    /// let result = proj_set.pop();
+    ///
+    /// assert_eq!(result, expected);
+    /// assert!(proj_set.is_empty());
+    /// ```
     #[doc(alias = "pop_last")]
     pub fn pop(&mut self) -> Option<T> {
         self.inner.pop().map(|(x, ())| x)
     }
 
+    /// Retains only the key-value pairs specified by the predicate.
+    ///
+    /// This method removes all values `v` for which `keep(&v)` returns `false`. This method
+    /// operates in place, visiting each value exactly once in the original order, and preserves
+    /// the storage order of the retained values. Stated differently, this method keeps only those
+    /// values `v` for which `keep(&v)` returns `true`.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
+    /// before this method is called, `set_after` be the state of `set` after this method
+    /// completes. Let `keep` be the filtering function for entries in `set`.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// Let `v :: T` be a value of type `T`. We say that `set` **contains** a value `v :: T`, or
+    /// that `v` is a **value of** `set` if the following holds:
+    ///
+    /// ```text
+    /// ∀ v :: T. (v ∈ set) ⇔ (∃ i ∈ [0, set.len()). set[i] = v).
+    /// ```
+    ///
+    /// The **index** of a value `v` in `set` is defined by
+    ///
+    /// ```text
+    /// index(set, v) := i such that set[i] = v.
+    /// ```
+    ///
+    /// ## Method Specification
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { true }
+    /// set.retain(keep)
+    /// {
+    ///     set_after.len() ≤ set_before.len()
+    ///     ∧ (∀ v ∈ set_after. v ∈ set_before ∧ keep(v))
+    ///     ∧ (∀ v ∈ set_before. keep(v) ⇒ v ∈ set_after)
+    ///     ∧ (∀ v ∈ set_before. ¬keep(v) ⇒ v ∉ set_after)
+    ///     ∧ (∀ v1, v2 ∈ set_after.
+    ///         index(set_before, v1) < index(set_before, v2) ⇒ index(set_after, v1) < index(set_after, v2)
+    ///       )
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// fn is_odd(v: &&str) -> bool { v.len() % 2 != 0 }
+    ///
+    /// let mut proj_set = TypedProjIndexSet::from([
+    ///     "foo",
+    ///     "bar",
+    ///     "baz",
+    ///     "quux",
+    ///     "quuz",
+    ///     "corge",
+    ///     "grault",
+    ///     "garply",
+    ///     "waldo",
+    /// ]);
+    /// proj_set.retain(is_odd);
+    /// let expected = TypedProjVec::from(["foo", "bar", "baz", "corge", "waldo"]);
+    /// let result: TypedProjVec<&str> = proj_set
+    ///     .iter()
+    ///     .cloned()
+    ///     .collect();
+    ///
+    /// assert_eq!(result, expected);
+    /// ```
     pub fn retain<F>(&mut self, mut keep: F)
     where
         F: FnMut(&T) -> bool,
@@ -5980,6 +6150,98 @@ where
         self.inner.retain(move |x, &mut ()| keep(x))
     }
 
+    /// Sorts the entries in the index set into the sorted ordering of the keys as defined by the
+    /// default ordering of the values.
+    ///
+    /// An index set is in **sorted order by value** if it satisfies the following property: let
+    /// `e1` and `e2` be entries in `self`. Then `e1.value() <= e2.value()` if and only if
+    /// `e1.index() <= e2.index()`. More precisely, given the index set `self`
+    ///
+    /// ```text
+    /// forall e1, e2 in self. e1.index() <= e2.index() <-> e1.value() <= e2.value()
+    /// ```
+    ///
+    /// or equivalently over values
+    ///
+    /// ```text
+    /// forall i1, i2 in [0, self.len()). forall v1, v2 :: T.
+    /// (i1, v1), (i2, v2) in self --> i1 <= i2 <-> v1 <= v2.
+    /// ```
+    ///
+    /// Otherwise, the index set is in **unsorted order by value**, or is **unsorted** for short.
+    ///
+    /// This means that an index set is in sorted order if the total ordering of the values in the
+    /// set matches the storage order of the entries in the set. The values are **sorted** if the
+    /// index set is in sorted order, and **unsorted** otherwise.
+    ///
+    /// After this method completes, the index set will be in stable sorted order.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
+    /// before this method is called, `set_after` be the state of `set` after this method
+    /// completes.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// An index set `set1` is a **permutation** of an index set `set2` if it satisfies
+    ///
+    /// ```text
+    /// is_permutation(set1, set2) :=
+    ///     set1.len() = set2.len()
+    ///     ∧ (∀ i ∈ [0, set1.len()). ∃ j ∈ [0, set2.len()). set1[i] = set2[j])
+    ///     ∧ (∀ i ∈ [0, set2.len()). ∃ j ∈ [0, set1.len()). set2[i] = set1[j])
+    /// ```
+    ///
+    /// Note that multiset equality is not needed here because every value is unique in an index
+    /// set.
+    ///
+    /// The index set `set` is **sorted** with respect to its values if
+    ///
+    /// ```text
+    /// is_sorted(set) := ∀ i ∈ [0, set.len() - 1). set[i] ≤ set[i + 1].
+    /// ```
+    ///
+    /// ## Method Specification
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { true }
+    /// set.sort()
+    /// {
+    ///     set_after.len() = set_before.len()
+    ///     ∧ is_permutation(set_after, set_before)
+    ///     ∧ is_sorted(set_after)
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set = TypedProjIndexSet::from([
+    ///     (5_isize, 'e'),
+    ///     (2_isize, 'b'),
+    ///     (1_isize, 'a'),
+    ///     (4_isize, 'd'),
+    ///     (3_isize, 'c'),
+    /// ]);
+    /// proj_set.sort();
+    /// let expected = [(1_isize, 'a'), (2_isize, 'b'), (3_isize, 'c'), (4_isize, 'd'), (5_isize, 'e')];
+    ///
+    /// assert_eq!(proj_set.as_slice(), expected.as_slice());
+    /// ```
     pub fn sort(&mut self)
     where
         T: Ord,
@@ -5987,6 +6249,105 @@ where
         self.inner.sort_keys()
     }
 
+    /// Sorts the entries in the index set into the sorted ordering of the entries as defined by the
+    /// provided comparison function.
+    ///
+    /// After this method completes, the index set will be in stable sorted order with the ordering
+    /// defined by the comparison function.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
+    /// before this method is called, `set_after` be the state of `set` after this method
+    /// completes.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// A **comparator** is a map `cmp : T ⨯ T → Ordering` such that given values `v1 :: T` and
+    /// `v2 :: T` from a partially ordered collection of values
+    ///
+    /// ```text
+    /// cmp(v1, v2) = Ordering::Greater when v1 > v2
+    /// cmp(v1, v2) = Ordering::Less    when v1 < v2
+    /// cmp(v1, v2) = Ordering::Equal   when v1 = v2
+    /// ```
+    ///
+    /// An index set `set1` is a **permutation** of an index set `set2` if it satisfies
+    ///
+    /// ```text
+    /// is_permutation(set1, set2) :=
+    ///     set1.len() = set2.len()
+    ///     ∧ (∀ i ∈ [0, set1.len()). ∃ j ∈ [0, set2.len()). set1[i] = set2[j])
+    ///     ∧ (∀ i ∈ [0, set2.len()). ∃ j ∈ [0, set1.len()). set2[i] = set1[j])
+    /// ```
+    ///
+    /// Note that multiset equality is not needed here because every value is unique in an index
+    /// set.
+    ///
+    /// The **index** of a value `v` in `set` is defined by
+    ///
+    /// ```text
+    /// index(set, v) := i such that set[i] = v.
+    /// ```
+    ///
+    /// The index set `set` is **sorted** with respect to the comparator `cmp` if
+    ///
+    /// ```text
+    /// is_sorted(set, cmp) := ∀ i ∈ [0, set.len() - 1). cmp(set[i], set[i + 1]) != Greater
+    /// ```
+    ///
+    /// holds. We say that the sort is **stable** if and only if
+    ///
+    /// ```text
+    /// is_stable_sorted(set, original, cmp) :=
+    ///     is_sorted(set, cmp)
+    ///     ∧ (∀ i, j ∈ [0, original.len()). (cmp(original[i], original[j]) = Equal) ∧ (i < j))
+    ///         ⇒ (index(set, original[i]) < index(set, original[j])
+    ///       )
+    /// ```
+    ///
+    /// holds.
+    ///
+    /// ## Method Specification
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { true }
+    /// set.sort_by(cmp)
+    /// {
+    ///     set_after.len() = set_before.len()
+    ///     ∧ is_permutation(set_after, set_before)
+    ///     ∧ is_stable_sorted(set_after, set_before, cmp)
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set = TypedProjIndexSet::from([
+    ///     (1_usize, 'b'),
+    ///     (0_usize, '*'),
+    ///     (3_usize, 'c'),
+    ///     (2_usize, 'a'),
+    /// ]);
+    /// proj_set.sort_by(|v1, v2| v1.cmp(&v2));
+    /// let expected = [(0_usize, '*'), (1_usize, 'b'), (2_usize, 'a'), (3_usize, 'c')];
+    ///
+    /// assert_eq!(proj_set.as_slice(), expected.as_slice());
+    /// ```
     pub fn sort_by<F>(&mut self, mut cmp: F)
     where
         F: FnMut(&T, &T) -> cmp::Ordering,
@@ -5994,6 +6355,43 @@ where
         self.inner.sort_by(move |a, _, b, _| cmp(a, b));
     }
 
+    /// Returns a moving iterator that returns the entries of the index set in sorted order as
+    /// defined by the provided comparison function.
+    ///
+    /// The resulting moving iterator will return the entries of the index set in stable sorted
+    /// order with the ordering defined by the comparison function.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set = TypedProjIndexSet::from([
+    ///     (1_usize, 'b'),
+    ///     (0_usize, '*'),
+    ///     (3_usize, 'c'),
+    ///     (2_usize, 'a'),
+    /// ]);
+    /// let result: TypedProjVec<(usize, char)> = proj_set
+    ///     .sorted_by(|v1, v2| v1.cmp(&v2))
+    ///     .collect();
+    /// let expected = TypedProjVec::from([
+    ///     (0_usize, '*'),
+    ///     (1_usize, 'b'),
+    ///     (2_usize, 'a'),
+    ///     (3_usize, 'c')
+    /// ]);
+    ///
+    /// assert_eq!(result.as_slice(), expected.as_slice());
+    /// ```
     pub fn sorted_by<F>(self, mut cmp: F) -> IntoIter<T, A>
     where
         F: FnMut(&T, &T) -> cmp::Ordering,
@@ -6004,6 +6402,83 @@ where
         IntoIter::new(map_inner::IntoIter::new(entries))
     }
 
+    /// Sorts the entries in the index set into the sorted ordering of the keys as defined by the
+    /// default ordering of the keys, but may not preserve the order of equal values.
+    ///
+    /// After this method completes, the index set will be in unstable sorted order.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
+    /// before this method is called, `set_after` be the state of `set` after this method
+    /// completes.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// An index set `set1` is a **permutation** of an index set `set2` if it satisfies
+    ///
+    /// ```text
+    /// is_permutation(set1, set2) :=
+    ///     set1.len() = set2.len()
+    ///     ∧ (∀ i ∈ [0, set1.len()). ∃ j ∈ [0, set2.len()). set1[i] = set2[j])
+    ///     ∧ (∀ i ∈ [0, set2.len()). ∃ j ∈ [0, set1.len()). set2[i] = set1[j])
+    /// ```
+    ///
+    /// Note that multiset equality is not needed here because every value is unique in an index
+    /// set.
+    ///
+    /// The index set `set` is **sorted** with respect to its values if
+    ///
+    /// ```text
+    /// is_sorted(set) := ∀ i ∈ [0, set.len() - 1). set[i] ≤ set[i + 1].
+    /// ```
+    ///
+    /// ## Method Specification
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { true }
+    /// set.sort_unstable()
+    /// {
+    ///     set_after.len() = set_before.len()
+    ///     ∧ is_permutation(set_after, set_before)
+    ///     ∧ is_sorted(set_after)
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set = TypedProjIndexSet::from([
+    ///     (5_isize, 'e'),
+    ///     (2_isize, 'b'),
+    ///     (1_isize, 'a'),
+    ///     (4_isize, 'd'),
+    ///     (3_isize, 'c'),
+    /// ]);
+    /// proj_set.sort_unstable();
+    /// let expected = [
+    ///     (1_isize, 'a'),
+    ///     (2_isize, 'b'),
+    ///     (3_isize, 'c'),
+    ///     (4_isize, 'd'),
+    ///     (5_isize, 'e'),
+    /// ];
+    ///
+    /// assert_eq!(proj_set.as_slice(), expected.as_slice());
+    /// ```
     pub fn sort_unstable(&mut self)
     where
         T: Ord,
@@ -6011,6 +6486,108 @@ where
         self.inner.sort_unstable_keys()
     }
 
+    /// Sorts the entries in the index set in place into the sorted ordering of the entries as
+    /// defined by the provided comparison function, but may not preserve the order of equal values.
+    ///
+    /// After this method completes, the index set will be in unstable sorted order with the
+    /// ordering defined by the comparison function.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
+    /// before this method is called, `set_after` be the state of `set` after this method
+    /// completes.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// A **comparator** is a map `cmp : T ⨯ T → Ordering` such that given values `v1 :: T` and
+    /// `v2 :: T` from a partially ordered collection of values
+    ///
+    /// ```text
+    /// cmp(v1, v2) = Ordering::Greater when v1 > v2
+    /// cmp(v1, v2) = Ordering::Less    when v1 < v2
+    /// cmp(v1, v2) = Ordering::Equal   when v1 = v2
+    /// ```
+    ///
+    /// An index set `set1` is a **permutation** of an index set `set2` if it satisfies
+    ///
+    /// ```text
+    /// is_permutation(set1, set2) :=
+    ///     set1.len() = set2.len()
+    ///     ∧ (∀ i ∈ [0, set1.len()). ∃ j ∈ [0, set2.len()). set1[i] = set2[j])
+    ///     ∧ (∀ i ∈ [0, set2.len()). ∃ j ∈ [0, set1.len()). set2[i] = set1[j])
+    /// ```
+    ///
+    /// Note that multiset equality is not needed here because every value is unique in an index
+    /// set.
+    ///
+    /// The index set `set` is **sorted** with respect to the comparator `cmp` if
+    ///
+    /// ```text
+    /// is_sorted(set, cmp) := ∀ i ∈ [0, set.len() - 1). cmp(set[i], set[i + 1]) != Greater
+    /// ```
+    ///
+    /// holds.
+    ///
+    /// ## Method Specification
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { true }
+    /// set.sort_unstable_by(cmp)
+    /// {
+    ///     set_after.len() = set_before.len()
+    ///     ∧ is_permutation(set_after, set_before)
+    ///     ∧ is_sorted(set_after, set_before, cmp)
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set = TypedProjIndexSet::from([
+    ///     (6_isize, 'a'),
+    ///     (2_isize, 'b'),
+    ///     (1_isize, 'a'),
+    ///     (4_isize, 'a'),
+    ///     (3_isize, 'b'),
+    ///     (5_isize, 'b'),
+    /// ]);
+    /// let result = {
+    ///     let mut _set = proj_set.clone();
+    ///     _set.sort_unstable_by(|v1, v2| {
+    ///         match v1.1.cmp(&v2.1) {
+    ///             Ordering::Equal => v1.0.cmp(&v2.0),
+    ///             Ordering::Greater => Ordering::Greater,
+    ///             Ordering::Less => Ordering::Less,
+    ///         }
+    ///     });
+    ///     _set
+    /// };
+    /// let expected = [
+    ///     (1_isize, 'a'),
+    ///     (4_isize, 'a'),
+    ///     (6_isize, 'a'),
+    ///     (2_isize, 'b'),
+    ///     (3_isize, 'b'),
+    ///     (5_isize, 'b'),
+    /// ];
+    ///
+    /// assert_eq!(result.as_slice(), expected.as_slice());
+    /// ```
     pub fn sort_unstable_by<F>(&mut self, mut cmp: F)
     where
         F: FnMut(&T, &T) -> cmp::Ordering,
@@ -6018,6 +6595,52 @@ where
         self.inner.sort_unstable_by(move |a, _, b, _| cmp(a, b))
     }
 
+    /// Returns a moving iterator that returns the entries of the index set in sorted order as
+    /// defined by the provided comparison function.
+    ///
+    /// The resulting moving iterator will return the elements in unstable sorted order.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set = TypedProjIndexSet::from([
+    ///     (6_isize, 'a'),
+    ///     (2_isize, 'b'),
+    ///     (1_isize, 'a'),
+    ///     (4_isize, 'a'),
+    ///     (3_isize, 'b'),
+    ///     (5_isize, 'b'),
+    /// ]);
+    /// let result: TypedProjVec<(isize, char)> = proj_set
+    ///     .sorted_unstable_by(|v1, v2| {
+    ///         match v1.1.cmp(&v2.1) {
+    ///             Ordering::Equal => v1.0.cmp(&v2.0),
+    ///             Ordering::Greater => Ordering::Greater,
+    ///             Ordering::Less => Ordering::Less,
+    ///         }
+    ///     })
+    ///     .collect();
+    /// let expected = TypedProjVec::from([
+    ///     (1_isize, 'a'),
+    ///     (4_isize, 'a'),
+    ///     (6_isize, 'a'),
+    ///     (2_isize, 'b'),
+    ///     (3_isize, 'b'),
+    ///     (5_isize, 'b'),
+    /// ]);
+    ///
+    /// assert_eq!(result.as_slice(), expected.as_slice());
+    /// ```
     pub fn sorted_unstable_by<F>(self, mut cmp: F) -> IntoIter<T, A>
     where
         F: FnMut(&T, &T) -> cmp::Ordering,
@@ -6028,6 +6651,51 @@ where
         IntoIter::new(map_inner::IntoIter::new(entries))
     }
 
+    /// Sort the entries of the index set in place using a sort-key extraction function.
+    ///
+    /// During sorting, the function is called at most once per entry, by using temporary storage
+    /// to remember the results of its evaluation. The order of calls to the function is
+    /// unspecified. The sort is stable.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set = TypedProjIndexSet::from([
+    ///     (0_usize,  4_i32),
+    ///     (1_usize, -8_i32),
+    ///     (2_usize, -1_i32),
+    ///     (3_usize, -10_i32),
+    ///     (4_usize,  2_i32),
+    ///     (5_usize,  11_i32),
+    ///     (6_usize,  7_i32),
+    ///     (7_usize,  100_i32),
+    /// ]);
+    ///
+    /// // Strings are sorted by lexicographical order.
+    /// proj_set.sort_by_cached_key(|v| v.1.to_string());
+    /// let expected = [
+    ///     (2_usize, -1_i32),
+    ///     (3_usize, -10_i32),
+    ///     (1_usize, -8_i32),
+    ///     (7_usize,  100_i32),
+    ///     (5_usize,  11_i32),
+    ///     (4_usize,  2_i32),
+    ///     (0_usize,  4_i32),
+    ///     (6_usize,  7_i32),
+    /// ];
+    ///
+    /// assert_eq!(proj_set.as_slice(), expected.as_slice());
+    /// ```
     pub fn sort_by_cached_key<K, F>(&mut self, mut sort_key: F)
     where
         K: Ord,
@@ -6038,6 +6706,36 @@ where
         });
     }
 
+    /// Binary searches a sorted index set for the given key. If the index set is unsorted, the
+    /// returned result is unspecified and meaningless.
+    ///
+    /// If the entry with the value `value` is found in the set, then this method returns
+    /// `Ok(index)`, where `index` is the storage index of the entry with value `value` in the set.
+    /// If the entry with the value `value` is not found in the set, then this method returns
+    /// `Err(new_index)` where `new_index` is the position in the storage where an entry with the
+    /// value `value` could be inserted to maintain the sorted order.
+    ///
+    /// # Examples
+    ///
+    /// Binary searching a sorted index set.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set: TypedProjIndexSet<(isize, char)> = TypedProjIndexSet::from_iter((1_isize..=26_isize).zip('a'..='z'));
+    /// for (i, tuple) in (1_isize..=26_isize).zip('a'..='z').enumerate() {
+    ///     let result = proj_set.binary_search(&tuple);
+    ///     assert_eq!(result, Ok(i));
+    /// }
+    /// ```
     pub fn binary_search(&self, x: &T) -> Result<usize, usize>
     where
         T: Ord,
@@ -6045,6 +6743,85 @@ where
         self.as_slice().binary_search(x)
     }
 
+    /// Binary searches a sorted index set using a given comparator function. If the index set is
+    /// unsorted, the returned result is unspecified and meaningless.
+    ///
+    /// The comparator function should return an order code that indicates whether its argument is
+    /// `Less`, `Equal` or `Greater` than the desired target.
+    ///
+    /// If the index set is not in sorted order or if the comparator function does not implement an
+    /// order consistent with the sorted order of the underlying index set, the returned result is
+    /// unspecified and meaningless.
+    ///
+    /// If an entry satisfying the comparator is found in the set, then this method returns
+    /// `Ok(index)`, where `index` is the storage index of the entry found in the set. If an entry
+    /// satisfying the comparator is not found in the set, then this method returns
+    /// `Err(new_index)` where `new_index` is the position in the storage where an entry with the
+    /// value `value` could be inserted to maintain the sorted order. If multiple entries in the
+    /// index set satisfy the comparator, then any one of them could be returned. The index is
+    /// chosen deterministically, but this method makes no guarantees as to how it picks that
+    /// index.
+    ///
+    /// # Examples
+    ///
+    /// Binary searching a sorted index set.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set: TypedProjIndexSet<(isize, char)> = TypedProjIndexSet::from_iter((1_isize..=26_isize).zip('a'..='z'));
+    /// let expected = Ok(23);
+    /// let result = proj_set.binary_search_by(|v| v.1.cmp(&'x'));
+    ///
+    /// assert_eq!(result, expected);
+    ///
+    /// assert!('*' < 'a');
+    ///
+    /// let expected = Err(0);
+    /// let result = proj_set.binary_search_by(|v| v.1.cmp(&'*'));
+    ///
+    /// assert_eq!(result, expected);
+    /// ```
+    ///
+    /// Binary searching a sorted index set with repeating values.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set = TypedProjIndexSet::from([
+    ///     (1_usize, 'a'), (2_usize, 'b'), (3_usize, 'c'),
+    ///     (4_usize, 'd'), (5_usize, 'd'), (6_usize, 'd'),  (7_usize, 'd'),
+    ///     (8_usize, 'e'), (9_usize, 'f'), (10_usize, 'g'), (11_usize, 'h'),
+    /// ]);
+    ///
+    /// assert_eq!(proj_set.binary_search_by(|&v| v.1.cmp(&'a')), Ok(0));
+    /// assert_eq!(proj_set.binary_search_by(|&v| v.1.cmp(&'b')), Ok(1));
+    /// assert_eq!(proj_set.binary_search_by(|&v| v.1.cmp(&'c')), Ok(2));
+    ///
+    /// let result = proj_set.binary_search_by(|&v| v.1.cmp(&'d'));
+    /// assert!(match result { Ok(3..=6) => true, _ => false });
+    ///
+    /// assert_eq!(proj_set.binary_search_by(|&v| v.1.cmp(&'e')), Ok(7));
+    /// assert_eq!(proj_set.binary_search_by(|&v| v.1.cmp(&'f')), Ok(8));
+    /// assert_eq!(proj_set.binary_search_by(|&v| v.1.cmp(&'g')), Ok(9));
+    /// assert_eq!(proj_set.binary_search_by(|&v| v.1.cmp(&'h')), Ok(10));
+    /// ```
     #[inline]
     pub fn binary_search_by<F>(&self, f: F) -> Result<usize, usize>
     where
@@ -6053,6 +6830,61 @@ where
         self.as_slice().binary_search_by(f)
     }
 
+    /// Binary searches the index set with a key extraction function.
+    ///
+    /// This method assumes that the index set is in sorted order by the value, for instance with
+    /// [`sort_by`] using the same key extraction function. If the index set is not sorted by
+    /// the value, the returned result is unspecified and meaningless.
+    ///
+    /// If an entry matching the value is found in the set, then this method returns `Ok(index)`,
+    /// where `index` is the storage index of the entry found in the set. If an entry matching the
+    /// value is not found in the set, then this method returns `Err(new_index)` where `new_index`
+    /// is the position in the storage where an entry with the matching value could be inserted to
+    /// maintain the sorted order. If multiple entries in the index set match the value, then any
+    /// one of them could be returned. The index is chosen deterministically, but this method makes
+    /// no guarantees as to how it picks that index.
+    ///
+    /// See also [`binary_search`], [`binary_search_by`], and [`partition_point`].
+    ///
+    /// [`sort_by_key`]: TypedProjIndexSet::sort_by_key
+    /// [`binary_search`]: TypedProjIndexSet::binary_search
+    /// [`binary_search_by`]: TypedProjIndexSet::binary_search_by
+    /// [`partition_point`]: TypedProjIndexSet::partition_point
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set = TypedProjIndexSet::from([
+    ///     (0_usize,  0_isize),
+    ///     (1_usize,  1_isize), (2_usize, 1_isize), (3_usize, 1_isize), (4_usize, 1_isize),
+    ///     (5_usize,  2_isize),
+    ///     (6_usize,  3_isize),
+    ///     (7_usize,  5_isize),
+    ///     (8_usize,  8_isize),
+    ///     (9_usize,  13_isize),
+    ///     (10_usize, 21_isize),
+    ///     (11_usize, 34_isize),
+    ///     (12_usize, 55_isize),
+    /// ]);
+    ///
+    /// assert_eq!(proj_set.binary_search_by_key(&13, |&a| a.1),  Ok(9));
+    /// assert_eq!(proj_set.binary_search_by_key(&4, |&a| a.1),   Err(7));
+    /// assert_eq!(proj_set.binary_search_by_key(&100, |&a| a.1), Err(13));
+    ///
+    /// let result = proj_set.binary_search_by_key(&1, |&a| a.1);
+    ///
+    /// assert!(match result { Ok(1..=4) => true, _ => false, });
+    /// ```
     #[inline]
     pub fn binary_search_by_key<B, F>(&self, b: &B, f: F) -> Result<usize, usize>
     where
@@ -6062,6 +6894,105 @@ where
         self.as_slice().binary_search_by_key(b, f)
     }
 
+    /// Returns the index of the partition point of a sorted index set according to the given
+    /// predicate (the index of the first element of the second partition).
+    ///
+    /// This method assumes that the storage order of the entries in the index set is partitioned
+    /// according to the predicate. That is, all entries for which the predicate returns `true` are
+    /// at the start of the storage, and all entries for which the predicate returns `false` are at
+    /// the end of the index set's storage. If the index set's storage order does not partition
+    /// according to the predicate, the result is unspecified and meaningless.
+    ///
+    /// # Examples
+    ///
+    /// Finding the partition point of a partitioned index set where not every entry matches the
+    /// predicate.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set = TypedProjIndexSet::from([
+    ///     (0_usize, 1_isize),
+    ///     (1_usize, 2_isize),
+    ///     (2_usize, 2_isize),
+    ///     (3_usize, 3_isize),
+    ///     (4_usize, 5_isize),
+    ///     (5_usize, 5_isize),
+    ///     (6_usize, 5_isize),
+    ///     (7_usize, 6_isize),
+    ///     (8_usize, 9_isize),
+    /// ]);
+    ///
+    /// assert_eq!(proj_set.partition_point(|&v| v.1 < 5_isize), 4);
+    /// ```
+    ///
+    /// Finding the partition point of an index set where every entry matches the predicate.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// fn is_power_of_two(n: usize) -> bool {
+    ///     n != 0 && (n & (n - 1)) == 0
+    /// }
+    ///
+    /// let proj_set = TypedProjIndexSet::from([
+    ///     (0_usize, 1_usize),
+    ///     (1_usize, 2_usize),
+    ///     (2_usize, 4_usize),
+    ///     (3_usize, 8_usize),
+    ///     (4_usize, 16_usize),
+    ///     (5_usize, 32_usize),
+    ///     (6_usize, 64_usize),
+    /// ]);
+    ///
+    /// assert_eq!(proj_set.partition_point(|&v| is_power_of_two(v.1)), proj_set.len());
+    /// ```
+    ///
+    /// Finding the partition point of an index set where no entry matches the predicate.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// fn is_power_of_two(n: usize) -> bool {
+    ///     n != 0 && (n & (n - 1)) == 0
+    /// }
+    ///
+    /// let proj_set = TypedProjIndexSet::from([
+    ///     (0_usize, 3_usize),
+    ///     (1_usize, 5_usize),
+    ///     (2_usize, 7_usize),
+    ///     (3_usize, 11_usize),
+    ///     (4_usize, 13_usize),
+    ///     (5_usize, 17_usize),
+    ///     (6_usize, 19_usize),
+    /// ]);
+    ///
+    /// assert_eq!(proj_set.partition_point(|&v| is_power_of_two(v.1)), 0);
+    /// ```
     #[must_use]
     pub fn partition_point<P>(&self, pred: P) -> usize
     where
@@ -6070,24 +7001,206 @@ where
         self.as_slice().partition_point(pred)
     }
 
+    /// Reverses the storage order of the index set's entries in place.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set = TypedProjIndexSet::from(["foo", "bar", "baz", "quux"]);
+    /// let expected = ["quux", "baz", "bar", "foo"];
+    /// proj_set.reverse();
+    ///
+    /// assert_eq!(proj_set.as_slice(), expected.as_slice());
+    /// ```
     pub fn reverse(&mut self) {
         self.inner.reverse()
     }
 
+    /// Returns a slice of all the values in the index set.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set = TypedProjIndexSet::from([
+    ///     (-1_isize, "foo"),
+    ///     ( 0_isize, "bar"),
+    ///     ( 1_isize, "baz"),
+    /// ]);
+    /// let slice = proj_set.as_slice();
+    ///
+    /// assert_eq!(slice.get_index(0), Some(&(-1_isize, "foo")));
+    /// assert_eq!(slice.get_index(1), Some(&(0_isize,  "bar")));
+    /// assert_eq!(slice.get_index(2), Some(&(1_isize,  "baz")));
+    ///
+    /// assert_eq!(slice[0], (-1_isize, "foo"));
+    /// assert_eq!(slice[1], (0_isize,  "bar"));
+    /// assert_eq!(slice[2], (1_isize,  "baz"));
+    /// ```
     pub fn as_slice(&self) -> &Slice<T> {
         Slice::from_slice(self.as_entries())
     }
 
+    /// Converts an index set into a [`Box<[T]>`][owned slice].
+    ///
+    /// Before doing the conversion, this method discards excess capacity like [`shrink_to_fit`].
+    ///
+    /// [owned slice]: Box
+    /// [`shrink_to_fit`]: TypedProjIndexSet::shrink_to_fit
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::set::{Slice, TypedProjIndexSet};
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set = TypedProjIndexSet::with_capacity(10);
+    /// proj_set.extend([
+    ///     (0_usize, 1_i32),
+    ///     (1_usize, 2_i32),
+    ///     (2_usize, 3_i32),
+    /// ]);
+    ///
+    /// assert_eq!(proj_set.len(), 3);
+    /// assert_eq!(proj_set.capacity(), 10);
+    /// assert_eq!(proj_set.as_slice(), &[(0_usize, 1_i32), (1_usize, 2_i32), (2_usize, 3_i32)]);
+    ///
+    /// let boxed_slice: Box<Slice<(usize, i32)>, TypedProjAlloc<Global>> = proj_set
+    ///     .into_boxed_slice();
+    ///
+    /// assert_eq!(boxed_slice.len(), 3);
+    /// assert_eq!(boxed_slice.as_ref(), &[(0_usize, 1_i32), (1_usize, 2_i32), (2_usize, 3_i32)]);
+    /// ```
     pub fn into_boxed_slice(self) -> Box<Slice<T>, TypedProjAlloc<A>> {
         let boxed_map = self.inner.into_boxed_slice();
 
         Slice::from_boxed_slice(boxed_map)
     }
 
+    /// Returns a reference to the value stored at a given storage index in the index set, if
+    /// it exists.
+    ///
+    /// If `index < self.len()`, this method returns `Some(&value)`, where `value` is the value of
+    /// the entry at index `index`. If `index >= self.len()`, this method returns `None`.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `set` be an index set with value type `T`.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// The **index** of a value `v` in `set` is defined by
+    ///
+    /// ```text
+    /// index(set, v) := i such that set[i] = v.
+    /// ```
+    ///
+    /// ## Method Specification
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { index < set.len() }
+    /// set.get_index(index)
+    /// { result = Some(set[index]) }
+    ///
+    /// { index >= set.len() }
+    /// set.get_index(index)
+    /// { result = None }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set = TypedProjIndexSet::from([
+    ///     (1_usize, 10_i32),
+    ///     (2_usize, 40_i32),
+    ///     (3_usize, 30_i32),
+    /// ]);
+    ///
+    /// assert_eq!(proj_set.get_index(0), Some(&(1_usize, 10_i32)));
+    /// assert_eq!(proj_set.get_index(1), Some(&(2_usize, 40_i32)));
+    /// assert_eq!(proj_set.get_index(2), Some(&(3_usize, 30_i32)));
+    /// assert_eq!(proj_set.get_index(3), None);
+    /// ```
     pub fn get_index(&self, index: usize) -> Option<&T> {
         self.as_entries().get_index(index).map(|tuple| tuple.0)
     }
 
+    /// Returns a slice of entries in the index set in the given storage range in the set.
+    ///
+    /// If the range `range` is in bounds, this method returns `Some(&slice)`, where `slice` is the
+    /// slice of entries from the index set in the storage range `range`. if the range `range` is
+    /// out of bounds, this method returns `None`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set = TypedProjIndexSet::from([
+    ///     (1_usize, 10_i32),
+    ///     (2_usize, 40_i32),
+    ///     (3_usize, 30_i32),
+    ///     (4_usize, 60_i32),
+    /// ]);
+    ///
+    /// let maybe_slice = proj_set.get_range(1..);
+    ///
+    /// assert!(maybe_slice.is_some());
+    ///
+    /// let slice = maybe_slice.unwrap();
+    ///
+    /// assert_eq!(slice.len(), 3);
+    /// assert_eq!(slice[0], (2_usize, 40_i32));
+    /// assert_eq!(slice[1], (3_usize, 30_i32));
+    /// assert_eq!(slice[2], (4_usize, 60_i32));
+    /// ```
     pub fn get_range<R>(&self, range: R) -> Option<&Slice<T>>
     where
         R: ops::RangeBounds<usize>,
@@ -6097,30 +7210,479 @@ where
         entries.get_range(range).map(Slice::from_slice)
     }
 
+    /// Returns a reference to the first value in the index set, if it exists.
+    ///
+    /// If the index set is nonempty, this method returns `Some(&value)` where `value` is the value
+    /// of the first entry in the index set. If the index set is empty, this method returns `None`.
+    ///
+    /// # Examples
+    ///
+    /// Getting the first entry of a non-empty index set.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set = TypedProjIndexSet::from([
+    ///     String::from("foo"),
+    ///     String::from("bar"),
+    ///     String::from("baz"),
+    ///     String::from("quux"),
+    /// ]);
+    /// let result = proj_set.first();
+    ///
+    /// assert_eq!(result, Some(&String::from("foo")));
+    /// ```
+    ///
+    /// Getting the first entry from an empty index set.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set: TypedProjIndexSet<String> = TypedProjIndexSet::new();
+    /// let maybe_entry = proj_set.first();
+    ///
+    /// assert!(maybe_entry.is_none());
+    /// ```
     pub fn first(&self) -> Option<&T> {
         self.as_entries().first().map(|tuple| tuple.0)
     }
 
+    /// Returns a reference to the last value in the index set, if it exists.
+    ///
+    /// If the index set is nonempty, this method returns `Some(&value)` where `value` is the value
+    /// of the last entry in the index set. If the index set is empty, this method returns `None`.
+    ///
+    /// # Examples
+    ///
+    /// Getting the last entry of a non-empty index set.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set = TypedProjIndexSet::from([
+    ///     String::from("foo"),
+    ///     String::from("bar"),
+    ///     String::from("baz"),
+    ///     String::from("quux"),
+    /// ]);
+    /// let result = proj_set.last();
+    ///
+    /// assert_eq!(result, Some(&String::from("quux")));
+    /// ```
+    ///
+    /// Getting the last entry from an empty index set.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let proj_set: TypedProjIndexSet<String> = TypedProjIndexSet::new();
+    /// let maybe_entry = proj_set.last();
+    ///
+    /// assert!(maybe_entry.is_none());
+    /// ```
     pub fn last(&self) -> Option<&T> {
         self.as_entries().last().map(|tuple| tuple.0)
     }
 
+    /// Swap removes an entry from the index set by storage index.
+    ///
+    /// This method behaves as follows:
+    ///
+    /// * If `index < self.len() - 1`, this method removes the entry at storage index `index`, and
+    ///   swaps the last entry in `self` into the slot at `index`. This method removes and returns
+    ///   `Some(value)`, where `value` is the value from the removed entry.
+    /// * If `index == self.len() - 1`, this method remove the entry at storage index `index`, and
+    ///   returns `Some(value)`, where `value` is the value from the removed entry.
+    /// * If `index >= self.len()`, the index `index` is out of bounds, so the method returns
+    ///   `None`.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
+    /// before this method is called, `set_after` be the state of `set` after this method
+    /// completes.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// The **last entry** in the set `set` when `set` is non-empty is defined by
+    ///
+    /// ```text
+    /// last(set) := set[set.len() - 1].
+    /// ```
+    ///
+    /// We say that two sets `set1` and `set2` are **equal** if and only if
+    ///
+    /// ```text
+    /// set1 = set2 ⇔ (set1.len() = set2.len()) ∧ (∀ i ∈ [0, set1.len()). set1[i] = set2[i]).
+    /// ```
+    ///
+    /// ## Method Specification
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { index < set_before.len() - 1 }
+    /// set.swap_remove_index(index)
+    /// {
+    ///     result = Some(set_before[index])
+    ///     ∧ set_after.len() = set_before.len() - 1
+    ///     ∧ (∀ i ∈ [0, index). set_after[i] = set_before[i])
+    ///     ∧ set_after[index] = last(set_before)
+    ///     ∧ (∀ i ∈ [index + 1, set_after.len()). set_after[i] = set_before[i])
+    /// }
+    ///
+    /// { index = set_before.len() - 1 }
+    /// set.swap_remove_index(index)
+    /// {
+    ///     result = Some(set_before[index])
+    ///     ∧ set_after.len() = set_before.len() - 1
+    ///     ∧ (∀ i ∈ [0, set_after.len()). set_after[i] = set_before[i])
+    /// }
+    ///
+    /// { index ≥ set_before.len() }
+    /// set.swap_remove_index(index)
+    /// { result = None ∧ set_after = set_before }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set = TypedProjIndexSet::from([0_usize, 1_usize, 2_usize, 3_usize]);
+    /// let removed = proj_set.swap_remove_index(1);
+    /// let expected = [0_usize, 3_usize, 2_usize];
+    ///
+    /// assert_eq!(removed, Some(1_usize));
+    /// assert_eq!(proj_set.as_slice(), expected.as_slice());
+    /// ```
     pub fn swap_remove_index(&mut self, index: usize) -> Option<T> {
         self.inner.swap_remove_index(index).map(|(x, ())| x)
     }
 
+    /// Shift removes an entry from the index set by storage index.
+    ///
+    /// This method behaves as follows:
+    ///
+    /// * If `index < self.len() - 1`, this method removes the entry at storage index `index`, and
+    ///   shifts each entry in `(index, self.len() - 1)` down one unit. This method removes and
+    ///   returns `Some(value)`, where `value` is the value from the removed entry.
+    /// * If `index == self.len() - 1`, this method remove the entry at storage index `index`, and
+    ///   returns `Some(value)`, where `value` is the value from the removed entry.
+    /// * If `index >= self.len()`, the index `index` is out of bounds, so the method returns
+    ///   `None`.
+    ///
+    /// Note that when `self.len() == 1`, `self` is empty, so no shifting occurs.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
+    /// before this method is called, `set_after` be the state of `set` after this method
+    /// completes.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// We say that two sets `set1` and `set2` are **equal** if and only if
+    ///
+    /// ```text
+    /// set1 = set2 ⇔ (set1.len() = set2.len()) ∧ (∀ i ∈ [0, set1.len()). set1[i] = set2[i]).
+    /// ```
+    ///
+    /// ## Method Specification
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { index < set_before.len() - 1 }
+    /// set.shift_remove_index(index)
+    /// {
+    ///     result = Some(set_before[index])
+    ///     ∧ set_after.len() = set_before.len() - 1
+    ///     ∧ (∀ i ∈ [0, index). set_after[i] = set_before[i])
+    ///     ∧ (∀ i ∈ [index, set_after.len()). set_after[i] = set_before[i + 1])
+    /// }
+    ///
+    /// { index = set_before.len() - 1 }
+    /// set.shift_remove_index(index)
+    /// {
+    ///     result = Some(set_before[index])
+    ///     ∧ set_after.len() = set_before.len() - 1
+    ///     ∧ (∀ i ∈ [0, set_after.len()). set_after[i] = set_before[i])
+    /// }
+    ///
+    /// { index ≥ set_before.len() }
+    /// set.shift_remove_index(index)
+    /// { result = None ∧ set_after = set_before }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set = TypedProjIndexSet::from([0_usize, 1_usize, 2_usize, 3_usize]);
+    /// let removed = proj_set.shift_remove_index(1);
+    /// let expected = [0_usize, 2_usize, 3_usize];
+    ///
+    /// assert_eq!(removed, Some(1_usize));
+    /// assert_eq!(proj_set.as_slice(), expected.as_slice());
+    /// ```
     pub fn shift_remove_index(&mut self, index: usize) -> Option<T> {
         self.inner.shift_remove_index(index).map(|(x, ())| x)
     }
 
+    /// Moves the storage position of an entry from one index to another by shifting all other
+    /// pairs in between.
+    ///
+    /// This method behaves as follows:
+    ///
+    /// * If `from < to`, the other values will shift up while the targeted value moves down.
+    /// * If `from > to`, the other values will shift down while the targeted value moves up.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
+    /// before this method is called, `set_after` be the state of `set` after this method
+    /// completes.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// We say that two sets `set1` and `set2` are **equal** if and only if
+    ///
+    /// ```text
+    /// set1 = set2 ⇔ (set1.len() = set2.len()) ∧ (∀ i ∈ [0, set1.len()). set1[i] = set2[i]).
+    /// ```
+    ///
+    /// ## Method Specification
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { from < set_before.len() ∧ to < set_before.len() ∧ from < to }
+    /// set.move_index(from, to)
+    /// {
+    ///     set_after.len() = set_before.len()
+    ///     ∧ set_after[to] = set_before[from]
+    ///     ∧ (∀ i ∈ [0, from). set_after[i] = set_before[i])
+    ///     ∧ (∀ i ∈ [from, to). set_after[i] = set_before[i + 1])
+    ///     ∧ (∀ i ∈ [to + 1, set_after.len()). set_after[i] = set_before[i])
+    /// }
+    ///
+    /// { from < set_before.len() ∧ to < set_before.len() ∧ from > to }
+    /// set.move_index(from, to)
+    /// {
+    ///     set_after.len() = set_before.len()
+    ///     ∧ set_after[to] = set_before[from]
+    ///     ∧ (∀ i ∈ [0, to). set_after[i] = set_before[i])
+    ///     ∧ (∀ i ∈ [to, from). set_after[i + 1] = set_before[i])
+    ///     ∧ (∀ i ∈ [from + 1, set_after.len()). set_after[i] = set_before[i])
+    /// }
+    ///
+    /// { from < set_before.len() ∧ to < set_before.len() ∧ from = to }
+    /// set.move_index(from, to)
+    /// { set_after = set_before }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if `from` or `to` are out of bounds.
+    ///
+    /// # Examples
+    ///
+    /// Moving an index where `from < to`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set = TypedProjIndexSet::from([
+    ///     ("foo",    0_usize),
+    ///     ("bar",    1_usize),
+    ///     ("baz",    2_usize),
+    ///     ("quux",   3_usize),
+    /// ]);
+    /// proj_set.move_index(0, 3);
+    /// let expected = [("bar", 1_usize), ("baz", 2_usize), ("quux", 3_usize), ("foo", 0_usize)];
+    ///
+    /// assert_eq!(proj_set.as_slice(), expected.as_slice());
+    /// ```
+    ///
+    /// Moving an index where `from > to`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set = TypedProjIndexSet::from([
+    ///     ("foo",    0_usize),
+    ///     ("bar",    1_usize),
+    ///     ("baz",    2_usize),
+    ///     ("quux",   3_usize),
+    /// ]);
+    /// proj_set.move_index(3, 0);
+    /// let expected = [("quux", 3_usize), ("foo", 0_usize), ("bar", 1_usize), ("baz", 2_usize)];
+    ///
+    /// assert_eq!(proj_set.as_slice(), expected.as_slice());
+    /// ```
     #[track_caller]
     pub fn move_index(&mut self, from: usize, to: usize) {
         self.inner.move_index(from, to)
     }
 
+    /// Swaps the position of two entries in the index set.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
+    /// before this method is called, `set_after` be the state of `set` after this method
+    /// completes.
+    ///
+    /// ## Method Specification
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { a < set_before.len() ∧ b < set_before.len() }
+    /// map.swap_indices(a, b)
+    /// {
+    ///     set_after.len() = set_before.len()
+    ///     ∧ set_after[a] = set_before[b]
+    ///     ∧ set_after[b] = set_before[a]
+    ///     ∧ (∀ i ∈ [0, set_after.len()). i ∉ {a, b} ⇒ set_after[i] = set_before[i])
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if either `a` is out of bounds, or `b` is out of bounds.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut proj_set = TypedProjIndexSet::from([
+    ///     ("foo",    0_usize),
+    ///     ("bar",    1_usize),
+    ///     ("baz",    2_usize),
+    ///     ("quux",   3_usize),
+    /// ]);
+    /// proj_set.swap_indices(0, 3);
+    /// let expected = [("quux", 3_usize), ("bar", 1_usize), ("baz", 2_usize), ("foo", 0_usize)];
+    ///
+    /// assert_eq!(proj_set.as_slice(), expected.as_slice());
+    /// ```
     #[track_caller]
     pub fn swap_indices(&mut self, a: usize, b: usize) {
         self.inner.swap_indices(a, b)
+    }
+}
+
+impl<T, S, A> TypedProjIndexSet<T, S, A>
+where
+    T: any::Any + hash::Hash + Eq,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    pub fn is_disjoint<S2, A2>(&self, other: &TypedProjIndexSet<T, S2, A2>) -> bool
+    where
+        S2: any::Any + hash::BuildHasher + Send + Sync,
+        S2::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A2: any::Any + alloc::Allocator + Send + Sync,
+    {
+        if self.len() <= other.len() {
+            self.iter().all(move |value| !other.contains(value))
+        } else {
+            other.iter().all(move |value| !self.contains(value))
+        }
+    }
+
+    pub fn is_subset<S2, A2>(&self, other: &TypedProjIndexSet<T, S2, A2>) -> bool
+    where
+        S2: any::Any + hash::BuildHasher + Send + Sync,
+        S2::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A2: any::Any + alloc::Allocator + Send + Sync,
+    {
+        self.len() <= other.len() && self.iter().all(move |value| other.contains(value))
+    }
+
+    pub fn is_superset<S2, A2>(&self, other: &TypedProjIndexSet<T, S2, A2>) -> bool
+    where
+        S2: any::Any + hash::BuildHasher + Send + Sync,
+        S2::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A2: any::Any + alloc::Allocator + Send + Sync,
+    {
+        other.is_subset(self)
     }
 }
 
@@ -6268,45 +7830,6 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-}
-
-impl<T, S, A> TypedProjIndexSet<T, S, A>
-where
-    T: any::Any + hash::Hash + Eq,
-    S: any::Any + hash::BuildHasher + Send + Sync,
-    S::Hasher: any::Any + hash::Hasher + Send + Sync,
-    A: any::Any + alloc::Allocator + Send + Sync,
-{
-    pub fn is_disjoint<S2, A2>(&self, other: &TypedProjIndexSet<T, S2, A2>) -> bool
-    where
-        S2: any::Any + hash::BuildHasher + Send + Sync,
-        S2::Hasher: any::Any + hash::Hasher + Send + Sync,
-        A2: any::Any + alloc::Allocator + Send + Sync,
-    {
-        if self.len() <= other.len() {
-            self.iter().all(move |value| !other.contains(value))
-        } else {
-            other.iter().all(move |value| !self.contains(value))
-        }
-    }
-
-    pub fn is_subset<S2, A2>(&self, other: &TypedProjIndexSet<T, S2, A2>) -> bool
-    where
-        S2: any::Any + hash::BuildHasher + Send + Sync,
-        S2::Hasher: any::Any + hash::Hasher + Send + Sync,
-        A2: any::Any + alloc::Allocator + Send + Sync,
-    {
-        self.len() <= other.len() && self.iter().all(move |value| other.contains(value))
-    }
-
-    pub fn is_superset<S2, A2>(&self, other: &TypedProjIndexSet<T, S2, A2>) -> bool
-    where
-        S2: any::Any + hash::BuildHasher + Send + Sync,
-        S2::Hasher: any::Any + hash::Hasher + Send + Sync,
-        A2: any::Any + alloc::Allocator + Send + Sync,
-    {
-        other.is_subset(self)
-    }
 }
 
 impl<T, S1, S2, A> ops::BitAnd<&TypedProjIndexSet<T, S2, A>> for &TypedProjIndexSet<T, S1, A>
@@ -12471,6 +13994,110 @@ impl OpaqueIndexSet {
 }
 
 impl OpaqueIndexSet {
+    /// Removes and returns the last entry in the index set.
+    ///
+    /// If `self` is nonempty, this method returns the last value in the index set
+    /// as `Some(value)`. If `self` is empty, this method returns `None`.
+    ///
+    /// This method preserves the order of the remaining elements in the collection.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
+    /// before this method is called, `set_after` be the state of `set` after this method
+    /// completes.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// The **last entry** in the set `set` when `set` is non-empty is defined by
+    ///
+    /// ```text
+    /// last(set) := set[set.len() - 1].
+    /// ```
+    ///
+    /// ## Method Specification
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { set_before.len() > 0 }
+    /// set.pop()
+    /// {
+    ///     result = Some(last(set_before))
+    ///     ∧ set_after.len() = set_before.len() - 1
+    ///     ∧ (∀ i ∈ [0, set_after.len()). set_after[i] = set_before[i])
+    /// }
+    ///
+    /// { set_before.len() = 0 }
+    /// set.pop()
+    /// { result = None ∧ set_after.len() = 0 }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
+    /// # Examples
+    ///
+    /// Popping from a nonempty index set.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_set = OpaqueIndexSet::from(["foo", "bar", "baz", "quux"]);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<&str>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    ///
+    /// assert_eq!(opaque_set.len(), 4);
+    ///
+    /// let expected = Some("quux");
+    /// let result = opaque_set.pop::<&str, RandomState, Global>();
+    ///
+    /// assert_eq!(result, expected);
+    /// assert_eq!(opaque_set.len(), 3);
+    /// ```
+    ///
+    /// Popping from an empty index set.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_set = OpaqueIndexSet::new::<&str>();
+    /// #
+    /// # assert!(opaque_set.has_value_type::<&str>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    ///
+    /// assert!(opaque_set.is_empty());
+    ///
+    /// let expected = None;
+    /// let result = opaque_set.pop::<&str, RandomState, Global>();
+    ///
+    /// assert_eq!(result, expected);
+    /// assert!(opaque_set.is_empty());
+    /// ```
     #[doc(alias = "pop_last")]
     pub fn pop<T, S, A>(&mut self) -> Option<T>
     where
@@ -12484,6 +14111,99 @@ impl OpaqueIndexSet {
         proj_self.pop()
     }
 
+    /// Retains only the key-value pairs specified by the predicate.
+    ///
+    /// This method removes all values `v` for which `keep(&v)` returns `false`. This method
+    /// operates in place, visiting each value exactly once in the original order, and preserves
+    /// the storage order of the retained values. Stated differently, this method keeps only those
+    /// values `v` for which `keep(&v)` returns `true`.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
+    /// before this method is called, `set_after` be the state of `set` after this method
+    /// completes. Let `keep` be the filtering function for entries in `set`.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// Let `v :: T` be a value of type `T`. We say that `set` **contains** a value `v :: T`, or
+    /// that `v` is a **value of** `set` if the following holds:
+    ///
+    /// ```text
+    /// ∀ v :: T. (v ∈ set) ⇔ (∃ i ∈ [0, set.len()). set[i] = v).
+    /// ```
+    ///
+    /// The **index** of a value `v` in `set` is defined by
+    ///
+    /// ```text
+    /// index(set, v) := i such that set[i] = v.
+    /// ```
+    ///
+    /// ## Method Specification
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { true }
+    /// set.retain(keep)
+    /// {
+    ///     set_after.len() ≤ set_before.len()
+    ///     ∧ (∀ v ∈ set_after. v ∈ set_before ∧ keep(v))
+    ///     ∧ (∀ v ∈ set_before. keep(v) ⇒ v ∈ set_after)
+    ///     ∧ (∀ v ∈ set_before. ¬keep(v) ⇒ v ∉ set_after)
+    ///     ∧ (∀ v1, v2 ∈ set_after.
+    ///         index(set_before, v1) < index(set_before, v2) ⇒ index(set_after, v1) < index(set_after, v2)
+    ///       )
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// fn is_odd(v: &&str) -> bool { v.len() % 2 != 0 }
+    ///
+    /// let mut opaque_set = OpaqueIndexSet::from([
+    ///     "foo",
+    ///     "bar",
+    ///     "baz",
+    ///     "quux",
+    ///     "quuz",
+    ///     "corge",
+    ///     "grault",
+    ///     "garply",
+    ///     "waldo",
+    /// ]);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<&str>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    /// opaque_set.retain::<_, &str, RandomState, Global>(is_odd);
+    /// let expected = TypedProjVec::from(["foo", "bar", "baz", "corge", "waldo"]);
+    /// let result: TypedProjVec<&str> = opaque_set
+    ///     .iter::<&str, RandomState, Global>()
+    ///     .cloned()
+    ///     .collect();
+    ///
+    /// assert_eq!(result, expected);
+    /// ```
     pub fn retain<F, T, S, A>(&mut self, mut keep: F)
     where
         T: any::Any,
@@ -12497,6 +14217,109 @@ impl OpaqueIndexSet {
         proj_self.retain(&mut keep);
     }
 
+    /// Sorts the entries in the index set into the sorted ordering of the keys as defined by the
+    /// default ordering of the values.
+    ///
+    /// An index set is in **sorted order by value** if it satisfies the following property: let
+    /// `e1` and `e2` be entries in `self`. Then `e1.value() <= e2.value()` if and only if
+    /// `e1.index() <= e2.index()`. More precisely, given the index set `self`
+    ///
+    /// ```text
+    /// forall e1, e2 in self. e1.index() <= e2.index() <-> e1.value() <= e2.value()
+    /// ```
+    ///
+    /// or equivalently over values
+    ///
+    /// ```text
+    /// forall i1, i2 in [0, self.len()). forall v1, v2 :: T.
+    /// (i1, v1), (i2, v2) in self --> i1 <= i2 <-> v1 <= v2.
+    /// ```
+    ///
+    /// Otherwise, the index set is in **unsorted order by value**, or is **unsorted** for short.
+    ///
+    /// This means that an index set is in sorted order if the total ordering of the values in the
+    /// set matches the storage order of the entries in the set. The values are **sorted** if the
+    /// index set is in sorted order, and **unsorted** otherwise.
+    ///
+    /// After this method completes, the index set will be in stable sorted order.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
+    /// before this method is called, `set_after` be the state of `set` after this method
+    /// completes.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// An index set `set1` is a **permutation** of an index set `set2` if it satisfies
+    ///
+    /// ```text
+    /// is_permutation(set1, set2) :=
+    ///     set1.len() = set2.len()
+    ///     ∧ (∀ i ∈ [0, set1.len()). ∃ j ∈ [0, set2.len()). set1[i] = set2[j])
+    ///     ∧ (∀ i ∈ [0, set2.len()). ∃ j ∈ [0, set1.len()). set2[i] = set1[j])
+    /// ```
+    ///
+    /// Note that multiset equality is not needed here because every value is unique in an index
+    /// set.
+    ///
+    /// The index set `set` is **sorted** with respect to its values if
+    ///
+    /// ```text
+    /// is_sorted(set) := ∀ i ∈ [0, set.len() - 1). set[i] ≤ set[i + 1].
+    /// ```
+    ///
+    /// ## Method Specification
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { true }
+    /// set.sort()
+    /// {
+    ///     set_after.len() = set_before.len()
+    ///     ∧ is_permutation(set_after, set_before)
+    ///     ∧ is_sorted(set_after)
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_set = OpaqueIndexSet::from([
+    ///     (5_isize, 'e'),
+    ///     (2_isize, 'b'),
+    ///     (1_isize, 'a'),
+    ///     (4_isize, 'd'),
+    ///     (3_isize, 'c'),
+    /// ]);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<(isize, char)>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    /// opaque_set.sort::<(isize, char), RandomState, Global>();
+    /// let expected = [(1_isize, 'a'), (2_isize, 'b'), (3_isize, 'c'), (4_isize, 'd'), (5_isize, 'e')];
+    ///
+    /// assert_eq!(opaque_set.as_slice::<(isize, char), RandomState, Global>(), expected.as_slice());
+    /// ```
     pub fn sort<T, S, A>(&mut self)
     where
         T: any::Any + Ord,
@@ -12509,6 +14332,116 @@ impl OpaqueIndexSet {
         proj_self.sort();
     }
 
+    /// Sorts the entries in the index set into the sorted ordering of the entries as defined by the
+    /// provided comparison function.
+    ///
+    /// After this method completes, the index set will be in stable sorted order with the ordering
+    /// defined by the comparison function.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
+    /// before this method is called, `set_after` be the state of `set` after this method
+    /// completes.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// A **comparator** is a map `cmp : T ⨯ T → Ordering` such that given values `v1 :: T` and
+    /// `v2 :: T` from a partially ordered collection of values
+    ///
+    /// ```text
+    /// cmp(v1, v2) = Ordering::Greater when v1 > v2
+    /// cmp(v1, v2) = Ordering::Less    when v1 < v2
+    /// cmp(v1, v2) = Ordering::Equal   when v1 = v2
+    /// ```
+    ///
+    /// An index set `set1` is a **permutation** of an index set `set2` if it satisfies
+    ///
+    /// ```text
+    /// is_permutation(set1, set2) :=
+    ///     set1.len() = set2.len()
+    ///     ∧ (∀ i ∈ [0, set1.len()). ∃ j ∈ [0, set2.len()). set1[i] = set2[j])
+    ///     ∧ (∀ i ∈ [0, set2.len()). ∃ j ∈ [0, set1.len()). set2[i] = set1[j])
+    /// ```
+    ///
+    /// Note that multiset equality is not needed here because every value is unique in an index
+    /// set.
+    ///
+    /// The **index** of a value `v` in `set` is defined by
+    ///
+    /// ```text
+    /// index(set, v) := i such that set[i] = v.
+    /// ```
+    ///
+    /// The index set `set` is **sorted** with respect to the comparator `cmp` if
+    ///
+    /// ```text
+    /// is_sorted(set, cmp) := ∀ i ∈ [0, set.len() - 1). cmp(set[i], set[i + 1]) != Greater
+    /// ```
+    ///
+    /// holds. We say that the sort is **stable** if and only if
+    ///
+    /// ```text
+    /// is_stable_sorted(set, original, cmp) :=
+    ///     is_sorted(set, cmp)
+    ///     ∧ (∀ i, j ∈ [0, original.len()). (cmp(original[i], original[j]) = Equal) ∧ (i < j))
+    ///         ⇒ (index(set, original[i]) < index(set, original[j])
+    ///       )
+    /// ```
+    ///
+    /// holds.
+    ///
+    /// ## Method Specification
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { true }
+    /// set.sort_by(cmp)
+    /// {
+    ///     set_after.len() = set_before.len()
+    ///     ∧ is_permutation(set_after, set_before)
+    ///     ∧ is_stable_sorted(set_after, set_before, cmp)
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_set = OpaqueIndexSet::from([
+    ///     (1_usize, 'b'),
+    ///     (0_usize, '*'),
+    ///     (3_usize, 'c'),
+    ///     (2_usize, 'a'),
+    /// ]);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<(usize, char)>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    /// opaque_set.sort_by::<_, (usize, char), RandomState, Global>(|v1, v2| v1.cmp(&v2));
+    /// let expected = [(0_usize, '*'), (1_usize, 'b'), (2_usize, 'a'), (3_usize, 'c')];
+    ///
+    /// assert_eq!(opaque_set.as_slice::<(usize, char), RandomState, Global>(), expected.as_slice());
+    /// ```
     pub fn sort_by<F, T, S, A>(&mut self, mut cmp: F)
     where
         T: any::Any,
@@ -12522,6 +14455,54 @@ impl OpaqueIndexSet {
         proj_self.sort_by(&mut cmp);
     }
 
+    /// Returns a moving iterator that returns the entries of the index set in sorted order as
+    /// defined by the provided comparison function.
+    ///
+    /// The resulting moving iterator will return the entries of the index set in stable sorted
+    /// order with the ordering defined by the comparison function.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_set = OpaqueIndexSet::from([
+    ///     (1_usize, 'b'),
+    ///     (0_usize, '*'),
+    ///     (3_usize, 'c'),
+    ///     (2_usize, 'a'),
+    /// ]);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<(usize, char)>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    /// let result: TypedProjVec<(usize, char)> = opaque_set
+    ///     .sorted_by::<_, (usize, char), RandomState, Global>(|v1, v2| v1.cmp(&v2))
+    ///     .collect();
+    /// let expected = TypedProjVec::from([
+    ///     (0_usize, '*'),
+    ///     (1_usize, 'b'),
+    ///     (2_usize, 'a'),
+    ///     (3_usize, 'c')
+    /// ]);
+    ///
+    /// assert_eq!(result.as_slice(), expected.as_slice());
+    /// ```
     pub fn sorted_by<F, T, S, A>(self, mut cmp: F) -> IntoIter<T, A>
     where
         T: any::Any,
@@ -12535,6 +14516,94 @@ impl OpaqueIndexSet {
         proj_self.sorted_by(&mut cmp)
     }
 
+    /// Sorts the entries in the index set into the sorted ordering of the keys as defined by the
+    /// default ordering of the keys, but may not preserve the order of equal values.
+    ///
+    /// After this method completes, the index set will be in unstable sorted order.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
+    /// before this method is called, `set_after` be the state of `set` after this method
+    /// completes.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// An index set `set1` is a **permutation** of an index set `set2` if it satisfies
+    ///
+    /// ```text
+    /// is_permutation(set1, set2) :=
+    ///     set1.len() = set2.len()
+    ///     ∧ (∀ i ∈ [0, set1.len()). ∃ j ∈ [0, set2.len()). set1[i] = set2[j])
+    ///     ∧ (∀ i ∈ [0, set2.len()). ∃ j ∈ [0, set1.len()). set2[i] = set1[j])
+    /// ```
+    ///
+    /// Note that multiset equality is not needed here because every value is unique in an index
+    /// set.
+    ///
+    /// The index set `set` is **sorted** with respect to its values if
+    ///
+    /// ```text
+    /// is_sorted(set) := ∀ i ∈ [0, set.len() - 1). set[i] ≤ set[i + 1].
+    /// ```
+    ///
+    /// ## Method Specification
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { true }
+    /// set.sort_unstable()
+    /// {
+    ///     set_after.len() = set_before.len()
+    ///     ∧ is_permutation(set_after, set_before)
+    ///     ∧ is_sorted(set_after)
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_set = OpaqueIndexSet::from([
+    ///     (5_isize, 'e'),
+    ///     (2_isize, 'b'),
+    ///     (1_isize, 'a'),
+    ///     (4_isize, 'd'),
+    ///     (3_isize, 'c'),
+    /// ]);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<(isize, char)>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    /// opaque_set.sort_unstable::<(isize, char), RandomState, Global>();
+    /// let expected = [
+    ///     (1_isize, 'a'),
+    ///     (2_isize, 'b'),
+    ///     (3_isize, 'c'),
+    ///     (4_isize, 'd'),
+    ///     (5_isize, 'e'),
+    /// ];
+    ///
+    /// assert_eq!(opaque_set.as_slice::<(isize, char), RandomState, Global>(), expected.as_slice());
+    /// ```
     pub fn sort_unstable<T, S, A>(&mut self)
     where
         T: any::Any + Ord,
@@ -12547,6 +14616,119 @@ impl OpaqueIndexSet {
         proj_self.sort_unstable()
     }
 
+    /// Sorts the entries in the index set in place into the sorted ordering of the entries as
+    /// defined by the provided comparison function, but may not preserve the order of equal values.
+    ///
+    /// After this method completes, the index set will be in unstable sorted order with the
+    /// ordering defined by the comparison function.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
+    /// before this method is called, `set_after` be the state of `set` after this method
+    /// completes.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// A **comparator** is a map `cmp : T ⨯ T → Ordering` such that given values `v1 :: T` and
+    /// `v2 :: T` from a partially ordered collection of values
+    ///
+    /// ```text
+    /// cmp(v1, v2) = Ordering::Greater when v1 > v2
+    /// cmp(v1, v2) = Ordering::Less    when v1 < v2
+    /// cmp(v1, v2) = Ordering::Equal   when v1 = v2
+    /// ```
+    ///
+    /// An index set `set1` is a **permutation** of an index set `set2` if it satisfies
+    ///
+    /// ```text
+    /// is_permutation(set1, set2) :=
+    ///     set1.len() = set2.len()
+    ///     ∧ (∀ i ∈ [0, set1.len()). ∃ j ∈ [0, set2.len()). set1[i] = set2[j])
+    ///     ∧ (∀ i ∈ [0, set2.len()). ∃ j ∈ [0, set1.len()). set2[i] = set1[j])
+    /// ```
+    ///
+    /// Note that multiset equality is not needed here because every value is unique in an index
+    /// set.
+    ///
+    /// The index set `set` is **sorted** with respect to the comparator `cmp` if
+    ///
+    /// ```text
+    /// is_sorted(set, cmp) := ∀ i ∈ [0, set.len() - 1). cmp(set[i], set[i + 1]) != Greater
+    /// ```
+    ///
+    /// holds.
+    ///
+    /// ## Method Specification
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { true }
+    /// set.sort_unstable_by(cmp)
+    /// {
+    ///     set_after.len() = set_before.len()
+    ///     ∧ is_permutation(set_after, set_before)
+    ///     ∧ is_sorted(set_after, set_before, cmp)
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_set = OpaqueIndexSet::from([
+    ///     (6_isize, 'a'),
+    ///     (2_isize, 'b'),
+    ///     (1_isize, 'a'),
+    ///     (4_isize, 'a'),
+    ///     (3_isize, 'b'),
+    ///     (5_isize, 'b'),
+    /// ]);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<(isize, char)>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    /// let result = {
+    ///     let mut _set = opaque_set.clone::<(isize, char), RandomState, Global>();
+    ///     _set.sort_unstable_by::<_, (isize, char), RandomState, Global>(|v1, v2| {
+    ///         match v1.1.cmp(&v2.1) {
+    ///             Ordering::Equal => v1.0.cmp(&v2.0),
+    ///             Ordering::Greater => Ordering::Greater,
+    ///             Ordering::Less => Ordering::Less,
+    ///         }
+    ///     });
+    ///     _set
+    /// };
+    /// let expected = [
+    ///     (1_isize, 'a'),
+    ///     (4_isize, 'a'),
+    ///     (6_isize, 'a'),
+    ///     (2_isize, 'b'),
+    ///     (3_isize, 'b'),
+    ///     (5_isize, 'b'),
+    /// ];
+    ///
+    /// assert_eq!(result.as_slice::<(isize, char), RandomState, Global>(), expected.as_slice());
+    /// ```
     pub fn sort_unstable_by<F, T, S, A>(&mut self, mut cmp: F)
     where
         T: any::Any,
@@ -12560,6 +14742,63 @@ impl OpaqueIndexSet {
         proj_self.sort_unstable_by(&mut cmp)
     }
 
+    /// Returns a moving iterator that returns the entries of the index set in sorted order as
+    /// defined by the provided comparison function.
+    ///
+    /// The resulting moving iterator will return the elements in unstable sorted order.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_set = OpaqueIndexSet::from([
+    ///     (6_isize, 'a'),
+    ///     (2_isize, 'b'),
+    ///     (1_isize, 'a'),
+    ///     (4_isize, 'a'),
+    ///     (3_isize, 'b'),
+    ///     (5_isize, 'b'),
+    /// ]);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<(isize, char)>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    /// let result: TypedProjVec<(isize, char)> = opaque_set
+    ///     .sorted_unstable_by::<_, (isize, char), RandomState, Global>(|v1, v2| {
+    ///         match v1.1.cmp(&v2.1) {
+    ///             Ordering::Equal => v1.0.cmp(&v2.0),
+    ///             Ordering::Greater => Ordering::Greater,
+    ///             Ordering::Less => Ordering::Less,
+    ///         }
+    ///     })
+    ///     .collect();
+    /// let expected = TypedProjVec::from([
+    ///     (1_isize, 'a'),
+    ///     (4_isize, 'a'),
+    ///     (6_isize, 'a'),
+    ///     (2_isize, 'b'),
+    ///     (3_isize, 'b'),
+    ///     (5_isize, 'b'),
+    /// ]);
+    ///
+    /// assert_eq!(result.as_slice(), expected.as_slice());
+    /// ```
     pub fn sorted_unstable_by<F, T, S, A>(self, mut cmp: F) -> IntoIter<T, A>
     where
         T: any::Any,
@@ -12573,6 +14812,62 @@ impl OpaqueIndexSet {
         proj_self.sorted_unstable_by(&mut cmp)
     }
 
+    /// Sort the entries of the index set in place using a sort-key extraction function.
+    ///
+    /// During sorting, the function is called at most once per entry, by using temporary storage
+    /// to remember the results of its evaluation. The order of calls to the function is
+    /// unspecified. The sort is stable.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_set = OpaqueIndexSet::from([
+    ///     (0_usize,  4_i32),
+    ///     (1_usize, -8_i32),
+    ///     (2_usize, -1_i32),
+    ///     (3_usize, -10_i32),
+    ///     (4_usize,  2_i32),
+    ///     (5_usize,  11_i32),
+    ///     (6_usize,  7_i32),
+    ///     (7_usize,  100_i32),
+    /// ]);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<(usize, i32)>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    ///
+    /// // Strings are sorted by lexicographical order.
+    /// opaque_set.sort_by_cached_key::<_, _, (usize, i32), RandomState, Global>(|v| v.1.to_string());
+    /// let expected = [
+    ///     (2_usize, -1_i32),
+    ///     (3_usize, -10_i32),
+    ///     (1_usize, -8_i32),
+    ///     (7_usize,  100_i32),
+    ///     (5_usize,  11_i32),
+    ///     (4_usize,  2_i32),
+    ///     (0_usize,  4_i32),
+    ///     (6_usize,  7_i32),
+    /// ];
+    ///
+    /// assert_eq!(opaque_set.as_slice::<(usize, i32), RandomState, Global>(), expected.as_slice());
+    /// ```
     pub fn sort_by_cached_key<K, F, T, S, A>(&mut self, mut sort_key: F)
     where
         T: any::Any,
@@ -12587,6 +14882,47 @@ impl OpaqueIndexSet {
         proj_self.sort_by_cached_key(&mut sort_key)
     }
 
+    /// Binary searches a sorted index set for the given key. If the index set is unsorted, the
+    /// returned result is unspecified and meaningless.
+    ///
+    /// If the entry with the value `value` is found in the set, then this method returns
+    /// `Ok(index)`, where `index` is the storage index of the entry with value `value` in the set.
+    /// If the entry with the value `value` is not found in the set, then this method returns
+    /// `Err(new_index)` where `new_index` is the position in the storage where an entry with the
+    /// value `value` could be inserted to maintain the sorted order.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
+    /// # Examples
+    ///
+    /// Binary searching a sorted index set.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_set = OpaqueIndexSet::from_iter((1_isize..=26_isize).zip('a'..='z'));
+    /// #
+    /// # assert!(opaque_set.has_value_type::<(isize, char)>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    /// for (i, tuple) in (1_isize..=26_isize).zip('a'..='z').enumerate() {
+    ///     let result = opaque_set.binary_search::<(isize, char), RandomState, Global>(&tuple);
+    ///     assert_eq!(result, Ok(i));
+    /// }
+    /// ```
     pub fn binary_search<T, S, A>(&self, x: &T) -> Result<usize, usize>
     where
         T: any::Any + Ord,
@@ -12599,6 +14935,125 @@ impl OpaqueIndexSet {
         proj_self.binary_search(x)
     }
 
+    /// Binary searches a sorted index set using a given comparator function. If the index set is
+    /// unsorted, the returned result is unspecified and meaningless.
+    ///
+    /// The comparator function should return an order code that indicates whether its argument is
+    /// `Less`, `Equal` or `Greater` than the desired target.
+    ///
+    /// If the index set is not in sorted order or if the comparator function does not implement an
+    /// order consistent with the sorted order of the underlying index set, the returned result is
+    /// unspecified and meaningless.
+    ///
+    /// If an entry satisfying the comparator is found in the set, then this method returns
+    /// `Ok(index)`, where `index` is the storage index of the entry found in the set. If an entry
+    /// satisfying the comparator is not found in the set, then this method returns
+    /// `Err(new_index)` where `new_index` is the position in the storage where an entry with the
+    /// value `value` could be inserted to maintain the sorted order. If multiple entries in the
+    /// index set satisfy the comparator, then any one of them could be returned. The index is
+    /// chosen deterministically, but this method makes no guarantees as to how it picks that
+    /// index.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
+    /// # Examples
+    ///
+    /// Binary searching a sorted index set.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_set = OpaqueIndexSet::from_iter((1_isize..=26_isize).zip('a'..='z'));
+    /// #
+    /// # assert!(opaque_set.has_value_type::<(isize, char)>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    /// let expected = Ok(23);
+    /// let result = opaque_set
+    ///     .binary_search_by::<_, (isize, char), RandomState, Global>(|v| v.1.cmp(&'x'));
+    ///
+    /// assert_eq!(result, expected);
+    ///
+    /// assert!('*' < 'a');
+    ///
+    /// let expected = Err(0);
+    /// let result = opaque_set
+    ///     .binary_search_by::<_, (isize, char), RandomState, Global>(|v| v.1.cmp(&'*'));
+    ///
+    /// assert_eq!(result, expected);
+    /// ```
+    ///
+    /// Binary searching a sorted index set with repeating values.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_set = OpaqueIndexSet::from([
+    ///     (1_usize, 'a'), (2_usize, 'b'), (3_usize, 'c'),
+    ///     (4_usize, 'd'), (5_usize, 'd'), (6_usize, 'd'),  (7_usize, 'd'),
+    ///     (8_usize, 'e'), (9_usize, 'f'), (10_usize, 'g'), (11_usize, 'h'),
+    /// ]);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<(usize, char)>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    ///
+    /// assert_eq!(
+    ///     opaque_set.binary_search_by::<_, (usize, char), RandomState, Global>(|&v| v.1.cmp(&'a')),
+    ///     Ok(0),
+    /// );
+    /// assert_eq!(
+    ///     opaque_set.binary_search_by::<_, (usize, char), RandomState, Global>(|&v| v.1.cmp(&'b')),
+    ///     Ok(1),
+    /// );
+    /// assert_eq!(
+    ///     opaque_set.binary_search_by::<_, (usize, char), RandomState, Global>(|&v| v.1.cmp(&'c')),
+    ///     Ok(2),
+    /// );
+    ///
+    /// let result = opaque_set
+    ///     .binary_search_by::<_, (usize, char), RandomState, Global>(|&v| v.1.cmp(&'d'));
+    /// assert!(match result { Ok(3..=6) => true, _ => false });
+    ///
+    /// assert_eq!(
+    ///     opaque_set.binary_search_by::<_, (usize, char), RandomState, Global>(|&v| v.1.cmp(&'e')),
+    ///     Ok(7),
+    /// );
+    /// assert_eq!(
+    ///     opaque_set.binary_search_by::<_, (usize, char), RandomState, Global>(|&v| v.1.cmp(&'f')),
+    ///     Ok(8),
+    /// );
+    /// assert_eq!(
+    ///     opaque_set.binary_search_by::<_, (usize, char), RandomState, Global>(|&v| v.1.cmp(&'g')),
+    ///     Ok(9),
+    /// );
+    /// assert_eq!(
+    ///     opaque_set.binary_search_by::<_, (usize, char), RandomState, Global>(|&v| v.1.cmp(&'h')),
+    ///     Ok(10),
+    /// );
+    /// ```
     #[inline]
     pub fn binary_search_by<F, T, S, A>(&self, f: F) -> Result<usize, usize>
     where
@@ -12613,6 +15068,81 @@ impl OpaqueIndexSet {
         proj_self.binary_search_by(f)
     }
 
+    /// Binary searches the index set with a key extraction function.
+    ///
+    /// This method assumes that the index set is in sorted order by the value, for instance with
+    /// [`sort_by`] using the same key extraction function. If the index set is not sorted by
+    /// the value, the returned result is unspecified and meaningless.
+    ///
+    /// If an entry matching the value is found in the set, then this method returns `Ok(index)`,
+    /// where `index` is the storage index of the entry found in the set. If an entry matching the
+    /// value is not found in the set, then this method returns `Err(new_index)` where `new_index`
+    /// is the position in the storage where an entry with the matching value could be inserted to
+    /// maintain the sorted order. If multiple entries in the index set match the value, then any
+    /// one of them could be returned. The index is chosen deterministically, but this method makes
+    /// no guarantees as to how it picks that index.
+    ///
+    /// See also [`binary_search`], [`binary_search_by`], and [`partition_point`].
+    ///
+    /// [`sort_by_key`]: OpaqueIndexSet::sort_by_key
+    /// [`binary_search`]: OpaqueIndexSet::binary_search
+    /// [`binary_search_by`]: OpaqueIndexSet::binary_search_by
+    /// [`partition_point`]: OpaqueIndexSet::partition_point
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_set = OpaqueIndexSet::from([
+    ///     (0_usize,  0_isize),
+    ///     (1_usize,  1_isize), (2_usize, 1_isize), (3_usize, 1_isize), (4_usize, 1_isize),
+    ///     (5_usize,  2_isize),
+    ///     (6_usize,  3_isize),
+    ///     (7_usize,  5_isize),
+    ///     (8_usize,  8_isize),
+    ///     (9_usize,  13_isize),
+    ///     (10_usize, 21_isize),
+    ///     (11_usize, 34_isize),
+    ///     (12_usize, 55_isize),
+    /// ]);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<(usize, isize)>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    ///
+    /// assert_eq!(
+    ///     opaque_set.binary_search_by_key::<_, _, (usize, isize), RandomState, Global>(&13, |&a| a.1),
+    ///     Ok(9),
+    /// );
+    /// assert_eq!(
+    ///     opaque_set.binary_search_by_key::<_, _, (usize, isize), RandomState, Global>(&4, |&a| a.1),
+    ///     Err(7),
+    /// );
+    /// assert_eq!(
+    ///     opaque_set.binary_search_by_key::<_, _, (usize, isize), RandomState, Global>(&100, |&a| a.1),
+    ///     Err(13),
+    /// );
+    ///
+    /// let result = opaque_set.binary_search_by_key::<_, _, (usize, isize), RandomState, Global>(&1, |&a| a.1);
+    ///
+    /// assert!(match result { Ok(1..=4) => true, _ => false, });
+    /// ```
     #[inline]
     pub fn binary_search_by_key<B, F, T, S, A>(&self, b: &B, f: F) -> Result<usize, usize>
     where
@@ -12628,6 +15158,141 @@ impl OpaqueIndexSet {
         proj_self.binary_search_by_key(b, f)
     }
 
+    /// Returns the index of the partition point of a sorted index set according to the given
+    /// predicate (the index of the first element of the second partition).
+    ///
+    /// This method assumes that the storage order of the entries in the index set is partitioned
+    /// according to the predicate. That is, all entries for which the predicate returns `true` are
+    /// at the start of the storage, and all entries for which the predicate returns `false` are at
+    /// the end of the index set's storage. If the index set's storage order does not partition
+    /// according to the predicate, the result is unspecified and meaningless.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
+    /// # Examples
+    ///
+    /// Finding the partition point of a partitioned index set where not every entry matches the
+    /// predicate.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_set = OpaqueIndexSet::from([
+    ///     (0_usize, 1_isize),
+    ///     (1_usize, 2_isize),
+    ///     (2_usize, 2_isize),
+    ///     (3_usize, 3_isize),
+    ///     (4_usize, 5_isize),
+    ///     (5_usize, 5_isize),
+    ///     (6_usize, 5_isize),
+    ///     (7_usize, 6_isize),
+    ///     (8_usize, 9_isize),
+    /// ]);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<(usize, isize)>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    ///
+    /// assert_eq!(
+    ///     opaque_set.partition_point::<_, (usize, isize), RandomState, Global>(
+    ///         |&v| v.1 < 5_isize
+    ///     ),
+    ///     4,
+    /// );
+    /// ```
+    ///
+    /// Finding the partition point of an index set where every entry matches the predicate.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// fn is_power_of_two(n: usize) -> bool {
+    ///     n != 0 && (n & (n - 1)) == 0
+    /// }
+    ///
+    /// let opaque_set = OpaqueIndexSet::from([
+    ///     (0_usize, 1_usize),
+    ///     (1_usize, 2_usize),
+    ///     (2_usize, 4_usize),
+    ///     (3_usize, 8_usize),
+    ///     (4_usize, 16_usize),
+    ///     (5_usize, 32_usize),
+    ///     (6_usize, 64_usize),
+    /// ]);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<(usize, usize)>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    ///
+    /// assert_eq!(
+    ///     opaque_set.partition_point::<_, (usize, usize), RandomState, Global>(
+    ///         |&v| is_power_of_two(v.1)
+    ///     ),
+    ///     opaque_set.len(),
+    /// );
+    /// ```
+    ///
+    /// Finding the partition point of an index set where no entry matches the predicate.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// fn is_power_of_two(n: usize) -> bool {
+    ///     n != 0 && (n & (n - 1)) == 0
+    /// }
+    ///
+    /// let opaque_set = OpaqueIndexSet::from([
+    ///     (0_usize, 3_usize),
+    ///     (1_usize, 5_usize),
+    ///     (2_usize, 7_usize),
+    ///     (3_usize, 11_usize),
+    ///     (4_usize, 13_usize),
+    ///     (5_usize, 17_usize),
+    ///     (6_usize, 19_usize),
+    /// ]);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<(usize, usize)>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    ///
+    /// assert_eq!(
+    ///     opaque_set.partition_point::<_, (usize, usize), RandomState, Global>(
+    ///         |&v| is_power_of_two(v.1),
+    ///     ),
+    ///     0,
+    /// );
+    /// ```
     #[must_use]
     pub fn partition_point<P, T, S, A>(&self, pred: P) -> usize
     where
@@ -12642,6 +15307,38 @@ impl OpaqueIndexSet {
         proj_self.partition_point(pred)
     }
 
+    /// Reverses the storage order of the index set's entries in place.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_set = OpaqueIndexSet::from(["foo", "bar", "baz", "quux"]);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<&str>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    /// let expected = ["quux", "baz", "bar", "foo"];
+    /// opaque_set.reverse::<&str, RandomState, Global>();
+    ///
+    /// assert_eq!(opaque_set.as_slice::<&str, RandomState, Global>(), expected.as_slice());
+    /// ```
     pub fn reverse<T, S, A>(&mut self)
     where
         T: any::Any,
@@ -12654,6 +15351,46 @@ impl OpaqueIndexSet {
         proj_self.reverse()
     }
 
+    /// Returns a slice of all the values in the index set.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_set = OpaqueIndexSet::from([
+    ///     (-1_isize, "foo"),
+    ///     ( 0_isize, "bar"),
+    ///     ( 1_isize, "baz"),
+    /// ]);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<(isize, &str)>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    /// let slice = opaque_set.as_slice::<(isize, &str), RandomState, Global>();
+    ///
+    /// assert_eq!(slice.get_index(0), Some(&(-1_isize, "foo")));
+    /// assert_eq!(slice.get_index(1), Some(&(0_isize,  "bar")));
+    /// assert_eq!(slice.get_index(2), Some(&(1_isize,  "baz")));
+    ///
+    /// assert_eq!(slice[0], (-1_isize, "foo"));
+    /// assert_eq!(slice[1], (0_isize,  "bar"));
+    /// assert_eq!(slice[2], (1_isize,  "baz"));
+    /// ```
     pub fn as_slice<T, S, A>(&self) -> &Slice<T>
     where
         T: any::Any,
@@ -12666,6 +15403,57 @@ impl OpaqueIndexSet {
         proj_self.as_slice()
     }
 
+    /// Converts an index set into a [`Box<[T]>`][owned slice].
+    ///
+    /// Before doing the conversion, this method discards excess capacity like [`shrink_to_fit`].
+    ///
+    /// [owned slice]: Box
+    /// [`shrink_to_fit`]: OpaqueIndexSet::shrink_to_fit
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::set::{Slice, OpaqueIndexSet};
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_set = OpaqueIndexSet::with_capacity::<(usize, i32)>(10);
+    /// opaque_set.extend::<_, (usize, i32), RandomState, Global>([
+    ///     (0_usize, 1_i32),
+    ///     (1_usize, 2_i32),
+    ///     (2_usize, 3_i32),
+    /// ]);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<(usize, i32)>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    ///
+    /// assert_eq!(opaque_set.len(), 3);
+    /// assert_eq!(opaque_set.capacity(), 10);
+    /// assert_eq!(
+    ///     opaque_set.as_slice::<(usize, i32), RandomState, Global>(),
+    ///     &[(0_usize, 1_i32), (1_usize, 2_i32), (2_usize, 3_i32)]
+    /// );
+    ///
+    /// let boxed_slice: Box<Slice<(usize, i32)>, TypedProjAlloc<Global>> = opaque_set
+    ///     .into_boxed_slice::<(usize, i32), RandomState, Global>();
+    ///
+    /// assert_eq!(boxed_slice.len(), 3);
+    /// assert_eq!(boxed_slice.as_ref(), &[(0_usize, 1_i32), (1_usize, 2_i32), (2_usize, 3_i32)]);
+    /// ```
     pub fn into_boxed_slice<T, S, A>(self) -> Box<Slice<T>, TypedProjAlloc<A>>
     where
         T: any::Any,
@@ -12678,6 +15466,75 @@ impl OpaqueIndexSet {
         proj_self.into_boxed_slice()
     }
 
+    /// Returns a reference to the value stored at a given storage index in the index set, if
+    /// it exists.
+    ///
+    /// If `index < self.len()`, this method returns `Some(&value)`, where `value` is the value of
+    /// the entry at index `index`. If `index >= self.len()`, this method returns `None`.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `set` be an index set with value type `T`.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// The **index** of a value `v` in `set` is defined by
+    ///
+    /// ```text
+    /// index(set, v) := i such that set[i] = v.
+    /// ```
+    ///
+    /// ## Method Specification
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { index < set.len() }
+    /// set.get_index(index)
+    /// { result = Some(set[index]) }
+    ///
+    /// { index >= set.len() }
+    /// set.get_index(index)
+    /// { result = None }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_set = OpaqueIndexSet::from([
+    ///     (1_usize, 10_i32),
+    ///     (2_usize, 40_i32),
+    ///     (3_usize, 30_i32),
+    /// ]);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<(usize, i32)>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    ///
+    /// assert_eq!(opaque_set.get_index::<(usize, i32), RandomState, Global>(0), Some(&(1_usize, 10_i32)));
+    /// assert_eq!(opaque_set.get_index::<(usize, i32), RandomState, Global>(1), Some(&(2_usize, 40_i32)));
+    /// assert_eq!(opaque_set.get_index::<(usize, i32), RandomState, Global>(2), Some(&(3_usize, 30_i32)));
+    /// assert_eq!(opaque_set.get_index::<(usize, i32), RandomState, Global>(3), None);
+    /// ```
     pub fn get_index<T, S, A>(&self, index: usize) -> Option<&T>
     where
         T: any::Any,
@@ -12690,6 +15547,54 @@ impl OpaqueIndexSet {
         proj_self.get_index(index)
     }
 
+    /// Returns a slice of entries in the index set in the given storage range in the set.
+    ///
+    /// If the range `range` is in bounds, this method returns `Some(&slice)`, where `slice` is the
+    /// slice of entries from the index set in the storage range `range`. if the range `range` is
+    /// out of bounds, this method returns `None`.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::cmp::Ordering;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_set = OpaqueIndexSet::from([
+    ///     (1_usize, 10_i32),
+    ///     (2_usize, 40_i32),
+    ///     (3_usize, 30_i32),
+    ///     (4_usize, 60_i32),
+    /// ]);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<(usize, i32)>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    ///
+    /// let maybe_slice = opaque_set.get_range::<_, (usize, i32), RandomState, Global>(1..);
+    ///
+    /// assert!(maybe_slice.is_some());
+    ///
+    /// let slice = maybe_slice.unwrap();
+    ///
+    /// assert_eq!(slice.len(), 3);
+    /// assert_eq!(slice[0], (2_usize, 40_i32));
+    /// assert_eq!(slice[1], (3_usize, 30_i32));
+    /// assert_eq!(slice[2], (4_usize, 60_i32));
+    /// ```
     pub fn get_range<R, T, S, A>(&self, range: R) -> Option<&Slice<T>>
     where
         T: any::Any,
@@ -12703,6 +15608,69 @@ impl OpaqueIndexSet {
         proj_self.get_range(range)
     }
 
+    /// Returns a reference to the first value in the index set, if it exists.
+    ///
+    /// If the index set is nonempty, this method returns `Some(&value)` where `value` is the value
+    /// of the first entry in the index set. If the index set is empty, this method returns `None`.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
+    /// # Examples
+    ///
+    /// Getting the first entry of a non-empty index set.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_set = OpaqueIndexSet::from([
+    ///     String::from("foo"),
+    ///     String::from("bar"),
+    ///     String::from("baz"),
+    ///     String::from("quux"),
+    /// ]);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<String>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    /// let result = opaque_set.first::<String, RandomState, Global>();
+    ///
+    /// assert_eq!(result, Some(&String::from("foo")));
+    /// ```
+    ///
+    /// Getting the first entry from an empty index set.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_set = OpaqueIndexSet::new::<String>();
+    /// #
+    /// # assert!(opaque_set.has_value_type::<String>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    /// let maybe_entry = opaque_set.first::<String, RandomState, Global>();
+    ///
+    /// assert!(maybe_entry.is_none());
+    /// ```
     pub fn first<T, S, A>(&self) -> Option<&T>
     where
         T: any::Any,
@@ -12715,6 +15683,64 @@ impl OpaqueIndexSet {
         proj_self.first()
     }
 
+    /// Returns a reference to the last value in the index set, if it exists.
+    ///
+    /// If the index set is nonempty, this method returns `Some(&value)` where `value` is the value
+    /// of the last entry in the index set. If the index set is empty, this method returns `None`.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
+    /// # Examples
+    ///
+    /// Getting the last entry of a non-empty index set.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_set = OpaqueIndexSet::from([
+    ///     String::from("foo"),
+    ///     String::from("bar"),
+    ///     String::from("baz"),
+    ///     String::from("quux"),
+    /// ]);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<String>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    /// let result = opaque_set.last::<String, RandomState, Global>();
+    ///
+    /// assert_eq!(result, Some(&String::from("quux")));
+    /// ```
+    ///
+    /// Getting the last entry from an empty index set.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let opaque_set = OpaqueIndexSet::new::<String>();
+    /// let maybe_entry = opaque_set.last::<String, RandomState, Global>();
+    ///
+    /// assert!(maybe_entry.is_none());
+    /// ```
     pub fn last<T, S, A>(&self) -> Option<&T>
     where
         T: any::Any,
@@ -12727,6 +15753,98 @@ impl OpaqueIndexSet {
         proj_self.last()
     }
 
+    /// Swap removes an entry from the index set by storage index.
+    ///
+    /// This method behaves as follows:
+    ///
+    /// * If `index < self.len() - 1`, this method removes the entry at storage index `index`, and
+    ///   swaps the last entry in `self` into the slot at `index`. This method removes and returns
+    ///   `Some(value)`, where `value` is the value from the removed entry.
+    /// * If `index == self.len() - 1`, this method remove the entry at storage index `index`, and
+    ///   returns `Some(value)`, where `value` is the value from the removed entry.
+    /// * If `index >= self.len()`, the index `index` is out of bounds, so the method returns
+    ///   `None`.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
+    /// before this method is called, `set_after` be the state of `set` after this method
+    /// completes.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// The **last entry** in the set `set` when `set` is non-empty is defined by
+    ///
+    /// ```text
+    /// last(set) := set[set.len() - 1].
+    /// ```
+    ///
+    /// We say that two sets `set1` and `set2` are **equal** if and only if
+    ///
+    /// ```text
+    /// set1 = set2 ⇔ (set1.len() = set2.len()) ∧ (∀ i ∈ [0, set1.len()). set1[i] = set2[i]).
+    /// ```
+    ///
+    /// ## Method Specification
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { index < set_before.len() - 1 }
+    /// set.swap_remove_index(index)
+    /// {
+    ///     result = Some(set_before[index])
+    ///     ∧ set_after.len() = set_before.len() - 1
+    ///     ∧ (∀ i ∈ [0, index). set_after[i] = set_before[i])
+    ///     ∧ set_after[index] = last(set_before)
+    ///     ∧ (∀ i ∈ [index + 1, set_after.len()). set_after[i] = set_before[i])
+    /// }
+    ///
+    /// { index = set_before.len() - 1 }
+    /// set.swap_remove_index(index)
+    /// {
+    ///     result = Some(set_before[index])
+    ///     ∧ set_after.len() = set_before.len() - 1
+    ///     ∧ (∀ i ∈ [0, set_after.len()). set_after[i] = set_before[i])
+    /// }
+    ///
+    /// { index ≥ set_before.len() }
+    /// set.swap_remove_index(index)
+    /// { result = None ∧ set_after = set_before }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_set = OpaqueIndexSet::from([0_usize, 1_usize, 2_usize, 3_usize]);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<usize>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    /// let removed = opaque_set.swap_remove_index::<usize, RandomState, Global>(1);
+    /// let expected = [0_usize, 3_usize, 2_usize];
+    ///
+    /// assert_eq!(removed, Some(1_usize));
+    /// assert_eq!(opaque_set.as_slice::<usize, RandomState, Global>(), expected.as_slice());
+    /// ```
     pub fn swap_remove_index<T, S, A>(&mut self, index: usize) -> Option<T>
     where
         T: any::Any,
@@ -12739,6 +15857,93 @@ impl OpaqueIndexSet {
         proj_self.swap_remove_index(index)
     }
 
+    /// Shift removes an entry from the index set by storage index.
+    ///
+    /// This method behaves as follows:
+    ///
+    /// * If `index < self.len() - 1`, this method removes the entry at storage index `index`, and
+    ///   shifts each entry in `(index, self.len() - 1)` down one unit. This method removes and
+    ///   returns `Some(value)`, where `value` is the value from the removed entry.
+    /// * If `index == self.len() - 1`, this method remove the entry at storage index `index`, and
+    ///   returns `Some(value)`, where `value` is the value from the removed entry.
+    /// * If `index >= self.len()`, the index `index` is out of bounds, so the method returns
+    ///   `None`.
+    ///
+    /// Note that when `self.len() == 1`, `self` is empty, so no shifting occurs.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
+    /// before this method is called, `set_after` be the state of `set` after this method
+    /// completes.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// We say that two sets `set1` and `set2` are **equal** if and only if
+    ///
+    /// ```text
+    /// set1 = set2 ⇔ (set1.len() = set2.len()) ∧ (∀ i ∈ [0, set1.len()). set1[i] = set2[i]).
+    /// ```
+    ///
+    /// ## Method Specification
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { index < set_before.len() - 1 }
+    /// set.shift_remove_index(index)
+    /// {
+    ///     result = Some(set_before[index])
+    ///     ∧ set_after.len() = set_before.len() - 1
+    ///     ∧ (∀ i ∈ [0, index). set_after[i] = set_before[i])
+    ///     ∧ (∀ i ∈ [index, set_after.len()). set_after[i] = set_before[i + 1])
+    /// }
+    ///
+    /// { index = set_before.len() - 1 }
+    /// set.shift_remove_index(index)
+    /// {
+    ///     result = Some(set_before[index])
+    ///     ∧ set_after.len() = set_before.len() - 1
+    ///     ∧ (∀ i ∈ [0, set_after.len()). set_after[i] = set_before[i])
+    /// }
+    ///
+    /// { index ≥ set_before.len() }
+    /// set.shift_remove_index(index)
+    /// { result = None ∧ set_after = set_before }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_set = OpaqueIndexSet::from([0_usize, 1_usize, 2_usize, 3_usize]);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<usize>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    /// let removed = opaque_set.shift_remove_index::<usize, RandomState, Global>(1);
+    /// let expected = [0_usize, 2_usize, 3_usize];
+    ///
+    /// assert_eq!(removed, Some(1_usize));
+    /// assert_eq!(opaque_set.as_slice::<usize, RandomState, Global>(), expected.as_slice());
+    /// ```
     pub fn shift_remove_index<T, S, A>(&mut self, index: usize) -> Option<T>
     where
         T: any::Any,
@@ -12751,6 +15956,128 @@ impl OpaqueIndexSet {
         proj_self.shift_remove_index(index)
     }
 
+    /// Moves the storage position of an entry from one index to another by shifting all other
+    /// pairs in between.
+    ///
+    /// This method behaves as follows:
+    ///
+    /// * If `from < to`, the other values will shift up while the targeted value moves down.
+    /// * If `from > to`, the other values will shift down while the targeted value moves up.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
+    /// before this method is called, `set_after` be the state of `set` after this method
+    /// completes.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// We say that two sets `set1` and `set2` are **equal** if and only if
+    ///
+    /// ```text
+    /// set1 = set2 ⇔ (set1.len() = set2.len()) ∧ (∀ i ∈ [0, set1.len()). set1[i] = set2[i]).
+    /// ```
+    ///
+    /// ## Method Specification
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { from < set_before.len() ∧ to < set_before.len() ∧ from < to }
+    /// set.move_index(from, to)
+    /// {
+    ///     set_after.len() = set_before.len()
+    ///     ∧ set_after[to] = set_before[from]
+    ///     ∧ (∀ i ∈ [0, from). set_after[i] = set_before[i])
+    ///     ∧ (∀ i ∈ [from, to). set_after[i] = set_before[i + 1])
+    ///     ∧ (∀ i ∈ [to + 1, set_after.len()). set_after[i] = set_before[i])
+    /// }
+    ///
+    /// { from < set_before.len() ∧ to < set_before.len() ∧ from > to }
+    /// set.move_index(from, to)
+    /// {
+    ///     set_after.len() = set_before.len()
+    ///     ∧ set_after[to] = set_before[from]
+    ///     ∧ (∀ i ∈ [0, to). set_after[i] = set_before[i])
+    ///     ∧ (∀ i ∈ [to, from). set_after[i + 1] = set_before[i])
+    ///     ∧ (∀ i ∈ [from + 1, set_after.len()). set_after[i] = set_before[i])
+    /// }
+    ///
+    /// { from < set_before.len() ∧ to < set_before.len() ∧ from = to }
+    /// set.move_index(from, to)
+    /// { set_after = set_before }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Panics
+    ///
+    /// This method panics under the one of the following conditions:
+    ///
+    /// * If the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash builder of `self`,
+    ///   and the [`TypeId`] of the memory allocator of `self` do not match the value type `T`,
+    ///   hash builder type `S`, and allocator type `A`, respectively.
+    /// * If `from` or `to` are out of bounds.
+    ///
+    /// # Examples
+    ///
+    /// Moving an index where `from < to`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_set = OpaqueIndexSet::from([
+    ///     ("foo",    0_usize),
+    ///     ("bar",    1_usize),
+    ///     ("baz",    2_usize),
+    ///     ("quux",   3_usize),
+    /// ]);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<(&str, usize)>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    /// opaque_set.move_index::<(&str, usize), RandomState, Global>(0, 3);
+    /// let expected = [("bar", 1_usize), ("baz", 2_usize), ("quux", 3_usize), ("foo", 0_usize)];
+    ///
+    /// assert_eq!(opaque_set.as_slice::<(&str, usize), RandomState, Global>(), expected.as_slice());
+    /// ```
+    ///
+    /// Moving an index where `from > to`.
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_set = OpaqueIndexSet::from([
+    ///     ("foo",    0_usize),
+    ///     ("bar",    1_usize),
+    ///     ("baz",    2_usize),
+    ///     ("quux",   3_usize),
+    /// ]);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<(&str, usize)>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    /// opaque_set.move_index::<(&str, usize), RandomState, Global>(3, 0);
+    /// let expected = [("quux", 3_usize), ("foo", 0_usize), ("bar", 1_usize), ("baz", 2_usize)];
+    ///
+    /// assert_eq!(opaque_set.as_slice::<(&str, usize), RandomState, Global>(), expected.as_slice());
+    /// ```
     #[track_caller]
     pub fn move_index<T, S, A>(&mut self, from: usize, to: usize)
     where
@@ -12764,6 +16091,68 @@ impl OpaqueIndexSet {
         proj_self.move_index(from, to)
     }
 
+    /// Swaps the position of two entries in the index set.
+    ///
+    /// # Formal Properties
+    ///
+    /// Let `set` be an index set with value type `T`. Let `set_before` be the state of `set`
+    /// before this method is called, `set_after` be the state of `set` after this method
+    /// completes.
+    ///
+    /// ## Method Specification
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { a < set_before.len() ∧ b < set_before.len() }
+    /// map.swap_indices(a, b)
+    /// {
+    ///     set_after.len() = set_before.len()
+    ///     ∧ set_after[a] = set_before[b]
+    ///     ∧ set_after[b] = set_before[a]
+    ///     ∧ (∀ i ∈ [0, set_after.len()). i ∉ {a, b} ⇒ set_after[i] = set_before[i])
+    /// }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Panics
+    ///
+    /// This method panics under one of the following conditions:
+    ///
+    /// * If the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash builder of `self`,
+    ///   and the [`TypeId`] of the memory allocator of `self` do not match the value type `T`,
+    ///   hash builder type `S`, and allocator type `A`, respectively.
+    /// * If either `a` is out of bounds, or `b` is out of bounds.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(allocator_api)]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// # use std::alloc::Global;
+    /// #
+    /// let mut opaque_set = OpaqueIndexSet::from([
+    ///     ("foo",    0_usize),
+    ///     ("bar",    1_usize),
+    ///     ("baz",    2_usize),
+    ///     ("quux",   3_usize),
+    /// ]);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<(&str, usize)>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    /// opaque_set.swap_indices::<(&str, usize), RandomState, Global>(0, 3);
+    /// let expected = [("quux", 3_usize), ("bar", 1_usize), ("baz", 2_usize), ("foo", 0_usize)];
+    ///
+    /// assert_eq!(opaque_set.as_slice::<(&str, usize), RandomState, Global>(), expected.as_slice());
+    /// ```
     #[track_caller]
     pub fn swap_indices<T, S, A>(&mut self, a: usize, b: usize)
     where

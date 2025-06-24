@@ -11712,7 +11712,7 @@ where
 {
     /// Removes and returns the last entry in the index map.
     ///
-    /// If `self` is nonempty, This method returns the last key-value pair in the index map
+    /// If `self` is nonempty, this method returns the last key-value pair in the index map
     /// as `Some((key, value))`. If `self` is empty, this method returns `None`.
     ///
     /// This method preserves the order of the remaining elements in the collection.
@@ -11812,7 +11812,7 @@ where
     ///
     /// This method removes all entries `e` for which `keep(&e)` returns `false`. This method
     /// operates in place, visiting each element exactly once in the original order, and preserves
-    /// the storage order of the retained entries. Stated difference, this method keeps only those
+    /// the storage order of the retained entries. Stated differently, this method keeps only those
     /// entries `e` for which `keep(&e)` returns `true`.
     ///
     /// # Formal Properties
@@ -11854,7 +11854,7 @@ where
     ///
     /// ```text
     /// { true }
-    /// map.retain(f)
+    /// map.retain(keep)
     /// {
     ///     map_after.len() ≤ map_before.len()
     ///     ∧ (∀ (k, v) ∈ map_after. k ∈ map_before ∧ keep(k, v))
@@ -12045,7 +12045,7 @@ where
     ///
     /// ```text
     /// cmp(k1, v1, k2, v2) = Ordering::Greater when (k1, v1) > (k2, v2)
-    /// cmp(k1, v2, k2, v2) = Ordering::Less    when (k1, v1) < (k2, v2)
+    /// cmp(k1, v1, k2, v2) = Ordering::Less    when (k1, v1) < (k2, v2)
     /// cmp(k1, v1, k2, v2) = Ordering::Equal   when (k1, v1) = (k2, v2)
     /// ```
     ///
@@ -12230,8 +12230,6 @@ where
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
-    /// This sort is stable because keys are unique.
-    ///
     /// # Examples
     ///
     /// ```
@@ -12289,7 +12287,7 @@ where
     ///
     /// ```text
     /// cmp(k1, v1, k2, v2) = Ordering::Greater when (k1, v1) > (k2, v2)
-    /// cmp(k1, v2, k2, v2) = Ordering::Less    when (k1, v1) < (k2, v2)
+    /// cmp(k1, v1, k2, v2) = Ordering::Less    when (k1, v1) < (k2, v2)
     /// cmp(k1, v1, k2, v2) = Ordering::Equal   when (k1, v1) = (k2, v2)
     /// ```
     ///
@@ -13143,14 +13141,6 @@ where
     ///
     /// Let `map` be an index map with keys of type `K` and values of type `V`.
     ///
-    /// ## Specification Definitions
-    ///
-    /// The **index** of a key `k :: K` in `map` is defined by
-    ///
-    /// ```text
-    /// index(map, k) := i such that map[i].key() = k.
-    /// ```
-    ///
     /// ## Method Specification
     ///
     /// This method satisfies:
@@ -13158,7 +13148,7 @@ where
     /// ```text
     /// { index < map.len() }
     /// map.get_index(index)
-    /// { result = Some(map[index(map, key)]) }
+    /// { result = Some(map[index]) }
     ///
     /// { index >= map.len() }
     /// map.get_index(index)
@@ -13206,14 +13196,6 @@ where
     ///
     /// Let `map` be an index map with keys of type `K` and values of type `V`.
     ///
-    /// ## Specification Definitions
-    ///
-    /// The **index** of a key `k :: K` in `map` is defined by
-    ///
-    /// ```text
-    /// index(map, k) := i such that map[i].key() = k.
-    /// ```
-    ///
     /// ## Method Specification
     ///
     /// This method satisfies:
@@ -13221,7 +13203,7 @@ where
     /// ```text
     /// { index < map.len() }
     /// map.get_index_mut(index)
-    /// { result = Some(map[index(map, key)]) }
+    /// { result = Some(map[index]) }
     ///
     /// { index >= map.len() }
     /// map.get_index_mut(index)
@@ -13814,14 +13796,22 @@ where
     /// This method satisfies:
     ///
     /// ```text
-    /// { index < map_before.len() }
+    /// { index < map_before.len() - 1 }
     /// map.swap_remove_index(index)
     /// {
     ///     result = Some(map_before[index])
     ///     ∧ map_after.len() = map_before.len() - 1
     ///     ∧ (∀ i ∈ [0, index). map_after[i] = map_before[i])
-    ///     ∧ (index < map_before.len() - 1 ⇒ map_after[index] = last(map_before))
+    ///     ∧ map_after[index] = last(map_before))
     ///     ∧ (∀ i ∈ [index + 1, map_after.len()). map_after[i] = map_before[i])
+    /// }
+    ///
+    /// { index = map_before.len() - 1 }
+    /// map.swap_remove_index(index)
+    /// {
+    ///     result = Some(map_before[index])
+    ///     ∧ map_after.len() = map_before.len() - 1
+    ///     ∧ (∀ i ∈ [0, map_after.len()). map_after[i] = map_before[i])
     /// }
     ///
     /// { index ≥ map_before.len() }
@@ -13863,9 +13853,13 @@ where
     ///
     /// This method behaves as follows:
     ///
-    /// * If `index < self.len()`, this method removes the entry at storage index `index`, and
-    ///   shifts each entry in `(index, self.len())` down one unit. This method removes and returns
-    ///   `Some((key, value))`, where `key` is the key, and `value` is the value from the entry.
+    /// * If `index < self.len() - 1`, this method removes the entry at storage index `index`, and
+    ///   shifts each entry in `(index, self.len() - 1)` down one unit. This method removes and
+    ///   returns `Some((key, value))`, where `key` is the key, and `value` is the value from the
+    ///   removed entry.
+    /// * If `index == self.len() - 1`, this method remove the entry at storage index `index`, and
+    ///   returns `Some((key, value))`, where `key` is the key, and `value` is the value from the
+    ///   removed entry.
     /// * If `index >= self.len()`, the index `index` is out of bounds, so the method returns
     ///   `None`.
     ///
@@ -13890,13 +13884,21 @@ where
     /// This method satisfies:
     ///
     /// ```text
-    /// { index < map_before.len() }
+    /// { index < map_before.len() - 1 }
     /// map.shift_remove_index(index)
     /// {
     ///     result = Some(map_before[index])
     ///     ∧ map_after.len() = map_before.len() - 1
     ///     ∧ (∀ i ∈ [0, index). map_after[i] = map_before[i])
     ///     ∧ (∀ i ∈ [index, map_after.len()). map_after[i] = map_before[i + 1])
+    /// }
+    ///
+    /// { index = map_before.len() - 1 }
+    /// map.shift_remove_index(index)
+    /// {
+    ///     result = Some(map_before[index])
+    ///     ∧ map_after.len() = map_before.len() - 1
+    ///     ∧ (∀ i ∈ [0, map_after.len()). map_after[i] = map_before[i])
     /// }
     ///
     /// { index ≥ map_before.len() }
@@ -13955,6 +13957,8 @@ where
     /// ```text
     /// map1 = map2 ⇔ (map1.len() = map2.len()) ∧ (∀ i ∈ [0, map1.len()). map1[i] = map2[i]).
     /// ```
+    ///
+    /// ## Method Specification
     ///
     /// This method satisfies:
     ///
@@ -21435,7 +21439,7 @@ impl OpaqueIndexMap {
 impl OpaqueIndexMap {
     /// Removes and returns the last entry in the index map.
     ///
-    /// If `self` is nonempty, This method returns the last key-value pair in the index map
+    /// If `self` is nonempty, this method returns the last key-value pair in the index map
     /// as `Some((key, value))`. If `self` is empty, this method returns `None`.
     ///
     /// This method preserves the order of the remaining elements in the collection.
@@ -21563,7 +21567,7 @@ impl OpaqueIndexMap {
     ///
     /// This method removes all entries `e` for which `keep(&e)` returns `false`. This method
     /// operates in place, visiting each element exactly once in the original order, and preserves
-    /// the storage order of the retained entries. Stated difference, this method keeps only those
+    /// the storage order of the retained entries. Stated differently, this method keeps only those
     /// entries `e` for which `keep(&e)` returns `true`.
     ///
     /// # Formal Properties
@@ -21605,7 +21609,7 @@ impl OpaqueIndexMap {
     ///
     /// ```text
     /// { true }
-    /// map.retain(f)
+    /// map.retain(keep)
     /// {
     ///     map_after.len() ≤ map_before.len()
     ///     ∧ (∀ (k, v) ∈ map_after. k ∈ map_before ∧ keep(k, v))
@@ -22059,8 +22063,6 @@ impl OpaqueIndexMap {
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
-    ///
-    /// This sort is stable because keys are unique.
     ///
     /// # Panics
     ///
@@ -23325,14 +23327,6 @@ impl OpaqueIndexMap {
     ///
     /// Let `map` be an index map with keys of type `K` and values of type `V`.
     ///
-    /// ## Specification Definitions
-    ///
-    /// The **index** of a key `k :: K` in `map` is defined by
-    ///
-    /// ```text
-    /// index(map, k) := i such that map[i].key() = k.
-    /// ```
-    ///
     /// ## Method Specification
     ///
     /// This method satisfies:
@@ -23340,7 +23334,7 @@ impl OpaqueIndexMap {
     /// ```text
     /// { index < map.len() }
     /// map.get_index(index)
-    /// { result = Some(map[index(map, key)]) }
+    /// { result = Some(map[index]) }
     ///
     /// { index >= map.len() }
     /// map.get_index(index)
@@ -23410,14 +23404,6 @@ impl OpaqueIndexMap {
     ///
     /// Let `map` be an index map with keys of type `K` and values of type `V`.
     ///
-    /// ## Specification Definitions
-    ///
-    /// The **index** of a key `k :: K` in `map` is defined by
-    ///
-    /// ```text
-    /// index(map, k) := i such that map[i].key() = k.
-    /// ```
-    ///
     /// ## Method Specification
     ///
     /// This method satisfies:
@@ -23425,7 +23411,7 @@ impl OpaqueIndexMap {
     /// ```text
     /// { index < map.len() }
     /// map.get_index_mut(index)
-    /// { result = Some(map[index(map, key)]) }
+    /// { result = Some(map[index]) }
     ///
     /// { index >= map.len() }
     /// map.get_index_mut(index)
@@ -24264,14 +24250,22 @@ impl OpaqueIndexMap {
     /// This method satisfies:
     ///
     /// ```text
-    /// { index < map_before.len() }
+    /// { index < map_before.len() - 1 }
     /// map.swap_remove_index(index)
     /// {
     ///     result = Some(map_before[index])
     ///     ∧ map_after.len() = map_before.len() - 1
     ///     ∧ (∀ i ∈ [0, index). map_after[i] = map_before[i])
-    ///     ∧ (index < map_before.len() - 1 ⇒ map_after[index] = last(map_before))
+    ///     ∧ map_after[index] = last(map_before))
     ///     ∧ (∀ i ∈ [index + 1, map_after.len()). map_after[i] = map_before[i])
+    /// }
+    ///
+    /// { index = map_before.len() - 1 }
+    /// map.swap_remove_index(index)
+    /// {
+    ///     result = Some(map_before[index])
+    ///     ∧ map_after.len() = map_before.len() - 1
+    ///     ∧ (∀ i ∈ [0, map_after.len()). map_after[i] = map_before[i])
     /// }
     ///
     /// { index ≥ map_before.len() }
@@ -24335,9 +24329,13 @@ impl OpaqueIndexMap {
     ///
     /// This method behaves as follows:
     ///
-    /// * If `index < self.len()`, this method removes the entry at storage index `index`, and
-    ///   shifts each entry in `(index, self.len())` down one unit. This method removes and returns
-    ///   `Some((key, value))`, where `key` is the key, and `value` is the value from the entry.
+    /// * If `index < self.len() - 1`, this method removes the entry at storage index `index`, and
+    ///   shifts each entry in `(index, self.len() - 1)` down one unit. This method removes and
+    ///   returns `Some((key, value))`, where `key` is the key, and `value` is the value from the
+    ///   removed entry.
+    /// * If `index == self.len() - 1`, this method remove the entry at storage index `index`, and
+    ///   returns `Some((key, value))`, where `key` is the key, and `value` is the value from the
+    ///   removed entry.
     /// * If `index >= self.len()`, the index `index` is out of bounds, so the method returns
     ///   `None`.
     ///
@@ -24362,13 +24360,21 @@ impl OpaqueIndexMap {
     /// This method satisfies:
     ///
     /// ```text
-    /// { index < map_before.len() }
+    /// { index < map_before.len() - 1 }
     /// map.shift_remove_index(index)
     /// {
     ///     result = Some(map_before[index])
     ///     ∧ map_after.len() = map_before.len() - 1
     ///     ∧ (∀ i ∈ [0, index). map_after[i] = map_before[i])
     ///     ∧ (∀ i ∈ [index, map_after.len()). map_after[i] = map_before[i + 1])
+    /// }
+    ///
+    /// { index = map_before.len() - 1 }
+    /// map.shift_remove_index(index)
+    /// {
+    ///     result = Some(map_before[index])
+    ///     ∧ map_after.len() = map_before.len() - 1
+    ///     ∧ (∀ i ∈ [0, map_after.len()). map_after[i] = map_before[i])
     /// }
     ///
     /// { index ≥ map_before.len() }
@@ -24449,6 +24455,8 @@ impl OpaqueIndexMap {
     /// ```text
     /// map1 = map2 ⇔ (map1.len() = map2.len()) ∧ (∀ i ∈ [0, map1.len()). map1[i] = map2[i]).
     /// ```
+    ///
+    /// ## Method Specification
     ///
     /// This method satisfies:
     ///
