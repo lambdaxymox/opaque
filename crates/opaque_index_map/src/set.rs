@@ -143,7 +143,7 @@ impl<T> Slice<T> {
     /// # use std::hash::RandomState;
     /// # use std::alloc::Global;
     /// #
-    /// let slice = Slice::new();
+    /// let slice: &Slice<isize> = Slice::new();
     ///
     /// assert!(slice.is_empty());
     /// ```
@@ -2345,15 +2345,15 @@ impl<I: fmt::Debug> fmt::Debug for UnitValue<I> {
 ///     String::from("cait sith"),
 /// ]);
 ///
-/// assert_eq!(party.get("cloud"),     Some(&String::from("cloud")));
-/// assert_eq!(party.get("tifa"),      Some(&String::from("tifa")));
-/// assert_eq!(party.get("aerith"),    Some(&String::from("aerith")));
-/// assert_eq!(party.get("barret"),    Some(&String::from("barret")));
-/// assert_eq!(party.get("cid"),       Some(&String::from("cid")));
-/// assert_eq!(party.get("vincent"),   Some(&String::from("vincent")));
-/// assert_eq!(party.get("yuffie"),    Some(&String::from("yuffie")));
-/// assert_eq!(party.get("red xiii"),  Some(&String::from("red xiii")));
-/// assert_eq!(party.get("cait sith"), Some(&String::from("cait sith")));
+/// assert!(party.contains("cloud"));
+/// assert!(party.contains("tifa"));
+/// assert!(party.contains("aerith"));
+/// assert!(party.contains("barret"));
+/// assert!(party.contains("cid"));
+/// assert!(party.contains("vincent"));
+/// assert!(party.contains("yuffie"));
+/// assert!(party.contains("red xiii"));
+/// assert!(party.contains("cait sith"));
 ///
 /// assert!(!party.contains("sephiroth"));
 /// assert!(!party.contains("jenova"));
@@ -9442,15 +9442,15 @@ where
 /// assert!(party.has_build_hasher_type::<RandomState>());
 /// assert!(party.has_allocator_type::<Global>());
 ///
-/// assert_eq!(party.get::<_, String, RandomState, Global>("cloud"),     Some(&String::from("cloud")));
-/// assert_eq!(party.get::<_, String, RandomState, Global>("tifa"),      Some(&String::from("tifa")));
-/// assert_eq!(party.get::<_, String, RandomState, Global>("aerith"),    Some(&String::from("aerith")));
-/// assert_eq!(party.get::<_, String, RandomState, Global>("barret"),    Some(&String::from("barret")));
-/// assert_eq!(party.get::<_, String, RandomState, Global>("cid"),       Some(&String::from("cid")));
-/// assert_eq!(party.get::<_, String, RandomState, Global>("vincent"),   Some(&String::from("vincent")));
-/// assert_eq!(party.get::<_, String, RandomState, Global>("yuffie"),    Some(&String::from("yuffie")));
-/// assert_eq!(party.get::<_, String, RandomState, Global>("red xiii"),  Some(&String::from("red xiii")));
-/// assert_eq!(party.get::<_ ,String, RandomState, Global>("cait sith"), Some(&String::from("cait sith")));
+/// assert!(party.contains::<_, String, RandomState, Global>("cloud"));
+/// assert!(party.contains::<_, String, RandomState, Global>("tifa"));
+/// assert!(party.contains::<_, String, RandomState, Global>("aerith"));
+/// assert!(party.contains::<_, String, RandomState, Global>("barret"));
+/// assert!(party.contains::<_, String, RandomState, Global>("cid"));
+/// assert!(party.contains::<_, String, RandomState, Global>("vincent"));
+/// assert!(party.contains::<_, String, RandomState, Global>("yuffie"));
+/// assert!(party.contains::<_, String, RandomState, Global>("red xiii"));
+/// assert!(party.contains::<_ ,String, RandomState, Global>("cait sith"));
 ///
 /// assert!(!party.contains::<_, String, RandomState, Global>("sephiroth"));
 /// assert!(!party.contains::<_, String, RandomState, Global>("jenova"));
