@@ -51,66 +51,6 @@ where
     }
 }
 
-#[derive(Clone)]
-pub struct WrappingAlloc1<A> {
-    alloc: A,
-}
-
-impl<A> WrappingAlloc1<A>
-where
-    A: any::Any + alloc::Allocator + Send + Sync,
-{
-    #[inline]
-    pub const fn new(alloc: A) -> Self {
-        Self { alloc, }
-    }
-}
-
-unsafe impl<A> alloc::Allocator for WrappingAlloc1<A>
-where
-    A: any::Any + alloc::Allocator + Send + Sync,
-{
-    fn allocate(&self, layout: alloc::Layout) -> Result<NonNull<[u8]>, alloc::AllocError> {
-        self.alloc.allocate(layout)
-    }
-
-    unsafe fn deallocate(&self, ptr: NonNull<u8>, layout: alloc::Layout) {
-        unsafe {
-            self.alloc.deallocate(ptr, layout)
-        }
-    }
-}
-
-#[derive(Clone)]
-pub struct WrappingAlloc2<A> {
-    alloc: A,
-}
-
-impl<A> WrappingAlloc2<A>
-where
-    A: any::Any + alloc::Allocator + Send + Sync,
-{
-    #[inline]
-    pub const fn new(alloc: A) -> Self {
-        Self { alloc, }
-    }
-}
-
-unsafe impl<A> alloc::Allocator for WrappingAlloc2<A>
-where
-    A: any::Any + alloc::Allocator + Send + Sync,
-{
-    fn allocate(&self, layout: alloc::Layout) -> Result<NonNull<[u8]>, alloc::AllocError> {
-        self.alloc.allocate(layout)
-    }
-
-    unsafe fn deallocate(&self, ptr: NonNull<u8>, layout: alloc::Layout) {
-        unsafe {
-            self.alloc.deallocate(ptr, layout)
-        }
-    }
-}
-
 pub fn from_entries_in<K, V, S, A>(entries: &[(K, V)], build_hasher: S, alloc: A) -> OpaqueIndexMap
 where
     K: any::Any + Clone + Eq + hash::Hash,

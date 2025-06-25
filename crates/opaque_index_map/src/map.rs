@@ -11868,12 +11868,11 @@ where
     ///
     /// assert_eq!(result_values.as_slice(), expected_values.as_slice());
     /// ```
-    pub fn append<S2, A2>(&mut self, other: &mut TypedProjIndexMap<K, V, S2, A2>)
+    pub fn append<S2>(&mut self, other: &mut TypedProjIndexMap<K, V, S2, A>)
     where
         K: Eq + hash::Hash,
         S2: any::Any + hash::BuildHasher + Send + Sync,
         S2::Hasher: any::Any + hash::Hasher + Send + Sync,
-        A2: any::Any + alloc::Allocator + Send + Sync,
     {
         self.inner.append(&mut other.inner);
     }
@@ -21683,7 +21682,7 @@ impl OpaqueIndexMap {
     /// assert_eq!(opaque_map1.len(), 4);
     /// assert_eq!(opaque_map2.len(), 3);
     ///
-    /// opaque_map1.append::<&str, usize, RandomState, Global, RandomState, Global>(&mut opaque_map2);
+    /// opaque_map1.append::<&str, usize, RandomState, RandomState, Global>(&mut opaque_map2);
     ///
     /// assert_eq!(opaque_map1.len(), 7);
     /// assert_eq!(opaque_map2.len(), 0);
@@ -21743,7 +21742,7 @@ impl OpaqueIndexMap {
     /// assert_eq!(opaque_map1.len(), 4);
     /// assert_eq!(opaque_map2.len(), 4);
     ///
-    /// opaque_map1.append::<&str, usize, RandomState, Global, RandomState, Global>(&mut opaque_map2);
+    /// opaque_map1.append::<&str, usize, RandomState, RandomState, Global>(&mut opaque_map2);
     ///
     /// assert_eq!(opaque_map1.len(), 7);
     /// assert_eq!(opaque_map2.len(), 0);
@@ -21762,19 +21761,18 @@ impl OpaqueIndexMap {
     ///
     /// assert_eq!(result_values.as_slice(), expected_values.as_slice());
     /// ```
-    pub fn append<K, V, S1, A1, S2, A2>(&mut self, other: &mut OpaqueIndexMap)
+    pub fn append<K, V, S1, S2, A>(&mut self, other: &mut OpaqueIndexMap)
     where
         K: any::Any + Eq + hash::Hash,
         V: any::Any,
         S1: any::Any + hash::BuildHasher + Send + Sync,
         S1::Hasher: any::Any + hash::Hasher + Send + Sync,
-        A1: any::Any + alloc::Allocator + Send + Sync,
         S2: any::Any + hash::BuildHasher + Send + Sync,
         S2::Hasher: any::Any + hash::Hasher + Send + Sync,
-        A2: any::Any + alloc::Allocator + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
     {
-        let proj_self = self.as_proj_mut::<K, V, S1, A1>();
-        let proj_other = other.as_proj_mut::<K, V, S2, A2>();
+        let proj_self = self.as_proj_mut::<K, V, S1, A>();
+        let proj_other = other.as_proj_mut::<K, V, S2, A>();
 
         proj_self.append(proj_other);
     }

@@ -18,13 +18,12 @@ where
     oimt::map::last_entry_per_key_ordered(&entries)
 }
 
-fn run_test_typed_proj_index_map_append_get_index_of_source<K, V, S1, A1, S2, A2>(
+fn run_test_typed_proj_index_map_append_get_index_of_source<K, V, S1, S2, A>(
     values1: &[(K, V)],
     values2: &[(K, V)],
     build_hasher1: S1,
-    alloc1: A1,
     build_hasher2: S2,
-    alloc2: A2,
+    alloc: A,
 )
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -33,18 +32,17 @@ where
     S1::Hasher: any::Any + hash::Hasher + Send + Sync,
     S2: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S2::Hasher: any::Any + hash::Hasher + Send + Sync,
-    A1: any::Any + alloc::Allocator + Send + Sync + Clone,
-    A2: any::Any + alloc::Allocator + Send + Sync + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let mut source = common::typed_proj_index_map::from_entries_in(
         values1,
         build_hasher1,
-        alloc1
+        alloc.clone(),
     );
     let mut destination = common::typed_proj_index_map::from_entries_in(
         values2,
         build_hasher2,
-        alloc2
+        alloc.clone(),
     );
     let destination_before_append = destination.clone();
 
@@ -59,13 +57,12 @@ where
     }
 }
 
-fn run_test_typed_proj_index_map_append_get_index_of_source_values<K, V, S1, A1, S2, A2>(
+fn run_test_typed_proj_index_map_append_get_index_of_source_values<K, V, S1, S2, A>(
     values1: &[(K, V)],
     values2: &[(K, V)],
     build_hasher1: S1,
-    alloc1: A1,
     build_hasher2: S2,
-    alloc2: A2
+    alloc: A,
 )
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -74,8 +71,7 @@ where
     S1::Hasher: any::Any + hash::Hasher + Send + Sync,
     S2: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S2::Hasher: any::Any + hash::Hasher + Send + Sync,
-    A1: any::Any + alloc::Allocator + Send + Sync + Clone,
-    A2: any::Any + alloc::Allocator + Send + Sync + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let iterator1 = oimt::map::PrefixGenerator::new(values1);
     for source in iterator1 {
@@ -85,9 +81,8 @@ where
                 source,
                 destination,
                 build_hasher1.clone(),
-                alloc1.clone(),
                 build_hasher2.clone(),
-                alloc2.clone(),
+                alloc.clone(),
             );
         }
     }
@@ -109,10 +104,9 @@ macro_rules! generate_tests {
                 let values1: [($key_typ, $value_typ); 0] = [];
                 let values2: [($key_typ, $value_typ); 0] = [];
                 let build_hasher1 = common::typed_proj_index_map::WrappingBuildHasher1::new(hash::RandomState::new());
-                let alloc1 = common::typed_proj_index_map::WrappingAlloc1::new(alloc::Global);
                 let build_hasher2 = common::typed_proj_index_map::WrappingBuildHasher2::new(hash::RandomState::new());
-                let alloc2 = common::typed_proj_index_map::WrappingAlloc2::new(alloc::Global);
-                run_test_typed_proj_index_map_append_get_index_of_source_values(&values1, &values2, build_hasher1, alloc1, build_hasher2, alloc2);
+                let alloc = alloc::Global;
+                run_test_typed_proj_index_map_append_get_index_of_source_values(&values1, &values2, build_hasher1, build_hasher2, alloc);
             }
 
             #[test]
@@ -120,10 +114,9 @@ macro_rules! generate_tests {
                 let values1 = oimt::map::range_entries::<$key_typ, $value_typ>($src_range_spec);
                 let values2 = oimt::map::range_entries::<$key_typ, $value_typ>($dst_range_spec);
                 let build_hasher1 = common::typed_proj_index_map::WrappingBuildHasher1::new(hash::RandomState::new());
-                let alloc1 = common::typed_proj_index_map::WrappingAlloc1::new(alloc::Global);
                 let build_hasher2 = common::typed_proj_index_map::WrappingBuildHasher2::new(hash::RandomState::new());
-                let alloc2 = common::typed_proj_index_map::WrappingAlloc2::new(alloc::Global);
-                run_test_typed_proj_index_map_append_get_index_of_source_values(&values1, &values2, build_hasher1, alloc1, build_hasher2, alloc2);
+                let alloc = alloc::Global;
+                run_test_typed_proj_index_map_append_get_index_of_source_values(&values1, &values2, build_hasher1, build_hasher2, alloc);
             }
         }
     };

@@ -7,13 +7,12 @@ use std::hash;
 
 use opaque_index_map_testing as oimt;
 
-fn run_test_opaque_index_set_append_contains_source<T, S1, A1, S2, A2>(
+fn run_test_opaque_index_set_append_contains_source<T, S1, S2, A>(
     values1: &[T],
     values2: &[T],
     build_hasher1: S1,
-    alloc1: A1,
     build_hasher2: S2,
-    alloc2: A2,
+    alloc: A,
 )
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -21,38 +20,36 @@ where
     S1::Hasher: any::Any + hash::Hasher + Send + Sync,
     S2: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S2::Hasher: any::Any + hash::Hasher + Send + Sync,
-    A1: any::Any + alloc::Allocator + Send + Sync + Clone,
-    A2: any::Any + alloc::Allocator + Send + Sync + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let mut source = common::opaque_index_set::from_entries_in(
         values1,
         build_hasher1,
-        alloc1
+        alloc.clone(),
     );
     let mut destination = common::opaque_index_set::from_entries_in(
         values2,
         build_hasher2,
-        alloc2
+        alloc.clone(),
     );
 
-    source.append::<T, S1, A1, S2, A2>(&mut destination);
+    source.append::<T, S1, S2, A>(&mut destination);
 
     for value in values1.iter() {
-        assert!(source.contains::<_, T, S1, A1>(value));
+        assert!(source.contains::<_, T, S1, A>(value));
     }
 
     for value in values2.iter() {
-        assert!(source.contains::<_, T, S1, A1>(value));
+        assert!(source.contains::<_, T, S1, A>(value));
     }
 }
 
-fn run_test_opaque_index_set_append_contains_destination<T, S1, A1, S2, A2>(
+fn run_test_opaque_index_set_append_contains_destination<T, S1, S2, A>(
     values1: &[T],
     values2: &[T],
     build_hasher1: S1,
-    alloc1: A1,
     build_hasher2: S2,
-    alloc2: A2,
+    alloc: A,
 )
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -60,38 +57,36 @@ where
     S1::Hasher: any::Any + hash::Hasher + Send + Sync,
     S2: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S2::Hasher: any::Any + hash::Hasher + Send + Sync,
-    A1: any::Any + alloc::Allocator + Send + Sync + Clone,
-    A2: any::Any + alloc::Allocator + Send + Sync + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let mut source = common::opaque_index_set::from_entries_in(
         values1,
         build_hasher1,
-        alloc1
+        alloc.clone(),
     );
     let mut destination = common::opaque_index_set::from_entries_in(
         values2,
         build_hasher2,
-        alloc2
+        alloc.clone(),
     );
 
-    source.append::<T, S1, A1, S2, A2>(&mut destination);
+    source.append::<T, S1, S2, A>(&mut destination);
 
     for value in values1.iter() {
-        assert!(!destination.contains::<_, T, S2, A2>(value));
+        assert!(!destination.contains::<_, T, S2, A>(value));
     }
 
     for value in values2.iter() {
-        assert!(!destination.contains::<_, T, S2, A2>(value));
+        assert!(!destination.contains::<_, T, S2, A>(value));
     }
 }
 
-fn run_test_opaque_index_set_append_contains_source_values<T, S1, A1, S2, A2>(
+fn run_test_opaque_index_set_append_contains_source_values<T, S1, S2, A>(
     values1: &[T],
     values2: &[T],
     build_hasher1: S1,
-    alloc1: A1,
     build_hasher2: S2,
-    alloc2: A2
+    alloc: A,
 )
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -99,8 +94,7 @@ where
     S1::Hasher: any::Any + hash::Hasher + Send + Sync,
     S2: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S2::Hasher: any::Any + hash::Hasher + Send + Sync,
-    A1: any::Any + alloc::Allocator + Send + Sync + Clone,
-    A2: any::Any + alloc::Allocator + Send + Sync + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let iterator1 = oimt::set::PrefixGenerator::new(values1);
     for source in iterator1 {
@@ -110,21 +104,19 @@ where
                 source,
                 destination,
                 build_hasher1.clone(),
-                alloc1.clone(),
                 build_hasher2.clone(),
-                alloc2.clone(),
+                alloc.clone(),
             );
         }
     }
 }
 
-fn run_test_opaque_index_set_append_contains_destination_values<T, S1, A1, S2, A2>(
+fn run_test_opaque_index_set_append_contains_destination_values<T, S1, S2, A>(
     values1: &[T],
     values2: &[T],
     build_hasher1: S1,
-    alloc1: A1,
     build_hasher2: S2,
-    alloc2: A2
+    alloc: A,
 )
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -132,8 +124,7 @@ where
     S1::Hasher: any::Any + hash::Hasher + Send + Sync,
     S2: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S2::Hasher: any::Any + hash::Hasher + Send + Sync,
-    A1: any::Any + alloc::Allocator + Send + Sync + Clone,
-    A2: any::Any + alloc::Allocator + Send + Sync + Clone,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let iterator1 = oimt::set::PrefixGenerator::new(values1);
     for source in iterator1 {
@@ -143,9 +134,8 @@ where
                 source,
                 destination,
                 build_hasher1.clone(),
-                alloc1.clone(),
                 build_hasher2.clone(),
-                alloc2.clone(),
+                alloc.clone(),
             );
         }
     }
@@ -161,10 +151,9 @@ macro_rules! generate_tests {
                 let values1: [$value_typ; 0] = [];
                 let values2: [$value_typ; 0] = [];
                 let build_hasher1 = common::opaque_index_set::WrappingBuildHasher1::new(hash::RandomState::new());
-                let alloc1 = common::opaque_index_set::WrappingAlloc1::new(alloc::Global);
                 let build_hasher2 = common::opaque_index_set::WrappingBuildHasher2::new(hash::RandomState::new());
-                let alloc2 = common::opaque_index_set::WrappingAlloc2::new(alloc::Global);
-                run_test_opaque_index_set_append_contains_source_values(&values1, &values2, build_hasher1, alloc1, build_hasher2, alloc2);
+                let alloc = alloc::Global;
+                run_test_opaque_index_set_append_contains_source_values(&values1, &values2, build_hasher1, build_hasher2, alloc);
             }
 
             #[test]
@@ -172,10 +161,9 @@ macro_rules! generate_tests {
                 let values1 = oimt::set::range_entries::<$value_typ>($src_range_spec);
                 let values2 = oimt::set::range_entries::<$value_typ>($dst_range_spec);
                 let build_hasher1 = common::opaque_index_set::WrappingBuildHasher1::new(hash::RandomState::new());
-                let alloc1 = common::opaque_index_set::WrappingAlloc1::new(alloc::Global);
                 let build_hasher2 = common::opaque_index_set::WrappingBuildHasher2::new(hash::RandomState::new());
-                let alloc2 = common::opaque_index_set::WrappingAlloc2::new(alloc::Global);
-                run_test_opaque_index_set_append_contains_source_values(&values1, &values2, build_hasher1, alloc1, build_hasher2, alloc2);
+                let alloc = alloc::Global;
+                run_test_opaque_index_set_append_contains_source_values(&values1, &values2, build_hasher1, build_hasher2, alloc);
             }
 
             #[test]
@@ -183,10 +171,9 @@ macro_rules! generate_tests {
                 let values1: [$value_typ; 0] = [];
                 let values2: [$value_typ; 0] = [];
                 let build_hasher1 = common::opaque_index_set::WrappingBuildHasher1::new(hash::RandomState::new());
-                let alloc1 = common::opaque_index_set::WrappingAlloc1::new(alloc::Global);
                 let build_hasher2 = common::opaque_index_set::WrappingBuildHasher2::new(hash::RandomState::new());
-                let alloc2 = common::opaque_index_set::WrappingAlloc2::new(alloc::Global);
-                run_test_opaque_index_set_append_contains_destination_values(&values1, &values2, build_hasher1, alloc1, build_hasher2, alloc2);
+                let alloc = alloc::Global;
+                run_test_opaque_index_set_append_contains_destination_values(&values1, &values2, build_hasher1, build_hasher2, alloc);
             }
 
             #[test]
@@ -194,10 +181,9 @@ macro_rules! generate_tests {
                 let values1 = oimt::set::range_entries::<$value_typ>($src_range_spec);
                 let values2 = oimt::set::range_entries::<$value_typ>($dst_range_spec);
                 let build_hasher1 = common::opaque_index_set::WrappingBuildHasher1::new(hash::RandomState::new());
-                let alloc1 = common::opaque_index_set::WrappingAlloc1::new(alloc::Global);
                 let build_hasher2 = common::opaque_index_set::WrappingBuildHasher2::new(hash::RandomState::new());
-                let alloc2 = common::opaque_index_set::WrappingAlloc2::new(alloc::Global);
-                run_test_opaque_index_set_append_contains_destination_values(&values1, &values2, build_hasher1, alloc1, build_hasher2, alloc2);
+                let alloc = alloc::Global;
+                run_test_opaque_index_set_append_contains_destination_values(&values1, &values2, build_hasher1, build_hasher2, alloc);
             }
         }
     };

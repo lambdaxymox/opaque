@@ -3855,17 +3855,21 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    pub(crate) fn append<S2, A2>(&mut self, other: &mut TypedProjIndexMapInner<K, V, S2, A2>)
+    pub(crate) fn append<S2>(&mut self, other: &mut TypedProjIndexMapInner<K, V, S2, A>)
     where
         K: Eq + hash::Hash,
         S2: any::Any + hash::BuildHasher + Send + Sync,
         S2::Hasher: any::Any + hash::Hasher + Send + Sync,
-        A2: any::Any + alloc::Allocator + Send + Sync,
     {
         debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
         debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
         debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
         debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
+        debug_assert_eq!(other.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(other.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(other.build_hasher_type_id(), any::TypeId::of::<S2>());
+        debug_assert_eq!(other.allocator_type_id(), any::TypeId::of::<A>());
 
         self.extend(other.drain::<_>(..));
     }
