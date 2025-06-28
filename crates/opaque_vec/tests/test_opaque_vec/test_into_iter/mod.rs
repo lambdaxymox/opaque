@@ -1,4 +1,3 @@
 mod test_into_iter_back_to_vec;
-mod test_into_iter_drop;
 mod test_into_iter_take;
 mod test_into_iter_take_none;

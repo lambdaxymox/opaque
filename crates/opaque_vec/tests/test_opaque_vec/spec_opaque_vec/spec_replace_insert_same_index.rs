@@ -1,0 +1,178 @@
+use crate::common::erased::strategy_alloc;
+use opaque_vec::OpaqueVec;
+
+use core::any;
+use core::fmt;
+use std::alloc;
+
+use proptest::prelude::*;
+
+fn strategy_single_value<T>() -> impl Strategy<Value = T>
+where
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
+{
+    any::<T>()
+}
+
+fn prop_replace_insert_contains_same_index1<T, A>(value: T, alloc: A) -> Result<(), TestCaseError>
+where
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
+{
+    let mut vec = OpaqueVec::new_in::<T, A>(alloc);
+
+    prop_assert!(!vec.contains::<T, A>(&value));
+
+    vec.replace_insert::<T, A>(0, value.clone());
+
+    prop_assert!(vec.contains::<T, A>(&value));
+
+    Ok(())
+}
+
+fn prop_replace_insert_contains_same_index2<T, A>(initial_value: T, value: T, alloc: A) -> Result<(), TestCaseError>
+where
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
+{
+    let mut vec = OpaqueVec::new_in::<T, A>(alloc);
+    vec.replace_insert::<T, A>(0, initial_value.clone());
+
+    prop_assert!(vec.contains::<T, A>(&initial_value));
+
+    for _ in 0..65536 {
+        vec.replace_insert::<T, A>(0, value.clone());
+
+        prop_assert!(vec.contains::<T, A>(&value));
+    }
+
+    Ok(())
+}
+
+fn prop_replace_insert_get_same_index1<T, A>(value: T, alloc: A) -> Result<(), TestCaseError>
+where
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
+{
+    let mut vec = OpaqueVec::new_in::<T, A>(alloc);
+    vec.replace_insert::<T, A>(0, value.clone());
+
+    let expected = Some(value.clone());
+    let result = vec.get::<_, T, A>(0).cloned();
+
+    prop_assert_eq!(result, expected);
+
+    Ok(())
+}
+
+fn prop_replace_insert_get_same_index2<T, A>(initial_value: T, value: T, alloc: A) -> Result<(), TestCaseError>
+where
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
+{
+    let mut vec = OpaqueVec::new_in::<T, A>(alloc);
+    vec.replace_insert::<T, A>(0, initial_value.clone());
+
+    let expected_initial = Some(initial_value.clone());
+    let result_initial = vec.get::<_, T, A>(0).cloned();
+    prop_assert_eq!(result_initial, expected_initial);
+
+    for _ in 0..65536 {
+        vec.replace_insert::<T, A>(0, value.clone());
+        let expected = Some(value.clone());
+        let result = vec.get::<_, T, A>(0).cloned();
+
+        prop_assert_eq!(result, expected);
+    }
+
+    Ok(())
+}
+fn prop_replace_insert_len_same_index<T, A>(value: T, alloc: A) -> Result<(), TestCaseError>
+where
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
+{
+    let mut vec = OpaqueVec::new_in::<T, A>(alloc);
+
+    prop_assert!(vec.is_empty());
+
+    for _ in 0..65536 {
+        vec.replace_insert::<T, A>(0, value.clone());
+    }
+
+    prop_assert_eq!(vec.len(), 1);
+
+    Ok(())
+}
+
+macro_rules! generate_props {
+    ($module_name:ident, $typ:ty, $initial_value_gen:ident, $value_gen:ident, $alloc_gen:ident) => {
+        mod $module_name {
+            use proptest::prelude::*;
+            use std::alloc;
+            proptest! {
+                #[test]
+                fn prop_replace_insert_contains_same_index1(
+                    value in super::$value_gen::<$typ>(),
+                    alloc in super::$alloc_gen::<alloc::Global>(),
+                ) {
+                    let value: $typ = value;
+                    let alloc: alloc::Global = alloc;
+                    super::prop_replace_insert_contains_same_index1(value, alloc)?
+                }
+
+                #[test]
+                fn prop_replace_insert_contains_same_index2(
+                    initial_value in super::$initial_value_gen::<$typ>(),
+                    value in super::$value_gen::<$typ>(),
+                    alloc in super::$alloc_gen::<alloc::Global>(),
+                ) {
+                    let initial_value: $typ = initial_value;
+                    let value: $typ = value;
+                    let alloc: alloc::Global = alloc;
+                    super::prop_replace_insert_contains_same_index2(initial_value, value, alloc)?
+                }
+
+                #[test]
+                fn prop_replace_insert_get_same_index1(
+                    value in super::$value_gen::<$typ>(),
+                    alloc in super::$alloc_gen::<alloc::Global>(),
+                ) {
+                    let value: $typ = value;
+                    let alloc: alloc::Global = alloc;
+                    super::prop_replace_insert_get_same_index1(value, alloc)?
+                }
+
+                #[test]
+                fn prop_replace_insert_get_same_index2(
+                    initial_value in super::$initial_value_gen::<$typ>(),
+                    value in super::$value_gen::<$typ>(),
+                    alloc in super::$alloc_gen::<alloc::Global>(),
+                ) {
+                    let initial_value: $typ = initial_value;
+                    let value: $typ = value;
+                    let alloc: alloc::Global = alloc;
+                    super::prop_replace_insert_get_same_index2(initial_value, value, alloc)?
+                }
+
+                #[test]
+                fn prop_replace_insert_len_same_index(
+                    value in super::$value_gen::<$typ>(),
+                    alloc in super::$alloc_gen::<alloc::Global>(),
+                ) {
+                    let value: $typ = value;
+                    let alloc: alloc::Global = alloc;
+                    super::prop_replace_insert_len_same_index(value, alloc)?
+                }
+            }
+        }
+    };
+}
+
+generate_props!(unit, (), strategy_single_value, strategy_single_value, strategy_alloc);
+generate_props!(u8, u8, strategy_single_value, strategy_single_value, strategy_alloc);
+generate_props!(u16, u16, strategy_single_value, strategy_single_value, strategy_alloc);
+generate_props!(u32, u32, strategy_single_value, strategy_single_value, strategy_alloc);
+generate_props!(u64, u64, strategy_single_value, strategy_single_value, strategy_alloc);
+generate_props!(usize, usize, strategy_single_value, strategy_single_value, strategy_alloc);
+generate_props!(string, String, strategy_single_value, strategy_single_value, strategy_alloc);
