@@ -1,3 +1,0 @@
-mod test_drain_entire_vec;
-mod test_drain_partial_vec;
-mod test_drain_nothing_vec;

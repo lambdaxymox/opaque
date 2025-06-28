@@ -1,3 +1,4 @@
+use std::alloc;
 use opaque_vec::TypedProjVec;
 
 #[test]
@@ -1023,4 +1024,67 @@ fn test_vec_splice6() {
     vec.splice(1..3, None);
 
     assert_eq!(vec.as_slice(), &[1, 4, 5, 6]);
+}
+
+#[test]
+fn test_opaque_vec_debug_fmt_empty_unit() {
+    let vec: TypedProjVec<()> = TypedProjVec::from([]);
+    let expected = "[]";
+    let result = format!("{:?}", vec.as_slice());
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn test_opaque_vec_debug_fmt_empty_u8() {
+    let vec: TypedProjVec<u8> = TypedProjVec::from([]);
+    let expected = "[]";
+    let result = format!("{:?}", vec.as_slice());
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn test_opaque_vec_debug_fmt_empty_u16() {
+    let vec: TypedProjVec<u16> = TypedProjVec::from([]);
+    let expected = "[]";
+    let result = format!("{:?}", vec.as_slice());
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn test_opaque_vec_debug_fmt_empty_u32() {
+    let vec: TypedProjVec<u8> = TypedProjVec::from([]);
+    let expected = "[]";
+    let result = format!("{:?}", vec.as_slice());
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn test_opaque_vec_debug_fmt_empty_u64() {
+    let vec: TypedProjVec<u8> = TypedProjVec::from([]);
+    let expected = "[]";
+    let result = format!("{:?}", vec.as_slice());
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn test_opaque_vec_debug_fmt_empty_usize() {
+    let vec: TypedProjVec<u8> = TypedProjVec::from([]);
+    let expected = "[]";
+    let result = format!("{:?}", vec.as_slice());
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn test_opaque_vec_debug_fmt_empty_string() {
+    let vec: TypedProjVec<u8> = TypedProjVec::from([]);
+    let expected = "[]";
+    let result = format!("{:?}", vec.as_slice());
+
+    assert_eq!(result, expected);
 }
