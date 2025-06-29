@@ -7309,7 +7309,7 @@ where
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
     /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
     /// `f: Q → X` and `g: K → X` be functions. We say that
-    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    /// **`q` is equivalent to `k` using `f` and `g`** if and only if
     ///
     /// ```test
     /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
@@ -7324,7 +7324,7 @@ where
     /// This is an implication, not an equivalence, because practical hashing functions can have
     /// collisions, i.e. for a practical hashing function `h`,
     /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
-    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
+    /// **`Q` is equivalent to `K` using `f` and `g`** if and only if
     ///
     /// ```text
     /// equiv(X, f, g)(Q, K) :=
@@ -7361,7 +7361,7 @@ where
     /// only if
     ///
     /// ```text
-    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// q ~∈ map ⇔ ∃ i ∈ [0, map.len()). equiv(q, map[i].key()).
     /// ```
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
@@ -7451,7 +7451,7 @@ where
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
     /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
     /// `f: Q → X` and `g: K → X` be functions. We say that
-    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    /// **`q` is equivalent to `k` using `f` and `g`** if and only if
     ///
     /// ```test
     /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
@@ -7466,7 +7466,7 @@ where
     /// This is an implication, not an equivalence, because practical hashing functions can have
     /// collisions, i.e. for a practical hashing function `h`,
     /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
-    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
+    /// **`Q` is equivalent to `K` using `f` and `g`** if and only if
     ///
     /// ```text
     /// equiv(X, f, g)(Q, K) :=
@@ -7503,7 +7503,7 @@ where
     /// only if
     ///
     /// ```text
-    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// q ~∈ map ⇔ ∃ i ∈ [0, map.len()). equiv(q, map[i].key()).
     /// ```
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
@@ -7596,7 +7596,7 @@ where
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
     /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
     /// `f: Q → X` and `g: K → X` be functions. We say that
-    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    /// **`q` is equivalent to `k` using `f` and `g`** if and only if
     ///
     /// ```test
     /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
@@ -7611,7 +7611,7 @@ where
     /// This is an implication, not an equivalence, because practical hashing functions can have
     /// collisions, i.e. for a practical hashing function `h`,
     /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
-    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
+    /// **`Q` is equivalent to `K` using `f` and `g`** if and only if
     ///
     /// ```text
     /// equiv(X, f, g)(Q, K) :=
@@ -7648,7 +7648,7 @@ where
     /// only if
     ///
     /// ```text
-    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// q ~∈ map ⇔ ∃ i ∈ [0, map.len()). equiv(q, map[i].key()).
     /// ```
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
@@ -7741,7 +7741,7 @@ where
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
     /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
     /// `f: Q → X` and `g: K → X` be functions. We say that
-    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    /// **`q` is equivalent to `k` using `f` and `g`** if and only if
     ///
     /// ```test
     /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
@@ -7756,7 +7756,7 @@ where
     /// This is an implication, not an equivalence, because practical hashing functions can have
     /// collisions, i.e. for a practical hashing function `h`,
     /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
-    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
+    /// **`Q` is equivalent to `K` using `f` and `g`** if and only if
     ///
     /// ```text
     /// equiv(X, f, g)(Q, K) :=
@@ -7793,7 +7793,7 @@ where
     /// only if
     ///
     /// ```text
-    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// q ~∈ map ⇔ ∃ i ∈ [0, map.len()). equiv(q, map[i].key()).
     /// ```
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
@@ -7887,7 +7887,7 @@ where
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
     /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
     /// `f: Q → X` and `g: K → X` be functions. We say that
-    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    /// **`q` is equivalent to `k` using `f` and `g`** if and only if
     ///
     /// ```test
     /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
@@ -7902,7 +7902,7 @@ where
     /// This is an implication, not an equivalence, because practical hashing functions can have
     /// collisions, i.e. for a practical hashing function `h`,
     /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
-    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
+    /// **`Q` is equivalent to `K` using `f` and `g`** if and only if
     ///
     /// ```text
     /// equiv(X, f, g)(Q, K) :=
@@ -7939,7 +7939,7 @@ where
     /// only if
     ///
     /// ```text
-    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// q ~∈ map ⇔ ∃ i ∈ [0, map.len()). equiv(q, map[i].key()).
     /// ```
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
@@ -8031,7 +8031,7 @@ where
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
     /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
     /// `f: Q → X` and `g: K → X` be functions. We say that
-    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    /// **`q` is equivalent to `k` using `f` and `g`** if and only if
     ///
     /// ```test
     /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
@@ -8046,7 +8046,7 @@ where
     /// This is an implication, not an equivalence, because practical hashing functions can have
     /// collisions, i.e. for a practical hashing function `h`,
     /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
-    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
+    /// **`Q` is equivalent to `K` using `f` and `g`** if and only if
     ///
     /// ```text
     /// equiv(X, f, g)(Q, K) :=
@@ -8083,7 +8083,7 @@ where
     /// only if
     ///
     /// ```text
-    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// q ~∈ map ⇔ ∃ i ∈ [0, map.len()). equiv(q, map[i].key()).
     /// ```
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
@@ -8177,7 +8177,7 @@ where
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
     /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
     /// `f: Q → X` and `g: K → X` be functions. We say that
-    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    /// **`q` is equivalent to `k` using `f` and `g`** if and only if
     ///
     /// ```test
     /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
@@ -8192,7 +8192,7 @@ where
     /// This is an implication, not an equivalence, because practical hashing functions can have
     /// collisions, i.e. for a practical hashing function `h`,
     /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
-    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
+    /// **`Q` is equivalent to `K` using `f` and `g`** if and only if
     ///
     /// ```text
     /// equiv(X, f, g)(Q, K) :=
@@ -8229,7 +8229,7 @@ where
     /// only if
     ///
     /// ```text
-    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// q ~∈ map ⇔ ∃ i ∈ [0, map.len()). equiv(q, map[i].key()).
     /// ```
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
@@ -9212,7 +9212,7 @@ where
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
     /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
     /// `f: Q → X` and `g: K → X` be functions. We say that
-    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    /// **`q` is equivalent to `k` using `f` and `g`** if and only if
     ///
     /// ```test
     /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
@@ -9227,7 +9227,7 @@ where
     /// This is an implication, not an equivalence, because practical hashing functions can have
     /// collisions, i.e. for a practical hashing function `h`,
     /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
-    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
+    /// **`Q` is equivalent to `K` using `f` and `g`** if and only if
     ///
     /// ```text
     /// equiv(X, f, g)(Q, K) :=
@@ -9264,7 +9264,7 @@ where
     /// only if
     ///
     /// ```text
-    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// q ~∈ map ⇔ ∃ i ∈ [0, map.len()). equiv(q, map[i].key()).
     /// ```
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
@@ -9448,7 +9448,7 @@ where
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
     /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
     /// `f: Q → X` and `g: K → X` be functions. We say that
-    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    /// **`q` is equivalent to `k` using `f` and `g`** if and only if
     ///
     /// ```test
     /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
@@ -9463,7 +9463,7 @@ where
     /// This is an implication, not an equivalence, because practical hashing functions can have
     /// collisions, i.e. for a practical hashing function `h`,
     /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
-    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
+    /// **`Q` is equivalent to `K` using `f` and `g`** if and only if
     ///
     /// ```text
     /// equiv(X, f, g)(Q, K) :=
@@ -9500,7 +9500,7 @@ where
     /// only if
     ///
     /// ```text
-    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// q ~∈ map ⇔ ∃ i ∈ [0, map.len()). equiv(q, map[i].key()).
     /// ```
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
@@ -9684,7 +9684,7 @@ where
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
     /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
     /// `f: Q → X` and `g: K → X` be functions. We say that
-    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    /// **`q` is equivalent to `k` using `f` and `g`** if and only if
     ///
     /// ```test
     /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
@@ -9699,7 +9699,7 @@ where
     /// This is an implication, not an equivalence, because practical hashing functions can have
     /// collisions, i.e. for a practical hashing function `h`,
     /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
-    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
+    /// **`Q` is equivalent to `K` using `f` and `g`** if and only if
     ///
     /// ```text
     /// equiv(X, f, g)(Q, K) :=
@@ -9736,7 +9736,7 @@ where
     /// only if
     ///
     /// ```text
-    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// q ~∈ map ⇔ ∃ i ∈ [0, map.len()). equiv(q, map[i].key()).
     /// ```
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
@@ -9923,7 +9923,7 @@ where
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
     /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
     /// `f: Q → X` and `g: K → X` be functions. We say that
-    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    /// **`q` is equivalent to `k` using `f` and `g`** if and only if
     ///
     /// ```test
     /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
@@ -9938,7 +9938,7 @@ where
     /// This is an implication, not an equivalence, because practical hashing functions can have
     /// collisions, i.e. for a practical hashing function `h`,
     /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
-    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
+    /// **`Q` is equivalent to `K` using `f` and `g`** if and only if
     ///
     /// ```text
     /// equiv(X, f, g)(Q, K) :=
@@ -9975,7 +9975,7 @@ where
     /// only if
     ///
     /// ```text
-    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// q ~∈ map ⇔ ∃ i ∈ [0, map.len()). equiv(q, map[i].key()).
     /// ```
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
@@ -10156,7 +10156,7 @@ where
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
     /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
     /// `f: Q → X` and `g: K → X` be functions. We say that
-    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    /// **`q` is equivalent to `k` using `f` and `g`** if and only if
     ///
     /// ```test
     /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
@@ -10171,7 +10171,7 @@ where
     /// This is an implication, not an equivalence, because practical hashing functions can have
     /// collisions, i.e. for a practical hashing function `h`,
     /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
-    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
+    /// **`Q` is equivalent to `K` using `f` and `g`** if and only if
     ///
     /// ```text
     /// equiv(X, f, g)(Q, K) :=
@@ -10208,7 +10208,7 @@ where
     /// only if
     ///
     /// ```text
-    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// q ~∈ map ⇔ ∃ i ∈ [0, map.len()). equiv(q, map[i].key()).
     /// ```
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
@@ -10388,7 +10388,7 @@ where
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
     /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
     /// `f: Q → X` and `g: K → X` be functions. We say that
-    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    /// **`q` is equivalent to `k` using `f` and `g`** if and only if
     ///
     /// ```test
     /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
@@ -10403,7 +10403,7 @@ where
     /// This is an implication, not an equivalence, because practical hashing functions can have
     /// collisions, i.e. for a practical hashing function `h`,
     /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
-    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
+    /// **`Q` is equivalent to `K` using `f` and `g`** if and only if
     ///
     /// ```text
     /// equiv(X, f, g)(Q, K) :=
@@ -10440,7 +10440,7 @@ where
     /// only if
     ///
     /// ```text
-    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// q ~∈ map ⇔ ∃ i ∈ [0, map.len()). equiv(q, map[i].key()).
     /// ```
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
@@ -16113,7 +16113,7 @@ impl OpaqueIndexMap {
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
     /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
     /// `f: Q → X` and `g: K → X` be functions. We say that
-    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    /// **`q` is equivalent to `k` using `f` and `g`** if and only if
     ///
     /// ```test
     /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
@@ -16128,7 +16128,7 @@ impl OpaqueIndexMap {
     /// This is an implication, not an equivalence, because practical hashing functions can have
     /// collisions, i.e. for a practical hashing function `h`,
     /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
-    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
+    /// **`Q` is equivalent to `K` using `f` and `g`** if and only if
     ///
     /// ```text
     /// equiv(X, f, g)(Q, K) :=
@@ -16165,7 +16165,7 @@ impl OpaqueIndexMap {
     /// only if
     ///
     /// ```text
-    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// q ~∈ map ⇔ ∃ i ∈ [0, map.len()). equiv(q, map[i].key()).
     /// ```
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
@@ -16275,7 +16275,7 @@ impl OpaqueIndexMap {
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
     /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
     /// `f: Q → X` and `g: K → X` be functions. We say that
-    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    /// **`q` is equivalent to `k` using `f` and `g`** if and only if
     ///
     /// ```test
     /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
@@ -16290,7 +16290,7 @@ impl OpaqueIndexMap {
     /// This is an implication, not an equivalence, because practical hashing functions can have
     /// collisions, i.e. for a practical hashing function `h`,
     /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
-    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
+    /// **`Q` is equivalent to `K` using `f` and `g`** if and only if
     ///
     /// ```text
     /// equiv(X, f, g)(Q, K) :=
@@ -16327,7 +16327,7 @@ impl OpaqueIndexMap {
     /// only if
     ///
     /// ```text
-    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// q ~∈ map ⇔ ∃ i ∈ [0, map.len()). equiv(q, map[i].key()).
     /// ```
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
@@ -16440,7 +16440,7 @@ impl OpaqueIndexMap {
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
     /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
     /// `f: Q → X` and `g: K → X` be functions. We say that
-    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    /// **`q` is equivalent to `k` using `f` and `g`** if and only if
     ///
     /// ```test
     /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
@@ -16455,7 +16455,7 @@ impl OpaqueIndexMap {
     /// This is an implication, not an equivalence, because practical hashing functions can have
     /// collisions, i.e. for a practical hashing function `h`,
     /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
-    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
+    /// **`Q` is equivalent to `K` using `f` and `g`** if and only if
     ///
     /// ```text
     /// equiv(X, f, g)(Q, K) :=
@@ -16492,7 +16492,7 @@ impl OpaqueIndexMap {
     /// only if
     ///
     /// ```text
-    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// q ~∈ map ⇔ ∃ i ∈ [0, map.len()). equiv(q, map[i].key()).
     /// ```
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
@@ -16605,7 +16605,7 @@ impl OpaqueIndexMap {
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
     /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
     /// `f: Q → X` and `g: K → X` be functions. We say that
-    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    /// **`q` is equivalent to `k` using `f` and `g`** if and only if
     ///
     /// ```test
     /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
@@ -16620,7 +16620,7 @@ impl OpaqueIndexMap {
     /// This is an implication, not an equivalence, because practical hashing functions can have
     /// collisions, i.e. for a practical hashing function `h`,
     /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
-    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
+    /// **`Q` is equivalent to `K` using `f` and `g`** if and only if
     ///
     /// ```text
     /// equiv(X, f, g)(Q, K) :=
@@ -16657,7 +16657,7 @@ impl OpaqueIndexMap {
     /// only if
     ///
     /// ```text
-    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// q ~∈ map ⇔ ∃ i ∈ [0, map.len()). equiv(q, map[i].key()).
     /// ```
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
@@ -16771,7 +16771,7 @@ impl OpaqueIndexMap {
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
     /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
     /// `f: Q → X` and `g: K → X` be functions. We say that
-    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    /// **`q` is equivalent to `k` using `f` and `g`** if and only if
     ///
     /// ```test
     /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
@@ -16786,7 +16786,7 @@ impl OpaqueIndexMap {
     /// This is an implication, not an equivalence, because practical hashing functions can have
     /// collisions, i.e. for a practical hashing function `h`,
     /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
-    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
+    /// **`Q` is equivalent to `K` using `f` and `g`** if and only if
     ///
     /// ```text
     /// equiv(X, f, g)(Q, K) :=
@@ -16823,7 +16823,7 @@ impl OpaqueIndexMap {
     /// only if
     ///
     /// ```text
-    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// q ~∈ map ⇔ ∃ i ∈ [0, map.len()). equiv(q, map[i].key()).
     /// ```
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
@@ -16935,7 +16935,7 @@ impl OpaqueIndexMap {
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
     /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
     /// `f: Q → X` and `g: K → X` be functions. We say that
-    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    /// **`q` is equivalent to `k` using `f` and `g`** if and only if
     ///
     /// ```test
     /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
@@ -16950,7 +16950,7 @@ impl OpaqueIndexMap {
     /// This is an implication, not an equivalence, because practical hashing functions can have
     /// collisions, i.e. for a practical hashing function `h`,
     /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
-    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
+    /// **`Q` is equivalent to `K` using `f` and `g`** if and only if
     ///
     /// ```text
     /// equiv(X, f, g)(Q, K) :=
@@ -16987,7 +16987,7 @@ impl OpaqueIndexMap {
     /// only if
     ///
     /// ```text
-    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// q ~∈ map ⇔ ∃ i ∈ [0, map.len()). equiv(q, map[i].key()).
     /// ```
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
@@ -17101,7 +17101,7 @@ impl OpaqueIndexMap {
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
     /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
     /// `f: Q → X` and `g: K → X` be functions. We say that
-    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    /// **`q` is equivalent to `k` using `f` and `g`** if and only if
     ///
     /// ```test
     /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
@@ -17116,7 +17116,7 @@ impl OpaqueIndexMap {
     /// This is an implication, not an equivalence, because practical hashing functions can have
     /// collisions, i.e. for a practical hashing function `h`,
     /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
-    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
+    /// **`Q` is equivalent to `K` using `f` and `g`** if and only if
     ///
     /// ```text
     /// equiv(X, f, g)(Q, K) :=
@@ -17153,7 +17153,7 @@ impl OpaqueIndexMap {
     /// only if
     ///
     /// ```text
-    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// q ~∈ map ⇔ ∃ i ∈ [0, map.len()). equiv(q, map[i].key()).
     /// ```
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
@@ -18448,7 +18448,7 @@ impl OpaqueIndexMap {
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
     /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
     /// `f: Q → X` and `g: K → X` be functions. We say that
-    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    /// **`q` is equivalent to `k` using `f` and `g`** if and only if
     ///
     /// ```test
     /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
@@ -18463,7 +18463,7 @@ impl OpaqueIndexMap {
     /// This is an implication, not an equivalence, because practical hashing functions can have
     /// collisions, i.e. for a practical hashing function `h`,
     /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
-    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
+    /// **`Q` is equivalent to `K` using `f` and `g`** if and only if
     ///
     /// ```text
     /// equiv(X, f, g)(Q, K) :=
@@ -18500,7 +18500,7 @@ impl OpaqueIndexMap {
     /// only if
     ///
     /// ```text
-    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// q ~∈ map ⇔ ∃ i ∈ [0, map.len()). equiv(q, map[i].key()).
     /// ```
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
@@ -18751,7 +18751,7 @@ impl OpaqueIndexMap {
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
     /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
     /// `f: Q → X` and `g: K → X` be functions. We say that
-    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    /// **`q` is equivalent to `k` using `f` and `g`** if and only if
     ///
     /// ```test
     /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
@@ -18766,7 +18766,7 @@ impl OpaqueIndexMap {
     /// This is an implication, not an equivalence, because practical hashing functions can have
     /// collisions, i.e. for a practical hashing function `h`,
     /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
-    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
+    /// **`Q` is equivalent to `K` using `f` and `g`** if and only if
     ///
     /// ```text
     /// equiv(X, f, g)(Q, K) :=
@@ -18803,7 +18803,7 @@ impl OpaqueIndexMap {
     /// only if
     ///
     /// ```text
-    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// q ~∈ map ⇔ ∃ i ∈ [0, map.len()). equiv(q, map[i].key()).
     /// ```
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
@@ -19055,7 +19055,7 @@ impl OpaqueIndexMap {
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
     /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
     /// `f: Q → X` and `g: K → X` be functions. We say that
-    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    /// **`q` is equivalent to `k` using `f` and `g`** if and only if
     ///
     /// ```test
     /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
@@ -19070,7 +19070,7 @@ impl OpaqueIndexMap {
     /// This is an implication, not an equivalence, because practical hashing functions can have
     /// collisions, i.e. for a practical hashing function `h`,
     /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
-    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
+    /// **`Q` is equivalent to `K` using `f` and `g`** if and only if
     ///
     /// ```text
     /// equiv(X, f, g)(Q, K) :=
@@ -19107,7 +19107,7 @@ impl OpaqueIndexMap {
     /// only if
     ///
     /// ```text
-    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// q ~∈ map ⇔ ∃ i ∈ [0, map.len()). equiv(q, map[i].key()).
     /// ```
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
@@ -19363,7 +19363,7 @@ impl OpaqueIndexMap {
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
     /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
     /// `f: Q → X` and `g: K → X` be functions. We say that
-    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    /// **`q` is equivalent to `k` using `f` and `g`** if and only if
     ///
     /// ```test
     /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
@@ -19378,7 +19378,7 @@ impl OpaqueIndexMap {
     /// This is an implication, not an equivalence, because practical hashing functions can have
     /// collisions, i.e. for a practical hashing function `h`,
     /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
-    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
+    /// **`Q` is equivalent to `K` using `f` and `g`** if and only if
     ///
     /// ```text
     /// equiv(X, f, g)(Q, K) :=
@@ -19415,7 +19415,7 @@ impl OpaqueIndexMap {
     /// only if
     ///
     /// ```text
-    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// q ~∈ map ⇔ ∃ i ∈ [0, map.len()). equiv(q, map[i].key()).
     /// ```
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
@@ -19664,7 +19664,7 @@ impl OpaqueIndexMap {
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
     /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
     /// `f: Q → X` and `g: K → X` be functions. We say that
-    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    /// **`q` is equivalent to `k` using `f` and `g`** if and only if
     ///
     /// ```test
     /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
@@ -19679,7 +19679,7 @@ impl OpaqueIndexMap {
     /// This is an implication, not an equivalence, because practical hashing functions can have
     /// collisions, i.e. for a practical hashing function `h`,
     /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
-    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
+    /// **`Q` is equivalent to `K` using `f` and `g`** if and only if
     ///
     /// ```text
     /// equiv(X, f, g)(Q, K) :=
@@ -19716,7 +19716,7 @@ impl OpaqueIndexMap {
     /// only if
     ///
     /// ```text
-    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// q ~∈ map ⇔ ∃ i ∈ [0, map.len()). equiv(q, map[i].key()).
     /// ```
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
@@ -19964,7 +19964,7 @@ impl OpaqueIndexMap {
     /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
     /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
     /// `f: Q → X` and `g: K → X` be functions. We say that
-    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    /// **`q` is equivalent to `k` using `f` and `g`** if and only if
     ///
     /// ```test
     /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
@@ -19979,7 +19979,7 @@ impl OpaqueIndexMap {
     /// This is an implication, not an equivalence, because practical hashing functions can have
     /// collisions, i.e. for a practical hashing function `h`,
     /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
-    /// **`Q` is equivalent to `K` under `f` and `g`** if and only if
+    /// **`Q` is equivalent to `K` using `f` and `g`** if and only if
     ///
     /// ```text
     /// equiv(X, f, g)(Q, K) :=
@@ -20016,7 +20016,7 @@ impl OpaqueIndexMap {
     /// only if
     ///
     /// ```text
-    /// q ~∈ map ⇔ ∃ i ∈ [0..map.len()). equiv(q, map[i].key()).
+    /// q ~∈ map ⇔ ∃ i ∈ [0, map.len()). equiv(q, map[i].key()).
     /// ```
     ///
     /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.

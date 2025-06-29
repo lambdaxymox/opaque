@@ -5456,7 +5456,7 @@ where
     /// Let `T` be the type of the value of the index set `set`. Let `Q` be a data type. Let
     /// `q :: Q` be a value of type `Q`, and let `v :: T` be a value. let `X` be a hashable type.
     /// Let `f: Q → X` and `g: K → X` be functions. We say that
-    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    /// **`q` is equivalent to `k` using `f` and `g`** if and only if
     ///
     /// ```test
     /// equiv(X, f, g)(q, v) := f(q) ∼ g(v).
@@ -5471,7 +5471,7 @@ where
     /// This is an implication, not an equivalence, because practical hashing functions can have
     /// collisions, i.e. for a practical hashing function `h`,
     /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
-    /// **`Q` is equivalent to `T` under `f` and `g`** if and only if
+    /// **`Q` is equivalent to `T` using `f` and `g`** if and only if
     ///
     /// ```text
     /// equiv(X, f, g)(Q, T) :=
@@ -5508,7 +5508,7 @@ where
     /// only if
     ///
     /// ```text
-    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i]).
+    /// q ~∈ set ⇔ ∃ i ∈ [0, set.len()). equiv(q, set[i]).
     /// ```
     ///
     /// If `q` is not an equivalent element of `set`, we write `q ~∉ set`.
@@ -5597,7 +5597,7 @@ where
     /// Let `T` be the type of the value of the index set `set`. Let `Q` be a data type. Let
     /// `q :: Q` be a value of type `Q`, and let `v :: T` be a value. let `X` be a hashable type.
     /// Let `f: Q → X` and `g: K → X` be functions. We say that
-    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    /// **`q` is equivalent to `k` using `f` and `g`** if and only if
     ///
     /// ```test
     /// equiv(X, f, g)(q, v) := f(q) ∼ g(v).
@@ -5612,7 +5612,7 @@ where
     /// This is an implication, not an equivalence, because practical hashing functions can have
     /// collisions, i.e. for a practical hashing function `h`,
     /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
-    /// **`Q` is equivalent to `T` under `f` and `g`** if and only if
+    /// **`Q` is equivalent to `T` using `f` and `g`** if and only if
     ///
     /// ```text
     /// equiv(X, f, g)(Q, T) :=
@@ -5649,7 +5649,7 @@ where
     /// only if
     ///
     /// ```text
-    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i]).
+    /// q ~∈ set ⇔ ∃ i ∈ [0, set.len()). equiv(q, set[i]).
     /// ```
     ///
     /// If `q` is not an equivalent element of `set`, we write `q ~∉ set`.
@@ -5738,7 +5738,7 @@ where
     /// Let `T` be the type of the value of the index set `set`. Let `Q` be a data type. Let
     /// `q :: Q` be a value of type `Q`, and let `v :: T` be a value. let `X` be a hashable type.
     /// Let `f: Q → X` and `g: K → X` be functions. We say that
-    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    /// **`q` is equivalent to `k` using `f` and `g`** if and only if
     ///
     /// ```test
     /// equiv(X, f, g)(q, v) := f(q) ∼ g(v).
@@ -5753,7 +5753,7 @@ where
     /// This is an implication, not an equivalence, because practical hashing functions can have
     /// collisions, i.e. for a practical hashing function `h`,
     /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
-    /// **`Q` is equivalent to `T` under `f` and `g`** if and only if
+    /// **`Q` is equivalent to `T` using `f` and `g`** if and only if
     ///
     /// ```text
     /// equiv(X, f, g)(Q, T) :=
@@ -5790,7 +5790,7 @@ where
     /// only if
     ///
     /// ```text
-    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i]).
+    /// q ~∈ set ⇔ ∃ i ∈ [0, set.len()). equiv(q, set[i]).
     /// ```
     ///
     /// If `q` is not an equivalent element of `set`, we write `q ~∉ set`.
@@ -5878,7 +5878,7 @@ where
     /// Let `T` be the type of the value of the index set `set`. Let `Q` be a data type. Let
     /// `q :: Q` be a value of type `Q`, and let `v :: T` be a value. let `X` be a hashable type.
     /// Let `f: Q → X` and `g: K → X` be functions. We say that
-    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    /// **`q` is equivalent to `k` using `f` and `g`** if and only if
     ///
     /// ```test
     /// equiv(X, f, g)(q, v) := f(q) ∼ g(v).
@@ -5893,7 +5893,7 @@ where
     /// This is an implication, not an equivalence, because practical hashing functions can have
     /// collisions, i.e. for a practical hashing function `h`,
     /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
-    /// **`Q` is equivalent to `T` under `f` and `g`** if and only if
+    /// **`Q` is equivalent to `T` using `f` and `g`** if and only if
     ///
     /// ```text
     /// equiv(X, f, g)(Q, T) :=
@@ -5930,7 +5930,7 @@ where
     /// only if
     ///
     /// ```text
-    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i]).
+    /// q ~∈ set ⇔ ∃ i ∈ [0, set.len()). equiv(q, set[i]).
     /// ```
     ///
     /// If `q` is not an equivalent element of `set`, we write `q ~∉ set`.
@@ -6027,7 +6027,7 @@ where
     /// Let `T` be the type of the value of the index set `set`. Let `Q` be a data type. Let
     /// `q :: Q` be a value of type `Q`, and let `v :: T` be a value. let `X` be a hashable type.
     /// Let `f: Q → X` and `g: K → X` be functions. We say that
-    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    /// **`q` is equivalent to `k` using `f` and `g`** if and only if
     ///
     /// ```test
     /// equiv(X, f, g)(q, v) := f(q) ∼ g(v).
@@ -6042,7 +6042,7 @@ where
     /// This is an implication, not an equivalence, because practical hashing functions can have
     /// collisions, i.e. for a practical hashing function `h`,
     /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
-    /// **`Q` is equivalent to `T` under `f` and `g`** if and only if
+    /// **`Q` is equivalent to `T` using `f` and `g`** if and only if
     ///
     /// ```text
     /// equiv(X, f, g)(Q, T) :=
@@ -6079,7 +6079,7 @@ where
     /// only if
     ///
     /// ```text
-    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i]).
+    /// q ~∈ set ⇔ ∃ i ∈ [0, set.len()). equiv(q, set[i]).
     /// ```
     ///
     /// If `q` is not an equivalent element of `set`, we write `q ~∉ set`.
@@ -6222,7 +6222,7 @@ where
     /// Let `T` be the type of the value of the index set `set`. Let `Q` be a data type. Let
     /// `q :: Q` be a value of type `Q`, and let `v :: T` be a value. let `X` be a hashable type.
     /// Let `f: Q → X` and `g: K → X` be functions. We say that
-    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    /// **`q` is equivalent to `k` using `f` and `g`** if and only if
     ///
     /// ```test
     /// equiv(X, f, g)(q, v) := f(q) ∼ g(v).
@@ -6237,7 +6237,7 @@ where
     /// This is an implication, not an equivalence, because practical hashing functions can have
     /// collisions, i.e. for a practical hashing function `h`,
     /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
-    /// **`Q` is equivalent to `T` under `f` and `g`** if and only if
+    /// **`Q` is equivalent to `T` using `f` and `g`** if and only if
     ///
     /// ```text
     /// equiv(X, f, g)(Q, T) :=
@@ -6274,7 +6274,7 @@ where
     /// only if
     ///
     /// ```text
-    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i]).
+    /// q ~∈ set ⇔ ∃ i ∈ [0, set.len()). equiv(q, set[i]).
     /// ```
     ///
     /// If `q` is not an equivalent element of `set`, we write `q ~∉ set`.
@@ -6417,7 +6417,7 @@ where
     /// Let `T` be the type of the value of the index set `set`. Let `Q` be a data type. Let
     /// `q :: Q` be a value of type `Q`, and let `v :: T` be a value. let `X` be a hashable type.
     /// Let `f: Q → X` and `g: K → X` be functions. We say that
-    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    /// **`q` is equivalent to `k` using `f` and `g`** if and only if
     ///
     /// ```test
     /// equiv(X, f, g)(q, v) := f(q) ∼ g(v).
@@ -6432,7 +6432,7 @@ where
     /// This is an implication, not an equivalence, because practical hashing functions can have
     /// collisions, i.e. for a practical hashing function `h`,
     /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
-    /// **`Q` is equivalent to `T` under `f` and `g`** if and only if
+    /// **`Q` is equivalent to `T` using `f` and `g`** if and only if
     ///
     /// ```text
     /// equiv(X, f, g)(Q, T) :=
@@ -6469,7 +6469,7 @@ where
     /// only if
     ///
     /// ```text
-    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i]).
+    /// q ~∈ set ⇔ ∃ i ∈ [0, set.len()). equiv(q, set[i]).
     /// ```
     ///
     /// If `q` is not an equivalent element of `set`, we write `q ~∉ set`.
@@ -6626,7 +6626,7 @@ where
     /// Let `T` be the type of the value of the index set `set`. Let `Q` be a data type. Let
     /// `q :: Q` be a value of type `Q`, and let `v :: T` be a value. let `X` be a hashable type.
     /// Let `f: Q → X` and `g: K → X` be functions. We say that
-    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    /// **`q` is equivalent to `k` using `f` and `g`** if and only if
     ///
     /// ```test
     /// equiv(X, f, g)(q, v) := f(q) ∼ g(v).
@@ -6641,7 +6641,7 @@ where
     /// This is an implication, not an equivalence, because practical hashing functions can have
     /// collisions, i.e. for a practical hashing function `h`,
     /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
-    /// **`Q` is equivalent to `T` under `f` and `g`** if and only if
+    /// **`Q` is equivalent to `T` using `f` and `g`** if and only if
     ///
     /// ```text
     /// equiv(X, f, g)(Q, T) :=
@@ -6678,7 +6678,7 @@ where
     /// only if
     ///
     /// ```text
-    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i]).
+    /// q ~∈ set ⇔ ∃ i ∈ [0, set.len()). equiv(q, set[i]).
     /// ```
     ///
     /// If `q` is not an equivalent element of `set`, we write `q ~∉ set`.
@@ -6823,7 +6823,7 @@ where
     /// Let `T` be the type of the value of the index set `set`. Let `Q` be a data type. Let
     /// `q :: Q` be a value of type `Q`, and let `v :: T` be a value. let `X` be a hashable type.
     /// Let `f: Q → X` and `g: K → X` be functions. We say that
-    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    /// **`q` is equivalent to `k` using `f` and `g`** if and only if
     ///
     /// ```test
     /// equiv(X, f, g)(q, v) := f(q) ∼ g(v).
@@ -6838,7 +6838,7 @@ where
     /// This is an implication, not an equivalence, because practical hashing functions can have
     /// collisions, i.e. for a practical hashing function `h`,
     /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
-    /// **`Q` is equivalent to `T` under `f` and `g`** if and only if
+    /// **`Q` is equivalent to `T` using `f` and `g`** if and only if
     ///
     /// ```text
     /// equiv(X, f, g)(Q, T) :=
@@ -6875,7 +6875,7 @@ where
     /// only if
     ///
     /// ```text
-    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i]).
+    /// q ~∈ set ⇔ ∃ i ∈ [0, set.len()). equiv(q, set[i]).
     /// ```
     ///
     /// If `q` is not an equivalent element of `set`, we write `q ~∉ set`.
@@ -7021,7 +7021,7 @@ where
     /// Let `T` be the type of the value of the index set `set`. Let `Q` be a data type. Let
     /// `q :: Q` be a value of type `Q`, and let `v :: T` be a value. let `X` be a hashable type.
     /// Let `f: Q → X` and `g: K → X` be functions. We say that
-    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    /// **`q` is equivalent to `k` using `f` and `g`** if and only if
     ///
     /// ```test
     /// equiv(X, f, g)(q, v) := f(q) ∼ g(v).
@@ -7036,7 +7036,7 @@ where
     /// This is an implication, not an equivalence, because practical hashing functions can have
     /// collisions, i.e. for a practical hashing function `h`,
     /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
-    /// **`Q` is equivalent to `T` under `f` and `g`** if and only if
+    /// **`Q` is equivalent to `T` using `f` and `g`** if and only if
     ///
     /// ```text
     /// equiv(X, f, g)(Q, T) :=
@@ -7073,7 +7073,7 @@ where
     /// only if
     ///
     /// ```text
-    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i]).
+    /// q ~∈ set ⇔ ∃ i ∈ [0, set.len()). equiv(q, set[i]).
     /// ```
     ///
     /// If `q` is not an equivalent element of `set`, we write `q ~∉ set`.
@@ -13474,7 +13474,7 @@ impl OpaqueIndexSet {
     /// Let `T` be the type of the value of the index set `set`. Let `Q` be a data type. Let
     /// `q :: Q` be a value of type `Q`, and let `v :: T` be a value. let `X` be a hashable type.
     /// Let `f: Q → X` and `g: K → X` be functions. We say that
-    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    /// **`q` is equivalent to `k` using `f` and `g`** if and only if
     ///
     /// ```test
     /// equiv(X, f, g)(q, v) := f(q) ∼ g(v).
@@ -13489,7 +13489,7 @@ impl OpaqueIndexSet {
     /// This is an implication, not an equivalence, because practical hashing functions can have
     /// collisions, i.e. for a practical hashing function `h`,
     /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
-    /// **`Q` is equivalent to `T` under `f` and `g`** if and only if
+    /// **`Q` is equivalent to `T` using `f` and `g`** if and only if
     ///
     /// ```text
     /// equiv(X, f, g)(Q, T) :=
@@ -13526,7 +13526,7 @@ impl OpaqueIndexSet {
     /// only if
     ///
     /// ```text
-    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i]).
+    /// q ~∈ set ⇔ ∃ i ∈ [0, set.len()). equiv(q, set[i]).
     /// ```
     ///
     /// If `q` is not an equivalent element of `set`, we write `q ~∉ set`.
@@ -13632,7 +13632,7 @@ impl OpaqueIndexSet {
     /// Let `T` be the type of the value of the index set `set`. Let `Q` be a data type. Let
     /// `q :: Q` be a value of type `Q`, and let `v :: T` be a value. let `X` be a hashable type.
     /// Let `f: Q → X` and `g: K → X` be functions. We say that
-    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    /// **`q` is equivalent to `k` using `f` and `g`** if and only if
     ///
     /// ```test
     /// equiv(X, f, g)(q, v) := f(q) ∼ g(v).
@@ -13647,7 +13647,7 @@ impl OpaqueIndexSet {
     /// This is an implication, not an equivalence, because practical hashing functions can have
     /// collisions, i.e. for a practical hashing function `h`,
     /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
-    /// **`Q` is equivalent to `T` under `f` and `g`** if and only if
+    /// **`Q` is equivalent to `T` using `f` and `g`** if and only if
     ///
     /// ```text
     /// equiv(X, f, g)(Q, T) :=
@@ -13684,7 +13684,7 @@ impl OpaqueIndexSet {
     /// only if
     ///
     /// ```text
-    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i]).
+    /// q ~∈ set ⇔ ∃ i ∈ [0, set.len()). equiv(q, set[i]).
     /// ```
     ///
     /// If `q` is not an equivalent element of `set`, we write `q ~∉ set`.
@@ -13790,7 +13790,7 @@ impl OpaqueIndexSet {
     /// Let `T` be the type of the value of the index set `set`. Let `Q` be a data type. Let
     /// `q :: Q` be a value of type `Q`, and let `v :: T` be a value. let `X` be a hashable type.
     /// Let `f: Q → X` and `g: K → X` be functions. We say that
-    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    /// **`q` is equivalent to `k` using `f` and `g`** if and only if
     ///
     /// ```test
     /// equiv(X, f, g)(q, v) := f(q) ∼ g(v).
@@ -13805,7 +13805,7 @@ impl OpaqueIndexSet {
     /// This is an implication, not an equivalence, because practical hashing functions can have
     /// collisions, i.e. for a practical hashing function `h`,
     /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
-    /// **`Q` is equivalent to `T` under `f` and `g`** if and only if
+    /// **`Q` is equivalent to `T` using `f` and `g`** if and only if
     ///
     /// ```text
     /// equiv(X, f, g)(Q, T) :=
@@ -13842,7 +13842,7 @@ impl OpaqueIndexSet {
     /// only if
     ///
     /// ```text
-    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i]).
+    /// q ~∈ set ⇔ ∃ i ∈ [0, set.len()). equiv(q, set[i]).
     /// ```
     ///
     /// If `q` is not an equivalent element of `set`, we write `q ~∉ set`.
@@ -13947,7 +13947,7 @@ impl OpaqueIndexSet {
     /// Let `T` be the type of the value of the index set `set`. Let `Q` be a data type. Let
     /// `q :: Q` be a value of type `Q`, and let `v :: T` be a value. let `X` be a hashable type.
     /// Let `f: Q → X` and `g: K → X` be functions. We say that
-    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    /// **`q` is equivalent to `k` using `f` and `g`** if and only if
     ///
     /// ```test
     /// equiv(X, f, g)(q, v) := f(q) ∼ g(v).
@@ -13962,7 +13962,7 @@ impl OpaqueIndexSet {
     /// This is an implication, not an equivalence, because practical hashing functions can have
     /// collisions, i.e. for a practical hashing function `h`,
     /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
-    /// **`Q` is equivalent to `T` under `f` and `g`** if and only if
+    /// **`Q` is equivalent to `T` using `f` and `g`** if and only if
     ///
     /// ```text
     /// equiv(X, f, g)(Q, T) :=
@@ -13999,7 +13999,7 @@ impl OpaqueIndexSet {
     /// only if
     ///
     /// ```text
-    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i]).
+    /// q ~∈ set ⇔ ∃ i ∈ [0, set.len()). equiv(q, set[i]).
     /// ```
     ///
     /// If `q` is not an equivalent element of `set`, we write `q ~∉ set`.
@@ -14113,7 +14113,7 @@ impl OpaqueIndexSet {
     /// Let `T` be the type of the value of the index set `set`. Let `Q` be a data type. Let
     /// `q :: Q` be a value of type `Q`, and let `v :: T` be a value. let `X` be a hashable type.
     /// Let `f: Q → X` and `g: K → X` be functions. We say that
-    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    /// **`q` is equivalent to `k` using `f` and `g`** if and only if
     ///
     /// ```test
     /// equiv(X, f, g)(q, v) := f(q) ∼ g(v).
@@ -14128,7 +14128,7 @@ impl OpaqueIndexSet {
     /// This is an implication, not an equivalence, because practical hashing functions can have
     /// collisions, i.e. for a practical hashing function `h`,
     /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
-    /// **`Q` is equivalent to `T` under `f` and `g`** if and only if
+    /// **`Q` is equivalent to `T` using `f` and `g`** if and only if
     ///
     /// ```text
     /// equiv(X, f, g)(Q, T) :=
@@ -14165,7 +14165,7 @@ impl OpaqueIndexSet {
     /// only if
     ///
     /// ```text
-    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i]).
+    /// q ~∈ set ⇔ ∃ i ∈ [0, set.len()). equiv(q, set[i]).
     /// ```
     ///
     /// If `q` is not an equivalent element of `set`, we write `q ~∉ set`.
@@ -14377,7 +14377,7 @@ impl OpaqueIndexSet {
     /// Let `T` be the type of the value of the index set `set`. Let `Q` be a data type. Let
     /// `q :: Q` be a value of type `Q`, and let `v :: T` be a value. let `X` be a hashable type.
     /// Let `f: Q → X` and `g: K → X` be functions. We say that
-    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    /// **`q` is equivalent to `k` using `f` and `g`** if and only if
     ///
     /// ```test
     /// equiv(X, f, g)(q, v) := f(q) ∼ g(v).
@@ -14392,7 +14392,7 @@ impl OpaqueIndexSet {
     /// This is an implication, not an equivalence, because practical hashing functions can have
     /// collisions, i.e. for a practical hashing function `h`,
     /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
-    /// **`Q` is equivalent to `T` under `f` and `g`** if and only if
+    /// **`Q` is equivalent to `T` using `f` and `g`** if and only if
     ///
     /// ```text
     /// equiv(X, f, g)(Q, T) :=
@@ -14429,7 +14429,7 @@ impl OpaqueIndexSet {
     /// only if
     ///
     /// ```text
-    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i]).
+    /// q ~∈ set ⇔ ∃ i ∈ [0, set.len()). equiv(q, set[i]).
     /// ```
     ///
     /// If `q` is not an equivalent element of `set`, we write `q ~∉ set`.
@@ -14641,7 +14641,7 @@ impl OpaqueIndexSet {
     /// Let `T` be the type of the value of the index set `set`. Let `Q` be a data type. Let
     /// `q :: Q` be a value of type `Q`, and let `v :: T` be a value. let `X` be a hashable type.
     /// Let `f: Q → X` and `g: K → X` be functions. We say that
-    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    /// **`q` is equivalent to `k` using `f` and `g`** if and only if
     ///
     /// ```test
     /// equiv(X, f, g)(q, v) := f(q) ∼ g(v).
@@ -14656,7 +14656,7 @@ impl OpaqueIndexSet {
     /// This is an implication, not an equivalence, because practical hashing functions can have
     /// collisions, i.e. for a practical hashing function `h`,
     /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
-    /// **`Q` is equivalent to `T` under `f` and `g`** if and only if
+    /// **`Q` is equivalent to `T` using `f` and `g`** if and only if
     ///
     /// ```text
     /// equiv(X, f, g)(Q, T) :=
@@ -14693,7 +14693,7 @@ impl OpaqueIndexSet {
     /// only if
     ///
     /// ```text
-    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i]).
+    /// q ~∈ set ⇔ ∃ i ∈ [0, set.len()). equiv(q, set[i]).
     /// ```
     ///
     /// If `q` is not an equivalent element of `set`, we write `q ~∉ set`.
@@ -14914,7 +14914,7 @@ impl OpaqueIndexSet {
     /// Let `T` be the type of the value of the index set `set`. Let `Q` be a data type. Let
     /// `q :: Q` be a value of type `Q`, and let `v :: T` be a value. let `X` be a hashable type.
     /// Let `f: Q → X` and `g: K → X` be functions. We say that
-    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    /// **`q` is equivalent to `k` using `f` and `g`** if and only if
     ///
     /// ```test
     /// equiv(X, f, g)(q, v) := f(q) ∼ g(v).
@@ -14929,7 +14929,7 @@ impl OpaqueIndexSet {
     /// This is an implication, not an equivalence, because practical hashing functions can have
     /// collisions, i.e. for a practical hashing function `h`,
     /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
-    /// **`Q` is equivalent to `T` under `f` and `g`** if and only if
+    /// **`Q` is equivalent to `T` using `f` and `g`** if and only if
     ///
     /// ```text
     /// equiv(X, f, g)(Q, T) :=
@@ -14966,7 +14966,7 @@ impl OpaqueIndexSet {
     /// only if
     ///
     /// ```text
-    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i]).
+    /// q ~∈ set ⇔ ∃ i ∈ [0, set.len()). equiv(q, set[i]).
     /// ```
     ///
     /// If `q` is not an equivalent element of `set`, we write `q ~∉ set`.
@@ -15180,7 +15180,7 @@ impl OpaqueIndexSet {
     /// Let `T` be the type of the value of the index set `set`. Let `Q` be a data type. Let
     /// `q :: Q` be a value of type `Q`, and let `v :: T` be a value. let `X` be a hashable type.
     /// Let `f: Q → X` and `g: K → X` be functions. We say that
-    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    /// **`q` is equivalent to `k` using `f` and `g`** if and only if
     ///
     /// ```test
     /// equiv(X, f, g)(q, v) := f(q) ∼ g(v).
@@ -15195,7 +15195,7 @@ impl OpaqueIndexSet {
     /// This is an implication, not an equivalence, because practical hashing functions can have
     /// collisions, i.e. for a practical hashing function `h`,
     /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
-    /// **`Q` is equivalent to `T` under `f` and `g`** if and only if
+    /// **`Q` is equivalent to `T` using `f` and `g`** if and only if
     ///
     /// ```text
     /// equiv(X, f, g)(Q, T) :=
@@ -15232,7 +15232,7 @@ impl OpaqueIndexSet {
     /// only if
     ///
     /// ```text
-    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i]).
+    /// q ~∈ set ⇔ ∃ i ∈ [0, set.len()). equiv(q, set[i]).
     /// ```
     ///
     /// If `q` is not an equivalent element of `set`, we write `q ~∉ set`.
@@ -15447,7 +15447,7 @@ impl OpaqueIndexSet {
     /// Let `T` be the type of the value of the index set `set`. Let `Q` be a data type. Let
     /// `q :: Q` be a value of type `Q`, and let `v :: T` be a value. let `X` be a hashable type.
     /// Let `f: Q → X` and `g: K → X` be functions. We say that
-    /// **`q` is equivalent to `k` up to `f` and `g`** if and only if
+    /// **`q` is equivalent to `k` using `f` and `g`** if and only if
     ///
     /// ```test
     /// equiv(X, f, g)(q, v) := f(q) ∼ g(v).
@@ -15462,7 +15462,7 @@ impl OpaqueIndexSet {
     /// This is an implication, not an equivalence, because practical hashing functions can have
     /// collisions, i.e. for a practical hashing function `h`,
     /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
-    /// **`Q` is equivalent to `T` under `f` and `g`** if and only if
+    /// **`Q` is equivalent to `T` using `f` and `g`** if and only if
     ///
     /// ```text
     /// equiv(X, f, g)(Q, T) :=
@@ -15499,7 +15499,7 @@ impl OpaqueIndexSet {
     /// only if
     ///
     /// ```text
-    /// q ~∈ set ⇔ ∃ i ∈ [0..set.len()). equiv(q, set[i]).
+    /// q ~∈ set ⇔ ∃ i ∈ [0, set.len()). equiv(q, set[i]).
     /// ```
     ///
     /// If `q` is not an equivalent element of `set`, we write `q ~∉ set`.
