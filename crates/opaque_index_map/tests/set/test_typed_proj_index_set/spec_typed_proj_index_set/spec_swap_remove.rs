@@ -116,7 +116,7 @@ where
     let base_values: Vec<T> = base_set.iter().cloned().collect();
     for (index, value) in base_values.iter().enumerate() {
         let expected = expected(&entries, index, &value);
-        let result = result::<T, S, A>(&base_set, value);
+        let result = result(&base_set, value);
 
         prop_assert_eq!(result, expected);
     }

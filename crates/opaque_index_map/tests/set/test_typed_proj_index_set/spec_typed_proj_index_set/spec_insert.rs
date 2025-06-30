@@ -64,7 +64,7 @@ where
     
     let set = from_entries_insert_in(&entries);
     let expected = expected(&entries);
-    let result = result::<T, S, A>(&set);
+    let result = result(&set);
 
     prop_assert_eq!(result, expected);
 

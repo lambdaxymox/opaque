@@ -106,7 +106,7 @@ where
 }
 
 macro_rules! generate_props {
-    ($module_name:ident, $typ:ty, $initial_value_gen:ident, $value_gen:ident, $alloc_gen:ident) => {
+    ($module_name:ident, $typ:ty, $alloc_typ:ty, $initial_value_gen:ident, $value_gen:ident, $alloc_gen:ident) => {
         mod $module_name {
             use proptest::prelude::*;
             use std::alloc;
@@ -114,10 +114,10 @@ macro_rules! generate_props {
                 #[test]
                 fn prop_replace_insert_contains_same_index1(
                     value in super::$value_gen::<$typ>(),
-                    alloc in super::$alloc_gen::<alloc::Global>(),
+                    alloc in super::$alloc_gen::<$alloc_typ>(),
                 ) {
                     let value: $typ = value;
-                    let alloc: alloc::Global = alloc;
+                    let alloc: $alloc_typ = alloc;
                     super::prop_replace_insert_contains_same_index1(value, alloc)?
                 }
 
@@ -125,21 +125,21 @@ macro_rules! generate_props {
                 fn prop_replace_insert_contains_same_index2(
                     initial_value in super::$initial_value_gen::<$typ>(),
                     value in super::$value_gen::<$typ>(),
-                    alloc in super::$alloc_gen::<alloc::Global>(),
+                    alloc in super::$alloc_gen::<$alloc_typ>(),
                 ) {
                     let initial_value: $typ = initial_value;
                     let value: $typ = value;
-                    let alloc: alloc::Global = alloc;
+                    let alloc: $alloc_typ = alloc;
                     super::prop_replace_insert_contains_same_index2(initial_value, value, alloc)?
                 }
 
                 #[test]
                 fn prop_replace_insert_get_same_index1(
                     value in super::$value_gen::<$typ>(),
-                    alloc in super::$alloc_gen::<alloc::Global>(),
+                    alloc in super::$alloc_gen::<$alloc_typ>(),
                 ) {
                     let value: $typ = value;
-                    let alloc: alloc::Global = alloc;
+                    let alloc: $alloc_typ = alloc;
                     super::prop_replace_insert_get_same_index1(value, alloc)?
                 }
 
@@ -147,21 +147,21 @@ macro_rules! generate_props {
                 fn prop_replace_insert_get_same_index2(
                     initial_value in super::$initial_value_gen::<$typ>(),
                     value in super::$value_gen::<$typ>(),
-                    alloc in super::$alloc_gen::<alloc::Global>(),
+                    alloc in super::$alloc_gen::<$alloc_typ>(),
                 ) {
                     let initial_value: $typ = initial_value;
                     let value: $typ = value;
-                    let alloc: alloc::Global = alloc;
+                    let alloc: $alloc_typ = alloc;
                     super::prop_replace_insert_get_same_index2(initial_value, value, alloc)?
                 }
 
                 #[test]
                 fn prop_replace_insert_len_same_index(
                     value in super::$value_gen::<$typ>(),
-                    alloc in super::$alloc_gen::<alloc::Global>(),
+                    alloc in super::$alloc_gen::<$alloc_typ>(),
                 ) {
                     let value: $typ = value;
-                    let alloc: alloc::Global = alloc;
+                    let alloc: $alloc_typ = alloc;
                     super::prop_replace_insert_len_same_index(value, alloc)?
                 }
             }
@@ -169,10 +169,10 @@ macro_rules! generate_props {
     };
 }
 
-generate_props!(unit, (), strategy_single_value, strategy_single_value, strategy_alloc);
-generate_props!(u8, u8, strategy_single_value, strategy_single_value, strategy_alloc);
-generate_props!(u16, u16, strategy_single_value, strategy_single_value, strategy_alloc);
-generate_props!(u32, u32, strategy_single_value, strategy_single_value, strategy_alloc);
-generate_props!(u64, u64, strategy_single_value, strategy_single_value, strategy_alloc);
-generate_props!(usize, usize, strategy_single_value, strategy_single_value, strategy_alloc);
-generate_props!(string, String, strategy_single_value, strategy_single_value, strategy_alloc);
+generate_props!(unit, (), alloc::Global, strategy_single_value, strategy_single_value, strategy_alloc);
+generate_props!(u8, u8, alloc::Global, strategy_single_value, strategy_single_value, strategy_alloc);
+generate_props!(u16, u16, alloc::Global, strategy_single_value, strategy_single_value, strategy_alloc);
+generate_props!(u32, u32, alloc::Global, strategy_single_value, strategy_single_value, strategy_alloc);
+generate_props!(u64, u64, alloc::Global, strategy_single_value, strategy_single_value, strategy_alloc);
+generate_props!(usize, usize, alloc::Global, strategy_single_value, strategy_single_value, strategy_alloc);
+generate_props!(string, String, alloc::Global, strategy_single_value, strategy_single_value, strategy_alloc);

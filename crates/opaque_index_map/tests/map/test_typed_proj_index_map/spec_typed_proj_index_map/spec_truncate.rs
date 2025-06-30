@@ -55,7 +55,7 @@ where
     for len in 0..entries.len() {
         let map = entries.clone();
         let expected_entries = expected(&entries, len);
-        let result_entries = result::<K, V, S, A>(&map, len);
+        let result_entries = result(&map, len);
         let expected = expected_entries.len();
         let result = result_entries.len();
 
@@ -112,7 +112,7 @@ where
     for len in 0..entries.len() {
         let map = entries.clone();
         let expected = expected(&entries, len);
-        let result = result::<K, V, S, A>(&map, len);
+        let result = result(&map, len);
 
         prop_assert_eq!(result, expected);
     }

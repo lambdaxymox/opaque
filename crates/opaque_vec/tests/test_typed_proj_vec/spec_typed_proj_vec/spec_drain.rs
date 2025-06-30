@@ -127,26 +127,26 @@ where
 }
 
 macro_rules! generate_props {
-    ($module_name:ident, $typ:ty, $max_length:expr, $max_count:expr, $vec_gen:ident) => {
+    ($module_name:ident, $typ:ty, $alloc_typ:ty, $max_length:expr, $max_count:expr, $vec_gen:ident) => {
         mod $module_name {
             use proptest::prelude::*;
             use std::alloc;
             proptest! {
                 #[test]
-                fn prop_drain_entire_vec(values in super::$vec_gen::<$typ, alloc::Global>($max_length)) {
-                    let values: super::TypedProjVec<$typ, alloc::Global> = values;
+                fn prop_drain_entire_vec(values in super::$vec_gen::<$typ, $alloc_typ>($max_length)) {
+                    let values: super::TypedProjVec<$typ, $alloc_typ> = values;
                     super::prop_drain_entire_vec(values)?
                 }
 
                 #[test]
-                fn prop_drain_nothing_vec(values in super::$vec_gen::<$typ, alloc::Global>($max_length)) {
-                    let values: super::TypedProjVec<$typ, alloc::Global> = values;
+                fn prop_drain_nothing_vec(values in super::$vec_gen::<$typ, $alloc_typ>($max_length)) {
+                    let values: super::TypedProjVec<$typ, $alloc_typ> = values;
                     super::prop_drain_nothing_vec(values)?
                 }
 
                 #[test]
-                fn prop_drain_partial_vec(values in super::strategy_prop_drain_partial_vec::<$typ, alloc::Global>($max_length, $max_count)) {
-                    let values: (super::TypedProjVec<$typ, alloc::Global>, $typ, usize, usize) = values;
+                fn prop_drain_partial_vec(values in super::strategy_prop_drain_partial_vec::<$typ, $alloc_typ>($max_length, $max_count)) {
+                    let values: (super::TypedProjVec<$typ, $alloc_typ>, $typ, usize, usize) = values;
                     super::prop_drain_partial_vec(values)?
                 }
             }
@@ -154,10 +154,10 @@ macro_rules! generate_props {
     };
 }
 
-generate_props!(unit, (), 128, 16, strategy_type_projected_vec_max_len);
-generate_props!(u8, u8, 128, 16, strategy_type_projected_vec_max_len);
-generate_props!(u16, u16, 128, 16, strategy_type_projected_vec_max_len);
-generate_props!(u32, u32, 128, 16, strategy_type_projected_vec_max_len);
-generate_props!(u64, u64, 128, 16, strategy_type_projected_vec_max_len);
-generate_props!(usize, usize, 128, 16, strategy_type_projected_vec_max_len);
-generate_props!(string, String, 128, 16, strategy_type_projected_vec_max_len);
+generate_props!(unit, (), alloc::Global, 128, 16, strategy_type_projected_vec_max_len);
+generate_props!(u8, u8, alloc::Global, 128, 16, strategy_type_projected_vec_max_len);
+generate_props!(u16, u16, alloc::Global, 128, 16, strategy_type_projected_vec_max_len);
+generate_props!(u32, u32, alloc::Global, 128, 16, strategy_type_projected_vec_max_len);
+generate_props!(u64, u64, alloc::Global, 128, 16, strategy_type_projected_vec_max_len);
+generate_props!(usize, usize, alloc::Global, 128, 16, strategy_type_projected_vec_max_len);
+generate_props!(string, String, alloc::Global, 128, 16, strategy_type_projected_vec_max_len);

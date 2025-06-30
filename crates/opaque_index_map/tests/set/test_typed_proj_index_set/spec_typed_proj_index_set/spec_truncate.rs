@@ -52,7 +52,7 @@ where
     for len in 0..entries.len() {
         let set = entries.clone();
         let expected_entries = expected(&entries, len);
-        let result_entries = result::<T, S, A>(&set, len);
+        let result_entries = result(&set, len);
         let expected = expected_entries.len();
         let result = result_entries.len();
 
@@ -106,7 +106,7 @@ where
     for len in 0..entries.len() {
         let set = entries.clone();
         let expected = expected(&entries, len);
-        let result = result::<T, S, A>(&set, len);
+        let result = result(&set, len);
 
         prop_assert_eq!(result, expected);
     }

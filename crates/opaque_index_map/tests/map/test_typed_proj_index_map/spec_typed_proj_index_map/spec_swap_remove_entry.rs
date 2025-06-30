@@ -189,7 +189,7 @@ where
     let base_keys: Vec<K> = base_map.keys().cloned().collect();
     for (index, key) in base_keys.iter().enumerate() {
         let expected = expected(&entries, index, &key);
-        let result = result::<K, V, S, A>(&base_map, key);
+        let result = result(&base_map, key);
 
         prop_assert_eq!(result, expected);
     }

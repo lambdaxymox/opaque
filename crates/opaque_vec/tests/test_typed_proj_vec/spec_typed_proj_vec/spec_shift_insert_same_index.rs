@@ -55,7 +55,7 @@ where
 }
 
 macro_rules! generate_props {
-    ($module_name:ident, $typ:ty, $max_length:expr, $vec_gen:ident, $value_gen:ident, $alloc_gen:ident) => {
+    ($module_name:ident, $typ:ty, $alloc_typ:ty, $max_length:expr, $vec_gen:ident, $value_gen:ident, $alloc_gen:ident) => {
         mod $module_name {
             use proptest::prelude::*;
             use std::alloc;
@@ -63,16 +63,16 @@ macro_rules! generate_props {
                 #[test]
                 fn prop_shift_insert_contains_same_index1(
                     value in super::$value_gen::<$typ>(),
-                    alloc in super::$alloc_gen::<alloc::Global>(),
+                    alloc in super::$alloc_gen::<$alloc_typ>(),
                 ) {
                     let value: $typ = value;
-                    let alloc: alloc::Global = alloc;
+                    let alloc: $alloc_typ = alloc;
                     super::prop_shift_insert_contains_same_index1(value, alloc)?
                 }
 
                 #[test]
-                fn prop_shift_insert_contains_same_index2(values in super::$vec_gen::<$typ, alloc::Global>($max_length)) {
-                    let values: super::TypedProjVec<$typ, alloc::Global> = values;
+                fn prop_shift_insert_contains_same_index2(values in super::$vec_gen::<$typ, $alloc_typ>($max_length)) {
+                    let values: super::TypedProjVec<$typ, $alloc_typ> = values;
                     super::prop_shift_insert_contains_same_index2(values)?
                 }
             }
@@ -80,10 +80,10 @@ macro_rules! generate_props {
     };
 }
 
-generate_props!(unit, (), 128, strategy_type_projected_vec_max_len, strategy_single_value, strategy_alloc);
-generate_props!(u8, u8, 128, strategy_type_projected_vec_max_len, strategy_single_value, strategy_alloc);
-generate_props!(u16, u16, 128, strategy_type_projected_vec_max_len, strategy_single_value, strategy_alloc);
-generate_props!(u32, u32, 128, strategy_type_projected_vec_max_len, strategy_single_value, strategy_alloc);
-generate_props!(u64, u64, 128, strategy_type_projected_vec_max_len, strategy_single_value, strategy_alloc);
-generate_props!(usize, usize, 128, strategy_type_projected_vec_max_len, strategy_single_value, strategy_alloc);
-generate_props!(string, String, 128, strategy_type_projected_vec_max_len, strategy_single_value, strategy_alloc);
+generate_props!(unit, (), alloc::Global, 128, strategy_type_projected_vec_max_len, strategy_single_value, strategy_alloc);
+generate_props!(u8, u8, alloc::Global, 128, strategy_type_projected_vec_max_len, strategy_single_value, strategy_alloc);
+generate_props!(u16, u16, alloc::Global, 128, strategy_type_projected_vec_max_len, strategy_single_value, strategy_alloc);
+generate_props!(u32, u32, alloc::Global, 128, strategy_type_projected_vec_max_len, strategy_single_value, strategy_alloc);
+generate_props!(u64, u64, alloc::Global, 128, strategy_type_projected_vec_max_len, strategy_single_value, strategy_alloc);
+generate_props!(usize, usize, alloc::Global, 128, strategy_type_projected_vec_max_len, strategy_single_value, strategy_alloc);
+generate_props!(string, String, alloc::Global, 128, strategy_type_projected_vec_max_len, strategy_single_value, strategy_alloc);

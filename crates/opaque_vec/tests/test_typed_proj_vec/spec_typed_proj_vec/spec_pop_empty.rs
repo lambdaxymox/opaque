@@ -68,43 +68,43 @@ where
 }
 
 macro_rules! generate_props {
-    ($module_name:ident, $typ:ty, $max_length:expr, $alloc_gen:ident) => {
+    ($module_name:ident, $typ:ty, $alloc_typ:ty, $max_length:expr, $alloc_gen:ident) => {
         mod $module_name {
             use proptest::prelude::*;
             use std::alloc;
             proptest! {
                 #[test]
-                fn prop_pop_empty1(alloc in super::$alloc_gen::<alloc::Global>()) {
-                    let alloc: alloc::Global = alloc;
-                    super::prop_pop_empty1::<$typ, alloc::Global>(alloc)?
+                fn prop_pop_empty1(alloc in super::$alloc_gen::<$alloc_typ>()) {
+                    let alloc: $alloc_typ = alloc;
+                    super::prop_pop_empty1::<$typ, $alloc_typ>(alloc)?
                 }
 
                 #[test]
-                fn prop_pop_empty2(alloc in super::$alloc_gen::<alloc::Global>()) {
-                    let alloc: alloc::Global = alloc;
-                    super::prop_pop_empty2::<$typ, alloc::Global>(alloc)?
+                fn prop_pop_empty2(alloc in super::$alloc_gen::<$alloc_typ>()) {
+                    let alloc: $alloc_typ = alloc;
+                    super::prop_pop_empty2::<$typ, $alloc_typ>(alloc)?
                 }
 
                 #[test]
-                fn prop_pop_empty_is_empty1(alloc in super::$alloc_gen::<alloc::Global>()) {
-                    let alloc: alloc::Global = alloc;
-                    super::prop_pop_empty_is_empty1::<$typ, alloc::Global>(alloc)?
+                fn prop_pop_empty_is_empty1(alloc in super::$alloc_gen::<$alloc_typ>()) {
+                    let alloc: $alloc_typ = alloc;
+                    super::prop_pop_empty_is_empty1::<$typ, $alloc_typ>(alloc)?
                 }
 
                 #[test]
-                fn prop_pop_empty_is_empty2(alloc in super::$alloc_gen::<alloc::Global>()) {
-                    let alloc: alloc::Global = alloc;
-                    super::prop_pop_empty_is_empty2::<$typ, alloc::Global>(alloc)?
+                fn prop_pop_empty_is_empty2(alloc in super::$alloc_gen::<$alloc_typ>()) {
+                    let alloc: $alloc_typ = alloc;
+                    super::prop_pop_empty_is_empty2::<$typ, $alloc_typ>(alloc)?
                 }
             }
         }
     };
 }
 
-generate_props!(unit, (), 128, strategy_alloc);
-generate_props!(u8, u8, 128, strategy_alloc);
-generate_props!(u16, u16, 128, strategy_alloc);
-generate_props!(u32, u32, 128, strategy_alloc);
-generate_props!(u64, u64, 128, strategy_alloc);
-generate_props!(usize, usize, 128, strategy_alloc);
-generate_props!(string, String, 128, strategy_alloc);
+generate_props!(unit, (), alloc::Global, 128, strategy_alloc);
+generate_props!(u8, u8, alloc::Global, 128, strategy_alloc);
+generate_props!(u16, u16, alloc::Global, 128, strategy_alloc);
+generate_props!(u32, u32, alloc::Global, 128, strategy_alloc);
+generate_props!(u64, u64, alloc::Global, 128, strategy_alloc);
+generate_props!(usize, usize, alloc::Global, 128, strategy_alloc);
+generate_props!(string, String, alloc::Global, 128, strategy_alloc);
