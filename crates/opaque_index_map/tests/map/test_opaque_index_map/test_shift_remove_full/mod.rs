@@ -1,9 +1,0 @@
-mod test_shift_remove_full_contains_key;
-mod test_shift_remove_full_len;
-mod test_shift_remove_full_preserves_order;
-mod test_shift_remove_full_get_mut;
-mod test_shift_remove_full_get_full;
-mod test_shift_remove_full_get;
-mod test_shift_remove_full_get_key_value;
-mod test_shift_remove_full_get_full_mut;
-mod spec_shift_remove_full;

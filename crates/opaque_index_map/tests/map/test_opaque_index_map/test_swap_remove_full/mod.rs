@@ -1,9 +1,0 @@
-mod test_swap_remove_full_len;
-mod test_swap_remove_full_preserves_order;
-mod test_swap_remove_full_get;
-mod test_swap_remove_full_get_full;
-mod test_swap_remove_full_contains_key;
-mod test_swap_remove_full_get_mut;
-mod test_swap_remove_full_get_full_mut;
-mod test_swap_remove_full_get_key_value;
-mod spec_swap_remove_full;
