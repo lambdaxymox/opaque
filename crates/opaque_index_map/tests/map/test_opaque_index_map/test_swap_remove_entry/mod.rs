@@ -4,3 +4,4 @@ mod test_swap_remove_entry_len;
 mod test_swap_remove_entry_get;
 mod test_swap_remove_entry_get_mut;
 mod test_swap_remove_entry_contains_key;
+mod spec_swap_remove_entry;

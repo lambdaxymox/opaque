@@ -1,4 +1,3 @@
 mod test_truncate_length_less_than_or_equal_to;
 mod test_truncate_len_length_less_than_or_equal_to;
-mod test_truncate_drop;
-mod test_truncate_panic_safe;
+mod spec_truncate;

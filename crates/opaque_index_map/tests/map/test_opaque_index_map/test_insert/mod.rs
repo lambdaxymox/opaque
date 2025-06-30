@@ -13,3 +13,5 @@ mod test_insert_get_mut;
 mod test_insert_len;
 mod test_insert_preserves_order_new_entry;
 mod test_insert_get_key_value;
+mod spec_insert;
+mod spec_insert_ordering;

@@ -13,3 +13,5 @@ mod test_insert_full_len;
 mod test_insert_full_values;
 mod test_insert_full_iter;
 mod test_insert_full_contains_key;
+mod spec_insert_full;
+mod spec_insert_full_ordering;

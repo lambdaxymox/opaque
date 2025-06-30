@@ -31,6 +31,9 @@ path = "../opaque_vec"
 
 [dev-dependencies]
 
+[dev-dependencies.proptest]
+version = "1.7.0"
+
 [dev-dependencies.opaque_index_map_testing]
 version = "0.1.0"
 path = "../opaque_index_map_testing"

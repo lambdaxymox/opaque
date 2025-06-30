@@ -13,3 +13,5 @@ mod test_shift_remove_entry;
 mod test_swap_remove_entry;
 mod test_swap_remove_full;
 mod test_truncate;
+mod test_drop;
+mod test_panic_safety;

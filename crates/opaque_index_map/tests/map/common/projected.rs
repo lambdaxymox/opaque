@@ -1,0 +1,181 @@
+use opaque_index_map::TypedProjIndexMap;
+
+use core::any;
+use core::fmt;
+use std::{hash, ops};
+use std::alloc;
+
+use proptest::prelude::*;
+
+#[derive(Clone, Default, Debug)]
+pub struct WrappingBuildHasher1<S> {
+    build_hasher: S,
+}
+
+impl<S> WrappingBuildHasher1<S> {
+    #[inline]
+    pub const fn new(build_hasher: S) -> Self {
+        Self { build_hasher }
+    }
+}
+
+impl<S> hash::BuildHasher for WrappingBuildHasher1<S>
+where
+    S: any::Any + hash::BuildHasher + Send + Sync,
+{
+    type Hasher = S::Hasher;
+
+    fn build_hasher(&self) -> Self::Hasher {
+        self.build_hasher.build_hasher()
+    }
+}
+
+#[derive(Clone, Default, Debug)]
+pub struct WrappingBuildHasher2<S> {
+    build_hasher: S,
+}
+
+impl<S> WrappingBuildHasher2<S> {
+    #[inline]
+    pub const fn new(build_hasher: S) -> Self {
+        Self { build_hasher }
+    }
+}
+
+impl<S> hash::BuildHasher for WrappingBuildHasher2<S>
+where
+    S: any::Any + hash::BuildHasher + Send + Sync,
+{
+    type Hasher = S::Hasher;
+
+    fn build_hasher(&self) -> Self::Hasher {
+        self.build_hasher.build_hasher()
+    }
+}
+
+pub fn strategy_alloc<A>() -> impl Strategy<Value = A>
+where
+    A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
+{
+    Just(A::default())
+}
+
+pub fn strategy_build_hasher<S>() -> impl Strategy<Value = S>
+where
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone + Default + fmt::Debug,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+{
+    Just(S::default())
+}
+
+pub fn strategy_type_projected_index_map_len<K, V, S, A>(length: usize) -> impl Strategy<Value = TypedProjIndexMap<K, V, S, A>>
+where
+    K: any::Any + Clone + Eq + hash::Hash + Ord + Default + fmt::Debug + Arbitrary,
+    V: any::Any + Clone + Eq + Default + fmt::Debug + Arbitrary,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone + Default + fmt::Debug,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
+{
+    (proptest::collection::vec(any::<(K, V)>(), length), strategy_build_hasher::<S>(), strategy_alloc::<A>())
+        .prop_map(move |(values, build_hasher, alloc)| {
+            let mut proj_map = TypedProjIndexMap::with_hasher_in(build_hasher, alloc);
+            proj_map.extend(values);
+
+            proj_map
+        })
+}
+
+pub fn strategy_type_projected_index_map_max_len<K, V, S, A>(max_length: usize) -> impl Strategy<Value = TypedProjIndexMap<K, V, S, A>>
+where
+    K: any::Any + Clone + Eq + hash::Hash + Ord + Default + fmt::Debug + Arbitrary,
+    V: any::Any + Clone + Eq + Default + fmt::Debug + Arbitrary,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone + Default + fmt::Debug,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
+{
+    (0..=max_length).prop_flat_map(move |length| strategy_type_projected_index_map_len(length))
+}
+
+pub fn strategy_type_projected_index_map_max_len_nonempty<K, V, S, A>(max_length: usize) -> impl Strategy<Value = TypedProjIndexMap<K, V, S, A>>
+where
+    K: any::Any + Clone + Eq + hash::Hash + Ord + Default + fmt::Debug + Arbitrary,
+    V: any::Any + Clone + Eq + Default + fmt::Debug + Arbitrary,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone + Default + fmt::Debug,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
+{
+    fn clamped_interval(max_length: usize) -> ops::RangeInclusive<usize> {
+        if max_length == 0 {
+            1..=1
+        } else {
+            1..=max_length
+        }
+    }
+    
+    clamped_interval(max_length).prop_flat_map(move |length| strategy_type_projected_index_map_len(length))
+}
+
+fn dedup_by_largest_index_per_key<K>(sorted_entries: &[(K, usize)]) -> Vec<(K, (usize, usize))>
+where
+    K: any::Any + Clone + Eq + hash::Hash,
+{
+    let mut deduped_sorted_entries = Vec::new();
+    let mut iterator = sorted_entries.iter().peekable();
+    while let Some((key, index)) = iterator.next().cloned() {
+        let smallest_index = index;
+        let mut largest_index = index;
+        while let Some((next_key, next_index)) = iterator.peek() {
+            if *next_key == key {
+                largest_index = *next_index;
+                iterator.next();
+            } else {
+                break;
+            }
+        }
+
+        deduped_sorted_entries.push((key.clone(), (smallest_index, largest_index)));
+    }
+
+    deduped_sorted_entries
+}
+
+fn first_and_last_index_per_key<K, V>(entries: &[(K, V)]) -> Vec<(K, (usize, usize))>
+where
+    K: any::Any + Clone + Eq + Ord + hash::Hash,
+    V: any::Any + Clone + Eq,
+{
+    let sorted_entries = {
+        let mut _sorted_entries: Vec<(K, usize)> = entries.iter().cloned().enumerate().map(|(index, (key, _))| (key, index)).collect();
+        _sorted_entries.sort();
+        _sorted_entries
+    };
+
+    dedup_by_largest_index_per_key(&sorted_entries)
+}
+
+pub fn last_entry_per_key<K, V>(entries: &[(K, V)]) -> Vec<((K, V), (usize, usize))>
+where
+    K: any::Any + Clone + Eq + Ord + hash::Hash,
+    V: any::Any + Clone + Eq,
+{
+    let indices = first_and_last_index_per_key(entries);
+    let mut result = Vec::new();
+    for (key, index_tuple) in indices.iter() {
+        let key_value_tuple = entries[index_tuple.1].clone();
+        result.push((key_value_tuple, *index_tuple));
+    }
+
+    result
+}
+
+pub fn last_entry_per_key_ordered<K, V>(entries: &[(K, V)]) -> Vec<(K, V)>
+where
+    K: any::Any + Clone + Eq + Ord + hash::Hash,
+    V: any::Any + Clone + Eq,
+{
+    let mut filtered_entries = opaque_index_map_testing::map::last_entry_per_key(entries);
+    filtered_entries.sort_by(|a, b| a.1.0.cmp(&b.1.0));
+    let result = filtered_entries.iter().cloned().map(|entry| entry.0).collect();
+
+    result
+}

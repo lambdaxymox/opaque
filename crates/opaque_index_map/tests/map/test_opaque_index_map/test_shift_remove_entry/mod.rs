@@ -4,3 +4,4 @@ mod test_shift_remove_entry_len;
 mod test_shift_remove_entry_contains_key;
 mod test_shift_remove_entry_get_mut;
 mod test_shift_remove_entry_get_key_value;
+mod spec_shift_remove_entry;
