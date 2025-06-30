@@ -175,7 +175,7 @@ where
     K: any::Any + Clone + Eq + Ord + hash::Hash,
     V: any::Any + Clone + Eq,
 {
-    let mut filtered_entries = opaque_index_map_testing::map::last_entry_per_key(entries);
+    let mut filtered_entries = last_entry_per_key(entries);
     filtered_entries.sort_by(|a, b| a.1.0.cmp(&b.1.0));
     let result = filtered_entries.iter().cloned().map(|entry| entry.0).collect();
 
