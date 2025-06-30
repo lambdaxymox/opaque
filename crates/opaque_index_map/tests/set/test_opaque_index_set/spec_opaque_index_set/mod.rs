@@ -1,0 +1,13 @@
+mod spec_append;
+mod spec_clear;
+mod spec_clone;
+mod spec_insert;
+mod spec_insert_ordering;
+mod spec_insert_full;
+mod spec_insert_full_ordering;
+mod spec_iter;
+mod spec_shift_remove;
+mod spec_shift_remove_full;
+mod spec_swap_remove;
+mod spec_swap_remove_full;
+mod spec_truncate;

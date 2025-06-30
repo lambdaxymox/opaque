@@ -2,7 +2,8 @@ use opaque_index_map::{OpaqueIndexMap, TypedProjIndexMap};
 
 use core::any;
 use core::fmt;
-use std::{hash, ops};
+use core::ops;
+use std::hash;
 use std::alloc;
 
 use proptest::prelude::*;

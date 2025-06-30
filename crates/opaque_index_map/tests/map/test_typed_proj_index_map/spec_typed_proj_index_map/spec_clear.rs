@@ -83,16 +83,19 @@ macro_rules! generate_props {
             proptest! {
                 #[test]
                 fn prop_clear_as_slice(entries in super::$map_gen::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
+                    let entries: super::TypedProjIndexMap<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ> = entries;
                     super::prop_clear_as_slice(entries)?
                 }
 
                 #[test]
                 fn prop_clear_is_empty(entries in super::$map_gen::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
+                    let entries: super::TypedProjIndexMap<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ> = entries;
                     super::prop_clear_is_empty(entries)?
                 }
 
                 #[test]
                 fn prop_clear_len(entries in super::$map_gen::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
+                    let entries: super::TypedProjIndexMap<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ> = entries;
                     super::prop_clear_len(entries)?
                 }
             }

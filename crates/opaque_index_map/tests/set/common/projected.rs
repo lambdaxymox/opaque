@@ -1,4 +1,4 @@
-use opaque_index_map::TypedProjIndexMap;
+use opaque_index_map::TypedProjIndexSet;
 
 use core::any;
 use core::fmt;
@@ -69,38 +69,35 @@ where
     Just(S::default())
 }
 
-pub fn strategy_type_projected_index_map_len<K, V, S, A>(length: usize) -> impl Strategy<Value = TypedProjIndexMap<K, V, S, A>>
+pub fn strategy_type_projected_index_set_len<T, S, A>(length: usize) -> impl Strategy<Value = TypedProjIndexSet<T, S, A>>
 where
-    K: any::Any + Clone + Eq + hash::Hash + Ord + Default + fmt::Debug + Arbitrary,
-    V: any::Any + Clone + Eq + Default + fmt::Debug + Arbitrary,
+    T: any::Any + Clone + Eq + hash::Hash + Ord + Default + fmt::Debug + Arbitrary,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone + Default + fmt::Debug,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
-    (proptest::collection::vec(any::<(K, V)>(), length), strategy_build_hasher::<S>(), strategy_alloc::<A>())
+    (proptest::collection::vec(any::<T>(), length), strategy_build_hasher::<S>(), strategy_alloc::<A>())
         .prop_map(move |(values, build_hasher, alloc)| {
-            let mut proj_map = TypedProjIndexMap::with_hasher_in(build_hasher, alloc);
-            proj_map.extend(values);
+            let mut proj_set = TypedProjIndexSet::with_hasher_in(build_hasher, alloc);
+            proj_set.extend(values);
 
-            proj_map
+            proj_set
         })
 }
 
-pub fn strategy_type_projected_index_map_max_len<K, V, S, A>(max_length: usize) -> impl Strategy<Value = TypedProjIndexMap<K, V, S, A>>
+pub fn strategy_type_projected_index_set_max_len<T, S, A>(max_length: usize) -> impl Strategy<Value = TypedProjIndexSet<T, S, A>>
 where
-    K: any::Any + Clone + Eq + hash::Hash + Ord + Default + fmt::Debug + Arbitrary,
-    V: any::Any + Clone + Eq + Default + fmt::Debug + Arbitrary,
+    T: any::Any + Clone + Eq + hash::Hash + Ord + Default + fmt::Debug + Arbitrary,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone + Default + fmt::Debug,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
-    (0..=max_length).prop_flat_map(move |length| strategy_type_projected_index_map_len(length))
+    (0..=max_length).prop_flat_map(move |length| strategy_type_projected_index_set_len(length))
 }
 
-pub fn strategy_type_projected_index_map_max_len_nonempty<K, V, S, A>(max_length: usize) -> impl Strategy<Value = TypedProjIndexMap<K, V, S, A>>
+pub fn strategy_type_projected_index_set_max_len_nonempty<T, S, A>(max_length: usize) -> impl Strategy<Value = TypedProjIndexSet<T, S, A>>
 where
-    K: any::Any + Clone + Eq + hash::Hash + Ord + Default + fmt::Debug + Arbitrary,
-    V: any::Any + Clone + Eq + Default + fmt::Debug + Arbitrary,
+    T: any::Any + Clone + Eq + hash::Hash + Ord + Default + fmt::Debug + Arbitrary,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone + Default + fmt::Debug,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
@@ -112,8 +109,8 @@ where
             1..=max_length
         }
     }
-    
-    clamped_interval(max_length).prop_flat_map(move |length| strategy_type_projected_index_map_len(length))
+
+    clamped_interval(max_length).prop_flat_map(move |length| strategy_type_projected_index_set_len(length))
 }
 
 fn dedup_by_largest_index_per_key<K>(sorted_entries: &[(K, usize)]) -> Vec<(K, (usize, usize))>
@@ -140,13 +137,12 @@ where
     deduped_sorted_entries
 }
 
-fn first_and_last_index_per_key<K, V>(entries: &[(K, V)]) -> Vec<(K, (usize, usize))>
+fn first_and_last_index_per_key<T>(entries: &[T]) -> Vec<(T, (usize, usize))>
 where
-    K: any::Any + Clone + Eq + Ord + hash::Hash,
-    V: any::Any + Clone + Eq,
+    T: any::Any + Clone + Eq + Ord + hash::Hash,
 {
     let sorted_entries = {
-        let mut _sorted_entries: Vec<(K, usize)> = entries.iter().cloned().enumerate().map(|(index, (key, _))| (key, index)).collect();
+        let mut _sorted_entries: Vec<(T, usize)> = entries.iter().cloned().enumerate().map(|(index, key)| (key, index)).collect();
         _sorted_entries.sort();
         _sorted_entries
     };
@@ -154,10 +150,9 @@ where
     dedup_by_largest_index_per_key(&sorted_entries)
 }
 
-pub fn last_entry_per_key<K, V>(entries: &[(K, V)]) -> Vec<((K, V), (usize, usize))>
+pub fn last_entry_per_key<T>(entries: &[T]) -> Vec<(T, (usize, usize))>
 where
-    K: any::Any + Clone + Eq + Ord + hash::Hash,
-    V: any::Any + Clone + Eq,
+    T: any::Any + Clone + Eq + Ord + hash::Hash,
 {
     let indices = first_and_last_index_per_key(entries);
     let mut result = Vec::new();
@@ -169,10 +164,9 @@ where
     result
 }
 
-pub fn last_entry_per_key_ordered<K, V>(entries: &[(K, V)]) -> Vec<(K, V)>
+pub fn last_entry_per_key_ordered<T>(entries: &[T]) -> Vec<T>
 where
-    K: any::Any + Clone + Eq + Ord + hash::Hash,
-    V: any::Any + Clone + Eq,
+    T: any::Any + Clone + Eq + Ord + hash::Hash,
 {
     let mut filtered_entries = last_entry_per_key(entries);
     filtered_entries.sort_by(|a, b| a.1.0.cmp(&b.1.0));

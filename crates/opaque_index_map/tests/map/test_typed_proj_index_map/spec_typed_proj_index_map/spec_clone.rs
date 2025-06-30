@@ -63,11 +63,13 @@ macro_rules! generate_props {
             proptest! {
                 #[test]
                 fn prop_clone(entries in super::$map_gen::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
+                    let entries: super::TypedProjIndexMap<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ> = entries;
                     super::prop_clone(entries)?
                 }
 
                 #[test]
                 fn prop_clone_len(entries in super::$map_gen::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
+                    let entries: super::TypedProjIndexMap<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ> = entries;
                     super::prop_clone_len(entries)?
                 }
             }

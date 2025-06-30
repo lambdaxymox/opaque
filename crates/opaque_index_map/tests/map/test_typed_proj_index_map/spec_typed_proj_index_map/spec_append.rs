@@ -14,8 +14,8 @@ use std::hash;
 use proptest::prelude::*;
 
 fn prop_append_contains_key_source<K, V, S1, S2, A>(
-    values1: TypedProjIndexMap<K, V, S1, A>,
-    values2: TypedProjIndexMap<K, V, S2, A>,
+    entries1: TypedProjIndexMap<K, V, S1, A>,
+    entries2: TypedProjIndexMap<K, V, S2, A>,
 ) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -26,16 +26,16 @@ where
     S2::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let mut source = values1.clone();
-    let mut destination = values2.clone();
+    let mut source = entries1.clone();
+    let mut destination = entries2.clone();
 
     source.append(&mut destination);
 
-    for key in values1.iter().map(|(k, v)| k) {
+    for key in entries1.iter().map(|(k, v)| k) {
         prop_assert!(source.contains_key(key));
     }
 
-    for key in values2.iter().map(|(k, v)| k) {
+    for key in entries2.iter().map(|(k, v)| k) {
         prop_assert!(source.contains_key(key));
     }
 
@@ -43,8 +43,8 @@ where
 }
 
 fn prop_append_contains_key_destination<K, V, S1, S2, A>(
-    values1: TypedProjIndexMap<K, V, S1, A>,
-    values2: TypedProjIndexMap<K, V, S2, A>,
+    entries1: TypedProjIndexMap<K, V, S1, A>,
+    entries2: TypedProjIndexMap<K, V, S2, A>,
 ) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -55,16 +55,16 @@ where
     S2::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let mut source = values1.clone();
-    let mut destination = values2.clone();
+    let mut source = entries1.clone();
+    let mut destination = entries2.clone();
 
     source.append(&mut destination);
 
-    for key in values1.iter().map(|(k, v)| k) {
+    for key in entries1.iter().map(|(k, v)| k) {
         prop_assert!(!destination.contains_key(key));
     }
 
-    for key in values2.iter().map(|(k, v)| k) {
+    for key in entries2.iter().map(|(k, v)| k) {
         prop_assert!(!destination.contains_key(key));
     }
 
@@ -72,8 +72,8 @@ where
 }
 
 fn prop_append_get_source<K, V, S1, S2, A>(
-    values1: TypedProjIndexMap<K, V, S1, A>,
-    values2: TypedProjIndexMap<K, V, S2, A>,
+    entries1: TypedProjIndexMap<K, V, S1, A>,
+    entries2: TypedProjIndexMap<K, V, S2, A>,
 ) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -84,14 +84,14 @@ where
     S2::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let mut source = values1.clone();
-    let mut destination = values2.clone();
+    let mut source = entries1.clone();
+    let mut destination = entries2.clone();
 
     source.append(&mut destination);
 
     let expected_vec = {
-        let mut entries = Vec::from_iter(values1.iter().map(|(k, v)| (k.clone(), v.clone())));
-        entries.extend(values2.iter().map(|(k, v)| (k.clone(), v.clone())));
+        let mut entries = Vec::from_iter(entries1.iter().map(|(k, v)| (k.clone(), v.clone())));
+        entries.extend(entries2.iter().map(|(k, v)| (k.clone(), v.clone())));
 
         common::projected::last_entry_per_key_ordered(&entries)
     };
@@ -107,8 +107,8 @@ where
 }
 
 fn prop_append_get_destination<K, V, S1, S2, A>(
-    values1: TypedProjIndexMap<K, V, S1, A>,
-    values2: TypedProjIndexMap<K, V, S2, A>,
+    entries1: TypedProjIndexMap<K, V, S1, A>,
+    entries2: TypedProjIndexMap<K, V, S2, A>,
 ) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -119,16 +119,16 @@ where
     S2::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let mut source = values1.clone();
-    let mut destination = values2.clone();
+    let mut source = entries1.clone();
+    let mut destination = entries2.clone();
 
     source.append(&mut destination);
 
-    for (key, _) in values1.iter() {
+    for (key, _) in entries1.iter() {
         prop_assert!(destination.get(key).is_none());
     }
 
-    for (key, _) in values2.iter() {
+    for (key, _) in entries2.iter() {
         prop_assert!(destination.get(key).is_none());
     }
 
@@ -136,8 +136,8 @@ where
 }
 
 fn prop_append_get_full_source<K, V, S1, S2, A>(
-    values1: TypedProjIndexMap<K, V, S1, A>,
-    values2: TypedProjIndexMap<K, V, S2, A>,
+    entries1: TypedProjIndexMap<K, V, S1, A>,
+    entries2: TypedProjIndexMap<K, V, S2, A>,
 ) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -148,14 +148,14 @@ where
     S2::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let mut source = values1.clone();
-    let mut destination = values2.clone();
+    let mut source = entries1.clone();
+    let mut destination = entries2.clone();
 
     source.append(&mut destination);
 
     let expected_vec = {
-        let mut entries = Vec::from_iter(values1.iter().map(|(k, v)| (k.clone(), v.clone())));
-        entries.extend(values2.iter().map(|(k, v)| (k.clone(), v.clone())));
+        let mut entries = Vec::from_iter(entries1.iter().map(|(k, v)| (k.clone(), v.clone())));
+        entries.extend(entries2.iter().map(|(k, v)| (k.clone(), v.clone())));
 
         common::projected::last_entry_per_key_ordered(&entries)
     };
@@ -171,8 +171,8 @@ where
 }
 
 fn prop_append_get_full_destination<K, V, S1, S2, A>(
-    values1: TypedProjIndexMap<K, V, S1, A>,
-    values2: TypedProjIndexMap<K, V, S2, A>,
+    entries1: TypedProjIndexMap<K, V, S1, A>,
+    entries2: TypedProjIndexMap<K, V, S2, A>,
 ) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -183,16 +183,16 @@ where
     S2::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let mut source = values1.clone();
-    let mut destination = values2.clone();
+    let mut source = entries1.clone();
+    let mut destination = entries2.clone();
 
     source.append(&mut destination);
 
-    for (key, _) in values1.iter() {
+    for (key, _) in entries1.iter() {
         prop_assert!(destination.get_full(key).is_none());
     }
 
-    for (key, _) in values2.iter() {
+    for (key, _) in entries2.iter() {
         prop_assert!(destination.get_full(key).is_none());
     }
 
@@ -200,8 +200,8 @@ where
 }
 
 fn prop_append_get_index_of_source<K, V, S1, S2, A>(
-    values1: TypedProjIndexMap<K, V, S1, A>,
-    values2: TypedProjIndexMap<K, V, S2, A>,
+    entries1: TypedProjIndexMap<K, V, S1, A>,
+    entries2: TypedProjIndexMap<K, V, S2, A>,
 ) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -212,14 +212,14 @@ where
     S2::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let mut source = values1.clone();
-    let mut destination = values2.clone();
+    let mut source = entries1.clone();
+    let mut destination = entries2.clone();
 
     source.append(&mut destination);
 
     let expected_vec = {
-        let mut entries = Vec::from_iter(values1.iter().map(|(k, v)| (k.clone(), v.clone())));
-        entries.extend(values2.iter().map(|(k, v)| (k.clone(), v.clone())));
+        let mut entries = Vec::from_iter(entries1.iter().map(|(k, v)| (k.clone(), v.clone())));
+        entries.extend(entries2.iter().map(|(k, v)| (k.clone(), v.clone())));
 
         common::projected::last_entry_per_key_ordered(&entries)
     };
@@ -235,8 +235,8 @@ where
 }
 
 fn prop_append_get_index_of_destination<K, V, S1, S2, A>(
-    values1: TypedProjIndexMap<K, V, S1, A>,
-    values2: TypedProjIndexMap<K, V, S2, A>,
+    entries1: TypedProjIndexMap<K, V, S1, A>,
+    entries2: TypedProjIndexMap<K, V, S2, A>,
 ) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -247,8 +247,8 @@ where
     S2::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let mut source = values1.clone();
-    let mut destination = values2.clone();
+    let mut source = entries1.clone();
+    let mut destination = entries2.clone();
 
     source.append(&mut destination);
 
@@ -260,8 +260,8 @@ where
 }
 
 fn prop_append_get_key_value_source<K, V, S1, S2, A>(
-    values1: TypedProjIndexMap<K, V, S1, A>,
-    values2: TypedProjIndexMap<K, V, S2, A>,
+    entries1: TypedProjIndexMap<K, V, S1, A>,
+    entries2: TypedProjIndexMap<K, V, S2, A>,
 ) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -272,14 +272,14 @@ where
     S2::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let mut source = values1.clone();
-    let mut destination = values2.clone();
+    let mut source = entries1.clone();
+    let mut destination = entries2.clone();
 
     source.append(&mut destination);
 
     let expected_vec = {
-        let mut entries = Vec::from_iter(values1.iter().map(|(k, v)| (k.clone(), v.clone())));
-        entries.extend(values2.iter().map(|(k, v)| (k.clone(), v.clone())));
+        let mut entries = Vec::from_iter(entries1.iter().map(|(k, v)| (k.clone(), v.clone())));
+        entries.extend(entries2.iter().map(|(k, v)| (k.clone(), v.clone())));
 
         common::projected::last_entry_per_key_ordered(&entries)
     };
@@ -295,8 +295,8 @@ where
 }
 
 fn prop_append_get_key_value_destination<K, V, S1, S2, A>(
-    values1: TypedProjIndexMap<K, V, S1, A>,
-    values2: TypedProjIndexMap<K, V, S2, A>,
+    entries1: TypedProjIndexMap<K, V, S1, A>,
+    entries2: TypedProjIndexMap<K, V, S2, A>,
 ) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -307,16 +307,16 @@ where
     S2::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let mut source = values1.clone();
-    let mut destination = values2.clone();
+    let mut source = entries1.clone();
+    let mut destination = entries2.clone();
 
     source.append(&mut destination);
 
-    for (key, _) in values1.iter() {
+    for (key, _) in entries1.iter() {
         prop_assert!(destination.get_key_value(key).is_none());
     }
 
-    for (key, _) in values2.iter() {
+    for (key, _) in entries2.iter() {
         prop_assert!(destination.get_key_value(key).is_none());
     }
 
@@ -324,8 +324,8 @@ where
 }
 
 fn prop_append_len_source<K, V, S1, S2, A>(
-    values1: TypedProjIndexMap<K, V, S1, A>,
-    values2: TypedProjIndexMap<K, V, S2, A>,
+    entries1: TypedProjIndexMap<K, V, S1, A>,
+    entries2: TypedProjIndexMap<K, V, S2, A>,
 ) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -336,19 +336,19 @@ where
     S2::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let mut source = values1.clone();
-    let mut destination = values2.clone();
+    let mut source = entries1.clone();
+    let mut destination = entries2.clone();
 
     source.append(&mut destination);
 
-    prop_assert!(source.len() <= values1.len() + values2.len());
+    prop_assert!(source.len() <= entries1.len() + entries2.len());
 
     Ok(())
 }
 
 fn prop_append_len_destination<K, V, S1, S2, A>(
-    values1: TypedProjIndexMap<K, V, S1, A>,
-    values2: TypedProjIndexMap<K, V, S2, A>,
+    entries1: TypedProjIndexMap<K, V, S1, A>,
+    entries2: TypedProjIndexMap<K, V, S2, A>,
 ) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -359,8 +359,8 @@ where
     S2::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let mut source = values1.clone();
-    let mut destination = values2.clone();
+    let mut source = entries1.clone();
+    let mut destination = entries2.clone();
 
     source.append(&mut destination);
 
@@ -376,7 +376,8 @@ macro_rules! generate_props {
         $value_typ:ty,
         $build_hasher_typ:ty,
         $alloc_typ:ty,
-        $max_length:expr,
+        $max_src_length:expr,
+        $max_dst_length:expr,
         $map_gen:ident,
     ) => {
         mod $module_name {
@@ -386,98 +387,122 @@ macro_rules! generate_props {
             proptest! {
                 #[test]
                 fn prop_append_contains_key_source(
-                    values1 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_length),
-                    values2 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_length),
+                    entries1 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_src_length),
+                    entries2 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_dst_length),
                 ) {
-                    super::prop_append_contains_key_source(values1, values2)?
+                    let entries1: super::TypedProjIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ> = entries1;
+                    let entries2: super::TypedProjIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ> = entries2;
+                    super::prop_append_contains_key_source(entries1, entries2)?
                 }
 
                 #[test]
                 fn prop_append_contains_key_destination(
-                    values1 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_length),
-                    values2 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_length),
+                    entries1 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_src_length),
+                    entries2 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_dst_length),
                 ) {
-                    super::prop_append_contains_key_destination(values1, values2)?
+                    let entries1: super::TypedProjIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ> = entries1;
+                    let entries2: super::TypedProjIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ> = entries2;
+                    super::prop_append_contains_key_destination(entries1, entries2)?
                 }
 
                 #[test]
                 fn prop_append_get_source(
-                    values1 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_length),
-                    values2 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_length),
+                    entries1 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_src_length),
+                    entries2 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_dst_length),
                 ) {
-                    super::prop_append_get_source(values1, values2)?
+                    let entries1: super::TypedProjIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ> = entries1;
+                    let entries2: super::TypedProjIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ> = entries2;
+                    super::prop_append_get_source(entries1, entries2)?
                 }
 
                 #[test]
                 fn prop_append_get_destination(
-                    values1 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_length),
-                    values2 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_length),
+                    entries1 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_src_length),
+                    entries2 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_dst_length),
                 ) {
-                    super::prop_append_get_destination(values1, values2)?
+                    let entries1: super::TypedProjIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ> = entries1;
+                    let entries2: super::TypedProjIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ> = entries2;
+                    super::prop_append_get_destination(entries1, entries2)?
                 }
 
                 #[test]
                 fn prop_append_get_full_source(
-                    values1 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_length),
-                    values2 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_length),
+                    entries1 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_src_length),
+                    entries2 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_dst_length),
                 ) {
-                    super::prop_append_get_full_source(values1, values2)?
+                    let entries1: super::TypedProjIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ> = entries1;
+                    let entries2: super::TypedProjIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ> = entries2;
+                    super::prop_append_get_full_source(entries1, entries2)?
                 }
 
                 #[test]
                 fn prop_append_get_full_destination(
-                    values1 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_length),
-                    values2 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_length),
+                    entries1 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_src_length),
+                    entries2 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_dst_length),
                 ) {
-                    super::prop_append_get_full_destination(values1, values2)?
+                    let entries1: super::TypedProjIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ> = entries1;
+                    let entries2: super::TypedProjIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ> = entries2;
+                    super::prop_append_get_full_destination(entries1, entries2)?
                 }
 
                 #[test]
                 fn prop_append_get_index_of_source(
-                    values1 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_length),
-                    values2 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_length),
+                    entries1 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_src_length),
+                    entries2 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_dst_length),
                 ) {
-                    super::prop_append_get_index_of_source(values1, values2)?
+                    let entries1: super::TypedProjIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ> = entries1;
+                    let entries2: super::TypedProjIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ> = entries2;
+                    super::prop_append_get_index_of_source(entries1, entries2)?
                 }
 
                 #[test]
                 fn prop_append_get_index_of_destination(
-                    values1 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_length),
-                    values2 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_length),
+                    entries1 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_src_length),
+                    entries2 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_dst_length),
                 ) {
-                    super::prop_append_get_index_of_destination(values1, values2)?
+                    let entries1: super::TypedProjIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ> = entries1;
+                    let entries2: super::TypedProjIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ> = entries2;
+                    super::prop_append_get_index_of_destination(entries1, entries2)?
                 }
 
                 #[test]
                 fn prop_append_get_key_values_source(
-                    values1 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_length),
-                    values2 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_length),
+                    entries1 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_src_length),
+                    entries2 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_dst_length),
                 ) {
-                    super::prop_append_get_key_value_source(values1, values2)?
+                    let entries1: super::TypedProjIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ> = entries1;
+                    let entries2: super::TypedProjIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ> = entries2;
+                    super::prop_append_get_key_value_source(entries1, entries2)?
                 }
 
                 #[test]
                 fn prop_append_get_key_value_destination(
-                    values1 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_length),
-                    values2 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_length),
+                    entries1 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_src_length),
+                    entries2 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_dst_length),
                 ) {
-                    super::prop_append_get_key_value_destination(values1, values2)?
+                    let entries1: super::TypedProjIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ> = entries1;
+                    let entries2: super::TypedProjIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ> = entries2;
+                    super::prop_append_get_key_value_destination(entries1, entries2)?
                 }
 
                 #[test]
                 fn prop_append_len_source(
-                    values1 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_length),
-                    values2 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_length),
+                    entries1 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_src_length),
+                    entries2 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_dst_length),
                 ) {
-                    super::prop_append_len_source(values1, values2)?
+                    let entries1: super::TypedProjIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ> = entries1;
+                    let entries2: super::TypedProjIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ> = entries2;
+                    super::prop_append_len_source(entries1, entries2)?
                 }
 
                 #[test]
                 fn prop_append_len_destination(
-                    values1 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_length),
-                    values2 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_length),
+                    entries1 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_src_length),
+                    entries2 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_dst_length),
                 ) {
-                    super::prop_append_len_destination(values1, values2)?
+                    let entries1: super::TypedProjIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ> = entries1;
+                    let entries2: super::TypedProjIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ> = entries2;
+                    super::prop_append_len_destination(entries1, entries2)?
                 }
             }
         }
@@ -491,6 +516,7 @@ generate_props!(
     hash::RandomState,
     alloc::Global,
     128,
+    16,
     strategy_type_projected_index_map_max_len,
 );
 generate_props!(
@@ -500,6 +526,7 @@ generate_props!(
     hash::RandomState,
     alloc::Global,
     128,
+    16,
     strategy_type_projected_index_map_max_len,
 );
 generate_props!(
@@ -509,6 +536,7 @@ generate_props!(
     hash::RandomState,
     alloc::Global,
     128,
+    16,
     strategy_type_projected_index_map_max_len,
 );
 generate_props!(
@@ -518,5 +546,6 @@ generate_props!(
     hash::RandomState,
     alloc::Global,
     128,
+    16,
     strategy_type_projected_index_map_max_len,
 );

@@ -1,5 +1,0 @@
-mod test_shift_remove_full_contains;
-mod test_shift_remove_full_len;
-mod test_shift_remove_full_preserves_order;
-mod test_shift_remove_full_get_full;
-mod test_shift_remove_full_get;
