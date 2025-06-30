@@ -20,7 +20,7 @@ where
 
 fn prop_into_iter_back_to_vec<T, A>(values: OpaqueVec) -> Result<(), TestCaseError>
 where
-    T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
     let vec = values.clone::<T, A>();
@@ -39,7 +39,7 @@ where
 
 fn prop_into_iter_take<T, A>((values, count): (OpaqueVec, usize)) -> Result<(), TestCaseError>
 where
-    T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
     let mut vec = OpaqueVec::new_proj_in::<T, A>(values.allocator::<T, A>().clone());
@@ -60,7 +60,7 @@ where
 
 fn prop_into_iter_take_none<T, A>(values: OpaqueVec) -> Result<(), TestCaseError>
 where
-    T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
     let mut vec = OpaqueVec::new_proj_in::<T, A>(values.allocator::<T, A>().clone());

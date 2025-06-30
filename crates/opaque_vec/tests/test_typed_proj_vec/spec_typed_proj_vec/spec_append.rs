@@ -9,7 +9,7 @@ use proptest::prelude::*;
 
 fn prop_append_as_slice_source<T, A>(values1: TypedProjVec<T, A>, values2: TypedProjVec<T, A>) -> Result<(), TestCaseError>
 where
-    T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
     let mut source = values1.clone();
@@ -30,7 +30,7 @@ where
 
 fn prop_append_as_slice_destination<T, A>(values1: TypedProjVec<T, A>, values2: TypedProjVec<T, A>) -> Result<(), TestCaseError>
 where
-    T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
     let mut source = values1.clone();
@@ -45,7 +45,7 @@ where
 
 fn prop_append_len_source<T, A>(values1: TypedProjVec<T, A>, values2: TypedProjVec<T, A>) -> Result<(), TestCaseError>
 where
-    T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
     let mut source = values1.clone();
@@ -63,7 +63,7 @@ where
 
 fn prop_append_len_destination<T, A>(values1: TypedProjVec<T, A>, values2: TypedProjVec<T, A>) -> Result<(), TestCaseError>
 where
-    T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
     let mut source = values1.clone();

@@ -9,7 +9,7 @@ use proptest::prelude::*;
 
 fn prop_clear_as_slice<T, A>(values: TypedProjVec<T, A>) -> Result<(), TestCaseError>
 where
-    T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
     let expected = TypedProjVec::new_proj_in(values.allocator().clone());
@@ -26,7 +26,7 @@ where
 
 fn prop_clear_is_empty<T, A>(values: TypedProjVec<T, A>) -> Result<(), TestCaseError>
 where
-    T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
     let mut result = values.clone();
@@ -39,7 +39,7 @@ where
 
 fn prop_clear_len<T, A>(values: TypedProjVec<T, A>) -> Result<(), TestCaseError>
 where
-    T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
     let mut result = values.clone();

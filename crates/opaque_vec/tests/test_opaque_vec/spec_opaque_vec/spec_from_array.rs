@@ -9,7 +9,7 @@ use proptest::prelude::*;
 
 fn prop_from_array_as_slice<const N: usize, T>(expected: [T; N]) -> Result<(), TestCaseError>
 where
-    T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
 {
     let vec = OpaqueVec::from(expected.clone());
     let result = vec.as_slice::<T, alloc::Global>();

@@ -9,7 +9,7 @@ use proptest::prelude::*;
 
 fn prop_len<T, A>(values: OpaqueVec) -> Result<(), TestCaseError>
 where
-    T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
     prop_assert_eq!(values.len(), values.as_slice::<T, A>().len());

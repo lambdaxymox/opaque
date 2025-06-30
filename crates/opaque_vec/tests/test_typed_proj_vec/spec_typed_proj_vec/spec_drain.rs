@@ -63,7 +63,7 @@ where
 
 fn prop_drain_nothing_vec<T, A>(values: TypedProjVec<T, A>) -> Result<(), TestCaseError>
 where
-    T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
     for start in 0..values.len() {
@@ -86,12 +86,12 @@ where
 
 fn prop_drain_partial_vec<T, A>((values, drain_value, count, index): (TypedProjVec<T, A>, T, usize, usize)) -> Result<(), TestCaseError>
 where
-    T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
     fn drained_expected<T, A>(drain_value: T, length: usize, alloc: A) -> TypedProjVec<T, A>
     where
-        T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
+        T: any::Any + PartialEq + Clone + Default + fmt::Debug,
         A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
     {
         let mut vec = TypedProjVec::with_capacity_in(length, alloc);

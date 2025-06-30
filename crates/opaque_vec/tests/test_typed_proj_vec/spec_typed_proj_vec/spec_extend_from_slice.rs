@@ -9,7 +9,7 @@ use proptest::prelude::*;
 
 fn prop_extend_from_slice_values<T, A>(values: TypedProjVec<T, A>, extension_values: TypedProjVec<T, A>) -> Result<(), TestCaseError>
 where
-    T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
     let result = {
@@ -31,7 +31,7 @@ where
 
 fn prop_extend_from_slice_len<T, A>(values: TypedProjVec<T, A>, extension_values: TypedProjVec<T, A>) -> Result<(), TestCaseError>
 where
-    T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
     let result = {

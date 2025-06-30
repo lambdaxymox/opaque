@@ -9,7 +9,7 @@ use proptest::prelude::*;
 
 fn prop_pop_empty1<T, A>(alloc: A) -> Result<(), TestCaseError>
 where
-    T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
     let mut vec = OpaqueVec::new_in::<T, A>(alloc);
@@ -21,7 +21,7 @@ where
 
 fn prop_pop_empty2<T, A>(alloc: A) -> Result<(), TestCaseError>
 where
-    T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
     let mut vec = OpaqueVec::new_in::<T, A>(alloc);
@@ -35,7 +35,7 @@ where
 
 fn prop_pop_empty_is_empty1<T, A>(alloc: A) -> Result<(), TestCaseError>
 where
-    T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
     let mut vec = OpaqueVec::new_in::<T, A>(alloc);
@@ -51,7 +51,7 @@ where
 
 fn prop_pop_empty_is_empty2<T, A>(alloc: A) -> Result<(), TestCaseError>
 where
-    T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
     let mut vec = OpaqueVec::new_in::<T, A>(alloc);

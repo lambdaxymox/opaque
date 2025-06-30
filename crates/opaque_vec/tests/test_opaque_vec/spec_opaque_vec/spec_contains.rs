@@ -9,7 +9,7 @@ use proptest::prelude::*;
 
 fn prop_contains<T, A>(values: OpaqueVec) -> Result<(), TestCaseError>
 where
-    T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
     for value in values.iter::<T, A>() {
@@ -21,7 +21,7 @@ where
 
 fn prop_contains_empty<T, A>(values: OpaqueVec) -> Result<(), TestCaseError>
 where
-    T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
     let empty_values = OpaqueVec::new_proj_in::<T, A>(values.allocator::<T, A>().clone());

@@ -10,12 +10,12 @@ use proptest::prelude::*;
 
 fn prop_from_boxed_slice<T, A>(values: OpaqueVec) -> Result<(), TestCaseError>
 where
-    T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
     fn expected<T, A>(values: &OpaqueVec) -> Box<[T], TypedProjAlloc<A>>
     where
-        T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
+        T: any::Any + PartialEq + Clone + Default + fmt::Debug,
         A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
     {
         let mut result = OpaqueVec::with_capacity_proj_in::<T, A>(values.len(), values.allocator::<T, A>().clone());

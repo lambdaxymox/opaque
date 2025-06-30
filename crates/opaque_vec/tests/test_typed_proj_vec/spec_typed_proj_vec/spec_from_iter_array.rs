@@ -8,7 +8,7 @@ use proptest::prelude::*;
 
 fn prop_from_iter_array<const N: usize, T>(expected: [T; N]) -> Result<(), TestCaseError>
 where
-    T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
 {
     let vec = TypedProjVec::from_iter(expected.iter().cloned());
     let result = vec.as_slice();

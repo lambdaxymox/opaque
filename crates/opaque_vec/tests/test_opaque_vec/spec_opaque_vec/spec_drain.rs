@@ -63,7 +63,7 @@ where
 
 fn prop_drain_nothing_vec<T, A>(values: OpaqueVec) -> Result<(), TestCaseError>
 where
-    T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
     for start in 0..values.len() {
@@ -86,12 +86,12 @@ where
 
 fn prop_drain_partial_vec<T, A>((values, drain_value, count, index): (OpaqueVec, T, usize, usize)) -> Result<(), TestCaseError>
 where
-    T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
     fn drained_expected<T, A>(drain_value: T, length: usize, alloc: A) -> OpaqueVec
     where
-        T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
+        T: any::Any + PartialEq + Clone + Default + fmt::Debug,
         A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
     {
         let mut vec = OpaqueVec::with_capacity_in::<T, A>(length, alloc);

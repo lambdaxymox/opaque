@@ -10,7 +10,7 @@ use proptest::prelude::*;
 
 fn prop_clone_as_slice<T, A>(values: OpaqueVec) -> Result<(), TestCaseError>
 where
-    T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
     let cloned_values = values.clone::<T, A>();
@@ -25,7 +25,7 @@ where
 
 fn prop_clone_occupy_disjoint_memory_locations<T, A>(vec: OpaqueVec) -> Result<(), TestCaseError>
 where
-    T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
     let cloned_values = vec.clone::<T, A>();
@@ -43,7 +43,7 @@ where
 
 fn prop_clone_occupy_disjoint_memory_regions<T, A>(vec: OpaqueVec) -> Result<(), TestCaseError>
 where
-    T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
     let cloned_values = vec.clone::<T, A>();
@@ -66,7 +66,7 @@ where
 
 fn prop_clone_len<T, A>(vec: OpaqueVec) -> Result<(), TestCaseError>
 where
-    T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
     let cloned_values = vec.clone::<T, A>();

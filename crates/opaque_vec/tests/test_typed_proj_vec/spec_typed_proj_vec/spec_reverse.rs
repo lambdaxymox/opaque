@@ -9,12 +9,12 @@ use proptest::prelude::*;
 
 fn prop_reverse<T, A>(values: TypedProjVec<T, A>) -> Result<(), TestCaseError>
 where
-    T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
     fn expected<T, A>(values: &TypedProjVec<T, A>) -> TypedProjVec<T, A>
     where
-        T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
+        T: any::Any + PartialEq + Clone + Default + fmt::Debug,
         A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
     {
         let mut vec = TypedProjVec::new_proj_in(values.allocator().clone());

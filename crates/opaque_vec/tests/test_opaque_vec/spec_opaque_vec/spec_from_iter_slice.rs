@@ -8,7 +8,7 @@ use proptest::prelude::*;
 
 fn prop_from_iter_slice<T, A>(values: OpaqueVec) -> Result<(), TestCaseError>
 where
-    T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
     let result_values = OpaqueVec::from_iter(values.as_slice::<T, A>().iter().cloned());

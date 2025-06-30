@@ -9,7 +9,7 @@ use proptest::prelude::*;
 
 fn prop_replace_insert_contains<T, A>(values: OpaqueVec) -> Result<(), TestCaseError>
 where
-    T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
     let mut vec = OpaqueVec::new_proj_in::<T, A>(values.allocator::<T, A>().clone());
@@ -31,7 +31,7 @@ where
 
 fn prop_replace_insert_get<T, A>(values: OpaqueVec) -> Result<(), TestCaseError>
 where
-    T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
     let mut vec = OpaqueVec::new_proj_in::<T, A>(values.allocator::<T, A>().clone());
