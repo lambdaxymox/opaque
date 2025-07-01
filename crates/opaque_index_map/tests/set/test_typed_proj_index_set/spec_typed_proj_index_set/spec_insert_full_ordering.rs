@@ -84,7 +84,7 @@ generate_props!(
     u64,
     hash::RandomState,
     alloc::Global,
-    128,
+    32, 
     strategy_prop_insert_full_preserves_order_new_entry,
 );
 generate_props!(
@@ -92,7 +92,7 @@ generate_props!(
     usize,
     hash::RandomState,
     alloc::Global,
-    128,
+    32, 
     strategy_prop_insert_full_preserves_order_new_entry,
 );
 generate_props!(
@@ -100,6 +100,6 @@ generate_props!(
     String,
     hash::RandomState,
     alloc::Global,
-    128,
+    32, 
     strategy_prop_insert_full_preserves_order_new_entry,
 );

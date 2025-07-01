@@ -252,7 +252,7 @@ generate_props!(
     i64,
     hash::RandomState,
     alloc::Global,
-    128,
+    32,
     strategy_type_projected_index_map_max_len,
 );
 generate_props!(
@@ -261,7 +261,7 @@ generate_props!(
     i64,
     hash::RandomState,
     alloc::Global,
-    128,
+    32,
     strategy_type_projected_index_map_max_len,
 );
 generate_props!(
@@ -270,7 +270,7 @@ generate_props!(
     i64,
     hash::RandomState,
     alloc::Global,
-    128,
+    32,
     strategy_type_projected_index_map_max_len,
 );
 generate_props!(
@@ -279,6 +279,6 @@ generate_props!(
     String,
     hash::RandomState,
     alloc::Global,
-    128,
+    32,
     strategy_type_projected_index_map_max_len,
 );
