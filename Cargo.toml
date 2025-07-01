@@ -5,7 +5,19 @@ edition = "2024"
 
 [features]
 default = ["std"]
-std = []
+std = [
+    "opaque_alloc/std",
+    "opaque_error/std",
+    "opaque_hash/std",
+    "opaque_index_map/std",
+    "opaque_vec/std"
+]
+nightly = [
+    "opaque_alloc/nightly",
+    "opaque_hash/nightly",
+    "opaque_index_map/nightly",
+    "opaque_vec/nightly"
+]
 
 [dependencies]
 
