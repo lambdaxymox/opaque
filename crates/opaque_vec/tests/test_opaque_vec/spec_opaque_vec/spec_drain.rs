@@ -1,5 +1,6 @@
 use crate::common;
 use crate::common::erased::{
+    SingleBoundedValue,
     strategy_type_erased_vec_len,
     strategy_type_erased_vec_max_len,
 };
@@ -32,7 +33,7 @@ where
 
 fn strategy_prop_drain_partial_vec<T, A>(max_length: usize, max_count: usize) -> impl Strategy<Value = (OpaqueVec, T, usize, usize)>
 where
-    T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary + SingleDrainValue,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary + SingleBoundedValue + SingleDrainValue,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
     (1..=max_length).prop_flat_map(move |length|

@@ -1,4 +1,7 @@
-use crate::set::common::erased::strategy_type_erased_index_set_max_len_nonempty;
+use crate::set::common::erased::{
+    SingleBoundedValue,
+    strategy_type_erased_index_set_max_len_nonempty,
+};
 use opaque_index_map::OpaqueIndexSet;
 
 use core::any;
@@ -10,7 +13,7 @@ use proptest::prelude::*;
 
 fn strategy_prop_insert_preserves_order_new_entry<T, S, A>(max_length: usize) -> impl Strategy<Value = (OpaqueIndexSet, T)>
 where
-    T: any::Any + Clone + Eq + hash::Hash + Ord + Default + fmt::Debug + Arbitrary,
+    T: any::Any + Clone + Eq + hash::Hash + Ord + Default + fmt::Debug + Arbitrary + SingleBoundedValue,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone + Default + fmt::Debug,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,

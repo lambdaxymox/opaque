@@ -54,6 +54,30 @@ where
     }
 }
 
+pub trait SingleBoundedValue: Arbitrary {
+    fn bounded_any() -> impl Strategy<Value = Self>;
+}
+
+impl SingleBoundedValue for () { fn bounded_any() -> impl Strategy<Value = Self> { any::<()>() } }
+impl SingleBoundedValue for u8 { fn bounded_any() -> impl Strategy<Value = Self> { any::<u8>() } }
+impl SingleBoundedValue for u16 { fn bounded_any() -> impl Strategy<Value = Self> { any::<u16>() } }
+impl SingleBoundedValue for u32 { fn bounded_any() -> impl Strategy<Value = Self> { any::<u32>() } }
+impl SingleBoundedValue for u64 { fn bounded_any() -> impl Strategy<Value = Self> { any::<u64>() } }
+impl SingleBoundedValue for usize { fn bounded_any() -> impl Strategy<Value = Self> { any::<usize>() } }
+impl SingleBoundedValue for i8 { fn bounded_any() -> impl Strategy<Value = Self> { any::<i8>() } }
+impl SingleBoundedValue for i16 { fn bounded_any() -> impl Strategy<Value = Self> { any::<i16>() } }
+impl SingleBoundedValue for i32 { fn bounded_any() -> impl Strategy<Value = Self> { any::<i32>() } }
+impl SingleBoundedValue for i64 { fn bounded_any() -> impl Strategy<Value = Self> { any::<i64>() } }
+impl SingleBoundedValue for isize { fn bounded_any() -> impl Strategy<Value = Self> { any::<isize>() } }
+impl SingleBoundedValue for String { fn bounded_any() -> impl Strategy<Value = Self> { any::<usize>().prop_map(|value| value.to_string()) } }
+
+pub fn strategy_bounded_value<T>() -> impl Strategy<Value = T>
+where
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary + SingleBoundedValue,
+{
+    <T as SingleBoundedValue>::bounded_any()
+}
+
 pub fn strategy_alloc<A>() -> impl Strategy<Value = A>
 where
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
@@ -71,12 +95,12 @@ where
 
 pub fn strategy_type_projected_index_set_len<T, S, A>(length: usize) -> impl Strategy<Value = TypedProjIndexSet<T, S, A>>
 where
-    T: any::Any + Clone + Eq + hash::Hash + Ord + Default + fmt::Debug + Arbitrary,
+    T: any::Any + Clone + Eq + hash::Hash + Ord + Default + fmt::Debug + Arbitrary + SingleBoundedValue,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone + Default + fmt::Debug,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
-    (proptest::collection::vec(any::<T>(), length), strategy_build_hasher::<S>(), strategy_alloc::<A>())
+    (proptest::collection::vec(strategy_bounded_value::<T>(), length), strategy_build_hasher::<S>(), strategy_alloc::<A>())
         .prop_map(move |(values, build_hasher, alloc)| {
             let mut proj_set = TypedProjIndexSet::with_hasher_in(build_hasher, alloc);
             proj_set.extend(values);
@@ -87,7 +111,7 @@ where
 
 pub fn strategy_type_projected_index_set_max_len<T, S, A>(max_length: usize) -> impl Strategy<Value = TypedProjIndexSet<T, S, A>>
 where
-    T: any::Any + Clone + Eq + hash::Hash + Ord + Default + fmt::Debug + Arbitrary,
+    T: any::Any + Clone + Eq + hash::Hash + Ord + Default + fmt::Debug + Arbitrary + SingleBoundedValue,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone + Default + fmt::Debug,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
@@ -97,7 +121,7 @@ where
 
 pub fn strategy_type_projected_index_set_max_len_nonempty<T, S, A>(max_length: usize) -> impl Strategy<Value = TypedProjIndexSet<T, S, A>>
 where
-    T: any::Any + Clone + Eq + hash::Hash + Ord + Default + fmt::Debug + Arbitrary,
+    T: any::Any + Clone + Eq + hash::Hash + Ord + Default + fmt::Debug + Arbitrary + SingleBoundedValue,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone + Default + fmt::Debug,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,

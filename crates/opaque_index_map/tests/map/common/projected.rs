@@ -54,6 +54,40 @@ where
     }
 }
 
+pub trait SingleBoundedValue: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary {
+    fn bounded_any() -> impl Strategy<Value = Self>;
+}
+
+impl SingleBoundedValue for () { fn bounded_any() -> impl Strategy<Value = Self> { any::<()>() } }
+impl SingleBoundedValue for u8 { fn bounded_any() -> impl Strategy<Value = Self> { any::<u8>() } }
+impl SingleBoundedValue for u16 { fn bounded_any() -> impl Strategy<Value = Self> { any::<u16>() } }
+impl SingleBoundedValue for u32 { fn bounded_any() -> impl Strategy<Value = Self> { any::<u32>() } }
+impl SingleBoundedValue for u64 { fn bounded_any() -> impl Strategy<Value = Self> { any::<u64>() } }
+impl SingleBoundedValue for usize { fn bounded_any() -> impl Strategy<Value = Self> { any::<usize>() } }
+impl SingleBoundedValue for i8 { fn bounded_any() -> impl Strategy<Value = Self> { any::<i8>() } }
+impl SingleBoundedValue for i16 { fn bounded_any() -> impl Strategy<Value = Self> { any::<i16>() } }
+impl SingleBoundedValue for i32 { fn bounded_any() -> impl Strategy<Value = Self> { any::<i32>() } }
+impl SingleBoundedValue for i64 { fn bounded_any() -> impl Strategy<Value = Self> { any::<i64>() } }
+impl SingleBoundedValue for isize { fn bounded_any() -> impl Strategy<Value = Self> { any::<isize>() } }
+impl SingleBoundedValue for String { fn bounded_any() -> impl Strategy<Value = Self> { any::<usize>().prop_map(|value| value.to_string()) } }
+
+impl<K, V> SingleBoundedValue for (K, V)
+where
+    K: SingleBoundedValue,
+    V: SingleBoundedValue,
+{
+    fn bounded_any() -> impl Strategy<Value = Self> {
+        (K::bounded_any(), V::bounded_any())
+    }
+}
+
+pub fn strategy_bounded_value<T>() -> impl Strategy<Value = T>
+where
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary + SingleBoundedValue,
+{
+    <T as SingleBoundedValue>::bounded_any()
+}
+
 pub fn strategy_alloc<A>() -> impl Strategy<Value = A>
 where
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
@@ -71,13 +105,13 @@ where
 
 pub fn strategy_type_projected_index_map_len<K, V, S, A>(length: usize) -> impl Strategy<Value = TypedProjIndexMap<K, V, S, A>>
 where
-    K: any::Any + Clone + Eq + hash::Hash + Ord + Default + fmt::Debug + Arbitrary,
-    V: any::Any + Clone + Eq + Default + fmt::Debug + Arbitrary,
+    K: any::Any + Clone + Eq + hash::Hash + Ord + Default + fmt::Debug + Arbitrary + SingleBoundedValue,
+    V: any::Any + Clone + Eq + Default + fmt::Debug + Arbitrary + SingleBoundedValue,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone + Default + fmt::Debug,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
-    (proptest::collection::vec(any::<(K, V)>(), length), strategy_build_hasher::<S>(), strategy_alloc::<A>())
+    (proptest::collection::vec(strategy_bounded_value::<(K, V)>(), length), strategy_build_hasher::<S>(), strategy_alloc::<A>())
         .prop_map(move |(values, build_hasher, alloc)| {
             let mut proj_map = TypedProjIndexMap::with_hasher_in(build_hasher, alloc);
             proj_map.extend(values);
@@ -88,8 +122,8 @@ where
 
 pub fn strategy_type_projected_index_map_max_len<K, V, S, A>(max_length: usize) -> impl Strategy<Value = TypedProjIndexMap<K, V, S, A>>
 where
-    K: any::Any + Clone + Eq + hash::Hash + Ord + Default + fmt::Debug + Arbitrary,
-    V: any::Any + Clone + Eq + Default + fmt::Debug + Arbitrary,
+    K: any::Any + Clone + Eq + hash::Hash + Ord + Default + fmt::Debug + Arbitrary + SingleBoundedValue,
+    V: any::Any + Clone + Eq + Default + fmt::Debug + Arbitrary + SingleBoundedValue,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone + Default + fmt::Debug,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
@@ -99,8 +133,8 @@ where
 
 pub fn strategy_type_projected_index_map_max_len_nonempty<K, V, S, A>(max_length: usize) -> impl Strategy<Value = TypedProjIndexMap<K, V, S, A>>
 where
-    K: any::Any + Clone + Eq + hash::Hash + Ord + Default + fmt::Debug + Arbitrary,
-    V: any::Any + Clone + Eq + Default + fmt::Debug + Arbitrary,
+    K: any::Any + Clone + Eq + hash::Hash + Ord + Default + fmt::Debug + Arbitrary + SingleBoundedValue,
+    V: any::Any + Clone + Eq + Default + fmt::Debug + Arbitrary + SingleBoundedValue,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone + Default + fmt::Debug,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,

@@ -1,4 +1,7 @@
-use crate::set::common::projected::strategy_type_projected_index_set_max_len_nonempty;
+use crate::set::common::projected::{
+    SingleBoundedValue,
+    strategy_type_projected_index_set_max_len_nonempty,
+};
 use opaque_index_map::TypedProjIndexSet;
 
 use core::any;
@@ -10,7 +13,7 @@ use proptest::prelude::*;
 
 fn strategy_prop_insert_full_preserves_order_new_entry<T, S, A>(max_length: usize) -> impl Strategy<Value = (TypedProjIndexSet<T, S, A>, T)>
 where
-    T: any::Any + Clone + Eq + hash::Hash + Ord + Default + fmt::Debug + Arbitrary,
+    T: any::Any + Clone + Eq + hash::Hash + Ord + Default + fmt::Debug + Arbitrary + SingleBoundedValue,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone + Default + fmt::Debug,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,

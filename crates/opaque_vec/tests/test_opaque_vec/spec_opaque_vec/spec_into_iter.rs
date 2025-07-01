@@ -1,4 +1,5 @@
 use crate::common::erased::{
+    SingleBoundedValue,
     strategy_type_erased_vec_len,
     strategy_type_erased_vec_max_len,
 };
@@ -12,7 +13,7 @@ use proptest::prelude::*;
 
 fn strategy_prop_into_iter_take<T, A>(max_length: usize) -> impl Strategy<Value = (OpaqueVec, usize)>
 where
-    T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary + SingleBoundedValue,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
     (1..=max_length).prop_flat_map(move |length| (strategy_type_erased_vec_len::<T, A>(length), 0..=length))

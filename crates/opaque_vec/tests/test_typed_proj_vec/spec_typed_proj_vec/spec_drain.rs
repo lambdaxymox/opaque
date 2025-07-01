@@ -1,5 +1,6 @@
 use crate::common;
 use crate::common::projected::{
+    SingleBoundedValue,
     strategy_type_projected_vec_len,
     strategy_type_projected_vec_max_len,
 };
@@ -25,14 +26,14 @@ impl SingleDrainValue for String { fn drain_value() -> Self { usize::MAX.to_stri
 
 fn strategy_single_drain_value<T>() -> impl Strategy<Value = T>
 where
-    T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary + SingleDrainValue,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary + SingleBoundedValue + SingleDrainValue,
 {
     Just(<T as SingleDrainValue>::drain_value())
 }
 
 fn strategy_prop_drain_partial_vec<T, A>(max_length: usize, max_count: usize) -> impl Strategy<Value = (TypedProjVec<T, A>, T, usize, usize)>
 where
-    T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary + SingleDrainValue,
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary + SingleBoundedValue + SingleDrainValue,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
     (1..=max_length).prop_flat_map(move |length|
