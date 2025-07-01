@@ -6,6 +6,7 @@ edition = "2024"
 [features]
 default = ["std"]
 std = ["opaque_alloc/std", "opaque_error/std", "opaque_hash/std", "opaque_vec/std"]
+nightly = ["opaque_alloc/nightly", "opaque_hash/nightly", "opaque_vec/nightly"]
 
 [dependencies]
 criterion = "0.6.0"

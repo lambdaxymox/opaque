@@ -7,7 +7,7 @@ use core::ptr::NonNull;
 use alloc_crate::alloc;
 use alloc_crate::boxed::Box;
 
-use opaque_range_types::UsizeNoHighBit;
+use opaque_polyfill::range_types::UsizeNoHighBit;
 use opaque_alloc::{OpaqueAlloc, TypedProjAlloc};
 use opaque_error::{TryReserveError, TryReserveErrorKind};
 
@@ -51,7 +51,7 @@ const fn min_non_zero_capacity(size: usize) -> usize {
 
 // Central function for reserve error handling.
 #[cold]
-#[optimize(size)]
+#[cfg_attr(feature = "nightly", optimize(size))]
 #[track_caller]
 fn handle_error(err: TryReserveError) -> ! {
     match err.kind() {
@@ -60,7 +60,53 @@ fn handle_error(err: TryReserveError) -> ! {
     }
 }
 
+/// TODO: Remove when `alloc::Layout::repeat` and related methods from`alloc_layout_extra` stabilize.
+/// Tracking issue: `https://github.com/rust-lang/rust/issues/55724`
 #[inline]
+#[cfg(not(feature = "nightly"))]
+fn layout_array(capacity: usize, element_layout: alloc::Layout) -> Result<alloc::Layout, TryReserveError> {
+    use core::error;
+    use core::fmt;
+
+    #[non_exhaustive]
+    #[derive(Clone, PartialEq, Eq, Debug)]
+    pub struct LayoutError;
+
+    impl error::Error for LayoutError {}
+
+    impl fmt::Display for LayoutError {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            f.write_str("invalid parameters to Layout::from_size_align")
+        }
+    }
+
+    #[inline]
+    fn repeat_packed(slf: &alloc::Layout, n: usize) -> Result<alloc::Layout, LayoutError> {
+        if let Some(size) = slf.size().checked_mul(n) {
+            // The safe constructor is called here to enforce the isize size limit.
+            alloc::Layout::from_size_align(size, slf.align()).map_err(|_| LayoutError)
+        } else {
+            Err(LayoutError)
+        }
+    }
+
+    #[inline]
+    fn repeat(layout: &alloc::Layout, n: usize) -> Result<(alloc::Layout, usize), LayoutError> {
+        let padded = layout.pad_to_align();
+        if let Ok(repeated) = repeat_packed(&padded, n) {
+            Ok((repeated, padded.size()))
+        } else {
+            Err(LayoutError)
+        }
+    }
+
+    repeat(&element_layout, capacity)
+        .map(|(layout, _pad)| layout)
+        .map_err(|_| TryReserveError::from(TryReserveErrorKind::CapacityOverflow))
+}
+
+#[inline]
+#[cfg(feature = "nightly")]
 fn layout_array(capacity: usize, element_layout: alloc::Layout) -> Result<alloc::Layout, TryReserveError> {
     element_layout
         .repeat(capacity)

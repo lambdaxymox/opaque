@@ -380,7 +380,7 @@ impl OpaqueAlloc {
         A: any::Any + alloc::Allocator + Send + Sync,
     {
         #[cold]
-        #[optimize(size)]
+        #[cfg_attr(feature = "nightly", optimize(size))]
         #[track_caller]
         fn type_check_failed(type_id_self: any::TypeId, type_id_other: any::TypeId) -> ! {
             panic!("Type mismatch. Need `{:?}`, got `{:?}`", type_id_self, type_id_other);

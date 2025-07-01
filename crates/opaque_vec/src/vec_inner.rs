@@ -21,6 +21,9 @@ use alloc_crate::vec::Vec;
 use opaque_alloc::TypedProjAlloc;
 use opaque_error::TryReserveError;
 
+#[cfg(not(feature = "nightly"))]
+use opaque_polyfill;
+
 unsafe fn drop_fn<T>(value: NonNull<u8>) {
     let to_drop = value.as_ptr() as *mut T;
 
@@ -354,7 +357,7 @@ where
 
         #[cold]
         #[track_caller]
-        #[optimize(size)]
+        #[cfg_attr(feature = "nightly", optimize(size))]
         fn index_out_of_bounds_failure(index: usize, length: usize) -> ! {
             panic!("replace_insert index out of bounds: Got index `{index}`. Need index `{index}` <= len, where len is `{length}`.");
         }
@@ -394,7 +397,7 @@ where
 
         #[cold]
         #[track_caller]
-        #[optimize(size)]
+        #[cfg_attr(feature = "nightly", optimize(size))]
         fn index_out_of_bounds_failure(index: usize, length: usize) -> ! {
             panic!("shift_insert index out of bounds: Got index `{index}`. Need index `{index}` <= len, where len is `{length}`.");
         }
@@ -429,7 +432,7 @@ where
 
         #[cold]
         #[track_caller]
-        #[optimize(size)]
+        #[cfg_attr(feature = "nightly", optimize(size))]
         fn index_out_of_bounds_failure(index: usize, length: usize) -> ! {
             panic!("swap_remove index out of bounds: Got `{index}`, length is `{length}`.");
         }
@@ -458,7 +461,7 @@ where
 
         #[cold]
         #[track_caller]
-        #[optimize(size)]
+        #[cfg_attr(feature = "nightly", optimize(size))]
         fn index_out_of_bounds_failure(index: usize, length: usize) -> ! {
             panic!("shift_remove index out of bounds: Got `{index}`, length is `{length}`.");
         }
@@ -614,6 +617,38 @@ where
         }
     }
 
+    #[cfg(not(feature = "nightly"))]
+    pub(crate) fn drain<R>(&mut self, range: R) -> Drain<'_, T, A>
+    where
+        A: alloc::Allocator,
+        R: ops::RangeBounds<usize>,
+    {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
+        // Memory safety
+        //
+        // When the Drain is first created, it shortens the length of
+        // the source vector to make sure no uninitialized or moved-from elements
+        // are accessible at all if the Drain's destructor never gets to run.
+        //
+        // Drain will ptr::read out the values to remove.
+        // When finished, remaining tail of the vec is copied back to cover
+        // the hole, and the vector length is restored to the new length.
+        //
+        let len = self.len();
+        let ops::Range { start, end } = opaque_polyfill::slice_range::range(range, ..len);
+
+        unsafe {
+            // set self.vec length's to start, to be safe in case Drain is leaked
+            self.set_len(start);
+            let range_slice = slice::from_raw_parts(self.as_ptr().add(start), end - start);
+
+            Drain::from_parts(end, len - end, range_slice.iter(), NonNull::from(self))
+        }
+    }
+
+    #[cfg(feature = "nightly")]
     pub(crate) fn drain<R>(&mut self, range: R) -> Drain<'_, T, A>
     where
         A: alloc::Allocator,
@@ -747,7 +782,7 @@ where
 
         #[cold]
         #[track_caller]
-        #[optimize(size)]
+        #[cfg_attr(feature = "nightly", optimize(size))]
         fn index_out_of_bounds(at: usize, len: usize) -> ! {
             panic!("`at` split index (is {at}) should be <= len (is {len})");
         }

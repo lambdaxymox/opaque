@@ -5,7 +5,8 @@ edition = "2024"
 
 [features]
 default = ["std"]
-std = ["opaque_alloc/std", "opaque_error/std", "opaque_range_types/std"]
+std = ["opaque_alloc/std", "opaque_error/std", "opaque_polyfill/std"]
+nightly = ["opaque_alloc/nightly"]
 
 [dependencies]
 
@@ -17,9 +18,9 @@ path = "../opaque_alloc"
 version = "0.1.0"
 path = "../opaque_error"
 
-[dependencies.opaque_range_types]
+[dependencies.opaque_polyfill]
 version = "0.1.0"
-path = "../opaque_range_types"
+path = "../opaque_polyfill"
 
 [dev-dependencies]
 

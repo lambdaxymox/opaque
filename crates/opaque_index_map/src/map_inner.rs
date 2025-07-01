@@ -1068,6 +1068,16 @@ impl<'a, K, V> IterMut<'a, K, V> {
         Self { iter: entries.iter_mut() }
     }
 
+    #[cfg(not(feature = "nightly"))]
+    pub(crate) fn as_slice_mut(&'a mut self) -> &'a mut Slice<K, V> {
+        todo!(
+            "This method cannot be implemented on Rust stable until the feature \
+            `slice_iter_mut_as_mut_slice` stabilizes. \
+            See `https://github.com/rust-lang/rust/issues/93079`."
+        )
+    }
+
+    #[cfg(feature = "nightly")]
     pub(crate) fn as_slice_mut(&'a mut self) -> &'a mut Slice<K, V> {
         Slice::from_slice_mut(self.iter.as_mut_slice())
     }

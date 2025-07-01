@@ -14961,7 +14961,7 @@ impl OpaqueIndexMap {
         A: any::Any + alloc::Allocator + Send + Sync,
     {
         #[cold]
-        #[optimize(size)]
+        #[cfg_attr(feature = "nightly", optimize(size))]
         #[track_caller]
         fn type_check_failed(st: &str, type_id_self: any::TypeId, type_id_other: any::TypeId) -> ! {
             panic!("{:?} type mismatch. Need `{:?}`, got `{:?}`", st, type_id_self, type_id_other);

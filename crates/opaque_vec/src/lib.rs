@@ -1,9 +1,14 @@
 #![deny(unsafe_op_in_unsafe_fn)]
 #![deny(private_interfaces)]
 #![feature(allocator_api)]
-#![feature(alloc_layout_extra)]
-#![feature(optimize_attribute)]
-#![feature(slice_range)]
+#![cfg_attr(
+    feature = "nightly",
+    feature(
+        optimize_attribute,
+        alloc_layout_extra,
+        slice_range,
+    )
+)]
 #![no_std]
 extern crate alloc as alloc_crate;
 

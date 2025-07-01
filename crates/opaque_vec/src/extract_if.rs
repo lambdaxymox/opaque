@@ -88,6 +88,33 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     /// Construct a new extraction iterator.
+
+    #[cfg(not(feature = "nightly"))]
+    #[inline]
+    pub(crate) fn new<R>(vec: &'a mut TypedProjVecInner<T, A>, pred: F, range: R) -> Self
+    where
+        R: ops::RangeBounds<usize>,
+    {
+        let old_len = vec.len();
+        let ops::Range { start, end } = opaque_polyfill::slice_range::range(range, ..old_len);
+
+        // Guard against the vec getting leaked (leak amplification)
+        unsafe {
+            vec.set_len(0);
+        }
+
+        ExtractIf {
+            vec,
+            idx: start,
+            del: 0,
+            end,
+            old_len,
+            pred,
+        }
+    }
+
+    /// Construct a new extraction iterator.
+    #[cfg(feature = "nightly")]
     #[inline]
     pub(crate) fn new<R>(vec: &'a mut TypedProjVecInner<T, A>, pred: F, range: R) -> Self
     where
