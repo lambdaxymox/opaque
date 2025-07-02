@@ -1,8 +1,21 @@
+use opaque_vec::TypedProjVec;
+
 use criterion::{
     Criterion,
     criterion_group,
 };
-use opaque_vec::TypedProjVec;
+
+#[cfg(feature = "nightly")]
+use alloc_crate::alloc;
+
+#[cfg(feature = "nightly")]
+use alloc_crate::vec::Vec;
+
+#[cfg(not(feature = "nightly"))]
+use allocator_api2::alloc;
+
+#[cfg(not(feature = "nightly"))]
+use allocator_api2::vec::Vec;
 
 fn bench_vec_push(c: &mut Criterion) {
     let dummy_data = 0_i32;

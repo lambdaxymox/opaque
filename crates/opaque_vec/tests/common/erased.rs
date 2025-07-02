@@ -3,7 +3,13 @@ use opaque_vec::OpaqueVec;
 use core::any;
 use core::fmt;
 use core::ops;
+use std::string::{String, ToString};
+
+#[cfg(feature = "nightly")]
 use std::alloc;
+
+#[cfg(not(feature = "nightly"))]
+use allocator_api2::alloc;
 
 use proptest::prelude::*;
 

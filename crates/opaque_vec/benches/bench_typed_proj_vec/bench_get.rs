@@ -1,12 +1,25 @@
+use opaque_vec::TypedProjVec;
+
 use criterion::{
     Criterion,
     criterion_group,
 };
-use opaque_vec::TypedProjVec;
+
+#[cfg(feature = "nightly")]
+use alloc_crate::alloc;
+
+#[cfg(feature = "nightly")]
+use alloc_crate::vec::Vec;
+
+#[cfg(not(feature = "nightly"))]
+use allocator_api2::alloc;
+
+#[cfg(not(feature = "nightly"))]
+use allocator_api2::vec::Vec;
 
 fn bench_vec_get(c: &mut Criterion) {
     let dummy_data = 0_i32;
-    let mut vec = vec![dummy_data; 1000];
+    let mut vec = Vec::from_iter((0..1000).map(|_| dummy_data));
 
     c.bench_function("vec_get", |b| {
         b.iter(|| {

@@ -3,7 +3,14 @@ use opaque_vec::OpaqueVec;
 
 use core::any;
 use core::fmt;
+use std::format;
+use std::string::String;
+
+#[cfg(feature = "nightly")]
 use std::alloc;
+
+#[cfg(not(feature = "nightly"))]
+use allocator_api2::alloc;
 
 use proptest::prelude::*;
 
@@ -70,8 +77,7 @@ where
 macro_rules! generate_props {
     ($module_name:ident, $typ:ty, $alloc_typ:ty, $max_length:expr, $alloc_gen:ident) => {
         mod $module_name {
-            use proptest::prelude::*;
-            use std::alloc;
+            use super::*;
             proptest! {
                 #[test]
                 fn prop_pop_empty1(alloc in super::$alloc_gen::<$alloc_typ>()) {

@@ -1,5 +1,12 @@
 use opaque_alloc::TypedProjAlloc;
-use std::alloc;
+
+use alloc_crate::format;
+
+#[cfg(feature = "nightly")]
+use alloc_crate::alloc;
+
+#[cfg(not(feature = "nightly"))]
+use allocator_api2::alloc;
 
 #[test]
 fn test_typed_proj_alloc_debug1() {

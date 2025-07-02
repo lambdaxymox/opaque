@@ -3,7 +3,14 @@ use opaque_vec::OpaqueVec;
 
 use core::any;
 use core::fmt;
+use std::format;
+use std::string::String;
+
+#[cfg(feature = "nightly")]
 use std::alloc;
+
+#[cfg(not(feature = "nightly"))]
+use allocator_api2::alloc;
 
 use proptest::prelude::*;
 
@@ -108,8 +115,7 @@ where
 macro_rules! generate_props {
     ($module_name:ident, $typ:ty, $alloc_typ:ty, $initial_value_gen:ident, $value_gen:ident, $alloc_gen:ident) => {
         mod $module_name {
-            use proptest::prelude::*;
-            use std::alloc;
+            use super::*;
             proptest! {
                 #[test]
                 fn prop_replace_insert_contains_same_index1(

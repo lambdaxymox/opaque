@@ -3,7 +3,14 @@ use opaque_vec::OpaqueVec;
 
 use core::any;
 use core::fmt;
+use std::format;
+use std::string::String;
+
+#[cfg(feature = "nightly")]
 use std::alloc;
+
+#[cfg(not(feature = "nightly"))]
+use allocator_api2::alloc;
 
 use proptest::prelude::*;
 
@@ -22,7 +29,7 @@ where
 macro_rules! generate_props {
     ($module_name:ident, $typ:ty, $array_gen:ident) => {
         mod $module_name {
-            use proptest::prelude::*;
+            use super::*;
             proptest! {
                 #[test]
                 fn prop_from_array_as_slice0(array in super::$array_gen::<$typ, 0>()) {

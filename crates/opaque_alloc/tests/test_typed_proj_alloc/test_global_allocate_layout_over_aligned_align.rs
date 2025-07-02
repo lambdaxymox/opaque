@@ -1,12 +1,17 @@
 use opaque_alloc::TypedProjAlloc;
-use std::alloc;
-use std::alloc::{
-    Allocator,
-    Layout,
-};
-use core::any;
 
-fn run_test_typed_proj_alloc_allocate_align_with_layout_over_aligned_allocation<A>(proj_alloc: TypedProjAlloc<A>, layout: Layout)
+use core::any;
+use alloc_crate::format;
+
+#[cfg(feature = "nightly")]
+use alloc_crate::alloc;
+
+#[cfg(not(feature = "nightly"))]
+use allocator_api2::alloc;
+
+use alloc::Allocator;
+
+fn run_test_typed_proj_alloc_allocate_align_with_layout_over_aligned_allocation<A>(proj_alloc: TypedProjAlloc<A>, layout: alloc::Layout)
 where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
@@ -14,7 +19,7 @@ where
     let result = unsafe {
         let allocation_ptr = proj_alloc
             .allocate(layout.clone())
-            .unwrap_or_else(|_| std::alloc::handle_alloc_error(layout));
+            .unwrap_or_else(|_| alloc::handle_alloc_error(layout));
 
         let ptr = allocation_ptr.as_non_null_ptr().as_ptr();
         let ptr_align_offset = ptr.align_offset(layout.align());
@@ -32,7 +37,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     let proj_alloc = TypedProjAlloc::new(alloc);
-    let layout = Layout::from_size_align(size, align).expect(&format!(
+    let layout = alloc::Layout::from_size_align(size, align).expect(&format!(
         "Failed to construct layout with size `{:?}` and alignment `{:?}`",
         size, align
     ));

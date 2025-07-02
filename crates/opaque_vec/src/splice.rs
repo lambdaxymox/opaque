@@ -1,6 +1,16 @@
 use core::any;
+
+#[cfg(feature = "nightly")]
 use alloc_crate::alloc;
+
+#[cfg(feature = "nightly")]
 use alloc_crate::vec::Vec;
+
+#[cfg(not(feature = "nightly"))]
+use allocator_api2::alloc;
+
+#[cfg(not(feature = "nightly"))]
+use allocator_api2::vec::Vec;
 
 use crate::drain::Drain;
 
@@ -15,9 +25,14 @@ use crate::drain::Drain;
 /// Using a splicing iterator on a type-projected vector.
 ///
 /// ```
-/// # #![feature(allocator_api)]
+/// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
 /// # use opaque_vec::TypedProjVec;
+/// #
+/// # #[cfg(feature = "nightly")]
 /// # use std::alloc::Global;
+/// #
+/// # #[cfg(not(feature = "nightly"))]
+/// # use allocator_api2::alloc::Global;
 /// #
 /// let mut result = TypedProjVec::from([1, 2, 3, 4, 5]);
 /// let splice_data: [i32; 5] = [7, 8, 9, 10, 11];
@@ -30,9 +45,14 @@ use crate::drain::Drain;
 /// Using a splicing iterator on a type-erased vector.
 ///
 /// ```
-/// # #![feature(allocator_api)]
+/// #![cfg_attr(feature = "nightly", feature(allocator_api))]
 /// # use opaque_vec::OpaqueVec;
+/// #
+/// # #[cfg(feature = "nightly")]
 /// # use std::alloc::Global;
+/// #
+/// # #[cfg(not(feature = "nightly"))]
+/// # use allocator_api2::alloc::Global;
 /// #
 /// let mut result = {
 ///     let array: [i32; 5] = [1, 2, 3, 4, 5];

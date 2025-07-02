@@ -1,9 +1,11 @@
 #![deny(unsafe_op_in_unsafe_fn)]
 #![deny(private_interfaces)]
-#![feature(allocator_api)]
 #![cfg_attr(
     feature = "nightly", 
-    feature(optimize_attribute)
+    feature(
+        optimize_attribute,
+        allocator_api,
+    )
 )]
 #![no_std]
 mod alloc_inner;

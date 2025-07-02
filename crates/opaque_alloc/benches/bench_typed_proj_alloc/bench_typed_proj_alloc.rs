@@ -1,18 +1,24 @@
+use opaque_alloc::TypedProjAlloc;
+
 use criterion;
 use criterion::criterion_group;
-use opaque_alloc::TypedProjAlloc;
-use std::alloc::{
-    Allocator,
-    Global,
-    Layout,
-};
 
+#[cfg(feature = "nightly")]
+use alloc_crate::alloc;
 
+#[cfg(not(feature = "nightly"))]
+use allocator_api2::alloc;
+
+#[cfg(not(feature = "nightly"))]
+use opaque_polyfill::slice_ptr_get;
+
+#[cfg(feature = "nightly")]
 macro_rules! bench_alloc {
     ($bench_name:ident, $bench_typed_proj_name:ident, size => $size:expr, align => $align:expr) => {
         fn $bench_name(c: &mut criterion::Criterion) {
-            let alloc = Global;
-            let layout = Layout::from_size_align($size, $align).unwrap();
+            use alloc::Allocator;
+            let alloc = alloc::Global;
+            let layout = alloc::Layout::from_size_align($size, $align).unwrap();
 
             c.bench_function(stringify!($bench_name), |b| {
                 b.iter(|| unsafe {
@@ -23,13 +29,45 @@ macro_rules! bench_alloc {
         }
 
         fn $bench_typed_proj_name(c: &mut criterion::Criterion) {
-            let proj_alloc = TypedProjAlloc::new(Global);
-            let layout = Layout::from_size_align($size, $align).unwrap();
+            use alloc::Allocator;
+            let proj_alloc = TypedProjAlloc::new(alloc::Global);
+            let layout = alloc::Layout::from_size_align($size, $align).unwrap();
 
             c.bench_function(stringify!($bench_typed_proj_name), |b| {
                 b.iter(|| unsafe {
                     let allocation_ptr = core::hint::black_box(proj_alloc.allocate(layout.clone()).unwrap());
                     proj_alloc.deallocate(allocation_ptr.as_non_null_ptr(), layout);
+                });
+            });
+        }
+    };
+}
+
+#[cfg(not(feature = "nightly"))]
+macro_rules! bench_alloc {
+    ($bench_name:ident, $bench_typed_proj_name:ident, size => $size:expr, align => $align:expr) => {
+        fn $bench_name(c: &mut criterion::Criterion) {
+            use alloc::Allocator;
+            let alloc = alloc::Global;
+            let layout = alloc::Layout::from_size_align($size, $align).unwrap();
+
+            c.bench_function(stringify!($bench_name), |b| {
+                b.iter(|| unsafe {
+                    let allocation_ptr = core::hint::black_box(alloc.allocate(layout.clone())).unwrap();
+                    alloc.deallocate(slice_ptr_get::as_non_null_ptr(allocation_ptr), layout);
+                });
+            });
+        }
+
+        fn $bench_typed_proj_name(c: &mut criterion::Criterion) {
+            use alloc::Allocator;
+            let proj_alloc = TypedProjAlloc::new(alloc::Global);
+            let layout = alloc::Layout::from_size_align($size, $align).unwrap();
+
+            c.bench_function(stringify!($bench_typed_proj_name), |b| {
+                b.iter(|| unsafe {
+                    let allocation_ptr = core::hint::black_box(proj_alloc.allocate(layout.clone()).unwrap());
+                    proj_alloc.deallocate(slice_ptr_get::as_non_null_ptr(allocation_ptr), layout);
                 });
             });
         }

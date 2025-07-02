@@ -8,3 +8,4 @@ extern crate std;
 
 pub mod range_types;
 pub mod slice_range;
+pub mod slice_ptr_get;

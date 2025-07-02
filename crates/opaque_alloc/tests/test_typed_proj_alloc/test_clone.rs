@@ -1,9 +1,13 @@
 use opaque_alloc::TypedProjAlloc;
-use std::alloc;
+
 use core::any;
-use std::ptr::NonNull;
+use core::ptr::NonNull;
 
+#[cfg(feature = "nightly")]
+use alloc_crate::alloc;
 
+#[cfg(not(feature = "nightly"))]
+use allocator_api2::alloc;
 
 fn run_test_opaque_alloc_clone<A>(alloc: A)
 where
@@ -21,8 +25,37 @@ fn test_opaque_alloc_clone_global() {
 }
 
 #[test]
-fn test_opaque_alloc_clone_system() {
-    let alloc = alloc::System;
+fn test_opaque_alloc_clone_wrapping_alloc() {
+    #[derive(Clone)]
+    struct WrappingAlloc<A> {
+        alloc: A,
+    }
+
+    impl<A> WrappingAlloc<A>
+    where
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        fn new(alloc: A) -> Self {
+            Self { alloc, }
+        }
+    }
+
+    unsafe impl<A> alloc::Allocator for WrappingAlloc<A>
+    where
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        fn allocate(&self, layout: alloc::Layout) -> Result<NonNull<[u8]>, alloc::AllocError> {
+            self.alloc.allocate(layout)
+        }
+
+        unsafe fn deallocate(&self, ptr: NonNull<u8>, layout: alloc::Layout) {
+            unsafe {
+                self.alloc.deallocate(ptr, layout)
+            }
+        }
+    }
+    
+    let alloc = WrappingAlloc::new(alloc::Global);
 
     run_test_opaque_alloc_clone(alloc);
 }

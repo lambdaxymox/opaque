@@ -4,8 +4,18 @@ use core::mem;
 use core::mem::{ManuallyDrop, MaybeUninit};
 use core::ptr;
 use core::ptr::NonNull;
+
+#[cfg(feature = "nightly")]
 use alloc_crate::alloc;
+
+#[cfg(feature = "nightly")]
 use alloc_crate::boxed::Box;
+
+#[cfg(not(feature = "nightly"))]
+use allocator_api2::alloc;
+
+#[cfg(not(feature = "nightly"))]
+use allocator_api2::boxed::Box;
 
 use opaque_polyfill::range_types::UsizeNoHighBit;
 use opaque_alloc::{OpaqueAlloc, TypedProjAlloc};
@@ -150,7 +160,7 @@ where
         debug_assert_eq!(old_layout.align(), new_layout.align());
         unsafe {
             // The allocator checks for alignment equality
-            std::hint::assert_unchecked(old_layout.align() == new_layout.align());
+            core::hint::assert_unchecked(old_layout.align() == new_layout.align());
             alloc.grow(ptr, old_layout, new_layout)
         }
     } else {
@@ -524,7 +534,7 @@ impl RawVecMemory {
     where
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        use std::alloc::Allocator;
+        use alloc::Allocator;
 
         // We avoid `unwrap_or_else` here because it bloats the amount of
         // LLVM IR generated.
@@ -834,7 +844,7 @@ impl RawVecMemory {
     unsafe fn shrink_unchecked(&mut self, capacity: usize, element_layout: alloc::Layout) -> Result<(), TryReserveError> {
         debug_assert_eq!(self.element_layout(), element_layout);
 
-        use std::alloc::Allocator;
+        use alloc::Allocator;
 
         let (ptr, layout) = if let Some(mem) = self.current_memory(element_layout) {
             mem
@@ -1043,6 +1053,6 @@ mod assert_send_sync {
     fn test_assert_send_sync2() {
         fn assert_send_sync<T: Send + Sync>() {}
 
-        assert_send_sync::<TypedProjVec<i32, dummy::DummyAlloc>>();
+        assert_send_sync::<TypedProjRawVec<i32, dummy::DummyAlloc>>();
     }
 }

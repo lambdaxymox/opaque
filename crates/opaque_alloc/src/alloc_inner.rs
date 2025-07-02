@@ -1,8 +1,14 @@
 use core::any;
 use core::marker;
 use core::ptr::NonNull;
-use alloc_crate::alloc;
+
 use alloc_crate::boxed::Box;
+
+#[cfg(feature = "nightly")]
+use alloc_crate::alloc;
+
+#[cfg(not(feature = "nightly"))]
+use allocator_api2::alloc;
 
 /// This trait exists to define the [`TypedProjAllocInner`] data type. It is not meant for public use.
 trait AnyAllocator: any::Any + alloc::Allocator + Send + Sync {}

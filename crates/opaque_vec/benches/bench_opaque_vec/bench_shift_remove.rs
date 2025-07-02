@@ -1,18 +1,28 @@
+use opaque_vec::OpaqueVec;
+
 use criterion::{
     Criterion,
     criterion_group,
 };
-use opaque_vec::OpaqueVec;
 
-use std::alloc;
+#[cfg(feature = "nightly")]
+use alloc_crate::alloc;
+
+#[cfg(feature = "nightly")]
+use alloc_crate::vec::Vec;
+
+#[cfg(not(feature = "nightly"))]
+use allocator_api2::alloc;
+
+#[cfg(not(feature = "nightly"))]
+use allocator_api2::vec::Vec;
 
 fn bench_vec_shift_remove_last(c: &mut Criterion) {
     let dummy_data = 0_i32;
-    let mut vec = vec![dummy_data; 1000];
 
     c.bench_function("vec_shift_remove_last", |b| {
         b.iter_batched(
-            || vec![0_i32; 1000],
+            || Vec::from_iter((0..1000).map(|_| dummy_data)),
             |mut vec| {
                 for _ in 0..vec.len() {
                     let last_index = vec.len() - 1;

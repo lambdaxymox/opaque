@@ -4,7 +4,12 @@ use core::any;
 use core::fmt;
 use core::slice;
 use core::ops;
+
+#[cfg(feature = "nightly")]
 use alloc_crate::alloc;
+
+#[cfg(not(feature = "nightly"))]
+use allocator_api2::alloc;
 
 use opaque_alloc::TypedProjAlloc;
 
@@ -18,9 +23,14 @@ use opaque_alloc::TypedProjAlloc;
 /// Using an extracting iterator on a type-projected vector.
 ///
 /// ```
-/// # #![feature(allocator_api)]
+/// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
 /// # use opaque_vec::TypedProjVec;
+/// #
+/// # #[cfg(feature = "nightly")]
 /// # use std::alloc::Global;
+/// #
+/// # #[cfg(not(feature = "nightly"))]
+/// # use allocator_api2::alloc::Global;
 /// #
 /// fn is_even(value: &mut i32) -> bool {
 ///     *value % 2 == 0
@@ -37,9 +47,14 @@ use opaque_alloc::TypedProjAlloc;
 /// Using an extracting iterator on a type-erased vector.
 ///
 /// ```
-/// # #![feature(allocator_api)]
+/// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
 /// # use opaque_vec::OpaqueVec;
+/// #
+/// # #[cfg(feature = "nightly")]
 /// # use std::alloc::Global;
+/// #
+/// # #[cfg(not(feature = "nightly"))]
+/// # use allocator_api2::alloc::Global;
 /// #
 /// fn is_even(value: &mut i32) -> bool {
 ///     *value % 2 == 0
@@ -82,39 +97,13 @@ where
     pred: F,
 }
 
+#[cfg(feature = "nightly")]
 impl<'a, T, F, A> ExtractIf<'a, T, F, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     /// Construct a new extraction iterator.
-
-    #[cfg(not(feature = "nightly"))]
-    #[inline]
-    pub(crate) fn new<R>(vec: &'a mut TypedProjVecInner<T, A>, pred: F, range: R) -> Self
-    where
-        R: ops::RangeBounds<usize>,
-    {
-        let old_len = vec.len();
-        let ops::Range { start, end } = opaque_polyfill::slice_range::range(range, ..old_len);
-
-        // Guard against the vec getting leaked (leak amplification)
-        unsafe {
-            vec.set_len(0);
-        }
-
-        ExtractIf {
-            vec,
-            idx: start,
-            del: 0,
-            end,
-            old_len,
-            pred,
-        }
-    }
-
-    /// Construct a new extraction iterator.
-    #[cfg(feature = "nightly")]
     #[inline]
     pub(crate) fn new<R>(vec: &'a mut TypedProjVecInner<T, A>, pred: F, range: R) -> Self
     where
@@ -137,7 +126,44 @@ where
             pred,
         }
     }
+}
 
+#[cfg(not(feature = "nightly"))]
+impl<'a, T, F, A> ExtractIf<'a, T, F, A>
+where
+    T: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    /// Construct a new extraction iterator.
+    #[inline]
+    pub(crate) fn new<R>(vec: &'a mut TypedProjVecInner<T, A>, pred: F, range: R) -> Self
+    where
+        R: ops::RangeBounds<usize>,
+    {
+        let old_len = vec.len();
+        let ops::Range { start, end } = opaque_polyfill::slice_range::range(range, ..old_len);
+
+        // Guard against the vec getting leaked (leak amplification)
+        unsafe {
+            vec.set_len(0);
+        }
+
+        ExtractIf {
+            vec,
+            idx: start,
+            del: 0,
+            end,
+            old_len,
+            pred,
+        }
+    }
+}
+
+impl<'a, T, F, A> ExtractIf<'a, T, F, A>
+where
+    T: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
     /// Get the underlying allocator of the extracting iterator.
     ///
     /// # Examples
@@ -145,10 +171,15 @@ where
     /// Getting the allocator from the extracting iterator of a type-projected vector.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_vec::TypedProjVec;
     /// # use opaque_alloc::TypedProjAlloc;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use allocator_api2::alloc::Global;
     /// #
     /// fn is_even(value: &mut i32) -> bool {
     ///     *value % 2 == 0
@@ -163,10 +194,15 @@ where
     /// Getting the allocator from the extracting iterator of a type-erased vector.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_vec::OpaqueVec;
     /// # use opaque_alloc::TypedProjAlloc;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use allocator_api2::alloc::Global;
     /// #
     /// fn is_even(value: &mut i32) -> bool {
     ///     *value % 2 == 0

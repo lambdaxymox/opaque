@@ -3,6 +3,8 @@ use opaque_vec::TypedProjVec;
 
 use core::any;
 use core::fmt;
+use std::format;
+use std::string::String;
 
 use proptest::prelude::*;
 
@@ -21,7 +23,7 @@ where
 macro_rules! generate_props {
     ($module_name:ident, $typ:ty, $array_gen:ident) => {
         mod $module_name {
-            use proptest::prelude::*;
+            use super::*;
             proptest! {
                 #[test]
                 fn prop_from_array_as_slice0(array in super::$array_gen::<$typ, 0>()) {

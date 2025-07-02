@@ -10,6 +10,16 @@ nightly = []
 
 [dependencies]
 
+[dependencies.opaque_polyfill]
+version = "0.1.0"
+path = "../opaque_polyfill"
+
+[dependencies.allocator-api2]
+version = "0.3.0"
+# optional = true
+default-features = false
+features = ["alloc"]
+
 [dev-dependencies]
 
 [dev-dependencies.criterion]

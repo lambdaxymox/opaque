@@ -6,7 +6,14 @@ use opaque_vec::OpaqueVec;
 
 use core::any;
 use core::fmt;
+use std::format;
+use std::string::String;
+
+#[cfg(feature = "nightly")]
 use std::alloc;
+
+#[cfg(not(feature = "nightly"))]
+use allocator_api2::alloc;
 
 use proptest::prelude::*;
 
@@ -103,8 +110,7 @@ where
 macro_rules! generate_props {
     ($module_name:ident, $typ:ty, $alloc_typ:ty, $max_length:expr, $vec_gen:ident, $nonempty_vec_gen:ident) => {
         mod $module_name {
-            use proptest::prelude::*;
-            use std::alloc;
+            use super::*;
             proptest! {
                 #[test]
                 fn prop_shift_remove_end(values in super::$nonempty_vec_gen::<$typ, $alloc_typ>($max_length)) {
