@@ -5964,7 +5964,7 @@ where
     /// `X`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b)`.
+    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b).
     /// ```
     ///
     /// A type `X` is a **hashable type** if there is an equivalence relation `~` and a hashing
@@ -5982,7 +5982,7 @@ where
     /// Note that by the definition of `~`
     ///
     /// ```text
-    /// ∀ q :: Q. ∀ v :: T. f(q) ∼ g(v) ⇒ h(f(q)) = h(g(v))`.
+    /// ∀ q :: Q. ∀ v :: T. f(q) ∼ g(v) ⇒ h(f(q)) = h(g(v)).
     /// ```
     ///
     /// This is an implication, not an equivalence, because practical hashing functions can have
@@ -6007,7 +6007,7 @@ where
     /// `Q = T`, and `f = g = id`. Then
     ///
     /// ```text
-    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)`
+    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)
     /// ```
     ///
     /// so that we have `equiv(T, id, id)(T, T)` which implies `equiv(T, T, T)`, i.e. `T` is
@@ -6110,7 +6110,7 @@ where
     /// `X`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b)`.
+    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b).
     /// ```
     ///
     /// A type `X` is a **hashable type** if there is an equivalence relation `~` and a hashing
@@ -6128,7 +6128,7 @@ where
     /// Note that by the definition of `~`
     ///
     /// ```text
-    /// ∀ q :: Q. ∀ v :: T. f(q) ∼ g(v) ⇒ h(f(q)) = h(g(v))`.
+    /// ∀ q :: Q. ∀ v :: T. f(q) ∼ g(v) ⇒ h(f(q)) = h(g(v)).
     /// ```
     ///
     /// This is an implication, not an equivalence, because practical hashing functions can have
@@ -6153,7 +6153,7 @@ where
     /// `Q = T`, and `f = g = id`. Then
     ///
     /// ```text
-    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)`
+    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)
     /// ```
     ///
     /// so that we have `equiv(T, id, id)(T, T)` which implies `equiv(T, T, T)`, i.e. `T` is
@@ -6256,7 +6256,7 @@ where
     /// `X`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b)`.
+    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b).
     /// ```
     ///
     /// A type `X` is a **hashable type** if there is an equivalence relation `~` and a hashing
@@ -6274,7 +6274,7 @@ where
     /// Note that by the definition of `~`
     ///
     /// ```text
-    /// ∀ q :: Q. ∀ v :: T. f(q) ∼ g(v) ⇒ h(f(q)) = h(g(v))`.
+    /// ∀ q :: Q. ∀ v :: T. f(q) ∼ g(v) ⇒ h(f(q)) = h(g(v)).
     /// ```
     ///
     /// This is an implication, not an equivalence, because practical hashing functions can have
@@ -6299,7 +6299,7 @@ where
     /// `Q = T`, and `f = g = id`. Then
     ///
     /// ```text
-    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)`
+    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)
     /// ```
     ///
     /// so that we have `equiv(T, id, id)(T, T)` which implies `equiv(T, T, T)`, i.e. `T` is
@@ -6401,7 +6401,7 @@ where
     /// `X`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b)`.
+    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b).
     /// ```
     ///
     /// A type `X` is a **hashable type** if there is an equivalence relation `~` and a hashing
@@ -6419,7 +6419,7 @@ where
     /// Note that by the definition of `~`
     ///
     /// ```text
-    /// ∀ q :: Q. ∀ v :: T. f(q) ∼ g(v) ⇒ h(f(q)) = h(g(v))`.
+    /// ∀ q :: Q. ∀ v :: T. f(q) ∼ g(v) ⇒ h(f(q)) = h(g(v)).
     /// ```
     ///
     /// This is an implication, not an equivalence, because practical hashing functions can have
@@ -6444,7 +6444,7 @@ where
     /// `Q = T`, and `f = g = id`. Then
     ///
     /// ```text
-    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)`
+    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)
     /// ```
     ///
     /// so that we have `equiv(T, id, id)(T, T)` which implies `equiv(T, T, T)`, i.e. `T` is
@@ -6555,7 +6555,7 @@ where
     /// `X`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b)`.
+    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b).
     /// ```
     ///
     /// A type `X` is a **hashable type** if there is an equivalence relation `~` and a hashing
@@ -6573,7 +6573,7 @@ where
     /// Note that by the definition of `~`
     ///
     /// ```text
-    /// ∀ q :: Q. ∀ v :: T. f(q) ∼ g(v) ⇒ h(f(q)) = h(g(v))`.
+    /// ∀ q :: Q. ∀ v :: T. f(q) ∼ g(v) ⇒ h(f(q)) = h(g(v)).
     /// ```
     ///
     /// This is an implication, not an equivalence, because practical hashing functions can have
@@ -6598,7 +6598,7 @@ where
     /// `Q = T`, and `f = g = id`. Then
     ///
     /// ```text
-    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)`
+    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)
     /// ```
     ///
     /// so that we have `equiv(T, id, id)(T, T)` which implies `equiv(T, T, T)`, i.e. `T` is
@@ -6755,7 +6755,7 @@ where
     /// `X`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b)`.
+    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b).
     /// ```
     ///
     /// A type `X` is a **hashable type** if there is an equivalence relation `~` and a hashing
@@ -6773,7 +6773,7 @@ where
     /// Note that by the definition of `~`
     ///
     /// ```text
-    /// ∀ q :: Q. ∀ v :: T. f(q) ∼ g(v) ⇒ h(f(q)) = h(g(v))`.
+    /// ∀ q :: Q. ∀ v :: T. f(q) ∼ g(v) ⇒ h(f(q)) = h(g(v)).
     /// ```
     ///
     /// This is an implication, not an equivalence, because practical hashing functions can have
@@ -6798,7 +6798,7 @@ where
     /// `Q = T`, and `f = g = id`. Then
     ///
     /// ```text
-    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)`
+    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)
     /// ```
     ///
     /// so that we have `equiv(T, id, id)(T, T)` which implies `equiv(T, T, T)`, i.e. `T` is
@@ -6955,7 +6955,7 @@ where
     /// `X`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b)`.
+    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b).
     /// ```
     ///
     /// A type `X` is a **hashable type** if there is an equivalence relation `~` and a hashing
@@ -6973,7 +6973,7 @@ where
     /// Note that by the definition of `~`
     ///
     /// ```text
-    /// ∀ q :: Q. ∀ v :: T. f(q) ∼ g(v) ⇒ h(f(q)) = h(g(v))`.
+    /// ∀ q :: Q. ∀ v :: T. f(q) ∼ g(v) ⇒ h(f(q)) = h(g(v)).
     /// ```
     ///
     /// This is an implication, not an equivalence, because practical hashing functions can have
@@ -6998,7 +6998,7 @@ where
     /// `Q = T`, and `f = g = id`. Then
     ///
     /// ```text
-    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)`
+    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)
     /// ```
     ///
     /// so that we have `equiv(T, id, id)(T, T)` which implies `equiv(T, T, T)`, i.e. `T` is
@@ -7169,7 +7169,7 @@ where
     /// `X`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b)`.
+    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b).
     /// ```
     ///
     /// A type `X` is a **hashable type** if there is an equivalence relation `~` and a hashing
@@ -7187,7 +7187,7 @@ where
     /// Note that by the definition of `~`
     ///
     /// ```text
-    /// ∀ q :: Q. ∀ v :: T. f(q) ∼ g(v) ⇒ h(f(q)) = h(g(v))`.
+    /// ∀ q :: Q. ∀ v :: T. f(q) ∼ g(v) ⇒ h(f(q)) = h(g(v)).
     /// ```
     ///
     /// This is an implication, not an equivalence, because practical hashing functions can have
@@ -7212,7 +7212,7 @@ where
     /// `Q = T`, and `f = g = id`. Then
     ///
     /// ```text
-    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)`
+    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)
     /// ```
     ///
     /// so that we have `equiv(T, id, id)(T, T)` which implies `equiv(T, T, T)`, i.e. `T` is
@@ -7371,7 +7371,7 @@ where
     /// `X`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b)`.
+    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b).
     /// ```
     ///
     /// A type `X` is a **hashable type** if there is an equivalence relation `~` and a hashing
@@ -7389,7 +7389,7 @@ where
     /// Note that by the definition of `~`
     ///
     /// ```text
-    /// ∀ q :: Q. ∀ v :: T. f(q) ∼ g(v) ⇒ h(f(q)) = h(g(v))`.
+    /// ∀ q :: Q. ∀ v :: T. f(q) ∼ g(v) ⇒ h(f(q)) = h(g(v)).
     /// ```
     ///
     /// This is an implication, not an equivalence, because practical hashing functions can have
@@ -7414,7 +7414,7 @@ where
     /// `Q = T`, and `f = g = id`. Then
     ///
     /// ```text
-    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)`
+    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)
     /// ```
     ///
     /// so that we have `equiv(T, id, id)(T, T)` which implies `equiv(T, T, T)`, i.e. `T` is
@@ -7574,7 +7574,7 @@ where
     /// `X`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b)`.
+    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b).
     /// ```
     ///
     /// A type `X` is a **hashable type** if there is an equivalence relation `~` and a hashing
@@ -7592,7 +7592,7 @@ where
     /// Note that by the definition of `~`
     ///
     /// ```text
-    /// ∀ q :: Q. ∀ v :: T. f(q) ∼ g(v) ⇒ h(f(q)) = h(g(v))`.
+    /// ∀ q :: Q. ∀ v :: T. f(q) ∼ g(v) ⇒ h(f(q)) = h(g(v)).
     /// ```
     ///
     /// This is an implication, not an equivalence, because practical hashing functions can have
@@ -7617,7 +7617,7 @@ where
     /// `Q = T`, and `f = g = id`. Then
     ///
     /// ```text
-    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)`
+    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)
     /// ```
     ///
     /// so that we have `equiv(T, id, id)(T, T)` which implies `equiv(T, T, T)`, i.e. `T` is
@@ -14627,7 +14627,7 @@ impl OpaqueIndexSet {
     /// `X`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b)`.
+    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b).
     /// ```
     ///
     /// A type `X` is a **hashable type** if there is an equivalence relation `~` and a hashing
@@ -14645,7 +14645,7 @@ impl OpaqueIndexSet {
     /// Note that by the definition of `~`
     ///
     /// ```text
-    /// ∀ q :: Q. ∀ v :: T. f(q) ∼ g(v) ⇒ h(f(q)) = h(g(v))`.
+    /// ∀ q :: Q. ∀ v :: T. f(q) ∼ g(v) ⇒ h(f(q)) = h(g(v)).
     /// ```
     ///
     /// This is an implication, not an equivalence, because practical hashing functions can have
@@ -14670,7 +14670,7 @@ impl OpaqueIndexSet {
     /// `Q = T`, and `f = g = id`. Then
     ///
     /// ```text
-    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)`
+    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)
     /// ```
     ///
     /// so that we have `equiv(T, id, id)(T, T)` which implies `equiv(T, T, T)`, i.e. `T` is
@@ -14791,7 +14791,7 @@ impl OpaqueIndexSet {
     /// `X`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b)`.
+    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b).
     /// ```
     ///
     /// A type `X` is a **hashable type** if there is an equivalence relation `~` and a hashing
@@ -14809,7 +14809,7 @@ impl OpaqueIndexSet {
     /// Note that by the definition of `~`
     ///
     /// ```text
-    /// ∀ q :: Q. ∀ v :: T. f(q) ∼ g(v) ⇒ h(f(q)) = h(g(v))`.
+    /// ∀ q :: Q. ∀ v :: T. f(q) ∼ g(v) ⇒ h(f(q)) = h(g(v)).
     /// ```
     ///
     /// This is an implication, not an equivalence, because practical hashing functions can have
@@ -14834,7 +14834,7 @@ impl OpaqueIndexSet {
     /// `Q = T`, and `f = g = id`. Then
     ///
     /// ```text
-    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)`
+    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)
     /// ```
     ///
     /// so that we have `equiv(T, id, id)(T, T)` which implies `equiv(T, T, T)`, i.e. `T` is
@@ -14955,7 +14955,7 @@ impl OpaqueIndexSet {
     /// `X`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b)`.
+    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b).
     /// ```
     ///
     /// A type `X` is a **hashable type** if there is an equivalence relation `~` and a hashing
@@ -14973,7 +14973,7 @@ impl OpaqueIndexSet {
     /// Note that by the definition of `~`
     ///
     /// ```text
-    /// ∀ q :: Q. ∀ v :: T. f(q) ∼ g(v) ⇒ h(f(q)) = h(g(v))`.
+    /// ∀ q :: Q. ∀ v :: T. f(q) ∼ g(v) ⇒ h(f(q)) = h(g(v)).
     /// ```
     ///
     /// This is an implication, not an equivalence, because practical hashing functions can have
@@ -14998,7 +14998,7 @@ impl OpaqueIndexSet {
     /// `Q = T`, and `f = g = id`. Then
     ///
     /// ```text
-    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)`
+    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)
     /// ```
     ///
     /// so that we have `equiv(T, id, id)(T, T)` which implies `equiv(T, T, T)`, i.e. `T` is
@@ -15118,7 +15118,7 @@ impl OpaqueIndexSet {
     /// `X`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b)`.
+    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b).
     /// ```
     ///
     /// A type `X` is a **hashable type** if there is an equivalence relation `~` and a hashing
@@ -15136,7 +15136,7 @@ impl OpaqueIndexSet {
     /// Note that by the definition of `~`
     ///
     /// ```text
-    /// ∀ q :: Q. ∀ v :: T. f(q) ∼ g(v) ⇒ h(f(q)) = h(g(v))`.
+    /// ∀ q :: Q. ∀ v :: T. f(q) ∼ g(v) ⇒ h(f(q)) = h(g(v)).
     /// ```
     ///
     /// This is an implication, not an equivalence, because practical hashing functions can have
@@ -15161,7 +15161,7 @@ impl OpaqueIndexSet {
     /// `Q = T`, and `f = g = id`. Then
     ///
     /// ```text
-    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)`
+    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)
     /// ```
     ///
     /// so that we have `equiv(T, id, id)(T, T)` which implies `equiv(T, T, T)`, i.e. `T` is
@@ -15290,7 +15290,7 @@ impl OpaqueIndexSet {
     /// `X`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b)`.
+    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b).
     /// ```
     ///
     /// A type `X` is a **hashable type** if there is an equivalence relation `~` and a hashing
@@ -15308,7 +15308,7 @@ impl OpaqueIndexSet {
     /// Note that by the definition of `~`
     ///
     /// ```text
-    /// ∀ q :: Q. ∀ v :: T. f(q) ∼ g(v) ⇒ h(f(q)) = h(g(v))`.
+    /// ∀ q :: Q. ∀ v :: T. f(q) ∼ g(v) ⇒ h(f(q)) = h(g(v)).
     /// ```
     ///
     /// This is an implication, not an equivalence, because practical hashing functions can have
@@ -15333,7 +15333,7 @@ impl OpaqueIndexSet {
     /// `Q = T`, and `f = g = id`. Then
     ///
     /// ```text
-    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)`
+    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)
     /// ```
     ///
     /// so that we have `equiv(T, id, id)(T, T)` which implies `equiv(T, T, T)`, i.e. `T` is
@@ -15560,7 +15560,7 @@ impl OpaqueIndexSet {
     /// `X`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b)`.
+    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b).
     /// ```
     ///
     /// A type `X` is a **hashable type** if there is an equivalence relation `~` and a hashing
@@ -15578,7 +15578,7 @@ impl OpaqueIndexSet {
     /// Note that by the definition of `~`
     ///
     /// ```text
-    /// ∀ q :: Q. ∀ v :: T. f(q) ∼ g(v) ⇒ h(f(q)) = h(g(v))`.
+    /// ∀ q :: Q. ∀ v :: T. f(q) ∼ g(v) ⇒ h(f(q)) = h(g(v)).
     /// ```
     ///
     /// This is an implication, not an equivalence, because practical hashing functions can have
@@ -15603,7 +15603,7 @@ impl OpaqueIndexSet {
     /// `Q = T`, and `f = g = id`. Then
     ///
     /// ```text
-    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)`
+    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)
     /// ```
     ///
     /// so that we have `equiv(T, id, id)(T, T)` which implies `equiv(T, T, T)`, i.e. `T` is
@@ -15830,7 +15830,7 @@ impl OpaqueIndexSet {
     /// `X`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b)`.
+    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b).
     /// ```
     ///
     /// A type `X` is a **hashable type** if there is an equivalence relation `~` and a hashing
@@ -15848,7 +15848,7 @@ impl OpaqueIndexSet {
     /// Note that by the definition of `~`
     ///
     /// ```text
-    /// ∀ q :: Q. ∀ v :: T. f(q) ∼ g(v) ⇒ h(f(q)) = h(g(v))`.
+    /// ∀ q :: Q. ∀ v :: T. f(q) ∼ g(v) ⇒ h(f(q)) = h(g(v)).
     /// ```
     ///
     /// This is an implication, not an equivalence, because practical hashing functions can have
@@ -15873,7 +15873,7 @@ impl OpaqueIndexSet {
     /// `Q = T`, and `f = g = id`. Then
     ///
     /// ```text
-    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)`
+    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)
     /// ```
     ///
     /// so that we have `equiv(T, id, id)(T, T)` which implies `equiv(T, T, T)`, i.e. `T` is
@@ -16109,7 +16109,7 @@ impl OpaqueIndexSet {
     /// `X`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b)`.
+    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b).
     /// ```
     ///
     /// A type `X` is a **hashable type** if there is an equivalence relation `~` and a hashing
@@ -16127,7 +16127,7 @@ impl OpaqueIndexSet {
     /// Note that by the definition of `~`
     ///
     /// ```text
-    /// ∀ q :: Q. ∀ v :: T. f(q) ∼ g(v) ⇒ h(f(q)) = h(g(v))`.
+    /// ∀ q :: Q. ∀ v :: T. f(q) ∼ g(v) ⇒ h(f(q)) = h(g(v)).
     /// ```
     ///
     /// This is an implication, not an equivalence, because practical hashing functions can have
@@ -16152,7 +16152,7 @@ impl OpaqueIndexSet {
     /// `Q = T`, and `f = g = id`. Then
     ///
     /// ```text
-    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)`
+    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)
     /// ```
     ///
     /// so that we have `equiv(T, id, id)(T, T)` which implies `equiv(T, T, T)`, i.e. `T` is
@@ -16381,7 +16381,7 @@ impl OpaqueIndexSet {
     /// `X`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b)`.
+    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b).
     /// ```
     ///
     /// A type `X` is a **hashable type** if there is an equivalence relation `~` and a hashing
@@ -16399,7 +16399,7 @@ impl OpaqueIndexSet {
     /// Note that by the definition of `~`
     ///
     /// ```text
-    /// ∀ q :: Q. ∀ v :: T. f(q) ∼ g(v) ⇒ h(f(q)) = h(g(v))`.
+    /// ∀ q :: Q. ∀ v :: T. f(q) ∼ g(v) ⇒ h(f(q)) = h(g(v)).
     /// ```
     ///
     /// This is an implication, not an equivalence, because practical hashing functions can have
@@ -16424,7 +16424,7 @@ impl OpaqueIndexSet {
     /// `Q = T`, and `f = g = id`. Then
     ///
     /// ```text
-    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)`
+    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)
     /// ```
     ///
     /// so that we have `equiv(T, id, id)(T, T)` which implies `equiv(T, T, T)`, i.e. `T` is
@@ -16654,7 +16654,7 @@ impl OpaqueIndexSet {
     /// `X`, and `h` is a hash function such that
     ///
     /// ```text
-    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b)`.
+    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b).
     /// ```
     ///
     /// A type `X` is a **hashable type** if there is an equivalence relation `~` and a hashing
@@ -16672,7 +16672,7 @@ impl OpaqueIndexSet {
     /// Note that by the definition of `~`
     ///
     /// ```text
-    /// ∀ q :: Q. ∀ v :: T. f(q) ∼ g(v) ⇒ h(f(q)) = h(g(v))`.
+    /// ∀ q :: Q. ∀ v :: T. f(q) ∼ g(v) ⇒ h(f(q)) = h(g(v)).
     /// ```
     ///
     /// This is an implication, not an equivalence, because practical hashing functions can have
@@ -16697,7 +16697,7 @@ impl OpaqueIndexSet {
     /// `Q = T`, and `f = g = id`. Then
     ///
     /// ```text
-    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)`
+    /// ∀ v1, v2 :: T. v1 = v2 = id(v1) = id(v2) ⇒ h(id(v1)) = h(id(v2)) = h(v1) = h(v2)
     /// ```
     ///
     /// so that we have `equiv(T, id, id)(T, T)` which implies `equiv(T, T, T)`, i.e. `T` is
