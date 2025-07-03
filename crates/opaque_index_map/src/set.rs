@@ -475,6 +475,7 @@ impl<T> Slice<T> {
     /// assert_eq!(prefix, &[1_i32, 2_i32]);
     /// assert_eq!(suffix, &[3_i32, 4_i32, 5_i32]);
     /// ```
+    #[track_caller]
     pub fn split_at(&self, index: usize) -> (&Self, &Self) {
         let (first, second) = self.entries.split_at(index);
         (Self::from_slice(first), Self::from_slice(second))

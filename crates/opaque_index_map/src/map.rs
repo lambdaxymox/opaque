@@ -2196,6 +2196,7 @@ impl<K, V> Slice<K, V> {
     /// assert_eq!(prefix, &[(0_usize, 1_i32), (1_usize, 2_i32)]);
     /// assert_eq!(suffix, &[(2_usize, 3_i32), (3_usize, 4_i32), (4_usize, 5_i32)]);
     /// ```
+    #[track_caller]
     pub fn split_at(&self, index: usize) -> (&Self, &Self) {
         let (first, second) = self.entries.split_at(index);
 
@@ -2269,6 +2270,7 @@ impl<K, V> Slice<K, V> {
     /// assert_eq!(prefix, &[(0_usize, 1_i32), (1_usize, 2_i32)]);
     /// assert_eq!(suffix, &[(2_usize, 3_i32), (3_usize, 4_i32), (4_usize, 5_i32)]);
     /// ```
+    #[track_caller]
     pub fn split_at_mut(&mut self, index: usize) -> (&mut Self, &mut Self) {
         let (first, second) = self.entries.split_at_mut(index);
 
@@ -3393,6 +3395,7 @@ impl<K, V> Slice<K, V> {
     /// assert_eq!(result[1], (&3_isize, &mut 'b'));
     /// assert_eq!(result[2], (&5_isize, &mut '@'));
     /// ```
+    #[track_caller]
     pub fn get_disjoint_mut<const N: usize>(
         &mut self,
         indices: [usize; N],
@@ -5813,6 +5816,7 @@ where
     /// assert_eq!(proj_map.get_full("foo"), Some((2, &"foo", &1_i32)));
     /// assert_eq!(proj_map.get_full("baz"), Some((0, &"baz", &3_i32)));
     /// ```
+    #[track_caller]
     pub fn swap_indices(self, other: usize) {
         self.inner.swap_indices(other);
     }
@@ -6919,6 +6923,7 @@ where
     /// assert_eq!(proj_map.get_full("foo"), Some((2, &"foo", &1_i32)));
     /// assert_eq!(proj_map.get_full("baz"), Some((0, &"baz", &3_i32)));
     /// ```
+    #[track_caller]
     pub fn swap_indices(self, other: usize) {
         self.inner.swap_indices(other);
     }
@@ -9198,6 +9203,7 @@ where
     ///
     /// assert_eq!(proj_map.get_disjoint_mut([&2, &1, &5]), [Some(&mut 'c'), Some(&mut 'a'), Some(&mut '@')]);
     /// ```
+    #[track_caller]
     pub fn get_disjoint_mut<Q, const N: usize>(&mut self, keys: [&Q; N]) -> [Option<&mut V>; N]
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
@@ -14788,6 +14794,7 @@ where
     /// assert_eq!(result[1], (&3_isize, &mut 'b'));
     /// assert_eq!(result[2], (&5_isize, &mut '@'));
     /// ```
+    #[track_caller]
     pub fn get_disjoint_indices_mut<const N: usize>(
         &mut self,
         indices: [usize; N]
