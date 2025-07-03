@@ -7380,6 +7380,7 @@ where
     /// assert!(proj_map.is_empty());
     /// assert_eq!(proj_map.capacity(), 0);
     /// ```
+    #[inline]
     pub fn new_proj_in(proj_alloc: TypedProjAlloc<A>) -> Self {
         let proj_inner = TypedProjIndexMapInner::<K, V, hash::RandomState, A>::new_proj_in(proj_alloc);
 
@@ -7449,6 +7450,7 @@ where
     /// assert!(proj_map.is_empty());
     /// assert_eq!(proj_map.capacity(), 0);
     /// ```
+    #[inline]
     pub fn with_capacity_proj_in(capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self {
         let proj_inner = TypedProjIndexMapInner::<K, V, hash::RandomState, A>::with_capacity_proj_in(capacity, proj_alloc);
 
@@ -7614,6 +7616,7 @@ where
     /// assert!(proj_map.is_empty());
     /// assert_eq!(proj_map.capacity(), 0);
     /// ```
+    #[inline]
     pub fn new_in(alloc: A) -> Self {
         let proj_inner = TypedProjIndexMapInner::<K, V, hash::RandomState, A>::new_in(alloc);
 
@@ -7681,6 +7684,7 @@ where
     /// assert!(proj_map.is_empty());
     /// assert_eq!(proj_map.capacity(), 0);
     /// ```
+    #[inline]
     pub fn with_capacity_in(capacity: usize, alloc: A) -> Self {
         let proj_inner = TypedProjIndexMapInner::<K, V, hash::RandomState, A>::with_capacity_in(capacity, alloc);
 
@@ -16410,6 +16414,7 @@ impl OpaqueIndexMap {
     /// let proj_map: &TypedProjIndexMap<usize, f64, RandomState, Global> = opaque_map.as_proj::<usize, f64, RandomState, Global>();
     /// ```
     #[inline]
+    #[track_caller]
     pub fn as_proj<K, V, S, A>(&self) -> &TypedProjIndexMap<K, V, S, A>
     where
         K: any::Any,
@@ -16459,6 +16464,7 @@ impl OpaqueIndexMap {
     /// let proj_map: &mut TypedProjIndexMap<usize, f64, RandomState, Global> = opaque_map.as_proj_mut::<usize, f64, RandomState, Global>();
     /// ```
     #[inline]
+    #[track_caller]
     pub fn as_proj_mut<K, V, S, A>(&mut self) -> &mut TypedProjIndexMap<K, V, S, A>
     where
         K: any::Any,
@@ -16507,6 +16513,7 @@ impl OpaqueIndexMap {
     /// let proj_map: TypedProjIndexMap<usize, f64, RandomState, Global> = opaque_map.into_proj::<usize, f64, RandomState, Global>();
     /// ```
     #[inline]
+    #[track_caller]
     pub fn into_proj<K, V, S, A>(self) -> TypedProjIndexMap<K, V, S, A>
     where
         K: any::Any,
@@ -16750,6 +16757,7 @@ impl OpaqueIndexMap {
     /// assert!(opaque_map.is_empty());
     /// assert_eq!(opaque_map.capacity(), 0);
     /// ```
+    #[inline]
     pub fn new_proj_in<K, V, A>(proj_alloc: TypedProjAlloc<A>) -> Self
     where
         K: any::Any,
@@ -16832,6 +16840,7 @@ impl OpaqueIndexMap {
     /// assert!(opaque_map.is_empty());
     /// assert_eq!(opaque_map.capacity(), 0);
     /// ```
+    #[inline]
     pub fn with_capacity_proj_in<K, V, A>(capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self
     where
         K: any::Any,
@@ -17014,6 +17023,7 @@ impl OpaqueIndexMap {
     /// assert!(opaque_map.is_empty());
     /// assert_eq!(opaque_map.capacity(), 0);
     /// ```
+    #[inline]
     pub fn new_in<K, V, A>(alloc: A) -> Self
     where
         K: any::Any,
@@ -17094,6 +17104,7 @@ impl OpaqueIndexMap {
     /// assert!(opaque_map.is_empty());
     /// assert_eq!(opaque_map.capacity(), 0);
     /// ```
+    #[inline]
     pub fn with_capacity_in<K, V, A>(capacity: usize, alloc: A) -> Self
     where
         K: any::Any,
@@ -17541,6 +17552,7 @@ impl OpaqueIndexMap {
     /// let build_hasher: &TypedProjBuildHasher<RandomState> = opaque_map.hasher::<usize, f64, RandomState, Global>();
     /// ```
     #[inline]
+    #[track_caller]
     pub fn hasher<K, V, S, A>(&self) -> &TypedProjBuildHasher<S>
     where
         K: any::Any,
@@ -17592,6 +17604,7 @@ impl OpaqueIndexMap {
     /// let alloc: &TypedProjAlloc<Global> = opaque_map.allocator::<usize, f64, RandomState, Global>();
     /// ```
     #[inline]
+    #[track_caller]
     pub fn allocator<K, V, S, A>(&self) -> &TypedProjAlloc<A>
     where
         K: any::Any,
@@ -17762,6 +17775,7 @@ impl OpaqueIndexMap {
     /// assert_eq!(opaque_map.get_index_of::<_, usize, f64, RandomState, Global>(&4_usize), None);
     /// assert_eq!(opaque_map.get_index_of::<_, usize, f64, RandomState, Global>(&usize::MAX), None);
     /// ```
+    #[track_caller]
     pub fn get_index_of<Q, K, V, S, A>(&self, key: &Q) -> Option<usize>
     where
         K: any::Any,
@@ -17930,6 +17944,7 @@ impl OpaqueIndexMap {
     /// assert!(!opaque_map.contains_key::<_, usize, f64, RandomState, Global>(&4_usize));
     /// assert!(!opaque_map.contains_key::<_, usize, f64, RandomState, Global>(&usize::MAX));
     /// ```
+    #[track_caller]
     pub fn contains_key<Q, K, V, S, A>(&self, key: &Q) -> bool
     where
         K: any::Any,
@@ -18099,6 +18114,7 @@ impl OpaqueIndexMap {
     /// assert_eq!(opaque_map.get::<_, usize, f64, RandomState, Global>(&4_usize), None);
     /// assert_eq!(opaque_map.get::<_, usize, f64, RandomState, Global>(&usize::MAX), None);
     /// ```
+    #[track_caller]
     pub fn get<Q, K, V, S, A>(&self, key: &Q) -> Option<&V>
     where
         K: any::Any,
@@ -18269,6 +18285,7 @@ impl OpaqueIndexMap {
     /// assert_eq!(opaque_map.get_key_value::<_, usize, f64, RandomState, Global>(&4_usize), None);
     /// assert_eq!(opaque_map.get_key_value::<_, usize, f64, RandomState, Global>(&usize::MAX), None);
     /// ```
+    #[track_caller]
     pub fn get_key_value<Q, K, V, S, A>(&self, key: &Q) -> Option<(&K, &V)>
     where
         K: any::Any,
@@ -18440,6 +18457,7 @@ impl OpaqueIndexMap {
     /// assert_eq!(opaque_map.get_full::<_, usize, f64, RandomState, Global>(&4_usize), None);
     /// assert_eq!(opaque_map.get_full::<_, usize, f64, RandomState, Global>(&usize::MAX), None);
     /// ```
+    #[track_caller]
     pub fn get_full<Q, K, V, S, A>(&self, key: &Q) -> Option<(usize, &K, &V)>
     where
         K: any::Any,
@@ -18609,6 +18627,7 @@ impl OpaqueIndexMap {
     /// assert_eq!(opaque_map.get_mut::<_, usize, f64, RandomState, Global>(&4_usize), None);
     /// assert_eq!(opaque_map.get_mut::<_, usize, f64, RandomState, Global>(&usize::MAX), None);
     /// ```
+    #[track_caller]
     pub fn get_mut<Q, K, V, S, A>(&mut self, key: &Q) -> Option<&mut V>
     where
         K: any::Any,
@@ -18780,6 +18799,7 @@ impl OpaqueIndexMap {
     /// assert_eq!(opaque_map.get_full_mut::<_, usize, f64, RandomState, Global>(&4_usize), None);
     /// assert_eq!(opaque_map.get_full_mut::<_, usize, f64, RandomState, Global>(&usize::MAX), None);
     /// ```
+    #[track_caller]
     pub fn get_full_mut<Q, K, V, S, A>(&mut self, key: &Q) -> Option<(usize, &K, &mut V)>
     where
         K: any::Any,
@@ -18833,6 +18853,7 @@ impl OpaqueIndexMap {
     ///
     /// assert_eq!(opaque_map.get_disjoint_mut::<_, 3, isize, char, RandomState, Global>([&2, &1, &5]), [Some(&mut 'c'), Some(&mut 'a'), Some(&mut '@')]);
     /// ```
+    #[track_caller]
     pub fn get_disjoint_mut<Q, const N: usize, K, V, S, A>(&mut self, keys: [&Q; N]) -> [Option<&mut V>; N]
     where
         K: any::Any,
@@ -18901,6 +18922,7 @@ impl OpaqueIndexMap {
     ///     assert_eq!(result, expected);
     /// }
     /// ```
+    #[track_caller]
     pub fn keys<K, V, S, A>(&self) -> Keys<'_, K, V>
     where
         K: any::Any,
@@ -18968,6 +18990,7 @@ impl OpaqueIndexMap {
     ///     assert_eq!(result, expected);
     /// }
     /// ```
+    #[track_caller]
     pub fn into_keys<K, V, S, A>(self) -> IntoKeys<K, V, A>
     where
         K: any::Any,
@@ -19035,6 +19058,7 @@ impl OpaqueIndexMap {
     ///     assert_eq!(result, expected);
     /// }
     /// ```
+    #[track_caller]
     pub fn iter<K, V, S, A>(&self) -> Iter<'_, K, V>
     where
         K: any::Any,
@@ -19152,6 +19176,7 @@ impl OpaqueIndexMap {
     ///
     /// assert_eq!(new_entries.as_slice(), &[(1_usize, 4_f64), (2_usize, 6_f64), (3_usize, 8_f64)]);
     /// ```
+    #[track_caller]
     pub fn iter_mut<K, V, S, A>(&mut self) -> IterMut<'_, K, V>
     where
         K: any::Any,
@@ -19218,6 +19243,7 @@ impl OpaqueIndexMap {
     ///     assert_eq!(&values[index], value);
     /// }
     /// ```
+    #[track_caller]
     pub fn values<K, V, S, A>(&self) -> Values<'_, K, V>
     where
         K: any::Any,
@@ -19328,6 +19354,7 @@ impl OpaqueIndexMap {
     ///
     /// assert_eq!(new_values.as_slice(), &[4_f64, 6_f64, 8_f64]);
     /// ```
+    #[track_caller]
     pub fn values_mut<K, V, S, A>(&mut self) -> ValuesMut<'_, K, V>
     where
         K: any::Any,
@@ -19394,6 +19421,7 @@ impl OpaqueIndexMap {
     ///     assert_eq!(&values[index], value);
     /// }
     /// ```
+    #[track_caller]
     pub fn into_values<K, V, S, A>(self) -> IntoValues<K, V, A>
     where
         K: any::Any,
@@ -19491,6 +19519,7 @@ impl OpaqueIndexMap {
     /// assert!(opaque_map.is_empty());
     /// assert_eq!(opaque_map.capacity(), old_capacity);
     /// ```
+    #[track_caller]
     pub fn clear<K, V, S, A>(&mut self)
     where
         K: any::Any,
@@ -19717,6 +19746,7 @@ impl OpaqueIndexMap {
     /// ```
     ///
     /// [`clear`]: TypedProjIndexMap::clear
+    #[track_caller]
     pub fn truncate<K, V, S, A>(&mut self, len: usize)
     where
         K: any::Any,
@@ -20356,6 +20386,7 @@ impl OpaqueIndexMap {
     ///     assert_eq!(removed, Some(2_f64));
     /// }
     /// ```
+    #[track_caller]
     pub fn swap_remove<Q, K, V, S, A>(&mut self, key: &Q) -> Option<V>
     where
         K: any::Any,
@@ -20665,6 +20696,7 @@ impl OpaqueIndexMap {
     ///     assert_eq!(removed, Some((1_isize, 2_f64)));
     /// }
     /// ```
+    #[track_caller]
     pub fn swap_remove_entry<Q, K, V, S, A>(&mut self, key: &Q) -> Option<(K, V)>
     where
         K: any::Any,
@@ -20974,6 +21006,7 @@ impl OpaqueIndexMap {
     ///     assert_eq!(removed, Some((0, 1_isize, 2_f64)));
     /// }
     /// ```
+    #[track_caller]
     pub fn swap_remove_full<Q, K, V, S, A>(&mut self, key: &Q) -> Option<(usize, K, V)>
     where
         K: any::Any,
@@ -21280,6 +21313,7 @@ impl OpaqueIndexMap {
     /// ```
     ///
     /// [`pop`]: OpaqueIndexMap::pop
+    #[track_caller]
     pub fn shift_remove<Q, K, V, S, A>(&mut self, key: &Q) -> Option<V>
     where
         K: any::Any,
@@ -21586,6 +21620,7 @@ impl OpaqueIndexMap {
     /// ```
     ///
     /// [`pop`]: OpaqueIndexMap::pop
+    #[track_caller]
     pub fn shift_remove_entry<Q, K, V, S, A>(&mut self, key: &Q) -> Option<(K, V)>
     where
         K: any::Any,
@@ -21891,6 +21926,7 @@ impl OpaqueIndexMap {
     /// ```
     ///
     /// [`pop`]: OpaqueIndexMap::pop
+    #[track_caller]
     pub fn shift_remove_full<Q, K, V, S, A>(&mut self, key: &Q) -> Option<(usize, K, V)>
     where
         K: any::Any,
@@ -21952,6 +21988,7 @@ impl OpaqueIndexMap {
     /// assert_eq!(slice[1], "bar");
     /// assert_eq!(slice[2], "baz");
     /// ```
+    #[track_caller]
     pub fn as_slice<K, V, S, A>(&self) -> &'_ Slice<K, V>
     where
         K: any::Any,
@@ -22012,6 +22049,7 @@ impl OpaqueIndexMap {
     /// assert_eq!(slice[1], "bar");
     /// assert_eq!(slice[2], "baz");
     /// ```
+    #[track_caller]
     pub fn as_mut_slice<K, V, S, A>(&mut self) -> &mut Slice<K, V>
     where
         K: any::Any,
@@ -22136,6 +22174,7 @@ impl OpaqueIndexMap {
     ///
     /// assert_eq!(result, Some(3_f64));
     /// ```
+    #[track_caller]
     pub fn insert<K, V, S, A>(&mut self, key: K, value: V) -> Option<V>
     where
         K: any::Any + Eq + hash::Hash,
@@ -22262,6 +22301,7 @@ impl OpaqueIndexMap {
     ///
     /// assert_eq!(result, (1, Some(3_f64)));
     /// ```
+    #[track_caller]
     pub fn insert_full<K, V, S, A>(&mut self, key: K, value: V) -> (usize, Option<V>)
     where
         K: any::Any + Eq + hash::Hash,
@@ -22481,6 +22521,7 @@ impl OpaqueIndexMap {
     ///
     /// assert_eq!(opaque_map.get::<_, isize, f64, RandomState, Global>(&5_isize), Some(&100_f64));
     /// ```
+    #[track_caller]
     pub fn insert_sorted<K, V, S, A>(&mut self, key: K, value: V) -> (usize, Option<V>)
     where
         K: any::Any + Eq + hash::Hash + Ord,
@@ -23166,6 +23207,7 @@ impl OpaqueIndexMap {
     /// assert_eq!(opaque_map.entry::<&str, i32, RandomState, Global>("quuz").index(), 4);
     /// assert_eq!(opaque_map.entry::<&str, i32, RandomState, Global>("garply").index(), 5);
     /// ```
+    #[track_caller]
     pub fn entry<K, V, S, A>(&mut self, key: K) -> Entry<'_, K, V, A>
     where
         K: any::Any + Eq + hash::Hash,
@@ -23535,6 +23577,7 @@ impl OpaqueIndexMap {
     ///
     /// assert_eq!(result_values.as_slice(), expected_values.as_slice());
     /// ```
+    #[track_caller]
     pub fn append<K, V, S1, S2, A>(&mut self, other: &mut OpaqueIndexMap)
     where
         K: any::Any + Eq + hash::Hash,
@@ -23679,6 +23722,7 @@ impl OpaqueIndexMap {
     /// assert_eq!(result, expected);
     /// assert!(opaque_map.is_empty());
     /// ```
+    #[track_caller]
     #[doc(alias = "pop_last")]
     pub fn pop<K, V, S, A>(&mut self) -> Option<(K, V)>
     where
@@ -23818,6 +23862,7 @@ impl OpaqueIndexMap {
     ///
     /// assert_eq!(result, expected);
     /// ```
+    #[track_caller]
     pub fn retain<F, K, V, S, A>(&mut self, keep: F)
     where
         K: any::Any,
@@ -23954,6 +23999,7 @@ impl OpaqueIndexMap {
     ///
     /// assert_eq!(opaque_map.as_slice::<isize, char, RandomState, Global>(), expected.as_slice());
     /// ```
+    #[track_caller]
     pub fn sort_keys<K, V, S, A>(&mut self)
     where
         K: any::Any + Ord,
@@ -24090,6 +24136,7 @@ impl OpaqueIndexMap {
     ///
     /// assert_eq!(opaque_map.as_slice::<usize, char, RandomState, Global>(), expected.as_slice());
     /// ```
+    #[track_caller]
     pub fn sort_by<F, K, V, S, A>(&mut self, cmp: F)
     where
         K: any::Any,
@@ -24159,6 +24206,7 @@ impl OpaqueIndexMap {
     ///
     /// assert_eq!(result.as_slice(), expected.as_slice());
     /// ```
+    #[track_caller]
     pub fn sorted_by<F, K, V, S, A>(self, cmp: F) -> IntoIter<K, V, A>
     where
         K: any::Any,
@@ -24278,6 +24326,7 @@ impl OpaqueIndexMap {
     ///
     /// assert_eq!(opaque_map.as_slice::<isize, char, RandomState, Global>(), expected.as_slice());
     /// ```
+    #[track_caller]
     pub fn sort_unstable_keys<K, V, S, A>(&mut self)
     where
         K: any::Any + Ord,
@@ -24422,6 +24471,7 @@ impl OpaqueIndexMap {
     ///
     /// assert_eq!(result.as_slice::<isize, char, RandomState, Global>(), expected.as_slice());
     /// ```
+    #[track_caller]
     pub fn sort_unstable_by<F, K, V, S, A>(&mut self, cmp: F)
     where
         K: any::Any,
@@ -24501,6 +24551,7 @@ impl OpaqueIndexMap {
     /// assert_eq!(result.as_slice(), expected.as_slice());
     /// ```
     #[inline]
+    #[track_caller]
     pub fn sorted_unstable_by<F, K, V, S, A>(self, cmp: F) -> IntoIter<K, V, A>
     where
         K: any::Any,
@@ -24578,6 +24629,7 @@ impl OpaqueIndexMap {
     ///
     /// assert_eq!(opaque_map.as_slice::<usize, i32, RandomState, Global>(), expected.as_slice());
     /// ```
+    #[track_caller]
     pub fn sort_by_cached_key<T, F, K, V, S, A>(&mut self, mut sort_key: F)
     where
         K: any::Any,
@@ -24641,6 +24693,7 @@ impl OpaqueIndexMap {
     ///     assert_eq!(result, Ok(i));
     /// }
     /// ```
+    #[track_caller]
     pub fn binary_search_keys<K, V, S, A>(&self, key: &K) -> Result<usize, usize>
     where
         K: any::Any + Ord,
@@ -24762,6 +24815,7 @@ impl OpaqueIndexMap {
     /// assert_eq!(opaque_map.binary_search_by::<_, usize, char, RandomState, Global>(|&k, &v| v.cmp(&'h')), Ok(10));
     /// ```
     #[inline]
+    #[track_caller]
     pub fn binary_search_by<F, K, V, S, A>(&self, f: F) -> Result<usize, usize>
     where
         K: any::Any,
@@ -24850,6 +24904,7 @@ impl OpaqueIndexMap {
     /// assert!(match result { Ok(1..=4) => true, _ => false, });
     /// ```
     #[inline]
+    #[track_caller]
     pub fn binary_search_by_key<B, F, K, V, S, A>(&self, b: &B, f: F) -> Result<usize, usize>
     where
         K: any::Any,
@@ -25005,6 +25060,7 @@ impl OpaqueIndexMap {
     /// assert_eq!(opaque_map.partition_point::<_, usize, usize, RandomState, Global>(|&k, &v| is_power_of_two(v)), 0);
     /// ```
     #[must_use]
+    #[track_caller]
     pub fn partition_point<P, K, V, S, A>(&self, pred: P) -> usize
     where
         K: any::Any,
@@ -25068,6 +25124,7 @@ impl OpaqueIndexMap {
     ///
     /// assert_eq!(opaque_map.as_slice::<usize, &str, RandomState, Global>(), expected.as_slice());
     /// ```
+    #[track_caller]
     pub fn reverse<K, V, S, A>(&mut self)
     where
         K: any::Any,
@@ -25141,6 +25198,7 @@ impl OpaqueIndexMap {
     ///
     /// assert_eq!(opaque_map.capacity(), old_capacity);
     /// ```
+    #[track_caller]
     pub fn reserve<K, V, S, A>(&mut self, additional: usize)
     where
         K: any::Any,
@@ -25216,6 +25274,7 @@ impl OpaqueIndexMap {
     ///
     /// assert_eq!(opaque_map.capacity(), old_capacity);
     /// ```
+    #[track_caller]
     pub fn reserve_exact<K, V, S, A>(&mut self, additional: usize)
     where
         K: any::Any,
@@ -25290,6 +25349,7 @@ impl OpaqueIndexMap {
     ///
     /// assert_eq!(opaque_map.capacity(), old_capacity);
     /// ```
+    #[track_caller]
     pub fn try_reserve<K, V, S, A>(&mut self, additional: usize) -> Result<(), TryReserveError>
     where
         K: any::Any,
@@ -25366,6 +25426,7 @@ impl OpaqueIndexMap {
     ///
     /// assert_eq!(opaque_map.capacity(), old_capacity);
     /// ```
+    #[track_caller]
     pub fn try_reserve_exact<K, V, S, A>(&mut self, additional: usize) -> Result<(), TryReserveError>
     where
         K: any::Any,
@@ -25428,6 +25489,7 @@ impl OpaqueIndexMap {
     ///
     /// assert!(opaque_map.capacity() >= 3);
     /// ```
+    #[track_caller]
     pub fn shrink_to_fit<K, V, S, A>(&mut self)
     where
         K: any::Any,
@@ -25505,6 +25567,7 @@ impl OpaqueIndexMap {
     ///
     /// assert!(opaque_map.capacity() >= 3);
     /// ```
+    #[track_caller]
     pub fn shrink_to<K, V, S, A>(&mut self, min_capacity: usize)
     where
         K: any::Any,
@@ -25571,6 +25634,7 @@ impl OpaqueIndexMap {
     /// assert_eq!(boxed_slice.len(), 3);
     /// assert_eq!(boxed_slice.as_ref(), &[(0_usize, 1_i32), (1_usize, 2_i32), (2_usize, 3_i32)]);
     /// ```
+    #[track_caller]
     pub fn into_boxed_slice<K, V, S, A>(self) -> Box<Slice<K, V>, TypedProjAlloc<A>>
     where
         K: any::Any,
@@ -25659,6 +25723,7 @@ impl OpaqueIndexMap {
     /// assert_eq!(opaque_map.get_index::<usize, i32, RandomState, Global>(2), Some((&3_usize, &30_i32)));
     /// assert_eq!(opaque_map.get_index::<usize, i32, RandomState, Global>(3), None);
     /// ```
+    #[track_caller]
     pub fn get_index<K, V, S, A>(&self, index: usize) -> Option<(&K, &V)>
     where
         K: any::Any,
@@ -25745,6 +25810,7 @@ impl OpaqueIndexMap {
     /// assert_eq!(opaque_map.get_index_mut::<usize, i32, RandomState, Global>(2), Some((&3_usize, &mut 30_i32)));
     /// assert_eq!(opaque_map.get_index_mut::<usize, i32, RandomState, Global>(3), None);
     /// ```
+    #[track_caller]
     pub fn get_index_mut<K, V, S, A>(&mut self, index: usize) -> Option<(&K, &mut V)>
     where
         K: any::Any,
@@ -25819,6 +25885,7 @@ impl OpaqueIndexMap {
     ///
     /// assert!(opaque_map.get_index_entry::<usize, i32, RandomState, Global>(3).is_none());
     /// ```
+    #[track_caller]
     pub fn get_index_entry<K, V, S, A>(&mut self, index: usize) -> Option<IndexedEntry<'_, K, V, A>>
     where
         K: any::Any + Ord,
@@ -25874,6 +25941,7 @@ impl OpaqueIndexMap {
     /// assert_eq!(result[1], (&3_isize, &mut 'b'));
     /// assert_eq!(result[2], (&5_isize, &mut '@'));
     /// ```
+    #[track_caller]
     pub fn get_disjoint_indices_mut<const N: usize, K, V, S, A>(&mut self, indices: [usize; N]) -> Result<[(&K, &mut V); N], GetDisjointMutError>
     where
         K: any::Any + Ord,
@@ -25941,6 +26009,7 @@ impl OpaqueIndexMap {
     /// assert_eq!(slice[1], 30_i32);
     /// assert_eq!(slice[2], 60_i32);
     /// ```
+    #[track_caller]
     pub fn get_range<R, K, V, S, A>(&self, range: R) -> Option<&Slice<K, V>>
     where
         K: any::Any,
@@ -26009,6 +26078,7 @@ impl OpaqueIndexMap {
     /// assert_eq!(slice[1], 30_i32);
     /// assert_eq!(slice[2], 60_i32);
     /// ```
+    #[track_caller]
     pub fn get_range_mut<R, K, V, S, A>(&mut self, range: R) -> Option<&mut Slice<K, V>>
     where
         K: any::Any,
@@ -26101,6 +26171,7 @@ impl OpaqueIndexMap {
     ///
     /// assert!(maybe_entry.is_none());
     /// ```
+    #[track_caller]
     #[doc(alias = "first_key_value")]
     pub fn first<K, V, S, A>(&self) -> Option<(&K, &V)>
     where
@@ -26193,6 +26264,7 @@ impl OpaqueIndexMap {
     ///
     /// assert!(maybe_entry.is_none());
     /// ```
+    #[track_caller]
     pub fn first_mut<K, V, S, A>(&mut self) -> Option<(&K, &mut V)>
     where
         K: any::Any,
@@ -26288,6 +26360,7 @@ impl OpaqueIndexMap {
     ///
     /// assert!(entry.is_none());
     /// ```
+    #[track_caller]
     pub fn first_entry<K, V, S, A>(&mut self) -> Option<IndexedEntry<'_, K, V, A>>
     where
         K: any::Any + Ord,
@@ -26379,6 +26452,7 @@ impl OpaqueIndexMap {
     ///
     /// assert!(maybe_entry.is_none());
     /// ```
+    #[track_caller]
     #[doc(alias = "last_key_value")]
     pub fn last<K, V, S, A>(&self) -> Option<(&K, &V)>
     where
@@ -26471,6 +26545,7 @@ impl OpaqueIndexMap {
     ///
     /// assert!(maybe_entry.is_none());
     /// ```
+    #[track_caller]
     pub fn last_mut<K, V, S, A>(&mut self) -> Option<(&K, &mut V)>
     where
         K: any::Any,
@@ -26566,6 +26641,7 @@ impl OpaqueIndexMap {
     ///
     /// assert!(entry.is_none());
     /// ```
+    #[track_caller]
     pub fn last_entry<K, V, S, A>(&mut self) -> Option<IndexedEntry<'_, K, V, A>>
     where
         K: any::Any + Ord,
@@ -26689,6 +26765,7 @@ impl OpaqueIndexMap {
     /// assert_eq!(removed, Some((1_usize, ())));
     /// assert_eq!(opaque_map.as_slice::<usize, (), RandomState, Global>(), expected.as_slice());
     /// ```
+    #[track_caller]
     pub fn swap_remove_index<K, V, S, A>(&mut self, index: usize) -> Option<(K, V)>
     where
         K: any::Any,
@@ -26807,6 +26884,7 @@ impl OpaqueIndexMap {
     /// assert_eq!(removed, Some((1_usize, ())));
     /// assert_eq!(opaque_map.as_slice::<usize, (), RandomState, Global>(), expected.as_slice());
     /// ```
+    #[track_caller]
     pub fn shift_remove_index<K, V, S, A>(&mut self, index: usize) -> Option<(K, V)>
     where
         K: any::Any,
@@ -27168,6 +27246,7 @@ impl OpaqueIndexMap {
     /// assert_eq!(result, expected);
     /// ```
     #[inline]
+    #[track_caller]
     pub fn clone<K, V, S, A>(&self) -> Self
     where
         K: any::Any + Clone,
@@ -27265,6 +27344,7 @@ impl OpaqueIndexMap {
     /// assert_eq!(result.as_slice::<usize, i32, RandomState, Global>(), expected.as_slice::<usize, i32, RandomState, Global>());
     /// ```
     #[inline]
+    #[track_caller]
     pub fn extend<I, K, V, S, A>(&mut self, iterable: I)
     where
         K: any::Any + hash::Hash + Eq,
@@ -27338,6 +27418,7 @@ impl OpaqueIndexMap {
     /// }
     /// ```
     #[inline]
+    #[track_caller]
     pub fn into_iter<K, V, S, A>(self) -> IntoIter<K, V, A>
     where
         K: any::Any + hash::Hash + Eq,

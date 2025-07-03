@@ -5882,6 +5882,7 @@ impl OpaqueVec {
     /// let proj_vec: &TypedProjVec<i32, Global> = opaque_vec.as_proj::<i32, Global>();
     /// ```
     #[inline]
+    #[track_caller]
     pub fn as_proj<T, A>(&self) -> &TypedProjVec<T, A>
     where
         T: any::Any,
@@ -5921,6 +5922,7 @@ impl OpaqueVec {
     /// let proj_vec: &mut TypedProjVec<i32, Global> = opaque_vec.as_proj_mut::<i32, Global>();
     /// ```
     #[inline]
+    #[track_caller]
     pub fn as_proj_mut<T, A>(&mut self) -> &mut TypedProjVec<T, A>
     where
         T: any::Any,
@@ -5959,6 +5961,7 @@ impl OpaqueVec {
     /// let proj_vec: TypedProjVec<i32, Global> = opaque_vec.into_proj::<i32, Global>();
     /// ```
     #[inline]
+    #[track_caller]
     pub fn into_proj<T, A>(self) -> TypedProjVec<T, A>
     where
         T: any::Any,
@@ -7799,6 +7802,7 @@ impl OpaqueVec {
     /// let alloc: &TypedProjAlloc<Global> = opaque_vec.allocator::<i32, Global>();
     /// ```
     #[inline]
+    #[track_caller]
     pub fn allocator<T, A>(&self) -> &TypedProjAlloc<A>
     where
         T: any::Any,
@@ -7975,6 +7979,7 @@ impl OpaqueVec {
     /// [`extend`]: OpaqueVec::extend
     /// [`clear`]: OpaqueVec::clear
     #[inline]
+    #[track_caller]
     pub unsafe fn set_len<T, A>(&mut self, new_len: usize)
     where
         T: any::Any,
@@ -8028,6 +8033,7 @@ impl OpaqueVec {
     /// ```
     #[inline]
     #[must_use]
+    #[track_caller]
     pub unsafe fn get_unchecked<I, T, A>(&self, index: I) -> &<I as slice::SliceIndex<[T]>>::Output
     where
         T: any::Any,
@@ -8082,6 +8088,7 @@ impl OpaqueVec {
     /// ```
     #[inline]
     #[must_use]
+    #[track_caller]
     pub unsafe fn get_mut_unchecked<I, T, A>(&mut self, index: I) -> &mut <I as slice::SliceIndex<[T]>>::Output
     where
         T: any::Any,
@@ -8140,6 +8147,7 @@ impl OpaqueVec {
     /// ```
     #[inline]
     #[must_use]
+    #[track_caller]
     pub fn get<I, T, A>(&self, index: I) -> Option<&<I as slice::SliceIndex<[T]>>::Output>
     where
         T: any::Any,
@@ -8197,6 +8205,7 @@ impl OpaqueVec {
     /// ```
     #[inline]
     #[must_use]
+    #[track_caller]
     pub fn get_mut<I, T, A>(&mut self, index: I) -> Option<&mut <I as slice::SliceIndex<[T]>>::Output>
     where
         T: any::Any,
@@ -8340,6 +8349,7 @@ impl OpaqueVec {
     /// assert_eq!(opaque_vec.pop::<i32, Global>(), None);
     /// ```
     #[inline]
+    #[track_caller]
     pub fn pop<T, A>(&mut self) -> Option<T>
     where
         T: any::Any,
@@ -8464,6 +8474,7 @@ impl OpaqueVec {
     /// [`reserve`]: OpaqueVec::reserve
     /// [`try_reserve`]: OpaqueVec::try_reserve
     #[inline]
+    #[track_caller]
     pub fn push_within_capacity<T, A>(&mut self, value: T) -> Result<(), T>
     where
         T: any::Any,
@@ -8917,6 +8928,7 @@ impl OpaqueVec {
     /// assert!(!opaque_vec.contains::<i32, Global>(&4));
     /// assert!(!opaque_vec.contains::<i32, Global>(&6));
     /// ```
+    #[track_caller]
     pub fn contains<T, A>(&self, value: &T) -> bool
     where
         T: any::Any + PartialEq,
@@ -8969,6 +8981,7 @@ impl OpaqueVec {
     ///     assert!(iterator.next().is_none());
     /// }
     /// ```
+    #[track_caller]
     pub fn iter<T, A>(&self) -> slice::Iter<'_, T>
     where
         T: any::Any,
@@ -9021,6 +9034,7 @@ impl OpaqueVec {
     ///     assert!(iterator.next().is_none());
     /// }
     /// ```
+    #[track_caller]
     pub fn iter_mut<T, A>(&mut self) -> slice::IterMut<'_, T>
     where
         T: any::Any,
@@ -9090,6 +9104,7 @@ impl OpaqueVec {
     ///     assert_eq!(iterator.next(), None);
     /// }
     /// ```
+    #[track_caller]
     pub fn into_iter<T, A>(self) -> IntoIter<T, A>
     where
         T: any::Any,
@@ -9325,6 +9340,7 @@ impl OpaqueVec {
     /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &[1, 2, 3, 4, 5, 6]);
     /// assert_eq!(drained_vec.as_slice::<i32, Global>(), &[]);
     /// ```
+    #[track_caller]
     pub fn drain<R, T, A>(&mut self, range: R) -> Drain<'_, T, A>
     where
         T: any::Any,
@@ -9430,6 +9446,7 @@ impl OpaqueVec {
     /// [`as_ptr`]: OpaqueVec::as_ptr
     /// [`as_non_null`]: OpaqueVec::as_non_null
     #[inline]
+    #[track_caller]
     pub fn as_ptr<T, A>(&self) -> *const T
     where
         T: any::Any,
@@ -9527,6 +9544,7 @@ impl OpaqueVec {
     /// [`as_ptr`]: OpaqueVec::as_ptr
     /// [`as_non_null`]: OpaqueVec::as_non_null
     #[inline]
+    #[track_caller]
     pub fn as_mut_ptr<T, A>(&mut self) -> *mut T
     where
         T: any::Any,
@@ -9616,6 +9634,7 @@ impl OpaqueVec {
     /// [`as_ptr`]: OpaqueVec::as_ptr
     /// [`as_non_null`]: OpaqueVec::as_non_null
     #[inline]
+    #[track_caller]
     pub fn as_non_null<T, A>(&mut self) -> NonNull<T>
     where
         T: any::Any,
@@ -9658,6 +9677,7 @@ impl OpaqueVec {
     /// assert_eq!(result, expected);
     /// assert_eq!(result.len(), opaque_vec.len());
     /// ```
+    #[track_caller]
     pub fn as_slice<T, A>(&self) -> &[T]
     where
         T: any::Any,
@@ -9735,6 +9755,7 @@ impl OpaqueVec {
     /// assert_eq!(result, expected);
     /// assert_eq!(result.len(), opaque_vec.len());
     /// ```
+    #[track_caller]
     pub fn as_mut_slice<T, A>(&mut self) -> &mut [T]
     where
         T: any::Any,
@@ -9796,6 +9817,7 @@ impl OpaqueVec {
     /// assert_eq!(reinterpreted.as_slice::<u32, Global>(), &[4294967295, 0, 1]);
     /// ```
     #[must_use]
+    #[track_caller]
     pub fn into_raw_parts<T>(self) -> (*mut T, usize, usize)
     where
         T: any::Any,
@@ -9856,6 +9878,7 @@ impl OpaqueVec {
     /// assert_eq!(reinterpreted.as_slice::<u32, Global>(), &[4294967295, 0, 1]);
     /// ```
     #[must_use]
+    #[track_caller]
     pub fn into_parts<T>(self) -> (NonNull<T>, usize, usize)
     where
         T: any::Any,
@@ -9919,6 +9942,7 @@ impl OpaqueVec {
     /// assert_eq!(reinterpreted.as_slice::<u32, Global>(), &[4294967295, 0, 1]);
     /// ```
     #[must_use]
+    #[track_caller]
     pub fn into_raw_parts_with_alloc<T, A>(self) -> (*mut T, usize, usize, TypedProjAlloc<A>)
     where
         T: any::Any,
@@ -9980,6 +10004,7 @@ impl OpaqueVec {
     /// assert_eq!(reinterpreted.as_slice::<u32, Global>(), &[4294967295, 0, 1]);
     /// ```
     #[must_use]
+    #[track_caller]
     pub fn into_parts_with_alloc<T, A>(self) -> (NonNull<T>, usize, usize, TypedProjAlloc<A>)
     where
         T: any::Any,
@@ -10274,6 +10299,7 @@ impl OpaqueVec {
     /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &[1, 2, 3]);
     /// ```
     #[inline]
+    #[track_caller]
     pub fn spare_capacity_mut<T, A>(&mut self) -> &mut [MaybeUninit<T>]
     where
         T: any::Any,
@@ -10332,6 +10358,7 @@ impl OpaqueVec {
     ///
     /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), expected.as_slice());
     /// ```
+    #[track_caller]
     pub fn try_reserve<T, A>(&mut self, additional: usize) -> Result<(), TryReserveError>
     where
         T: any::Any,
@@ -10391,6 +10418,7 @@ impl OpaqueVec {
     ///
     /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), expected.as_slice());
     /// ```
+    #[track_caller]
     pub fn try_reserve_exact<T, A>(&mut self, additional: usize) -> Result<(), TryReserveError>
     where
         T: any::Any,
@@ -10555,8 +10583,8 @@ impl OpaqueVec {
     ///
     /// assert!(opaque_vec.capacity() >= 3);
     /// ```
-    #[track_caller]
     #[inline]
+    #[track_caller]
     pub fn shrink_to_fit<T, A>(&mut self)
     where
         T: any::Any,
@@ -10696,6 +10724,7 @@ impl OpaqueVec {
     /// assert_eq!(opaque_vec.len(), 0);
     /// assert_eq!(opaque_vec.capacity(), old_capacity);
     /// ```
+    #[track_caller]
     pub fn clear<T, A>(&mut self)
     where
         T: any::Any,
@@ -10816,6 +10845,7 @@ impl OpaqueVec {
     /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &[1, 2, 3, 4, 5]);
     /// ```
     #[inline]
+    #[track_caller]
     pub fn splice<R, I, T, A>(&mut self, range: R, replace_with: I) -> Splice<'_, I::IntoIter, A>
     where
         T: any::Any,
@@ -10958,6 +10988,7 @@ impl OpaqueVec {
     /// assert_eq!(items.as_slice::<i32, Global>(), &[0, 0, 0, 0, 0, 0, 0, 2, 2, 2]);
     /// assert_eq!(ones.len(), 3);
     /// ```
+    #[track_caller]
     pub fn extract_if<F, R, T, A>(&mut self, range: R, filter: F) -> ExtractIf<'_, T, F, A>
     where
         T: any::Any,
@@ -11318,6 +11349,7 @@ impl OpaqueVec {
     /// [`clear`]: OpaqueVec::clear
     /// [`drain`]: OpaqueVec::drain
     #[inline]
+    #[track_caller]
     pub fn truncate<T, A>(&mut self, len: usize)
     where
         T: any::Any,
@@ -11410,6 +11442,7 @@ impl OpaqueVec {
     ///
     /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &[2, 4, 6]);
     /// ```
+    #[track_caller]
     pub fn retain<F, T, A>(&mut self, keep: F)
     where
         T: any::Any,
@@ -11508,6 +11541,7 @@ impl OpaqueVec {
     ///
     /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &[2, 3, 4]);
     /// ```
+    #[track_caller]
     pub fn retain_mut<F, T, A>(&mut self, keep: F)
     where
         T: any::Any,
@@ -11642,6 +11676,7 @@ impl OpaqueVec {
     /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &[1, 2, 3, 4, 5]);
     /// ```
     #[inline]
+    #[track_caller]
     pub fn dedup<T, A>(&mut self)
     where
         T: any::Any + PartialEq,
@@ -11740,6 +11775,7 @@ impl OpaqueVec {
     /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &[10, 20, 30, 40]);
     /// ```
     #[inline]
+    #[track_caller]
     pub fn dedup_by_key<F, K, T, A>(&mut self, key: F)
     where
         T: any::Any,
@@ -11855,6 +11891,7 @@ impl OpaqueVec {
     ///
     /// assert_eq!(opaque_vec.as_slice::<&'static str, Global>(), &["foo", "bar", "baz", "quux", "garply"]);
     /// ```
+    #[track_caller]
     pub fn dedup_by<F, T, A>(&mut self, same_bucket: F)
     where
         T: any::Any,
@@ -11907,6 +11944,7 @@ impl OpaqueVec {
     /// assert_eq!(result.as_slice::<i32, Global>(), expected.as_slice::<i32, Global>());
     /// ```
     #[inline]
+    #[track_caller]
     pub fn extend<I, T, A>(&mut self, iterable: I)
     where
         T: any::Any,
@@ -11985,6 +12023,7 @@ impl OpaqueVec {
     /// assert_eq!(result.as_slice::<i32, Global>(), expected.as_slice::<i32, Global>());
     /// ```
     #[inline]
+    #[track_caller]
     pub fn reverse<T, A>(&mut self)
     where
         T: any::Any,
@@ -12070,6 +12109,7 @@ impl OpaqueVec {
     /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), cloned_opaque_vec.as_slice::<i32, Global>());
     /// ```
     #[inline]
+    #[track_caller]
     pub fn clone<T, A>(&self) -> Self
     where
         T: any::Any + Clone,

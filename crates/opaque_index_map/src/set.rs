@@ -2887,6 +2887,7 @@ where
     /// assert!(proj_set.is_empty());
     /// assert_eq!(proj_set.capacity(), 0);
     /// ```
+    #[inline]
     pub fn new_proj_in(proj_alloc: TypedProjAlloc<A>) -> Self {
         let proj_inner = map_inner::TypedProjIndexMapInner::<T, (), hash::RandomState, A>::new_proj_in(proj_alloc);
 
@@ -2956,6 +2957,7 @@ where
     /// assert!(proj_set.is_empty());
     /// assert_eq!(proj_set.capacity(), 0);
     /// ```
+    #[inline]
     pub fn with_capacity_proj_in(capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self {
         let proj_inner = map_inner::TypedProjIndexMapInner::<T, (), hash::RandomState, A>::with_capacity_proj_in(capacity, proj_alloc);
 
@@ -3002,6 +3004,7 @@ where
     /// assert!(proj_set.is_empty());
     /// assert_eq!(proj_set.capacity(), 0);
     /// ```
+    #[inline]
     pub fn with_hasher_in(build_hasher: S, alloc: A) -> Self {
         let proj_inner = map_inner::TypedProjIndexMapInner::with_hasher_in(build_hasher, alloc);
 
@@ -3071,6 +3074,7 @@ where
     /// assert!(proj_set.is_empty());
     /// assert_eq!(proj_set.capacity(), 0);
     /// ```
+    #[inline]
     pub fn with_capacity_and_hasher_in(capacity: usize, build_hasher: S, alloc: A) -> Self {
         let proj_inner = map_inner::TypedProjIndexMapInner::with_capacity_and_hasher_in(capacity, build_hasher, alloc);
 
@@ -3113,6 +3117,7 @@ where
     /// assert!(proj_set.is_empty());
     /// assert_eq!(proj_set.capacity(), 0);
     /// ```
+    #[inline]
     pub fn new_in(alloc: A) -> Self {
         let proj_inner = map_inner::TypedProjIndexMapInner::<T, (), hash::RandomState, A>::new_in(alloc);
 
@@ -3180,6 +3185,7 @@ where
     /// assert!(proj_set.is_empty());
     /// assert_eq!(proj_set.capacity(), 0);
     /// ```
+    #[inline]
     pub fn with_capacity_in(capacity: usize, alloc: A) -> Self {
         let proj_inner = map_inner::TypedProjIndexMapInner::<T, (), hash::RandomState, A>::with_capacity_in(capacity, alloc);
 
@@ -3222,6 +3228,7 @@ where
     /// assert!(proj_set.is_empty());
     /// assert_eq!(proj_set.capacity(), 0);
     /// ```
+    #[inline]
     pub fn with_hasher(build_hasher: S) -> Self {
         TypedProjIndexSet {
             inner: map_inner::TypedProjIndexMapInner::with_hasher(build_hasher),
@@ -3287,6 +3294,7 @@ where
     /// assert!(proj_set.is_empty());
     /// assert_eq!(proj_set.capacity(), 0);
     /// ```
+    #[inline]
     pub fn with_capacity_and_hasher(capacity: usize, build_hasher: S) -> Self {
         TypedProjIndexSet {
             inner: map_inner::TypedProjIndexMapInner::with_capacity_and_hasher(capacity, build_hasher),
@@ -3326,6 +3334,7 @@ where
     /// assert!(proj_set.is_empty());
     /// assert_eq!(proj_set.capacity(), 0);
     /// ```
+    #[inline]
     pub fn new() -> Self {
         TypedProjIndexSet {
             inner: map_inner::TypedProjIndexMapInner::new(),
@@ -3389,6 +3398,7 @@ where
     /// assert!(proj_set.is_empty());
     /// assert_eq!(proj_set.capacity(), 0);
     /// ```
+    #[inline]
     pub fn with_capacity(capacity: usize) -> Self {
         TypedProjIndexSet {
             inner: map_inner::TypedProjIndexMapInner::with_capacity(capacity),
@@ -10665,6 +10675,7 @@ impl OpaqueIndexSet {
     /// let proj_set: &TypedProjIndexSet<usize, RandomState, Global> = opaque_set.as_proj::<usize, RandomState, Global>();
     /// ```
     #[inline]
+    #[track_caller]
     pub fn as_proj<T, S, A>(&self) -> &TypedProjIndexSet<T, S, A>
     where
         T: any::Any,
@@ -10711,6 +10722,7 @@ impl OpaqueIndexSet {
     /// let proj_set: &mut TypedProjIndexSet<usize, RandomState, Global> = opaque_set.as_proj_mut::<usize, RandomState, Global>();
     /// ```
     #[inline]
+    #[track_caller]
     pub fn as_proj_mut<T, S, A>(&mut self) -> &mut TypedProjIndexSet<T, S, A>
     where
         T: any::Any,
@@ -10756,6 +10768,7 @@ impl OpaqueIndexSet {
     /// let proj_set: TypedProjIndexSet<usize, RandomState, Global> = opaque_set.into_proj::<usize, RandomState, Global>();
     /// ```
     #[inline]
+    #[track_caller]
     pub fn into_proj<T, S, A>(self) -> TypedProjIndexSet<T, S, A>
     where
         T: any::Any,
@@ -10974,6 +10987,7 @@ impl OpaqueIndexSet {
     /// assert!(opaque_set.is_empty());
     /// assert_eq!(opaque_set.capacity(), 0);
     /// ```
+    #[inline]
     pub fn new_proj_in<T, A>(proj_alloc: TypedProjAlloc<A>) -> Self
     where
         T: any::Any,
@@ -11045,6 +11059,7 @@ impl OpaqueIndexSet {
     /// assert!(opaque_set.is_empty());
     /// assert_eq!(opaque_set.capacity(), 0);
     /// ```
+    #[inline]
     pub fn with_capacity_proj_in<T, A>(capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self
     where
         T: any::Any,
@@ -11203,6 +11218,7 @@ impl OpaqueIndexSet {
     /// assert!(opaque_set.is_empty());
     /// assert_eq!(opaque_set.capacity(), 0);
     /// ```
+    #[inline]
     pub fn new_in<T, A>(alloc: A) -> Self
     where
         T: any::Any,
@@ -11272,6 +11288,7 @@ impl OpaqueIndexSet {
     /// assert!(opaque_set.is_empty());
     /// assert_eq!(opaque_set.capacity(), 0);
     /// ```
+    #[inline]
     pub fn with_capacity_in<T, A>(capacity: usize, alloc: A) -> Self
     where
         T: any::Any,
@@ -11663,6 +11680,7 @@ impl OpaqueIndexSet {
     /// let build_hasher: &TypedProjBuildHasher<RandomState> = opaque_set.hasher::<usize, RandomState, Global>();
     /// ```
     #[inline]
+    #[track_caller]
     pub fn hasher<T, S, A>(&self) -> &TypedProjBuildHasher<S>
     where
         T: any::Any,
@@ -11711,6 +11729,7 @@ impl OpaqueIndexSet {
     /// let alloc: &TypedProjAlloc<Global> = opaque_set.allocator::<usize, RandomState, Global>();
     /// ```
     #[inline]
+    #[track_caller]
     pub fn allocator<T, S, A>(&self) -> &TypedProjAlloc<A>
     where
         T: any::Any,
@@ -11772,6 +11791,7 @@ impl OpaqueIndexSet {
     ///     assert_eq!(result, expected);
     /// }
     /// ```
+    #[track_caller]
     pub fn iter<T, S, A>(&self) -> Iter<'_, T>
     where
         T: any::Any,
@@ -11865,6 +11885,7 @@ impl OpaqueIndexSet {
     /// assert!(opaque_set.is_empty());
     /// assert_eq!(opaque_set.capacity(), old_capacity);
     /// ```
+    #[track_caller]
     pub fn clear<T, S, A>(&mut self)
     where
         T: any::Any,
@@ -12063,6 +12084,7 @@ impl OpaqueIndexSet {
     /// ```
     ///
     /// [`clear`]: OpaqueIndexSet::clear
+    #[track_caller]
     pub fn truncate<T, S, A>(&mut self, len: usize)
     where
         T: any::Any,
@@ -12432,6 +12454,7 @@ impl OpaqueIndexSet {
     ///
     /// assert_eq!(opaque_set.capacity(), old_capacity);
     /// ```
+    #[track_caller]
     pub fn reserve<T, S, A>(&mut self, additional: usize)
     where
         T: any::Any,
@@ -12497,6 +12520,7 @@ impl OpaqueIndexSet {
     ///
     /// assert_eq!(opaque_set.capacity(), old_capacity);
     /// ```
+    #[track_caller]
     pub fn reserve_exact<T, S, A>(&mut self, additional: usize)
     where
         T: any::Any,
@@ -12562,6 +12586,7 @@ impl OpaqueIndexSet {
     ///
     /// assert_eq!(opaque_set.capacity(), old_capacity);
     /// ```
+    #[track_caller]
     pub fn try_reserve<T, S, A>(&mut self, additional: usize) -> Result<(), TryReserveError>
     where
         T: any::Any,
@@ -12628,6 +12653,7 @@ impl OpaqueIndexSet {
     ///
     /// assert_eq!(opaque_set.capacity(), old_capacity);
     /// ```
+    #[track_caller]
     pub fn try_reserve_exact<T, S, A>(&mut self, additional: usize) -> Result<(), TryReserveError>
     where
         T: any::Any,
@@ -12687,6 +12713,7 @@ impl OpaqueIndexSet {
     ///
     /// assert!(opaque_set.capacity() >= 3);
     /// ```
+    #[track_caller]
     pub fn shrink_to_fit<T, S, A>(&mut self)
     where
         T: any::Any,
@@ -12761,6 +12788,7 @@ impl OpaqueIndexSet {
     ///
     /// assert!(opaque_set.capacity() >= 3);
     /// ```
+    #[track_caller]
     pub fn shrink_to<T, S, A>(&mut self, min_capacity: usize)
     where
         T: any::Any,
@@ -12878,6 +12906,7 @@ impl OpaqueIndexSet {
     ///
     /// assert_eq!(result, false);
     /// ```
+    #[track_caller]
     pub fn insert<T, S, A>(&mut self, value: T) -> bool
     where
         T: any::Any + hash::Hash + Eq,
@@ -12996,6 +13025,7 @@ impl OpaqueIndexSet {
     ///
     /// assert_eq!(result, (1, false));
     /// ```
+    #[track_caller]
     pub fn insert_full<T, S, A>(&mut self, value: T) -> (usize, bool)
     where
         T: any::Any + hash::Hash + Eq,
@@ -13210,6 +13240,7 @@ impl OpaqueIndexSet {
     ///
     /// assert_eq!(opaque_set.get::<_, isize, RandomState, Global>(&5_isize), Some(&5_isize));
     /// ```
+    #[track_caller]
     pub fn insert_sorted<T, S, A>(&mut self, value: T) -> (usize, bool)
     where
         T: any::Any + hash::Hash + Eq + Ord,
@@ -13886,6 +13917,7 @@ impl OpaqueIndexSet {
     ///
     /// assert_eq!(result_entries, expected_entries);
     /// ```
+    #[track_caller]
     pub fn replace<T, S, A>(&mut self, value: T) -> Option<T>
     where
         T: any::Any + hash::Hash + Eq,
@@ -13980,6 +14012,7 @@ impl OpaqueIndexSet {
     ///
     /// assert_eq!(result_entries, expected_entries);
     /// ```
+    #[track_caller]
     pub fn replace_full<T, S, A>(&mut self, value: T) -> (usize, Option<T>)
     where
         T: any::Any + hash::Hash + Eq,
@@ -14045,6 +14078,7 @@ impl OpaqueIndexSet {
     /// assert_eq!(result, expected);
     /// assert_eq!(result.as_slice(), expected.as_slice());
     /// ```
+    #[track_caller]
     pub fn difference<'a, S2, T, S, A>(&'a self, other: &'a OpaqueIndexSet) -> Difference<'a, T, S2, A>
     where
         T: any::Any + hash::Hash + Eq,
@@ -14121,6 +14155,7 @@ impl OpaqueIndexSet {
     /// assert_eq!(result, expected);
     /// assert_eq!(result.as_slice(), expected.as_slice());
     /// ```
+    #[track_caller]
     pub fn symmetric_difference<'a, S2, T, S, A>(&'a self, other: &'a OpaqueIndexSet) -> SymmetricDifference<'a, T, S, S2, A>
     where
         T: any::Any + hash::Hash + Eq,
@@ -14196,6 +14231,7 @@ impl OpaqueIndexSet {
     /// assert_eq!(result, expected);
     /// assert_eq!(result.as_slice(), expected.as_slice());
     /// ```
+    #[track_caller]
     pub fn intersection<'a, S2, T, S, A>(&'a self, other: &'a OpaqueIndexSet) -> Intersection<'a, T, S2, A>
     where
         T: any::Any + hash::Hash + Eq,
@@ -14270,6 +14306,7 @@ impl OpaqueIndexSet {
     /// assert_eq!(result, expected);
     /// assert_eq!(result.as_slice(), expected.as_slice());
     /// ```
+    #[track_caller]
     pub fn union<'a, S2, T, S, A>(&'a self, other: &'a OpaqueIndexSet) -> Union<'a, T, S, A>
     where
         T: any::Any + hash::Hash + Eq,
@@ -14552,6 +14589,7 @@ impl OpaqueIndexSet {
     ///
     /// assert_eq!(result, expected);
     /// ```
+    #[track_caller]
     pub fn append<T, S1, S2, A>(&mut self, other: &mut OpaqueIndexSet)
     where
         T: any::Any + hash::Hash + Eq,
@@ -14717,6 +14755,7 @@ impl OpaqueIndexSet {
     /// assert!(!opaque_set.contains::<_, usize, RandomState, Global>(&4_usize));
     /// assert!(!opaque_set.contains::<_, usize, RandomState, Global>(&usize::MAX));
     /// ```
+    #[track_caller]
     pub fn contains<Q, T, S, A>(&self, value: &Q) -> bool
     where
         T: any::Any,
@@ -14879,6 +14918,7 @@ impl OpaqueIndexSet {
     /// assert_eq!(opaque_set.get::<_, usize, RandomState, Global>(&4_usize), None);
     /// assert_eq!(opaque_set.get::<_, usize, RandomState, Global>(&usize::MAX), None);
     /// ```
+    #[track_caller]
     pub fn get<Q, T, S, A>(&self, value: &Q) -> Option<&T>
     where
         T: any::Any,
@@ -15042,6 +15082,7 @@ impl OpaqueIndexSet {
     /// assert_eq!(opaque_set.get_full::<_, usize, RandomState, Global>(&4_usize), None);
     /// assert_eq!(opaque_set.get_full::<_, usize, RandomState, Global>(&usize::MAX), None);
     /// ```
+    #[track_caller]
     pub fn get_full<Q, T, S, A>(&self, value: &Q) -> Option<(usize, &T)>
     where
         T: any::Any,
@@ -15204,6 +15245,7 @@ impl OpaqueIndexSet {
     /// assert_eq!(opaque_set.get_index_of::<_, usize, RandomState, Global>(&4_usize), None);
     /// assert_eq!(opaque_set.get_index_of::<_, usize, RandomState, Global>(&usize::MAX), None);
     /// ```
+    #[track_caller]
     pub fn get_index_of<Q, T, S, A>(&self, value: &Q) -> Option<usize>
     where
         T: any::Any,
@@ -15473,6 +15515,7 @@ impl OpaqueIndexSet {
     ///     assert_eq!(removed, true);
     /// }
     /// ```
+    #[track_caller]
     pub fn swap_remove<Q, T, S, A>(&mut self, value: &Q) -> bool
     where
         T: any::Any,
@@ -15742,6 +15785,7 @@ impl OpaqueIndexSet {
     ///     assert_eq!(removed, true);
     /// }
     /// ```
+    #[track_caller]
     pub fn shift_remove<Q, T, S, A>(&mut self, value: &Q) -> bool
     where
         T: any::Any,
@@ -16016,6 +16060,7 @@ impl OpaqueIndexSet {
     ///     assert_eq!(removed, Some(1_isize));
     /// }
     /// ```
+    #[track_caller]
     pub fn swap_take<Q, T, S, A>(&mut self, value: &Q) -> Option<T>
     where
         T: any::Any,
@@ -16291,6 +16336,7 @@ impl OpaqueIndexSet {
     /// ```
     ///
     /// [`pop`]: OpaqueIndexSet::pop
+    #[track_caller]
     pub fn shift_take<Q, T, S, A>(&mut self, value: &Q) -> Option<T>
     where
         T: any::Any,
@@ -16559,6 +16605,7 @@ impl OpaqueIndexSet {
     ///     assert_eq!(removed, Some((0, 1_isize)));
     /// }
     /// ```
+    #[track_caller]
     pub fn swap_remove_full<Q, T, S, A>(&mut self, value: &Q) -> Option<(usize, T)>
     where
         T: any::Any,
@@ -16834,6 +16881,7 @@ impl OpaqueIndexSet {
     /// ```
     ///
     /// [`pop`]: OpaqueIndexSet::pop
+    #[track_caller]
     pub fn shift_remove_full<Q, T, S, A>(&mut self, value: &Q) -> Option<(usize, T)>
     where
         T: any::Any,
@@ -16967,6 +17015,7 @@ impl OpaqueIndexSet {
     /// assert_eq!(result, expected);
     /// assert!(opaque_set.is_empty());
     /// ```
+    #[track_caller]
     #[doc(alias = "pop_last")]
     pub fn pop<T, S, A>(&mut self) -> Option<T>
     where
@@ -17082,6 +17131,7 @@ impl OpaqueIndexSet {
     ///
     /// assert_eq!(result, expected);
     /// ```
+    #[track_caller]
     pub fn retain<F, T, S, A>(&mut self, mut keep: F)
     where
         T: any::Any,
@@ -17207,6 +17257,7 @@ impl OpaqueIndexSet {
     ///
     /// assert_eq!(opaque_set.as_slice::<(isize, char), RandomState, Global>(), expected.as_slice());
     /// ```
+    #[track_caller]
     pub fn sort<T, S, A>(&mut self)
     where
         T: any::Any + Ord,
@@ -17338,6 +17389,7 @@ impl OpaqueIndexSet {
     ///
     /// assert_eq!(opaque_set.as_slice::<(usize, char), RandomState, Global>(), expected.as_slice());
     /// ```
+    #[track_caller]
     pub fn sort_by<F, T, S, A>(&mut self, mut cmp: F)
     where
         T: any::Any,
@@ -17404,6 +17456,7 @@ impl OpaqueIndexSet {
     ///
     /// assert_eq!(result.as_slice(), expected.as_slice());
     /// ```
+    #[track_caller]
     pub fn sorted_by<F, T, S, A>(self, mut cmp: F) -> IntoIter<T, A>
     where
         T: any::Any,
@@ -17514,6 +17567,7 @@ impl OpaqueIndexSet {
     ///
     /// assert_eq!(opaque_set.as_slice::<(isize, char), RandomState, Global>(), expected.as_slice());
     /// ```
+    #[track_caller]
     pub fn sort_unstable<T, S, A>(&mut self)
     where
         T: any::Any + Ord,
@@ -17648,6 +17702,7 @@ impl OpaqueIndexSet {
     ///
     /// assert_eq!(result.as_slice::<(isize, char), RandomState, Global>(), expected.as_slice());
     /// ```
+    #[track_caller]
     pub fn sort_unstable_by<F, T, S, A>(&mut self, mut cmp: F)
     where
         T: any::Any,
@@ -17723,6 +17778,7 @@ impl OpaqueIndexSet {
     ///
     /// assert_eq!(result.as_slice(), expected.as_slice());
     /// ```
+    #[track_caller]
     pub fn sorted_unstable_by<F, T, S, A>(self, mut cmp: F) -> IntoIter<T, A>
     where
         T: any::Any,
@@ -17797,6 +17853,7 @@ impl OpaqueIndexSet {
     ///
     /// assert_eq!(opaque_set.as_slice::<(usize, i32), RandomState, Global>(), expected.as_slice());
     /// ```
+    #[track_caller]
     pub fn sort_by_cached_key<K, F, T, S, A>(&mut self, mut sort_key: F)
     where
         T: any::Any,
@@ -17857,6 +17914,7 @@ impl OpaqueIndexSet {
     ///     assert_eq!(result, Ok(i));
     /// }
     /// ```
+    #[track_caller]
     pub fn binary_search<T, S, A>(&self, x: &T) -> Result<usize, usize>
     where
         T: any::Any + Ord,
@@ -17999,6 +18057,7 @@ impl OpaqueIndexSet {
     /// );
     /// ```
     #[inline]
+    #[track_caller]
     pub fn binary_search_by<F, T, S, A>(&self, f: F) -> Result<usize, usize>
     where
         T: any::Any,
@@ -18093,6 +18152,7 @@ impl OpaqueIndexSet {
     /// assert!(match result { Ok(1..=4) => true, _ => false, });
     /// ```
     #[inline]
+    #[track_caller]
     pub fn binary_search_by_key<B, F, T, S, A>(&self, b: &B, f: F) -> Result<usize, usize>
     where
         T: any::Any,
@@ -18258,6 +18318,7 @@ impl OpaqueIndexSet {
     /// );
     /// ```
     #[must_use]
+    #[track_caller]
     pub fn partition_point<P, T, S, A>(&self, pred: P) -> usize
     where
         T: any::Any,
@@ -18308,6 +18369,7 @@ impl OpaqueIndexSet {
     ///
     /// assert_eq!(opaque_set.as_slice::<&str, RandomState, Global>(), expected.as_slice());
     /// ```
+    #[track_caller]
     pub fn reverse<T, S, A>(&mut self)
     where
         T: any::Any,
@@ -18365,6 +18427,7 @@ impl OpaqueIndexSet {
     /// assert_eq!(slice[1], (0_isize,  "bar"));
     /// assert_eq!(slice[2], (1_isize,  "baz"));
     /// ```
+    #[track_caller]
     pub fn as_slice<T, S, A>(&self) -> &Slice<T>
     where
         T: any::Any,
@@ -18436,6 +18499,7 @@ impl OpaqueIndexSet {
     /// assert_eq!(boxed_slice.len(), 3);
     /// assert_eq!(boxed_slice.as_ref(), &[(0_usize, 1_i32), (1_usize, 2_i32), (2_usize, 3_i32)]);
     /// ```
+    #[track_caller]
     pub fn into_boxed_slice<T, S, A>(self) -> Box<Slice<T>, TypedProjAlloc<A>>
     where
         T: any::Any,
@@ -18528,6 +18592,7 @@ impl OpaqueIndexSet {
     /// assert_eq!(opaque_set.get_index::<(usize, i32), RandomState, Global>(2), Some(&(3_usize, 30_i32)));
     /// assert_eq!(opaque_set.get_index::<(usize, i32), RandomState, Global>(3), None);
     /// ```
+    #[track_caller]
     pub fn get_index<T, S, A>(&self, index: usize) -> Option<&T>
     where
         T: any::Any,
@@ -18593,6 +18658,7 @@ impl OpaqueIndexSet {
     /// assert_eq!(slice[1], (3_usize, 30_i32));
     /// assert_eq!(slice[2], (4_usize, 60_i32));
     /// ```
+    #[track_caller]
     pub fn get_range<R, T, S, A>(&self, range: R) -> Option<&Slice<T>>
     where
         T: any::Any,
@@ -18679,6 +18745,7 @@ impl OpaqueIndexSet {
     ///
     /// assert!(maybe_entry.is_none());
     /// ```
+    #[track_caller]
     pub fn first<T, S, A>(&self) -> Option<&T>
     where
         T: any::Any,
@@ -18759,6 +18826,7 @@ impl OpaqueIndexSet {
     ///
     /// assert!(maybe_entry.is_none());
     /// ```
+    #[track_caller]
     pub fn last<T, S, A>(&self) -> Option<&T>
     where
         T: any::Any,
@@ -18872,6 +18940,7 @@ impl OpaqueIndexSet {
     /// assert_eq!(removed, Some(1_usize));
     /// assert_eq!(opaque_set.as_slice::<usize, RandomState, Global>(), expected.as_slice());
     /// ```
+    #[track_caller]
     pub fn swap_remove_index<T, S, A>(&mut self, index: usize) -> Option<T>
     where
         T: any::Any,
@@ -18980,6 +19049,7 @@ impl OpaqueIndexSet {
     /// assert_eq!(removed, Some(1_usize));
     /// assert_eq!(opaque_set.as_slice::<usize, RandomState, Global>(), expected.as_slice());
     /// ```
+    #[track_caller]
     pub fn shift_remove_index<T, S, A>(&mut self, index: usize) -> Option<T>
     where
         T: any::Any,
@@ -19343,6 +19413,7 @@ impl OpaqueIndexSet {
     ///
     /// assert!(!opaque_set1.is_disjoint::<i32, RandomState, Global, RandomState, Global>(&opaque_set2));
     /// ```
+    #[track_caller]
     pub fn is_disjoint<T, S1, A1, S2, A2>(&self, other: &OpaqueIndexSet) -> bool
     where
         T: any::Any + hash::Hash + Eq,
@@ -19515,6 +19586,7 @@ impl OpaqueIndexSet {
     /// assert!(opaque_set1.is_subset::<i32, RandomState, Global, RandomState, Global>(&opaque_set2));
     /// assert!(opaque_set2.is_subset::<i32, RandomState, Global, RandomState, Global>(&opaque_set1));
     /// ```
+    #[track_caller]
     pub fn is_subset<T, S1, A1, S2, A2>(&self, other: &OpaqueIndexSet) -> bool
     where
         T: any::Any + hash::Hash + Eq,
@@ -19689,6 +19761,7 @@ impl OpaqueIndexSet {
     /// assert!(opaque_set1.is_superset::<i32, RandomState, Global, RandomState, Global>(&opaque_set2));
     /// assert!(opaque_set2.is_superset::<i32, RandomState, Global, RandomState, Global>(&opaque_set1));
     /// ```
+    #[track_caller]
     pub fn is_superset<T, S1, A1, S2, A2>(&self, other: &OpaqueIndexSet) -> bool
     where
         T: any::Any + hash::Hash + Eq,
@@ -19801,6 +19874,7 @@ impl OpaqueIndexSet {
     /// assert_eq!(result, expected);
     /// ```
     #[inline]
+    #[track_caller]
     pub fn clone<T, S, A>(&self) -> Self
     where
         T: any::Any + Clone,
@@ -19882,6 +19956,7 @@ impl OpaqueIndexSet {
     /// assert_eq!(result.as_slice::<i32, RandomState, Global>(), expected.as_slice::<i32, RandomState, Global>());
     /// ```
     #[inline]
+    #[track_caller]
     pub fn extend<I, T, S, A>(&mut self, iterable: I)
     where
         T: any::Any + hash::Hash + Eq,

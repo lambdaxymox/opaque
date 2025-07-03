@@ -158,6 +158,7 @@ where
     ///
     /// let hasher: &DefaultHasher = proj_hasher.hasher();
     /// ```
+    #[inline]
     pub fn hasher(&self) -> &H {
         self.inner.hasher_assuming_type()
     }
@@ -383,6 +384,7 @@ impl OpaqueHasher {
     /// let proj_hasher: &TypedProjHasher<DefaultHasher> = opaque_hasher.as_proj::<DefaultHasher>();
     /// ```
     #[inline]
+    #[track_caller]
     pub fn as_proj<H>(&self) -> &TypedProjHasher<H>
     where
         H: any::Any + hash::Hasher + Send + Sync,
@@ -413,6 +415,7 @@ impl OpaqueHasher {
     /// let proj_hasher: &mut TypedProjHasher<DefaultHasher> = opaque_hasher.as_proj_mut::<DefaultHasher>();
     /// ```
     #[inline]
+    #[track_caller]
     pub fn as_proj_mut<H>(&mut self) -> &mut TypedProjHasher<H>
     where
         H: any::Any + hash::Hasher + Send + Sync,
@@ -442,6 +445,7 @@ impl OpaqueHasher {
     /// let proj_hasher: TypedProjHasher<DefaultHasher> = opaque_hasher.into_proj::<DefaultHasher>();
     /// ```
     #[inline]
+    #[track_caller]
     pub fn into_proj<H>(self) -> TypedProjHasher<H>
     where
         H: any::Any + hash::Hasher + Send + Sync,
@@ -567,6 +571,8 @@ impl OpaqueHasher {
     ///
     /// let hasher: &DefaultHasher = opaque_hasher.hasher::<DefaultHasher>();
     /// ```
+    #[inline]
+    #[track_caller]
     pub fn hasher<H>(&self) -> &H
     where
         H: any::Any + hash::Hasher + Send + Sync,
@@ -604,6 +610,7 @@ impl OpaqueHasher {
     /// assert_eq!(new_opaque_hasher.hasher_type_id(), TypeId::of::<DefaultHasher>());
     /// assert_ne!(new_opaque_hasher.hasher_type_id(), TypeId::of::<Box<DefaultHasher>>());
     /// ```
+    #[track_caller]
     pub fn into_boxed_hasher<H>(self) -> Box<H>
     where
         H: any::Any + hash::Hasher + Send + Sync,

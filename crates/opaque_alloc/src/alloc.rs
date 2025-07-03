@@ -187,6 +187,7 @@ where
     ///
     /// let alloc: &Global = proj_alloc.allocator();
     /// ```
+    #[inline]
     pub fn allocator(&self) -> &A {
         self.inner.allocator()
     }
@@ -470,6 +471,7 @@ impl OpaqueAlloc {
     /// let proj_alloc: &TypedProjAlloc<Global> = opaque_alloc.as_proj::<Global>();
     /// ```
     #[inline]
+    #[track_caller]
     pub fn as_proj<A>(&self) -> &TypedProjAlloc<A>
     where
         A: any::Any + alloc::Allocator + Send + Sync,
@@ -506,6 +508,7 @@ impl OpaqueAlloc {
     /// let proj_alloc: &mut TypedProjAlloc<Global> = opaque_alloc.as_proj_mut::<Global>();
     /// ```
     #[inline]
+    #[track_caller]
     pub fn as_proj_mut<A>(&mut self) -> &mut TypedProjAlloc<A>
     where
         A: any::Any + alloc::Allocator + Send + Sync,
@@ -541,6 +544,7 @@ impl OpaqueAlloc {
     /// let proj_alloc: TypedProjAlloc<Global> = opaque_alloc.into_proj::<Global>();
     /// ```
     #[inline]
+    #[track_caller]
     pub fn into_proj<A>(self) -> TypedProjAlloc<A>
     where
         A: any::Any + alloc::Allocator + Send + Sync,
@@ -691,6 +695,7 @@ impl OpaqueAlloc {
     /// let opaque_alloc = OpaqueAlloc::new(Global);
     /// let cloned = opaque_alloc.clone::<Global>();
     /// ```
+    #[track_caller]
     pub fn clone<A>(&self) -> Self
     where
         A: any::Any + alloc::Allocator + Send + Sync + Clone,

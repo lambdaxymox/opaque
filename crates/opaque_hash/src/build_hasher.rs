@@ -510,6 +510,7 @@ impl OpaqueBuildHasher {
     /// let proj_build_hasher: &TypedProjBuildHasher<RandomState> = opaque_build_hasher.as_proj::<RandomState>();
     /// ```
     #[inline]
+    #[track_caller]
     pub fn as_proj<S>(&self) -> &TypedProjBuildHasher<S>
     where
         S: any::Any + hash::BuildHasher + Send + Sync,
@@ -542,6 +543,7 @@ impl OpaqueBuildHasher {
     /// let proj_build_hasher: &mut TypedProjBuildHasher<RandomState> = opaque_build_hasher.as_proj_mut::<RandomState>();
     /// ```
     #[inline]
+    #[track_caller]
     pub fn as_proj_mut<S>(&mut self) -> &mut TypedProjBuildHasher<S>
     where
         S: any::Any + hash::BuildHasher + Send + Sync,
@@ -573,6 +575,7 @@ impl OpaqueBuildHasher {
     /// let proj_build_hasher: TypedProjBuildHasher<RandomState> = opaque_build_hasher.into_proj::<RandomState>();
     /// ```
     #[inline]
+    #[track_caller]
     pub fn into_proj<S>(self) -> TypedProjBuildHasher<S>
     where
         S: any::Any + hash::BuildHasher + Send + Sync,
@@ -691,6 +694,8 @@ impl OpaqueBuildHasher {
     ///
     /// let build_hasher: &RandomState = opaque_build_hasher.get_build_hasher::<RandomState>();
     /// ```
+    #[inline]
+    #[track_caller]
     pub fn get_build_hasher<S>(&self) -> &S
     where
         S: any::Any + hash::BuildHasher + Send + Sync,
@@ -723,6 +728,7 @@ impl OpaqueBuildHasher {
     /// assert_eq!(new_opaque_build_hasher.build_hasher_type_id(), TypeId::of::<RandomState>());
     /// assert_ne!(new_opaque_build_hasher.build_hasher_type_id(), TypeId::of::<Box<RandomState>>());
     /// ```
+    #[track_caller]
     pub fn into_boxed_build_hasher<S>(self) -> Box<S>
     where
         S: any::Any + hash::BuildHasher + Send + Sync,
@@ -758,6 +764,7 @@ impl OpaqueBuildHasher {
     ///
     /// [`BuildHasher::build_hasher`]: std::hash::BuildHasher::build_hasher
     /// [`build_hasher_proj`]: OpaqueBuildHasher::build_hasher_proj
+    #[track_caller]
     pub fn build_hasher<S>(&self) -> S::Hasher
     where
         S: any::Any + hash::BuildHasher + Send + Sync,
@@ -790,6 +797,7 @@ impl OpaqueBuildHasher {
     ///
     /// [`build_hasher`]: OpaqueBuildHasher::build_hasher
     #[inline]
+    #[track_caller]
     pub fn build_hasher_proj<S>(&self) -> TypedProjHasher<S::Hasher>
     where
         S: any::Any + hash::BuildHasher + Send + Sync,
