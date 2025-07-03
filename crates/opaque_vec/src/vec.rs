@@ -16,24 +16,14 @@ use core::mem::{
     MaybeUninit,
 };
 use alloc_crate::borrow;
+use alloc_crate::boxed::Box;
+use alloc_crate::vec::Vec;
 
 #[cfg(feature = "nightly")]
 use alloc_crate::alloc;
 
-#[cfg(feature = "nightly")]
-use alloc_crate::boxed::Box;
-
-#[cfg(feature = "nightly")]
-use alloc_crate::vec::Vec;
-
 #[cfg(not(feature = "nightly"))]
-use allocator_api2::alloc;
-
-#[cfg(not(feature = "nightly"))]
-use allocator_api2::boxed::Box;
-
-#[cfg(not(feature = "nightly"))]
-use allocator_api2::vec::Vec;
+use opaque_allocator_api::alloc;
 
 use opaque_alloc::TypedProjAlloc;
 use opaque_error::TryReserveError;
@@ -68,6 +58,8 @@ use opaque_error::TryReserveError;
 /// # use core::any;
 /// # use core::marker;
 /// # use core::ptr::NonNull;
+/// # use std::vec::Vec;
+/// # use std::boxed::Box;
 /// #
 /// # #[cfg(feature = "nightly")]
 /// # use std::alloc;
@@ -75,17 +67,11 @@ use opaque_error::TryReserveError;
 /// # #[cfg(feature = "nightly")]
 /// # use std::alloc::{AllocError, Allocator, Layout};
 /// #
-/// # #[cfg(feature = "nightly")]
-/// # use std::vec::Vec;
+/// # #[cfg(not(feature = "nightly"))]
+/// # use opaque_allocator_api::alloc;
 /// #
 /// # #[cfg(not(feature = "nightly"))]
-/// # use allocator_api2::alloc;
-/// #
-/// # #[cfg(not(feature = "nightly"))]
-/// # use allocator_api2::alloc::{AllocError, Allocator, Layout};
-/// #
-/// # #[cfg(not(feature = "nightly"))]
-/// # use allocator_api2::vec::Vec;
+/// # use opaque_allocator_api::alloc::{AllocError, Allocator, Layout};
 /// #
 /// struct BoxedAllocator(Box<dyn alloc::Allocator>);
 /// #
@@ -102,6 +88,7 @@ use opaque_error::TryReserveError;
 /// # }
 /// #
 ///
+/// #[cfg(feature = "nightly")]
 /// #[repr(C)]
 /// struct MyTypeProjectedVec<T, A>
 /// where
@@ -116,6 +103,7 @@ use opaque_error::TryReserveError;
 ///     _marker: marker::PhantomData<(T, A)>,
 /// }
 ///
+/// #[cfg(feature = "nightly")]
 /// #[repr(C)]
 /// struct MyTypeErasedVec {
 ///     data: Vec<Box<dyn any::Any>, BoxedAllocator>,
@@ -123,12 +111,15 @@ use opaque_error::TryReserveError;
 ///     allocator_type_id: any::TypeId,
 /// }
 ///
+/// # #[cfg(feature = "nightly")]
+/// # {
 /// # use core::mem;
 /// #
 /// # assert_eq!(mem::size_of::<MyTypeProjectedVec<i32, alloc::Global>>(), mem::size_of::<MyTypeErasedVec>());
 /// # assert_eq!(mem::align_of::<MyTypeProjectedVec<i32, alloc::Global>>(), mem::align_of::<MyTypeErasedVec>());
 /// # assert_eq!(mem::size_of::<MyTypeProjectedVec<String, alloc::Global>>(), mem::size_of::<MyTypeErasedVec>());
 /// # assert_eq!(mem::align_of::<MyTypeProjectedVec<String, alloc::Global>>(), mem::align_of::<MyTypeErasedVec>());
+/// # }
 /// ```
 ///
 /// By laying out both data types identically, we can project the underlying types in **O(1)**
@@ -171,7 +162,7 @@ use opaque_error::TryReserveError;
 /// # use std::alloc::Global;
 /// #
 /// # #[cfg(not(feature = "nightly"))]
-/// # use allocator_api2::alloc::Global;
+/// # use opaque_allocator_api::alloc::Global;
 /// #
 /// let mut proj_vec: TypedProjVec<i32, Global> = TypedProjVec::new();
 /// proj_vec.push(42);
@@ -212,7 +203,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_vec: TypedProjVec<i32, Global> = TypedProjVec::new_in(Global);
     /// let expected = TypeId::of::<i32>();
@@ -238,7 +229,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_vec: TypedProjVec<i32, Global> = TypedProjVec::new_in(Global);
     /// let expected = TypeId::of::<Global>();
@@ -274,7 +265,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_alloc = TypedProjAlloc::new(Global);
     /// let proj_vec: TypedProjVec<i32, Global> = TypedProjVec::new_proj_in(proj_alloc);
@@ -320,7 +311,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let capacity = 32;
     /// let proj_alloc = TypedProjAlloc::new(Global);
@@ -341,7 +332,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_alloc = TypedProjAlloc::new(Global);
     /// let proj_vec: TypedProjVec<i32, Global> = TypedProjVec::with_capacity_proj_in(0, proj_alloc);
@@ -389,7 +380,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let capacity = 32;
     /// let proj_alloc = TypedProjAlloc::new(Global);
@@ -414,7 +405,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_alloc = TypedProjAlloc::new(Global);
     /// let proj_vec: Result<TypedProjVec<i32, Global>, _> = TypedProjVec::try_with_capacity_proj_in(0, proj_alloc);
@@ -481,7 +472,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_vec = TypedProjVec::from([1, 2, 3]);
     ///
@@ -549,7 +540,7 @@ where
     /// # use std::alloc::{Allocator, Layout, Global};
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::{Allocator, Layout, Global};
+    /// # use opaque_allocator_api::alloc::{Allocator, Layout, Global};
     /// #
     /// let value = 1_000_000;
     /// let layout = Layout::array::<u32>(16).unwrap();
@@ -643,7 +634,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_vec = TypedProjVec::from([1, 2, 3]);
     ///
@@ -711,7 +702,7 @@ where
     /// # use std::alloc::{Allocator, Layout, Global};
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::{Allocator, Layout, Global};
+    /// # use opaque_allocator_api::alloc::{Allocator, Layout, Global};
     /// #
     /// let value = 1_000_000;
     /// let layout = Layout::array::<u32>(16).unwrap();
@@ -772,7 +763,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_vec: TypedProjVec<i32, Global> = TypedProjVec::new_in(Global);
     ///
@@ -815,7 +806,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let capacity = 32;
     /// let proj_vec: TypedProjVec<i32, Global> = TypedProjVec::with_capacity_in(capacity, Global);
@@ -834,7 +825,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_vec: TypedProjVec<i32, Global> = TypedProjVec::with_capacity_in(0, Global);
     ///
@@ -880,7 +871,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let capacity = 32;
     /// let proj_vec: Result<TypedProjVec<i32, Global>, _> = TypedProjVec::try_with_capacity_in(capacity, Global);
@@ -903,7 +894,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_vec: Result<TypedProjVec<i32, Global>, _> = TypedProjVec::try_with_capacity_in(0, Global);
     ///
@@ -969,7 +960,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_vec = TypedProjVec::from([1, 2, 3]);
     ///
@@ -1036,7 +1027,7 @@ where
     /// # use std::alloc::{Allocator, Layout, Global};
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::{Allocator, Layout, Global};
+    /// # use opaque_allocator_api::alloc::{Allocator, Layout, Global};
     /// #
     /// let value = 1_000_000;
     /// let layout = Layout::array::<u32>(16).unwrap();
@@ -1129,7 +1120,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_vec = TypedProjVec::from([1, 2, 3]);
     ///
@@ -1196,7 +1187,7 @@ where
     /// # use std::alloc::{Allocator, Layout, Global};
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::{Allocator, Layout, Global};
+    /// # use opaque_allocator_api::alloc::{Allocator, Layout, Global};
     /// #
     /// let value = 1_000_000;
     /// let layout = Layout::array::<u32>(16).unwrap();
@@ -1262,7 +1253,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_vec: TypedProjVec<i32> = TypedProjVec::new();
     ///
@@ -1304,7 +1295,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let capacity = 32;
     /// let proj_vec: TypedProjVec<i32> = TypedProjVec::with_capacity(capacity);
@@ -1323,7 +1314,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_vec: TypedProjVec<i32> = TypedProjVec::with_capacity(0);
     ///
@@ -1368,7 +1359,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let capacity = 32;
     /// let proj_vec: Result<TypedProjVec<i32>, _> = TypedProjVec::try_with_capacity(capacity);
@@ -1391,7 +1382,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_vec: Result<TypedProjVec<i32>, _> = TypedProjVec::try_with_capacity(0);
     ///
@@ -1455,7 +1446,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_vec = TypedProjVec::from([1, 2, 3]);
     ///
@@ -1521,7 +1512,7 @@ where
     /// # use std::alloc::{Allocator, Layout, Global};
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::{Allocator, Layout, Global};
+    /// # use opaque_allocator_api::alloc::{Allocator, Layout, Global};
     /// #
     /// let value = 1_000_000;
     /// let layout = Layout::array::<u32>(16).unwrap();
@@ -1611,7 +1602,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_vec = TypedProjVec::from([1, 2, 3]);
     ///
@@ -1677,7 +1668,7 @@ where
     /// # use std::alloc::{Allocator, Layout, Global};
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::{Allocator, Layout, Global};
+    /// # use opaque_allocator_api::alloc::{Allocator, Layout, Global};
     /// #
     /// let value = 1_000_000;
     /// let layout = Layout::array::<u32>(16).unwrap();
@@ -1744,7 +1735,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let capacity = 32;
     /// let mut proj_vec: TypedProjVec<i32, Global> = TypedProjVec::with_capacity_in(capacity, Global);
@@ -1784,7 +1775,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let len = 32;
     /// let mut proj_vec: TypedProjVec<i32, Global> = TypedProjVec::with_capacity_in(len, Global);
@@ -1822,7 +1813,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_vec: TypedProjVec<i32, Global> = TypedProjVec::with_capacity_in(1, Global);
     ///
@@ -1856,7 +1847,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_vec: TypedProjVec<i32> = TypedProjVec::new();
     ///
@@ -1905,7 +1896,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// struct DropCounter {}
     ///
@@ -1953,7 +1944,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// struct DropCounter {}
     ///
@@ -1997,7 +1988,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let capacity = 4;
     /// let mut proj_vec = TypedProjVec::with_capacity(capacity);
@@ -2050,7 +2041,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_vec = TypedProjVec::from([10, 40, 30]);
     ///
@@ -2095,7 +2086,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::from([10, 40, 30]);
     ///
@@ -2140,7 +2131,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_vec = TypedProjVec::from([10, 40, 30]);
     ///
@@ -2183,7 +2174,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_vec = TypedProjVec::from([10, 40, 30]);
     ///
@@ -2245,7 +2236,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::from([1, 2]);
     /// proj_vec.push(3);
@@ -2299,7 +2290,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::from([1, 2, 3]);
     ///
@@ -2374,7 +2365,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let min_capacity = 4;
     /// let mut proj_vec = TypedProjVec::with_capacity(min_capacity);
@@ -2398,7 +2389,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let min_capacity = 4;
     /// let mut proj_vec = TypedProjVec::with_capacity(min_capacity);
@@ -2469,7 +2460,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::new();
     ///
@@ -2547,7 +2538,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::new();
     ///
@@ -2629,7 +2620,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_vec = TypedProjVec::from([1, 2, 3, i32::MAX]);
     /// {
@@ -2713,7 +2704,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_vec = TypedProjVec::from([1, 2, 3, i32::MAX]);
     /// {
@@ -2779,7 +2770,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_vec = TypedProjVec::from([92, 8, 40, 9, 8, 34, 59, 34, 5]);
     ///
@@ -2821,7 +2812,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_vec = TypedProjVec::from([92, 8, 40, 9, 8, 34]);
     ///
@@ -2857,7 +2848,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::from([92, 8, 40, 9, 8, 34]);
     ///
@@ -2925,7 +2916,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut result = TypedProjVec::from([1, 2, 3, 4]);
     /// let mut appended = TypedProjVec::from([5, 6, 7, 8, 9]);
@@ -2975,7 +2966,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_vec: TypedProjVec<i32> = TypedProjVec::from([1, 2, 3, 4, 5, 6]);
     ///
@@ -3000,7 +2991,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_vec: TypedProjVec<i32> = TypedProjVec::from([1, 2, 3, 4, 5, 6]);
     ///
@@ -3025,7 +3016,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_vec: TypedProjVec<i32> = TypedProjVec::from([1, 2, 3, 4, 5, 6]);
     ///
@@ -3078,7 +3069,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_vec = TypedProjVec::from([1, 2, 4, 8]);
     /// let ptr = proj_vec.as_ptr();
@@ -3102,7 +3093,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::from([0, 1, 2]);
     ///
@@ -3151,7 +3142,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// // Allocate vector big enough for 4 elements.
     /// let length = 4;
@@ -3179,7 +3170,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_vec: TypedProjVec<i32> = TypedProjVec::with_capacity(4);
     /// proj_vec.push(0);
@@ -3228,7 +3219,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// // Allocate vector big enough for 4 elements.
     /// let length = 4;
@@ -3256,7 +3247,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::with_capacity(4);
     ///
@@ -3290,7 +3281,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 3] = [9, 28, 37];
     /// let proj_vec = TypedProjVec::from(array);
@@ -3319,7 +3310,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut array: [i32; 3] = [9, 28, 37];
     /// let mut proj_vec = TypedProjVec::from(array);
@@ -3341,7 +3332,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut array: [i32; 3] = [9, 28, 37];
     /// let mut proj_vec = TypedProjVec::from(array);
@@ -3388,7 +3379,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 3] = [-1, 0, 1];
     /// let proj_vec = TypedProjVec::from(array);
@@ -3433,7 +3424,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 3] = [-1, 0, 1];
     /// let proj_vec = TypedProjVec::from(array);
@@ -3452,7 +3443,13 @@ where
     pub fn into_parts(self) -> (NonNull<T>, usize, usize) {
         self.inner.into_parts()
     }
+}
 
+impl<T, A> TypedProjVec<T, A>
+where
+    T: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
     /// Decomposes a type-projected vector with any memory allocator into its constituent parts:
     /// `(pointer, length, capacity, allocator)`.
     ///
@@ -3479,7 +3476,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 3] = [-1, 0, 1];
     /// let proj_vec = TypedProjVec::from(array);
@@ -3524,7 +3521,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 3] = [-1, 0, 1];
     /// let proj_vec = TypedProjVec::from(array);
@@ -3543,7 +3540,14 @@ where
     pub fn into_parts_with_alloc(self) -> (NonNull<T>, usize, usize, TypedProjAlloc<A>) {
         self.inner.into_parts_with_alloc()
     }
+}
 
+#[cfg(feature = "nightly")]
+impl<T, A> TypedProjVec<T, A>
+where
+    T: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
     /// Converts a type-projected vector into a [`Box<[T]>`][owned slice].
     ///
     /// Before doing the conversion, this method discards excess capacity like [`shrink_to_fit`].
@@ -3565,10 +3569,10 @@ where
     /// # use std::boxed::Box;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::boxed::Box;
+    /// # use opaque_allocator_api::boxed::Box;
     /// #
     /// let mut proj_vec = {
     ///     let mut _proj_vec = TypedProjVec::with_capacity(10);
@@ -3625,7 +3629,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let length = 6;
     /// let capacity = 10;
@@ -3693,7 +3697,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let length = 3;
     /// let mut proj_vec = {
@@ -3723,7 +3727,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::new();
     ///
@@ -3761,7 +3765,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::with_capacity(10);
     ///
@@ -3806,7 +3810,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::new();
     ///
@@ -3850,7 +3854,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::new();
     ///
@@ -3895,7 +3899,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::new();
     ///
@@ -3942,7 +3946,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::new();
     ///
@@ -3981,7 +3985,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::with_capacity(10);
     ///
@@ -4028,7 +4032,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::with_capacity(10);
     ///
@@ -4090,7 +4094,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::with_capacity(10);
     ///
@@ -4149,7 +4153,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::from([1, 2, 3, 4]);
     /// let new = TypedProjVec::from([7, 8, 9]);
@@ -4171,7 +4175,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::from([1, 5]);
     /// let new = TypedProjVec::from([2, 3, 4]);
@@ -4214,7 +4218,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// # let some_predicate = |x: &mut i32| { *x % 2 == 1 };
     /// # let mut proj_vec = TypedProjVec::from([0, 1, 2, 3, 4, 5, 6]);
@@ -4262,7 +4266,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut numbers = TypedProjVec::from([1, 2, 3, 4, 5, 6, 8, 9, 11, 13, 14, 15]);
     /// let evens: TypedProjVec<i32> = numbers.extract_if(.., |x| *x % 2 == 0).collect();
@@ -4282,7 +4286,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut items = TypedProjVec::from([0, 0, 0, 0, 0, 0, 0, 1, 2, 1, 2, 1, 2]);
     /// let ones: TypedProjVec<i32> = items.extract_if(7.., |x| *x == 1).collect();
@@ -4330,7 +4334,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 6] = [1, 2, 3, 4, 5, 6];
     /// let extension: [i32; 4] = [7, 8, 9, 10];
@@ -4380,7 +4384,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::from([
     ///     "spam",
@@ -4426,7 +4430,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::from([
     ///     "spam",
@@ -4486,7 +4490,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::from([1, 2, 3, 4, 5, 6]);
     /// proj_vec.truncate(2);
@@ -4505,7 +4509,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 6] = [1, 2, 3, 4, 5, 6];
     /// let mut proj_vec = TypedProjVec::from(array);
@@ -4525,7 +4529,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 6] = [1, 2, 3, 4, 5, 6];
     /// let mut proj_vec = TypedProjVec::from(array);
@@ -4550,7 +4554,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::from([1, 2, 3, 4, 5, 6]);
     /// proj_vec.truncate(0);
@@ -4632,7 +4636,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::from([1, 2, 3, 4, 5, 6]);
     /// proj_vec.retain(|&x| x % 2 == 0);
@@ -4707,7 +4711,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::from([1, 2, 3, 4, 5, 6]);
     /// proj_vec.retain_mut(|x| if *x <= 3 {
@@ -4778,7 +4782,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::from([1, 2, 3, 2, 2, 2, 6, 4, 4]);
     /// proj_vec.dedup();
@@ -4796,7 +4800,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::from([1, 2, 3, 3, 3, 3, 4, 4, 4, 5]);
     /// proj_vec.dedup();
@@ -4814,7 +4818,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::from( [1, 2, 3, 4, 5]);
     /// proj_vec.dedup();
@@ -4877,7 +4881,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::from([10, 20, 21, 30, 20]);
     /// proj_vec.dedup_by_key(|i| *i / 10);
@@ -4895,7 +4899,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_vec = TypedProjVec::from([10, 20, 20, 21, 30, 30, 30, 40]);
     /// proj_vec.dedup_by_key(|i| *i / 10);
@@ -4963,7 +4967,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_vec = TypedProjVec::from([
     ///     "foo",
@@ -4987,7 +4991,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_vec = TypedProjVec::from([
     ///     "foo",
@@ -5413,6 +5417,7 @@ where
     }
 }
 
+#[cfg(feature = "nightly")]
 impl<T, A> From<Box<[T], TypedProjAlloc<A>>> for TypedProjVec<T, A>
 where
     T: any::Any,
@@ -5425,6 +5430,7 @@ where
     }
 }
 
+#[cfg(feature = "nightly")]
 impl<T, A> From<Vec<T, A>> for TypedProjVec<T, A>
 where
     T: any::Any,
@@ -5438,6 +5444,20 @@ where
     }
 }
 
+#[cfg(not(feature = "nightly"))]
+impl<T> From<Vec<T>> for TypedProjVec<T, alloc::Global>
+where
+    T: any::Any,
+{
+    #[track_caller]
+    fn from(vec: Vec<T>) -> Self {
+        let inner = TypedProjVecInner::from(vec);
+
+        Self { inner, }
+    }
+}
+
+#[cfg(feature = "nightly")]
 impl<T, A> From<&Vec<T, A>> for TypedProjVec<T, A>
 where
     T: any::Any + Clone,
@@ -5451,6 +5471,20 @@ where
     }
 }
 
+#[cfg(not(feature = "nightly"))]
+impl<T> From<&Vec<T>> for TypedProjVec<T, alloc::Global>
+where
+    T: any::Any + Clone,
+{
+    #[track_caller]
+    fn from(vec: &Vec<T>) -> Self {
+        let inner = TypedProjVecInner::from(vec);
+
+        Self { inner, }
+    }
+}
+
+#[cfg(feature = "nightly")]
 impl<T, A> From<&mut Vec<T, A>> for TypedProjVec<T, A>
 where
     T: any::Any + Clone,
@@ -5464,6 +5498,20 @@ where
     }
 }
 
+#[cfg(not(feature = "nightly"))]
+impl<T> From<&mut Vec<T>> for TypedProjVec<T, alloc::Global>
+where
+    T: any::Any + Clone,
+{
+    #[track_caller]
+    fn from(vec: &mut Vec<T>) -> Self {
+        let inner = TypedProjVecInner::from(vec);
+
+        Self { inner, }
+    }
+}
+
+#[cfg(feature = "nightly")]
 impl<T, A> From<TypedProjVec<T, A>> for Box<[T], TypedProjAlloc<A>>
 where
     T: any::Any,
@@ -5537,7 +5585,7 @@ where
 /// # use core::any;
 /// # use core::marker;
 /// # use core::ptr::NonNull;
-/// #
+/// # use std::vec::Vec;
 /// # use std::boxed::Box;
 /// #
 /// # #[cfg(feature = "nightly")]
@@ -5546,17 +5594,11 @@ where
 /// # #[cfg(feature = "nightly")]
 /// # use std::alloc::{AllocError, Allocator, Layout};
 /// #
-/// # #[cfg(feature = "nightly")]
-/// # use std::vec::Vec;
+/// # #[cfg(not(feature = "nightly"))]
+/// # use opaque_allocator_api::alloc;
 /// #
 /// # #[cfg(not(feature = "nightly"))]
-/// # use allocator_api2::alloc;
-/// #
-/// # #[cfg(not(feature = "nightly"))]
-/// # use allocator_api2::alloc::{AllocError, Allocator, Layout};
-/// #
-/// # #[cfg(not(feature = "nightly"))]
-/// # use allocator_api2::vec::Vec;
+/// # use opaque_allocator_api::alloc::{AllocError, Allocator, Layout};
 /// #
 /// struct BoxedAllocator(Box<dyn alloc::Allocator>);
 /// #
@@ -5573,6 +5615,7 @@ where
 /// # }
 /// #
 ///
+/// # #[cfg(feature = "nightly")]
 /// #[repr(C)]
 /// struct MyTypeProjectedVec<T, A>
 /// where
@@ -5587,6 +5630,7 @@ where
 ///     _marker: marker::PhantomData<(T, A)>,
 /// }
 ///
+/// # #[cfg(feature = "nightly")]
 /// #[repr(C)]
 /// struct MyTypeErasedVec {
 ///     data: Vec<Box<dyn any::Any>, BoxedAllocator>,
@@ -5594,12 +5638,15 @@ where
 ///     allocator_type_id: any::TypeId,
 /// }
 ///
+/// # #[cfg(feature = "nightly")]
+/// # {
 /// # use core::mem;
 /// #
 /// # assert_eq!(mem::size_of::<MyTypeProjectedVec<i32, alloc::Global>>(), mem::size_of::<MyTypeErasedVec>());
 /// # assert_eq!(mem::align_of::<MyTypeProjectedVec<i32, alloc::Global>>(), mem::align_of::<MyTypeErasedVec>());
 /// # assert_eq!(mem::size_of::<MyTypeProjectedVec<String, alloc::Global>>(), mem::size_of::<MyTypeErasedVec>());
 /// # assert_eq!(mem::align_of::<MyTypeProjectedVec<String, alloc::Global>>(), mem::align_of::<MyTypeErasedVec>());
+/// # }
 /// ```
 ///
 /// By laying out both data types identically, we can project the underlying types in **O(1)**
@@ -5642,7 +5689,7 @@ where
 /// # use std::alloc::Global;
 /// #
 /// # #[cfg(not(feature = "nightly"))]
-/// # use allocator_api2::alloc::Global;
+/// # use opaque_allocator_api::alloc::Global;
 /// #
 /// let mut proj_vec: TypedProjVec<i32, Global> = TypedProjVec::new();
 /// proj_vec.push(42);
@@ -5675,7 +5722,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_vec = OpaqueVec::new_in::<i32, Global>(Global);
     /// let expected = TypeId::of::<i32>();
@@ -5701,7 +5748,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_vec = OpaqueVec::new_in::<i32, Global>(Global);
     /// let expected = TypeId::of::<Global>();
@@ -5730,7 +5777,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_vec = OpaqueVec::new_in::<i32, Global>(Global);
     ///
@@ -5758,7 +5805,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_vec = OpaqueVec::new_in::<i32, Global>(Global);
     ///
@@ -5825,7 +5872,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_vec = OpaqueVec::new_in::<i32, Global>(Global);
     /// #
@@ -5864,7 +5911,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_vec = OpaqueVec::new_in::<i32, Global>(Global);
     /// #
@@ -5902,7 +5949,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_vec = OpaqueVec::new_in::<i32, Global>(Global);
     /// #
@@ -5939,7 +5986,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_vec: TypedProjVec<i32, Global> = TypedProjVec::new_in(Global);
     /// let opaque_vec: OpaqueVec = OpaqueVec::from_proj(proj_vec);
@@ -5982,7 +6029,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_alloc = TypedProjAlloc::new(Global);
     /// let opaque_vec = OpaqueVec::new_proj_in::<i32, Global>(proj_alloc);
@@ -6035,7 +6082,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let capacity = 32;
     /// let proj_alloc = TypedProjAlloc::new(Global);
@@ -6060,7 +6107,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_alloc = TypedProjAlloc::new(Global);
     /// let opaque_vec = OpaqueVec::with_capacity_proj_in::<i32, Global>(0, proj_alloc);
@@ -6116,7 +6163,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let capacity = 32;
     /// let proj_alloc = TypedProjAlloc::new(Global);
@@ -6145,7 +6192,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_alloc = TypedProjAlloc::new(Global);
     /// let opaque_vec = OpaqueVec::try_with_capacity_proj_in::<i32, Global>(0, proj_alloc);
@@ -6220,7 +6267,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_vec = {
     ///     let array: [i32; 3] = [1, 2, 3];
@@ -6294,7 +6341,7 @@ impl OpaqueVec {
     /// # use std::alloc::{Allocator, Layout, Global};
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::{Allocator, Layout, Global};
+    /// # use opaque_allocator_api::alloc::{Allocator, Layout, Global};
     /// #
     /// let value = 1_000_000;
     /// let layout = Layout::array::<u32>(16).unwrap();
@@ -6392,7 +6439,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_vec = {
     ///     let array: [i32; 3] = [1, 2, 3];
@@ -6466,7 +6513,7 @@ impl OpaqueVec {
     /// # use std::alloc::{Allocator, Layout, Global};
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::{Allocator, Layout, Global};
+    /// # use opaque_allocator_api::alloc::{Allocator, Layout, Global};
     /// #
     /// let value = 1_000_000;
     /// let layout = Layout::array::<u32>(16).unwrap();
@@ -6531,7 +6578,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_vec = OpaqueVec::new_in::<i32, Global>(Global);
     ///
@@ -6580,7 +6627,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let capacity = 32;
     /// let opaque_vec = OpaqueVec::with_capacity_in::<i32, Global>(capacity, Global);
@@ -6602,7 +6649,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_vec = OpaqueVec::with_capacity_in::<i32, Global>(0, Global);
     ///
@@ -6655,7 +6702,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let capacity = 32;
     /// let opaque_vec = OpaqueVec::try_with_capacity_in::<i32, Global>(capacity, Global);
@@ -6681,7 +6728,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_vec = OpaqueVec::try_with_capacity_in::<i32, Global>(0, Global);
     ///
@@ -6754,7 +6801,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_vec = {
     ///     let array: [i32; 3] = [1, 2, 3];
@@ -6827,7 +6874,7 @@ impl OpaqueVec {
     /// # use std::alloc::{Allocator, Layout, Global};
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::{Allocator, Layout, Global};
+    /// # use opaque_allocator_api::alloc::{Allocator, Layout, Global};
     /// #
     /// let value = 1_000_000;
     /// let layout = Layout::array::<u32>(16).unwrap();
@@ -6924,7 +6971,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_vec = {
     ///     let array: [i32; 3] = [1, 2, 3];
@@ -6997,7 +7044,7 @@ impl OpaqueVec {
     /// # use std::alloc::{Allocator, Layout, Global};
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::{Allocator, Layout, Global};
+    /// # use opaque_allocator_api::alloc::{Allocator, Layout, Global};
     /// #
     /// let value = 1_000_000;
     /// let layout = Layout::array::<u32>(16).unwrap();
@@ -7064,7 +7111,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_vec = OpaqueVec::new::<i32>();
     ///
@@ -7111,7 +7158,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let capacity = 32;
     /// let opaque_vec = OpaqueVec::with_capacity::<i32>(capacity);
@@ -7133,7 +7180,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_vec = OpaqueVec::with_capacity::<i32>(0);
     ///
@@ -7184,7 +7231,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let capacity = 32;
     /// let opaque_vec = OpaqueVec::try_with_capacity::<i32>(capacity);
@@ -7210,7 +7257,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_vec = OpaqueVec::try_with_capacity::<i32>(0);
     ///
@@ -7280,7 +7327,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_vec = {
     ///     let array: [i32; 3] = [1, 2, 3];
@@ -7352,7 +7399,7 @@ impl OpaqueVec {
     /// # use std::alloc::{Allocator, Layout, Global};
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::{Allocator, Layout, Global};
+    /// # use opaque_allocator_api::alloc::{Allocator, Layout, Global};
     /// #
     /// let value = 1_000_000;
     /// let layout = Layout::array::<u32>(16).unwrap();
@@ -7445,7 +7492,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_vec = {
     ///     let array: [i32; 3] = [1, 2, 3];
@@ -7517,7 +7564,7 @@ impl OpaqueVec {
     /// # use std::alloc::{Allocator, Layout, Global};
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::{Allocator, Layout, Global};
+    /// # use opaque_allocator_api::alloc::{Allocator, Layout, Global};
     /// #
     /// let value = 1_000_000;
     /// let layout = Layout::array::<u32>(16).unwrap();
@@ -7580,7 +7627,7 @@ impl OpaqueVec {
     /// # use std::alloc::{Layout, Global};
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::{Layout, Global};
+    /// # use opaque_allocator_api::alloc::{Layout, Global};
     /// #
     /// struct Rgb { r: u8, g: u8, b: u8, }
     ///
@@ -7620,7 +7667,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let capacity = 32;
     /// let mut opaque_vec = OpaqueVec::with_capacity_in::<i32, Global>(capacity, Global);
@@ -7662,7 +7709,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let len = 32;
     /// let mut opaque_vec = OpaqueVec::with_capacity_in::<i32, Global>(len, Global);
@@ -7702,7 +7749,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_vec = OpaqueVec::with_capacity_in::<i32, Global>(1, Global);
     ///
@@ -7740,7 +7787,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_vec = OpaqueVec::new::<i32>();
     /// #
@@ -7800,7 +7847,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// struct DropCounter {}
     ///
@@ -7851,7 +7898,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// struct DropCounter {}
     ///
@@ -7898,7 +7945,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let capacity = 4;
     /// let mut opaque_vec = OpaqueVec::with_capacity::<i32>(capacity);
@@ -7961,7 +8008,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 3] = [10, 40, 30];
     /// let opaque_vec = OpaqueVec::from(array);
@@ -8015,7 +8062,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 3] = [10, 40, 30];
     /// let mut opaque_vec = OpaqueVec::from(array);
@@ -8073,7 +8120,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 3] = [10, 40, 30];
     /// let opaque_vec = OpaqueVec::from(array);
@@ -8130,7 +8177,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 3] = [10, 40, 30];
     /// let mut opaque_vec = OpaqueVec::from(array);
@@ -8203,7 +8250,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 2] = [1, 2];
     /// let mut opaque_vec = OpaqueVec::from(array);
@@ -8274,7 +8321,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 3] = [1, 2, 3];
     /// let mut opaque_vec = OpaqueVec::from(array);
@@ -8365,7 +8412,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let min_capacity = 4;
     /// let mut opaque_vec = OpaqueVec::with_capacity::<i32>(min_capacity);
@@ -8392,7 +8439,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let min_capacity = 4;
     /// let mut opaque_vec = OpaqueVec::with_capacity::<i32>(min_capacity);
@@ -8477,7 +8524,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_vec = OpaqueVec::new::<i32>();
     /// #
@@ -8568,7 +8615,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_vec = OpaqueVec::new::<i32>();
     /// #
@@ -8663,7 +8710,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 4] = [1, 2, 3, i32::MAX];
     /// let opaque_vec = OpaqueVec::from(array);
@@ -8762,7 +8809,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 4] = [1, 2, 3, i32::MAX];
     /// let opaque_vec = OpaqueVec::from(array);
@@ -8845,7 +8892,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 9] = [92, 8, 40, 9, 8, 34, 59, 34, 5];
     /// let opaque_vec = OpaqueVec::from(array);
@@ -8900,7 +8947,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 6] = [92, 8, 40, 9, 8, 34];
     /// let opaque_vec = OpaqueVec::from(array);
@@ -8952,7 +8999,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 6] = [92, 8, 40, 9, 8, 34];
     /// let mut opaque_vec = OpaqueVec::from(array);
@@ -9005,7 +9052,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [&'static str; 10] = [
     ///     "spam",
@@ -9106,7 +9153,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut result = {
     ///     let array: [i32; 4] = [1, 2, 3, 4];
@@ -9187,7 +9234,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_vec = {
     ///     let array: [i32; 6] = [1, 2, 3, 4, 5, 6];
@@ -9221,7 +9268,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_vec = {
     ///     let array: [i32; 6] = [1, 2, 3, 4, 5, 6];
@@ -9255,7 +9302,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_vec = {
     ///     let array: [i32; 6] = [1, 2, 3, 4, 5, 6];
@@ -9327,7 +9374,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_vec = {
     ///     let array: [i32; 4] = [1, 2, 4, 8];
@@ -9358,7 +9405,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_vec = {
     ///     let array: [i32; 3] = [0, 1, 2];
@@ -9425,7 +9472,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// // Allocate vector big enough for 4 elements.
     /// let length = 4;
@@ -9457,7 +9504,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_vec = OpaqueVec::with_capacity::<i32>(4);
     /// #
@@ -9516,7 +9563,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// // Allocate vector big enough for 4 elements.
     /// let length = 4;
@@ -9548,7 +9595,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_vec = OpaqueVec::with_capacity::<i32>(4);
     /// #
@@ -9597,7 +9644,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 3] = [9, 28, 37];
     /// let opaque_vec = OpaqueVec::from(array);
@@ -9641,7 +9688,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut array: [i32; 3] = [9, 28, 37];
     /// let mut opaque_vec = OpaqueVec::from(array);
@@ -9666,7 +9713,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut array: [i32; 3] = [9, 28, 37];
     /// let mut opaque_vec = OpaqueVec::from(array);
@@ -9729,7 +9776,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 3] = [-1, 0, 1];
     /// let opaque_vec = OpaqueVec::from(array);
@@ -9789,7 +9836,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 3] = [-1, 0, 1];
     /// let opaque_vec = OpaqueVec::from(array);
@@ -9817,7 +9864,9 @@ impl OpaqueVec {
 
         proj_self.into_parts()
     }
+}
 
+impl OpaqueVec {
     /// Decomposes a type-erased vector with any memory allocator into its constituent parts:
     /// `(pointer, length, capacity, allocator)`.
     ///
@@ -9850,7 +9899,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 3] = [-1, 0, 1];
     /// let opaque_vec = OpaqueVec::from(array);
@@ -9911,7 +9960,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 3] = [-1, 0, 1];
     /// let opaque_vec = OpaqueVec::from(array);
@@ -9940,7 +9989,10 @@ impl OpaqueVec {
 
         proj_self.into_parts_with_alloc()
     }
+}
 
+#[cfg(feature = "nightly")]
+impl OpaqueVec {
     /// Converts a type-erased vector into a [`Box<[T]>`][owned slice].
     ///
     /// Before doing the conversion, this method discards excess capacity like [`shrink_to_fit`].
@@ -9968,10 +10020,10 @@ impl OpaqueVec {
     /// # use std::boxed::Box;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::boxed::Box;
+    /// # use opaque_allocator_api::boxed::Box;
     /// #
     /// let mut opaque_vec = {
     ///     let mut _opaque_vec = OpaqueVec::with_capacity::<i32>(10);
@@ -10038,7 +10090,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let length = 6;
     /// let capacity = 10;
@@ -10116,7 +10168,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let length = 3;
     /// let mut opaque_vec = {
@@ -10149,7 +10201,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_vec = OpaqueVec::new::<i32>();
     /// #
@@ -10200,7 +10252,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_vec = OpaqueVec::with_capacity::<i32>(10);
     /// #
@@ -10261,7 +10313,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_vec = OpaqueVec::new::<i32>();
     /// #
@@ -10320,7 +10372,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_vec = OpaqueVec::new::<i32>();
     /// #
@@ -10376,7 +10428,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_vec = OpaqueVec::new::<i32>();
     /// #
@@ -10434,7 +10486,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_vec = OpaqueVec::new::<i32>();
     /// #
@@ -10488,7 +10540,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_vec = OpaqueVec::with_capacity::<i32>(10);
     /// #
@@ -10550,7 +10602,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_vec = OpaqueVec::with_capacity::<i32>(10);
     /// #
@@ -10627,7 +10679,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_vec = OpaqueVec::with_capacity::<i32>(10);
     /// #
@@ -10695,7 +10747,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_vec = {
     ///     let array: [i32; 4] = [1, 2, 3, 4];
@@ -10738,7 +10790,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_vec = {
     ///     let array: [i32; 2] = [1, 5];
@@ -10802,7 +10854,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// # let some_predicate = |x: &mut i32| { *x % 2 == 1 };
     /// # let mut opaque_vec = {
@@ -10864,7 +10916,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut numbers = {
     ///     let array: [i32; 12] = [1, 2, 3, 4, 5, 6, 8, 9, 11, 13, 14, 15];
@@ -10891,7 +10943,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut items = {
     ///     let array: [i32; 13] = [0, 0, 0, 0, 0, 0, 0, 1, 2, 1, 2, 1, 2];
@@ -10961,7 +11013,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 6] = [1, 2, 3, 4, 5, 6];
     /// let extension: [i32; 4] = [7, 8, 9, 10];
@@ -11025,7 +11077,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_vec = {
     ///     let array: [&'static str; 8] = [
@@ -11085,7 +11137,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_vec = {
     ///     let array: [&'static str; 14] = [
@@ -11168,7 +11220,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_vec = {
     ///     let array: [i32; 6] = [1, 2, 3, 4, 5, 6];
@@ -11194,7 +11246,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 6] = [1, 2, 3, 4, 5, 6];
     /// let mut opaque_vec = OpaqueVec::from(array);
@@ -11218,7 +11270,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 6] = [1, 2, 3, 4, 5, 6];
     /// let mut opaque_vec = OpaqueVec::from(array);
@@ -11247,7 +11299,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_vec = {
     ///     let array: [i32; 6] = [1, 2, 3, 4, 5, 6];
@@ -11344,7 +11396,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_vec = {
     ///     let array: [i32; 6] = [1, 2, 3, 4, 5, 6];
@@ -11436,7 +11488,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_vec = {
     ///     let array: [i32; 6] = [1, 2, 3, 4, 5, 6];
@@ -11525,7 +11577,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_vec = {
     ///     let array: [i32; 9] = [1, 2, 3, 2, 2, 2, 6, 4, 4];
@@ -11550,7 +11602,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_vec = {
     ///     let array: [i32; 10] = [1, 2, 3, 3, 3, 3, 4, 4, 4, 5];
@@ -11575,7 +11627,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_vec = {
     ///     let array: [i32; 5] = [1, 2, 3, 4, 5];
@@ -11654,7 +11706,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_vec = {
     ///     let array: [i32; 5] = [10, 20, 21, 30, 20];
@@ -11676,7 +11728,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_vec = {
     ///     let array: [i32; 8] = [10, 20, 20, 21, 30, 30, 30, 40];
@@ -11758,7 +11810,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_vec = {
     ///     let array: [&'static str; 8] = [
@@ -11785,7 +11837,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_vec = {
     ///     let array: [&'static str; 11] = [
@@ -11834,7 +11886,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 6] = [1, 2, 3, 4, 5, 6];
     /// let extension: [i32; 4] = [7, 8, 9, 10];
@@ -11886,7 +11938,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 6] = [1, 2, 3, 4, 5, 6];
     /// let array_rev: [i32; 6] = [6, 5, 4, 3, 2, 1];
@@ -11915,7 +11967,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let palindrome: [i32; 7] = [1, 2, 3, 4, 3, 2, 1];
     /// let expected = OpaqueVec::from(palindrome);
@@ -11968,7 +12020,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_vec = OpaqueVec::new::<i32>();
     /// #
@@ -11997,7 +12049,7 @@ impl OpaqueVec {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 6] = [1, 2, 3, 4, 5, 6];
     /// let opaque_vec = OpaqueVec::from(array);
@@ -12083,12 +12135,25 @@ where
     }
 }
 
+#[cfg(feature = "nightly")]
 impl<T, A> From<Vec<T, A>> for OpaqueVec
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn from(vec: Vec<T, A>) -> Self {
+        let proj_vec = TypedProjVec::from(vec);
+
+        Self::from_proj(proj_vec)
+    }
+}
+
+#[cfg(not(feature = "nightly"))]
+impl<T> From<Vec<T>> for OpaqueVec
+where
+    T: any::Any,
+{
+    fn from(vec: Vec<T>) -> Self {
         let proj_vec = TypedProjVec::from(vec);
 
         Self::from_proj(proj_vec)
@@ -12117,6 +12182,7 @@ where
     }
 }
 
+#[cfg(feature = "nightly")]
 impl<T, A> From<Box<[T], TypedProjAlloc<A>>> for OpaqueVec
 where
     T: any::Any,

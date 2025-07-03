@@ -9,7 +9,6 @@ use core::fmt;
 use core::iter;
 use core::mem;
 use core::ops;
-use alloc_crate::alloc;
 use alloc_crate::boxed::Box;
 
 #[cfg(feature = "std")]
@@ -17,6 +16,12 @@ use std::hash;
 
 #[cfg(not(feature = "std"))]
 use core::hash;
+
+#[cfg(feature = "nightly")]
+use alloc_crate::alloc;
+
+#[cfg(not(feature = "nightly"))]
+use opaque_allocator_api::alloc;
 
 use opaque_alloc::TypedProjAlloc;
 use opaque_error::TryReserveError;
@@ -33,14 +38,19 @@ use opaque_vec::TypedProjVec;
 /// Using a draining iterator on a type-projected index map.
 ///
 /// ```
-/// # #![feature(allocator_api)]
+/// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
 /// # use opaque_index_map::TypedProjIndexMap;
 /// # use opaque_hash::TypedProjBuildHasher;
 /// # use opaque_alloc::TypedProjAlloc;
 /// # use opaque_vec::TypedProjVec;
 /// # use std::any::TypeId;
 /// # use std::hash::RandomState;
+/// #
+/// # #[cfg(feature = "nightly")]
 /// # use std::alloc::Global;
+/// #
+/// # #[cfg(not(feature = "nightly"))]
+/// # use opaque_allocator_api::alloc::Global;
 /// #
 /// let mut result = TypedProjIndexMap::from([
 ///     (0_usize, 1_i32),
@@ -63,14 +73,19 @@ use opaque_vec::TypedProjVec;
 /// Using a draining iterator on a type-erased index map.
 ///
 /// ```
-/// # #![feature(allocator_api)]
+/// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
 /// # use opaque_index_map::OpaqueIndexMap;
 /// # use opaque_hash::TypedProjBuildHasher;
 /// # use opaque_alloc::TypedProjAlloc;
 /// # use opaque_vec::TypedProjVec;
 /// # use std::any::TypeId;
 /// # use std::hash::RandomState;
+/// #
+/// # #[cfg(feature = "nightly")]
 /// # use std::alloc::Global;
+/// #
+/// # #[cfg(not(feature = "nightly"))]
+/// # use opaque_allocator_api::alloc::Global;
 /// #
 /// let mut result = OpaqueIndexMap::from([
 ///     (0_usize, 1_i32),
@@ -117,14 +132,19 @@ where
     /// map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     (0_usize, "spam"),
@@ -151,14 +171,19 @@ where
     /// map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (0_usize, "spam"),
@@ -253,14 +278,19 @@ where
 /// Using a key iterator on a type-projected index map.
 ///
 /// ```
-/// # #![feature(allocator_api)]
+/// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
 /// # use opaque_index_map::TypedProjIndexMap;
 /// # use opaque_hash::TypedProjBuildHasher;
 /// # use opaque_alloc::TypedProjAlloc;
 /// # use opaque_vec::TypedProjVec;
 /// # use std::any::TypeId;
 /// # use std::hash::RandomState;
+/// #
+/// # #[cfg(feature = "nightly")]
 /// # use std::alloc::Global;
+/// #
+/// # #[cfg(not(feature = "nightly"))]
+/// # use opaque_allocator_api::alloc::Global;
 /// #
 /// let proj_map = TypedProjIndexMap::from([
 ///     ("foo",  1_i32),
@@ -280,14 +310,19 @@ where
 /// Using a key iterator on a type-erased index map.
 ///
 /// ```
-/// # #![feature(allocator_api)]
+/// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
 /// # use opaque_index_map::OpaqueIndexMap;
 /// # use opaque_hash::TypedProjBuildHasher;
 /// # use opaque_alloc::TypedProjAlloc;
 /// # use opaque_vec::TypedProjVec;
 /// # use std::any::TypeId;
 /// # use std::hash::RandomState;
+/// #
+/// # #[cfg(feature = "nightly")]
 /// # use std::alloc::Global;
+/// #
+/// # #[cfg(not(feature = "nightly"))]
+/// # use opaque_allocator_api::alloc::Global;
 /// #
 /// let opaque_map = OpaqueIndexMap::from([
 ///     ("foo",  1_i32),
@@ -374,14 +409,19 @@ impl<'a, K, V> ops::Index<usize> for Keys<'a, K, V> {
 /// Using a moving key iterator on a type-projected index map.
 ///
 /// ```
-/// # #![feature(allocator_api)]
+/// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
 /// # use opaque_index_map::TypedProjIndexMap;
 /// # use opaque_hash::TypedProjBuildHasher;
 /// # use opaque_alloc::TypedProjAlloc;
 /// # use opaque_vec::TypedProjVec;
 /// # use std::any::TypeId;
 /// # use std::hash::RandomState;
+/// #
+/// # #[cfg(feature = "nightly")]
 /// # use std::alloc::Global;
+/// #
+/// # #[cfg(not(feature = "nightly"))]
+/// # use opaque_allocator_api::alloc::Global;
 /// #
 /// let proj_map = TypedProjIndexMap::from([
 ///     ("foo",  1_i32),
@@ -400,14 +440,19 @@ impl<'a, K, V> ops::Index<usize> for Keys<'a, K, V> {
 /// Using a moving key iterator on a type-erased index map.
 ///
 /// ```
-/// # #![feature(allocator_api)]
+/// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
 /// # use opaque_index_map::OpaqueIndexMap;
 /// # use opaque_hash::TypedProjBuildHasher;
 /// # use opaque_alloc::TypedProjAlloc;
 /// # use opaque_vec::TypedProjVec;
 /// # use std::any::TypeId;
 /// # use std::hash::RandomState;
+/// #
+/// # #[cfg(feature = "nightly")]
 /// # use std::alloc::Global;
+/// #
+/// # #[cfg(not(feature = "nightly"))]
+/// # use opaque_allocator_api::alloc::Global;
 /// #
 /// let opaque_map = OpaqueIndexMap::from([
 ///     ("foo",  1_i32),
@@ -525,14 +570,19 @@ where
 /// Using a value iterator on a type-projected index map.
 ///
 /// ```
-/// # #![feature(allocator_api)]
+/// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
 /// # use opaque_index_map::TypedProjIndexMap;
 /// # use opaque_hash::TypedProjBuildHasher;
 /// # use opaque_alloc::TypedProjAlloc;
 /// # use opaque_vec::TypedProjVec;
 /// # use std::any::TypeId;
 /// # use std::hash::RandomState;
+/// #
+/// # #[cfg(feature = "nightly")]
 /// # use std::alloc::Global;
+/// #
+/// # #[cfg(not(feature = "nightly"))]
+/// # use opaque_allocator_api::alloc::Global;
 /// #
 /// let proj_map = TypedProjIndexMap::from([
 ///     ("foo",  1_i32),
@@ -552,14 +602,19 @@ where
 /// Using a value iterator on a type-erased index map.
 ///
 /// ```
-/// # #![feature(allocator_api)]
+/// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
 /// # use opaque_index_map::OpaqueIndexMap;
 /// # use opaque_hash::TypedProjBuildHasher;
 /// # use opaque_alloc::TypedProjAlloc;
 /// # use opaque_vec::TypedProjVec;
 /// # use std::any::TypeId;
 /// # use std::hash::RandomState;
+/// #
+/// # #[cfg(feature = "nightly")]
 /// # use std::alloc::Global;
+/// #
+/// # #[cfg(not(feature = "nightly"))]
+/// # use opaque_allocator_api::alloc::Global;
 /// #
 /// let opaque_map = OpaqueIndexMap::from([
 ///     ("foo",  1_i32),
@@ -645,14 +700,19 @@ impl<K, V> Default for Values<'_, K, V> {
 /// Using a value iterator on a type-projected index map.
 ///
 /// ```
-/// # #![feature(allocator_api)]
+/// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
 /// # use opaque_index_map::TypedProjIndexMap;
 /// # use opaque_hash::TypedProjBuildHasher;
 /// # use opaque_alloc::TypedProjAlloc;
 /// # use opaque_vec::TypedProjVec;
 /// # use std::any::TypeId;
 /// # use std::hash::RandomState;
+/// #
+/// # #[cfg(feature = "nightly")]
 /// # use std::alloc::Global;
+/// #
+/// # #[cfg(not(feature = "nightly"))]
+/// # use opaque_allocator_api::alloc::Global;
 /// #
 /// let mut proj_map = TypedProjIndexMap::from([
 ///     ("foo",  1_i32),
@@ -684,14 +744,19 @@ impl<K, V> Default for Values<'_, K, V> {
 /// Using a value iterator on a type-erased index map.
 ///
 /// ```
-/// # #![feature(allocator_api)]
+/// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
 /// # use opaque_index_map::OpaqueIndexMap;
 /// # use opaque_hash::TypedProjBuildHasher;
 /// # use opaque_alloc::TypedProjAlloc;
 /// # use opaque_vec::TypedProjVec;
 /// # use std::any::TypeId;
 /// # use std::hash::RandomState;
+/// #
+/// # #[cfg(feature = "nightly")]
 /// # use std::alloc::Global;
+/// #
+/// # #[cfg(not(feature = "nightly"))]
+/// # use opaque_allocator_api::alloc::Global;
 /// #
 /// let mut opaque_map = OpaqueIndexMap::from([
 ///     ("foo",  1_i32),
@@ -783,14 +848,19 @@ impl<K, V> Default for ValuesMut<'_, K, V> {
 /// Using a moving value iterator on a type-projected index map.
 ///
 /// ```
-/// # #![feature(allocator_api)]
+/// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
 /// # use opaque_index_map::TypedProjIndexMap;
 /// # use opaque_hash::TypedProjBuildHasher;
 /// # use opaque_alloc::TypedProjAlloc;
 /// # use opaque_vec::TypedProjVec;
 /// # use std::any::TypeId;
 /// # use std::hash::RandomState;
+/// #
+/// # #[cfg(feature = "nightly")]
 /// # use std::alloc::Global;
+/// #
+/// # #[cfg(not(feature = "nightly"))]
+/// # use opaque_allocator_api::alloc::Global;
 /// #
 /// let proj_map = TypedProjIndexMap::from([
 ///     ("foo",  1_i32),
@@ -809,14 +879,19 @@ impl<K, V> Default for ValuesMut<'_, K, V> {
 /// Using a moving value iterator on a type-erased index map.
 ///
 /// ```
-/// # #![feature(allocator_api)]
+/// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
 /// # use opaque_index_map::OpaqueIndexMap;
 /// # use opaque_hash::TypedProjBuildHasher;
 /// # use opaque_alloc::TypedProjAlloc;
 /// # use opaque_vec::TypedProjVec;
 /// # use std::any::TypeId;
 /// # use std::hash::RandomState;
+/// #
+/// # #[cfg(feature = "nightly")]
 /// # use std::alloc::Global;
+/// #
+/// # #[cfg(not(feature = "nightly"))]
+/// # use opaque_allocator_api::alloc::Global;
 /// #
 /// let opaque_map = OpaqueIndexMap::from([
 ///     ("foo",  1_i32),
@@ -938,7 +1013,7 @@ where
 /// # Examples
 ///
 /// ```
-/// # #![feature(allocator_api)]
+/// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
 /// # use opaque_index_map::TypedProjIndexMap;
 /// # use opaque_hash::TypedProjBuildHasher;
 /// # use opaque_alloc::TypedProjAlloc;
@@ -946,7 +1021,12 @@ where
 /// # use std::any::TypeId;
 /// # use std::cmp::Ordering;
 /// # use std::hash::RandomState;
+/// #
+/// # #[cfg(feature = "nightly")]
 /// # use std::alloc::Global;
+/// #
+/// # #[cfg(not(feature = "nightly"))]
+/// # use opaque_allocator_api::alloc::Global;
 /// #
 /// let mut proj_map = TypedProjIndexMap::from([
 ///     ("Amnesia", "City Ruins"),
@@ -985,7 +1065,10 @@ impl<K, V> Slice<K, V> {
     pub(crate) const fn from_slice_mut(entries: &mut map_inner::Slice<K, V>) -> &mut Self {
         unsafe { &mut *(entries as *mut map_inner::Slice<K, V> as *mut Self) }
     }
+}
 
+#[cfg(feature = "nightly")]
+impl<K, V> Slice<K, V> {
     /// Constructs a new boxed slice from an inner boxed slice.
     fn from_boxed_slice<A>(entries: Box<map_inner::Slice<K, V>, TypedProjAlloc<A>>) -> Box<Self, TypedProjAlloc<A>>
     where
@@ -1026,13 +1109,15 @@ impl<K, V> Slice<K, V> {
 
         boxed_slice
     }
+}
 
+impl<K, V> Slice<K, V> {
     /// Constructs a new empty index map slice.
     ///
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::map::Slice;
     /// #
     /// let slice: &Slice<usize, isize> = Slice::new();
@@ -1048,7 +1133,7 @@ impl<K, V> Slice<K, V> {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::map::Slice;
     /// #
     /// let mut slice: &mut Slice<usize, isize> = Slice::new_mut();
@@ -1068,14 +1153,19 @@ impl<K, V> Slice<K, V> {
     /// Getting a slice of the entries of a type-projected index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map = TypedProjIndexMap::from([
     ///     (0_usize, 1_i32),
@@ -1093,14 +1183,19 @@ impl<K, V> Slice<K, V> {
     /// Getting a slice of the entries of a type-erased index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::from([
     ///     (0_usize, 1_i32),
@@ -1128,14 +1223,19 @@ impl<K, V> Slice<K, V> {
     /// Getting a slice of the entries of a type-projected index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map = TypedProjIndexMap::from([
     ///     (0_usize, 1_i32),
@@ -1154,14 +1254,19 @@ impl<K, V> Slice<K, V> {
     /// Getting a slice of the entries of a type-erased index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::from([
     ///     (0_usize, 1_i32),
@@ -1193,7 +1298,7 @@ impl<K, V> Slice<K, V> {
     /// Getting entries from a type-projected index map slice by index.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -1201,7 +1306,12 @@ impl<K, V> Slice<K, V> {
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map = TypedProjIndexMap::from([
     ///     (1_usize, 10_i32),
@@ -1220,7 +1330,7 @@ impl<K, V> Slice<K, V> {
     /// Getting entries from a type-erased index map slice by index.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -1228,7 +1338,12 @@ impl<K, V> Slice<K, V> {
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::from([
     ///     (1_usize, 10_i32),
@@ -1259,7 +1374,7 @@ impl<K, V> Slice<K, V> {
     /// Getting entries from a type-projected index map slice by index.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -1267,7 +1382,12 @@ impl<K, V> Slice<K, V> {
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     (1_usize, 10_i32),
@@ -1286,7 +1406,7 @@ impl<K, V> Slice<K, V> {
     /// Getting entries from a type-erased index map slice by index.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -1294,7 +1414,12 @@ impl<K, V> Slice<K, V> {
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (1_usize, 10_i32),
@@ -1325,7 +1450,7 @@ impl<K, V> Slice<K, V> {
     /// Subslicing a slice from a type-projected index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -1333,7 +1458,12 @@ impl<K, V> Slice<K, V> {
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map = TypedProjIndexMap::from([
     ///     (1_usize, 10_i32),
@@ -1367,7 +1497,7 @@ impl<K, V> Slice<K, V> {
     /// Subslicing a slice from a type-erased index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -1375,7 +1505,12 @@ impl<K, V> Slice<K, V> {
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::from([
     ///     (1_usize, 10_i32),
@@ -1424,7 +1559,7 @@ impl<K, V> Slice<K, V> {
     /// Subslicing a slice from a type-projected index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -1432,7 +1567,12 @@ impl<K, V> Slice<K, V> {
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     (1_usize, 10_i32),
@@ -1466,7 +1606,7 @@ impl<K, V> Slice<K, V> {
     /// Subslicing a slice from a type-erased index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -1474,7 +1614,12 @@ impl<K, V> Slice<K, V> {
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (1_usize, 10_i32),
@@ -1523,14 +1668,19 @@ impl<K, V> Slice<K, V> {
     /// Getting the first entry of a non-empty type-projected index map slice.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map = TypedProjIndexMap::from([
     ///     (String::from("foo"),  1_usize),
@@ -1547,14 +1697,19 @@ impl<K, V> Slice<K, V> {
     /// Getting the first entry from an empty typed-projected index map slice.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map: TypedProjIndexMap<String, usize> = TypedProjIndexMap::new();
     /// let slice = proj_map.as_slice();
@@ -1566,14 +1721,19 @@ impl<K, V> Slice<K, V> {
     /// Getting the first entry of a non-empty type-erased index map slice.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::from([
     ///     (String::from("foo"),  1_usize),
@@ -1590,14 +1750,19 @@ impl<K, V> Slice<K, V> {
     /// Getting the first entry from an empty typed-erased index map slice.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::new::<String, usize>();
     /// let slice = opaque_map.as_slice::<String, usize, RandomState, Global>();
@@ -1622,14 +1787,19 @@ impl<K, V> Slice<K, V> {
     /// Getting the first entry of a non-empty type-projected index map slice.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     (String::from("foo"),  1_usize),
@@ -1646,14 +1816,19 @@ impl<K, V> Slice<K, V> {
     /// Getting the first entry from an empty typed-projected index map slice.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map: TypedProjIndexMap<String, usize> = TypedProjIndexMap::new();
     /// let slice = proj_map.as_mut_slice();
@@ -1665,14 +1840,19 @@ impl<K, V> Slice<K, V> {
     /// Getting the first entry of a non-empty type-erased index map slice.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (String::from("foo"),  1_usize),
@@ -1689,14 +1869,19 @@ impl<K, V> Slice<K, V> {
     /// Getting the first entry from an empty typed-erased index map slice.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::new::<String, usize>();
     /// let slice = opaque_map.as_mut_slice::<String, usize, RandomState, Global>();
@@ -1720,14 +1905,19 @@ impl<K, V> Slice<K, V> {
     /// Getting the last entry of a non-empty type-projected index map slice.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map = TypedProjIndexMap::from([
     ///     (String::from("foo"),  1_usize),
@@ -1744,14 +1934,19 @@ impl<K, V> Slice<K, V> {
     /// Getting the last entry from an empty typed-projected index map slice.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map: TypedProjIndexMap<String, usize> = TypedProjIndexMap::new();
     /// let slice = proj_map.as_slice();
@@ -1763,14 +1958,19 @@ impl<K, V> Slice<K, V> {
     /// Getting the last entry of a non-empty type-erased index map slice.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::from([
     ///     (String::from("foo"),  1_usize),
@@ -1787,14 +1987,19 @@ impl<K, V> Slice<K, V> {
     /// Getting the last entry from an empty typed-erased index map slice.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::new::<String, usize>();
     /// let slice = opaque_map.as_slice::<String, usize, RandomState, Global>();
@@ -1818,14 +2023,19 @@ impl<K, V> Slice<K, V> {
     /// Getting the last entry of a non-empty type-projected index map slice.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     (String::from("foo"),  1_usize),
@@ -1842,14 +2052,19 @@ impl<K, V> Slice<K, V> {
     /// Getting the last entry from an empty typed-projected index map slice.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map: TypedProjIndexMap<String, usize> = TypedProjIndexMap::new();
     /// let slice = proj_map.as_mut_slice();
@@ -1861,14 +2076,19 @@ impl<K, V> Slice<K, V> {
     /// Getting the last entry of a non-empty type-erased index map slice.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (String::from("foo"),  1_usize),
@@ -1885,14 +2105,19 @@ impl<K, V> Slice<K, V> {
     /// Getting the last entry from an empty typed-erased index map slice.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::new::<String, usize>();
     /// let slice = opaque_map.as_mut_slice::<String, usize, RandomState, Global>();
@@ -1915,14 +2140,19 @@ impl<K, V> Slice<K, V> {
     /// Splitting a slice from a type-projected index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map = TypedProjIndexMap::from([
     ///     (0_usize, 1_i32),
@@ -1940,14 +2170,19 @@ impl<K, V> Slice<K, V> {
     /// Splitting a slice from a type-erased index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::from([
     ///     (0_usize, 1_i32),
@@ -1978,14 +2213,19 @@ impl<K, V> Slice<K, V> {
     /// Splitting a slice from a type-projected index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     (0_usize, 1_i32),
@@ -2003,14 +2243,19 @@ impl<K, V> Slice<K, V> {
     /// Splitting a slice from a type-erased index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (0_usize, 1_i32),
@@ -2041,14 +2286,19 @@ impl<K, V> Slice<K, V> {
     /// Splitting a type-projected index map slice.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map = TypedProjIndexMap::from([
     ///     (0_usize, 1_i32),
@@ -2070,14 +2320,19 @@ impl<K, V> Slice<K, V> {
     /// Splitting a type-erased index map slice.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::from([
     ///     (0_usize, 1_i32),
@@ -2113,14 +2368,19 @@ impl<K, V> Slice<K, V> {
     /// Splitting a type-projected index map slice.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     (0_usize, 1_i32),
@@ -2142,14 +2402,19 @@ impl<K, V> Slice<K, V> {
     /// Splitting a type-erased index map slice.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (0_usize, 1_i32),
@@ -2184,14 +2449,19 @@ impl<K, V> Slice<K, V> {
     /// Splitting a type-projected index map slice.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map = TypedProjIndexMap::from([
     ///     (0_usize, 1_i32),
@@ -2213,14 +2483,19 @@ impl<K, V> Slice<K, V> {
     /// Splitting a type-erased index map slice.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::from([
     ///     (0_usize, 1_i32),
@@ -2242,7 +2517,6 @@ impl<K, V> Slice<K, V> {
         let (split, slice) = self.entries.split_last()?;
 
         Some((split, Self::from_slice(slice)))
-
     }
 
     /// Divides a mutable index map slice into the last entry and a prefix of the original slice.
@@ -2256,14 +2530,19 @@ impl<K, V> Slice<K, V> {
     /// Splitting a type-projected index map slice.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     (0_usize, 1_i32),
@@ -2285,14 +2564,19 @@ impl<K, V> Slice<K, V> {
     /// Splitting a type-erased index map slice.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (0_usize, 1_i32),
@@ -2325,14 +2609,19 @@ impl<K, V> Slice<K, V> {
     /// Iterating over the entries of an index map slice.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map = TypedProjIndexMap::from([
     ///     (0_usize, 2_f32),
@@ -2360,14 +2649,19 @@ impl<K, V> Slice<K, V> {
     /// Iterating over the entries of an index map slice.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     (0_usize, 2_f32),
@@ -2386,14 +2680,19 @@ impl<K, V> Slice<K, V> {
     /// Iterating over the entries of an index map slice while mutating them.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     (0_usize, 2_f32),
@@ -2430,14 +2729,19 @@ impl<K, V> Slice<K, V> {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map: TypedProjIndexMap<usize, f64> = TypedProjIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -2455,7 +2759,10 @@ impl<K, V> Slice<K, V> {
     pub fn keys(&self) -> Keys<'_, K, V> {
         Keys::new(self.entries.keys())
     }
+}
 
+#[cfg(feature = "nightly")]
+impl<K, V> Slice<K, V> {
     /// Returns a moving iterator over the keys in the index map slice.
     ///
     /// The iterator returns the keys in the storage order of the entries in the index map slice.
@@ -2463,14 +2770,19 @@ impl<K, V> Slice<K, V> {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map: TypedProjIndexMap<usize, f64> = TypedProjIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -2491,7 +2803,9 @@ impl<K, V> Slice<K, V> {
     {
         IntoKeys::new(self.into_boxed_slice().into_keys())
     }
+}
 
+impl<K, V> Slice<K, V> {
     /// Returns an iterator over the values in the index map slice.
     ///
     /// The iterator returns the values in the storage order of the entries in the index map slice.
@@ -2499,14 +2813,19 @@ impl<K, V> Slice<K, V> {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map: TypedProjIndexMap<usize, f64> = TypedProjIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -2535,14 +2854,19 @@ impl<K, V> Slice<K, V> {
     /// Iterating over the entries of a type-projected index map without mutating them.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map: TypedProjIndexMap<usize, f64> = TypedProjIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -2562,14 +2886,19 @@ impl<K, V> Slice<K, V> {
     /// Iterating over the entries of a type-projected index map while mutating them.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map: TypedProjIndexMap<usize, f64> = TypedProjIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -2599,7 +2928,10 @@ impl<K, V> Slice<K, V> {
     pub fn values_mut(&mut self) -> ValuesMut<'_, K, V> {
         ValuesMut::new(self.entries.values_mut())
     }
+}
 
+#[cfg(feature = "nightly")]
+impl<K, V> Slice<K, V> {
     /// Returns a moving iterator over the values in the index map slice.
     ///
     /// The iterator returns the values in the storage order of the entries in the index map slice.
@@ -2607,14 +2939,19 @@ impl<K, V> Slice<K, V> {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map: TypedProjIndexMap<usize, f64> = TypedProjIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -2635,7 +2972,9 @@ impl<K, V> Slice<K, V> {
     {
         IntoValues::new(self.into_boxed_slice().into_values())
     }
+}
 
+impl<K, V> Slice<K, V> {
     /// Binary searches a sorted index map slice for the given key. If the index map slice is
     /// unsorted, the returned result is unspecified and meaningless.
     ///
@@ -2650,7 +2989,7 @@ impl<K, V> Slice<K, V> {
     /// Binary searching a sorted index map slice.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -2658,7 +2997,12 @@ impl<K, V> Slice<K, V> {
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map: TypedProjIndexMap<isize, char> = TypedProjIndexMap::from_iter((1_isize..=26_isize).zip('a'..='z'));
     /// let slice = proj_map.as_slice();
@@ -2697,7 +3041,7 @@ impl<K, V> Slice<K, V> {
     /// Binary searching a sorted index map slice.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -2705,7 +3049,12 @@ impl<K, V> Slice<K, V> {
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map: TypedProjIndexMap<isize, char> = TypedProjIndexMap::from_iter((1_isize..=26_isize).zip('a'..='z'));
     /// let slice = proj_map.as_slice();
@@ -2725,7 +3074,7 @@ impl<K, V> Slice<K, V> {
     /// Binary searching a sorted index map slice with repeating values.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -2733,7 +3082,12 @@ impl<K, V> Slice<K, V> {
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map = TypedProjIndexMap::from([
     ///     (1_usize, 'a'), (2_usize, 'b'), (3_usize, 'c'),
@@ -2786,7 +3140,7 @@ impl<K, V> Slice<K, V> {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -2794,7 +3148,12 @@ impl<K, V> Slice<K, V> {
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map = TypedProjIndexMap::from([
     ///     (0_usize,  0_isize),
@@ -2842,7 +3201,7 @@ impl<K, V> Slice<K, V> {
     /// the predicate.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -2850,7 +3209,12 @@ impl<K, V> Slice<K, V> {
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map = TypedProjIndexMap::from([
     ///     (0_usize, 1_isize),
@@ -2871,7 +3235,7 @@ impl<K, V> Slice<K, V> {
     /// Finding the partition point of an index map slice where every entry matches the predicate.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -2879,7 +3243,12 @@ impl<K, V> Slice<K, V> {
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// fn is_power_of_two(n: usize) -> bool {
     ///     n != 0 && (n & (n - 1)) == 0
@@ -2902,7 +3271,7 @@ impl<K, V> Slice<K, V> {
     /// Finding the partition point of an index map slice where no entry matches the predicate.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -2910,7 +3279,12 @@ impl<K, V> Slice<K, V> {
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// fn is_power_of_two(n: usize) -> bool {
     ///     n != 0 && (n & (n - 1)) == 0
@@ -2949,13 +3323,18 @@ impl<K, V> Slice<K, V> {
     /// Getting key-value pairs from a type-projected index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     (1_isize, 'a'),
@@ -2981,13 +3360,18 @@ impl<K, V> Slice<K, V> {
     /// Getting key-value pairs from a type-erased index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (1_isize, 'a'),
@@ -3035,6 +3419,7 @@ impl<'a, K, V> IntoIterator for &'a mut Slice<K, V> {
     }
 }
 
+#[cfg(feature = "nightly")]
 impl<K, V, A> IntoIterator for Box<Slice<K, V>, TypedProjAlloc<A>>
 where
     K: any::Any,
@@ -3062,6 +3447,7 @@ impl<K, V> Default for &'_ mut Slice<K, V> {
     }
 }
 
+#[cfg(feature = "nightly")]
 impl<K, V, A> Default for Box<Slice<K, V>, TypedProjAlloc<A>>
 where
     K: any::Any,
@@ -3073,6 +3459,7 @@ where
     }
 }
 
+#[cfg(feature = "nightly")]
 impl<K, V, A> Clone for Box<Slice<K, V>, TypedProjAlloc<A>>
 where
     K: any::Any + Clone,
@@ -3087,6 +3474,7 @@ where
     }
 }
 
+#[cfg(feature = "nightly")]
 impl<K, V> From<&Slice<K, V>> for Box<Slice<K, V>, TypedProjAlloc<alloc::Global>>
 where
     K: any::Any + Copy,
@@ -3250,7 +3638,7 @@ impl_index_for_index_map_slice!(
 /// Iterating over the entries of a type-projected index map.
 ///
 /// ```
-/// # #![feature(allocator_api)]
+/// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
 /// # use opaque_index_map::TypedProjIndexMap;
 /// # use opaque_hash::TypedProjBuildHasher;
 /// # use opaque_alloc::TypedProjAlloc;
@@ -3258,7 +3646,12 @@ impl_index_for_index_map_slice!(
 /// # use std::any::TypeId;
 /// # use std::cmp::Ordering;
 /// # use std::hash::RandomState;
+/// #
+/// # #[cfg(feature = "nightly")]
 /// # use std::alloc::Global;
+/// #
+/// # #[cfg(not(feature = "nightly"))]
+/// # use opaque_allocator_api::alloc::Global;
 /// #
 /// let proj_map = TypedProjIndexMap::from([
 ///     (0_usize, 1_i32),
@@ -3278,7 +3671,7 @@ impl_index_for_index_map_slice!(
 /// Iterating over the entries of a type-erased index map.
 ///
 /// ```
-/// # #![feature(allocator_api)]
+/// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
 /// # use opaque_index_map::OpaqueIndexMap;
 /// # use opaque_hash::TypedProjBuildHasher;
 /// # use opaque_alloc::TypedProjAlloc;
@@ -3286,7 +3679,12 @@ impl_index_for_index_map_slice!(
 /// # use std::any::TypeId;
 /// # use std::cmp::Ordering;
 /// # use std::hash::RandomState;
+/// #
+/// # #[cfg(feature = "nightly")]
 /// # use std::alloc::Global;
+/// #
+/// # #[cfg(not(feature = "nightly"))]
+/// # use opaque_allocator_api::alloc::Global;
 /// #
 /// let opaque_map = OpaqueIndexMap::from([
 ///     (0_usize, 1_i32),
@@ -3320,7 +3718,7 @@ impl<'a, K, V> Iter<'a, K, V> {
     /// Slicing an iterator over a type-projected index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -3328,7 +3726,12 @@ impl<'a, K, V> Iter<'a, K, V> {
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map = TypedProjIndexMap::from([
     ///     (0_usize, 1_i32),
@@ -3352,7 +3755,7 @@ impl<'a, K, V> Iter<'a, K, V> {
     /// Slice an iterator over a type-erased index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -3360,7 +3763,12 @@ impl<'a, K, V> Iter<'a, K, V> {
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::from([
     ///     (0_usize, 1_i32),
@@ -3443,7 +3851,7 @@ impl<K, V> Default for Iter<'_, K, V> {
 /// Iterating over the entries of a type-projected index map.
 ///
 /// ```
-/// # #![feature(allocator_api)]
+/// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
 /// # use opaque_index_map::TypedProjIndexMap;
 /// # use opaque_hash::TypedProjBuildHasher;
 /// # use opaque_alloc::TypedProjAlloc;
@@ -3451,7 +3859,12 @@ impl<K, V> Default for Iter<'_, K, V> {
 /// # use std::any::TypeId;
 /// # use std::cmp::Ordering;
 /// # use std::hash::RandomState;
+/// #
+/// # #[cfg(feature = "nightly")]
 /// # use std::alloc::Global;
+/// #
+/// # #[cfg(not(feature = "nightly"))]
+/// # use opaque_allocator_api::alloc::Global;
 /// #
 /// let mut proj_map = TypedProjIndexMap::from([
 ///     (0_usize, 1_i32),
@@ -3471,7 +3884,7 @@ impl<K, V> Default for Iter<'_, K, V> {
 /// Iterating over the entries of a type-erased index map.
 ///
 /// ```
-/// # #![feature(allocator_api)]
+/// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
 /// # use opaque_index_map::OpaqueIndexMap;
 /// # use opaque_hash::TypedProjBuildHasher;
 /// # use opaque_alloc::TypedProjAlloc;
@@ -3479,7 +3892,12 @@ impl<K, V> Default for Iter<'_, K, V> {
 /// # use std::any::TypeId;
 /// # use std::cmp::Ordering;
 /// # use std::hash::RandomState;
+/// #
+/// # #[cfg(feature = "nightly")]
 /// # use std::alloc::Global;
+/// #
+/// # #[cfg(not(feature = "nightly"))]
+/// # use opaque_allocator_api::alloc::Global;
 /// #
 /// let mut opaque_map = OpaqueIndexMap::from([
 ///     (0_usize, 1_i32),
@@ -3513,7 +3931,7 @@ impl<'a, K, V> IterMut<'a, K, V> {
     /// Slicing an iterator over a type-projected index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -3521,7 +3939,12 @@ impl<'a, K, V> IterMut<'a, K, V> {
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     (0_usize, 1_i32),
@@ -3534,13 +3957,14 @@ impl<'a, K, V> IterMut<'a, K, V> {
     /// let _ = iterator.next().unwrap();
     /// let _ = iterator.next().unwrap();
     ///
+    /// # #[cfg(feature = "nightly")]
     /// assert_eq!(iterator.as_slice_mut(), &[(2_usize, 3_i32), (3_usize, 4_i32)]);
     /// ```
     ///
     /// Slice an iterator over a type-erased index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -3548,7 +3972,12 @@ impl<'a, K, V> IterMut<'a, K, V> {
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (0_usize, 1_i32),
@@ -3561,6 +3990,7 @@ impl<'a, K, V> IterMut<'a, K, V> {
     /// let _ = iterator.next().unwrap();
     /// let _ = iterator.next().unwrap();
     ///
+    /// # #[cfg(feature = "nightly")]
     /// assert_eq!(iterator.as_slice_mut(), &[(2_usize, 3_i32), (3_usize, 4_i32)]);
     /// ```
     pub fn as_slice_mut(&'a mut self) -> &'a mut Slice<K, V> {
@@ -3574,7 +4004,7 @@ impl<'a, K, V> IterMut<'a, K, V> {
     /// Slicing an iterator over a type-projected index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -3582,7 +4012,12 @@ impl<'a, K, V> IterMut<'a, K, V> {
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     (0_usize, 1_i32),
@@ -3603,7 +4038,7 @@ impl<'a, K, V> IterMut<'a, K, V> {
     /// Slice an iterator over a type-erased index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -3611,7 +4046,12 @@ impl<'a, K, V> IterMut<'a, K, V> {
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (0_usize, 1_i32),
@@ -3685,7 +4125,7 @@ impl<K, V> Default for IterMut<'_, K, V> {
 /// Moving the entries of a type-projected index map.
 ///
 /// ```
-/// # #![feature(allocator_api)]
+/// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
 /// # use opaque_index_map::TypedProjIndexMap;
 /// # use opaque_hash::TypedProjBuildHasher;
 /// # use opaque_alloc::TypedProjAlloc;
@@ -3693,7 +4133,12 @@ impl<K, V> Default for IterMut<'_, K, V> {
 /// # use std::any::TypeId;
 /// # use std::cmp::Ordering;
 /// # use std::hash::RandomState;
+/// #
+/// # #[cfg(feature = "nightly")]
 /// # use std::alloc::Global;
+/// #
+/// # #[cfg(not(feature = "nightly"))]
+/// # use opaque_allocator_api::alloc::Global;
 /// #
 /// let proj_map = TypedProjIndexMap::from([
 ///     (0_usize, 1_i32),
@@ -3713,7 +4158,7 @@ impl<K, V> Default for IterMut<'_, K, V> {
 /// Moving the entries of a type-erased index map.
 ///
 /// ```
-/// # #![feature(allocator_api)]
+/// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
 /// # use opaque_index_map::OpaqueIndexMap;
 /// # use opaque_hash::TypedProjBuildHasher;
 /// # use opaque_alloc::TypedProjAlloc;
@@ -3721,7 +4166,12 @@ impl<K, V> Default for IterMut<'_, K, V> {
 /// # use std::any::TypeId;
 /// # use std::cmp::Ordering;
 /// # use std::hash::RandomState;
+/// #
+/// # #[cfg(feature = "nightly")]
 /// # use std::alloc::Global;
+/// #
+/// # #[cfg(not(feature = "nightly"))]
+/// # use opaque_allocator_api::alloc::Global;
 /// #
 /// let opaque_map = OpaqueIndexMap::from([
 ///     (0_usize, 1_i32),
@@ -3766,7 +4216,7 @@ where
     /// Slicing a moving iterator over a type-projected index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -3774,7 +4224,12 @@ where
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map = TypedProjIndexMap::from([
     ///     (0_usize, 1_i32),
@@ -3798,7 +4253,7 @@ where
     /// Slice a moving iterator over a type-erased index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -3806,7 +4261,12 @@ where
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::from([
     ///     (0_usize, 1_i32),
@@ -3837,7 +4297,7 @@ where
     /// Slicing a moving iterator over a type-projected index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -3845,7 +4305,12 @@ where
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map = TypedProjIndexMap::from([
     ///     (0_usize, 1_i32),
@@ -3869,7 +4334,7 @@ where
     /// Slice a moving iterator over a type-erased index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -3877,7 +4342,12 @@ where
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::from([
     ///     (0_usize, 1_i32),
@@ -3987,7 +4457,7 @@ where
 /// Using a splicing iterator on a type-projected index map.
 ///
 /// ```
-/// # #![feature(allocator_api)]
+/// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
 /// # use opaque_index_map::TypedProjIndexMap;
 /// # use opaque_hash::TypedProjBuildHasher;
 /// # use opaque_alloc::TypedProjAlloc;
@@ -3995,7 +4465,12 @@ where
 /// # use std::any::TypeId;
 /// # use std::cmp::Ordering;
 /// # use std::hash::RandomState;
+/// #
+/// # #[cfg(feature = "nightly")]
 /// # use std::alloc::Global;
+/// #
+/// # #[cfg(not(feature = "nightly"))]
+/// # use opaque_allocator_api::alloc::Global;
 /// #
 /// let proj_map = TypedProjIndexMap::from([
 ///     (0_usize, 1_i32),
@@ -4027,7 +4502,7 @@ where
 ///
 /// Using a splicing iterator on a type-erased index map.
 /// ```
-/// # #![feature(allocator_api)]
+/// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
 /// # use opaque_index_map::OpaqueIndexMap;
 /// # use opaque_hash::TypedProjBuildHasher;
 /// # use opaque_alloc::TypedProjAlloc;
@@ -4035,7 +4510,12 @@ where
 /// # use std::any::TypeId;
 /// # use std::cmp::Ordering;
 /// # use std::hash::RandomState;
+/// #
+/// # #[cfg(feature = "nightly")]
 /// # use std::alloc::Global;
+/// #
+/// # #[cfg(not(feature = "nightly"))]
+/// # use opaque_allocator_api::alloc::Global;
 /// #
 /// let opaque_map = OpaqueIndexMap::from([
 ///     (0_usize, 1_i32),
@@ -4190,14 +4670,19 @@ where
 /// # Examples
 ///
 /// ```
-/// # #![feature(allocator_api)]
+/// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
 /// # use opaque_index_map::TypedProjIndexMap;
 /// # use opaque_hash::TypedProjBuildHasher;
 /// # use opaque_alloc::TypedProjAlloc;
 /// # use opaque_vec::TypedProjVec;
 /// # use std::any::TypeId;
 /// # use std::hash::RandomState;
+/// #
+/// # #[cfg(feature = "nightly")]
 /// # use std::alloc::Global;
+/// #
+/// # #[cfg(not(feature = "nightly"))]
+/// # use opaque_allocator_api::alloc::Global;
 /// #
 /// let mut proj_map: TypedProjIndexMap<&str, i32> = TypedProjIndexMap::from([
 ///     ("foo",  1_i32),
@@ -4262,14 +4747,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo", 1_i32),
@@ -4305,14 +4795,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::new();
     /// let new_entry = proj_map.entry("foo");
@@ -4342,14 +4837,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::new();
     /// proj_map.entry("foo").or_insert(3_i32);
@@ -4382,14 +4882,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::new();
     /// let default_value = "garply";
@@ -4431,14 +4936,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::new();
     /// let default_value = "garply";
@@ -4480,14 +4990,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo", 1_i32),
@@ -4517,14 +5032,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::new();
     /// proj_map.entry("foo").and_modify(|e| { *e += 1 }).or_insert(42);
@@ -4563,14 +5083,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// # #[derive(Copy, Clone, Debug, PartialEq, Eq)]
     /// enum SpatialPartition {
@@ -4652,14 +5177,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::map::{TypedProjIndexMap, Entry, OccupiedEntry};
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::{Any, TypeId};
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// fn into_occupied<K: Any, V: Any>(entry: Entry<'_, K, V>) -> OccupiedEntry<'_, K, V> {
     ///     match entry {
@@ -4690,14 +5220,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::map::{TypedProjIndexMap, Entry, OccupiedEntry};
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::{Any, TypeId};
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// fn into_occupied<K: Any, V: Any>(entry: Entry<'_, K, V>) -> OccupiedEntry<'_, K, V> {
     ///     match entry {
@@ -4733,14 +5268,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::map::{TypedProjIndexMap, Entry, OccupiedEntry};
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::{Any, TypeId};
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// fn into_occupied<K: Any, V: Any>(entry: Entry<'_, K, V>) -> OccupiedEntry<'_, K, V> {
     ///     match entry {
@@ -4770,14 +5310,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::map::{TypedProjIndexMap, Entry, OccupiedEntry};
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::{Any, TypeId};
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// fn into_occupied<K: Any, V: Any>(entry: Entry<'_, K, V>) -> OccupiedEntry<'_, K, V> {
     ///     match entry {
@@ -4812,14 +5357,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::map::{TypedProjIndexMap, Entry, OccupiedEntry};
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::{Any, TypeId};
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// fn into_occupied<K: Any, V: Any>(entry: Entry<'_, K, V>) -> OccupiedEntry<'_, K, V> {
     ///     match entry {
@@ -4858,14 +5408,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::map::{TypedProjIndexMap, Entry, OccupiedEntry};
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::{Any, TypeId};
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// fn into_occupied<K: Any, V: Any>(entry: Entry<'_, K, V>) -> OccupiedEntry<'_, K, V> {
     ///     match entry {
@@ -4905,14 +5460,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::map::{TypedProjIndexMap, Entry, OccupiedEntry};
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::{Any, TypeId};
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// fn into_occupied<K: Any, V: Any>(entry: Entry<'_, K, V>) -> OccupiedEntry<'_, K, V> {
     ///     match entry {
@@ -4951,14 +5511,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::map::{TypedProjIndexMap, Entry, OccupiedEntry};
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::{Any, TypeId};
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// fn into_occupied<K: Any, V: Any>(entry: Entry<'_, K, V>) -> OccupiedEntry<'_, K, V> {
     ///     match entry {
@@ -4997,14 +5562,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::map::{TypedProjIndexMap, Entry, OccupiedEntry};
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::{Any, TypeId};
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// fn into_occupied<K: Any, V: Any>(entry: Entry<'_, K, V>) -> OccupiedEntry<'_, K, V> {
     ///     match entry {
@@ -5043,14 +5613,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::map::{TypedProjIndexMap, Entry, OccupiedEntry};
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::{Any, TypeId};
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// fn into_occupied<K: Any, V: Any>(entry: Entry<'_, K, V>) -> OccupiedEntry<'_, K, V> {
     ///     match entry {
@@ -5101,14 +5676,19 @@ where
     /// Moving an entry to an index where `self.index() > to`.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::map::{TypedProjIndexMap, Entry, OccupiedEntry};
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::{Any, TypeId};
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// fn into_occupied<K: Any, V: Any>(entry: Entry<'_, K, V>) -> OccupiedEntry<'_, K, V> {
     ///     match entry {
@@ -5141,14 +5721,19 @@ where
     /// Moving an entry to an index where `self.index() < to`.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::map::{TypedProjIndexMap, Entry, OccupiedEntry};
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::{Any, TypeId};
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// fn into_occupied<K: Any, V: Any>(entry: Entry<'_, K, V>) -> OccupiedEntry<'_, K, V> {
     ///     match entry {
@@ -5192,14 +5777,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::map::{TypedProjIndexMap, Entry, OccupiedEntry};
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::{Any, TypeId};
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// fn into_occupied<K: Any, V: Any>(entry: Entry<'_, K, V>) -> OccupiedEntry<'_, K, V> {
     ///     match entry {
@@ -5281,14 +5871,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::map::{TypedProjIndexMap, Entry, VacantEntry};
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::{Any, TypeId};
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// fn into_vacant<K: Any, V: Any>(entry: Entry<'_, K, V>) -> VacantEntry<'_, K, V> {
     ///     match entry {
@@ -5323,14 +5918,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::map::{TypedProjIndexMap, Entry, VacantEntry};
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::{Any, TypeId};
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// fn into_vacant<K: Any, V: Any>(entry: Entry<'_, K, V>) -> VacantEntry<'_, K, V> {
     ///     match entry {
@@ -5361,14 +5961,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::map::{TypedProjIndexMap, Entry, VacantEntry};
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::{Any, TypeId};
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// fn into_vacant<K: Any, V: Any>(entry: Entry<'_, K, V>) -> VacantEntry<'_, K, V> {
     ///     match entry {
@@ -5393,14 +5998,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::map::{TypedProjIndexMap, Entry, VacantEntry};
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::{Any, TypeId};
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// fn into_vacant<K: Any, V: Any>(entry: Entry<'_, K, V>) -> VacantEntry<'_, K, V> {
     ///     match entry {
@@ -5438,14 +6048,19 @@ where
     /// index of the entry in the underlying storage.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::map::{TypedProjIndexMap, Entry, VacantEntry};
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::{Any, TypeId};
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// fn into_vacant<K: Any, V: Any>(entry: Entry<'_, K, V>) -> VacantEntry<'_, K, V> {
     ///     match entry {
@@ -5497,14 +6112,19 @@ where
     /// index of the entry in the underlying storage.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::map::{TypedProjIndexMap, Entry, VacantEntry};
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::{Any, TypeId};
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// fn into_vacant<K: Any, V: Any>(entry: Entry<'_, K, V>) -> VacantEntry<'_, K, V> {
     ///     match entry {
@@ -5535,14 +6155,19 @@ where
     /// meaningless result for the insertion index.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::map::{TypedProjIndexMap, Entry, VacantEntry};
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::{Any, TypeId};
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// fn into_vacant<K: Any, V: Any>(entry: Entry<'_, K, V>) -> VacantEntry<'_, K, V> {
     ///     match entry {
@@ -5580,14 +6205,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::map::{TypedProjIndexMap, Entry, VacantEntry};
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::{Any, TypeId};
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// fn into_vacant<K: Any, V: Any>(entry: Entry<'_, K, V>) -> VacantEntry<'_, K, V> {
     ///     match entry {
@@ -5638,7 +6268,7 @@ where
 /// # Examples
 ///
 /// ```
-/// # #![feature(allocator_api)]
+/// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
 /// # use opaque_index_map::TypedProjIndexMap;
 /// # use opaque_hash::TypedProjBuildHasher;
 /// # use opaque_alloc::TypedProjAlloc;
@@ -5646,7 +6276,12 @@ where
 /// # use std::any::TypeId;
 /// # use std::cmp::Ordering;
 /// # use std::hash::RandomState;
+/// #
+/// # #[cfg(feature = "nightly")]
 /// # use std::alloc::Global;
+/// #
+/// # #[cfg(not(feature = "nightly"))]
+/// # use opaque_allocator_api::alloc::Global;
 /// #
 /// let mut proj_map = TypedProjIndexMap::from([
 ///     (1_usize, 10_i32),
@@ -5702,7 +6337,7 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -5710,7 +6345,12 @@ where
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo",  1_i32),
@@ -5734,14 +6374,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::{Any, TypeId};
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo",  1_i32),
@@ -5770,14 +6415,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::{Any, TypeId};
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo",  1_i32),
@@ -5800,14 +6450,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::{Any, TypeId};
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo",  1_i32),
@@ -5835,14 +6490,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::{Any, TypeId};
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo",  1_i32),
@@ -5878,14 +6538,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::{Any, TypeId};
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo",  1_i32),
@@ -5922,14 +6587,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::{Any, TypeId};
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo",  1_i32),
@@ -5965,14 +6635,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::{Any, TypeId};
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo",  1_i32),
@@ -6008,14 +6683,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::{Any, TypeId};
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo",  1_i32),
@@ -6051,14 +6731,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::{Any, TypeId};
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo",  1_i32),
@@ -6106,14 +6791,19 @@ where
     /// Moving an entry to an index where `self.index() > to`.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::{Any, TypeId};
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo",  1_i32),
@@ -6143,14 +6833,19 @@ where
     /// Moving an entry to an index where `self.index() < to`.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::{Any, TypeId};
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo",  1_i32),
@@ -6191,14 +6886,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::{Any, TypeId};
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo", 1_i32),
@@ -6419,11 +7119,16 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map: TypedProjIndexMap<usize, isize, RandomState, Global> = TypedProjIndexMap::new();
     ///
@@ -6439,11 +7144,16 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map: TypedProjIndexMap<usize, isize, RandomState, Global> = TypedProjIndexMap::new();
     ///
@@ -6459,11 +7169,16 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map: TypedProjIndexMap<usize, isize, RandomState, Global> = TypedProjIndexMap::new();
     ///
@@ -6479,11 +7194,16 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map: TypedProjIndexMap<usize, isize, RandomState, Global> = TypedProjIndexMap::new();
     ///
@@ -6513,13 +7233,18 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_alloc = TypedProjAlloc::new(Global);
     /// let proj_build_hasher = TypedProjBuildHasher::new(RandomState::new());
@@ -6553,13 +7278,18 @@ where
     /// Creating a type-projected index map with capacity `capacity > 0`.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let capacity = 10;
     /// let proj_alloc = TypedProjAlloc::new(Global);
@@ -6577,13 +7307,18 @@ where
     /// Creating a type-projected index map with capacity `capacity == 0`.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_alloc = TypedProjAlloc::new(Global);
     /// let proj_build_hasher = TypedProjBuildHasher::new(RandomState::new());
@@ -6626,13 +7361,18 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_alloc = TypedProjAlloc::new(Global);
     /// let proj_map: TypedProjIndexMap<usize, f64, RandomState, Global> = TypedProjIndexMap::new_proj_in(proj_alloc);
@@ -6660,13 +7400,18 @@ where
     /// Creating a type-projected index map with capacity `capacity > 0`.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let capacity = 10;
     /// let proj_alloc = TypedProjAlloc::new(Global);
@@ -6682,13 +7427,18 @@ where
     /// Creating a type-projected index map with capacity `capacity == 0`.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_alloc = TypedProjAlloc::new(Global);
     /// let proj_map: TypedProjIndexMap<usize, f64, RandomState, Global> = TypedProjIndexMap::with_capacity_proj_in(
@@ -6725,13 +7475,18 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map: TypedProjIndexMap<usize, f64, RandomState, Global> = TypedProjIndexMap::with_hasher_in(
     ///     RandomState::new(),
@@ -6762,13 +7517,18 @@ where
     /// Creating a type-projected index map with capacity `capacity > 0`.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let capacity = 10;
     /// let proj_map: TypedProjIndexMap<usize, f64, RandomState, Global> = TypedProjIndexMap::with_capacity_and_hasher_in(
@@ -6784,13 +7544,18 @@ where
     /// Creating a type-projected index map with capacity `capacity == 0`.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map: TypedProjIndexMap<usize, f64, RandomState, Global> = TypedProjIndexMap::with_capacity_and_hasher_in(
     ///     0,
@@ -6831,13 +7596,18 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map: TypedProjIndexMap<usize, f64, RandomState, Global> = TypedProjIndexMap::new_in(Global);
     ///
@@ -6864,13 +7634,18 @@ where
     /// Creating a type-projected index map with capacity `capacity > 0`.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let capacity = 10;
     /// let proj_map: TypedProjIndexMap<usize, f64, RandomState, Global> = TypedProjIndexMap::with_capacity_in(
@@ -6885,13 +7660,18 @@ where
     /// Creating a type-projected index map with capacity `capacity == 0`.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map: TypedProjIndexMap<usize, f64, RandomState, Global> = TypedProjIndexMap::with_capacity_in(
     ///     0,
@@ -6926,13 +7706,18 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map: TypedProjIndexMap<usize, f64, RandomState, Global> = TypedProjIndexMap::with_hasher(RandomState::new());
     ///
@@ -6956,13 +7741,18 @@ where
     /// Creating a type-projected index map with capacity `capacity > 0`.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let capacity = 10;
     /// let proj_map: TypedProjIndexMap<usize, f64, RandomState, Global> = TypedProjIndexMap::with_capacity_and_hasher(
@@ -6977,13 +7767,18 @@ where
     /// Creating a type-projected index map with capacity `capacity == 0`.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map: TypedProjIndexMap<usize, f64, RandomState, Global> = TypedProjIndexMap::with_capacity_and_hasher(
     ///     0,
@@ -7014,13 +7809,18 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map: TypedProjIndexMap<usize, f64, RandomState, Global> = TypedProjIndexMap::new();
     ///
@@ -7048,13 +7848,18 @@ where
     /// Creating a type-projected index map with capacity `capacity > 0`.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let capacity = 10;
     /// let proj_map: TypedProjIndexMap<usize, f64, RandomState, Global> = TypedProjIndexMap::with_capacity(
@@ -7068,13 +7873,18 @@ where
     /// Creating a type-projected index map with capacity `capacity == 0`.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map: TypedProjIndexMap<usize, f64, RandomState, Global> = TypedProjIndexMap::with_capacity(
     ///     0,
@@ -7109,13 +7919,18 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let capacity = 32;
     /// let mut proj_map: TypedProjIndexMap<usize, f64, RandomState, Global> = TypedProjIndexMap::with_capacity_in(
@@ -7150,13 +7965,18 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let len = 32;
     /// let mut proj_map: TypedProjIndexMap<usize, f64, RandomState, Global> = TypedProjIndexMap::with_capacity_in(
@@ -7189,13 +8009,18 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map: TypedProjIndexMap<usize, f64, RandomState, Global> = TypedProjIndexMap::with_capacity_in(
     ///     1,
@@ -7227,13 +8052,18 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map: TypedProjIndexMap<usize, f64> = TypedProjIndexMap::new();
     ///
@@ -7251,13 +8081,18 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map: TypedProjIndexMap<usize, f64> = TypedProjIndexMap::new();
     ///
@@ -7396,13 +8231,18 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map: TypedProjIndexMap<usize, f64> = TypedProjIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -7539,13 +8379,18 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map: TypedProjIndexMap<usize, f64> = TypedProjIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -7683,13 +8528,18 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map: TypedProjIndexMap<usize, f64> = TypedProjIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -7828,13 +8678,18 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map: TypedProjIndexMap<usize, f64> = TypedProjIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -7974,13 +8829,18 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map: TypedProjIndexMap<usize, f64> = TypedProjIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -8118,13 +8978,18 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map: TypedProjIndexMap<usize, f64> = TypedProjIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -8264,13 +9129,18 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map: TypedProjIndexMap<usize, f64> = TypedProjIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -8300,13 +9170,18 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     (1_isize, 'a'),
@@ -8333,14 +9208,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map: TypedProjIndexMap<usize, f64> = TypedProjIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -8373,14 +9253,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map: TypedProjIndexMap<usize, f64> = TypedProjIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -8413,14 +9298,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map: TypedProjIndexMap<usize, f64> = TypedProjIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -8455,14 +9345,19 @@ where
     /// Iterating over the entries of a type-projected index map without mutating them.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map: TypedProjIndexMap<usize, f64> = TypedProjIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -8488,14 +9383,19 @@ where
     /// Iterating over the entries of a type-projected index map while mutating them.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map: TypedProjIndexMap<usize, f64> = TypedProjIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -8532,14 +9432,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map: TypedProjIndexMap<usize, f64> = TypedProjIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -8573,14 +9478,19 @@ where
     /// Iterating over the entries of a type-projected index map without mutating them.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map: TypedProjIndexMap<usize, f64> = TypedProjIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -8605,14 +9515,19 @@ where
     /// Iterating over the entries of a type-projected index map while mutating them.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map: TypedProjIndexMap<usize, f64> = TypedProjIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -8649,14 +9564,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map: TypedProjIndexMap<usize, f64> = TypedProjIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -8719,14 +9639,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let capacity = 10;
     /// let mut proj_map: TypedProjIndexMap<String, isize> = TypedProjIndexMap::with_capacity(10);
@@ -8764,14 +9689,19 @@ where
     /// Truncating a type-projected index map when `len < self.len()`.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map: TypedProjIndexMap<usize, f64> = TypedProjIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -8801,14 +9731,19 @@ where
     /// No truncation occurs when `len == self.len()`
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map: TypedProjIndexMap<usize, f64> = TypedProjIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -8842,14 +9777,19 @@ where
     /// No truncation occurs when `len > self.len()`
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map: TypedProjIndexMap<usize, f64> = TypedProjIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -8883,14 +9823,19 @@ where
     /// Truncating when `len == 0` is equivalent to calling the [`clear`] method.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map: TypedProjIndexMap<usize, f64> = TypedProjIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -8946,14 +9891,19 @@ where
     /// Draining part of a type-projected index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map: TypedProjIndexMap<usize, f64> = TypedProjIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -8995,14 +9945,19 @@ where
     /// Draining an entire type-projected index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map: TypedProjIndexMap<usize, f64> = TypedProjIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -9043,14 +9998,19 @@ where
     /// Draining no part of a type-projected index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map: TypedProjIndexMap<usize, f64> = TypedProjIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -9109,14 +10069,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map: TypedProjIndexMap<usize, f64> = TypedProjIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -9341,14 +10306,19 @@ where
     /// Showing how swap removal happens.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map: TypedProjIndexMap<isize, f64> = TypedProjIndexMap::from([
     ///     (1_isize, 2_f64),
@@ -9577,14 +10547,19 @@ where
     /// Showing how swap removal happens.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map: TypedProjIndexMap<isize, f64> = TypedProjIndexMap::from([
     ///     (1_isize, 2_f64),
@@ -9813,14 +10788,19 @@ where
     /// Showing how swap removal happens.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map: TypedProjIndexMap<isize, f64> = TypedProjIndexMap::from([
     ///     (1_isize, 2_f64),
@@ -10043,14 +11023,19 @@ where
     /// Showing how shift removal happens.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map: TypedProjIndexMap<isize, f64> = TypedProjIndexMap::from([
     ///     (1_isize, 2_f64),
@@ -10276,14 +11261,19 @@ where
     /// Showing how shift removal happens.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map: TypedProjIndexMap<isize, f64> = TypedProjIndexMap::from([
     ///     (1_isize, 2_f64),
@@ -10508,14 +11498,19 @@ where
     /// Showing how shift removal happens.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map: TypedProjIndexMap<isize, f64> = TypedProjIndexMap::from([
     ///     (1_isize, 2_f64),
@@ -10582,14 +11577,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map: TypedProjIndexMap<isize, &'static str> = TypedProjIndexMap::from([
     ///     (-1_isize, "foo"),
@@ -10615,14 +11615,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map: TypedProjIndexMap<isize, &'static str> = TypedProjIndexMap::from([
     ///     (-1, "foo"),
@@ -10720,14 +11725,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map: TypedProjIndexMap<isize, f64> = TypedProjIndexMap::from([
     ///     (1_isize, 2_f64),
@@ -10822,14 +11832,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map: TypedProjIndexMap<isize, f64> = TypedProjIndexMap::from([
     ///     (1_isize, 2_f64),
@@ -10974,14 +11989,19 @@ where
     /// entry in the underlying storage.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map: TypedProjIndexMap<isize, f64> = TypedProjIndexMap::from([
     ///     (1_isize, 2_f64),
@@ -11004,14 +12024,19 @@ where
     /// result for the insertion index.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map: TypedProjIndexMap<isize, f64> = TypedProjIndexMap::from([
     ///     (7_isize, 8_f64),
@@ -11126,14 +12151,19 @@ where
     /// Inserting an existing key `key` where `index > self.get_index_of(key)`.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map: TypedProjIndexMap<isize, char> = TypedProjIndexMap::from([
     ///     (1_isize, 'a'),
@@ -11166,14 +12196,19 @@ where
     /// Inserting an existing key `key` where `index < self.get_index_of(key)`.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map: TypedProjIndexMap<isize, char> = TypedProjIndexMap::from([
     ///     (1_isize, 'a'),
@@ -11206,14 +12241,19 @@ where
     /// Inserting an existing key `key` where `index == self.get_index_of(key)`.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map: TypedProjIndexMap<isize, char> = TypedProjIndexMap::from([
     ///     (1_isize, 'a'),
@@ -11246,14 +12286,19 @@ where
     /// Inserting a key `key` that does not exist in the index map at an index `index`.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map: TypedProjIndexMap<isize, char> = TypedProjIndexMap::from([
     ///     (1_isize, 'a'),
@@ -11410,14 +12455,19 @@ where
     /// Shift inserting an entry that **does not** exist with index `index < self.len()`.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map: TypedProjIndexMap<isize, f64> = TypedProjIndexMap::from([
     ///     (1_isize, 2_f64),
@@ -11451,14 +12501,19 @@ where
     /// Shift inserting an entry that **does not** exist with index `index == self.len()`.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map: TypedProjIndexMap<isize, f64> = TypedProjIndexMap::from([
     ///     (1_isize, 2_f64),
@@ -11492,14 +12547,19 @@ where
     /// Shift inserting an entry that **does** exist with index `index < self.len()`.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map: TypedProjIndexMap<isize, f64> = TypedProjIndexMap::from([
     ///     (1_isize, 2_f64),
@@ -11544,14 +12604,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map: TypedProjIndexMap<&str, i32> = TypedProjIndexMap::from([
     ///     ("foo",  1_i32),
@@ -11624,14 +12689,19 @@ where
     /// Splicing entries into an index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     (0_usize, "foo"),
@@ -11669,14 +12739,19 @@ where
     /// indicated by an empty range.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     (0_usize, "foo"),
@@ -11785,14 +12860,19 @@ where
     /// Appending one index map to another when they have no overlapping keys.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map1 = TypedProjIndexMap::from([
     ///     ("foo",  0_usize),
@@ -11828,14 +12908,19 @@ where
     /// Appending one index map to another when they have overlapping keys.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map1 = TypedProjIndexMap::from([
     ///     ("foo",  0_usize),
@@ -11936,14 +13021,19 @@ where
     /// Popping from a nonempty index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo",  0_usize),
@@ -11964,14 +13054,19 @@ where
     /// Popping from an empty index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map: TypedProjIndexMap<&str, usize> = TypedProjIndexMap::new();
     ///
@@ -12058,14 +13153,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// fn is_odd(k: &&str, v: &mut usize) -> bool { k.len() % 2 != 0 }
     ///
@@ -12185,14 +13285,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     (5_isize, 'e'),
@@ -12297,7 +13402,7 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -12305,7 +13410,12 @@ where
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     (1_usize, 'b'),
@@ -12334,7 +13444,7 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -12342,7 +13452,12 @@ where
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     (1_usize, 'b'),
@@ -12429,14 +13544,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     (5_isize, 'e'),
@@ -12530,7 +13650,7 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -12538,7 +13658,12 @@ where
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map = TypedProjIndexMap::from([
     ///     (6_isize, 'a'),
@@ -12585,7 +13710,7 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -12593,7 +13718,12 @@ where
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map = TypedProjIndexMap::from([
     ///     (6_isize, 'a'),
@@ -12640,7 +13770,7 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -12648,7 +13778,12 @@ where
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     (0_usize,  4_i32),
@@ -12698,7 +13833,7 @@ where
     /// Binary searching a sorted index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -12706,7 +13841,12 @@ where
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map: TypedProjIndexMap<isize, char> = TypedProjIndexMap::from_iter((1_isize..=26_isize).zip('a'..='z'));
     /// for (i, (key, value)) in (1_isize..=26_isize).zip('a'..='z').enumerate() {
@@ -12744,7 +13884,7 @@ where
     /// Binary searching a sorted index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -12752,7 +13892,12 @@ where
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map: TypedProjIndexMap<isize, char> = TypedProjIndexMap::from_iter((1_isize..=26_isize).zip('a'..='z'));
     /// let expected = Ok(23);
@@ -12771,7 +13916,7 @@ where
     /// Binary searching a sorted index map with repeating values.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -12779,7 +13924,12 @@ where
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map = TypedProjIndexMap::from([
     ///     (1_usize, 'a'), (2_usize, 'b'), (3_usize, 'c'),
@@ -12831,7 +13981,7 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -12839,7 +13989,12 @@ where
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map = TypedProjIndexMap::from([
     ///     (0_usize,  0_isize),
@@ -12886,7 +14041,7 @@ where
     /// predicate.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -12894,7 +14049,12 @@ where
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map = TypedProjIndexMap::from([
     ///     (0_usize, 1_isize),
@@ -12914,7 +14074,7 @@ where
     /// Finding the partition point of an index map where every entry matches the predicate.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -12922,7 +14082,12 @@ where
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// fn is_power_of_two(n: usize) -> bool {
     ///     n != 0 && (n & (n - 1)) == 0
@@ -12944,7 +14109,7 @@ where
     /// Finding the partition point of an index map where no entry matches the predicate.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -12952,7 +14117,12 @@ where
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// fn is_power_of_two(n: usize) -> bool {
     ///     n != 0 && (n & (n - 1)) == 0
@@ -12983,7 +14153,7 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -12991,7 +14161,12 @@ where
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     (0_usize, "foo"),
@@ -13031,7 +14206,7 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -13039,7 +14214,12 @@ where
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     (0_usize, 1_i32),
@@ -13082,7 +14262,7 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -13090,7 +14270,12 @@ where
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     (0_usize, 1_i32),
@@ -13128,7 +14313,7 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -13136,7 +14321,12 @@ where
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     (0_usize, 1_i32),
@@ -13177,7 +14367,7 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -13185,7 +14375,12 @@ where
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     (0_usize, 1_i32),
@@ -13221,7 +14416,7 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -13229,7 +14424,12 @@ where
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::with_capacity(10);
     /// proj_map.extend([(0_usize, 1_i32), (1_usize, 2_i32), (2_usize, 3_i32)]);
@@ -13267,7 +14467,7 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -13275,7 +14475,12 @@ where
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::with_capacity(10);
     /// proj_map.extend([(0_usize, 1_i32), (1_usize, 2_i32), (2_usize, 3_i32)]);
@@ -13293,7 +14498,17 @@ where
     pub fn shrink_to(&mut self, min_capacity: usize) {
         self.inner.shrink_to(min_capacity);
     }
+}
 
+#[cfg(feature = "nightly")]
+impl<K, V, S, A> TypedProjIndexMap<K, V, S, A>
+where
+    K: any::Any,
+    V: any::Any,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
     /// Converts an index map into a [`Box<[T]>`][owned slice].
     ///
     /// Before doing the conversion, this method discards excess capacity like [`shrink_to_fit`].
@@ -13304,7 +14519,7 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::map::{Slice, TypedProjIndexMap};
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -13312,7 +14527,12 @@ where
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::with_capacity(10);
     /// proj_map.extend([(0_usize, 1_i32), (1_usize, 2_i32), (2_usize, 3_i32)]);
@@ -13329,7 +14549,16 @@ where
     pub fn into_boxed_slice(self) -> Box<Slice<K, V>, TypedProjAlloc<A>> {
         Slice::from_boxed_slice(self.inner.into_boxed_slice())
     }
+}
 
+impl<K, V, S, A> TypedProjIndexMap<K, V, S, A>
+where
+    K: any::Any,
+    V: any::Any,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
     /// Returns a (key reference, value reference) pair corresponding to the key-value pair stored
     /// at a given storage index in the index map, if it exists.
     ///
@@ -13364,7 +14593,7 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -13372,7 +14601,12 @@ where
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map = TypedProjIndexMap::from([
     ///     (1_usize, 10_i32),
@@ -13423,7 +14657,7 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -13431,7 +14665,12 @@ where
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     (1_usize, 10_i32),
@@ -13457,7 +14696,7 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -13465,7 +14704,12 @@ where
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     (1_usize, 10_i32),
@@ -13508,13 +14752,18 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     (1_isize, 'a'),
@@ -13552,7 +14801,7 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -13560,7 +14809,12 @@ where
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map = TypedProjIndexMap::from([
     ///     (1_usize, 10_i32),
@@ -13596,7 +14850,7 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -13604,7 +14858,12 @@ where
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     (1_usize, 10_i32),
@@ -13643,14 +14902,19 @@ where
     /// Getting the first entry of a non-empty index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map = TypedProjIndexMap::from([
     ///     (String::from("foo"),  1_usize),
@@ -13666,14 +14930,19 @@ where
     /// Getting the first entry from an empty index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map: TypedProjIndexMap<String, usize> = TypedProjIndexMap::new();
     /// let maybe_entry = proj_map.first();
@@ -13697,14 +14966,19 @@ where
     /// Getting the first entry of a non-empty index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     (String::from("foo"),  1_usize),
@@ -13720,14 +14994,19 @@ where
     /// Getting the first entry from an empty index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map: TypedProjIndexMap<String, usize> = TypedProjIndexMap::new();
     /// let maybe_entry = proj_map.first_mut();
@@ -13748,14 +15027,19 @@ where
     /// Getting the first entry of a non-empty index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     (String::from("foo"),  1_usize),
@@ -13777,14 +15061,19 @@ where
     /// Getting the first entry from an empty index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map: TypedProjIndexMap<String, usize> = TypedProjIndexMap::new();
     /// let entry = proj_map.first_entry();
@@ -13810,14 +15099,19 @@ where
     /// Getting the last entry of a non-empty index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map = TypedProjIndexMap::from([
     ///     (String::from("foo"),  1_usize),
@@ -13833,14 +15127,19 @@ where
     /// Getting the last entry from an empty index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map: TypedProjIndexMap<String, usize> = TypedProjIndexMap::new();
     /// let maybe_entry = proj_map.last();
@@ -13864,14 +15163,19 @@ where
     /// Getting the last entry of a non-empty index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     (String::from("foo"),  1_usize),
@@ -13887,14 +15191,19 @@ where
     /// Getting the last entry from an empty index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map: TypedProjIndexMap<String, usize> = TypedProjIndexMap::new();
     /// let maybe_entry = proj_map.last_mut();
@@ -13915,14 +15224,19 @@ where
     /// Getting the last entry of a non-empty index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     (String::from("foo"),  1_usize),
@@ -13944,14 +15258,19 @@ where
     /// Getting the last entry from an empty index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map: TypedProjIndexMap<String, usize> = TypedProjIndexMap::new();
     /// let entry = proj_map.last_entry();
@@ -14036,14 +15355,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     (0_usize, ()),
@@ -14127,14 +15451,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     (0_usize, ()),
@@ -14219,14 +15548,19 @@ where
     /// Moving an index where `from < to`.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo",    0_usize),
@@ -14243,14 +15577,19 @@ where
     /// Moving an index where `from > to`.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo",    0_usize),
@@ -14304,14 +15643,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::TypedProjIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut proj_map = TypedProjIndexMap::from([
     ///     ("foo",    0_usize),
@@ -14674,10 +16018,15 @@ where
 /// Basic usage of a type-erased index map.
 ///
 /// ```
-/// # #![feature(allocator_api)]
+/// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
 /// # use opaque_index_map::OpaqueIndexMap;
 /// # use std::hash::RandomState;
+/// #
+/// # #[cfg(feature = "nightly")]
 /// # use std::alloc::Global;
+/// #
+/// # #[cfg(not(feature = "nightly"))]
+/// # use opaque_allocator_api::alloc::Global;
 /// #
 /// let mut party: OpaqueIndexMap = OpaqueIndexMap::from([
 ///     (String::from("cloud"),     String::from("protagonist")),
@@ -14763,11 +16112,16 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::new::<usize, isize>();
     ///
@@ -14783,11 +16137,16 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::new::<usize, isize>();
     ///
@@ -14803,11 +16162,16 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::new::<usize, isize>();
     ///
@@ -14823,11 +16187,16 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::new::<usize, isize>();
     ///
@@ -14847,11 +16216,16 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::new::<usize, isize>();
     ///
@@ -14872,11 +16246,16 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::new::<usize, isize>();
     ///
@@ -14897,11 +16276,16 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::new::<usize, isize>();
     ///
@@ -14922,11 +16306,16 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::new::<usize, isize>();
     ///
@@ -14998,10 +16387,15 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::{OpaqueIndexMap, TypedProjIndexMap};
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::with_hasher_in::<usize, f64, RandomState, Global>(
     ///     RandomState::new(),
@@ -15042,10 +16436,15 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::{OpaqueIndexMap, TypedProjIndexMap};
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::with_hasher_in::<usize, f64, RandomState, Global>(
     ///     RandomState::new(),
@@ -15085,10 +16484,15 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::{OpaqueIndexMap, TypedProjIndexMap};
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::with_hasher_in::<usize, f64, RandomState, Global>(
     ///     RandomState::new(),
@@ -15126,10 +16530,15 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::{OpaqueIndexMap, TypedProjIndexMap};
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_map: TypedProjIndexMap<usize, f64, RandomState, Global> = TypedProjIndexMap::with_hasher_in(
     ///     RandomState::new(),
@@ -15173,13 +16582,18 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_alloc = TypedProjAlloc::new(Global);
     /// let proj_build_hasher = TypedProjBuildHasher::new(RandomState::new());
@@ -15223,13 +16637,18 @@ impl OpaqueIndexMap {
     /// Creating a type-erased index map with capacity `capacity > 0`.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let capacity = 10;
     /// let proj_alloc = TypedProjAlloc::new(Global);
@@ -15252,13 +16671,18 @@ impl OpaqueIndexMap {
     /// Creating a type-erased index map with capacity `capacity == 0`.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_alloc = TypedProjAlloc::new(Global);
     /// let proj_build_hasher = TypedProjBuildHasher::new(RandomState::new());
@@ -15302,13 +16726,18 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_alloc = TypedProjAlloc::new(Global);
     /// let opaque_map = OpaqueIndexMap::new_proj_in::<usize, f64, Global>(proj_alloc);
@@ -15344,13 +16773,18 @@ impl OpaqueIndexMap {
     /// Creating a type-erased index map with capacity `capacity > 0`.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let capacity = 10;
     /// let proj_alloc = TypedProjAlloc::new(Global);
@@ -15371,13 +16805,18 @@ impl OpaqueIndexMap {
     /// Creating a type-erased index map with capacity `capacity == 0`.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_alloc = TypedProjAlloc::new(Global);
     /// let opaque_map = OpaqueIndexMap::with_capacity_proj_in::<usize, f64, Global>(
@@ -15415,13 +16854,18 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::with_hasher_in::<usize, f64, RandomState, Global>(
     ///     RandomState::new(),
@@ -15462,13 +16906,18 @@ impl OpaqueIndexMap {
     /// Creating a type-erased index map with capacity `capacity > 0`.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let capacity = 10;
     /// let opaque_map = OpaqueIndexMap::with_capacity_and_hasher_in::<usize, f64, RandomState, Global>(
@@ -15489,13 +16938,18 @@ impl OpaqueIndexMap {
     /// Creating a type-erased index map with capacity `capacity == 0`.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::with_capacity_and_hasher_in::<usize, f64, RandomState, Global>(
     ///     0,
@@ -15537,13 +16991,18 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::new_in::<usize, f64, Global>(Global);
     ///
@@ -15578,13 +17037,18 @@ impl OpaqueIndexMap {
     /// Creating a type-erased index map with capacity `capacity > 0`.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let capacity = 10;
     /// let opaque_map = OpaqueIndexMap::with_capacity_in::<usize, f64, Global>(
@@ -15604,13 +17068,18 @@ impl OpaqueIndexMap {
     /// Creating a type-erased index map with capacity `capacity == 0`.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::with_capacity_in::<usize, f64, Global>(
     ///     0,
@@ -15647,13 +17116,18 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::with_hasher::<usize, f64, RandomState>(RandomState::new());
     ///
@@ -15690,13 +17164,18 @@ impl OpaqueIndexMap {
     /// Creating a type-erased index map with capacity `capacity > 0`.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let capacity = 10;
     /// let opaque_map = OpaqueIndexMap::with_capacity_and_hasher::<usize, f64, RandomState>(
@@ -15716,13 +17195,18 @@ impl OpaqueIndexMap {
     /// Creating a type-erased index map with capacity `capacity == 0`.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::with_capacity_and_hasher::<usize, f64, RandomState>(
     ///     0,
@@ -15762,13 +17246,18 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::new::<usize, f64>();
     ///
@@ -15801,13 +17290,18 @@ impl OpaqueIndexMap {
     /// Creating a type-erased index map with capacity `capacity > 0`.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let capacity = 10;
     /// let opaque_map = OpaqueIndexMap::with_capacity::<usize, f64>(
@@ -15826,13 +17320,18 @@ impl OpaqueIndexMap {
     /// Creating a type-erased index map with capacity `capacity == 0`.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::with_capacity::<usize, f64>(
     ///     0,
@@ -15865,13 +17364,18 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let capacity = 32;
     /// let mut opaque_map = OpaqueIndexMap::with_capacity_in::<usize, f64, Global>(
@@ -15912,13 +17416,18 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let len = 32;
     /// let mut opaque_map = OpaqueIndexMap::with_capacity_in::<usize, f64, Global>(
@@ -15957,13 +17466,18 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::with_capacity_in::<usize, f64, Global>(
     ///     1,
@@ -16001,13 +17515,18 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::new::<usize, f64>();
     /// #
@@ -16047,13 +17566,18 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::new::<usize, f64>();
     /// #
@@ -16207,13 +17731,18 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -16370,13 +17899,18 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -16534,13 +18068,18 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -16699,13 +18238,18 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -16865,13 +18409,18 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -17029,13 +18578,18 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -17195,13 +18749,18 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -17244,13 +18803,18 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (1_isize, 'a'),
@@ -17297,14 +18861,19 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -17359,14 +18928,19 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -17421,14 +18995,19 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -17485,14 +19064,19 @@ impl OpaqueIndexMap {
     /// Iterating over the entries of a type-erased index map without mutating them.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -17524,14 +19108,19 @@ impl OpaqueIndexMap {
     /// Iterating over the entries of a type-erased index map while mutating them.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -17590,14 +19179,19 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -17653,14 +19247,19 @@ impl OpaqueIndexMap {
     /// Iterating over the entries of a type-erased index map without mutating them.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -17691,14 +19290,19 @@ impl OpaqueIndexMap {
     /// Iterating over the entries of a type-erased index map while mutating them.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -17751,14 +19355,19 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -17843,14 +19452,19 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let capacity = 10;
     /// let mut opaque_map = OpaqueIndexMap::with_capacity::<String, isize>(10);
@@ -17908,14 +19522,19 @@ impl OpaqueIndexMap {
     /// Truncating a type-erased index map when `len < self.len()`.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -17951,14 +19570,19 @@ impl OpaqueIndexMap {
     /// No truncation occurs when `len == self.len()`
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -17998,14 +19622,19 @@ impl OpaqueIndexMap {
     /// No truncation occurs when `len > self.len()`
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -18045,14 +19674,19 @@ impl OpaqueIndexMap {
     /// Truncating when `len == 0` is equivalent to calling the [`clear`] method.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -18129,14 +19763,19 @@ impl OpaqueIndexMap {
     /// Draining part of a type-erased index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -18186,14 +19825,19 @@ impl OpaqueIndexMap {
     /// Draining an entire type-erased index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -18242,14 +19886,19 @@ impl OpaqueIndexMap {
     /// Draining no part of a type-erased index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -18329,14 +19978,19 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (1_usize, 2_f64),
@@ -18583,14 +20237,19 @@ impl OpaqueIndexMap {
     /// Showing how swap removal happens.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::from([
     ///     (1_isize, 2_f64),
@@ -18887,14 +20546,19 @@ impl OpaqueIndexMap {
     /// Showing how swap removal happens.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::from([
     ///     (1_isize, 2_f64),
@@ -19191,14 +20855,19 @@ impl OpaqueIndexMap {
     /// Showing how swap removal happens.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::from([
     ///     (1_isize, 2_f64),
@@ -19490,14 +21159,19 @@ impl OpaqueIndexMap {
     /// Showing how shift removal happens.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::from([
     ///     (1_isize, 2_f64),
@@ -19791,14 +21465,19 @@ impl OpaqueIndexMap {
     /// Showing how shift removal happens.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::from([
     ///     (1_isize, 2_f64),
@@ -20091,14 +21770,19 @@ impl OpaqueIndexMap {
     /// Showing how shift removal happens.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::from([
     ///     (1_isize, 2_f64),
@@ -20233,14 +21917,19 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::from([
     ///     (-1_isize, "foo"),
@@ -20288,14 +21977,19 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (-1_isize, "foo"),
@@ -20408,14 +22102,19 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (1_isize, 2_f64),
@@ -20529,14 +22228,19 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (1_isize, 2_f64),
@@ -20700,14 +22404,19 @@ impl OpaqueIndexMap {
     /// entry in the underlying storage.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (1_isize, 2_f64),
@@ -20736,14 +22445,19 @@ impl OpaqueIndexMap {
     /// result for the insertion index.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (7_isize, 8_f64),
@@ -20876,14 +22590,19 @@ impl OpaqueIndexMap {
     /// Inserting an existing key `key` where `index > self.get_index_of(key)`.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (1_isize, 'a'),
@@ -20922,14 +22641,19 @@ impl OpaqueIndexMap {
     /// Inserting an existing key `key` where `index < self.get_index_of(key)`.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (1_isize, 'a'),
@@ -20968,14 +22692,19 @@ impl OpaqueIndexMap {
     /// Inserting an existing key `key` where `index == self.get_index_of(key)`.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (1_isize, 'a'),
@@ -21014,14 +22743,19 @@ impl OpaqueIndexMap {
     /// Inserting a key `key` that does not exist in the index map at an index `index`.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (1_isize, 'a'),
@@ -21196,14 +22930,19 @@ impl OpaqueIndexMap {
     /// Shift inserting an entry that **does not** exist with index `index < self.len()`.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (1_isize, 2_f64),
@@ -21243,14 +22982,19 @@ impl OpaqueIndexMap {
     /// Shift inserting an entry that **does not** exist with index `index == self.len()`.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (1_isize, 2_f64),
@@ -21290,14 +23034,19 @@ impl OpaqueIndexMap {
     /// Shift inserting an entry that **does** exist with index `index < self.len()`.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (1_isize, 2_f64),
@@ -21361,14 +23110,19 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     ("foo",  1_i32),
@@ -21456,14 +23210,19 @@ impl OpaqueIndexMap {
     /// Splicing entries into an index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (0_usize, "foo"),
@@ -21507,14 +23266,19 @@ impl OpaqueIndexMap {
     /// indicated by an empty range.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (0_usize, "foo"),
@@ -21647,14 +23411,19 @@ impl OpaqueIndexMap {
     /// Appending one index map to another when they have no overlapping keys.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map1 = OpaqueIndexMap::from([
     ///     ("foo",  0_usize),
@@ -21705,14 +23474,19 @@ impl OpaqueIndexMap {
     /// Appending one index map to another when they have overlapping keys.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map1 = OpaqueIndexMap::from([
     ///     ("foo",  0_usize),
@@ -21836,14 +23610,19 @@ impl OpaqueIndexMap {
     /// Popping from a nonempty index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     ("foo",  0_usize),
@@ -21870,14 +23649,19 @@ impl OpaqueIndexMap {
     /// Popping from an empty index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::new::<&str, usize>();
     /// #
@@ -21986,14 +23770,19 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// fn is_odd(k: &&str, v: &mut usize) -> bool { k.len() % 2 != 0 }
     ///
@@ -22133,14 +23922,19 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (5_isize, 'e'),
@@ -22264,7 +24058,7 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -22272,7 +24066,12 @@ impl OpaqueIndexMap {
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (1_usize, 'b'),
@@ -22321,7 +24120,7 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -22329,7 +24128,12 @@ impl OpaqueIndexMap {
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (1_usize, 'b'),
@@ -22436,14 +24240,19 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (5_isize, 'e'),
@@ -22556,7 +24365,7 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -22564,7 +24373,12 @@ impl OpaqueIndexMap {
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::from([
     ///     (6_isize, 'a'),
@@ -22637,7 +24451,7 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -22645,7 +24459,12 @@ impl OpaqueIndexMap {
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::from([
     ///     (6_isize, 'a'),
@@ -22712,7 +24531,7 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -22720,7 +24539,12 @@ impl OpaqueIndexMap {
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (0_usize,  4_i32),
@@ -22790,7 +24614,7 @@ impl OpaqueIndexMap {
     /// Binary searching a sorted index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -22798,7 +24622,12 @@ impl OpaqueIndexMap {
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::from_iter((1_isize..=26_isize).zip('a'..='z'));
     /// #
@@ -22855,7 +24684,7 @@ impl OpaqueIndexMap {
     /// Binary searching a sorted index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -22863,7 +24692,12 @@ impl OpaqueIndexMap {
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::from_iter((1_isize..=26_isize).zip('a'..='z'));
     /// #
@@ -22888,7 +24722,7 @@ impl OpaqueIndexMap {
     /// Binary searching a sorted index map with repeating values.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -22896,7 +24730,12 @@ impl OpaqueIndexMap {
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::from([
     ///     (1_usize, 'a'), (2_usize, 'b'), (3_usize, 'c'),
@@ -22968,7 +24807,7 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -22976,7 +24815,12 @@ impl OpaqueIndexMap {
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::from([
     ///     (0_usize,  0_isize),
@@ -23043,7 +24887,7 @@ impl OpaqueIndexMap {
     /// predicate.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -23051,7 +24895,12 @@ impl OpaqueIndexMap {
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::from([
     ///     (0_usize, 1_isize),
@@ -23077,7 +24926,7 @@ impl OpaqueIndexMap {
     /// Finding the partition point of an index map where every entry matches the predicate.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -23085,7 +24934,12 @@ impl OpaqueIndexMap {
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// fn is_power_of_two(n: usize) -> bool {
     ///     n != 0 && (n & (n - 1)) == 0
@@ -23113,7 +24967,7 @@ impl OpaqueIndexMap {
     /// Finding the partition point of an index map where no entry matches the predicate.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -23121,7 +24975,12 @@ impl OpaqueIndexMap {
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// fn is_power_of_two(n: usize) -> bool {
     ///     n != 0 && (n & (n - 1)) == 0
@@ -23172,7 +25031,7 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -23180,7 +25039,12 @@ impl OpaqueIndexMap {
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (0_usize, "foo"),
@@ -23239,7 +25103,7 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -23247,7 +25111,12 @@ impl OpaqueIndexMap {
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (0_usize, 1_i32),
@@ -23309,7 +25178,7 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -23317,7 +25186,12 @@ impl OpaqueIndexMap {
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (0_usize, 1_i32),
@@ -23377,7 +25251,7 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -23385,7 +25259,12 @@ impl OpaqueIndexMap {
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (0_usize, 1_i32),
@@ -23448,7 +25327,7 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -23456,7 +25335,12 @@ impl OpaqueIndexMap {
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (0_usize, 1_i32),
@@ -23514,7 +25398,7 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -23522,7 +25406,12 @@ impl OpaqueIndexMap {
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::with_capacity::<usize, i32>(10);
     /// #
@@ -23582,7 +25471,7 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -23590,7 +25479,12 @@ impl OpaqueIndexMap {
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::with_capacity::<usize, i32>(10);
     /// #
@@ -23623,7 +25517,10 @@ impl OpaqueIndexMap {
 
         proj_self.shrink_to(min_capacity)
     }
+}
 
+#[cfg(feature = "nightly")]
+impl OpaqueIndexMap {
     /// Converts an index map into a [`Box<[T]>`][owned slice].
     ///
     /// Before doing the conversion, this method discards excess capacity like [`shrink_to_fit`].
@@ -23641,7 +25538,7 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::map::{Slice, OpaqueIndexMap};
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -23649,7 +25546,12 @@ impl OpaqueIndexMap {
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::with_capacity::<usize, i32>(10);
     /// #
@@ -23681,7 +25583,9 @@ impl OpaqueIndexMap {
 
         proj_self.into_boxed_slice()
     }
+}
 
+impl OpaqueIndexMap {
     /// Returns a (key reference, value reference) pair corresponding to the key-value pair stored
     /// at a given storage index in the index map, if it exists.
     ///
@@ -23723,7 +25627,7 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -23731,7 +25635,12 @@ impl OpaqueIndexMap {
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::from([
     ///     (1_usize, 10_i32),
@@ -23804,7 +25713,7 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -23812,7 +25721,12 @@ impl OpaqueIndexMap {
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (1_usize, 10_i32),
@@ -23860,7 +25774,7 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -23868,7 +25782,12 @@ impl OpaqueIndexMap {
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (1_usize, 10_i32),
@@ -23923,13 +25842,18 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (1_isize, 'a'),
@@ -23979,7 +25903,7 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -23987,7 +25911,12 @@ impl OpaqueIndexMap {
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::from([
     ///     (1_usize, 10_i32),
@@ -24042,7 +25971,7 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
@@ -24050,7 +25979,12 @@ impl OpaqueIndexMap {
     /// # use std::any::TypeId;
     /// # use std::cmp::Ordering;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (1_usize, 10_i32),
@@ -24108,14 +26042,19 @@ impl OpaqueIndexMap {
     /// Getting the first entry of a non-empty index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::from([
     ///     (String::from("foo"),  1_usize),
@@ -24137,14 +26076,19 @@ impl OpaqueIndexMap {
     /// Getting the first entry from an empty index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::new::<String, usize>();
     /// #
@@ -24190,14 +26134,19 @@ impl OpaqueIndexMap {
     /// Getting the first entry of a non-empty index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (String::from("foo"),  1_usize),
@@ -24219,14 +26168,19 @@ impl OpaqueIndexMap {
     /// Getting the first entry from an empty index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::new::<String, usize>();
     /// #
@@ -24269,14 +26223,19 @@ impl OpaqueIndexMap {
     /// Getting the first entry of a non-empty index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (String::from("foo"),  1_usize),
@@ -24304,14 +26263,19 @@ impl OpaqueIndexMap {
     /// Getting the first entry from an empty index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::new::<String, usize>();
     /// #
@@ -24356,14 +26320,19 @@ impl OpaqueIndexMap {
     /// Getting the last entry of a non-empty index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::from([
     ///     (String::from("foo"),  1_usize),
@@ -24385,14 +26354,19 @@ impl OpaqueIndexMap {
     /// Getting the last entry from an empty index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::new::<String, usize>();
     /// #
@@ -24438,14 +26412,19 @@ impl OpaqueIndexMap {
     /// Getting the last entry of a non-empty index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (String::from("foo"),  1_usize),
@@ -24467,14 +26446,19 @@ impl OpaqueIndexMap {
     /// Getting the last entry from an empty index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::new::<String, usize>();
     /// #
@@ -24517,14 +26501,19 @@ impl OpaqueIndexMap {
     /// Getting the last entry of a non-empty index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (String::from("foo"),  1_usize),
@@ -24552,14 +26541,19 @@ impl OpaqueIndexMap {
     /// Getting the last entry from an empty index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::new::<String, usize>();
     /// #
@@ -24663,14 +26657,19 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (0_usize, ()),
@@ -24776,14 +26775,19 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     (0_usize, ()),
@@ -24889,14 +26893,19 @@ impl OpaqueIndexMap {
     /// Moving an index where `from < to`.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     ("foo",    0_usize),
@@ -24919,14 +26928,19 @@ impl OpaqueIndexMap {
     /// Moving an index where `from > to`.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     ("foo",    0_usize),
@@ -25001,14 +27015,19 @@ impl OpaqueIndexMap {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_map = OpaqueIndexMap::from([
     ///     ("foo",    0_usize),
@@ -25060,14 +27079,19 @@ impl OpaqueIndexMap {
     /// Cloning an empty type-erased index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::new::<i32, f32>();
     /// #
@@ -25096,14 +27120,19 @@ impl OpaqueIndexMap {
     /// Cloning a non-empty type-erased index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [(i32, f32); 6] = [
     ///     (1_i32, 2_f32),
@@ -25176,14 +27205,19 @@ impl OpaqueIndexMap {
     /// Extending a type-erased index map without overlapping keys.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [(usize, i32); 6] = [
     ///     (0_usize, 1_i32),
@@ -25261,14 +27295,19 @@ impl OpaqueIndexMap {
     /// Iterating over a type-erased index map.
     ///
     /// ```
-    /// # #![feature(allocator_api)]
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_index_map::OpaqueIndexMap;
     /// # use opaque_hash::TypedProjBuildHasher;
     /// # use opaque_alloc::TypedProjAlloc;
     /// # use opaque_vec::TypedProjVec;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_map = OpaqueIndexMap::from([
     ///     (0_usize, 1_i32),
@@ -25353,7 +27392,7 @@ where
 mod dummy {
     use super::*;
     use core::ptr::NonNull;
-    use std::marker;
+    use core::marker;
 
     #[allow(dead_code)]
     pub(super) struct DummyHasher {

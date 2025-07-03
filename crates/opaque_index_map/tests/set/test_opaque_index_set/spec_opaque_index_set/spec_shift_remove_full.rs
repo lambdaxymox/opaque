@@ -3,8 +3,16 @@ use opaque_index_map::OpaqueIndexSet;
 
 use core::any;
 use core::fmt;
-use std::alloc;
 use std::hash;
+use std::vec::Vec;
+use std::format;
+use std::string::String;
+
+#[cfg(feature = "nightly")]
+use std::alloc;
+
+#[cfg(not(feature = "nightly"))]
+use opaque_allocator_api::alloc;
 
 use proptest::prelude::*;
 
@@ -153,9 +161,7 @@ macro_rules! generate_props {
         $set_gen:ident,
     ) => {
         mod $module_name {
-            use proptest::prelude::*;
-            use std::hash;
-            use std::alloc;
+            use super::*;
             proptest! {
                 #[test]
                 fn prop_shift_remove_full_contains(entries in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {

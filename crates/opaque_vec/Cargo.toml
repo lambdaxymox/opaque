@@ -18,15 +18,13 @@ path = "../opaque_alloc"
 version = "0.1.0"
 path = "../opaque_error"
 
+[dependencies.opaque_allocator_api]
+version = "0.1.0"
+path = "../opaque_allocator_api"
+
 [dependencies.opaque_polyfill]
 version = "0.1.0"
 path = "../opaque_polyfill"
-
-[dependencies.allocator-api2]
-version = "0.3.0"
-# optional = true
-default-features = false
-features = ["alloc"]
 
 [dev-dependencies]
 

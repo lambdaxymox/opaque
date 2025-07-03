@@ -4,18 +4,13 @@ use core::mem;
 use core::mem::{ManuallyDrop, MaybeUninit};
 use core::ptr;
 use core::ptr::NonNull;
+use alloc_crate::boxed::Box;
 
 #[cfg(feature = "nightly")]
 use alloc_crate::alloc;
 
-#[cfg(feature = "nightly")]
-use alloc_crate::boxed::Box;
-
 #[cfg(not(feature = "nightly"))]
-use allocator_api2::alloc;
-
-#[cfg(not(feature = "nightly"))]
-use allocator_api2::boxed::Box;
+use opaque_allocator_api::alloc;
 
 use opaque_polyfill::range_types::UsizeNoHighBit;
 use opaque_alloc::{OpaqueAlloc, TypedProjAlloc};
@@ -273,6 +268,7 @@ where
         }
     }
 
+    #[cfg(feature = "nightly")]
     pub(crate) unsafe fn into_box(self, len: usize) -> Box<[MaybeUninit<T>], TypedProjAlloc<A>> {
         // Sanity-check one half of the safety requirement (we cannot check the other half).
         debug_assert!(
@@ -1039,7 +1035,6 @@ mod raw_vec_layout_tests {
 
 #[cfg(test)]
 mod assert_send_sync {
-    use crate::TypedProjVec;
     use super::*;
 
     #[test]

@@ -12,10 +12,10 @@ use std::alloc;
 use std::alloc::Global;
 
 #[cfg(not(feature = "nightly"))]
-use allocator_api2::alloc;
+use opaque_allocator_api::alloc;
 
 #[cfg(not(feature = "nightly"))]
-use allocator_api2::alloc::Global;
+use opaque_allocator_api::alloc::Global;
 
 #[derive(Clone, Default)]
 struct WrappingAlloc<A> {

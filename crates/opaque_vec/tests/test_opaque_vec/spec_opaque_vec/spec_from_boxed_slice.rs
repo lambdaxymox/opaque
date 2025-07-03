@@ -4,23 +4,19 @@ use opaque_alloc::TypedProjAlloc;
 
 use core::any;
 use core::fmt;
+use alloc_crate::boxed::Box;
 use std::format;
 use std::string::String;
 
 #[cfg(feature = "nightly")]
 use std::alloc;
 
-#[cfg(feature = "nightly")]
-use std::boxed::Box;
-
 #[cfg(not(feature = "nightly"))]
-use allocator_api2::alloc;
-
-#[cfg(not(feature = "nightly"))]
-use allocator_api2::boxed::Box;
+use opaque_allocator_api::alloc;
 
 use proptest::prelude::*;
 
+#[cfg(feature = "nightly")]
 fn prop_from_boxed_slice<T, A>(values: OpaqueVec) -> Result<(), TestCaseError>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
@@ -48,6 +44,7 @@ where
     Ok(())
 }
 
+#[cfg(feature = "nightly")]
 macro_rules! generate_props {
     ($module_name:ident, $typ:ty, $alloc_typ:ty, $max_length:expr, $vec_gen:ident) => {
         mod $module_name {
@@ -58,6 +55,17 @@ macro_rules! generate_props {
                     let values: super::OpaqueVec = values;
                     super::prop_from_boxed_slice::<$typ, $alloc_typ>(values)?
                 }
+            }
+        }
+    };
+}
+
+#[cfg(not(feature = "nightly"))]
+macro_rules! generate_props {
+    ($module_name:ident, $typ:ty, $alloc_typ:ty, $max_length:expr, $vec_gen:ident) => {
+        mod $module_name {
+            use super::*;
+            proptest! {
             }
         }
     };

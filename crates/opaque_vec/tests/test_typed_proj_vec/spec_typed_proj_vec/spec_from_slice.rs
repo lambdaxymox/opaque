@@ -10,7 +10,7 @@ use std::string::String;
 use std::alloc;
 
 #[cfg(not(feature = "nightly"))]
-use allocator_api2::alloc;
+use opaque_allocator_api::alloc;
 
 use proptest::prelude::*;
 

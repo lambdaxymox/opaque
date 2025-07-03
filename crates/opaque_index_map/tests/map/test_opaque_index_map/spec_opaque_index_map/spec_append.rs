@@ -8,8 +8,16 @@ use opaque_index_map::OpaqueIndexMap;
 
 use core::any;
 use core::fmt;
-use std::alloc;
 use std::hash;
+use std::vec::Vec;
+use std::format;
+use std::string::String;
+
+#[cfg(feature = "nightly")]
+use std::alloc;
+
+#[cfg(not(feature = "nightly"))]
+use opaque_allocator_api::alloc;
 
 use proptest::prelude::*;
 
@@ -381,9 +389,7 @@ macro_rules! generate_props {
         $map_gen:ident,
     ) => {
         mod $module_name {
-            use proptest::prelude::*;
-            use std::hash;
-            use std::alloc;
+            use super::*;
             proptest! {
                 #[test]
                 fn prop_append_contains_key_source(

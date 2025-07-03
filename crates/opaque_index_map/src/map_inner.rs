@@ -10,7 +10,6 @@ use core::fmt;
 use core::iter;
 use core::mem;
 use core::ops;
-use alloc_crate::alloc;
 use alloc_crate::boxed::Box;
 
 #[cfg(feature = "std")]
@@ -18,6 +17,12 @@ use std::hash;
 
 #[cfg(not(feature = "std"))]
 use core::hash;
+
+#[cfg(feature = "nightly")]
+use alloc_crate::alloc;
+
+#[cfg(not(feature = "nightly"))]
+use opaque_allocator_api::alloc;
 
 use hashbrown::hash_table;
 
@@ -479,7 +484,10 @@ impl<K, V> Slice<K, V> {
     pub(crate) const fn from_slice_mut(entries: &mut [Bucket<K, V>]) -> &mut Self {
         unsafe { &mut *(entries as *mut [Bucket<K, V>] as *mut Self) }
     }
+}
 
+#[cfg(feature = "nightly")]
+impl<K, V> Slice<K, V> {
     fn from_boxed_slice<A>(entries: Box<[Bucket<K, V>], A>) -> Box<Self, A>
     where
         A: any::Any + alloc::Allocator + Send + Sync,
@@ -516,7 +524,9 @@ impl<K, V> Slice<K, V> {
             TypedProjVec::from_raw_parts_proj_in(ptr as *mut Bucket<K, V>, len, capacity, alloc)
         }
     }
+}
 
+impl<K, V> Slice<K, V> {
     pub(crate) fn to_entries_in<A>(&self, alloc: TypedProjAlloc<A>) -> TypedProjVec<Bucket<K, V>, A>
     where
         K: any::Any + Clone,
@@ -528,7 +538,10 @@ impl<K, V> Slice<K, V> {
 
         entries
     }
+}
 
+#[cfg(feature = "nightly")]
+impl<K, V> Slice<K, V> {
     pub(crate) fn from_entries_in<A>(vec: TypedProjVec<Bucket<K, V>, A>) -> Box<Self, TypedProjAlloc<A>>
     where
         K: any::Any,
@@ -544,7 +557,9 @@ impl<K, V> Slice<K, V> {
 
         boxed_slice
     }
+}
 
+impl<K, V> Slice<K, V> {
     #[inline]
     pub(crate) const fn as_entries(&self) -> &[Bucket<K, V>] {
         &self.entries
@@ -664,7 +679,10 @@ impl<K, V> Slice<K, V> {
     pub(crate) fn keys(&self) -> Keys<'_, K, V> {
         Keys::new(&self.entries)
     }
+}
 
+#[cfg(feature = "nightly")]
+impl<K, V> Slice<K, V> {
     pub(crate) fn into_keys<A>(self: Box<Self, TypedProjAlloc<A>>) -> IntoKeys<K, V, A>
     where
         K: any::Any,
@@ -673,7 +691,9 @@ impl<K, V> Slice<K, V> {
     {
         IntoKeys::new(self.into_entries())
     }
+}
 
+impl<K, V> Slice<K, V> {
     pub(crate) fn values(&self) -> Values<'_, K, V> {
         Values::new(&self.entries)
     }
@@ -681,7 +701,10 @@ impl<K, V> Slice<K, V> {
     pub(crate) fn values_mut(&mut self) -> ValuesMut<'_, K, V> {
         ValuesMut::new(&mut self.entries)
     }
+}
 
+#[cfg(feature = "nightly")]
+impl<K, V> Slice<K, V> {
     pub(crate) fn into_values<A>(self: Box<Self, TypedProjAlloc<A>>) -> IntoValues<K, V, A>
     where
         K: any::Any,
@@ -690,7 +713,9 @@ impl<K, V> Slice<K, V> {
     {
         IntoValues::new(self.into_entries())
     }
+}
 
+impl<K, V> Slice<K, V> {
     pub(crate) fn binary_search_keys(&self, key: &K) -> Result<usize, usize>
     where
         K: Ord,
@@ -785,6 +810,7 @@ impl<'a, K, V> IntoIterator for &'a mut Slice<K, V> {
     }
 }
 
+#[cfg(feature = "nightly")]
 impl<K, V, A> IntoIterator for Box<Slice<K, V>, TypedProjAlloc<A>>
 where
     K: any::Any,
@@ -812,6 +838,7 @@ impl<K, V> Default for &'_ mut Slice<K, V> {
     }
 }
 
+#[cfg(feature = "nightly")]
 impl<K, V, A> Default for Box<Slice<K, V>, A>
 where
     K: any::Any,
@@ -823,6 +850,7 @@ where
     }
 }
 
+#[cfg(feature = "nightly")]
 impl<K, V, A> Clone for Box<Slice<K, V>, A>
 where
     K: Clone,
@@ -835,6 +863,7 @@ where
     }
 }
 
+#[cfg(feature = "nightly")]
 impl<K, V> From<&Slice<K, V>> for Box<Slice<K, V>, TypedProjAlloc<alloc::Global>>
 where
     K: any::Any + Copy,
@@ -1068,6 +1097,11 @@ impl<'a, K, V> IterMut<'a, K, V> {
         Self { iter: entries.iter_mut() }
     }
 
+    #[cfg(feature = "nightly")]
+    pub(crate) fn as_slice_mut(&'a mut self) -> &'a mut Slice<K, V> {
+        Slice::from_slice_mut(self.iter.as_mut_slice())
+    }
+
     #[cfg(not(feature = "nightly"))]
     pub(crate) fn as_slice_mut(&'a mut self) -> &'a mut Slice<K, V> {
         todo!(
@@ -1075,11 +1109,6 @@ impl<'a, K, V> IterMut<'a, K, V> {
             `slice_iter_mut_as_mut_slice` stabilizes. \
             See `https://github.com/rust-lang/rust/issues/93079`."
         )
-    }
-
-    #[cfg(feature = "nightly")]
-    pub(crate) fn as_slice_mut(&'a mut self) -> &'a mut Slice<K, V> {
-        Slice::from_slice_mut(self.iter.as_mut_slice())
     }
 
     pub(crate) fn into_slice_mut(self) -> &'a mut Slice<K, V> {
@@ -4232,7 +4261,17 @@ where
 
         self.inner.shrink_to(min_capacity);
     }
+}
 
+#[cfg(feature = "nightly")]
+impl<K, V, S, A> TypedProjIndexMapInner<K, V, S, A>
+where
+    K: any::Any,
+    V: any::Any,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
     pub(crate) fn into_boxed_slice(self) -> Box<Slice<K, V>, TypedProjAlloc<A>> {
         debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
         debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
@@ -4241,7 +4280,16 @@ where
 
         Slice::from_boxed_slice(self.into_entries().into_boxed_slice())
     }
+}
 
+impl<K, V, S, A> TypedProjIndexMapInner<K, V, S, A>
+where
+    K: any::Any,
+    V: any::Any,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
     pub(crate) fn get_index(&self, index: usize) -> Option<(&K, &V)> {
         debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
         debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());

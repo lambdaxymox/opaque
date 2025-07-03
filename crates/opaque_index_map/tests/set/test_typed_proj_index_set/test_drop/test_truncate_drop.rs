@@ -1,9 +1,15 @@
-use core::any;
-use std::alloc;
-use std::cell::RefCell;
-use std::hash;
-use std::rc::Rc;
 use opaque_index_map::set::TypedProjIndexSet;
+
+use core::any;
+use std::hash;
+use std::cell::RefCell;
+use std::rc::Rc;
+
+#[cfg(feature = "nightly")]
+use std::alloc;
+
+#[cfg(not(feature = "nightly"))]
+use opaque_allocator_api::alloc;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct DropCounter {

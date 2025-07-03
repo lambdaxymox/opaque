@@ -2,9 +2,14 @@ use opaque_index_map::set::TypedProjIndexSet;
 
 use core::any;
 use core::fmt;
-use std::alloc;
 use std::iter;
 use std::hash;
+
+#[cfg(feature = "nightly")]
+use std::alloc;
+
+#[cfg(not(feature = "nightly"))]
+use opaque_allocator_api::alloc;
 
 #[test]
 fn test_empty_len1() {

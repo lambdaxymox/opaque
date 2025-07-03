@@ -1,6 +1,8 @@
+use opaque_hash::OpaqueBuildHasher;
+
 use criterion;
 use criterion::criterion_group;
-use opaque_hash::OpaqueBuildHasher;
+
 use std::hash::{
     BuildHasher,
     Hash,

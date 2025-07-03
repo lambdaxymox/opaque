@@ -9,7 +9,7 @@ use core::ops;
 use alloc_crate::alloc;
 
 #[cfg(not(feature = "nightly"))]
-use allocator_api2::alloc;
+use opaque_allocator_api::alloc;
 
 use opaque_alloc::TypedProjAlloc;
 
@@ -30,7 +30,7 @@ use opaque_alloc::TypedProjAlloc;
 /// # use std::alloc::Global;
 /// #
 /// # #[cfg(not(feature = "nightly"))]
-/// # use allocator_api2::alloc::Global;
+/// # use opaque_allocator_api::alloc::Global;
 /// #
 /// fn is_even(value: &mut i32) -> bool {
 ///     *value % 2 == 0
@@ -54,7 +54,7 @@ use opaque_alloc::TypedProjAlloc;
 /// # use std::alloc::Global;
 /// #
 /// # #[cfg(not(feature = "nightly"))]
-/// # use allocator_api2::alloc::Global;
+/// # use opaque_allocator_api::alloc::Global;
 /// #
 /// fn is_even(value: &mut i32) -> bool {
 ///     *value % 2 == 0
@@ -179,7 +179,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// fn is_even(value: &mut i32) -> bool {
     ///     *value % 2 == 0
@@ -202,7 +202,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// fn is_even(value: &mut i32) -> bool {
     ///     *value % 2 == 0

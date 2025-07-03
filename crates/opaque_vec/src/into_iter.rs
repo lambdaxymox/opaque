@@ -13,7 +13,7 @@ use core::ptr::NonNull;
 use alloc_crate::alloc;
 
 #[cfg(not(feature = "nightly"))]
-use allocator_api2::alloc;
+use opaque_allocator_api::alloc;
 
 use opaque_alloc::TypedProjAlloc;
 
@@ -39,7 +39,7 @@ const fn assuming_non_null<T>(item: *const T) -> NonNull<T> {
 /// # use std::alloc::Global;
 /// #
 /// # #[cfg(not(feature = "nightly"))]
-/// # use allocator_api2::alloc::Global;
+/// # use opaque_allocator_api::alloc::Global;
 /// #
 /// let mut vec: TypedProjVec<i32> = TypedProjVec::from([1, 2, 3, 4, 5]);
 ///
@@ -60,7 +60,7 @@ const fn assuming_non_null<T>(item: *const T) -> NonNull<T> {
 /// # use std::alloc::Global;
 /// #
 /// # #[cfg(not(feature = "nightly"))]
-/// # use allocator_api2::alloc::Global;
+/// # use opaque_allocator_api::alloc::Global;
 /// #
 /// let mut vec = {
 ///     let array: [i32; 5] = [1, 2, 3, 4, 5];
@@ -134,7 +134,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let vec: TypedProjVec<i32> = TypedProjVec::from([1, 2, 3, 4, 5]);
     /// let mut iterator = vec.into_iter();
@@ -162,7 +162,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let vec = {
     ///     let array: [i32; 5] = [1, 2, 3, 4, 5];
@@ -208,7 +208,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let vec: TypedProjVec<i32> = TypedProjVec::from([1, 2, 3, 4, 5]);
     /// let mut iterator = vec.into_iter();
@@ -236,7 +236,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let vec = {
     ///     let array: [i32; 5] = [1, 2, 3, 4, 5];
@@ -279,7 +279,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let vec: TypedProjVec<i32> = TypedProjVec::from([1, 2, 3, 4, 5]);
     /// let mut iterator = vec.into_iter();
@@ -298,7 +298,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let vec = {
     ///     let array: [i32; 5] = [1, 2, 3, 4, 5];

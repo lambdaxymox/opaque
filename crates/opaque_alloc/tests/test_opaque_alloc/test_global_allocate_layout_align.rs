@@ -7,8 +7,12 @@ use alloc_crate::format;
 use alloc_crate::alloc;
 
 #[cfg(not(feature = "nightly"))]
-use allocator_api2::alloc;
+use opaque_allocator_api::alloc;
 
+#[cfg(not(feature = "nightly"))]
+use opaque_polyfill::slice_ptr_get;
+
+#[cfg(feature = "nightly")]
 fn run_test_opaque_alloc_allocate_align_with_layout<A>(opaque_alloc: OpaqueAlloc, layout: alloc::Layout)
 where
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -27,6 +31,32 @@ where
         let ptr_align_offset = ptr.align_offset(layout.align());
 
         proj_alloc.deallocate(allocation_ptr.as_non_null_ptr(), layout);
+
+        ptr_align_offset
+    };
+
+    assert_eq!(result, expected);
+}
+
+#[cfg(not(feature = "nightly"))]
+fn run_test_opaque_alloc_allocate_align_with_layout<A>(opaque_alloc: OpaqueAlloc, layout: alloc::Layout)
+where
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    use alloc::Allocator;
+
+    let expected = 0;
+    let result = unsafe {
+        let proj_alloc = opaque_alloc.as_proj::<A>();
+        let allocation_ptr = proj_alloc
+            .allocate(layout.clone())
+            .unwrap_or_else(|_| alloc::handle_alloc_error(layout));
+
+        let ptr = slice_ptr_get::as_non_null_ptr(allocation_ptr).as_ptr();
+
+        let ptr_align_offset = ptr.align_offset(layout.align());
+
+        proj_alloc.deallocate(slice_ptr_get::as_non_null_ptr(allocation_ptr), layout);
 
         ptr_align_offset
     };

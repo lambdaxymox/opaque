@@ -1,5 +1,6 @@
-use std::alloc;
 use opaque_vec::TypedProjVec;
+
+use std::alloc;
 
 #[test]
 fn test_vec_empty_is_empty() {

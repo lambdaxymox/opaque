@@ -5,17 +5,13 @@ use criterion::{
     criterion_group,
 };
 
+use alloc_crate::vec::Vec;
+
 #[cfg(feature = "nightly")]
 use alloc_crate::alloc;
 
-#[cfg(feature = "nightly")]
-use alloc_crate::vec::Vec;
-
 #[cfg(not(feature = "nightly"))]
-use allocator_api2::alloc;
-
-#[cfg(not(feature = "nightly"))]
-use allocator_api2::vec::Vec;
+use opaque_allocator_api::alloc;
 
 fn bench_vec_get(c: &mut Criterion) {
     let dummy_data = 0_i32;

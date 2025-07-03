@@ -1,6 +1,8 @@
+use opaque_hash::TypedProjBuildHasher;
+
 use criterion;
 use criterion::criterion_group;
-use opaque_hash::TypedProjBuildHasher;
+
 use std::hash::{
     BuildHasher,
     Hash,

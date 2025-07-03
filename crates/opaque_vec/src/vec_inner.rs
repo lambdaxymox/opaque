@@ -14,30 +14,20 @@ use core::mem::{
     ManuallyDrop,
     MaybeUninit,
 };
+use alloc_crate::boxed::Box;
+use alloc_crate::vec::Vec;
 
 #[cfg(feature = "nightly")]
 use alloc_crate::alloc;
 
-#[cfg(feature = "nightly")]
-use alloc_crate::boxed::Box;
-
-#[cfg(feature = "nightly")]
-use alloc_crate::vec::Vec;
-
 #[cfg(not(feature = "nightly"))]
-use allocator_api2::alloc;
-
-#[cfg(not(feature = "nightly"))]
-use allocator_api2::boxed::Box;
-
-#[cfg(not(feature = "nightly"))]
-use allocator_api2::vec::Vec;
-
-use opaque_alloc::TypedProjAlloc;
-use opaque_error::TryReserveError;
+use opaque_allocator_api::alloc;
 
 #[cfg(not(feature = "nightly"))]
 use opaque_polyfill;
+
+use opaque_alloc::TypedProjAlloc;
+use opaque_error::TryReserveError;
 
 unsafe fn drop_fn<T>(value: NonNull<u8>) {
     let to_drop = value.as_ptr() as *mut T;
@@ -580,7 +570,13 @@ where
 
         (ptr, len, capacity)
     }
+}
 
+impl<T, A> TypedProjVecInner<T, A>
+where
+    T: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
     #[inline]
     #[must_use]
     pub(crate) fn into_raw_parts_with_alloc(self) -> (*mut T, usize, usize, TypedProjAlloc<A>)
@@ -618,7 +614,41 @@ where
 
         (ptr, len, capacity, alloc)
     }
+}
 
+#[cfg(feature = "nightly")]
+impl<T, A> TypedProjVecInner<T, A>
+where
+    T: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    #[inline]
+    #[track_caller]
+    pub(crate) fn into_boxed_slice(mut self) -> Box<[T], TypedProjAlloc<A>>
+    where
+        A: alloc::Allocator,
+    {
+        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
+        unsafe {
+            self.shrink_to_fit();
+            let mut me = ManuallyDrop::new(self);
+            let len = me.len();
+            let ptr = me.as_mut_ptr();
+            let slice_ptr = core::ptr::slice_from_raw_parts_mut(ptr, len);
+            let alloc = core::ptr::read(me.allocator());
+
+            Box::from_raw_in(slice_ptr, alloc)
+        }
+    }
+}
+
+impl<T, A> TypedProjVecInner<T, A>
+where
+    T: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
     #[inline]
     pub(crate) fn spare_capacity_mut(&mut self) -> &mut [MaybeUninit<T>] {
         debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
@@ -631,8 +661,14 @@ where
             slice::from_raw_parts_mut(ptr, len)
         }
     }
+}
 
-    #[cfg(not(feature = "nightly"))]
+#[cfg(not(feature = "nightly"))]
+impl<T, A> TypedProjVecInner<T, A>
+where
+    T: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
     pub(crate) fn drain<R>(&mut self, range: R) -> Drain<'_, T, A>
     where
         A: alloc::Allocator,
@@ -662,8 +698,14 @@ where
             Drain::from_parts(end, len - end, range_slice.iter(), NonNull::from(self))
         }
     }
+}
 
-    #[cfg(feature = "nightly")]
+#[cfg(feature = "nightly")]
+impl<T, A> TypedProjVecInner<T, A>
+where
+    T: any::Any,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
     pub(crate) fn drain<R>(&mut self, range: R) -> Drain<'_, T, A>
     where
         A: alloc::Allocator,
@@ -763,27 +805,6 @@ where
         unsafe {
             self.append_elements(other.as_slice() as _);
             other.set_len(0);
-        }
-    }
-
-    #[inline]
-    #[track_caller]
-    pub(crate) fn into_boxed_slice(mut self) -> Box<[T], TypedProjAlloc<A>>
-    where
-        A: alloc::Allocator,
-    {
-        debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
-        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
-
-        unsafe {
-            self.shrink_to_fit();
-            let mut me = ManuallyDrop::new(self);
-            let len = me.len();
-            let ptr = me.as_mut_ptr();
-            let slice_ptr = core::ptr::slice_from_raw_parts_mut(ptr, len);
-            let alloc = core::ptr::read(me.allocator());
-
-            Box::from_raw_in(slice_ptr, alloc)
         }
     }
 
@@ -1494,6 +1515,7 @@ where
     }
 }
 
+#[cfg(feature = "nightly")]
 impl<T, A> TypedProjVecInner<T, A>
 where
     T: any::Any,
@@ -1593,53 +1615,31 @@ where
 {
     fn from(vec: Vec<T, A>) -> Self {
         let (ptr, length, capacity, alloc) = vec.into_parts_with_alloc();
-        let inner = unsafe {
-            TypedProjVecInner::from_parts_in(ptr, length, capacity, alloc)
-        };
 
-        inner
+        unsafe {
+            TypedProjVecInner::from_parts_in(ptr, length, capacity, alloc)
+        }
     }
 }
 
 #[cfg(not(feature = "nightly"))]
-impl<T, A> From<Vec<T, A>> for TypedProjVecInner<T, A>
+impl<T> From<Vec<T>> for TypedProjVecInner<T, alloc::Global>
 where
     T: any::Any,
-    A: any::Any + alloc::Allocator + Send + Sync,
 {
-    fn from(vec: Vec<T, A>) -> Self {
-        fn into_raw_parts_with_alloc<T, A>(slf: Vec<T, A>) -> (*mut T, usize, usize, A)
-        where
-            T: any::Any,
-            A: any::Any + alloc::Allocator + Send + Sync,
-        {
-            let mut me = ManuallyDrop::new(slf);
-            let len = me.len();
-            let capacity = me.capacity();
-            let ptr = me.as_mut_ptr();
-            let alloc = unsafe { ptr::read(me.allocator()) };
-            (ptr, len, capacity, alloc)
+    fn from(vec: Vec<T>) -> Self {
+        let mut vec = ManuallyDrop::new(vec);
+        let ptr = vec.as_mut_ptr();
+        let length = vec.len();
+        let capacity = vec.capacity();
+
+        unsafe {
+            TypedProjVecInner::from_raw_parts(ptr, length, capacity)
         }
-
-        fn into_parts_with_alloc<T, A>(slf: Vec<T, A>) -> (NonNull<T>, usize, usize, A)
-        where
-            T: any::Any,
-            A: any::Any + alloc::Allocator + Send + Sync,
-        {
-            let (ptr, len, capacity, alloc) = into_raw_parts_with_alloc(slf);
-            // SAFETY: A `Vec` always has a non-null pointer.
-            (unsafe { NonNull::new_unchecked(ptr) }, len, capacity, alloc)
-        }
-
-        let (ptr, length, capacity, alloc) = into_parts_with_alloc(vec);
-        let inner = unsafe {
-            TypedProjVecInner::from_parts_in(ptr, length, capacity, alloc)
-        };
-
-        inner
     }
 }
 
+#[cfg(feature = "nightly")]
 impl<T, A> From<&Vec<T, A>> for TypedProjVecInner<T, A>
 where
     T: any::Any + Clone,
@@ -1650,6 +1650,17 @@ where
     }
 }
 
+#[cfg(not(feature = "nightly"))]
+impl<T> From<&Vec<T>> for TypedProjVecInner<T, alloc::Global>
+where
+    T: any::Any + Clone,
+{
+    fn from(vec: &Vec<T>) -> Self {
+        Self::from(vec.clone())
+    }
+}
+
+#[cfg(feature = "nightly")]
 impl<T, A> From<&mut Vec<T, A>> for TypedProjVecInner<T, A>
 where
     T: any::Any + Clone,
@@ -1660,6 +1671,17 @@ where
     }
 }
 
+#[cfg(not(feature = "nightly"))]
+impl<T> From<&mut Vec<T>> for TypedProjVecInner<T, alloc::Global>
+where
+    T: any::Any + Clone,
+{
+    fn from(vec: &mut Vec<T>) -> Self {
+        Self::from(vec.clone())
+    }
+}
+
+#[cfg(feature = "nightly")]
 impl<T, A> From<Box<[T], TypedProjAlloc<A>>> for TypedProjVecInner<T, A>
 where
     T: any::Any,
@@ -1686,15 +1708,14 @@ where
     T: any::Any,
 {
     fn from(array: [T; N]) -> Self {
-        let alloc = TypedProjAlloc::new(alloc::Global);
-        let boxed_array = Box::new_in(array, alloc.clone());
-        let boxed_slice = unsafe {
-            let ptr: *mut [T; N] = Box::into_raw(boxed_array);
-            let slice_ptr: *mut [T] = ptr as *mut [T];
-            Box::from_raw_in(slice_ptr, alloc)
-        };
+        let mut me = ManuallyDrop::new(Box::new(array));
+        let len = me.len();
+        let capacity = me.len();
+        let ptr = me.as_mut_ptr();
 
-        Self::from_boxed_slice(boxed_slice)
+        unsafe {
+            Self::from_raw_parts(ptr, len, capacity)
+        }
     }
 }
 

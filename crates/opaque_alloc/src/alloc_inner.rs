@@ -8,7 +8,7 @@ use alloc_crate::boxed::Box;
 use alloc_crate::alloc;
 
 #[cfg(not(feature = "nightly"))]
-use allocator_api2::alloc;
+use opaque_allocator_api::alloc;
 
 /// This trait exists to define the [`TypedProjAllocInner`] data type. It is not meant for public use.
 trait AnyAllocator: any::Any + alloc::Allocator + Send + Sync {}

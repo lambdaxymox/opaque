@@ -3,23 +3,19 @@ use opaque_vec::OpaqueVec;
 
 use core::any;
 use core::fmt;
+use alloc_crate::vec::Vec;
 use std::format;
 use std::string::String;
 
 #[cfg(feature = "nightly")]
 use std::alloc;
 
-#[cfg(feature = "nightly")]
-use std::vec::Vec;
-
 #[cfg(not(feature = "nightly"))]
-use allocator_api2::alloc;
-
-#[cfg(not(feature = "nightly"))]
-use allocator_api2::vec::Vec;
+use opaque_allocator_api::alloc;
 
 use proptest::prelude::*;
 
+#[cfg(feature = "nightly")]
 fn prop_from_vec<T, A>(values: OpaqueVec) -> Result<(), TestCaseError>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
@@ -47,6 +43,7 @@ where
     Ok(())
 }
 
+#[cfg(feature = "nightly")]
 macro_rules! generate_props {
     ($module_name:ident, $typ:ty, $alloc_typ:ty, $max_length:expr, $vec_gen:ident) => {
         mod $module_name {
@@ -57,6 +54,17 @@ macro_rules! generate_props {
                     let values: super::OpaqueVec = values;
                     super::prop_from_vec::<$typ, $alloc_typ>(values)?
                 }
+            }
+        }
+    };
+}
+
+#[cfg(not(feature = "nightly"))]
+macro_rules! generate_props {
+    ($module_name:ident, $typ:ty, $alloc_typ:ty, $max_length:expr, $vec_gen:ident) => {
+        mod $module_name {
+            use super::*;
+            proptest! {
             }
         }
     };

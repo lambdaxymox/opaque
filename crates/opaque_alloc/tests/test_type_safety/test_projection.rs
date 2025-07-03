@@ -7,7 +7,7 @@ use core::ptr::NonNull;
 use alloc_crate::alloc;
 
 #[cfg(not(feature = "nightly"))]
-use allocator_api2::alloc;
+use opaque_allocator_api::alloc;
 
 #[derive(Clone)]
 struct WrappingAlloc<A> {

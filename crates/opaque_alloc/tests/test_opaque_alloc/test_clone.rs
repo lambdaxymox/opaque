@@ -7,7 +7,7 @@ use core::ptr::NonNull;
 use alloc_crate::alloc;
 
 #[cfg(not(feature = "nightly"))]
-use allocator_api2::alloc;
+use opaque_allocator_api::alloc;
 
 fn clone<A>(opaque_alloc: OpaqueAlloc) -> OpaqueAlloc
 where

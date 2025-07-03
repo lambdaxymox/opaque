@@ -12,7 +12,7 @@ use core::slice;
 use alloc_crate::alloc;
 
 #[cfg(not(feature = "nightly"))]
-use allocator_api2::alloc;
+use opaque_allocator_api::alloc;
 
 use opaque_alloc::TypedProjAlloc;
 
@@ -32,7 +32,7 @@ use opaque_alloc::TypedProjAlloc;
 /// # use std::alloc::Global;
 /// #
 /// # #[cfg(not(feature = "nightly"))]
-/// # use allocator_api2::alloc::Global;
+/// # use opaque_allocator_api::alloc::Global;
 /// #
 /// let mut result = TypedProjVec::from([1, i32::MAX, i32::MAX, i32::MAX, 2, 3]);
 /// let expected = TypedProjVec::from([1, 2, 3]);
@@ -51,7 +51,7 @@ use opaque_alloc::TypedProjAlloc;
 /// # use std::alloc::Global;
 /// #
 /// # #[cfg(not(feature = "nightly"))]
-/// # use allocator_api2::alloc::Global;
+/// # use opaque_allocator_api::alloc::Global;
 /// #
 /// let mut result = OpaqueVec::from([1, i32::MAX, i32::MAX, i32::MAX, 2, 3]);
 /// #
@@ -122,7 +122,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut vec = TypedProjVec::from([
     ///     "spam",
@@ -156,7 +156,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut vec = OpaqueVec::from([
     ///     "spam",
@@ -198,7 +198,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut result = TypedProjVec::from([1, i32::MAX, i32::MAX, i32::MAX, 2, 3]);
     /// let iterator = result.drain(1..4);
@@ -217,7 +217,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut result = OpaqueVec::from([1, i32::MAX, i32::MAX, i32::MAX, 2, 3]);
     /// #
@@ -248,7 +248,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut vec = TypedProjVec::from([
     ///     "spam",
@@ -278,7 +278,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut vec = OpaqueVec::from([
     ///     "spam",

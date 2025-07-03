@@ -11,7 +11,7 @@ use alloc_crate::boxed::Box;
 use alloc_crate::alloc;
 
 #[cfg(not(feature = "nightly"))]
-use allocator_api2::alloc;
+use opaque_allocator_api::alloc;
 
 /// A type-projected memory allocator.
 ///
@@ -60,7 +60,7 @@ use allocator_api2::alloc;
 /// # use std::alloc::Global;
 /// #
 /// # #[cfg(not(feature = "nightly"))]
-/// # use allocator_api2::alloc::Global;
+/// # use opaque_allocator_api::alloc::Global;
 /// #
 /// let proj_alloc = TypedProjAlloc::new(Global);
 ///
@@ -93,7 +93,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_alloc = TypedProjAlloc::new(Global);
     ///
@@ -125,7 +125,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_alloc = TypedProjAlloc::new(Global);
     ///
@@ -155,7 +155,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_alloc = TypedProjAlloc::from_boxed_alloc(Box::new(Global));
     ///
@@ -181,7 +181,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_alloc = TypedProjAlloc::new(Global);
     ///
@@ -207,7 +207,7 @@ where
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_alloc = TypedProjAlloc::new(Global);
     /// let boxed_alloc: Box<Global> = proj_alloc.into_boxed_alloc();
@@ -324,7 +324,7 @@ where
 /// # use std::alloc::Global;
 /// #
 /// # #[cfg(not(feature = "nightly"))]
-/// # use allocator_api2::alloc::Global;
+/// # use opaque_allocator_api::alloc::Global;
 /// #
 /// let opaque_alloc = OpaqueAlloc::new::<Global>(Global);
 ///
@@ -351,7 +351,7 @@ impl OpaqueAlloc {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_alloc = OpaqueAlloc::new::<Global>(Global);
     ///
@@ -384,7 +384,7 @@ impl OpaqueAlloc {
     /// # use std::alloc::{Allocator, AllocError, Layout, Global};
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::{Allocator, AllocError, Layout, Global};
+    /// # use opaque_allocator_api::alloc::{Allocator, AllocError, Layout, Global};
     /// #
     /// trait AnyAllocator: Any + Allocator + Send + Sync {}
     ///
@@ -461,7 +461,7 @@ impl OpaqueAlloc {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_alloc = OpaqueAlloc::new::<Global>(Global);
     /// #
@@ -497,7 +497,7 @@ impl OpaqueAlloc {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_alloc = OpaqueAlloc::new::<Global>(Global);
     /// #
@@ -532,7 +532,7 @@ impl OpaqueAlloc {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_alloc = OpaqueAlloc::new::<Global>(Global);
     /// #
@@ -567,7 +567,7 @@ impl OpaqueAlloc {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_alloc: TypedProjAlloc<Global> = TypedProjAlloc::new(Global);
     /// let opaque_alloc: OpaqueAlloc = OpaqueAlloc::from_proj(proj_alloc);
@@ -604,7 +604,7 @@ impl OpaqueAlloc {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_alloc = OpaqueAlloc::new(Global);
     ///
@@ -637,7 +637,7 @@ impl OpaqueAlloc {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_alloc = OpaqueAlloc::from_boxed_alloc(Box::new(Global));
     ///
@@ -686,7 +686,7 @@ impl OpaqueAlloc {
     /// # use std::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use allocator_api2::alloc::Global;
+    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_alloc = OpaqueAlloc::new(Global);
     /// let cloned = opaque_alloc.clone::<Global>();

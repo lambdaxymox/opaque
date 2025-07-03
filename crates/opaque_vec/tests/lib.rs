@@ -10,6 +10,8 @@
     )
 )]
 #![no_std]
+extern crate alloc as alloc_crate;
+
 extern crate std;
 
 mod common;

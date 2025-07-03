@@ -6,7 +6,7 @@ use alloc_crate::format;
 use alloc_crate::alloc;
 
 #[cfg(not(feature = "nightly"))]
-use allocator_api2::alloc;
+use opaque_allocator_api::alloc;
 
 #[test]
 fn test_opaque_alloc_debug1() {

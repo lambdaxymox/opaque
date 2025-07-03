@@ -7,7 +7,7 @@ use criterion::criterion_group;
 use alloc_crate::alloc;
 
 #[cfg(not(feature = "nightly"))]
-use allocator_api2::alloc;
+use opaque_allocator_api::alloc;
 
 #[cfg(not(feature = "nightly"))]
 use opaque_polyfill::slice_ptr_get;
