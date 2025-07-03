@@ -221,7 +221,7 @@ impl<H> fmt::Debug for TypedProjHasher<H>
 where
     H: any::Any + hash::Hasher + Send + Sync + fmt::Debug,
 {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter
             .debug_struct("TypedProjHasher")
             .field("inner", self.inner.hasher_assuming_type())

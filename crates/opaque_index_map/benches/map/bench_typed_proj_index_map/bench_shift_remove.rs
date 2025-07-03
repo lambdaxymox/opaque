@@ -1,12 +1,20 @@
+use opaque_index_map::map::TypedProjIndexMap;
+
 use criterion::{
     Criterion,
     criterion_group,
 };
+
 use indexmap::IndexMap;
-use opaque_index_map::map::TypedProjIndexMap;
 
 use std::hash;
+use std::vec::Vec;
+
+#[cfg(feature = "nightly")]
 use std::alloc;
+
+#[cfg(not(feature = "nightly"))]
+use opaque_allocator_api::alloc;
 
 fn bench_index_map_shift_remove(c: &mut Criterion) {
     let keys = 0..100;

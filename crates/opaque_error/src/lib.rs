@@ -6,6 +6,7 @@ extern crate alloc as alloc_crate;
 #[cfg(feature = "std")]
 extern crate std;
 
+use core::error;
 use core::fmt;
 use alloc_crate::alloc;
 
@@ -54,7 +55,7 @@ impl From<alloc::LayoutError> for TryReserveErrorKind {
 }
 
 impl fmt::Display for TryReserveError {
-    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::result::Result<(), core::fmt::Error> {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter.write_str("memory allocation failed")?;
         let reason = match self.kind {
             TryReserveErrorKind::CapacityOverflow => " because the computed capacity exceeded the collection's maximum",
@@ -65,4 +66,4 @@ impl fmt::Display for TryReserveError {
 }
 
 #[cfg(feature = "std")]
-impl core::error::Error for TryReserveError {}
+impl error::Error for TryReserveError {}

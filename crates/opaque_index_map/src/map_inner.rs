@@ -4591,7 +4591,7 @@ impl OpaqueIndexMapInner {
 mod dummy {
     use super::*;
     use core::ptr::NonNull;
-    use std::marker;
+    use core::marker;
 
     #[allow(dead_code)]
     pub(super) struct DummyHasher {

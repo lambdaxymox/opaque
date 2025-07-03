@@ -1,12 +1,20 @@
+use opaque_index_map::set::OpaqueIndexSet;
+
 use criterion::{
     Criterion,
     criterion_group,
 };
+
 use indexmap::IndexSet;
-use opaque_index_map::set::OpaqueIndexSet;
 
 use std::hash;
+use std::vec::Vec;
+
+#[cfg(feature = "nightly")]
 use std::alloc;
+
+#[cfg(not(feature = "nightly"))]
+use opaque_allocator_api::alloc;
 
 fn bench_index_set_shift_remove(c: &mut Criterion) {
     let values = 0..100;

@@ -1,10 +1,17 @@
+use opaque_index_map::set::TypedProjIndexSet;
+
 use criterion::{
     Criterion,
     criterion_group,
 };
 
 use indexmap::IndexSet;
-use opaque_index_map::set::TypedProjIndexSet;
+
+#[cfg(feature = "nightly")]
+use std::alloc;
+
+#[cfg(not(feature = "nightly"))]
+use opaque_allocator_api::alloc;
 
 fn bench_index_set_insert(c: &mut Criterion) {
     c.bench_function("index_set_insert", |b| {

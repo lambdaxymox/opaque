@@ -10,13 +10,13 @@ pub enum GetDisjointMutError {
 }
 
 impl fmt::Display for GetDisjointMutError {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         let msg = match self {
             GetDisjointMutError::IndexOutOfBounds => "an index is out of bounds",
             GetDisjointMutError::OverlappingIndices => "there were overlapping indices",
         };
 
-        core::fmt::Display::fmt(msg, f)
+        fmt::Display::fmt(msg, formatter)
     }
 }
 
