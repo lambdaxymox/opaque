@@ -657,6 +657,81 @@ impl OpaqueAlloc {
 
         Self::from_proj(proj_alloc)
     }
+
+    /// Returns a reference to the underlying memory allocator.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the memory allocator of `self` do not match the
+    /// requested allocator type `A`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
+    /// # use opaque_alloc::OpaqueAlloc;
+    /// #
+    /// # #[cfg(feature = "nightly")]
+    /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
+    /// #
+    /// let opaque_alloc = OpaqueAlloc::new(Global);
+    ///
+    /// let alloc: &Global = opaque_alloc.allocator::<Global>();
+    /// ```
+    #[inline]
+    #[track_caller]
+    pub fn allocator<A>(&self) -> &A
+    where
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_self = self.as_proj::<A>();
+
+        proj_self.allocator()
+    }
+
+    /// Converts the type-erased allocator into a boxed memory allocator.
+    ///
+    /// The resulting boxed memory allocator cannot be type-projected and type-erased again
+    /// unless it is converted back via a method like [`TypedProjAlloc::from_boxed_alloc`].
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the memory allocator of `self` do not match the
+    /// requested allocator type `A`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
+    /// # use opaque_alloc::OpaqueAlloc;
+    /// # use std::any::TypeId;
+    /// #
+    /// # #[cfg(feature = "nightly")]
+    /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
+    /// #
+    /// let opaque_alloc = OpaqueAlloc::new(Global);
+    /// let boxed_alloc: Box<Global> = opaque_alloc.into_boxed_alloc::<Global>();
+    ///
+    /// let new_opaque_alloc = OpaqueAlloc::from_boxed_alloc(boxed_alloc);
+    ///
+    /// assert_eq!(new_opaque_alloc.allocator_type_id(), TypeId::of::<Global>());
+    /// assert_ne!(new_opaque_alloc.allocator_type_id(), TypeId::of::<Box<Global>>());
+    /// ```
+    #[track_caller]
+    pub fn into_boxed_alloc<A>(self) -> Box<A>
+    where
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_self = self.into_proj::<A>();
+
+        proj_self.into_boxed_alloc()
+    }
 }
 
 unsafe impl alloc::Allocator for OpaqueAlloc {
