@@ -1,5 +1,5 @@
 use crate::common::erased::strategy_type_erased_vec_max_len;
-use opaque_vec::OpaqueVec;
+use opaque_vec::TypeErasedVec;
 
 use core::any;
 use core::fmt;
@@ -21,7 +21,7 @@ where
     any::<T>()
 }
 
-fn prop_shift_insert_shift_remove<T, A>(values: OpaqueVec, new_value: T) -> Result<(), TestCaseError>
+fn prop_shift_insert_shift_remove<T, A>(values: TypeErasedVec, new_value: T) -> Result<(), TestCaseError>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
@@ -41,7 +41,7 @@ where
     Ok(())
 }
 
-fn prop_shift_remove_shift_insert<T, A>(values: OpaqueVec) -> Result<(), TestCaseError>
+fn prop_shift_remove_shift_insert<T, A>(values: TypeErasedVec) -> Result<(), TestCaseError>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
@@ -71,14 +71,14 @@ macro_rules! generate_props {
                     values in super::$vec_gen::<$typ, $alloc_typ>($max_length),
                     new_value in super::$value_gen::<$typ>(),
                 ) {
-                    let values: super::OpaqueVec = values;
+                    let values: super::TypeErasedVec = values;
                     let new_value: $typ = new_value;
                     super::prop_shift_insert_shift_remove::<$typ, $alloc_typ>(values, new_value)?
                 }
 
                 #[test]
                 fn prop_shift_remove_shift_insert(values in super::$vec_gen::<$typ, $alloc_typ>($max_length)) {
-                    let values: super::OpaqueVec = values;
+                    let values: super::TypeErasedVec = values;
                     super::prop_shift_remove_shift_insert::<$typ, $alloc_typ>(values)?
                 }
             }

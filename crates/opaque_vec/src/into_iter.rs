@@ -1,5 +1,5 @@
-use crate::raw_vec::TypedProjRawVec;
-use crate::vec_inner::TypedProjVecInner;
+use crate::raw_vec::TypeProjectedRawVec;
+use crate::vec_inner::TypeProjectedVecInner;
 
 use core::any;
 use core::fmt;
@@ -15,7 +15,7 @@ use alloc_crate::alloc;
 #[cfg(not(feature = "nightly"))]
 use opaque_allocator_api::alloc;
 
-use opaque_alloc::TypedProjAlloc;
+use opaque_alloc::TypeProjectedAlloc;
 
 #[inline(always)]
 const fn assuming_non_null<T>(item: *const T) -> NonNull<T> {
@@ -24,7 +24,7 @@ const fn assuming_non_null<T>(item: *const T) -> NonNull<T> {
 
 /// An iterator that moves elements out of a collection.
 ///
-/// Moving iterators are created by the [`TypedProjVec::into_iter`] and [`OpaqueVec::into_iter`]
+/// Moving iterators are created by the [`TypeProjectedVec::into_iter`] and [`TypeErasedVec::into_iter`]
 /// methods.
 ///
 /// # Examples
@@ -33,7 +33,7 @@ const fn assuming_non_null<T>(item: *const T) -> NonNull<T> {
 ///
 /// ```
 /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-/// # use opaque_vec::TypedProjVec;
+/// # use opaque_vec::TypeProjectedVec;
 /// #
 /// # #[cfg(feature = "nightly")]
 /// # use std::alloc::Global;
@@ -41,11 +41,11 @@ const fn assuming_non_null<T>(item: *const T) -> NonNull<T> {
 /// # #[cfg(not(feature = "nightly"))]
 /// # use opaque_allocator_api::alloc::Global;
 /// #
-/// let mut vec: TypedProjVec<i32> = TypedProjVec::from([1, 2, 3, 4, 5]);
+/// let mut vec: TypeProjectedVec<i32> = TypeProjectedVec::from([1, 2, 3, 4, 5]);
 ///
 /// assert_eq!(vec.len(), 5);
 ///
-/// let mut result: TypedProjVec<i32> = vec.into_iter().collect();
+/// let mut result: TypeProjectedVec<i32> = vec.into_iter().collect();
 ///
 /// assert_eq!(result.as_slice(), &[1, 2, 3, 4, 5]);
 /// ```
@@ -54,7 +54,7 @@ const fn assuming_non_null<T>(item: *const T) -> NonNull<T> {
 ///
 /// ```
 /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-/// # use opaque_vec::OpaqueVec;
+/// # use opaque_vec::TypeErasedVec;
 /// #
 /// # #[cfg(feature = "nightly")]
 /// # use std::alloc::Global;
@@ -64,7 +64,7 @@ const fn assuming_non_null<T>(item: *const T) -> NonNull<T> {
 /// #
 /// let mut vec = {
 ///     let array: [i32; 5] = [1, 2, 3, 4, 5];
-///     OpaqueVec::from(array)
+///     TypeErasedVec::from(array)
 /// };
 /// #
 /// # assert!(vec.has_element_type::<i32>());
@@ -73,7 +73,7 @@ const fn assuming_non_null<T>(item: *const T) -> NonNull<T> {
 ///
 /// assert_eq!(vec.len(), 5);
 ///
-/// let mut result: OpaqueVec = vec.into_iter::<i32, Global>().collect();
+/// let mut result: TypeErasedVec = vec.into_iter::<i32, Global>().collect();
 /// #
 /// # assert!(result.has_element_type::<i32>());
 /// # assert!(result.has_allocator_type::<Global>());
@@ -90,7 +90,7 @@ where
     cap: usize,
     // the drop impl reconstructs a RawVec from buf, cap and alloc
     // to avoid dropping the allocator twice we need to wrap it into ManuallyDrop
-    alloc: ManuallyDrop<TypedProjAlloc<A>>,
+    alloc: ManuallyDrop<TypeProjectedAlloc<A>>,
     ptr: NonNull<T>,
     /// If T is a ZST, this is actually ptr+len. This encoding is picked so that
     /// ptr == end is a quick test for the Iterator being empty, that works
@@ -116,7 +116,7 @@ where
 {
     /// Construct a new moving iterator from its constituent components.
     #[inline]
-    pub(crate) const unsafe fn from_parts(buf: NonNull<T>, cap: usize, alloc: ManuallyDrop<TypedProjAlloc<A>>, ptr: NonNull<T>, end: *const T) -> Self {
+    pub(crate) const unsafe fn from_parts(buf: NonNull<T>, cap: usize, alloc: ManuallyDrop<TypeProjectedAlloc<A>>, ptr: NonNull<T>, end: *const T) -> Self {
         Self { buf, cap, alloc, ptr, end, }
     }
 
@@ -128,7 +128,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -136,7 +136,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let vec: TypedProjVec<i32> = TypedProjVec::from([1, 2, 3, 4, 5]);
+    /// let vec: TypeProjectedVec<i32> = TypeProjectedVec::from([1, 2, 3, 4, 5]);
     /// let mut iterator = vec.into_iter();
     ///
     /// assert_eq!(iterator.as_slice(), &[1, 2, 3, 4, 5]);
@@ -156,7 +156,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -166,7 +166,7 @@ where
     /// #
     /// let vec = {
     ///     let array: [i32; 5] = [1, 2, 3, 4, 5];
-    ///     OpaqueVec::from(array)
+    ///     TypeErasedVec::from(array)
     /// };
     /// #
     /// # assert!(vec.has_element_type::<i32>());
@@ -202,7 +202,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -210,7 +210,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let vec: TypedProjVec<i32> = TypedProjVec::from([1, 2, 3, 4, 5]);
+    /// let vec: TypeProjectedVec<i32> = TypeProjectedVec::from([1, 2, 3, 4, 5]);
     /// let mut iterator = vec.into_iter();
     ///
     /// assert_eq!(iterator.as_mut_slice(), &[1, 2, 3, 4, 5]);
@@ -230,7 +230,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -240,7 +240,7 @@ where
     /// #
     /// let vec = {
     ///     let array: [i32; 5] = [1, 2, 3, 4, 5];
-    ///     OpaqueVec::from(array)
+    ///     TypeErasedVec::from(array)
     /// };
     /// #
     /// # assert!(vec.has_element_type::<i32>());
@@ -272,8 +272,8 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
-    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypeProjectedVec;
+    /// # use opaque_alloc::TypeProjectedAlloc;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -281,18 +281,18 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let vec: TypedProjVec<i32> = TypedProjVec::from([1, 2, 3, 4, 5]);
+    /// let vec: TypeProjectedVec<i32> = TypeProjectedVec::from([1, 2, 3, 4, 5]);
     /// let mut iterator = vec.into_iter();
     ///
-    /// let alloc: &TypedProjAlloc<Global> = iterator.allocator();
+    /// let alloc: &TypeProjectedAlloc<Global> = iterator.allocator();
     /// ```
     ///
     /// Using a moving iterator on a type-erased vector.
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
-    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypeErasedVec;
+    /// # use opaque_alloc::TypeProjectedAlloc;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -302,7 +302,7 @@ where
     /// #
     /// let vec = {
     ///     let array: [i32; 5] = [1, 2, 3, 4, 5];
-    ///     OpaqueVec::from(array)
+    ///     TypeErasedVec::from(array)
     /// };
     /// #
     /// # assert!(vec.has_element_type::<i32>());
@@ -310,10 +310,10 @@ where
     /// #
     /// let mut iterator = vec.into_iter::<i32, Global>();
     ///
-    /// let alloc: &TypedProjAlloc<Global> = iterator.allocator();
+    /// let alloc: &TypeProjectedAlloc<Global> = iterator.allocator();
     /// ```
     #[inline]
-    pub fn allocator(&self) -> &TypedProjAlloc<A> {
+    pub fn allocator(&self) -> &TypeProjectedAlloc<A> {
         &self.alloc
     }
 }
@@ -580,7 +580,7 @@ where
     fn clone(&self) -> Self {
         let alloc = Clone::clone(ops::Deref::deref(&self.alloc));
         let read_alloc = ManuallyDrop::new(unsafe { core::ptr::read(&alloc) });
-        let inner = TypedProjVecInner::from_slice_in(self.as_slice(), alloc);
+        let inner = TypeProjectedVecInner::from_slice_in(self.as_slice(), alloc);
 
         unsafe {
             let mut me = ManuallyDrop::new(inner);
@@ -621,7 +621,7 @@ where
                 unsafe {
                     // `IntoIter::alloc` is not used anymore after this and will be dropped by RawVec
                     let alloc = ManuallyDrop::take(&mut self.inner.alloc);
-                    let _ = TypedProjRawVec::from_non_null_in(self.inner.buf, self.inner.cap, alloc);
+                    let _ = TypeProjectedRawVec::from_non_null_in(self.inner.buf, self.inner.cap, alloc);
                 }
             }
         }

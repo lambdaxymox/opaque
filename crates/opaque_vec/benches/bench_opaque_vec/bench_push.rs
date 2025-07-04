@@ -1,4 +1,4 @@
-use opaque_vec::OpaqueVec;
+use opaque_vec::TypeErasedVec;
 
 use criterion::{
     Criterion,
@@ -33,7 +33,7 @@ fn bench_opaque_vec_push(c: &mut Criterion) {
 
     c.bench_function("opaque_vec_push", |b| {
         b.iter(|| {
-            let mut opaque_vec = OpaqueVec::new::<i32>();
+            let mut opaque_vec = TypeErasedVec::new::<i32>();
             for _ in 0..1024 {
                 opaque_vec.push::<i32, alloc::Global>(core::hint::black_box(dummy_data));
             }

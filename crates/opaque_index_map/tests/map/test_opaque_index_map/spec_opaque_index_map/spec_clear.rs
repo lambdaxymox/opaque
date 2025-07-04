@@ -1,5 +1,5 @@
 use crate::map::common::erased::strategy_type_erased_index_map_max_len;
-use opaque_index_map::OpaqueIndexMap;
+use opaque_index_map::TypeErasedIndexMap;
 
 use core::any;
 use core::fmt;
@@ -16,7 +16,7 @@ use opaque_allocator_api::alloc;
 
 use proptest::prelude::*;
 
-fn prop_clear_as_slice<K, V, S, A>(entries: OpaqueIndexMap) -> Result<(), TestCaseError>
+fn prop_clear_as_slice<K, V, S, A>(entries: TypeErasedIndexMap) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
     V: any::Any + Clone + Eq + fmt::Debug,
@@ -24,7 +24,7 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let expected = OpaqueIndexMap::with_hasher_proj_in::<K, V, S, A>(
+    let expected = TypeErasedIndexMap::with_hasher_proj_in::<K, V, S, A>(
         entries.hasher::<K, V, S, A>().clone(),
         entries.allocator::<K, V, S, A>().clone(),
     );
@@ -39,7 +39,7 @@ where
     Ok(())
 }
 
-fn prop_clear_is_empty<K, V, S, A>(entries: OpaqueIndexMap) -> Result<(), TestCaseError>
+fn prop_clear_is_empty<K, V, S, A>(entries: TypeErasedIndexMap) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
     V: any::Any + Clone + Eq + fmt::Debug,
@@ -55,7 +55,7 @@ where
     Ok(())
 }
 
-fn prop_clear_len<K, V, S, A>(entries: OpaqueIndexMap) -> Result<(), TestCaseError>
+fn prop_clear_len<K, V, S, A>(entries: TypeErasedIndexMap) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
     V: any::Any + Clone + Eq + fmt::Debug,
@@ -89,19 +89,19 @@ macro_rules! generate_props {
             proptest! {
                 #[test]
                 fn prop_clear_as_slice(entries in super::$map_gen::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::OpaqueIndexMap = entries;
+                    let entries: super::TypeErasedIndexMap = entries;
                     super::prop_clear_as_slice::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>(entries)?
                 }
 
                 #[test]
                 fn prop_clear_is_empty(entries in super::$map_gen::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::OpaqueIndexMap = entries;
+                    let entries: super::TypeErasedIndexMap = entries;
                     super::prop_clear_is_empty::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>(entries)?
                 }
 
                 #[test]
                 fn prop_clear_len(entries in super::$map_gen::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::OpaqueIndexMap = entries;
+                    let entries: super::TypeErasedIndexMap = entries;
                     super::prop_clear_len::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>(entries)?
                 }
             }

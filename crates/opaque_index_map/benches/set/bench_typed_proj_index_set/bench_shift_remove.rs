@@ -1,4 +1,4 @@
-use opaque_index_map::set::TypedProjIndexSet;
+use opaque_index_map::set::TypeProjectedIndexSet;
 
 use criterion::{
     Criterion,
@@ -39,7 +39,7 @@ fn bench_typed_proj_index_set_shift_remove(c: &mut Criterion) {
 
     c.bench_function("typed_proj_index_set_shift_remove", |b| {
         b.iter_batched(
-            || TypedProjIndexSet::<i32, hash::RandomState, alloc::Global>::from_iter(values.clone()),
+            || TypeProjectedIndexSet::<i32, hash::RandomState, alloc::Global>::from_iter(values.clone()),
             |mut proj_set| {
                 let values_vec: Vec<i32> = proj_set.iter().cloned().collect();
                 for value in values_vec.iter() {

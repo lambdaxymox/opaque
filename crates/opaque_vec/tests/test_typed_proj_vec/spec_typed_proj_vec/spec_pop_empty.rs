@@ -1,5 +1,5 @@
 use crate::common::projected::strategy_alloc;
-use opaque_vec::TypedProjVec;
+use opaque_vec::TypeProjectedVec;
 
 use core::any;
 use core::fmt;
@@ -19,7 +19,7 @@ where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
-    let mut vec: TypedProjVec<T, A> = TypedProjVec::new_in(alloc);
+    let mut vec: TypeProjectedVec<T, A> = TypeProjectedVec::new_in(alloc);
 
     prop_assert!(vec.pop().is_none());
 
@@ -31,7 +31,7 @@ where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
-    let mut vec: TypedProjVec<T, A> = TypedProjVec::new_in(alloc);
+    let mut vec: TypeProjectedVec<T, A> = TypeProjectedVec::new_in(alloc);
 
     for _ in 0..65536 {
         prop_assert!(vec.pop().is_none());
@@ -45,7 +45,7 @@ where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
-    let mut vec: TypedProjVec<T, A> = TypedProjVec::new_in(alloc);
+    let mut vec: TypeProjectedVec<T, A> = TypeProjectedVec::new_in(alloc);
 
     prop_assert!(vec.is_empty());
 
@@ -61,7 +61,7 @@ where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
-    let mut vec: TypedProjVec<T, A> = TypedProjVec::new_in(alloc);
+    let mut vec: TypeProjectedVec<T, A> = TypeProjectedVec::new_in(alloc);
 
     prop_assert!(vec.is_empty());
 

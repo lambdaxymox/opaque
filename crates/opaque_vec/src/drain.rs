@@ -1,4 +1,4 @@
-use crate::vec_inner::TypedProjVecInner;
+use crate::vec_inner::TypeProjectedVecInner;
 
 use core::fmt;
 use core::any;
@@ -14,11 +14,11 @@ use alloc_crate::alloc;
 #[cfg(not(feature = "nightly"))]
 use opaque_allocator_api::alloc;
 
-use opaque_alloc::TypedProjAlloc;
+use opaque_alloc::TypeProjectedAlloc;
 
-/// A draining iterator for [`TypedProjVec`] and [`OpaqueVec`].
+/// A draining iterator for [`TypeProjectedVec`] and [`TypeErasedVec`].
 ///
-/// Draining iterators are created by the [`TypedProjVec::drain`] and [`OpaqueVec::drain`] methods.
+/// Draining iterators are created by the [`TypeProjectedVec::drain`] and [`TypeErasedVec::drain`] methods.
 ///
 /// # Examples
 ///
@@ -26,7 +26,7 @@ use opaque_alloc::TypedProjAlloc;
 ///
 /// ```
 /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-/// # use opaque_vec::TypedProjVec;
+/// # use opaque_vec::TypeProjectedVec;
 /// #
 /// # #[cfg(feature = "nightly")]
 /// # use std::alloc::Global;
@@ -34,8 +34,8 @@ use opaque_alloc::TypedProjAlloc;
 /// # #[cfg(not(feature = "nightly"))]
 /// # use opaque_allocator_api::alloc::Global;
 /// #
-/// let mut result = TypedProjVec::from([1, i32::MAX, i32::MAX, i32::MAX, 2, 3]);
-/// let expected = TypedProjVec::from([1, 2, 3]);
+/// let mut result = TypeProjectedVec::from([1, i32::MAX, i32::MAX, i32::MAX, 2, 3]);
+/// let expected = TypeProjectedVec::from([1, 2, 3]);
 /// result.drain(1..4);
 ///
 /// assert_eq!(result, expected);
@@ -45,7 +45,7 @@ use opaque_alloc::TypedProjAlloc;
 ///
 /// ```
 /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-/// # use opaque_vec::OpaqueVec;
+/// # use opaque_vec::TypeErasedVec;
 /// #
 /// # #[cfg(feature = "nightly")]
 /// # use std::alloc::Global;
@@ -53,12 +53,12 @@ use opaque_alloc::TypedProjAlloc;
 /// # #[cfg(not(feature = "nightly"))]
 /// # use opaque_allocator_api::alloc::Global;
 /// #
-/// let mut result = OpaqueVec::from([1, i32::MAX, i32::MAX, i32::MAX, 2, 3]);
+/// let mut result = TypeErasedVec::from([1, i32::MAX, i32::MAX, i32::MAX, 2, 3]);
 /// #
 /// # assert!(result.has_element_type::<i32>());
 /// # assert!(result.has_allocator_type::<Global>());
 /// #
-/// let expected = OpaqueVec::from([1, 2, 3]);
+/// let expected = TypeErasedVec::from([1, 2, 3]);
 /// #
 /// # assert!(expected.has_element_type::<i32>());
 /// # assert!(expected.has_allocator_type::<Global>());
@@ -78,7 +78,7 @@ where
     pub(crate) tail_len: usize,
     /// Current remaining range to remove
     pub(crate) iter: slice::Iter<'a, T>,
-    pub(crate) vec: NonNull<TypedProjVecInner<T, A>>,
+    pub(crate) vec: NonNull<TypeProjectedVecInner<T, A>>,
 }
 
 impl<T, A> fmt::Debug for Drain<'_, T, A>
@@ -98,7 +98,7 @@ where
 {
     /// Construct a new draining iterator from its constituent components.
     #[inline]
-    pub(crate) const fn from_parts(tail_start: usize, tail_len: usize, iter: slice::Iter<'a, T>, vec: NonNull<TypedProjVecInner<T, A>>) -> Self {
+    pub(crate) const fn from_parts(tail_start: usize, tail_len: usize, iter: slice::Iter<'a, T>, vec: NonNull<TypeProjectedVecInner<T, A>>) -> Self {
         Self {
             tail_start,
             tail_len,
@@ -115,8 +115,8 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
-    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypeProjectedVec;
+    /// # use opaque_alloc::TypeProjectedAlloc;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -124,7 +124,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut vec = TypedProjVec::from([
+    /// let mut vec = TypeProjectedVec::from([
     ///     "spam",
     ///     "eggs",
     ///     "bacon",
@@ -149,8 +149,8 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
-    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypeErasedVec;
+    /// # use opaque_alloc::TypeProjectedAlloc;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -158,7 +158,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut vec = OpaqueVec::from([
+    /// let mut vec = TypeErasedVec::from([
     ///     "spam",
     ///     "eggs",
     ///     "bacon",
@@ -191,8 +191,8 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
-    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypeProjectedVec;
+    /// # use opaque_alloc::TypeProjectedAlloc;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -200,18 +200,18 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut result = TypedProjVec::from([1, i32::MAX, i32::MAX, i32::MAX, 2, 3]);
+    /// let mut result = TypeProjectedVec::from([1, i32::MAX, i32::MAX, i32::MAX, 2, 3]);
     /// let iterator = result.drain(1..4);
     ///
-    /// let alloc: &TypedProjAlloc<Global> = iterator.allocator();
+    /// let alloc: &TypeProjectedAlloc<Global> = iterator.allocator();
     /// ```
     ///
     /// Using a draining iterator on a type-erased vector.
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
-    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypeErasedVec;
+    /// # use opaque_alloc::TypeProjectedAlloc;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -219,18 +219,18 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut result = OpaqueVec::from([1, i32::MAX, i32::MAX, i32::MAX, 2, 3]);
+    /// let mut result = TypeErasedVec::from([1, i32::MAX, i32::MAX, i32::MAX, 2, 3]);
     /// #
     /// # assert!(result.has_element_type::<i32>());
     /// # assert!(result.has_allocator_type::<Global>());
     /// #
     /// let iterator = result.drain::<_, i32, Global>(1..4);
     ///
-    /// let alloc: &TypedProjAlloc<Global> = iterator.allocator();
+    /// let alloc: &TypeProjectedAlloc<Global> = iterator.allocator();
     /// ```
     #[must_use]
     #[inline]
-    pub fn allocator(&self) -> &TypedProjAlloc<A> {
+    pub fn allocator(&self) -> &TypeProjectedAlloc<A> {
         unsafe { self.vec.as_ref().allocator() }
     }
 
@@ -242,7 +242,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -250,7 +250,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut vec = TypedProjVec::from([
+    /// let mut vec = TypeProjectedVec::from([
     ///     "spam",
     ///     "eggs",
     ///     "bacon",
@@ -272,7 +272,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -280,7 +280,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut vec = OpaqueVec::from([
+    /// let mut vec = TypeErasedVec::from([
     ///     "spam",
     ///     "eggs",
     ///     "bacon",
@@ -453,7 +453,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn drop(&mut self) {
-        /// Moves back the un-`Drain`ed elements to restore the original `TypedProjVec`.
+        /// Moves back the un-`Drain`ed elements to restore the original `TypeProjectedVec`.
         struct DropGuard<'r, 'a, T, A>
         where
             T: any::Any,

@@ -1,4 +1,4 @@
-use opaque_index_map::set::TypedProjIndexSet;
+use opaque_index_map::set::TypeProjectedIndexSet;
 
 use criterion::{
     Criterion,
@@ -31,7 +31,7 @@ fn bench_typed_proj_index_set_insert(c: &mut Criterion) {
     c.bench_function("typed_proj_index_set_insert", |b| {
         b.iter(|| {
             let values = 0..1000;
-            let mut proj_set = TypedProjIndexSet::new();
+            let mut proj_set = TypeProjectedIndexSet::new();
             for value in values {
                 proj_set.insert(value);
             }

@@ -8,13 +8,13 @@ use std::hash;
 #[cfg(not(feature = "std"))]
 use core::hash;
 
-/// This trait exists to define the [`TypedProjHasherInner`] data type. It is not meant for public use.
+/// This trait exists to define the [`TypeProjectedHasherInner`] data type. It is not meant for public use.
 trait AnyHasher: any::Any + hash::Hasher + Send + Sync {}
 
 impl<H> AnyHasher for H where H: any::Any + hash::Hasher + Send + Sync {}
 
 #[repr(C)]
-pub(crate) struct TypedProjHasherInner<H>
+pub(crate) struct TypeProjectedHasherInner<H>
 where
     H: any::Any + hash::Hasher + Send + Sync,
 {
@@ -23,7 +23,7 @@ where
     _marker: marker::PhantomData<H>,
 }
 
-impl<H> TypedProjHasherInner<H>
+impl<H> TypeProjectedHasherInner<H>
 where
     H: any::Any + hash::Hasher + Send + Sync,
 {
@@ -33,7 +33,7 @@ where
     }
 }
 
-impl<H> TypedProjHasherInner<H>
+impl<H> TypeProjectedHasherInner<H>
 where
     H: any::Any + hash::Hasher + Send + Sync,
 {
@@ -81,12 +81,12 @@ where
     }
 }
 
-impl<H> Clone for TypedProjHasherInner<H>
+impl<H> Clone for TypeProjectedHasherInner<H>
 where
     H: any::Any + hash::Hasher + Send + Sync + Clone,
 {
     #[inline]
-    fn clone(&self) -> TypedProjHasherInner<H> {
+    fn clone(&self) -> TypeProjectedHasherInner<H> {
         debug_assert_eq!(self.hasher_type_id(), any::TypeId::of::<H>());
 
         let any_hasher = self.hasher.as_ref() as &dyn any::Any;
@@ -95,11 +95,11 @@ where
             .unwrap();
         let cloned_alloc = alloc_ref.clone();
 
-        TypedProjHasherInner::new(cloned_alloc)
+        TypeProjectedHasherInner::new(cloned_alloc)
     }
 }
 
-impl<H> hash::Hasher for TypedProjHasherInner<H>
+impl<H> hash::Hasher for TypeProjectedHasherInner<H>
 where
     H: any::Any + hash::Hasher + Send + Sync,
 {
@@ -113,19 +113,19 @@ where
 }
 
 #[repr(C)]
-pub(crate) struct OpaqueHasherInner {
+pub(crate) struct TypeErasedHasherInner {
     hasher: Box<dyn AnyHasher>,
     hasher_type_id: any::TypeId,
 }
 
-impl OpaqueHasherInner {
+impl TypeErasedHasherInner {
     #[inline]
     pub(crate) const fn hasher_type_id(&self) -> any::TypeId {
         self.hasher_type_id
     }
 }
 
-impl OpaqueHasherInner {
+impl TypeErasedHasherInner {
     #[inline]
     fn new<H>(hasher: H) -> Self
     where
@@ -154,35 +154,35 @@ impl OpaqueHasherInner {
     }
 }
 
-impl OpaqueHasherInner {
+impl TypeErasedHasherInner {
     #[inline(always)]
-    pub(crate) fn as_proj<H>(&self) -> &TypedProjHasherInner<H>
+    pub(crate) fn as_proj<H>(&self) -> &TypeProjectedHasherInner<H>
     where
         H: any::Any + hash::Hasher + Send + Sync,
     {
         debug_assert_eq!(self.hasher_type_id(), any::TypeId::of::<H>());
 
-        unsafe { &*(self as *const OpaqueHasherInner as *const TypedProjHasherInner<H>) }
+        unsafe { &*(self as *const TypeErasedHasherInner as *const TypeProjectedHasherInner<H>) }
     }
 
     #[inline(always)]
-    pub(crate) fn as_proj_mut<H>(&mut self) -> &mut TypedProjHasherInner<H>
+    pub(crate) fn as_proj_mut<H>(&mut self) -> &mut TypeProjectedHasherInner<H>
     where
         H: any::Any + hash::Hasher + Send + Sync,
     {
         debug_assert_eq!(self.hasher_type_id(), any::TypeId::of::<H>());
 
-        unsafe { &mut *(self as *mut OpaqueHasherInner as *mut TypedProjHasherInner<H>) }
+        unsafe { &mut *(self as *mut TypeErasedHasherInner as *mut TypeProjectedHasherInner<H>) }
     }
 
     #[inline(always)]
-    pub(crate) fn into_proj<H>(self) -> TypedProjHasherInner<H>
+    pub(crate) fn into_proj<H>(self) -> TypeProjectedHasherInner<H>
     where
         H: any::Any + hash::Hasher + Send + Sync,
     {
         debug_assert_eq!(self.hasher_type_id(), any::TypeId::of::<H>());
 
-        TypedProjHasherInner {
+        TypeProjectedHasherInner {
             hasher: self.hasher,
             hasher_type_id: self.hasher_type_id,
             _marker: marker::PhantomData,
@@ -190,7 +190,7 @@ impl OpaqueHasherInner {
     }
 
     #[inline(always)]
-    pub(crate) fn from_proj<H>(proj_self: TypedProjHasherInner<H>) -> Self
+    pub(crate) fn from_proj<H>(proj_self: TypeProjectedHasherInner<H>) -> Self
     where
         H: any::Any + hash::Hasher + Send + Sync,
     {
@@ -201,7 +201,7 @@ impl OpaqueHasherInner {
     }
 }
 
-impl hash::Hasher for OpaqueHasherInner {
+impl hash::Hasher for TypeErasedHasherInner {
     fn finish(&self) -> u64 {
         self.hasher.finish()
     }
@@ -253,8 +253,8 @@ mod hasher_inner_layout_tests {
     where
         H: any::Any + hash::Hasher + Send + Sync,
     {
-        let expected = core::mem::size_of::<TypedProjHasherInner<H>>();
-        let result = core::mem::size_of::<OpaqueHasherInner>();
+        let expected = core::mem::size_of::<TypeProjectedHasherInner<H>>();
+        let result = core::mem::size_of::<TypeErasedHasherInner>();
 
         assert_eq!(result, expected, "Opaque and Typed Projected data types size mismatch");
     }
@@ -263,8 +263,8 @@ mod hasher_inner_layout_tests {
     where
         H: any::Any + hash::Hasher + Send + Sync,
     {
-        let expected = core::mem::align_of::<TypedProjHasherInner<H>>();
-        let result = core::mem::align_of::<OpaqueHasherInner>();
+        let expected = core::mem::align_of::<TypeProjectedHasherInner<H>>();
+        let result = core::mem::align_of::<TypeErasedHasherInner>();
 
         assert_eq!(result, expected, "Opaque and Typed Projected data types alignment mismatch");
     }
@@ -274,13 +274,13 @@ mod hasher_inner_layout_tests {
         H: any::Any + hash::Hasher + Send + Sync,
     {
         assert_eq!(
-            core::mem::offset_of!(TypedProjHasherInner<H>, hasher),
-            core::mem::offset_of!(OpaqueHasherInner, hasher),
+            core::mem::offset_of!(TypeProjectedHasherInner<H>, hasher),
+            core::mem::offset_of!(TypeErasedHasherInner, hasher),
             "Opaque and Typed Projected data types offsets mismatch"
         );
         assert_eq!(
-            core::mem::offset_of!(TypedProjHasherInner<H>, hasher_type_id),
-            core::mem::offset_of!(OpaqueHasherInner, hasher_type_id),
+            core::mem::offset_of!(TypeProjectedHasherInner<H>, hasher_type_id),
+            core::mem::offset_of!(TypeErasedHasherInner, hasher_type_id),
             "Opaque and Typed Projected data types offsets mismatch"
         );
     }
@@ -316,7 +316,7 @@ mod hasher_inner_layout_tests {
 
 #[cfg(test)]
 mod assert_send_sync {
-    use crate::TypedProjBuildHasher;
+    use crate::TypeProjectedBuildHasher;
     use super::*;
 
     #[cfg(feature = "std")]
@@ -324,14 +324,14 @@ mod assert_send_sync {
     fn test_assert_send_sync1() {
         fn assert_send_sync<T: Send + Sync>() {}
 
-        assert_send_sync::<TypedProjHasherInner<hash::DefaultHasher>>();
+        assert_send_sync::<TypeProjectedHasherInner<hash::DefaultHasher>>();
     }
 
     #[test]
     fn test_assert_send_sync2() {
         fn assert_send_sync<T: Send + Sync>() {}
 
-        assert_send_sync::<TypedProjHasherInner<dummy::DummyHasher>>();
+        assert_send_sync::<TypeProjectedHasherInner<dummy::DummyHasher>>();
     }
 }
 
@@ -344,7 +344,7 @@ mod assert_not_send_not_sync {
     fn test_assert_not_send_not_sync() {
         fn assert_send_sync<T: Send + Sync>() {}
 
-        assert_send_sync::<OpaqueHasherInner>();
+        assert_send_sync::<TypeErasedHasherInner>();
     }
 }
 */

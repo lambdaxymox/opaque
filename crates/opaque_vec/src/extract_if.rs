@@ -1,4 +1,4 @@
-use crate::vec_inner::TypedProjVecInner;
+use crate::vec_inner::TypeProjectedVecInner;
 
 use core::any;
 use core::fmt;
@@ -11,12 +11,12 @@ use alloc_crate::alloc;
 #[cfg(not(feature = "nightly"))]
 use opaque_allocator_api::alloc;
 
-use opaque_alloc::TypedProjAlloc;
+use opaque_alloc::TypeProjectedAlloc;
 
 /// An iterator that extracts the elements of a vector that satisfy a predicate.
 ///
-/// Extracting iterators are created by the [`TypedProjVec::extract_if`] and 
-/// [`OpaqueVec::extract_if`] methods.
+/// Extracting iterators are created by the [`TypeProjectedVec::extract_if`] and
+/// [`TypeErasedVec::extract_if`] methods.
 ///
 /// # Examples
 ///
@@ -24,7 +24,7 @@ use opaque_alloc::TypedProjAlloc;
 ///
 /// ```
 /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-/// # use opaque_vec::TypedProjVec;
+/// # use opaque_vec::TypeProjectedVec;
 /// #
 /// # #[cfg(feature = "nightly")]
 /// # use std::alloc::Global;
@@ -36,9 +36,9 @@ use opaque_alloc::TypedProjAlloc;
 ///     *value % 2 == 0
 /// }
 ///
-/// let mut vec: TypedProjVec<i32> = TypedProjVec::from([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+/// let mut vec: TypeProjectedVec<i32> = TypeProjectedVec::from([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
 /// let iterator = vec.extract_if(.., is_even);
-/// let extracted: TypedProjVec<i32> = iterator.collect();
+/// let extracted: TypeProjectedVec<i32> = iterator.collect();
 ///
 /// assert_eq!(extracted.as_slice(), &[2, 4, 6, 8, 10]);
 /// assert_eq!(vec.as_slice(), &[1, 3, 5, 7, 9]);
@@ -48,7 +48,7 @@ use opaque_alloc::TypedProjAlloc;
 ///
 /// ```
 /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-/// # use opaque_vec::OpaqueVec;
+/// # use opaque_vec::TypeErasedVec;
 /// #
 /// # #[cfg(feature = "nightly")]
 /// # use std::alloc::Global;
@@ -62,14 +62,14 @@ use opaque_alloc::TypedProjAlloc;
 ///
 /// let mut vec = {
 ///     let array: [i32; 10] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-///     OpaqueVec::from(array)
+///     TypeErasedVec::from(array)
 /// };
 /// #
 /// # assert!(vec.has_element_type::<i32>());
 /// # assert!(vec.has_allocator_type::<Global>());
 /// #
 /// let iterator = vec.extract_if::<_, _, i32, Global>(.., is_even);
-/// let extracted: OpaqueVec = iterator.collect();
+/// let extracted: TypeErasedVec = iterator.collect();
 /// #
 /// # assert!(extracted.has_element_type::<i32>());
 /// # assert!(extracted.has_allocator_type::<Global>());
@@ -84,7 +84,7 @@ where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    vec: &'a mut TypedProjVecInner<T, A>,
+    vec: &'a mut TypeProjectedVecInner<T, A>,
     /// The index of the item that will be inspected by the next call to `next`.
     idx: usize,
     /// Elements at and beyond this point will be retained. Must be equal or smaller than `old_len`.
@@ -105,7 +105,7 @@ where
 {
     /// Construct a new extraction iterator.
     #[inline]
-    pub(crate) fn new<R>(vec: &'a mut TypedProjVecInner<T, A>, pred: F, range: R) -> Self
+    pub(crate) fn new<R>(vec: &'a mut TypeProjectedVecInner<T, A>, pred: F, range: R) -> Self
     where
         R: ops::RangeBounds<usize>,
     {
@@ -136,7 +136,7 @@ where
 {
     /// Construct a new extraction iterator.
     #[inline]
-    pub(crate) fn new<R>(vec: &'a mut TypedProjVecInner<T, A>, pred: F, range: R) -> Self
+    pub(crate) fn new<R>(vec: &'a mut TypeProjectedVecInner<T, A>, pred: F, range: R) -> Self
     where
         R: ops::RangeBounds<usize>,
     {
@@ -172,8 +172,8 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
-    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypeProjectedVec;
+    /// # use opaque_alloc::TypeProjectedAlloc;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -185,18 +185,18 @@ where
     ///     *value % 2 == 0
     /// }
     ///
-    /// let mut vec: TypedProjVec<i32> = TypedProjVec::from([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    /// let mut vec: TypeProjectedVec<i32> = TypeProjectedVec::from([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
     /// let iterator = vec.extract_if(.., is_even);
     ///
-    /// let alloc: &TypedProjAlloc<Global> = iterator.allocator();
+    /// let alloc: &TypeProjectedAlloc<Global> = iterator.allocator();
     /// ```
     ///
     /// Getting the allocator from the extracting iterator of a type-erased vector.
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
-    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypeErasedVec;
+    /// # use opaque_alloc::TypeProjectedAlloc;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -210,7 +210,7 @@ where
     ///
     /// let mut vec = {
     ///     let array: [i32; 5] = [1, 2, 3, 4, 5];
-    ///     OpaqueVec::from(array)
+    ///     TypeErasedVec::from(array)
     /// };
     /// #
     /// # assert!(vec.has_element_type::<i32>());
@@ -218,10 +218,10 @@ where
     /// #
     /// let iterator = vec.extract_if::<_, _, i32, Global>(.., is_even);
     ///
-    /// let alloc: &TypedProjAlloc<Global> = iterator.allocator();
+    /// let alloc: &TypeProjectedAlloc<Global> = iterator.allocator();
     /// ```
     #[inline]
-    pub fn allocator(&self) -> &TypedProjAlloc<A> {
+    pub fn allocator(&self) -> &TypeProjectedAlloc<A> {
         self.vec.allocator()
     }
 }

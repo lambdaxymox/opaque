@@ -1,4 +1,4 @@
-use opaque_index_map::set::OpaqueIndexSet;
+use opaque_index_map::set::TypeErasedIndexSet;
 
 use criterion::{
     Criterion,
@@ -30,7 +30,7 @@ fn bench_index_set_get_full(c: &mut Criterion) {
 
 fn bench_opaque_index_set_get_full(c: &mut Criterion) {
     let values = 0..1000;
-    let opaque_set = OpaqueIndexSet::from_iter(values);
+    let opaque_set = TypeErasedIndexSet::from_iter(values);
 
     c.bench_function("opaque_index_set_get_full", |b| {
         b.iter(|| {

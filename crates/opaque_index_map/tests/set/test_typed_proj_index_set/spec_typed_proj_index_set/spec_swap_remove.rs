@@ -1,5 +1,5 @@
 use crate::set::common::projected::strategy_type_projected_index_set_max_len;
-use opaque_index_map::TypedProjIndexSet;
+use opaque_index_map::TypeProjectedIndexSet;
 
 use core::any;
 use core::fmt;
@@ -16,7 +16,7 @@ use opaque_allocator_api::alloc;
 
 use proptest::prelude::*;
 
-fn prop_swap_remove_contains<T, S, A>(entries: TypedProjIndexSet<T, S, A>) -> Result<(), TestCaseError>
+fn prop_swap_remove_contains<T, S, A>(entries: TypeProjectedIndexSet<T, S, A>) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -36,7 +36,7 @@ where
     Ok(())
 }
 
-fn prop_swap_remove_get<T, S, A>(entries: TypedProjIndexSet<T, S, A>) -> Result<(), TestCaseError>
+fn prop_swap_remove_get<T, S, A>(entries: TypeProjectedIndexSet<T, S, A>) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -60,7 +60,7 @@ where
     Ok(())
 }
 
-fn prop_swap_remove_len<T, S, A>(entries: TypedProjIndexSet<T, S, A>) -> Result<(), TestCaseError>
+fn prop_swap_remove_len<T, S, A>(entries: TypeProjectedIndexSet<T, S, A>) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -81,14 +81,14 @@ where
     Ok(())
 }
 
-fn prop_swap_remove_preserves_order<T, S, A>(entries: TypedProjIndexSet<T, S, A>) -> Result<(), TestCaseError>
+fn prop_swap_remove_preserves_order<T, S, A>(entries: TypeProjectedIndexSet<T, S, A>) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    fn expected<T, S, A>(entries: &TypedProjIndexSet<T, S, A>, index: usize, value: &T) -> Vec<T>
+    fn expected<T, S, A>(entries: &TypeProjectedIndexSet<T, S, A>, index: usize, value: &T) -> Vec<T>
     where
         T: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
         S: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -102,7 +102,7 @@ where
         map_entries
     }
 
-    fn result<T, S, A>(set: &TypedProjIndexSet<T, S, A>, value: &T) -> Vec<T>
+    fn result<T, S, A>(set: &TypeProjectedIndexSet<T, S, A>, value: &T) -> Vec<T>
     where
         T: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
         S: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -146,25 +146,25 @@ macro_rules! generate_props {
             proptest! {
                 #[test]
                 fn prop_swap_remove_contains(entries in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::TypedProjIndexSet<$value_typ, $build_hasher_typ, $alloc_typ> = entries;
+                    let entries: super::TypeProjectedIndexSet<$value_typ, $build_hasher_typ, $alloc_typ> = entries;
                     super::prop_swap_remove_contains(entries)?
                 }
 
                 #[test]
                 fn prop_swap_remove_get(entries in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::TypedProjIndexSet<$value_typ, $build_hasher_typ, $alloc_typ> = entries;
+                    let entries: super::TypeProjectedIndexSet<$value_typ, $build_hasher_typ, $alloc_typ> = entries;
                     super::prop_swap_remove_get(entries)?
                 }
 
                 #[test]
                 fn prop_swap_remove_len(entries in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::TypedProjIndexSet<$value_typ, $build_hasher_typ, $alloc_typ> = entries;
+                    let entries: super::TypeProjectedIndexSet<$value_typ, $build_hasher_typ, $alloc_typ> = entries;
                     super::prop_swap_remove_len(entries)?
                 }
 
                 #[test]
                 fn prop_swap_remove_preserves_order(entries in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::TypedProjIndexSet<$value_typ, $build_hasher_typ, $alloc_typ> = entries;
+                    let entries: super::TypeProjectedIndexSet<$value_typ, $build_hasher_typ, $alloc_typ> = entries;
                     super::prop_swap_remove_preserves_order(entries)?
                 }
             }

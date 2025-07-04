@@ -2,7 +2,7 @@ use crate::into_iter::IntoIter;
 use crate::drain::Drain;
 use crate::extract_if::ExtractIf;
 use crate::splice::Splice;
-use crate::vec_inner::{OpaqueVecInner, TypedProjVecInner};
+use crate::vec_inner::{TypeErasedVecInner, TypeProjectedVecInner};
 
 use core::any;
 use core::cmp;
@@ -25,13 +25,13 @@ use alloc_crate::alloc;
 #[cfg(not(feature = "nightly"))]
 use opaque_allocator_api::alloc;
 
-use opaque_alloc::TypedProjAlloc;
+use opaque_alloc::TypeProjectedAlloc;
 use opaque_error::TryReserveError;
 
 /// A type-projected contiguous growable array type.
 ///
 /// This type is similar to [`std::Vec`], but supports type-erasure of generic parameters.
-/// The main difference is that a [`TypedProjVec`] can be converted to an [`OpaqueVec`]
+/// The main difference is that a [`TypeProjectedVec`] can be converted to an [`TypeErasedVec`]
 /// in constant **O(1)** time, hiding its element type and allocator at runtime.
 ///
 /// A type-erasable vector is parameterized by the following parameters:
@@ -50,7 +50,7 @@ use opaque_error::TryReserveError;
 /// runtime dynamic typing, since one has more control over the memory layout of the collection,
 /// even for erased types. Some applications of this include implementing heterogeneous data
 /// structures, plugin systems, and managing foreign function interface data. There are two data
-/// types that are dual to each other: [`TypedProjVec`] and [`OpaqueVec`]. The structure of both
+/// types that are dual to each other: [`TypeProjectedVec`] and [`TypeErasedVec`]. The structure of both
 /// data types are equivalent to the following data structures:
 ///
 /// ```
@@ -150,13 +150,13 @@ use opaque_error::TryReserveError;
 ///
 /// # See Also
 ///
-/// - [`OpaqueVec`]: The type-erased counterpart of [`TypedProjVec`].
+/// - [`TypeErasedVec`]: The type-erased counterpart of [`TypeProjectedVec`].
 ///
 /// # Examples
 ///
 /// ```
 /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-/// # use opaque_vec::{TypedProjVec, OpaqueVec};
+/// # use opaque_vec::{TypeProjectedVec, TypeErasedVec};
 /// #
 /// # #[cfg(feature = "nightly")]
 /// # use std::alloc::Global;
@@ -164,12 +164,12 @@ use opaque_error::TryReserveError;
 /// # #[cfg(not(feature = "nightly"))]
 /// # use opaque_allocator_api::alloc::Global;
 /// #
-/// let mut proj_vec: TypedProjVec<i32, Global> = TypedProjVec::new();
+/// let mut proj_vec: TypeProjectedVec<i32, Global> = TypeProjectedVec::new();
 /// proj_vec.push(42);
 ///
 /// assert_eq!(proj_vec.get(0), Some(&42));
 ///
-/// let opaque_vec: OpaqueVec = OpaqueVec::from_proj(proj_vec);
+/// let opaque_vec: TypeErasedVec = TypeErasedVec::from_proj(proj_vec);
 ///
 /// assert!(opaque_vec.has_element_type::<i32>());
 /// assert!(opaque_vec.has_allocator_type::<Global>());
@@ -177,15 +177,15 @@ use opaque_error::TryReserveError;
 /// assert_eq!(opaque_vec.get::<_, i32, Global>(0), Some(&42));
 /// ```
 #[repr(transparent)]
-pub struct TypedProjVec<T, A = alloc::Global>
+pub struct TypeProjectedVec<T, A = alloc::Global>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    inner: TypedProjVecInner<T, A>,
+    inner: TypeProjectedVecInner<T, A>,
 }
 
-impl<T, A> TypedProjVec<T, A>
+impl<T, A> TypeProjectedVec<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -196,7 +196,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// # use std::any::TypeId;
     /// #
     /// # #[cfg(feature = "nightly")]
@@ -205,7 +205,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let proj_vec: TypedProjVec<i32, Global> = TypedProjVec::new_in(Global);
+    /// let proj_vec: TypeProjectedVec<i32, Global> = TypeProjectedVec::new_in(Global);
     /// let expected = TypeId::of::<i32>();
     /// let result = proj_vec.element_type_id();
     ///
@@ -222,7 +222,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// # use std::any::TypeId;
     /// #
     /// # #[cfg(feature = "nightly")]
@@ -231,7 +231,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let proj_vec: TypedProjVec<i32, Global> = TypedProjVec::new_in(Global);
+    /// let proj_vec: TypeProjectedVec<i32, Global> = TypeProjectedVec::new_in(Global);
     /// let expected = TypeId::of::<Global>();
     /// let result = proj_vec.allocator_type_id();
     ///
@@ -243,7 +243,7 @@ where
     }
 }
 
-impl<T, A> TypedProjVec<T, A>
+impl<T, A> TypeProjectedVec<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -258,8 +258,8 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
-    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypeProjectedVec;
+    /// # use opaque_alloc::TypeProjectedAlloc;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -267,8 +267,8 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let proj_alloc = TypedProjAlloc::new(Global);
-    /// let proj_vec: TypedProjVec<i32, Global> = TypedProjVec::new_proj_in(proj_alloc);
+    /// let proj_alloc = TypeProjectedAlloc::new(Global);
+    /// let proj_vec: TypeProjectedVec<i32, Global> = TypeProjectedVec::new_proj_in(proj_alloc);
     ///
     /// assert!(proj_vec.is_empty());
     ///
@@ -277,8 +277,8 @@ where
     #[inline]
     #[must_use]
     #[track_caller]
-    pub fn new_proj_in(proj_alloc: TypedProjAlloc<A>) -> Self {
-        let inner = TypedProjVecInner::new_proj_in(proj_alloc);
+    pub fn new_proj_in(proj_alloc: TypeProjectedAlloc<A>) -> Self {
+        let inner = TypeProjectedVecInner::new_proj_in(proj_alloc);
 
         Self { inner, }
     }
@@ -304,8 +304,8 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
-    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypeProjectedVec;
+    /// # use opaque_alloc::TypeProjectedAlloc;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -314,8 +314,8 @@ where
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let capacity = 32;
-    /// let proj_alloc = TypedProjAlloc::new(Global);
-    /// let proj_vec: TypedProjVec<i32, Global> = TypedProjVec::with_capacity_proj_in(capacity, proj_alloc);
+    /// let proj_alloc = TypeProjectedAlloc::new(Global);
+    /// let proj_vec: TypeProjectedVec<i32, Global> = TypeProjectedVec::with_capacity_proj_in(capacity, proj_alloc);
     ///
     /// assert!(proj_vec.capacity() >= capacity);
     /// assert!(proj_vec.is_empty());
@@ -325,8 +325,8 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
-    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypeProjectedVec;
+    /// # use opaque_alloc::TypeProjectedAlloc;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -334,19 +334,19 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let proj_alloc = TypedProjAlloc::new(Global);
-    /// let proj_vec: TypedProjVec<i32, Global> = TypedProjVec::with_capacity_proj_in(0, proj_alloc);
+    /// let proj_alloc = TypeProjectedAlloc::new(Global);
+    /// let proj_vec: TypeProjectedVec<i32, Global> = TypeProjectedVec::with_capacity_proj_in(0, proj_alloc);
     ///
     /// assert_eq!(proj_vec.capacity(), 0);
     /// assert!(proj_vec.is_empty());
     /// ```
     ///
-    /// [`new_proj_in`]: TypedProjVec::new_proj_in
+    /// [`new_proj_in`]: TypeProjectedVec::new_proj_in
     #[inline]
     #[must_use]
     #[track_caller]
-    pub fn with_capacity_proj_in(capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self {
-        let inner = TypedProjVecInner::with_capacity_proj_in(capacity, proj_alloc);
+    pub fn with_capacity_proj_in(capacity: usize, proj_alloc: TypeProjectedAlloc<A>) -> Self {
+        let inner = TypeProjectedVecInner::with_capacity_proj_in(capacity, proj_alloc);
 
         Self { inner, }
     }
@@ -373,8 +373,8 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
-    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypeProjectedVec;
+    /// # use opaque_alloc::TypeProjectedAlloc;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -383,8 +383,8 @@ where
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let capacity = 32;
-    /// let proj_alloc = TypedProjAlloc::new(Global);
-    /// let proj_vec: Result<TypedProjVec<i32, Global>, _> = TypedProjVec::try_with_capacity_proj_in(capacity, proj_alloc);
+    /// let proj_alloc = TypeProjectedAlloc::new(Global);
+    /// let proj_vec: Result<TypeProjectedVec<i32, Global>, _> = TypeProjectedVec::try_with_capacity_proj_in(capacity, proj_alloc);
     ///
     /// assert!(proj_vec.is_ok());
     ///
@@ -398,8 +398,8 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
-    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypeProjectedVec;
+    /// # use opaque_alloc::TypeProjectedAlloc;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -407,8 +407,8 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let proj_alloc = TypedProjAlloc::new(Global);
-    /// let proj_vec: Result<TypedProjVec<i32, Global>, _> = TypedProjVec::try_with_capacity_proj_in(0, proj_alloc);
+    /// let proj_alloc = TypeProjectedAlloc::new(Global);
+    /// let proj_vec: Result<TypeProjectedVec<i32, Global>, _> = TypeProjectedVec::try_with_capacity_proj_in(0, proj_alloc);
     ///
     /// assert!(proj_vec.is_ok());
     ///
@@ -418,10 +418,10 @@ where
     /// assert!(proj_vec.is_empty());
     /// ```
     ///
-    /// [`new_proj_in`]: TypedProjVec::new_proj_in
+    /// [`new_proj_in`]: TypeProjectedVec::new_proj_in
     #[inline]
-    pub fn try_with_capacity_proj_in(capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Result<Self, TryReserveError> {
-        let inner = TypedProjVecInner::try_with_capacity_proj_in(capacity, proj_alloc)?;
+    pub fn try_with_capacity_proj_in(capacity: usize, proj_alloc: TypeProjectedAlloc<A>) -> Result<Self, TryReserveError> {
+        let inner = TypeProjectedVecInner::try_with_capacity_proj_in(capacity, proj_alloc)?;
 
         Ok(Self { inner, })
     }
@@ -450,7 +450,7 @@ where
     /// * The allocated size in bytes must be no larger than `isize::MAX`.
     ///   See the safety documentation of [`pointer::offset`].
     ///
-    /// These requirements always hold for any `ptr` that has been allocated via a [`TypedProjVec`].
+    /// These requirements always hold for any `ptr` that has been allocated via a [`TypeProjectedVec`].
     ///
     /// The ownership of `ptr` is effectively transferred to the
     /// type-projected vector which may then deallocate, reallocate or change the
@@ -463,8 +463,8 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
-    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypeProjectedVec;
+    /// # use opaque_alloc::TypeProjectedAlloc;
     /// # use std::ptr;
     /// # use std::mem;
     /// #
@@ -474,7 +474,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let proj_vec = TypedProjVec::from([1, 2, 3]);
+    /// let proj_vec = TypeProjectedVec::from([1, 2, 3]);
     ///
     /// // Prevent running `opaque_vec`'s destructor to completely control the allocation.
     /// let mut proj_vec = mem::ManuallyDrop::new(proj_vec);
@@ -483,9 +483,9 @@ where
     /// let ptr: *mut i32 = proj_vec.as_mut_ptr();
     /// let length = proj_vec.len();
     /// let capacity = proj_vec.capacity();
-    /// let proj_alloc: TypedProjAlloc<Global> = unsafe { ptr::read(proj_vec.allocator()) };
+    /// let proj_alloc: TypeProjectedAlloc<Global> = unsafe { ptr::read(proj_vec.allocator()) };
     ///
-    /// let expected = TypedProjVec::from([4, 5, 6]);
+    /// let expected = TypeProjectedVec::from([4, 5, 6]);
     /// let result = unsafe {
     ///     // Mutate the values directly in memory.
     ///     for i in 0..length {
@@ -493,7 +493,7 @@ where
     ///     }
     ///
     ///     // Rebuild the vector.
-    ///     TypedProjVec::from_raw_parts_proj_in(ptr, length, capacity, proj_alloc)
+    ///     TypeProjectedVec::from_raw_parts_proj_in(ptr, length, capacity, proj_alloc)
     /// };
     ///
     /// assert_eq!(result.as_slice(), expected.as_slice());
@@ -516,7 +516,7 @@ where
     ///     result.push(i32::MAX);
     /// }
     ///
-    /// let expected = TypedProjVec::from([
+    /// let expected = TypeProjectedVec::from([
     ///     4,        5,        6,        i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX,
     ///     i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX,
     /// ]);
@@ -532,8 +532,8 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
-    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypeProjectedVec;
+    /// # use opaque_alloc::TypeProjectedAlloc;
     /// # use std::ptr::NonNull;
     /// #
     /// # #[cfg(feature = "nightly")]
@@ -544,14 +544,14 @@ where
     /// #
     /// let value = 1_000_000;
     /// let layout = Layout::array::<u32>(16).unwrap();
-    /// let proj_alloc = TypedProjAlloc::new(Global);
+    /// let proj_alloc = TypeProjectedAlloc::new(Global);
     /// let length = 1;
     /// let capacity = 16;
     /// let proj_vec = unsafe {
     ///     let mut memory: NonNull<u32> = proj_alloc.allocate(layout).unwrap().cast::<u32>();
     ///     memory.write(value);
     ///
-    ///     TypedProjVec::from_raw_parts_proj_in(memory.as_mut() as *mut u32, length, capacity, proj_alloc)
+    ///     TypeProjectedVec::from_raw_parts_proj_in(memory.as_mut() as *mut u32, length, capacity, proj_alloc)
     /// };
     ///
     /// assert_eq!(proj_vec.as_slice(), &[value]);
@@ -565,7 +565,7 @@ where
     ///     result.push(u32::MAX);
     /// }
     ///
-    /// let expected = TypedProjVec::from([
+    /// let expected = TypeProjectedVec::from([
     ///     value,     u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX,
     ///     u32::MAX,  u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX,
     /// ]);
@@ -578,9 +578,9 @@ where
     ///
     /// [`dealloc`]: std::alloc::Allocator::dealloc
     #[inline]
-    pub unsafe fn from_raw_parts_proj_in(ptr: *mut T, length: usize, capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self {
+    pub unsafe fn from_raw_parts_proj_in(ptr: *mut T, length: usize, capacity: usize, proj_alloc: TypeProjectedAlloc<A>) -> Self {
         let inner = unsafe {
-            TypedProjVecInner::from_raw_parts_proj_in(ptr, length, capacity, proj_alloc)
+            TypeProjectedVecInner::from_raw_parts_proj_in(ptr, length, capacity, proj_alloc)
         };
 
         Self { inner, }
@@ -611,7 +611,7 @@ where
     ///   See the safety documentation of [`pointer::offset`].
     ///
     /// These requirements always hold for any `ptr` that has been allocated via a
-    /// [`TypedProjVec`].
+    /// [`TypeProjectedVec`].
     ///
     /// The ownership of `ptr` is effectively transferred to the type-projected vector which may
     /// then deallocate, reallocate or change the contents of memory pointed to by the pointer at
@@ -624,8 +624,8 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
-    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypeProjectedVec;
+    /// # use opaque_alloc::TypeProjectedAlloc;
     /// # use std::ptr::NonNull;
     /// # use std::ptr;
     /// # use std::mem;
@@ -636,7 +636,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let proj_vec = TypedProjVec::from([1, 2, 3]);
+    /// let proj_vec = TypeProjectedVec::from([1, 2, 3]);
     ///
     /// // Prevent running `opaque_vec`'s destructor to completely control the allocation.
     /// let mut proj_vec = mem::ManuallyDrop::new(proj_vec);
@@ -645,9 +645,9 @@ where
     /// let ptr: NonNull<i32> = proj_vec.as_non_null();
     /// let length = proj_vec.len();
     /// let capacity = proj_vec.capacity();
-    /// let proj_alloc: TypedProjAlloc<Global> = unsafe { ptr::read(proj_vec.allocator()) };
+    /// let proj_alloc: TypeProjectedAlloc<Global> = unsafe { ptr::read(proj_vec.allocator()) };
     ///
-    /// let expected = TypedProjVec::from([4, 5, 6]);
+    /// let expected = TypeProjectedVec::from([4, 5, 6]);
     /// let result = unsafe {
     ///     // Mutate the values directly in memory.
     ///     for i in 0..length {
@@ -655,7 +655,7 @@ where
     ///     }
     ///
     ///     // Rebuild the vector.
-    ///     TypedProjVec::from_parts_proj_in(ptr, length, capacity, proj_alloc)
+    ///     TypeProjectedVec::from_parts_proj_in(ptr, length, capacity, proj_alloc)
     /// };
     ///
     /// assert_eq!(result.as_slice(), expected.as_slice());
@@ -678,7 +678,7 @@ where
     ///     result.push(i32::MAX);
     /// }
     ///
-    /// let expected = TypedProjVec::from([
+    /// let expected = TypeProjectedVec::from([
     ///     4,        5,        6,        i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX,
     ///     i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX,
     /// ]);
@@ -694,8 +694,8 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
-    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypeProjectedVec;
+    /// # use opaque_alloc::TypeProjectedAlloc;
     /// # use std::ptr::NonNull;
     /// #
     /// # #[cfg(feature = "nightly")]
@@ -706,14 +706,14 @@ where
     /// #
     /// let value = 1_000_000;
     /// let layout = Layout::array::<u32>(16).unwrap();
-    /// let proj_alloc = TypedProjAlloc::new(Global);
+    /// let proj_alloc = TypeProjectedAlloc::new(Global);
     /// let length = 1;
     /// let capacity = 16;
     /// let proj_vec = unsafe {
     ///     let mut memory: NonNull<u32> = proj_alloc.allocate(layout).unwrap().cast::<u32>();
     ///     memory.write(value);
     ///
-    ///     TypedProjVec::from_parts_proj_in(memory, length, capacity, proj_alloc)
+    ///     TypeProjectedVec::from_parts_proj_in(memory, length, capacity, proj_alloc)
     /// };
     ///
     /// assert_eq!(proj_vec.as_slice(), &[value]);
@@ -727,7 +727,7 @@ where
     ///     result.push(u32::MAX);
     /// }
     ///
-    /// let expected = TypedProjVec::from([
+    /// let expected = TypeProjectedVec::from([
     ///     value,     u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX,
     ///     u32::MAX,  u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX,
     /// ]);
@@ -740,9 +740,9 @@ where
     ///
     /// [`dealloc`]: std::alloc::Allocator::dealloc
     #[inline]
-    pub unsafe fn from_parts_proj_in(ptr: NonNull<T>, length: usize, capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self {
+    pub unsafe fn from_parts_proj_in(ptr: NonNull<T>, length: usize, capacity: usize, proj_alloc: TypeProjectedAlloc<A>) -> Self {
         let inner = unsafe {
-            TypedProjVecInner::from_parts_proj_in(ptr, length, capacity, proj_alloc)
+            TypeProjectedVecInner::from_parts_proj_in(ptr, length, capacity, proj_alloc)
         };
 
         Self { inner, }
@@ -757,7 +757,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -765,7 +765,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let proj_vec: TypedProjVec<i32, Global> = TypedProjVec::new_in(Global);
+    /// let proj_vec: TypeProjectedVec<i32, Global> = TypeProjectedVec::new_in(Global);
     ///
     /// assert!(proj_vec.is_empty());
     /// assert_eq!(proj_vec.capacity(), 0);
@@ -774,7 +774,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn new_in(alloc: A) -> Self {
-        let inner = TypedProjVecInner::new_in(alloc);
+        let inner = TypeProjectedVecInner::new_in(alloc);
 
         Self { inner, }
     }
@@ -800,7 +800,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -809,7 +809,7 @@ where
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let capacity = 32;
-    /// let proj_vec: TypedProjVec<i32, Global> = TypedProjVec::with_capacity_in(capacity, Global);
+    /// let proj_vec: TypeProjectedVec<i32, Global> = TypeProjectedVec::with_capacity_in(capacity, Global);
     ///
     /// assert!(proj_vec.capacity() >= capacity);
     /// assert!(proj_vec.is_empty());
@@ -819,7 +819,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -827,18 +827,18 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let proj_vec: TypedProjVec<i32, Global> = TypedProjVec::with_capacity_in(0, Global);
+    /// let proj_vec: TypeProjectedVec<i32, Global> = TypeProjectedVec::with_capacity_in(0, Global);
     ///
     /// assert_eq!(proj_vec.capacity(), 0);
     /// assert!(proj_vec.is_empty());
     /// ```
     ///
-    /// [`new_in`]: TypedProjVec::new_in
+    /// [`new_in`]: TypeProjectedVec::new_in
     #[inline]
     #[must_use]
     #[track_caller]
     pub fn with_capacity_in(capacity: usize, alloc: A) -> Self {
-        let inner = TypedProjVecInner::with_capacity_in(capacity, alloc);
+        let inner = TypeProjectedVecInner::with_capacity_in(capacity, alloc);
 
         Self { inner, }
     }
@@ -865,7 +865,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -874,7 +874,7 @@ where
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let capacity = 32;
-    /// let proj_vec: Result<TypedProjVec<i32, Global>, _> = TypedProjVec::try_with_capacity_in(capacity, Global);
+    /// let proj_vec: Result<TypeProjectedVec<i32, Global>, _> = TypeProjectedVec::try_with_capacity_in(capacity, Global);
     ///
     /// assert!(proj_vec.is_ok());
     ///
@@ -888,7 +888,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -896,7 +896,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let proj_vec: Result<TypedProjVec<i32, Global>, _> = TypedProjVec::try_with_capacity_in(0, Global);
+    /// let proj_vec: Result<TypeProjectedVec<i32, Global>, _> = TypeProjectedVec::try_with_capacity_in(0, Global);
     ///
     /// assert!(proj_vec.is_ok());
     ///
@@ -906,10 +906,10 @@ where
     /// assert!(proj_vec.is_empty());
     /// ```
     ///
-    /// [`new_in`]: TypedProjVec::new_in
+    /// [`new_in`]: TypeProjectedVec::new_in
     #[inline]
     pub fn try_with_capacity_in(capacity: usize, alloc: A) -> Result<Self, TryReserveError> {
-        let inner = TypedProjVecInner::try_with_capacity_in(capacity, alloc)?;
+        let inner = TypeProjectedVecInner::try_with_capacity_in(capacity, alloc)?;
 
         Ok(Self { inner, })
     }
@@ -939,7 +939,7 @@ where
     ///   See the safety documentation of [`pointer::offset`].
     ///
     /// These requirements always hold for any `ptr` that has been allocated via a
-    /// [`TypedProjVec`].
+    /// [`TypeProjectedVec`].
     ///
     /// The ownership of `ptr` is effectively transferred to the type-projected vector which may
     /// then deallocate, reallocate or change the contents of memory pointed to by the pointer at
@@ -952,7 +952,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// # use std::ptr;
     /// # use std::mem;
     /// #
@@ -962,7 +962,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let proj_vec = TypedProjVec::from([1, 2, 3]);
+    /// let proj_vec = TypeProjectedVec::from([1, 2, 3]);
     ///
     /// // Prevent running `opaque_vec`'s destructor to completely control the allocation.
     /// let mut proj_vec = mem::ManuallyDrop::new(proj_vec);
@@ -973,7 +973,7 @@ where
     /// let capacity = proj_vec.capacity();
     /// let alloc: Global = Global;
     ///
-    /// let expected = TypedProjVec::from([4, 5, 6]);
+    /// let expected = TypeProjectedVec::from([4, 5, 6]);
     /// let result = unsafe {
     ///     // Mutate the values directly in memory.
     ///     for i in 0..length {
@@ -981,7 +981,7 @@ where
     ///     }
     ///
     ///     // Rebuild the vector.
-    ///     TypedProjVec::from_raw_parts_in(ptr, length, capacity, alloc)
+    ///     TypeProjectedVec::from_raw_parts_in(ptr, length, capacity, alloc)
     /// };
     ///
     /// assert_eq!(result.as_slice(), expected.as_slice());
@@ -1004,7 +1004,7 @@ where
     ///     result.push(i32::MAX);
     /// }
     ///
-    /// let expected = TypedProjVec::from([
+    /// let expected = TypeProjectedVec::from([
     ///     4,        5,        6,        i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX,
     ///     i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX,
     /// ]);
@@ -1020,7 +1020,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// # use std::ptr::NonNull;
     /// #
     /// # #[cfg(feature = "nightly")]
@@ -1038,7 +1038,7 @@ where
     ///     let mut memory: NonNull<u32> = alloc.allocate(layout).unwrap().cast::<u32>();
     ///     memory.write(value);
     ///
-    ///     TypedProjVec::from_raw_parts_in(memory.as_mut() as *mut u32, length, capacity, alloc)
+    ///     TypeProjectedVec::from_raw_parts_in(memory.as_mut() as *mut u32, length, capacity, alloc)
     /// };
     ///
     /// assert_eq!(proj_vec.as_slice(), &[value]);
@@ -1052,7 +1052,7 @@ where
     ///     result.push(u32::MAX);
     /// }
     ///
-    /// let expected = TypedProjVec::from([
+    /// let expected = TypeProjectedVec::from([
     ///     value,     u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX,
     ///     u32::MAX,  u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX,
     /// ]);
@@ -1067,7 +1067,7 @@ where
     #[inline]
     pub unsafe fn from_raw_parts_in(ptr: *mut T, length: usize, capacity: usize, alloc: A) -> Self {
         let inner = unsafe {
-            TypedProjVecInner::from_raw_parts_in(ptr, length, capacity, alloc)
+            TypeProjectedVecInner::from_raw_parts_in(ptr, length, capacity, alloc)
         };
 
         Self { inner, }
@@ -1098,7 +1098,7 @@ where
     ///   See the safety documentation of [`pointer::offset`].
     ///
     /// These requirements always hold for any `ptr` that has been allocated via a
-    /// [`TypedProjVec`].
+    /// [`TypeProjectedVec`].
     ///
     /// The ownership of `ptr` is effectively transferred to the type-projected vector which may
     /// then deallocate, reallocate or change the contents of memory pointed to by the pointer at
@@ -1111,7 +1111,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// # use std::ptr::NonNull;
     /// # use std::ptr;
     /// # use std::mem;
@@ -1122,7 +1122,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let proj_vec = TypedProjVec::from([1, 2, 3]);
+    /// let proj_vec = TypeProjectedVec::from([1, 2, 3]);
     ///
     /// // Prevent running `opaque_vec`'s destructor to completely control the allocation.
     /// let mut proj_vec = mem::ManuallyDrop::new(proj_vec);
@@ -1133,7 +1133,7 @@ where
     /// let capacity = proj_vec.capacity();
     /// let alloc: Global = Global;
     ///
-    /// let expected = TypedProjVec::from([4, 5, 6]);
+    /// let expected = TypeProjectedVec::from([4, 5, 6]);
     /// let result = unsafe {
     ///     // Mutate the values directly in memory.
     ///     for i in 0..length {
@@ -1141,7 +1141,7 @@ where
     ///     }
     ///
     ///     // Rebuild the vector.
-    ///     TypedProjVec::from_parts_in(ptr, length, capacity, alloc)
+    ///     TypeProjectedVec::from_parts_in(ptr, length, capacity, alloc)
     /// };
     ///
     /// assert_eq!(result.as_slice(), expected.as_slice());
@@ -1164,7 +1164,7 @@ where
     ///     result.push(i32::MAX);
     /// }
     ///
-    /// let expected = TypedProjVec::from([
+    /// let expected = TypeProjectedVec::from([
     ///     4,        5,        6,        i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX,
     ///     i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX,
     /// ]);
@@ -1180,7 +1180,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// # use std::ptr::NonNull;
     /// #
     /// # #[cfg(feature = "nightly")]
@@ -1198,7 +1198,7 @@ where
     ///     let mut memory: NonNull<u32> = alloc.allocate(layout).unwrap().cast::<u32>();
     ///     memory.write(value);
     ///
-    ///     TypedProjVec::from_parts_in(memory, length, capacity, alloc)
+    ///     TypeProjectedVec::from_parts_in(memory, length, capacity, alloc)
     /// };
     ///
     /// assert_eq!(proj_vec.as_slice(), &[value]);
@@ -1212,7 +1212,7 @@ where
     ///     result.push(u32::MAX);
     /// }
     ///
-    /// let expected = TypedProjVec::from([
+    /// let expected = TypeProjectedVec::from([
     ///     value,     u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX,
     ///     u32::MAX,  u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX,
     /// ]);
@@ -1227,14 +1227,14 @@ where
     #[inline]
     pub unsafe fn from_parts_in(ptr: NonNull<T>, length: usize, capacity: usize, alloc: A) -> Self {
         let inner = unsafe {
-            TypedProjVecInner::from_parts_in(ptr, length, capacity, alloc)
+            TypeProjectedVecInner::from_parts_in(ptr, length, capacity, alloc)
         };
 
         Self { inner, }
     }
 }
 
-impl<T> TypedProjVec<T, alloc::Global>
+impl<T> TypeProjectedVec<T, alloc::Global>
 where
     T: any::Any,
 {
@@ -1247,7 +1247,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -1255,7 +1255,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let proj_vec: TypedProjVec<i32> = TypedProjVec::new();
+    /// let proj_vec: TypeProjectedVec<i32> = TypeProjectedVec::new();
     ///
     /// assert!(proj_vec.is_empty());
     /// assert_eq!(proj_vec.capacity(), 0);
@@ -1264,7 +1264,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn new() -> Self {
-        let inner = TypedProjVecInner::new();
+        let inner = TypeProjectedVecInner::new();
 
         Self { inner, }
     }
@@ -1289,7 +1289,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -1298,7 +1298,7 @@ where
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let capacity = 32;
-    /// let proj_vec: TypedProjVec<i32> = TypedProjVec::with_capacity(capacity);
+    /// let proj_vec: TypeProjectedVec<i32> = TypeProjectedVec::with_capacity(capacity);
     ///
     /// assert!(proj_vec.capacity() >= capacity);
     /// assert!(proj_vec.is_empty());
@@ -1308,7 +1308,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -1316,18 +1316,18 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let proj_vec: TypedProjVec<i32> = TypedProjVec::with_capacity(0);
+    /// let proj_vec: TypeProjectedVec<i32> = TypeProjectedVec::with_capacity(0);
     ///
     /// assert_eq!(proj_vec.capacity(), 0);
     /// assert!(proj_vec.is_empty());
     /// ```
     ///
-    /// [`new`]: TypedProjVec::new
+    /// [`new`]: TypeProjectedVec::new
     #[inline]
     #[must_use]
     #[track_caller]
     pub fn with_capacity(capacity: usize) -> Self {
-        let inner = TypedProjVecInner::with_capacity(capacity);
+        let inner = TypeProjectedVecInner::with_capacity(capacity);
 
         Self { inner, }
     }
@@ -1353,7 +1353,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -1362,7 +1362,7 @@ where
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let capacity = 32;
-    /// let proj_vec: Result<TypedProjVec<i32>, _> = TypedProjVec::try_with_capacity(capacity);
+    /// let proj_vec: Result<TypeProjectedVec<i32>, _> = TypeProjectedVec::try_with_capacity(capacity);
     ///
     /// assert!(proj_vec.is_ok());
     ///
@@ -1376,7 +1376,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -1384,7 +1384,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let proj_vec: Result<TypedProjVec<i32>, _> = TypedProjVec::try_with_capacity(0);
+    /// let proj_vec: Result<TypeProjectedVec<i32>, _> = TypeProjectedVec::try_with_capacity(0);
     ///
     /// assert!(proj_vec.is_ok());
     ///
@@ -1394,10 +1394,10 @@ where
     /// assert!(proj_vec.is_empty());
     /// ```
     ///
-    /// [`new`]: TypedProjVec::new
+    /// [`new`]: TypeProjectedVec::new
     #[inline]
     pub fn try_with_capacity(capacity: usize) -> Result<Self, TryReserveError> {
-        let inner = TypedProjVecInner::try_with_capacity(capacity)?;
+        let inner = TypeProjectedVecInner::try_with_capacity(capacity)?;
 
         Ok(Self { inner, })
     }
@@ -1425,7 +1425,7 @@ where
     ///   See the safety documentation of [`pointer::offset`].
     ///
     /// These requirements always hold for any `ptr` that has been allocated via a
-    /// [`TypedProjVec`].
+    /// [`TypeProjectedVec`].
     ///
     /// The ownership of `ptr` is effectively transferred to the type-projected vector which may
     /// then deallocate, reallocate or change the contents of memory pointed to by the pointer at
@@ -1438,7 +1438,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// # use std::ptr;
     /// # use std::mem;
     /// #
@@ -1448,7 +1448,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let proj_vec = TypedProjVec::from([1, 2, 3]);
+    /// let proj_vec = TypeProjectedVec::from([1, 2, 3]);
     ///
     /// // Prevent running `opaque_vec`'s destructor to completely control the allocation.
     /// let mut proj_vec = mem::ManuallyDrop::new(proj_vec);
@@ -1458,7 +1458,7 @@ where
     /// let length = proj_vec.len();
     /// let capacity = proj_vec.capacity();
     ///
-    /// let expected = TypedProjVec::from([4, 5, 6]);
+    /// let expected = TypeProjectedVec::from([4, 5, 6]);
     /// let result = unsafe {
     ///     // Mutate the values directly in memory.
     ///     for i in 0..length {
@@ -1466,7 +1466,7 @@ where
     ///     }
     ///
     ///     // Rebuild the vector.
-    ///     TypedProjVec::from_raw_parts(ptr, length, capacity)
+    ///     TypeProjectedVec::from_raw_parts(ptr, length, capacity)
     /// };
     ///
     /// assert_eq!(result.as_slice(), expected.as_slice());
@@ -1489,7 +1489,7 @@ where
     ///     result.push(i32::MAX);
     /// }
     ///
-    /// let expected = TypedProjVec::from([
+    /// let expected = TypeProjectedVec::from([
     ///     4,        5,        6,        i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX,
     ///     i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX,
     /// ]);
@@ -1505,7 +1505,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// # use std::ptr::NonNull;
     /// #
     /// # #[cfg(feature = "nightly")]
@@ -1522,7 +1522,7 @@ where
     ///     let mut memory: NonNull<u32> = Global.allocate(layout).unwrap().cast::<u32>();
     ///     memory.write(value);
     ///
-    ///     TypedProjVec::from_raw_parts(memory.as_mut() as *mut u32, length, capacity)
+    ///     TypeProjectedVec::from_raw_parts(memory.as_mut() as *mut u32, length, capacity)
     /// };
     ///
     /// assert_eq!(proj_vec.as_slice(), &[value]);
@@ -1536,7 +1536,7 @@ where
     ///     result.push(u32::MAX);
     /// }
     ///
-    /// let expected = TypedProjVec::from([
+    /// let expected = TypeProjectedVec::from([
     ///     value,     u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX,
     ///     u32::MAX,  u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX,
     /// ]);
@@ -1551,7 +1551,7 @@ where
     #[inline]
     pub unsafe fn from_raw_parts(ptr: *mut T, length: usize, capacity: usize) -> Self {
         let inner = unsafe {
-            TypedProjVecInner::from_raw_parts(ptr, length, capacity)
+            TypeProjectedVecInner::from_raw_parts(ptr, length, capacity)
         };
 
         Self { inner, }
@@ -1580,7 +1580,7 @@ where
     ///   See the safety documentation of [`pointer::offset`].
     ///
     /// These requirements always hold for any `ptr` that has been allocated via a
-    /// [`TypedProjVec`].
+    /// [`TypeProjectedVec`].
     ///
     /// The ownership of `ptr` is effectively transferred to the type-projected vector which may
     /// then deallocate, reallocate or change the contents of memory pointed to by the pointer at
@@ -1593,7 +1593,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// # use std::ptr::NonNull;
     /// # use std::ptr;
     /// # use std::mem;
@@ -1604,7 +1604,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let proj_vec = TypedProjVec::from([1, 2, 3]);
+    /// let proj_vec = TypeProjectedVec::from([1, 2, 3]);
     ///
     /// // Prevent running `opaque_vec`'s destructor to completely control the allocation.
     /// let mut proj_vec = mem::ManuallyDrop::new(proj_vec);
@@ -1614,7 +1614,7 @@ where
     /// let length = proj_vec.len();
     /// let capacity = proj_vec.capacity();
     ///
-    /// let expected = TypedProjVec::from([4, 5, 6]);
+    /// let expected = TypeProjectedVec::from([4, 5, 6]);
     /// let result = unsafe {
     ///     // Mutate the values directly in memory.
     ///     for i in 0..length {
@@ -1622,7 +1622,7 @@ where
     ///     }
     ///
     ///     // Rebuild the vector.
-    ///     TypedProjVec::from_parts(ptr, length, capacity)
+    ///     TypeProjectedVec::from_parts(ptr, length, capacity)
     /// };
     ///
     /// assert_eq!(result.as_slice(), expected.as_slice());
@@ -1645,7 +1645,7 @@ where
     ///     result.push(i32::MAX);
     /// }
     ///
-    /// let expected = TypedProjVec::from([
+    /// let expected = TypeProjectedVec::from([
     ///     4,        5,        6,        i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX,
     ///     i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX,
     /// ]);
@@ -1661,7 +1661,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// # use std::ptr::NonNull;
     /// #
     /// # #[cfg(feature = "nightly")]
@@ -1678,7 +1678,7 @@ where
     ///     let mut memory: NonNull<u32> = Global.allocate(layout).unwrap().cast::<u32>();
     ///     memory.write(value);
     ///
-    ///     TypedProjVec::from_parts(memory, length, capacity)
+    ///     TypeProjectedVec::from_parts(memory, length, capacity)
     /// };
     ///
     /// assert_eq!(proj_vec.as_slice(), &[value]);
@@ -1692,7 +1692,7 @@ where
     ///     result.push(u32::MAX);
     /// }
     ///
-    /// let expected = TypedProjVec::from([
+    /// let expected = TypeProjectedVec::from([
     ///     value,     u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX,
     ///     u32::MAX,  u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX,
     /// ]);
@@ -1707,14 +1707,14 @@ where
     #[inline]
     pub unsafe fn from_parts(ptr: NonNull<T>, length: usize, capacity: usize) -> Self {
         let inner = unsafe {
-            TypedProjVecInner::from_parts(ptr, length, capacity)
+            TypeProjectedVecInner::from_parts(ptr, length, capacity)
         };
 
         Self { inner, }
     }
 }
 
-impl<T, A> TypedProjVec<T, A>
+impl<T, A> TypeProjectedVec<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -1728,8 +1728,8 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
-    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypeProjectedVec;
+    /// # use opaque_alloc::TypeProjectedAlloc;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -1738,7 +1738,7 @@ where
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let capacity = 32;
-    /// let mut proj_vec: TypedProjVec<i32, Global> = TypedProjVec::with_capacity_in(capacity, Global);
+    /// let mut proj_vec: TypeProjectedVec<i32, Global> = TypeProjectedVec::with_capacity_in(capacity, Global);
     ///
     /// assert!(proj_vec.capacity() >= capacity);
     /// assert_eq!(proj_vec.len(), 0);
@@ -1768,8 +1768,8 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
-    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypeProjectedVec;
+    /// # use opaque_alloc::TypeProjectedAlloc;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -1778,7 +1778,7 @@ where
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let len = 32;
-    /// let mut proj_vec: TypedProjVec<i32, Global> = TypedProjVec::with_capacity_in(len, Global);
+    /// let mut proj_vec: TypeProjectedVec<i32, Global> = TypeProjectedVec::with_capacity_in(len, Global);
     ///
     /// assert_eq!(proj_vec.len(), 0);
     ///
@@ -1806,8 +1806,8 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
-    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypeProjectedVec;
+    /// # use opaque_alloc::TypeProjectedAlloc;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -1815,7 +1815,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut proj_vec: TypedProjVec<i32, Global> = TypedProjVec::with_capacity_in(1, Global);
+    /// let mut proj_vec: TypeProjectedVec<i32, Global> = TypeProjectedVec::with_capacity_in(1, Global);
     ///
     /// assert!(proj_vec.is_empty());
     ///
@@ -1829,7 +1829,7 @@ where
     }
 }
 
-impl<T, A> TypedProjVec<T, A>
+impl<T, A> TypeProjectedVec<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -1840,8 +1840,8 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
-    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypeProjectedVec;
+    /// # use opaque_alloc::TypeProjectedAlloc;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -1849,19 +1849,19 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let proj_vec: TypedProjVec<i32> = TypedProjVec::new();
+    /// let proj_vec: TypeProjectedVec<i32> = TypeProjectedVec::new();
     ///
     /// assert!(proj_vec.is_empty());
     ///
-    /// let alloc: &TypedProjAlloc<Global> = proj_vec.allocator();
+    /// let alloc: &TypeProjectedAlloc<Global> = proj_vec.allocator();
     /// ```
     #[inline]
-    pub fn allocator(&self) -> &TypedProjAlloc<A> {
+    pub fn allocator(&self) -> &TypeProjectedAlloc<A> {
         self.inner.allocator()
     }
 }
 
-impl<T, A> TypedProjVec<T, A>
+impl<T, A> TypeProjectedVec<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -1889,7 +1889,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// # use std::ptr;
     /// #
     /// # #[cfg(feature = "nightly")]
@@ -1909,7 +1909,7 @@ where
     /// }
     ///
     /// let capacity = 4;
-    /// let mut proj_vec = TypedProjVec::with_capacity(capacity);
+    /// let mut proj_vec = TypeProjectedVec::with_capacity(capacity);
     ///
     /// proj_vec.push(Box::new(DropCounter {}));
     /// proj_vec.push(Box::new(DropCounter {}));
@@ -1937,7 +1937,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// # use std::ptr;
     /// #
     /// # #[cfg(feature = "nightly")]
@@ -1957,7 +1957,7 @@ where
     /// }
     ///
     /// let capacity = 4;
-    /// let mut proj_vec = TypedProjVec::with_capacity(capacity);
+    /// let mut proj_vec = TypeProjectedVec::with_capacity(capacity);
     ///
     /// assert_eq!(proj_vec.len(), 0);
     /// assert!(proj_vec.capacity() >= capacity);
@@ -1981,7 +1981,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// # use std::ptr;
     /// #
     /// # #[cfg(feature = "nightly")]
@@ -1991,7 +1991,7 @@ where
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let capacity = 4;
-    /// let mut proj_vec = TypedProjVec::with_capacity(capacity);
+    /// let mut proj_vec = TypeProjectedVec::with_capacity(capacity);
     ///
     /// assert_eq!(proj_vec.len(), 0);
     /// assert!(proj_vec.capacity() >= capacity);
@@ -2010,10 +2010,10 @@ where
     /// assert_eq!(proj_vec.as_slice(), &[1, 2, 3]);
     /// ```
     ///
-    /// [`truncate`]: TypedProjVec::truncate
-    /// [`resize`]: TypedProjVec::resize
+    /// [`truncate`]: TypeProjectedVec::truncate
+    /// [`resize`]: TypeProjectedVec::resize
     /// [`extend`]: Extend::extend
-    /// [`clear`]: TypedProjVec::clear
+    /// [`clear`]: TypeProjectedVec::clear
     #[inline]
     pub unsafe fn set_len(&mut self, new_len: usize) {
         unsafe {
@@ -2039,7 +2039,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -2047,7 +2047,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let proj_vec = TypedProjVec::from([10, 40, 30]);
+    /// let proj_vec = TypeProjectedVec::from([10, 40, 30]);
     ///
     /// unsafe {
     ///     assert_eq!(proj_vec.get_unchecked(0), &10);
@@ -2088,7 +2088,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -2096,7 +2096,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut proj_vec = TypedProjVec::from([10, 40, 30]);
+    /// let mut proj_vec = TypeProjectedVec::from([10, 40, 30]);
     ///
     /// unsafe {
     ///     assert_eq!(proj_vec.get_mut_unchecked(0), &10);
@@ -2137,7 +2137,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -2145,7 +2145,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let proj_vec = TypedProjVec::from([10, 40, 30]);
+    /// let proj_vec = TypeProjectedVec::from([10, 40, 30]);
     ///
     /// assert_eq!(proj_vec.get(0), Some(&10));
     /// assert_eq!(proj_vec.get(1), Some(&40));
@@ -2184,7 +2184,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -2192,7 +2192,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut opaque_vec = TypedProjVec::from([10, 40, 30]);
+    /// let mut opaque_vec = TypeProjectedVec::from([10, 40, 30]);
     ///
     /// assert_eq!(opaque_vec.get_mut(0), Some(&mut 10));
     /// assert_eq!(opaque_vec.get_mut(1), Some(&mut 40));
@@ -2253,7 +2253,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -2261,7 +2261,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut proj_vec = TypedProjVec::from([1, 2]);
+    /// let mut proj_vec = TypeProjectedVec::from([1, 2]);
     /// proj_vec.push(3);
     ///
     /// assert_eq!(proj_vec.as_slice(), &[1, 2, 3]);
@@ -2311,7 +2311,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -2319,7 +2319,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut proj_vec = TypedProjVec::from([1, 2, 3]);
+    /// let mut proj_vec = TypeProjectedVec::from([1, 2, 3]);
     ///
     /// assert!(!proj_vec.is_empty());
     ///
@@ -2390,7 +2390,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -2399,7 +2399,7 @@ where
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let min_capacity = 4;
-    /// let mut proj_vec = TypedProjVec::with_capacity(min_capacity);
+    /// let mut proj_vec = TypeProjectedVec::with_capacity(min_capacity);
     ///
     /// for i in 0..min_capacity {
     ///     let result = proj_vec.push_within_capacity((i + 1) as i32);
@@ -2414,7 +2414,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -2423,7 +2423,7 @@ where
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let min_capacity = 4;
-    /// let mut proj_vec = TypedProjVec::with_capacity(min_capacity);
+    /// let mut proj_vec = TypeProjectedVec::with_capacity(min_capacity);
     ///
     /// assert!(proj_vec.capacity() >= min_capacity);
     /// let actual_capacity = proj_vec.capacity();
@@ -2438,9 +2438,9 @@ where
     /// assert_eq!(proj_vec.capacity(), actual_capacity);
     /// ```
     ///
-    /// [`push`]: TypedProjVec::push
-    /// [`reserve`]: TypedProjVec::reserve
-    /// [`try_reserve`]: TypedProjVec::try_reserve
+    /// [`push`]: TypeProjectedVec::push
+    /// [`reserve`]: TypeProjectedVec::reserve
+    /// [`try_reserve`]: TypeProjectedVec::try_reserve
     #[inline]
     pub fn push_within_capacity(&mut self, value: T) -> Result<(), T> {
         self.inner.push_within_capacity(value)
@@ -2495,7 +2495,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -2503,7 +2503,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut proj_vec = TypedProjVec::new();
+    /// let mut proj_vec = TypeProjectedVec::new();
     ///
     /// assert!(proj_vec.is_empty());
     ///
@@ -2580,7 +2580,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -2588,7 +2588,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut proj_vec = TypedProjVec::new();
+    /// let mut proj_vec = TypeProjectedVec::new();
     ///
     /// assert!(proj_vec.is_empty());
     ///
@@ -2666,7 +2666,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -2674,7 +2674,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let proj_vec = TypedProjVec::from([1, 2, 3, i32::MAX]);
+    /// let proj_vec = TypeProjectedVec::from([1, 2, 3, i32::MAX]);
     /// {
     ///     let mut cloned = proj_vec.clone();
     ///     cloned.swap_remove(3);
@@ -2756,7 +2756,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -2764,7 +2764,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let proj_vec = TypedProjVec::from([1, 2, 3, i32::MAX]);
+    /// let proj_vec = TypeProjectedVec::from([1, 2, 3, i32::MAX]);
     /// {
     ///     let mut cloned = proj_vec.clone();
     ///     cloned.swap_remove(3);
@@ -2787,7 +2787,7 @@ where
     /// }
     /// ```
     ///
-    /// [`pop`]: TypedProjVec::pop
+    /// [`pop`]: TypeProjectedVec::pop
     #[track_caller]
     pub fn shift_remove(&mut self, index: usize) -> T {
         self.inner.shift_remove(index)
@@ -2826,7 +2826,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -2834,7 +2834,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let proj_vec = TypedProjVec::from([92, 8, 40, 9, 8, 34, 59, 34, 5]);
+    /// let proj_vec = TypeProjectedVec::from([92, 8, 40, 9, 8, 34, 59, 34, 5]);
     ///
     /// assert!(proj_vec.contains(&92));
     /// assert!(proj_vec.contains(&8));
@@ -2868,7 +2868,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -2876,7 +2876,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let proj_vec = TypedProjVec::from([92, 8, 40, 9, 8, 34]);
+    /// let proj_vec = TypeProjectedVec::from([92, 8, 40, 9, 8, 34]);
     ///
     /// let mut iterator = proj_vec.iter();
     /// assert_eq!(iterator.next(), Some(&92));
@@ -2904,7 +2904,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -2912,7 +2912,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut proj_vec = TypedProjVec::from([92, 8, 40, 9, 8, 34]);
+    /// let mut proj_vec = TypeProjectedVec::from([92, 8, 40, 9, 8, 34]);
     ///
     /// let mut iterator = proj_vec.iter_mut();
     /// assert_eq!(iterator.next(), Some(&mut 92));
@@ -2972,7 +2972,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -2980,9 +2980,9 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut result = TypedProjVec::from([1, 2, 3, 4]);
-    /// let mut appended = TypedProjVec::from([5, 6, 7, 8, 9]);
-    /// let expected = TypedProjVec::from([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    /// let mut result = TypeProjectedVec::from([1, 2, 3, 4]);
+    /// let mut appended = TypeProjectedVec::from([5, 6, 7, 8, 9]);
+    /// let expected = TypeProjectedVec::from([1, 2, 3, 4, 5, 6, 7, 8, 9]);
     ///
     /// result.append(&mut appended);
     ///
@@ -3022,7 +3022,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -3030,11 +3030,11 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut proj_vec: TypedProjVec<i32> = TypedProjVec::from([1, 2, 3, 4, 5, 6]);
+    /// let mut proj_vec: TypeProjectedVec<i32> = TypeProjectedVec::from([1, 2, 3, 4, 5, 6]);
     ///
     /// assert_eq!(proj_vec.len(), 6);
     ///
-    /// let drained_vec: TypedProjVec<i32> = proj_vec.drain(2..).collect();
+    /// let drained_vec: TypeProjectedVec<i32> = proj_vec.drain(2..).collect();
     ///
     /// assert_eq!(proj_vec.len(), 2);
     /// assert_eq!(drained_vec.len(), 4);
@@ -3047,7 +3047,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -3055,11 +3055,11 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut proj_vec: TypedProjVec<i32> = TypedProjVec::from([1, 2, 3, 4, 5, 6]);
+    /// let mut proj_vec: TypeProjectedVec<i32> = TypeProjectedVec::from([1, 2, 3, 4, 5, 6]);
     ///
     /// assert_eq!(proj_vec.len(), 6);
     ///
-    /// let drained_vec: TypedProjVec<i32> = proj_vec.drain(..).collect();
+    /// let drained_vec: TypeProjectedVec<i32> = proj_vec.drain(..).collect();
     ///
     /// assert_eq!(proj_vec.len(), 0);
     /// assert_eq!(drained_vec.len(), 6);
@@ -3072,7 +3072,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -3080,11 +3080,11 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut proj_vec: TypedProjVec<i32> = TypedProjVec::from([1, 2, 3, 4, 5, 6]);
+    /// let mut proj_vec: TypeProjectedVec<i32> = TypeProjectedVec::from([1, 2, 3, 4, 5, 6]);
     ///
     /// assert_eq!(proj_vec.len(), 6);
     ///
-    /// let drained_vec: TypedProjVec<i32> = proj_vec.drain(0..0).collect();
+    /// let drained_vec: TypeProjectedVec<i32> = proj_vec.drain(0..0).collect();
     ///
     /// assert_eq!(proj_vec.len(), 6);
     /// assert_eq!(drained_vec.len(), 0);
@@ -3125,7 +3125,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -3133,7 +3133,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let proj_vec = TypedProjVec::from([1, 2, 4, 8]);
+    /// let proj_vec = TypeProjectedVec::from([1, 2, 4, 8]);
     /// let ptr = proj_vec.as_ptr();
     ///
     /// unsafe {
@@ -3149,7 +3149,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -3157,7 +3157,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut proj_vec = TypedProjVec::from([0, 1, 2]);
+    /// let mut proj_vec = TypeProjectedVec::from([0, 1, 2]);
     ///
     /// unsafe {
     ///     let ptr1 = proj_vec.as_ptr();
@@ -3170,9 +3170,9 @@ where
     /// }
     /// ```
     ///
-    /// [`as_mut_ptr`]: TypedProjVec::as_mut_ptr
-    /// [`as_ptr`]: TypedProjVec::as_ptr
-    /// [`as_non_null`]: TypedProjVec::as_non_null
+    /// [`as_mut_ptr`]: TypeProjectedVec::as_mut_ptr
+    /// [`as_ptr`]: TypeProjectedVec::as_ptr
+    /// [`as_non_null`]: TypeProjectedVec::as_non_null
     #[inline]
     pub fn as_ptr(&self) -> *const T {
         self.inner.as_ptr()
@@ -3198,7 +3198,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -3208,7 +3208,7 @@ where
     /// #
     /// // Allocate vector big enough for 4 elements.
     /// let length = 4;
-    /// let mut proj_vec: TypedProjVec<i32> = TypedProjVec::with_capacity(length);
+    /// let mut proj_vec: TypeProjectedVec<i32> = TypeProjectedVec::with_capacity(length);
     /// let ptr = proj_vec.as_mut_ptr();
     ///
     /// // Initialize elements via raw pointer writes, then set the length.
@@ -3226,7 +3226,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -3234,7 +3234,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut proj_vec: TypedProjVec<i32> = TypedProjVec::with_capacity(4);
+    /// let mut proj_vec: TypeProjectedVec<i32> = TypeProjectedVec::with_capacity(4);
     /// proj_vec.push(0);
     ///
     /// unsafe {
@@ -3247,9 +3247,9 @@ where
     /// }
     /// ```
     ///
-    /// [`as_mut_ptr`]: TypedProjVec::as_mut_ptr
-    /// [`as_ptr`]: TypedProjVec::as_ptr
-    /// [`as_non_null`]: TypedProjVec::as_non_null
+    /// [`as_mut_ptr`]: TypeProjectedVec::as_mut_ptr
+    /// [`as_ptr`]: TypeProjectedVec::as_ptr
+    /// [`as_non_null`]: TypeProjectedVec::as_non_null
     #[inline]
     pub fn as_mut_ptr(&mut self) -> *mut T {
         self.inner.as_mut_ptr()
@@ -3275,7 +3275,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -3285,7 +3285,7 @@ where
     /// #
     /// // Allocate vector big enough for 4 elements.
     /// let length = 4;
-    /// let mut proj_vec = TypedProjVec::with_capacity(length);
+    /// let mut proj_vec = TypeProjectedVec::with_capacity(length);
     /// let ptr = proj_vec.as_non_null();
     ///
     /// // Initialize elements via raw pointer writes, then set length.
@@ -3303,7 +3303,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -3311,7 +3311,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut proj_vec = TypedProjVec::with_capacity(4);
+    /// let mut proj_vec = TypeProjectedVec::with_capacity(4);
     ///
     /// unsafe {
     ///     let ptr1 = proj_vec.as_non_null();
@@ -3323,9 +3323,9 @@ where
     /// }
     /// ```
     ///
-    /// [`as_mut_ptr`]: TypedProjVec::as_mut_ptr
-    /// [`as_ptr`]: TypedProjVec::as_ptr
-    /// [`as_non_null`]: TypedProjVec::as_non_null
+    /// [`as_mut_ptr`]: TypeProjectedVec::as_mut_ptr
+    /// [`as_ptr`]: TypeProjectedVec::as_ptr
+    /// [`as_non_null`]: TypeProjectedVec::as_non_null
     #[inline]
     pub fn as_non_null(&mut self) -> NonNull<T> {
         self.inner.as_non_null()
@@ -3337,7 +3337,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -3346,7 +3346,7 @@ where
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 3] = [9, 28, 37];
-    /// let proj_vec = TypedProjVec::from(array);
+    /// let proj_vec = TypeProjectedVec::from(array);
     ///
     /// let expected = array.as_slice();
     /// let result = proj_vec.as_slice();
@@ -3366,7 +3366,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -3375,7 +3375,7 @@ where
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut array: [i32; 3] = [9, 28, 37];
-    /// let mut proj_vec = TypedProjVec::from(array);
+    /// let mut proj_vec = TypeProjectedVec::from(array);
     ///
     /// let expected = array.as_mut_slice();
     /// let result = proj_vec.as_mut_slice();
@@ -3388,7 +3388,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -3397,7 +3397,7 @@ where
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut array: [i32; 3] = [9, 28, 37];
-    /// let mut proj_vec = TypedProjVec::from(array);
+    /// let mut proj_vec = TypeProjectedVec::from(array);
     /// {
     ///     let slice = proj_vec.as_mut_slice();
     ///     for i in 0..slice.len() {
@@ -3426,16 +3426,16 @@ where
     ///
     /// After decomposing the vector, the user must ensure that they properly manage the
     /// memory allocation pointed to by the raw pointer. The primary way to do this is to convert
-    /// the pointer into another data structure such as a [`Vec`], [`TypedProjVec`], or
-    /// [`OpaqueVec`].
+    /// the pointer into another data structure such as a [`Vec`], [`TypeProjectedVec`], or
+    /// [`TypeErasedVec`].
     ///
-    /// [`from_raw_parts`]: TypedProjVec::from_raw_parts
+    /// [`from_raw_parts`]: TypeProjectedVec::from_raw_parts
     ///
     /// # Examples
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -3444,14 +3444,14 @@ where
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 3] = [-1, 0, 1];
-    /// let proj_vec = TypedProjVec::from(array);
+    /// let proj_vec = TypeProjectedVec::from(array);
     ///
     /// assert_eq!(proj_vec.as_slice(), &[-1, 0, 1]);
     ///
     /// let (ptr, length, capacity) = proj_vec.into_raw_parts();
     /// let reinterpreted = unsafe {
     ///     let ptr = ptr as *mut u32;
-    ///     TypedProjVec::from_raw_parts(ptr, length, capacity)
+    ///     TypeProjectedVec::from_raw_parts(ptr, length, capacity)
     /// };
     ///
     /// assert_eq!(reinterpreted.as_slice(), &[4294967295, 0, 1]);
@@ -3471,16 +3471,16 @@ where
     ///
     /// After decomposing the vector, the user must ensure that they properly manage the
     /// memory allocation pointed to by the raw pointer. The primary way to do this is to convert
-    /// the pointer into another data structure such as a [`Vec`], [`TypedProjVec`], or
-    /// [`OpaqueVec`].
+    /// the pointer into another data structure such as a [`Vec`], [`TypeProjectedVec`], or
+    /// [`TypeErasedVec`].
     ///
-    /// [`from_parts`]: TypedProjVec::from_parts
+    /// [`from_parts`]: TypeProjectedVec::from_parts
     ///
     /// # Examples
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -3489,14 +3489,14 @@ where
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 3] = [-1, 0, 1];
-    /// let proj_vec = TypedProjVec::from(array);
+    /// let proj_vec = TypeProjectedVec::from(array);
     ///
     /// assert_eq!(proj_vec.as_slice(), &[-1, 0, 1]);
     ///
     /// let (ptr, length, capacity) = proj_vec.into_parts();
     /// let reinterpreted = unsafe {
     ///     let ptr = ptr.cast::<u32>();
-    ///     TypedProjVec::from_parts(ptr, length, capacity)
+    ///     TypeProjectedVec::from_parts(ptr, length, capacity)
     /// };
     ///
     /// assert_eq!(reinterpreted.as_slice(), &[4294967295, 0, 1]);
@@ -3507,7 +3507,7 @@ where
     }
 }
 
-impl<T, A> TypedProjVec<T, A>
+impl<T, A> TypeProjectedVec<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -3523,16 +3523,16 @@ where
     ///
     /// After decomposing the vector, the user must ensure that they properly manage the
     /// memory allocation pointed to by the raw pointer. The primary way to do this is to convert
-    /// the pointer into another data structure such as a [`Vec`], [`TypedProjVec`], or
-    /// [`OpaqueVec`].
+    /// the pointer into another data structure such as a [`Vec`], [`TypeProjectedVec`], or
+    /// [`TypeErasedVec`].
     ///
-    /// [`from_raw_parts_proj_in`]: TypedProjVec::from_raw_parts_proj_in
+    /// [`from_raw_parts_proj_in`]: TypeProjectedVec::from_raw_parts_proj_in
     ///
     /// # Examples
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -3541,20 +3541,20 @@ where
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 3] = [-1, 0, 1];
-    /// let proj_vec = TypedProjVec::from(array);
+    /// let proj_vec = TypeProjectedVec::from(array);
     ///
     /// assert_eq!(proj_vec.as_slice(), &[-1, 0, 1]);
     ///
     /// let (ptr, length, capacity, proj_alloc) = proj_vec.into_raw_parts_with_alloc();
     /// let reinterpreted = unsafe {
     ///     let ptr = ptr as *mut u32;
-    ///     TypedProjVec::from_raw_parts_proj_in(ptr, length, capacity, proj_alloc)
+    ///     TypeProjectedVec::from_raw_parts_proj_in(ptr, length, capacity, proj_alloc)
     /// };
     ///
     /// assert_eq!(reinterpreted.as_slice(), &[4294967295, 0, 1]);
     /// ```
     #[must_use]
-    pub fn into_raw_parts_with_alloc(self) -> (*mut T, usize, usize, TypedProjAlloc<A>) {
+    pub fn into_raw_parts_with_alloc(self) -> (*mut T, usize, usize, TypeProjectedAlloc<A>) {
         self.inner.into_raw_parts_with_alloc()
     }
 
@@ -3568,16 +3568,16 @@ where
     ///
     /// After decomposing the vector, the user must ensure that they properly manage the
     /// memory allocation pointed to by the raw pointer. The primary way to do this is to convert
-    /// the pointer into another data structure such as a [`Vec`], [`TypedProjVec`], or
-    /// [`OpaqueVec`].
+    /// the pointer into another data structure such as a [`Vec`], [`TypeProjectedVec`], or
+    /// [`TypeErasedVec`].
     ///
-    /// [`from_parts_proj_in`]: TypedProjVec::from_parts_proj_in
+    /// [`from_parts_proj_in`]: TypeProjectedVec::from_parts_proj_in
     ///
     /// # Examples
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -3586,26 +3586,26 @@ where
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 3] = [-1, 0, 1];
-    /// let proj_vec = TypedProjVec::from(array);
+    /// let proj_vec = TypeProjectedVec::from(array);
     ///
     /// assert_eq!(proj_vec.as_slice(), &[-1, 0, 1]);
     ///
     /// let (ptr, length, capacity, proj_alloc) = proj_vec.into_parts_with_alloc();
     /// let reinterpreted = unsafe {
     ///     let ptr = ptr.cast::<u32>();
-    ///     TypedProjVec::from_parts_proj_in(ptr, length, capacity, proj_alloc)
+    ///     TypeProjectedVec::from_parts_proj_in(ptr, length, capacity, proj_alloc)
     /// };
     ///
     /// assert_eq!(reinterpreted.as_slice(), &[4294967295, 0, 1]);
     /// ```
     #[must_use]
-    pub fn into_parts_with_alloc(self) -> (NonNull<T>, usize, usize, TypedProjAlloc<A>) {
+    pub fn into_parts_with_alloc(self) -> (NonNull<T>, usize, usize, TypeProjectedAlloc<A>) {
         self.inner.into_parts_with_alloc()
     }
 }
 
 #[cfg(feature = "nightly")]
-impl<T, A> TypedProjVec<T, A>
+impl<T, A> TypeProjectedVec<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -3615,14 +3615,14 @@ where
     /// Before doing the conversion, this method discards excess capacity like [`shrink_to_fit`].
     ///
     /// [owned slice]: Box
-    /// [`shrink_to_fit`]: TypedProjVec::shrink_to_fit
+    /// [`shrink_to_fit`]: TypeProjectedVec::shrink_to_fit
     ///
     /// # Examples
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
-    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypeProjectedVec;
+    /// # use opaque_alloc::TypeProjectedAlloc;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -3637,7 +3637,7 @@ where
     /// # use opaque_allocator_api::boxed::Box;
     /// #
     /// let mut proj_vec = {
-    ///     let mut _proj_vec = TypedProjVec::with_capacity(10);
+    ///     let mut _proj_vec = TypeProjectedVec::with_capacity(10);
     ///     _proj_vec.push(1);
     ///     _proj_vec.push(2);
     ///     _proj_vec.push(3);
@@ -3648,12 +3648,12 @@ where
     /// assert_eq!(proj_vec.capacity(), 10);
     /// assert_eq!(proj_vec.as_slice(), &[1, 2, 3]);
     ///
-    /// let boxed_slice: Box<[i32], TypedProjAlloc<Global>> = proj_vec.into_boxed_slice();
+    /// let boxed_slice: Box<[i32], TypeProjectedAlloc<Global>> = proj_vec.into_boxed_slice();
     ///
     /// assert_eq!(boxed_slice.len(), 3);
     /// assert_eq!(boxed_slice.as_ref(), &[1, 2, 3]);
     ///
-    /// let new_proj_vec = TypedProjVec::from(boxed_slice);
+    /// let new_proj_vec = TypeProjectedVec::from(boxed_slice);
     ///
     /// // Converting to a boxed slice removed any excess capacity from the vector.
     /// assert_eq!(new_proj_vec.len(), 3);
@@ -3661,12 +3661,12 @@ where
     /// assert_eq!(new_proj_vec.as_slice(), &[1, 2, 3]);
     /// ```
     #[track_caller]
-    pub fn into_boxed_slice(self) -> Box<[T], TypedProjAlloc<A>> {
+    pub fn into_boxed_slice(self) -> Box<[T], TypeProjectedAlloc<A>> {
         self.inner.into_boxed_slice()
     }
 }
 
-impl<T, A> TypedProjVec<T, A>
+impl<T, A> TypeProjectedVec<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -3685,7 +3685,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -3696,7 +3696,7 @@ where
     /// let length = 6;
     /// let capacity = 10;
     /// let mut proj_vec = {
-    ///     let mut _proj_vec = TypedProjVec::with_capacity(capacity);
+    ///     let mut _proj_vec = TypeProjectedVec::with_capacity(capacity);
     ///     for i in 1..(length + 1) {
     ///         _proj_vec.push(i as i32);
     ///     }
@@ -3753,7 +3753,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -3763,7 +3763,7 @@ where
     /// #
     /// let length = 3;
     /// let mut proj_vec = {
-    ///     let mut _proj_vec = TypedProjVec::with_capacity(10);
+    ///     let mut _proj_vec = TypeProjectedVec::with_capacity(10);
     ///     for i in 1..(length + 1) {
     ///         _proj_vec.push(i);
     ///     }
@@ -3783,7 +3783,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -3791,7 +3791,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut proj_vec = TypedProjVec::new();
+    /// let mut proj_vec = TypeProjectedVec::new();
     ///
     /// let mut p = 1;
     /// proj_vec.resize_with(4, || { p *= 2; p });
@@ -3799,8 +3799,8 @@ where
     /// assert_eq!(proj_vec.as_slice(), &[2, 4, 8, 16]);
     /// ```
     ///
-    /// [`truncate`]: TypedProjVec::truncate
-    /// [`resize`]: TypedProjVec::resize
+    /// [`truncate`]: TypeProjectedVec::truncate
+    /// [`resize`]: TypeProjectedVec::resize
     #[track_caller]
     pub fn resize_with<F>(&mut self, new_len: usize, f: F)
     where
@@ -3815,13 +3815,13 @@ where
     /// The returned slice can be used to fill the type-projected vector with data before marking
     /// the data as initialized using the [`set_len`] method.
     ///
-    /// [`set_len`]: TypedProjVec::set_len
+    /// [`set_len`]: TypeProjectedVec::set_len
     ///
     /// # Examples
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -3829,7 +3829,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut proj_vec = TypedProjVec::with_capacity(10);
+    /// let mut proj_vec = TypeProjectedVec::with_capacity(10);
     ///
     /// // Fill in the first 3 elements.
     /// let uninit = proj_vec.spare_capacity_mut();
@@ -3866,7 +3866,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -3874,7 +3874,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut proj_vec = TypedProjVec::new();
+    /// let mut proj_vec = TypeProjectedVec::new();
     ///
     /// let data: [i32; 6] = [1, 2, 3, 4, 5, 6];
     /// let result = proj_vec.try_reserve(10);
@@ -3900,7 +3900,7 @@ where
     /// than or equal to `self.len() + additional`. This method does nothing if the capacity is
     /// already sufficient.
     ///
-    /// [`try_reserve`]: TypedProjVec::try_reserve
+    /// [`try_reserve`]: TypeProjectedVec::try_reserve
     ///
     /// # Errors
     ///
@@ -3910,7 +3910,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -3918,7 +3918,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut proj_vec = TypedProjVec::new();
+    /// let mut proj_vec = TypeProjectedVec::new();
     ///
     /// let data: [i32; 6] = [1, 2, 3, 4, 5, 6];
     /// let result = proj_vec.try_reserve_exact(10);
@@ -3955,7 +3955,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -3963,7 +3963,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut proj_vec = TypedProjVec::new();
+    /// let mut proj_vec = TypeProjectedVec::new();
     ///
     /// let data: [i32; 6] = [1, 2, 3, 4, 5, 6];
     /// proj_vec.reserve(10);
@@ -3989,7 +3989,7 @@ where
     /// than or equal to `self.len() + additional`. This method does nothing if the capacity is
     /// already sufficient.
     ///
-    /// [`reserve`]: TypedProjVec::reserve
+    /// [`reserve`]: TypeProjectedVec::reserve
     ///
     /// # Panics
     ///
@@ -4002,7 +4002,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -4010,7 +4010,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut proj_vec = TypedProjVec::new();
+    /// let mut proj_vec = TypeProjectedVec::new();
     ///
     /// let data: [i32; 6] = [1, 2, 3, 4, 5, 6];
     /// proj_vec.reserve_exact(10);
@@ -4035,13 +4035,13 @@ where
     /// excess capacity, just as is the case for [`with_capacity`]. See [`Allocator::shrink`] for
     /// more details.
     ///
-    /// [`with_capacity`]: TypedProjVec::with_capacity
+    /// [`with_capacity`]: TypeProjectedVec::with_capacity
     ///
     /// # Examples
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -4049,7 +4049,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut proj_vec = TypedProjVec::with_capacity(10);
+    /// let mut proj_vec = TypeProjectedVec::with_capacity(10);
     ///
     /// proj_vec.extend([1, 2, 3]);
     ///
@@ -4082,13 +4082,13 @@ where
     /// If the current capacity of the type-projected vector is less than the lower bound, the
     /// method does nothing.
     ///
-    /// [`with_capacity`]: TypedProjVec::with_capacity
+    /// [`with_capacity`]: TypeProjectedVec::with_capacity
     ///
     /// # Examples
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -4096,7 +4096,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut proj_vec = TypedProjVec::with_capacity(10);
+    /// let mut proj_vec = TypeProjectedVec::with_capacity(10);
     ///
     /// proj_vec.extend([1, 2, 3]);
     ///
@@ -4155,7 +4155,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -4163,7 +4163,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut proj_vec = TypedProjVec::with_capacity(10);
+    /// let mut proj_vec = TypeProjectedVec::with_capacity(10);
     ///
     /// proj_vec.extend([1, 2, 3]);
     ///
@@ -4180,7 +4180,7 @@ where
     }
 }
 
-impl<T, A> TypedProjVec<T, A>
+impl<T, A> TypeProjectedVec<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -4214,7 +4214,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::{IntoIter, TypedProjVec};
+    /// # use opaque_vec::{IntoIter, TypeProjectedVec};
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -4222,9 +4222,9 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut proj_vec = TypedProjVec::from([1, 2, 3, 4]);
-    /// let new = TypedProjVec::from([7, 8, 9]);
-    /// let proj_vec2: TypedProjVec<i32> = proj_vec.splice(1..3, new.into_iter()).collect();
+    /// let mut proj_vec = TypeProjectedVec::from([1, 2, 3, 4]);
+    /// let new = TypeProjectedVec::from([7, 8, 9]);
+    /// let proj_vec2: TypeProjectedVec<i32> = proj_vec.splice(1..3, new.into_iter()).collect();
     ///
     /// assert_eq!(proj_vec.as_slice(), &[1, 7, 8, 9, 4]);
     /// assert_eq!(proj_vec2.as_slice(), &[2, 3]);
@@ -4235,7 +4235,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::{IntoIter, TypedProjVec};
+    /// # use opaque_vec::{IntoIter, TypeProjectedVec};
     /// # use std::slice;
     /// #
     /// # #[cfg(feature = "nightly")]
@@ -4244,9 +4244,9 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut proj_vec = TypedProjVec::from([1, 5]);
-    /// let new = TypedProjVec::from([2, 3, 4]);
-    /// let splice: TypedProjVec<i32> = proj_vec.splice(1..1, new.into_iter()).collect();
+    /// let mut proj_vec = TypeProjectedVec::from([1, 5]);
+    /// let new = TypeProjectedVec::from([2, 3, 4]);
+    /// let splice: TypeProjectedVec<i32> = proj_vec.splice(1..1, new.into_iter()).collect();
     ///
     /// assert_eq!(proj_vec.as_slice(), &[1, 2, 3, 4, 5]);
     /// ```
@@ -4273,13 +4273,13 @@ where
     /// iterating or the iteration short-circuits, then the remaining elements will be retained.
     /// Use [`retain_mut`] with a negated predicate if you do not need the returned iterator.
     ///
-    /// [`retain_mut`]: TypedProjVec::retain_mut
+    /// [`retain_mut`]: TypeProjectedVec::retain_mut
     ///
     /// Using this method is equivalent to the following code:
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::{IntoIter, TypedProjVec};
+    /// # use opaque_vec::{IntoIter, TypeProjectedVec};
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -4288,13 +4288,13 @@ where
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// # let some_predicate = |x: &mut i32| { *x % 2 == 1 };
-    /// # let mut proj_vec = TypedProjVec::from([0, 1, 2, 3, 4, 5, 6]);
+    /// # let mut proj_vec = TypeProjectedVec::from([0, 1, 2, 3, 4, 5, 6]);
     /// # let mut proj_vec2 = proj_vec.clone();
     ///
     /// # let range = 1..5;
     /// let mut i = range.start;
     /// let end_items = proj_vec.len() - range.end;
-    /// # let mut extracted = TypedProjVec::new();
+    /// # let mut extracted = TypeProjectedVec::new();
     ///
     /// while i < proj_vec.len() - end_items {
     ///     if some_predicate(proj_vec.get_mut(i).unwrap()) {
@@ -4306,7 +4306,7 @@ where
     ///     }
     /// }
     ///
-    /// # let extracted2: TypedProjVec<i32> = proj_vec2.extract_if(range, some_predicate).collect();
+    /// # let extracted2: TypeProjectedVec<i32> = proj_vec2.extract_if(range, some_predicate).collect();
     /// # assert_eq!(proj_vec.as_slice(), proj_vec2.as_slice());
     /// # assert_eq!(extracted.as_slice(), extracted2.as_slice());
     /// ```
@@ -4327,7 +4327,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::{IntoIter, TypedProjVec};
+    /// # use opaque_vec::{IntoIter, TypeProjectedVec};
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -4335,8 +4335,8 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut numbers = TypedProjVec::from([1, 2, 3, 4, 5, 6, 8, 9, 11, 13, 14, 15]);
-    /// let evens: TypedProjVec<i32> = numbers.extract_if(.., |x| *x % 2 == 0).collect();
+    /// let mut numbers = TypeProjectedVec::from([1, 2, 3, 4, 5, 6, 8, 9, 11, 13, 14, 15]);
+    /// let evens: TypeProjectedVec<i32> = numbers.extract_if(.., |x| *x % 2 == 0).collect();
     /// let odds = numbers;
     ///
     /// assert_eq!(evens.as_slice(), &[2, 4, 6, 8, 14]);
@@ -4347,7 +4347,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::{IntoIter, TypedProjVec};
+    /// # use opaque_vec::{IntoIter, TypeProjectedVec};
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -4355,8 +4355,8 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut items = TypedProjVec::from([0, 0, 0, 0, 0, 0, 0, 1, 2, 1, 2, 1, 2]);
-    /// let ones: TypedProjVec<i32> = items.extract_if(7.., |x| *x == 1).collect();
+    /// let mut items = TypeProjectedVec::from([0, 0, 0, 0, 0, 0, 0, 1, 2, 1, 2, 1, 2]);
+    /// let ones: TypeProjectedVec<i32> = items.extract_if(7.., |x| *x == 1).collect();
     ///
     /// assert_eq!(items.as_slice(), &[0, 0, 0, 0, 0, 0, 0, 2, 2, 2]);
     /// assert_eq!(ones.len(), 3);
@@ -4395,7 +4395,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -4406,9 +4406,9 @@ where
     /// let array: [i32; 6] = [1, 2, 3, 4, 5, 6];
     /// let extension: [i32; 4] = [7, 8, 9, 10];
     /// let combined: [i32; 10] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-    /// let expected = TypedProjVec::from(combined);
+    /// let expected = TypeProjectedVec::from(combined);
     ///
-    /// let mut result = TypedProjVec::from(array);
+    /// let mut result = TypeProjectedVec::from(array);
     /// result.extend_from_slice(&extension);
     ///
     /// assert_eq!(result.len(), array.len() + extension.len());
@@ -4432,8 +4432,8 @@ where
     ///   this method.
     ///
     /// If you need more flexibility (or want to rely on [`Default`] instead of
-    /// [`Clone`]), use [`TypedProjVec::resize_with`].
-    /// If you only need to resize to a smaller size, use [`TypedProjVec::truncate`].
+    /// [`Clone`]), use [`TypeProjectedVec::resize_with`].
+    /// If you only need to resize to a smaller size, use [`TypeProjectedVec::truncate`].
     ///
     /// # Panics
     ///
@@ -4445,7 +4445,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -4453,7 +4453,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut proj_vec = TypedProjVec::from([
+    /// let mut proj_vec = TypeProjectedVec::from([
     ///     "spam",
     ///     "eggs",
     ///     "sausage",
@@ -4467,7 +4467,7 @@ where
     ///
     /// assert_eq!(proj_vec.len(), 14);
     ///
-    /// let expected = TypedProjVec::from([
+    /// let expected = TypeProjectedVec::from([
     ///     "spam",
     ///     "eggs",
     ///     "sausage",
@@ -4491,7 +4491,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -4499,7 +4499,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut proj_vec = TypedProjVec::from([
+    /// let mut proj_vec = TypeProjectedVec::from([
     ///     "spam",
     ///     "eggs",
     ///     "sausage",
@@ -4515,7 +4515,7 @@ where
     ///     "spam",
     ///     "spam",
     /// ]);
-    /// let expected = TypedProjVec::from([
+    /// let expected = TypeProjectedVec::from([
     ///     "spam",
     ///     "eggs",
     ///     "sausage",
@@ -4551,7 +4551,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -4559,7 +4559,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut proj_vec = TypedProjVec::from([1, 2, 3, 4, 5, 6]);
+    /// let mut proj_vec = TypeProjectedVec::from([1, 2, 3, 4, 5, 6]);
     /// proj_vec.truncate(2);
     ///
     /// assert_eq!(proj_vec.len(), 2);
@@ -4570,7 +4570,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -4579,7 +4579,7 @@ where
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 6] = [1, 2, 3, 4, 5, 6];
-    /// let mut proj_vec = TypedProjVec::from(array);
+    /// let mut proj_vec = TypeProjectedVec::from(array);
     /// proj_vec.truncate(6);
     ///
     /// assert_eq!(proj_vec.len(), 6);
@@ -4590,7 +4590,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -4599,7 +4599,7 @@ where
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 6] = [1, 2, 3, 4, 5, 6];
-    /// let mut proj_vec = TypedProjVec::from(array);
+    /// let mut proj_vec = TypeProjectedVec::from(array);
     /// proj_vec.truncate(7);
     ///
     /// assert_eq!(proj_vec.len(), 6);
@@ -4615,7 +4615,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -4623,22 +4623,22 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut proj_vec = TypedProjVec::from([1, 2, 3, 4, 5, 6]);
+    /// let mut proj_vec = TypeProjectedVec::from([1, 2, 3, 4, 5, 6]);
     /// proj_vec.truncate(0);
     ///
     /// assert_eq!(proj_vec.len(), 0);
     /// assert_eq!(proj_vec.as_slice(), &[]);
     /// ```
     ///
-    /// [`clear`]: TypedProjVec::clear
-    /// [`drain`]: TypedProjVec::drain
+    /// [`clear`]: TypeProjectedVec::clear
+    /// [`drain`]: TypeProjectedVec::drain
     #[inline]
     pub fn truncate(&mut self, len: usize) {
         self.inner.truncate(len);
     }
 }
 
-impl<T, A> TypedProjVec<T, A>
+impl<T, A> TypeProjectedVec<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -4697,7 +4697,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -4705,7 +4705,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut proj_vec = TypedProjVec::from([1, 2, 3, 4, 5, 6]);
+    /// let mut proj_vec = TypeProjectedVec::from([1, 2, 3, 4, 5, 6]);
     /// proj_vec.retain(|&x| x % 2 == 0);
     ///
     /// assert_eq!(proj_vec.as_slice(), &[2, 4, 6]);
@@ -4772,7 +4772,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -4780,7 +4780,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut proj_vec = TypedProjVec::from([1, 2, 3, 4, 5, 6]);
+    /// let mut proj_vec = TypeProjectedVec::from([1, 2, 3, 4, 5, 6]);
     /// proj_vec.retain_mut(|x| if *x <= 3 {
     ///     *x += 1;
     ///     true
@@ -4843,7 +4843,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -4851,7 +4851,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut proj_vec = TypedProjVec::from([1, 2, 3, 2, 2, 2, 6, 4, 4]);
+    /// let mut proj_vec = TypeProjectedVec::from([1, 2, 3, 2, 2, 2, 6, 4, 4]);
     /// proj_vec.dedup();
     ///
     /// assert_eq!(proj_vec.as_slice(), &[1, 2, 3, 2, 6, 4]);
@@ -4861,7 +4861,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -4869,7 +4869,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut proj_vec = TypedProjVec::from([1, 2, 3, 3, 3, 3, 4, 4, 4, 5]);
+    /// let mut proj_vec = TypeProjectedVec::from([1, 2, 3, 3, 3, 3, 4, 4, 4, 5]);
     /// proj_vec.dedup();
     ///
     /// assert_eq!(proj_vec.as_slice(), &[1, 2, 3, 4, 5]);
@@ -4879,7 +4879,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -4887,7 +4887,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut proj_vec = TypedProjVec::from( [1, 2, 3, 4, 5]);
+    /// let mut proj_vec = TypeProjectedVec::from( [1, 2, 3, 4, 5]);
     /// proj_vec.dedup();
     ///
     /// assert_eq!(proj_vec.as_slice(), &[1, 2, 3, 4, 5]);
@@ -4942,7 +4942,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -4950,7 +4950,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut proj_vec = TypedProjVec::from([10, 20, 21, 30, 20]);
+    /// let mut proj_vec = TypeProjectedVec::from([10, 20, 21, 30, 20]);
     /// proj_vec.dedup_by_key(|i| *i / 10);
     ///
     /// assert_eq!(proj_vec.as_slice(), &[10, 20, 30, 20]);
@@ -4960,7 +4960,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -4968,7 +4968,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut proj_vec = TypedProjVec::from([10, 20, 20, 21, 30, 30, 30, 40]);
+    /// let mut proj_vec = TypeProjectedVec::from([10, 20, 20, 21, 30, 30, 30, 40]);
     /// proj_vec.dedup_by_key(|i| *i / 10);
     ///
     /// assert_eq!(proj_vec.as_slice(), &[10, 20, 30, 40]);
@@ -5028,7 +5028,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -5036,7 +5036,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut opaque_vec = TypedProjVec::from([
+    /// let mut opaque_vec = TypeProjectedVec::from([
     ///     "foo",
     ///     "bar", "Bar",
     ///     "baz",
@@ -5052,7 +5052,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::TypedProjVec;
+    /// # use opaque_vec::TypeProjectedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -5060,7 +5060,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut opaque_vec = TypedProjVec::from([
+    /// let mut opaque_vec = TypeProjectedVec::from([
     ///     "foo",
     ///     "bar", "Bar", "bar",
     ///     "baz", "Baz", "BaZ",
@@ -5079,7 +5079,7 @@ where
     }
 }
 
-impl<T, A> ops::Deref for TypedProjVec<T, A>
+impl<T, A> ops::Deref for TypeProjectedVec<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -5092,7 +5092,7 @@ where
     }
 }
 
-impl<T, A> ops::DerefMut for TypedProjVec<T, A>
+impl<T, A> ops::DerefMut for TypeProjectedVec<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -5104,7 +5104,7 @@ where
 }
 
 /*
-unsafe impl<T, A> ops::DerefPure for TypedProjVec<T, A>
+unsafe impl<T, A> ops::DerefPure for TypeProjectedVec<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -5112,7 +5112,7 @@ where
 }
 */
 
-impl<T, A> Clone for TypedProjVec<T, A>
+impl<T, A> Clone for TypeProjectedVec<T, A>
 where
     T: any::Any + Clone,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
@@ -5126,7 +5126,7 @@ where
     }
 }
 
-impl<T, A> hash::Hash for TypedProjVec<T, A>
+impl<T, A> hash::Hash for TypeProjectedVec<T, A>
 where
     T: any::Any + hash::Hash,
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -5140,7 +5140,7 @@ where
     }
 }
 
-impl<T, I, A> ops::Index<I> for TypedProjVec<T, A>
+impl<T, I, A> ops::Index<I> for TypeProjectedVec<T, A>
 where
     T: any::Any,
     I: slice::SliceIndex<[T]>,
@@ -5154,7 +5154,7 @@ where
     }
 }
 
-impl<T, I, A> ops::IndexMut<I> for TypedProjVec<T, A>
+impl<T, I, A> ops::IndexMut<I> for TypeProjectedVec<T, A>
 where
     T: any::Any,
     I: slice::SliceIndex<[T]>,
@@ -5166,23 +5166,23 @@ where
     }
 }
 
-impl<T> FromIterator<T> for TypedProjVec<T, alloc::Global>
+impl<T> FromIterator<T> for TypeProjectedVec<T, alloc::Global>
 where
     T: any::Any,
 {
     #[inline]
     #[track_caller]
-    fn from_iter<I>(iterable: I) -> TypedProjVec<T, alloc::Global>
+    fn from_iter<I>(iterable: I) -> TypeProjectedVec<T, alloc::Global>
     where
         I: IntoIterator<Item = T>,
     {
-        let inner = TypedProjVecInner::from_iter(iterable);
+        let inner = TypeProjectedVecInner::from_iter(iterable);
 
         Self { inner, }
     }
 }
 
-impl<T, A> IntoIterator for TypedProjVec<T, A>
+impl<T, A> IntoIterator for TypeProjectedVec<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -5209,7 +5209,7 @@ where
     }
 }
 
-impl<'a, T, A> IntoIterator for &'a TypedProjVec<T, A>
+impl<'a, T, A> IntoIterator for &'a TypeProjectedVec<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -5222,7 +5222,7 @@ where
     }
 }
 
-impl<'a, T, A> IntoIterator for &'a mut TypedProjVec<T, A>
+impl<'a, T, A> IntoIterator for &'a mut TypeProjectedVec<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -5235,7 +5235,7 @@ where
     }
 }
 
-impl<T, A> Extend<T> for TypedProjVec<T, A>
+impl<T, A> Extend<T> for TypeProjectedVec<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -5276,7 +5276,7 @@ where
     */
 }
 
-impl<'a, T, A> Extend<&'a T> for TypedProjVec<T, A>
+impl<'a, T, A> Extend<&'a T> for TypeProjectedVec<T, A>
 where
     T: any::Any + Copy + 'a,
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -5316,37 +5316,37 @@ where
     */
 }
 
-impl<T, A1, A2> PartialEq<TypedProjVec<T, A2>> for TypedProjVec<T, A1>
+impl<T, A1, A2> PartialEq<TypeProjectedVec<T, A2>> for TypeProjectedVec<T, A1>
 where
     T: any::Any + PartialEq,
     A1: any::Any + alloc::Allocator + Send + Sync,
     A2: any::Any + alloc::Allocator + Send + Sync,
 {
-    fn eq(&self, other: &TypedProjVec<T, A2>) -> bool {
+    fn eq(&self, other: &TypeProjectedVec<T, A2>) -> bool {
         PartialEq::eq(self.as_slice(), other.as_slice())
     }
 }
 
-impl<T, A1, A2> PartialOrd<TypedProjVec<T, A2>> for TypedProjVec<T, A1>
+impl<T, A1, A2> PartialOrd<TypeProjectedVec<T, A2>> for TypeProjectedVec<T, A1>
 where
     T: any::Any + PartialOrd,
     A1: any::Any + alloc::Allocator + Send + Sync,
     A2: any::Any + alloc::Allocator + Send + Sync,
 {
     #[inline]
-    fn partial_cmp(&self, other: &TypedProjVec<T, A2>) -> Option<cmp::Ordering> {
+    fn partial_cmp(&self, other: &TypeProjectedVec<T, A2>) -> Option<cmp::Ordering> {
         PartialOrd::partial_cmp(self.as_slice(), other.as_slice())
     }
 }
 
-impl<T, A> Eq for TypedProjVec<T, A>
+impl<T, A> Eq for TypeProjectedVec<T, A>
 where
     T: any::Any + Eq,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
 }
 
-impl<T, A> Ord for TypedProjVec<T, A>
+impl<T, A> Ord for TypeProjectedVec<T, A>
 where
     T: any::Any + Ord,
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -5357,17 +5357,17 @@ where
     }
 }
 
-impl<T, A> Default for TypedProjVec<T, A>
+impl<T, A> Default for TypeProjectedVec<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync + Default,
 {
-    fn default() -> TypedProjVec<T, A> {
-        TypedProjVec::new_in(Default::default())
+    fn default() -> TypeProjectedVec<T, A> {
+        TypeProjectedVec::new_in(Default::default())
     }
 }
 
-impl<T, A> fmt::Debug for TypedProjVec<T, A>
+impl<T, A> fmt::Debug for TypeProjectedVec<T, A>
 where
     T: any::Any + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -5377,27 +5377,27 @@ where
     }
 }
 
-impl<T, A> AsRef<TypedProjVec<T, A>> for TypedProjVec<T, A>
+impl<T, A> AsRef<TypeProjectedVec<T, A>> for TypeProjectedVec<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    fn as_ref(&self) -> &TypedProjVec<T, A> {
+    fn as_ref(&self) -> &TypeProjectedVec<T, A> {
         self
     }
 }
 
-impl<T, A> AsMut<TypedProjVec<T, A>> for TypedProjVec<T, A>
+impl<T, A> AsMut<TypeProjectedVec<T, A>> for TypeProjectedVec<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    fn as_mut(&mut self) -> &mut TypedProjVec<T, A> {
+    fn as_mut(&mut self) -> &mut TypeProjectedVec<T, A> {
         self
     }
 }
 
-impl<T, A> AsRef<[T]> for TypedProjVec<T, A>
+impl<T, A> AsRef<[T]> for TypeProjectedVec<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -5407,7 +5407,7 @@ where
     }
 }
 
-impl<T, A> AsMut<[T]> for TypedProjVec<T, A>
+impl<T, A> AsMut<[T]> for TypeProjectedVec<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -5417,194 +5417,194 @@ where
     }
 }
 
-impl<T> From<&[T]> for TypedProjVec<T, alloc::Global>
+impl<T> From<&[T]> for TypeProjectedVec<T, alloc::Global>
 where
     T: any::Any + Clone,
 {
     #[track_caller]
-    fn from(slice: &[T]) -> TypedProjVec<T, alloc::Global> {
-        let inner = TypedProjVecInner::from(slice);
+    fn from(slice: &[T]) -> TypeProjectedVec<T, alloc::Global> {
+        let inner = TypeProjectedVecInner::from(slice);
 
         Self { inner, }
     }
 }
 
-impl<T> From<&mut [T]> for TypedProjVec<T, alloc::Global>
+impl<T> From<&mut [T]> for TypeProjectedVec<T, alloc::Global>
 where
     T: any::Any + Clone,
 {
     #[track_caller]
-    fn from(slice: &mut [T]) -> TypedProjVec<T, alloc::Global> {
-        let inner = TypedProjVecInner::from(slice);
+    fn from(slice: &mut [T]) -> TypeProjectedVec<T, alloc::Global> {
+        let inner = TypeProjectedVecInner::from(slice);
 
         Self { inner, }
     }
 }
 
-impl<T, const N: usize> From<&[T; N]> for TypedProjVec<T, alloc::Global>
+impl<T, const N: usize> From<&[T; N]> for TypeProjectedVec<T, alloc::Global>
 where
     T: any::Any + Clone,
 {
     #[track_caller]
-    fn from(slice: &[T; N]) -> TypedProjVec<T, alloc::Global> {
+    fn from(slice: &[T; N]) -> TypeProjectedVec<T, alloc::Global> {
         Self::from(slice.as_slice())
     }
 }
 
-impl<T, const N: usize> From<&mut [T; N]> for TypedProjVec<T, alloc::Global>
+impl<T, const N: usize> From<&mut [T; N]> for TypeProjectedVec<T, alloc::Global>
 where
     T: any::Any + Clone,
 {
     #[track_caller]
-    fn from(slice: &mut [T; N]) -> TypedProjVec<T, alloc::Global> {
+    fn from(slice: &mut [T; N]) -> TypeProjectedVec<T, alloc::Global> {
         Self::from(slice.as_mut_slice())
     }
 }
 
-impl<T, const N: usize> From<[T; N]> for TypedProjVec<T, alloc::Global>
+impl<T, const N: usize> From<[T; N]> for TypeProjectedVec<T, alloc::Global>
 where
     T: any::Any,
 {
     #[track_caller]
-    fn from(slice: [T; N]) -> TypedProjVec<T, alloc::Global> {
-        let inner = TypedProjVecInner::from(slice);
+    fn from(slice: [T; N]) -> TypeProjectedVec<T, alloc::Global> {
+        let inner = TypeProjectedVecInner::from(slice);
 
         Self { inner, }
     }
 }
 
-impl<'a, T> From<borrow::Cow<'a, [T]>> for TypedProjVec<T, alloc::Global>
+impl<'a, T> From<borrow::Cow<'a, [T]>> for TypeProjectedVec<T, alloc::Global>
 where
     T: any::Any,
-    [T]: borrow::ToOwned<Owned = TypedProjVec<T, alloc::Global>>,
+    [T]: borrow::ToOwned<Owned = TypeProjectedVec<T, alloc::Global>>,
 {
     #[track_caller]
-    fn from(slice: borrow::Cow<'a, [T]>) -> TypedProjVec<T, alloc::Global> {
+    fn from(slice: borrow::Cow<'a, [T]>) -> TypeProjectedVec<T, alloc::Global> {
         slice.into_owned()
     }
 }
 
 #[cfg(feature = "nightly")]
-impl<T, A> From<Box<[T], TypedProjAlloc<A>>> for TypedProjVec<T, A>
+impl<T, A> From<Box<[T], TypeProjectedAlloc<A>>> for TypeProjectedVec<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    fn from(slice: Box<[T], TypedProjAlloc<A>>) -> Self {
-        let inner = TypedProjVecInner::from(slice);
+    fn from(slice: Box<[T], TypeProjectedAlloc<A>>) -> Self {
+        let inner = TypeProjectedVecInner::from(slice);
 
         Self { inner, }
     }
 }
 
 #[cfg(feature = "nightly")]
-impl<T, A> From<Vec<T, A>> for TypedProjVec<T, A>
+impl<T, A> From<Vec<T, A>> for TypeProjectedVec<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[track_caller]
     fn from(vec: Vec<T, A>) -> Self {
-        let inner = TypedProjVecInner::from(vec);
+        let inner = TypeProjectedVecInner::from(vec);
 
         Self { inner, }
     }
 }
 
 #[cfg(not(feature = "nightly"))]
-impl<T> From<Vec<T>> for TypedProjVec<T, alloc::Global>
+impl<T> From<Vec<T>> for TypeProjectedVec<T, alloc::Global>
 where
     T: any::Any,
 {
     #[track_caller]
     fn from(vec: Vec<T>) -> Self {
-        let inner = TypedProjVecInner::from(vec);
+        let inner = TypeProjectedVecInner::from(vec);
 
         Self { inner, }
     }
 }
 
 #[cfg(feature = "nightly")]
-impl<T, A> From<&Vec<T, A>> for TypedProjVec<T, A>
+impl<T, A> From<&Vec<T, A>> for TypeProjectedVec<T, A>
 where
     T: any::Any + Clone,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     #[track_caller]
     fn from(vec: &Vec<T, A>) -> Self {
-        let inner = TypedProjVecInner::from(vec);
+        let inner = TypeProjectedVecInner::from(vec);
 
         Self { inner, }
     }
 }
 
 #[cfg(not(feature = "nightly"))]
-impl<T> From<&Vec<T>> for TypedProjVec<T, alloc::Global>
+impl<T> From<&Vec<T>> for TypeProjectedVec<T, alloc::Global>
 where
     T: any::Any + Clone,
 {
     #[track_caller]
     fn from(vec: &Vec<T>) -> Self {
-        let inner = TypedProjVecInner::from(vec);
+        let inner = TypeProjectedVecInner::from(vec);
 
         Self { inner, }
     }
 }
 
 #[cfg(feature = "nightly")]
-impl<T, A> From<&mut Vec<T, A>> for TypedProjVec<T, A>
+impl<T, A> From<&mut Vec<T, A>> for TypeProjectedVec<T, A>
 where
     T: any::Any + Clone,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     #[track_caller]
     fn from(vec: &mut Vec<T, A>) -> Self {
-        let inner = TypedProjVecInner::from(vec);
+        let inner = TypeProjectedVecInner::from(vec);
 
         Self { inner, }
     }
 }
 
 #[cfg(not(feature = "nightly"))]
-impl<T> From<&mut Vec<T>> for TypedProjVec<T, alloc::Global>
+impl<T> From<&mut Vec<T>> for TypeProjectedVec<T, alloc::Global>
 where
     T: any::Any + Clone,
 {
     #[track_caller]
     fn from(vec: &mut Vec<T>) -> Self {
-        let inner = TypedProjVecInner::from(vec);
+        let inner = TypeProjectedVecInner::from(vec);
 
         Self { inner, }
     }
 }
 
 #[cfg(feature = "nightly")]
-impl<T, A> From<TypedProjVec<T, A>> for Box<[T], TypedProjAlloc<A>>
+impl<T, A> From<TypeProjectedVec<T, A>> for Box<[T], TypeProjectedAlloc<A>>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[track_caller]
-    fn from(vec: TypedProjVec<T, A>) -> Self {
+    fn from(vec: TypeProjectedVec<T, A>) -> Self {
         vec.into_boxed_slice()
     }
 }
 
-impl From<&str> for TypedProjVec<u8, alloc::Global> {
+impl From<&str> for TypeProjectedVec<u8, alloc::Global> {
     #[track_caller]
-    fn from(st: &str) -> TypedProjVec<u8, alloc::Global> {
+    fn from(st: &str) -> TypeProjectedVec<u8, alloc::Global> {
         From::from(st.as_bytes())
     }
 }
 
-impl<T, A, const N: usize> TryFrom<TypedProjVec<T, A>> for [T; N]
+impl<T, A, const N: usize> TryFrom<TypeProjectedVec<T, A>> for [T; N]
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    type Error = TypedProjVec<T, A>;
+    type Error = TypeProjectedVec<T, A>;
 
-    fn try_from(mut vec: TypedProjVec<T, A>) -> Result<[T; N], TypedProjVec<T, A>> {
+    fn try_from(mut vec: TypeProjectedVec<T, A>) -> Result<[T; N], TypeProjectedVec<T, A>> {
         if vec.len() != N {
             return Err(vec);
         }
@@ -5625,7 +5625,7 @@ where
 /// A type-erased contiguous growable array type.
 ///
 /// This type is similar to [`std::Vec`], but supports type-erasure of generic parameters.
-/// The main difference is that a [`TypedProjVec`] can be converted to an [`OpaqueVec`]
+/// The main difference is that a [`TypeProjectedVec`] can be converted to an [`TypeErasedVec`]
 /// in constant **O(1)** time, hiding its element type and allocator at runtime.
 ///
 /// A type-erasable vector is parameterized by the following parameters:
@@ -5644,7 +5644,7 @@ where
 /// runtime dynamic typing, since one has more control over the memory layout of the collection,
 /// even for erased types. Some applications of this include implementing heterogeneous data
 /// structures, plugin systems, and managing foreign function interface data. There are two data
-/// types that are dual to each other: [`TypedProjVec`] and [`OpaqueVec`]. The structure of both
+/// types that are dual to each other: [`TypeProjectedVec`] and [`TypeErasedVec`]. The structure of both
 /// data types are equivalent to the following data structures:
 ///
 /// ```
@@ -5744,13 +5744,13 @@ where
 ///
 /// # See Also
 ///
-/// - [`TypedProjVec`]: The type-projected counterpart of [`OpaqueVec`].
+/// - [`TypeProjectedVec`]: The type-projected counterpart of [`TypeErasedVec`].
 ///
 /// # Examples
 ///
 /// ```
 /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-/// # use opaque_vec::{TypedProjVec, OpaqueVec};
+/// # use opaque_vec::{TypeProjectedVec, TypeErasedVec};
 /// #
 /// # #[cfg(feature = "nightly")]
 /// # use std::alloc::Global;
@@ -5758,12 +5758,12 @@ where
 /// # #[cfg(not(feature = "nightly"))]
 /// # use opaque_allocator_api::alloc::Global;
 /// #
-/// let mut proj_vec: TypedProjVec<i32, Global> = TypedProjVec::new();
+/// let mut proj_vec: TypeProjectedVec<i32, Global> = TypeProjectedVec::new();
 /// proj_vec.push(42);
 ///
 /// assert_eq!(proj_vec.get(0), Some(&42));
 ///
-/// let opaque_vec: OpaqueVec = OpaqueVec::from_proj(proj_vec);
+/// let opaque_vec: TypeErasedVec = TypeErasedVec::from_proj(proj_vec);
 ///
 /// assert!(opaque_vec.has_element_type::<i32>());
 /// assert!(opaque_vec.has_allocator_type::<Global>());
@@ -5771,18 +5771,18 @@ where
 /// assert_eq!(opaque_vec.get::<_, i32, Global>(0), Some(&42));
 /// ```
 #[repr(transparent)]
-pub struct OpaqueVec {
-    inner: OpaqueVecInner,
+pub struct TypeErasedVec {
+    inner: TypeErasedVecInner,
 }
 
-impl OpaqueVec {
+impl TypeErasedVec {
     /// Returns the [`TypeId`] of the elements contained in a type-erased vector.
     ///
     /// # Examples
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// # use std::any::TypeId;
     /// #
     /// # #[cfg(feature = "nightly")]
@@ -5791,7 +5791,7 @@ impl OpaqueVec {
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let opaque_vec = OpaqueVec::new_in::<i32, Global>(Global);
+    /// let opaque_vec = TypeErasedVec::new_in::<i32, Global>(Global);
     /// let expected = TypeId::of::<i32>();
     /// let result = opaque_vec.element_type_id();
     ///
@@ -5808,7 +5808,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// # use std::any::TypeId;
     /// #
     /// # #[cfg(feature = "nightly")]
@@ -5817,7 +5817,7 @@ impl OpaqueVec {
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let opaque_vec = OpaqueVec::new_in::<i32, Global>(Global);
+    /// let opaque_vec = TypeErasedVec::new_in::<i32, Global>(Global);
     /// let expected = TypeId::of::<Global>();
     /// let result = opaque_vec.allocator_type_id();
     ///
@@ -5829,7 +5829,7 @@ impl OpaqueVec {
     }
 }
 
-impl OpaqueVec {
+impl TypeErasedVec {
     /// Determine whether a type-erased vector has a specific element type.
     ///
     /// Returns `true` if `self` has the specified element type. Returns `false` otherwise.
@@ -5838,7 +5838,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -5846,7 +5846,7 @@ impl OpaqueVec {
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let opaque_vec = OpaqueVec::new_in::<i32, Global>(Global);
+    /// let opaque_vec = TypeErasedVec::new_in::<i32, Global>(Global);
     ///
     /// assert!(opaque_vec.has_element_type::<i32>());
     /// ```
@@ -5866,7 +5866,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -5874,7 +5874,7 @@ impl OpaqueVec {
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let opaque_vec = OpaqueVec::new_in::<i32, Global>(Global);
+    /// let opaque_vec = TypeErasedVec::new_in::<i32, Global>(Global);
     ///
     /// assert!(opaque_vec.has_allocator_type::<Global>());
     /// ```
@@ -5920,7 +5920,7 @@ impl OpaqueVec {
     }
 }
 
-impl OpaqueVec {
+impl TypeErasedVec {
     /// Projects the type-erased vector reference into a type-projected vector reference.
     ///
     /// # Complexity Characteristics
@@ -5937,7 +5937,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::{OpaqueVec, TypedProjVec};
+    /// # use opaque_vec::{TypeErasedVec, TypeProjectedVec};
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -5945,23 +5945,23 @@ impl OpaqueVec {
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let opaque_vec = OpaqueVec::new_in::<i32, Global>(Global);
+    /// let opaque_vec = TypeErasedVec::new_in::<i32, Global>(Global);
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
     /// #
-    /// let proj_vec: &TypedProjVec<i32, Global> = opaque_vec.as_proj::<i32, Global>();
+    /// let proj_vec: &TypeProjectedVec<i32, Global> = opaque_vec.as_proj::<i32, Global>();
     /// ```
     #[inline]
     #[track_caller]
-    pub fn as_proj<T, A>(&self) -> &TypedProjVec<T, A>
+    pub fn as_proj<T, A>(&self) -> &TypeProjectedVec<T, A>
     where
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
     {
         self.assert_type_safety::<T, A>();
 
-        unsafe { &*(self as *const OpaqueVec as *const TypedProjVec<T, A>) }
+        unsafe { &*(self as *const TypeErasedVec as *const TypeProjectedVec<T, A>) }
     }
 
     /// Projects the mutable type-erased vector reference into a type-projected
@@ -5981,7 +5981,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::{OpaqueVec, TypedProjVec};
+    /// # use opaque_vec::{TypeErasedVec, TypeProjectedVec};
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -5989,23 +5989,23 @@ impl OpaqueVec {
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut opaque_vec = OpaqueVec::new_in::<i32, Global>(Global);
+    /// let mut opaque_vec = TypeErasedVec::new_in::<i32, Global>(Global);
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
     /// #
-    /// let proj_vec: &mut TypedProjVec<i32, Global> = opaque_vec.as_proj_mut::<i32, Global>();
+    /// let proj_vec: &mut TypeProjectedVec<i32, Global> = opaque_vec.as_proj_mut::<i32, Global>();
     /// ```
     #[inline]
     #[track_caller]
-    pub fn as_proj_mut<T, A>(&mut self) -> &mut TypedProjVec<T, A>
+    pub fn as_proj_mut<T, A>(&mut self) -> &mut TypeProjectedVec<T, A>
     where
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
     {
         self.assert_type_safety::<T, A>();
 
-        unsafe { &mut *(self as *mut OpaqueVec as *mut TypedProjVec<T, A>) }
+        unsafe { &mut *(self as *mut TypeErasedVec as *mut TypeProjectedVec<T, A>) }
     }
 
     /// Projects a type-erased vector value into a type-projected vector value.
@@ -6024,7 +6024,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::{OpaqueVec, TypedProjVec};
+    /// # use opaque_vec::{TypeErasedVec, TypeProjectedVec};
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -6032,23 +6032,23 @@ impl OpaqueVec {
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let opaque_vec = OpaqueVec::new_in::<i32, Global>(Global);
+    /// let opaque_vec = TypeErasedVec::new_in::<i32, Global>(Global);
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
     /// #
-    /// let proj_vec: TypedProjVec<i32, Global> = opaque_vec.into_proj::<i32, Global>();
+    /// let proj_vec: TypeProjectedVec<i32, Global> = opaque_vec.into_proj::<i32, Global>();
     /// ```
     #[inline]
     #[track_caller]
-    pub fn into_proj<T, A>(self) -> TypedProjVec<T, A>
+    pub fn into_proj<T, A>(self) -> TypeProjectedVec<T, A>
     where
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
     {
         self.assert_type_safety::<T, A>();
 
-        TypedProjVec {
+        TypeProjectedVec {
             inner: self.inner.into_proj_assuming_type::<T, A>(),
         }
     }
@@ -6066,7 +6066,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::{OpaqueVec, TypedProjVec};
+    /// # use opaque_vec::{TypeErasedVec, TypeProjectedVec};
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -6074,30 +6074,30 @@ impl OpaqueVec {
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let proj_vec: TypedProjVec<i32, Global> = TypedProjVec::new_in(Global);
-    /// let opaque_vec: OpaqueVec = OpaqueVec::from_proj(proj_vec);
+    /// let proj_vec: TypeProjectedVec<i32, Global> = TypeProjectedVec::new_in(Global);
+    /// let opaque_vec: TypeErasedVec = TypeErasedVec::from_proj(proj_vec);
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
     /// #
     /// ```
     ///
-    /// [`as_proj`]: OpaqueVec::as_proj,
-    /// [`as_proj_mut`]: OpaqueVec::as_proj_mut
-    /// [`into_proj`]: OpaqueVec::into_proj
+    /// [`as_proj`]: TypeErasedVec::as_proj,
+    /// [`as_proj_mut`]: TypeErasedVec::as_proj_mut
+    /// [`into_proj`]: TypeErasedVec::into_proj
     #[inline]
-    pub fn from_proj<T, A>(proj_self: TypedProjVec<T, A>) -> Self
+    pub fn from_proj<T, A>(proj_self: TypeProjectedVec<T, A>) -> Self
     where
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
     {
         Self {
-            inner: OpaqueVecInner::from_proj(proj_self.inner),
+            inner: TypeErasedVecInner::from_proj(proj_self.inner),
         }
     }
 }
 
-impl OpaqueVec {
+impl TypeErasedVec {
     /// Constructs a new empty type-erased vector using a specific type-projected memory
     /// allocator.
     ///
@@ -6108,8 +6108,8 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
-    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypeErasedVec;
+    /// # use opaque_alloc::TypeProjectedAlloc;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -6117,12 +6117,12 @@ impl OpaqueVec {
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let proj_alloc = TypedProjAlloc::new(Global);
-    /// let opaque_vec = OpaqueVec::new_proj_in::<i32, Global>(proj_alloc);
+    /// let proj_alloc = TypeProjectedAlloc::new(Global);
+    /// let opaque_vec = TypeErasedVec::new_proj_in::<i32, Global>(proj_alloc);
     ///
     /// assert!(opaque_vec.has_element_type::<i32>());
     /// assert!(opaque_vec.has_allocator_type::<Global>());
-    /// assert!(!opaque_vec.has_allocator_type::<TypedProjAlloc<Global>>());
+    /// assert!(!opaque_vec.has_allocator_type::<TypeProjectedAlloc<Global>>());
     /// assert!(opaque_vec.is_empty());
     ///
     /// assert_eq!(opaque_vec.capacity(), 0);
@@ -6130,12 +6130,12 @@ impl OpaqueVec {
     #[inline]
     #[must_use]
     #[track_caller]
-    pub fn new_proj_in<T, A>(proj_alloc: TypedProjAlloc<A>) -> Self
+    pub fn new_proj_in<T, A>(proj_alloc: TypeProjectedAlloc<A>) -> Self
     where
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        let proj_vec = TypedProjVec::<T, A>::new_proj_in(proj_alloc);
+        let proj_vec = TypeProjectedVec::<T, A>::new_proj_in(proj_alloc);
 
         Self::from_proj(proj_vec)
     }
@@ -6161,8 +6161,8 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
-    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypeErasedVec;
+    /// # use opaque_alloc::TypeProjectedAlloc;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -6171,12 +6171,12 @@ impl OpaqueVec {
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let capacity = 32;
-    /// let proj_alloc = TypedProjAlloc::new(Global);
-    /// let opaque_vec = OpaqueVec::with_capacity_proj_in::<i32, Global>(capacity, proj_alloc);
+    /// let proj_alloc = TypeProjectedAlloc::new(Global);
+    /// let opaque_vec = TypeErasedVec::with_capacity_proj_in::<i32, Global>(capacity, proj_alloc);
     ///
     /// assert!(opaque_vec.has_element_type::<i32>());
     /// assert!(opaque_vec.has_allocator_type::<Global>());
-    /// assert!(!opaque_vec.has_allocator_type::<TypedProjAlloc<Global>>());
+    /// assert!(!opaque_vec.has_allocator_type::<TypeProjectedAlloc<Global>>());
     ///
     /// assert!(opaque_vec.capacity() >= capacity);
     /// assert!(opaque_vec.is_empty());
@@ -6186,8 +6186,8 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
-    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypeErasedVec;
+    /// # use opaque_alloc::TypeProjectedAlloc;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -6195,27 +6195,27 @@ impl OpaqueVec {
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let proj_alloc = TypedProjAlloc::new(Global);
-    /// let opaque_vec = OpaqueVec::with_capacity_proj_in::<i32, Global>(0, proj_alloc);
+    /// let proj_alloc = TypeProjectedAlloc::new(Global);
+    /// let opaque_vec = TypeErasedVec::with_capacity_proj_in::<i32, Global>(0, proj_alloc);
     ///
     /// assert!(opaque_vec.has_element_type::<i32>());
     /// assert!(opaque_vec.has_allocator_type::<Global>());
-    /// assert!(!opaque_vec.has_allocator_type::<TypedProjAlloc<Global>>());
+    /// assert!(!opaque_vec.has_allocator_type::<TypeProjectedAlloc<Global>>());
     ///
     /// assert_eq!(opaque_vec.capacity(), 0);
     /// assert!(opaque_vec.is_empty());
     /// ```
     ///
-    /// [`new_proj_in`]: OpaqueVec::new_proj_in
+    /// [`new_proj_in`]: TypeErasedVec::new_proj_in
     #[inline]
     #[must_use]
     #[track_caller]
-    pub fn with_capacity_proj_in<T, A>(capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self
+    pub fn with_capacity_proj_in<T, A>(capacity: usize, proj_alloc: TypeProjectedAlloc<A>) -> Self
     where
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        let proj_vec = TypedProjVec::<T, A>::with_capacity_proj_in(capacity, proj_alloc);
+        let proj_vec = TypeProjectedVec::<T, A>::with_capacity_proj_in(capacity, proj_alloc);
 
         Self::from_proj(proj_vec)
     }
@@ -6242,8 +6242,8 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
-    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypeErasedVec;
+    /// # use opaque_alloc::TypeProjectedAlloc;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -6252,8 +6252,8 @@ impl OpaqueVec {
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let capacity = 32;
-    /// let proj_alloc = TypedProjAlloc::new(Global);
-    /// let opaque_vec = OpaqueVec::try_with_capacity_proj_in::<i32, Global>(capacity, proj_alloc);
+    /// let proj_alloc = TypeProjectedAlloc::new(Global);
+    /// let opaque_vec = TypeErasedVec::try_with_capacity_proj_in::<i32, Global>(capacity, proj_alloc);
     ///
     /// assert!(opaque_vec.is_ok());
     ///
@@ -6261,7 +6261,7 @@ impl OpaqueVec {
     ///
     /// assert!(opaque_vec.has_element_type::<i32>());
     /// assert!(opaque_vec.has_allocator_type::<Global>());
-    /// assert!(!opaque_vec.has_allocator_type::<TypedProjAlloc<Global>>());
+    /// assert!(!opaque_vec.has_allocator_type::<TypeProjectedAlloc<Global>>());
     ///
     /// assert!(opaque_vec.capacity() >= capacity);
     /// assert!(opaque_vec.is_empty());
@@ -6271,8 +6271,8 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
-    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypeErasedVec;
+    /// # use opaque_alloc::TypeProjectedAlloc;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -6280,8 +6280,8 @@ impl OpaqueVec {
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let proj_alloc = TypedProjAlloc::new(Global);
-    /// let opaque_vec = OpaqueVec::try_with_capacity_proj_in::<i32, Global>(0, proj_alloc);
+    /// let proj_alloc = TypeProjectedAlloc::new(Global);
+    /// let opaque_vec = TypeErasedVec::try_with_capacity_proj_in::<i32, Global>(0, proj_alloc);
     ///
     /// assert!(opaque_vec.is_ok());
     ///
@@ -6289,20 +6289,20 @@ impl OpaqueVec {
     ///
     /// assert!(opaque_vec.has_element_type::<i32>());
     /// assert!(opaque_vec.has_allocator_type::<Global>());
-    /// assert!(!opaque_vec.has_allocator_type::<TypedProjAlloc<Global>>());
+    /// assert!(!opaque_vec.has_allocator_type::<TypeProjectedAlloc<Global>>());
     ///
     /// assert_eq!(opaque_vec.capacity(), 0);
     /// assert!(opaque_vec.is_empty());
     /// ```
     ///
-    /// [`new_proj_in`]: OpaqueVec::new_proj_in
+    /// [`new_proj_in`]: TypeErasedVec::new_proj_in
     #[inline]
-    pub fn try_with_capacity_proj_in<T, A>(capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Result<Self, TryReserveError>
+    pub fn try_with_capacity_proj_in<T, A>(capacity: usize, proj_alloc: TypeProjectedAlloc<A>) -> Result<Self, TryReserveError>
     where
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        let proj_vec = TypedProjVec::<T, A>::try_with_capacity_proj_in(capacity, proj_alloc)?;
+        let proj_vec = TypeProjectedVec::<T, A>::try_with_capacity_proj_in(capacity, proj_alloc)?;
 
         Ok(Self::from_proj(proj_vec))
     }
@@ -6331,7 +6331,7 @@ impl OpaqueVec {
     /// * The allocated size in bytes must be no larger than `isize::MAX`.
     ///   See the safety documentation of [`pointer::offset`].
     ///
-    /// These requirements always hold for any `ptr` that has been allocated via an [`OpaqueVec`].
+    /// These requirements always hold for any `ptr` that has been allocated via an [`TypeErasedVec`].
     ///
     /// The ownership of `ptr` is effectively transferred to the
     /// type-erased vector which may then deallocate, reallocate or change the
@@ -6344,8 +6344,8 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
-    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypeErasedVec;
+    /// # use opaque_alloc::TypeProjectedAlloc;
     /// # use std::ptr;
     /// # use std::mem;
     /// #
@@ -6357,7 +6357,7 @@ impl OpaqueVec {
     /// #
     /// let opaque_vec = {
     ///     let array: [i32; 3] = [1, 2, 3];
-    ///     OpaqueVec::from(array)
+    ///     TypeErasedVec::from(array)
     /// };
     ///
     /// // Prevent running `opaque_vec`'s destructor to completely control the allocation.
@@ -6367,11 +6367,11 @@ impl OpaqueVec {
     /// let ptr: *mut i32 = opaque_vec.as_mut_ptr::<i32, Global>();
     /// let length = opaque_vec.len();
     /// let capacity = opaque_vec.capacity();
-    /// let proj_alloc: TypedProjAlloc<Global> = unsafe { ptr::read(opaque_vec.allocator::<i32, Global>()) };
+    /// let proj_alloc: TypeProjectedAlloc<Global> = unsafe { ptr::read(opaque_vec.allocator::<i32, Global>()) };
     ///
     /// let expected = {
     ///     let array: [i32; 3] = [4, 5, 6];
-    ///     OpaqueVec::from(array)
+    ///     TypeErasedVec::from(array)
     /// };
     /// let result = unsafe {
     ///     // Mutate the values directly in memory.
@@ -6380,7 +6380,7 @@ impl OpaqueVec {
     ///     }
     ///
     ///     // Rebuild the vector.
-    ///     OpaqueVec::from_raw_parts_proj_in::<i32, Global>(ptr, length, capacity, proj_alloc)
+    ///     TypeErasedVec::from_raw_parts_proj_in::<i32, Global>(ptr, length, capacity, proj_alloc)
     /// };
     ///
     /// assert_eq!(result.as_slice::<i32, Global>(), expected.as_slice::<i32, Global>());
@@ -6403,7 +6403,7 @@ impl OpaqueVec {
     ///     result.push::<i32, Global>(i32::MAX);
     /// }
     ///
-    /// let expected = OpaqueVec::from([
+    /// let expected = TypeErasedVec::from([
     ///     4,        5,        6,        i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX,
     ///     i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX,
     /// ]);
@@ -6419,8 +6419,8 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
-    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypeErasedVec;
+    /// # use opaque_alloc::TypeProjectedAlloc;
     /// # use std::ptr::NonNull;
     /// #
     /// # #[cfg(feature = "nightly")]
@@ -6431,14 +6431,14 @@ impl OpaqueVec {
     /// #
     /// let value = 1_000_000;
     /// let layout = Layout::array::<u32>(16).unwrap();
-    /// let proj_alloc = TypedProjAlloc::new(Global);
+    /// let proj_alloc = TypeProjectedAlloc::new(Global);
     /// let length = 1;
     /// let capacity = 16;
     /// let opaque_vec = unsafe {
     ///     let mut memory: NonNull<u32> = proj_alloc.allocate(layout).unwrap().cast::<u32>();
     ///     memory.write(value);
     ///
-    ///     OpaqueVec::from_raw_parts_proj_in::<u32, Global>(memory.as_mut() as *mut u32, length, capacity, proj_alloc)
+    ///     TypeErasedVec::from_raw_parts_proj_in::<u32, Global>(memory.as_mut() as *mut u32, length, capacity, proj_alloc)
     /// };
     ///
     /// assert_eq!(opaque_vec.as_slice::<u32, Global>(), &[value]);
@@ -6452,7 +6452,7 @@ impl OpaqueVec {
     ///     result.push::<u32, Global>(u32::MAX);
     /// }
     ///
-    /// let expected = OpaqueVec::from([
+    /// let expected = TypeErasedVec::from([
     ///     value,     u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX,
     ///     u32::MAX,  u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX,
     /// ]);
@@ -6465,13 +6465,13 @@ impl OpaqueVec {
     ///
     /// [`dealloc`]: std::alloc::Allocator::dealloc
     #[inline]
-    pub unsafe fn from_raw_parts_proj_in<T, A>(ptr: *mut T, length: usize, capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self
+    pub unsafe fn from_raw_parts_proj_in<T, A>(ptr: *mut T, length: usize, capacity: usize, proj_alloc: TypeProjectedAlloc<A>) -> Self
     where
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_vec = unsafe {
-            TypedProjVec::<T, A>::from_raw_parts_proj_in(ptr, length, capacity, proj_alloc)
+            TypeProjectedVec::<T, A>::from_raw_parts_proj_in(ptr, length, capacity, proj_alloc)
         };
 
         Self::from_proj(proj_vec)
@@ -6502,7 +6502,7 @@ impl OpaqueVec {
     ///   See the safety documentation of [`pointer::offset`].
     ///
     /// These requirements always hold for any `ptr` that has been allocated via an
-    /// [`OpaqueVec`].
+    /// [`TypeErasedVec`].
     ///
     /// The ownership of `ptr` is effectively transferred to the type-erased vector which may
     /// then deallocate, reallocate or change the contents of memory pointed to by the pointer at
@@ -6515,8 +6515,8 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
-    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypeErasedVec;
+    /// # use opaque_alloc::TypeProjectedAlloc;
     /// # use std::ptr::NonNull;
     /// # use std::ptr;
     /// # use std::mem;
@@ -6529,7 +6529,7 @@ impl OpaqueVec {
     /// #
     /// let opaque_vec = {
     ///     let array: [i32; 3] = [1, 2, 3];
-    ///     OpaqueVec::from(array)
+    ///     TypeErasedVec::from(array)
     /// };
     ///
     /// // Prevent running `opaque_vec`'s destructor to completely control the allocation.
@@ -6539,11 +6539,11 @@ impl OpaqueVec {
     /// let ptr: NonNull<i32> = opaque_vec.as_non_null::<i32, Global>();
     /// let length = opaque_vec.len();
     /// let capacity = opaque_vec.capacity();
-    /// let proj_alloc: TypedProjAlloc<Global> = unsafe { ptr::read(opaque_vec.allocator::<i32, Global>()) };
+    /// let proj_alloc: TypeProjectedAlloc<Global> = unsafe { ptr::read(opaque_vec.allocator::<i32, Global>()) };
     ///
     /// let expected = {
     ///     let array: [i32; 3] = [4, 5, 6];
-    ///     OpaqueVec::from(array)
+    ///     TypeErasedVec::from(array)
     /// };
     /// let result = unsafe {
     ///     // Mutate the values directly in memory.
@@ -6552,7 +6552,7 @@ impl OpaqueVec {
     ///     }
     ///
     ///     // Rebuild the vector.
-    ///     OpaqueVec::from_parts_proj_in::<i32, Global>(ptr, length, capacity, proj_alloc)
+    ///     TypeErasedVec::from_parts_proj_in::<i32, Global>(ptr, length, capacity, proj_alloc)
     /// };
     ///
     /// assert_eq!(result.as_slice::<i32, Global>(), expected.as_slice::<i32, Global>());
@@ -6575,7 +6575,7 @@ impl OpaqueVec {
     ///     result.push::<i32, Global>(i32::MAX);
     /// }
     ///
-    /// let expected = OpaqueVec::from([
+    /// let expected = TypeErasedVec::from([
     ///     4,        5,        6,        i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX,
     ///     i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX,
     /// ]);
@@ -6591,8 +6591,8 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
-    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypeErasedVec;
+    /// # use opaque_alloc::TypeProjectedAlloc;
     /// # use std::ptr::NonNull;
     /// #
     /// # #[cfg(feature = "nightly")]
@@ -6603,14 +6603,14 @@ impl OpaqueVec {
     /// #
     /// let value = 1_000_000;
     /// let layout = Layout::array::<u32>(16).unwrap();
-    /// let proj_alloc = TypedProjAlloc::new(Global);
+    /// let proj_alloc = TypeProjectedAlloc::new(Global);
     /// let length = 1;
     /// let capacity = 16;
     /// let opaque_vec = unsafe {
     ///     let mut memory: NonNull<u32> = proj_alloc.allocate(layout).unwrap().cast::<u32>();
     ///     memory.write(value);
     ///
-    ///     OpaqueVec::from_parts_proj_in::<u32, Global>(memory, length, capacity, proj_alloc)
+    ///     TypeErasedVec::from_parts_proj_in::<u32, Global>(memory, length, capacity, proj_alloc)
     /// };
     ///
     /// assert_eq!(opaque_vec.as_slice::<u32, Global>(), &[value]);
@@ -6624,7 +6624,7 @@ impl OpaqueVec {
     ///     result.push::<u32, Global>(u32::MAX);
     /// }
     ///
-    /// let expected = OpaqueVec::from([
+    /// let expected = TypeErasedVec::from([
     ///     value,     u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX,
     ///     u32::MAX,  u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX,
     /// ]);
@@ -6637,13 +6637,13 @@ impl OpaqueVec {
     ///
     /// [`dealloc`]: std::alloc::Allocator::dealloc
     #[inline]
-    pub unsafe fn from_parts_proj_in<T, A>(ptr: NonNull<T>, length: usize, capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self
+    pub unsafe fn from_parts_proj_in<T, A>(ptr: NonNull<T>, length: usize, capacity: usize, proj_alloc: TypeProjectedAlloc<A>) -> Self
     where
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_vec = unsafe {
-            TypedProjVec::<T, A>::from_parts_proj_in(ptr, length, capacity, proj_alloc)
+            TypeProjectedVec::<T, A>::from_parts_proj_in(ptr, length, capacity, proj_alloc)
         };
 
         Self::from_proj(proj_vec)
@@ -6658,7 +6658,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -6666,7 +6666,7 @@ impl OpaqueVec {
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let opaque_vec = OpaqueVec::new_in::<i32, Global>(Global);
+    /// let opaque_vec = TypeErasedVec::new_in::<i32, Global>(Global);
     ///
     /// assert!(opaque_vec.has_element_type::<i32>());
     /// assert!(opaque_vec.has_allocator_type::<Global>());
@@ -6681,7 +6681,7 @@ impl OpaqueVec {
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        let proj_vec = TypedProjVec::<T, A>::new_in(alloc);
+        let proj_vec = TypeProjectedVec::<T, A>::new_in(alloc);
 
         Self::from_proj(proj_vec)
     }
@@ -6707,7 +6707,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -6716,7 +6716,7 @@ impl OpaqueVec {
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let capacity = 32;
-    /// let opaque_vec = OpaqueVec::with_capacity_in::<i32, Global>(capacity, Global);
+    /// let opaque_vec = TypeErasedVec::with_capacity_in::<i32, Global>(capacity, Global);
     ///
     /// assert!(opaque_vec.has_element_type::<i32>());
     /// assert!(opaque_vec.has_allocator_type::<Global>());
@@ -6729,7 +6729,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -6737,7 +6737,7 @@ impl OpaqueVec {
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let opaque_vec = OpaqueVec::with_capacity_in::<i32, Global>(0, Global);
+    /// let opaque_vec = TypeErasedVec::with_capacity_in::<i32, Global>(0, Global);
     ///
     /// assert!(opaque_vec.has_element_type::<i32>());
     /// assert!(opaque_vec.has_allocator_type::<Global>());
@@ -6746,7 +6746,7 @@ impl OpaqueVec {
     /// assert!(opaque_vec.is_empty());
     /// ```
     ///
-    /// [`new_in`]: OpaqueVec::new_in
+    /// [`new_in`]: TypeErasedVec::new_in
     #[inline]
     #[must_use]
     #[track_caller]
@@ -6755,7 +6755,7 @@ impl OpaqueVec {
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        let proj_vec = TypedProjVec::<T, A>::with_capacity_in(capacity, alloc);
+        let proj_vec = TypeProjectedVec::<T, A>::with_capacity_in(capacity, alloc);
 
         Self::from_proj(proj_vec)
     }
@@ -6782,7 +6782,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -6791,7 +6791,7 @@ impl OpaqueVec {
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let capacity = 32;
-    /// let opaque_vec = OpaqueVec::try_with_capacity_in::<i32, Global>(capacity, Global);
+    /// let opaque_vec = TypeErasedVec::try_with_capacity_in::<i32, Global>(capacity, Global);
     ///
     /// assert!(opaque_vec.is_ok());
     ///
@@ -6808,7 +6808,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -6816,7 +6816,7 @@ impl OpaqueVec {
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let opaque_vec = OpaqueVec::try_with_capacity_in::<i32, Global>(0, Global);
+    /// let opaque_vec = TypeErasedVec::try_with_capacity_in::<i32, Global>(0, Global);
     ///
     /// assert!(opaque_vec.is_ok());
     ///
@@ -6829,14 +6829,14 @@ impl OpaqueVec {
     /// assert!(opaque_vec.is_empty());
     /// ```
     ///
-    /// [`new_in`]: OpaqueVec::new_in
+    /// [`new_in`]: TypeErasedVec::new_in
     #[inline]
     pub fn try_with_capacity_in<T, A>(capacity: usize, alloc: A) -> Result<Self, TryReserveError>
     where
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        let proj_vec = TypedProjVec::<T, A>::try_with_capacity_in(capacity, alloc)?;
+        let proj_vec = TypeProjectedVec::<T, A>::try_with_capacity_in(capacity, alloc)?;
 
         Ok(Self::from_proj(proj_vec))
     }
@@ -6866,7 +6866,7 @@ impl OpaqueVec {
     ///   See the safety documentation of [`pointer::offset`].
     ///
     /// These requirements always hold for any `ptr` that has been allocated via an
-    /// [`OpaqueVec`].
+    /// [`TypeErasedVec`].
     ///
     /// The ownership of `ptr` is effectively transferred to the type-erased vector which may
     /// then deallocate, reallocate or change the contents of memory pointed to by the pointer at
@@ -6879,7 +6879,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// # use std::ptr;
     /// # use std::mem;
     /// #
@@ -6891,7 +6891,7 @@ impl OpaqueVec {
     /// #
     /// let opaque_vec = {
     ///     let array: [i32; 3] = [1, 2, 3];
-    ///     OpaqueVec::from(array)
+    ///     TypeErasedVec::from(array)
     /// };
     ///
     /// // Prevent running `opaque_vec`'s destructor to completely control the allocation.
@@ -6905,7 +6905,7 @@ impl OpaqueVec {
     ///
     /// let expected = {
     ///     let array: [i32; 3] = [4, 5, 6];
-    ///     OpaqueVec::from(array)
+    ///     TypeErasedVec::from(array)
     /// };
     /// let result = unsafe {
     ///     // Mutate the values directly in memory.
@@ -6914,7 +6914,7 @@ impl OpaqueVec {
     ///     }
     ///
     ///     // Rebuild the vector.
-    ///     OpaqueVec::from_raw_parts_in::<i32, Global>(ptr, length, capacity, alloc)
+    ///     TypeErasedVec::from_raw_parts_in::<i32, Global>(ptr, length, capacity, alloc)
     /// };
     ///
     /// assert_eq!(result.as_slice::<i32, Global>(), expected.as_slice::<i32, Global>());
@@ -6937,7 +6937,7 @@ impl OpaqueVec {
     ///     result.push::<i32, Global>(i32::MAX);
     /// }
     ///
-    /// let expected = OpaqueVec::from([
+    /// let expected = TypeErasedVec::from([
     ///     4,        5,        6,        i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX,
     ///     i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX,
     /// ]);
@@ -6953,7 +6953,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// # use std::ptr::NonNull;
     /// #
     /// # #[cfg(feature = "nightly")]
@@ -6971,7 +6971,7 @@ impl OpaqueVec {
     ///     let mut memory: NonNull<u32> = alloc.allocate(layout).unwrap().cast::<u32>();
     ///     memory.write(value);
     ///
-    ///     OpaqueVec::from_raw_parts_in::<u32, Global>(memory.as_mut() as *mut u32, length, capacity, alloc)
+    ///     TypeErasedVec::from_raw_parts_in::<u32, Global>(memory.as_mut() as *mut u32, length, capacity, alloc)
     /// };
     ///
     /// assert_eq!(opaque_vec.as_slice::<u32, Global>(), &[value]);
@@ -6985,7 +6985,7 @@ impl OpaqueVec {
     ///     result.push::<u32, Global>(u32::MAX);
     /// }
     ///
-    /// let expected = OpaqueVec::from([
+    /// let expected = TypeErasedVec::from([
     ///     value,     u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX,
     ///     u32::MAX,  u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX,
     /// ]);
@@ -7004,7 +7004,7 @@ impl OpaqueVec {
         A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_vec = unsafe {
-            TypedProjVec::<T, A>::from_raw_parts_in(ptr, length, capacity, alloc)
+            TypeProjectedVec::<T, A>::from_raw_parts_in(ptr, length, capacity, alloc)
         };
 
         Self::from_proj(proj_vec)
@@ -7035,7 +7035,7 @@ impl OpaqueVec {
     ///   See the safety documentation of [`pointer::offset`].
     ///
     /// These requirements always hold for any `ptr` that has been allocated via an
-    /// [`OpaqueVec`].
+    /// [`TypeErasedVec`].
     ///
     /// The ownership of `ptr` is effectively transferred to the type-erased vector which may
     /// then deallocate, reallocate or change the contents of memory pointed to by the pointer at
@@ -7048,7 +7048,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// # use std::ptr::NonNull;
     /// # use std::ptr;
     /// # use std::mem;
@@ -7061,7 +7061,7 @@ impl OpaqueVec {
     /// #
     /// let opaque_vec = {
     ///     let array: [i32; 3] = [1, 2, 3];
-    ///     OpaqueVec::from(array)
+    ///     TypeErasedVec::from(array)
     /// };
     ///
     /// // Prevent running `opaque_vec`'s destructor to completely control the allocation.
@@ -7075,7 +7075,7 @@ impl OpaqueVec {
     ///
     /// let expected = {
     ///     let array: [i32; 3] = [4, 5, 6];
-    ///     OpaqueVec::from(array)
+    ///     TypeErasedVec::from(array)
     /// };
     /// let result = unsafe {
     ///     // Mutate the values directly in memory.
@@ -7084,7 +7084,7 @@ impl OpaqueVec {
     ///     }
     ///
     ///     // Rebuild the vector.
-    ///     OpaqueVec::from_parts_in::<i32, Global>(ptr, length, capacity, alloc)
+    ///     TypeErasedVec::from_parts_in::<i32, Global>(ptr, length, capacity, alloc)
     /// };
     ///
     /// assert_eq!(result.as_slice::<i32, Global>(), expected.as_slice::<i32, Global>());
@@ -7107,7 +7107,7 @@ impl OpaqueVec {
     ///     result.push::<i32, Global>(i32::MAX);
     /// }
     ///
-    /// let expected = OpaqueVec::from([
+    /// let expected = TypeErasedVec::from([
     ///     4,        5,        6,        i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX,
     ///     i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX,
     /// ]);
@@ -7123,7 +7123,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// # use std::ptr::NonNull;
     /// #
     /// # #[cfg(feature = "nightly")]
@@ -7141,7 +7141,7 @@ impl OpaqueVec {
     ///     let mut memory: NonNull<u32> = alloc.allocate(layout).unwrap().cast::<u32>();
     ///     memory.write(value);
     ///
-    ///     OpaqueVec::from_parts_in::<u32, Global>(memory, length, capacity, alloc)
+    ///     TypeErasedVec::from_parts_in::<u32, Global>(memory, length, capacity, alloc)
     /// };
     ///
     /// assert_eq!(opaque_vec.as_slice::<u32, Global>(), &[value]);
@@ -7155,7 +7155,7 @@ impl OpaqueVec {
     ///     result.push::<u32, Global>(u32::MAX);
     /// }
     ///
-    /// let expected = OpaqueVec::from([
+    /// let expected = TypeErasedVec::from([
     ///     value,     u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX,
     ///     u32::MAX,  u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX,
     /// ]);
@@ -7174,14 +7174,14 @@ impl OpaqueVec {
         A: any::Any + alloc::Allocator + Send + Sync,
     {
         let proj_vec = unsafe {
-            TypedProjVec::<T, A>::from_parts_in(ptr, length, capacity, alloc)
+            TypeProjectedVec::<T, A>::from_parts_in(ptr, length, capacity, alloc)
         };
 
         Self::from_proj(proj_vec)
     }
 }
 
-impl OpaqueVec {
+impl TypeErasedVec {
     /// Constructs a new empty type-erased vector.
     ///
     /// The vector will not allocate until elements are pushed into it. In particular, the vector
@@ -7191,7 +7191,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -7199,7 +7199,7 @@ impl OpaqueVec {
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let opaque_vec = OpaqueVec::new::<i32>();
+    /// let opaque_vec = TypeErasedVec::new::<i32>();
     ///
     /// assert!(opaque_vec.has_element_type::<i32>());
     /// assert!(opaque_vec.has_allocator_type::<Global>());
@@ -7213,7 +7213,7 @@ impl OpaqueVec {
     where
         T: any::Any,
     {
-        let proj_vec = TypedProjVec::<T, alloc::Global>::new();
+        let proj_vec = TypeProjectedVec::<T, alloc::Global>::new();
 
         Self::from_proj(proj_vec)
     }
@@ -7238,7 +7238,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -7247,7 +7247,7 @@ impl OpaqueVec {
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let capacity = 32;
-    /// let opaque_vec = OpaqueVec::with_capacity::<i32>(capacity);
+    /// let opaque_vec = TypeErasedVec::with_capacity::<i32>(capacity);
     ///
     /// assert!(opaque_vec.has_element_type::<i32>());
     /// assert!(opaque_vec.has_allocator_type::<Global>());
@@ -7260,7 +7260,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -7268,7 +7268,7 @@ impl OpaqueVec {
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let opaque_vec = OpaqueVec::with_capacity::<i32>(0);
+    /// let opaque_vec = TypeErasedVec::with_capacity::<i32>(0);
     ///
     /// assert!(opaque_vec.has_element_type::<i32>());
     /// assert!(opaque_vec.has_allocator_type::<Global>());
@@ -7277,7 +7277,7 @@ impl OpaqueVec {
     /// assert!(opaque_vec.is_empty());
     /// ```
     ///
-    /// [`new`]: OpaqueVec::new
+    /// [`new`]: TypeErasedVec::new
     #[inline]
     #[must_use]
     #[track_caller]
@@ -7285,7 +7285,7 @@ impl OpaqueVec {
     where
         T: any::Any,
     {
-        let proj_vec = TypedProjVec::<T, alloc::Global>::with_capacity(capacity);
+        let proj_vec = TypeProjectedVec::<T, alloc::Global>::with_capacity(capacity);
 
         Self::from_proj(proj_vec)
     }
@@ -7311,7 +7311,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -7320,7 +7320,7 @@ impl OpaqueVec {
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let capacity = 32;
-    /// let opaque_vec = OpaqueVec::try_with_capacity::<i32>(capacity);
+    /// let opaque_vec = TypeErasedVec::try_with_capacity::<i32>(capacity);
     ///
     /// assert!(opaque_vec.is_ok());
     ///
@@ -7337,7 +7337,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -7345,7 +7345,7 @@ impl OpaqueVec {
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let opaque_vec = OpaqueVec::try_with_capacity::<i32>(0);
+    /// let opaque_vec = TypeErasedVec::try_with_capacity::<i32>(0);
     ///
     /// assert!(opaque_vec.is_ok());
     ///
@@ -7358,13 +7358,13 @@ impl OpaqueVec {
     /// assert!(opaque_vec.is_empty());
     /// ```
     ///
-    /// [`new`]: OpaqueVec::new
+    /// [`new`]: TypeErasedVec::new
     #[inline]
     pub fn try_with_capacity<T>(capacity: usize) -> Result<Self, TryReserveError>
     where
         T: any::Any,
     {
-        let proj_vec = TypedProjVec::<T, alloc::Global>::try_with_capacity(capacity)?;
+        let proj_vec = TypeProjectedVec::<T, alloc::Global>::try_with_capacity(capacity)?;
 
         Ok(Self::from_proj(proj_vec))
     }
@@ -7392,7 +7392,7 @@ impl OpaqueVec {
     ///   See the safety documentation of [`pointer::offset`].
     ///
     /// These requirements always hold for any `ptr` that has been allocated via an
-    /// [`OpaqueVec`].
+    /// [`TypeErasedVec`].
     ///
     /// The ownership of `ptr` is effectively transferred to the type-erased vector which may
     /// then deallocate, reallocate or change the contents of memory pointed to by the pointer at
@@ -7405,7 +7405,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// # use std::ptr;
     /// # use std::mem;
     /// #
@@ -7417,7 +7417,7 @@ impl OpaqueVec {
     /// #
     /// let opaque_vec = {
     ///     let array: [i32; 3] = [1, 2, 3];
-    ///     OpaqueVec::from(array)
+    ///     TypeErasedVec::from(array)
     /// };
     ///
     /// // Prevent running `opaque_vec`'s destructor to completely control the allocation.
@@ -7430,7 +7430,7 @@ impl OpaqueVec {
     ///
     /// let expected = {
     ///     let array: [i32; 3] = [4, 5, 6];
-    ///     OpaqueVec::from(array)
+    ///     TypeErasedVec::from(array)
     /// };
     /// let result = unsafe {
     ///     // Mutate the values directly in memory.
@@ -7439,7 +7439,7 @@ impl OpaqueVec {
     ///     }
     ///
     ///     // Rebuild the vector.
-    ///     OpaqueVec::from_raw_parts::<i32>(ptr, length, capacity)
+    ///     TypeErasedVec::from_raw_parts::<i32>(ptr, length, capacity)
     /// };
     ///
     /// assert_eq!(result.as_slice::<i32, Global>(), expected.as_slice::<i32, Global>());
@@ -7462,7 +7462,7 @@ impl OpaqueVec {
     ///     result.push::<i32, Global>(i32::MAX);
     /// }
     ///
-    /// let expected = OpaqueVec::from([
+    /// let expected = TypeErasedVec::from([
     ///     4,        5,        6,        i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX,
     ///     i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX,
     /// ]);
@@ -7478,7 +7478,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// # use std::ptr::NonNull;
     /// #
     /// # #[cfg(feature = "nightly")]
@@ -7495,7 +7495,7 @@ impl OpaqueVec {
     ///     let mut memory: NonNull<u32> = Global.allocate(layout).unwrap().cast::<u32>();
     ///     memory.write(value);
     ///
-    ///     OpaqueVec::from_raw_parts::<u32>(memory.as_mut() as *mut u32, length, capacity)
+    ///     TypeErasedVec::from_raw_parts::<u32>(memory.as_mut() as *mut u32, length, capacity)
     /// };
     ///
     /// assert_eq!(opaque_vec.as_slice::<u32, Global>(), &[value]);
@@ -7509,7 +7509,7 @@ impl OpaqueVec {
     ///     result.push::<u32, Global>(u32::MAX);
     /// }
     ///
-    /// let expected = OpaqueVec::from([
+    /// let expected = TypeErasedVec::from([
     ///     value,     u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX,
     ///     u32::MAX,  u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX,
     /// ]);
@@ -7527,7 +7527,7 @@ impl OpaqueVec {
         T: any::Any,
     {
         let proj_vec = unsafe {
-            TypedProjVec::<T, alloc::Global>::from_raw_parts(ptr, length, capacity)
+            TypeProjectedVec::<T, alloc::Global>::from_raw_parts(ptr, length, capacity)
         };
 
         Self::from_proj(proj_vec)
@@ -7556,7 +7556,7 @@ impl OpaqueVec {
     ///   See the safety documentation of [`pointer::offset`].
     ///
     /// These requirements always hold for any `ptr` that has been allocated via an
-    /// [`OpaqueVec`].
+    /// [`TypeErasedVec`].
     ///
     /// The ownership of `ptr` is effectively transferred to the type-erased vector which may
     /// then deallocate, reallocate or change the contents of memory pointed to by the pointer at
@@ -7569,7 +7569,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// # use std::ptr::NonNull;
     /// # use std::ptr;
     /// # use std::mem;
@@ -7582,7 +7582,7 @@ impl OpaqueVec {
     /// #
     /// let opaque_vec = {
     ///     let array: [i32; 3] = [1, 2, 3];
-    ///     OpaqueVec::from(array)
+    ///     TypeErasedVec::from(array)
     /// };
     ///
     /// // Prevent running `opaque_vec`'s destructor to completely control the allocation.
@@ -7595,7 +7595,7 @@ impl OpaqueVec {
     ///
     /// let expected = {
     ///     let array: [i32; 3] = [4, 5, 6];
-    ///     OpaqueVec::from(array)
+    ///     TypeErasedVec::from(array)
     /// };
     /// let result = unsafe {
     ///     // Mutate the values directly in memory.
@@ -7604,7 +7604,7 @@ impl OpaqueVec {
     ///     }
     ///
     ///     // Rebuild the vector.
-    ///     OpaqueVec::from_parts::<i32>(ptr, length, capacity)
+    ///     TypeErasedVec::from_parts::<i32>(ptr, length, capacity)
     /// };
     ///
     /// assert_eq!(result.as_slice::<i32, Global>(), expected.as_slice::<i32, Global>());
@@ -7627,7 +7627,7 @@ impl OpaqueVec {
     ///     result.push::<i32, Global>(i32::MAX);
     /// }
     ///
-    /// let expected = OpaqueVec::from([
+    /// let expected = TypeErasedVec::from([
     ///     4,        5,        6,        i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX,
     ///     i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX, i32::MAX,
     /// ]);
@@ -7643,7 +7643,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// # use std::ptr::NonNull;
     /// #
     /// # #[cfg(feature = "nightly")]
@@ -7660,7 +7660,7 @@ impl OpaqueVec {
     ///     let mut memory: NonNull<u32> = Global.allocate(layout).unwrap().cast::<u32>();
     ///     memory.write(value);
     ///
-    ///     OpaqueVec::from_parts::<u32>(memory, length, capacity)
+    ///     TypeErasedVec::from_parts::<u32>(memory, length, capacity)
     /// };
     ///
     /// assert_eq!(opaque_vec.as_slice::<u32, Global>(), &[value]);
@@ -7674,7 +7674,7 @@ impl OpaqueVec {
     ///     result.push::<u32, Global>(u32::MAX);
     /// }
     ///
-    /// let expected = OpaqueVec::from([
+    /// let expected = TypeErasedVec::from([
     ///     value,     u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX,
     ///     u32::MAX,  u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX, u32::MAX,
     /// ]);
@@ -7692,22 +7692,22 @@ impl OpaqueVec {
         T: any::Any,
     {
         let proj_vec = unsafe {
-            TypedProjVec::<T, alloc::Global>::from_parts(ptr, length, capacity)
+            TypeProjectedVec::<T, alloc::Global>::from_parts(ptr, length, capacity)
         };
 
         Self::from_proj(proj_vec)
     }
 }
 
-impl OpaqueVec {
+impl TypeErasedVec {
     /// Returns the memory layout of the elements inside a type-erased vector.
     ///
     /// # Examples
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
-    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypeErasedVec;
+    /// # use opaque_alloc::TypeProjectedAlloc;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::{Layout, Global};
@@ -7722,7 +7722,7 @@ impl OpaqueVec {
     /// }
     ///
     /// let capacity = 32;
-    /// let mut opaque_vec = OpaqueVec::with_capacity_in::<Rgb, Global>(capacity, Global);
+    /// let mut opaque_vec = TypeErasedVec::with_capacity_in::<Rgb, Global>(capacity, Global);
     /// #
     /// # assert!(opaque_vec.has_element_type::<Rgb>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
@@ -7746,8 +7746,8 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
-    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypeErasedVec;
+    /// # use opaque_alloc::TypeProjectedAlloc;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -7756,7 +7756,7 @@ impl OpaqueVec {
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let capacity = 32;
-    /// let mut opaque_vec = OpaqueVec::with_capacity_in::<i32, Global>(capacity, Global);
+    /// let mut opaque_vec = TypeErasedVec::with_capacity_in::<i32, Global>(capacity, Global);
     ///
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
@@ -7788,8 +7788,8 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
-    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypeErasedVec;
+    /// # use opaque_alloc::TypeProjectedAlloc;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -7798,7 +7798,7 @@ impl OpaqueVec {
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let len = 32;
-    /// let mut opaque_vec = OpaqueVec::with_capacity_in::<i32, Global>(len, Global);
+    /// let mut opaque_vec = TypeErasedVec::with_capacity_in::<i32, Global>(len, Global);
     ///
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
@@ -7828,8 +7828,8 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
-    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypeErasedVec;
+    /// # use opaque_alloc::TypeProjectedAlloc;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -7837,7 +7837,7 @@ impl OpaqueVec {
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut opaque_vec = OpaqueVec::with_capacity_in::<i32, Global>(1, Global);
+    /// let mut opaque_vec = TypeErasedVec::with_capacity_in::<i32, Global>(1, Global);
     ///
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
@@ -7853,7 +7853,7 @@ impl OpaqueVec {
     }
 }
 
-impl OpaqueVec {
+impl TypeErasedVec {
     /// Returns a reference to the type-projected memory allocator from the vector.
     ///
     /// # Panics
@@ -7866,8 +7866,8 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
-    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypeErasedVec;
+    /// # use opaque_alloc::TypeProjectedAlloc;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -7875,18 +7875,18 @@ impl OpaqueVec {
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let opaque_vec = OpaqueVec::new::<i32>();
+    /// let opaque_vec = TypeErasedVec::new::<i32>();
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
     ///
     /// assert!(opaque_vec.is_empty());
     ///
-    /// let alloc: &TypedProjAlloc<Global> = opaque_vec.allocator::<i32, Global>();
+    /// let alloc: &TypeProjectedAlloc<Global> = opaque_vec.allocator::<i32, Global>();
     /// ```
     #[inline]
     #[track_caller]
-    pub fn allocator<T, A>(&self) -> &TypedProjAlloc<A>
+    pub fn allocator<T, A>(&self) -> &TypeProjectedAlloc<A>
     where
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
@@ -7897,7 +7897,7 @@ impl OpaqueVec {
     }
 }
 
-impl OpaqueVec {
+impl TypeErasedVec {
     /// Forces the length of and type-erased vector to be set to `new_len`.
     ///
     /// This is a low-level operation that does not maintain the invariants of the type-erased
@@ -7927,7 +7927,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// # use std::ptr;
     /// #
     /// # #[cfg(feature = "nightly")]
@@ -7947,7 +7947,7 @@ impl OpaqueVec {
     /// }
     ///
     /// let capacity = 4;
-    /// let mut opaque_vec = OpaqueVec::with_capacity::<Box<DropCounter>>(capacity);
+    /// let mut opaque_vec = TypeErasedVec::with_capacity::<Box<DropCounter>>(capacity);
     /// #
     /// # assert!(opaque_vec.has_element_type::<Box<DropCounter>>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
@@ -7978,7 +7978,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// # use std::ptr;
     /// #
     /// # #[cfg(feature = "nightly")]
@@ -7998,7 +7998,7 @@ impl OpaqueVec {
     /// }
     ///
     /// let capacity = 4;
-    /// let mut opaque_vec = OpaqueVec::with_capacity::<Box<DropCounter>>(capacity);
+    /// let mut opaque_vec = TypeErasedVec::with_capacity::<Box<DropCounter>>(capacity);
     /// #
     /// # assert!(opaque_vec.has_element_type::<Box<DropCounter>>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
@@ -8025,7 +8025,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// # use std::ptr;
     /// #
     /// # #[cfg(feature = "nightly")]
@@ -8035,7 +8035,7 @@ impl OpaqueVec {
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let capacity = 4;
-    /// let mut opaque_vec = OpaqueVec::with_capacity::<i32>(capacity);
+    /// let mut opaque_vec = TypeErasedVec::with_capacity::<i32>(capacity);
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
@@ -8057,10 +8057,10 @@ impl OpaqueVec {
     /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &[1, 2, 3]);
     /// ```
     ///
-    /// [`truncate`]: OpaqueVec::truncate
-    /// [`resize`]: OpaqueVec::resize
-    /// [`extend`]: OpaqueVec::extend
-    /// [`clear`]: OpaqueVec::clear
+    /// [`truncate`]: TypeErasedVec::truncate
+    /// [`resize`]: TypeErasedVec::resize
+    /// [`extend`]: TypeErasedVec::extend
+    /// [`clear`]: TypeErasedVec::clear
     #[inline]
     #[track_caller]
     pub unsafe fn set_len<T, A>(&mut self, new_len: usize)
@@ -8094,7 +8094,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -8103,7 +8103,7 @@ impl OpaqueVec {
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 3] = [10, 40, 30];
-    /// let opaque_vec = OpaqueVec::from(array);
+    /// let opaque_vec = TypeErasedVec::from(array);
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
@@ -8153,7 +8153,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -8162,7 +8162,7 @@ impl OpaqueVec {
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 3] = [10, 40, 30];
-    /// let mut opaque_vec = OpaqueVec::from(array);
+    /// let mut opaque_vec = TypeErasedVec::from(array);
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
@@ -8216,7 +8216,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -8225,7 +8225,7 @@ impl OpaqueVec {
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 3] = [10, 40, 30];
-    /// let opaque_vec = OpaqueVec::from(array);
+    /// let opaque_vec = TypeErasedVec::from(array);
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
@@ -8278,7 +8278,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -8287,7 +8287,7 @@ impl OpaqueVec {
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 3] = [10, 40, 30];
-    /// let mut opaque_vec = OpaqueVec::from(array);
+    /// let mut opaque_vec = TypeErasedVec::from(array);
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
@@ -8359,7 +8359,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -8368,7 +8368,7 @@ impl OpaqueVec {
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 2] = [1, 2];
-    /// let mut opaque_vec = OpaqueVec::from(array);
+    /// let mut opaque_vec = TypeErasedVec::from(array);
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
@@ -8434,7 +8434,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -8443,7 +8443,7 @@ impl OpaqueVec {
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 3] = [1, 2, 3];
-    /// let mut opaque_vec = OpaqueVec::from(array);
+    /// let mut opaque_vec = TypeErasedVec::from(array);
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
@@ -8530,7 +8530,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -8539,7 +8539,7 @@ impl OpaqueVec {
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let min_capacity = 4;
-    /// let mut opaque_vec = OpaqueVec::with_capacity::<i32>(min_capacity);
+    /// let mut opaque_vec = TypeErasedVec::with_capacity::<i32>(min_capacity);
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
@@ -8557,7 +8557,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -8566,7 +8566,7 @@ impl OpaqueVec {
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let min_capacity = 4;
-    /// let mut opaque_vec = OpaqueVec::with_capacity::<i32>(min_capacity);
+    /// let mut opaque_vec = TypeErasedVec::with_capacity::<i32>(min_capacity);
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
@@ -8584,9 +8584,9 @@ impl OpaqueVec {
     /// assert_eq!(opaque_vec.capacity(), actual_capacity);
     /// ```
     ///
-    /// [`push`]: OpaqueVec::push
-    /// [`reserve`]: OpaqueVec::reserve
-    /// [`try_reserve`]: OpaqueVec::try_reserve
+    /// [`push`]: TypeErasedVec::push
+    /// [`reserve`]: TypeErasedVec::reserve
+    /// [`try_reserve`]: TypeErasedVec::try_reserve
     #[inline]
     #[track_caller]
     pub fn push_within_capacity<T, A>(&mut self, value: T) -> Result<(), T>
@@ -8653,7 +8653,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -8661,7 +8661,7 @@ impl OpaqueVec {
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut opaque_vec = OpaqueVec::new::<i32>();
+    /// let mut opaque_vec = TypeErasedVec::new::<i32>();
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
@@ -8751,7 +8751,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -8759,7 +8759,7 @@ impl OpaqueVec {
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut opaque_vec = OpaqueVec::new::<i32>();
+    /// let mut opaque_vec = TypeErasedVec::new::<i32>();
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
@@ -8850,7 +8850,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -8859,7 +8859,7 @@ impl OpaqueVec {
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 4] = [1, 2, 3, i32::MAX];
-    /// let opaque_vec = OpaqueVec::from(array);
+    /// let opaque_vec = TypeErasedVec::from(array);
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
@@ -8955,7 +8955,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -8964,7 +8964,7 @@ impl OpaqueVec {
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 4] = [1, 2, 3, i32::MAX];
-    /// let opaque_vec = OpaqueVec::from(array);
+    /// let opaque_vec = TypeErasedVec::from(array);
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
@@ -8991,7 +8991,7 @@ impl OpaqueVec {
     /// }
     /// ```
     ///
-    /// [`pop`]: OpaqueVec::pop
+    /// [`pop`]: TypeErasedVec::pop
     #[track_caller]
     pub fn shift_remove<T, A>(&mut self, index: usize) -> T
     where
@@ -9042,7 +9042,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -9051,7 +9051,7 @@ impl OpaqueVec {
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 9] = [92, 8, 40, 9, 8, 34, 59, 34, 5];
-    /// let opaque_vec = OpaqueVec::from(array);
+    /// let opaque_vec = TypeErasedVec::from(array);
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
@@ -9098,7 +9098,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -9107,7 +9107,7 @@ impl OpaqueVec {
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 6] = [92, 8, 40, 9, 8, 34];
-    /// let opaque_vec = OpaqueVec::from(array);
+    /// let opaque_vec = TypeErasedVec::from(array);
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
@@ -9151,7 +9151,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -9160,7 +9160,7 @@ impl OpaqueVec {
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 6] = [92, 8, 40, 9, 8, 34];
-    /// let mut opaque_vec = OpaqueVec::from(array);
+    /// let mut opaque_vec = TypeErasedVec::from(array);
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
@@ -9205,7 +9205,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -9225,7 +9225,7 @@ impl OpaqueVec {
     ///     "spam",
     ///     "I DON’T WANT SPAM!"
     /// ];
-    /// let mut opaque_vec = OpaqueVec::from(array);
+    /// let mut opaque_vec = TypeErasedVec::from(array);
     /// #
     /// # assert!(opaque_vec.has_element_type::<&'static str>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
@@ -9307,7 +9307,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -9317,7 +9317,7 @@ impl OpaqueVec {
     /// #
     /// let mut result = {
     ///     let array: [i32; 4] = [1, 2, 3, 4];
-    ///     OpaqueVec::from(array)
+    ///     TypeErasedVec::from(array)
     /// };
     /// #
     /// # assert!(result.has_element_type::<i32>());
@@ -9325,7 +9325,7 @@ impl OpaqueVec {
     /// #
     /// let mut appended = {
     ///     let array: [i32; 5] = [5, 6, 7, 8, 9];
-    ///     OpaqueVec::from(array)
+    ///     TypeErasedVec::from(array)
     /// };
     /// #
     /// # assert!(appended.has_element_type::<i32>());
@@ -9333,7 +9333,7 @@ impl OpaqueVec {
     /// #
     /// let expected = {
     ///     let array: [i32; 9] = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-    ///     OpaqueVec::from(array)
+    ///     TypeErasedVec::from(array)
     /// };
     /// #
     /// # assert!(expected.has_element_type::<i32>());
@@ -9388,7 +9388,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -9398,7 +9398,7 @@ impl OpaqueVec {
     /// #
     /// let mut opaque_vec = {
     ///     let array: [i32; 6] = [1, 2, 3, 4, 5, 6];
-    ///     OpaqueVec::from(array)
+    ///     TypeErasedVec::from(array)
     /// };
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
@@ -9406,7 +9406,7 @@ impl OpaqueVec {
     /// #
     /// assert_eq!(opaque_vec.len(), 6);
     ///
-    /// let drained_vec: OpaqueVec = opaque_vec.drain::<_, i32, Global>(2..).collect();
+    /// let drained_vec: TypeErasedVec = opaque_vec.drain::<_, i32, Global>(2..).collect();
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
@@ -9422,7 +9422,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -9432,7 +9432,7 @@ impl OpaqueVec {
     /// #
     /// let mut opaque_vec = {
     ///     let array: [i32; 6] = [1, 2, 3, 4, 5, 6];
-    ///     OpaqueVec::from(array)
+    ///     TypeErasedVec::from(array)
     /// };
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
@@ -9440,7 +9440,7 @@ impl OpaqueVec {
     /// #
     /// assert_eq!(opaque_vec.len(), 6);
     ///
-    /// let drained_vec: OpaqueVec = opaque_vec.drain::<_, i32, Global>(..).collect();
+    /// let drained_vec: TypeErasedVec = opaque_vec.drain::<_, i32, Global>(..).collect();
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
@@ -9456,7 +9456,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -9466,7 +9466,7 @@ impl OpaqueVec {
     /// #
     /// let mut opaque_vec = {
     ///     let array: [i32; 6] = [1, 2, 3, 4, 5, 6];
-    ///     OpaqueVec::from(array)
+    ///     TypeErasedVec::from(array)
     /// };
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
@@ -9474,7 +9474,7 @@ impl OpaqueVec {
     /// #
     /// assert_eq!(opaque_vec.len(), 6);
     ///
-    /// let drained_vec: OpaqueVec = opaque_vec.drain::<_, i32, Global>(0..0).collect();
+    /// let drained_vec: TypeErasedVec = opaque_vec.drain::<_, i32, Global>(0..0).collect();
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
@@ -9529,7 +9529,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -9539,7 +9539,7 @@ impl OpaqueVec {
     /// #
     /// let opaque_vec = {
     ///     let array: [i32; 4] = [1, 2, 4, 8];
-    ///     OpaqueVec::from(array)
+    ///     TypeErasedVec::from(array)
     /// };
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
@@ -9560,7 +9560,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -9570,7 +9570,7 @@ impl OpaqueVec {
     /// #
     /// let mut opaque_vec = {
     ///     let array: [i32; 3] = [0, 1, 2];
-    ///     OpaqueVec::from(array)
+    ///     TypeErasedVec::from(array)
     /// };
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
@@ -9587,9 +9587,9 @@ impl OpaqueVec {
     /// }
     /// ```
     ///
-    /// [`as_mut_ptr`]: OpaqueVec::as_mut_ptr
-    /// [`as_ptr`]: OpaqueVec::as_ptr
-    /// [`as_non_null`]: OpaqueVec::as_non_null
+    /// [`as_mut_ptr`]: TypeErasedVec::as_mut_ptr
+    /// [`as_ptr`]: TypeErasedVec::as_ptr
+    /// [`as_non_null`]: TypeErasedVec::as_non_null
     #[inline]
     #[track_caller]
     pub fn as_ptr<T, A>(&self) -> *const T
@@ -9628,7 +9628,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -9638,7 +9638,7 @@ impl OpaqueVec {
     /// #
     /// // Allocate vector big enough for 4 elements.
     /// let length = 4;
-    /// let mut opaque_vec: OpaqueVec = OpaqueVec::with_capacity::<i32>(length);
+    /// let mut opaque_vec: TypeErasedVec = TypeErasedVec::with_capacity::<i32>(length);
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
@@ -9660,7 +9660,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -9668,7 +9668,7 @@ impl OpaqueVec {
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut opaque_vec = OpaqueVec::with_capacity::<i32>(4);
+    /// let mut opaque_vec = TypeErasedVec::with_capacity::<i32>(4);
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
@@ -9685,9 +9685,9 @@ impl OpaqueVec {
     /// }
     /// ```
     ///
-    /// [`as_mut_ptr`]: OpaqueVec::as_mut_ptr
-    /// [`as_ptr`]: OpaqueVec::as_ptr
-    /// [`as_non_null`]: OpaqueVec::as_non_null
+    /// [`as_mut_ptr`]: TypeErasedVec::as_mut_ptr
+    /// [`as_ptr`]: TypeErasedVec::as_ptr
+    /// [`as_non_null`]: TypeErasedVec::as_non_null
     #[inline]
     #[track_caller]
     pub fn as_mut_ptr<T, A>(&mut self) -> *mut T
@@ -9720,7 +9720,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -9730,7 +9730,7 @@ impl OpaqueVec {
     /// #
     /// // Allocate vector big enough for 4 elements.
     /// let length = 4;
-    /// let mut opaque_vec = OpaqueVec::with_capacity::<i32>(length);
+    /// let mut opaque_vec = TypeErasedVec::with_capacity::<i32>(length);
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
@@ -9752,7 +9752,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -9760,7 +9760,7 @@ impl OpaqueVec {
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut opaque_vec = OpaqueVec::with_capacity::<i32>(4);
+    /// let mut opaque_vec = TypeErasedVec::with_capacity::<i32>(4);
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
@@ -9775,9 +9775,9 @@ impl OpaqueVec {
     /// }
     /// ```
     ///
-    /// [`as_mut_ptr`]: OpaqueVec::as_mut_ptr
-    /// [`as_ptr`]: OpaqueVec::as_ptr
-    /// [`as_non_null`]: OpaqueVec::as_non_null
+    /// [`as_mut_ptr`]: TypeErasedVec::as_mut_ptr
+    /// [`as_ptr`]: TypeErasedVec::as_ptr
+    /// [`as_non_null`]: TypeErasedVec::as_non_null
     #[inline]
     #[track_caller]
     pub fn as_non_null<T, A>(&mut self) -> NonNull<T>
@@ -9802,7 +9802,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -9811,7 +9811,7 @@ impl OpaqueVec {
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 3] = [9, 28, 37];
-    /// let opaque_vec = OpaqueVec::from(array);
+    /// let opaque_vec = TypeErasedVec::from(array);
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
@@ -9847,7 +9847,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -9856,7 +9856,7 @@ impl OpaqueVec {
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut array: [i32; 3] = [9, 28, 37];
-    /// let mut opaque_vec = OpaqueVec::from(array);
+    /// let mut opaque_vec = TypeErasedVec::from(array);
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
@@ -9872,7 +9872,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -9881,7 +9881,7 @@ impl OpaqueVec {
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut array: [i32; 3] = [9, 28, 37];
-    /// let mut opaque_vec = OpaqueVec::from(array);
+    /// let mut opaque_vec = TypeErasedVec::from(array);
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
@@ -9921,10 +9921,10 @@ impl OpaqueVec {
     ///
     /// After decomposing the vector, the user must ensure that they properly manage the
     /// memory allocation pointed to by the raw pointer. The primary way to do this is to convert
-    /// the pointer into another data structure such as a [`Vec`], [`TypedProjVec`], or
-    /// [`OpaqueVec`].
+    /// the pointer into another data structure such as a [`Vec`], [`TypeProjectedVec`], or
+    /// [`TypeErasedVec`].
     ///
-    /// [`from_raw_parts`]: OpaqueVec::from_raw_parts
+    /// [`from_raw_parts`]: TypeErasedVec::from_raw_parts
     ///
     /// # Panics
     ///
@@ -9936,7 +9936,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -9945,7 +9945,7 @@ impl OpaqueVec {
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 3] = [-1, 0, 1];
-    /// let opaque_vec = OpaqueVec::from(array);
+    /// let opaque_vec = TypeErasedVec::from(array);
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
@@ -9956,7 +9956,7 @@ impl OpaqueVec {
     /// let (ptr, length, capacity) = opaque_vec.into_raw_parts::<i32>();
     /// let reinterpreted = unsafe {
     ///     let ptr = ptr as *mut u32;
-    ///     OpaqueVec::from_raw_parts(ptr, length, capacity)
+    ///     TypeErasedVec::from_raw_parts(ptr, length, capacity)
     /// };
     ///
     /// assert_eq!(reinterpreted.as_slice::<u32, Global>(), &[4294967295, 0, 1]);
@@ -9982,10 +9982,10 @@ impl OpaqueVec {
     ///
     /// After decomposing the vector, the user must ensure that they properly manage the
     /// memory allocation pointed to by the raw pointer. The primary way to do this is to convert
-    /// the pointer into another data structure such as a [`Vec`], [`TypedProjVec`], or
-    /// [`OpaqueVec`].
+    /// the pointer into another data structure such as a [`Vec`], [`TypeProjectedVec`], or
+    /// [`TypeErasedVec`].
     ///
-    /// [`from_parts`]: OpaqueVec::from_parts
+    /// [`from_parts`]: TypeErasedVec::from_parts
     ///
     /// # Panics
     ///
@@ -9997,7 +9997,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -10006,7 +10006,7 @@ impl OpaqueVec {
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 3] = [-1, 0, 1];
-    /// let opaque_vec = OpaqueVec::from(array);
+    /// let opaque_vec = TypeErasedVec::from(array);
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
@@ -10017,7 +10017,7 @@ impl OpaqueVec {
     /// let (ptr, length, capacity) = opaque_vec.into_parts::<i32>();
     /// let reinterpreted = unsafe {
     ///     let ptr = ptr.cast::<u32>();
-    ///     OpaqueVec::from_parts(ptr, length, capacity)
+    ///     TypeErasedVec::from_parts(ptr, length, capacity)
     /// };
     ///
     /// assert_eq!(reinterpreted.as_slice::<u32, Global>(), &[4294967295, 0, 1]);
@@ -10034,7 +10034,7 @@ impl OpaqueVec {
     }
 }
 
-impl OpaqueVec {
+impl TypeErasedVec {
     /// Decomposes a type-erased vector with any memory allocator into its constituent parts:
     /// `(pointer, length, capacity, allocator)`.
     ///
@@ -10046,10 +10046,10 @@ impl OpaqueVec {
     ///
     /// After decomposing the vector, the user must ensure that they properly manage the
     /// memory allocation pointed to by the raw pointer. The primary way to do this is to convert
-    /// the pointer into another data structure such as a [`Vec`], [`TypedProjVec`], or
-    /// [`OpaqueVec`].
+    /// the pointer into another data structure such as a [`Vec`], [`TypeProjectedVec`], or
+    /// [`TypeErasedVec`].
     ///
-    /// [`from_raw_parts_proj_in`]: OpaqueVec::from_raw_parts_proj_in
+    /// [`from_raw_parts_proj_in`]: TypeErasedVec::from_raw_parts_proj_in
     ///
     /// # Panics
     ///
@@ -10061,7 +10061,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -10070,7 +10070,7 @@ impl OpaqueVec {
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 3] = [-1, 0, 1];
-    /// let opaque_vec = OpaqueVec::from(array);
+    /// let opaque_vec = TypeErasedVec::from(array);
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
@@ -10081,14 +10081,14 @@ impl OpaqueVec {
     /// let (ptr, length, capacity, proj_alloc) = opaque_vec.into_raw_parts_with_alloc::<i32, Global>();
     /// let reinterpreted = unsafe {
     ///     let ptr = ptr as *mut u32;
-    ///     OpaqueVec::from_raw_parts_proj_in(ptr, length, capacity, proj_alloc)
+    ///     TypeErasedVec::from_raw_parts_proj_in(ptr, length, capacity, proj_alloc)
     /// };
     ///
     /// assert_eq!(reinterpreted.as_slice::<u32, Global>(), &[4294967295, 0, 1]);
     /// ```
     #[must_use]
     #[track_caller]
-    pub fn into_raw_parts_with_alloc<T, A>(self) -> (*mut T, usize, usize, TypedProjAlloc<A>)
+    pub fn into_raw_parts_with_alloc<T, A>(self) -> (*mut T, usize, usize, TypeProjectedAlloc<A>)
     where
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
@@ -10108,10 +10108,10 @@ impl OpaqueVec {
     ///
     /// After decomposing the vector, the user must ensure that they properly manage the
     /// memory allocation pointed to by the raw pointer. The primary way to do this is to convert
-    /// the pointer into another data structure such as a [`Vec`], [`TypedProjVec`], or
-    /// [`OpaqueVec`].
+    /// the pointer into another data structure such as a [`Vec`], [`TypeProjectedVec`], or
+    /// [`TypeErasedVec`].
     ///
-    /// [`from_parts_proj_in`]: OpaqueVec::from_parts_proj_in
+    /// [`from_parts_proj_in`]: TypeErasedVec::from_parts_proj_in
     ///
     /// # Panics
     ///
@@ -10123,7 +10123,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -10132,7 +10132,7 @@ impl OpaqueVec {
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 3] = [-1, 0, 1];
-    /// let opaque_vec = OpaqueVec::from(array);
+    /// let opaque_vec = TypeErasedVec::from(array);
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
@@ -10143,14 +10143,14 @@ impl OpaqueVec {
     /// let (ptr, length, capacity, proj_alloc) = opaque_vec.into_parts_with_alloc::<i32, Global>();
     /// let reinterpreted = unsafe {
     ///     let ptr = ptr.cast::<u32>();
-    ///     OpaqueVec::from_parts_proj_in(ptr, length, capacity, proj_alloc)
+    ///     TypeErasedVec::from_parts_proj_in(ptr, length, capacity, proj_alloc)
     /// };
     ///
     /// assert_eq!(reinterpreted.as_slice::<u32, Global>(), &[4294967295, 0, 1]);
     /// ```
     #[must_use]
     #[track_caller]
-    pub fn into_parts_with_alloc<T, A>(self) -> (NonNull<T>, usize, usize, TypedProjAlloc<A>)
+    pub fn into_parts_with_alloc<T, A>(self) -> (NonNull<T>, usize, usize, TypeProjectedAlloc<A>)
     where
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
@@ -10162,13 +10162,13 @@ impl OpaqueVec {
 }
 
 #[cfg(feature = "nightly")]
-impl OpaqueVec {
+impl TypeErasedVec {
     /// Converts a type-erased vector into a [`Box<[T]>`][owned slice].
     ///
     /// Before doing the conversion, this method discards excess capacity like [`shrink_to_fit`].
     ///
     /// [owned slice]: Box
-    /// [`shrink_to_fit`]: OpaqueVec::shrink_to_fit
+    /// [`shrink_to_fit`]: TypeErasedVec::shrink_to_fit
     ///
     /// # Panics
     ///
@@ -10180,8 +10180,8 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
-    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypeErasedVec;
+    /// # use opaque_alloc::TypeProjectedAlloc;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -10196,7 +10196,7 @@ impl OpaqueVec {
     /// # use opaque_allocator_api::boxed::Box;
     /// #
     /// let mut opaque_vec = {
-    ///     let mut _opaque_vec = OpaqueVec::with_capacity::<i32>(10);
+    ///     let mut _opaque_vec = TypeErasedVec::with_capacity::<i32>(10);
     ///     _opaque_vec.push::<i32, Global>(1);
     ///     _opaque_vec.push::<i32, Global>(2);
     ///     _opaque_vec.push::<i32, Global>(3);
@@ -10210,12 +10210,12 @@ impl OpaqueVec {
     /// assert_eq!(opaque_vec.capacity(), 10);
     /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &[1, 2, 3]);
     ///
-    /// let boxed_slice: Box<[i32], TypedProjAlloc<Global>> = opaque_vec.into_boxed_slice::<i32, Global>();
+    /// let boxed_slice: Box<[i32], TypeProjectedAlloc<Global>> = opaque_vec.into_boxed_slice::<i32, Global>();
     ///
     /// assert_eq!(boxed_slice.len(), 3);
     /// assert_eq!(boxed_slice.as_ref(), &[1, 2, 3]);
     ///
-    /// let new_opaque_vec = OpaqueVec::from(boxed_slice);
+    /// let new_opaque_vec = TypeErasedVec::from(boxed_slice);
     ///
     /// // Converting to a boxed slice removed any excess capacity from the vector.
     /// assert_eq!(new_opaque_vec.len(), 3);
@@ -10223,7 +10223,7 @@ impl OpaqueVec {
     /// assert_eq!(new_opaque_vec.as_slice::<i32, Global>(), &[1, 2, 3]);
     /// ```
     #[track_caller]
-    pub fn into_boxed_slice<T, A>(self) -> Box<[T], TypedProjAlloc<A>>
+    pub fn into_boxed_slice<T, A>(self) -> Box<[T], TypeProjectedAlloc<A>>
     where
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
@@ -10234,7 +10234,7 @@ impl OpaqueVec {
     }
 }
 
-impl OpaqueVec {
+impl TypeErasedVec {
     /// Splits a type-erased vector into two type-erased vectors at the given index.
     ///
     /// This method returns a newly allocated vector consisting of every element from the original
@@ -10254,7 +10254,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -10265,7 +10265,7 @@ impl OpaqueVec {
     /// let length = 6;
     /// let capacity = 10;
     /// let mut opaque_vec = {
-    ///     let mut _opaque_vec = OpaqueVec::with_capacity::<i32>(capacity);
+    ///     let mut _opaque_vec = TypeErasedVec::with_capacity::<i32>(capacity);
     ///     for i in 1..(length + 1) {
     ///         _opaque_vec.push::<i32, Global>(i as i32);
     ///     }
@@ -10332,7 +10332,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -10342,7 +10342,7 @@ impl OpaqueVec {
     /// #
     /// let length = 3;
     /// let mut opaque_vec = {
-    ///     let mut _opaque_vec = OpaqueVec::with_capacity::<i32>(10);
+    ///     let mut _opaque_vec = TypeErasedVec::with_capacity::<i32>(10);
     ///     for i in 1..(length + 1) {
     ///         _opaque_vec.push::<i32, Global>(i);
     ///     }
@@ -10365,7 +10365,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -10373,7 +10373,7 @@ impl OpaqueVec {
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut opaque_vec = OpaqueVec::new::<i32>();
+    /// let mut opaque_vec = TypeErasedVec::new::<i32>();
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
@@ -10384,8 +10384,8 @@ impl OpaqueVec {
     /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &[2, 4, 8, 16]);
     /// ```
     ///
-    /// [`truncate`]: OpaqueVec::truncate
-    /// [`resize`]: OpaqueVec::resize
+    /// [`truncate`]: TypeErasedVec::truncate
+    /// [`resize`]: TypeErasedVec::resize
     #[track_caller]
     pub fn resize_with<F, T, A>(&mut self, new_len: usize, f: F)
     where
@@ -10404,7 +10404,7 @@ impl OpaqueVec {
     /// The returned slice can be used to fill the type-erased vector with data before marking
     /// the data as initialized using the [`set_len`] method.
     ///
-    /// [`set_len`]: OpaqueVec::set_len
+    /// [`set_len`]: TypeErasedVec::set_len
     ///
     /// # Panics
     ///
@@ -10416,7 +10416,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -10424,7 +10424,7 @@ impl OpaqueVec {
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut opaque_vec = OpaqueVec::with_capacity::<i32>(10);
+    /// let mut opaque_vec = TypeErasedVec::with_capacity::<i32>(10);
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
@@ -10478,7 +10478,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -10486,7 +10486,7 @@ impl OpaqueVec {
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut opaque_vec = OpaqueVec::new::<i32>();
+    /// let mut opaque_vec = TypeErasedVec::new::<i32>();
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
@@ -10522,7 +10522,7 @@ impl OpaqueVec {
     /// than or equal to `self.len() + additional`. This method does nothing if the capacity is
     /// already sufficient.
     ///
-    /// [`try_reserve`]: OpaqueVec::try_reserve
+    /// [`try_reserve`]: TypeErasedVec::try_reserve
     ///
     /// # Errors
     ///
@@ -10538,7 +10538,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -10546,7 +10546,7 @@ impl OpaqueVec {
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut opaque_vec = OpaqueVec::new::<i32>();
+    /// let mut opaque_vec = TypeErasedVec::new::<i32>();
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
@@ -10595,7 +10595,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -10603,7 +10603,7 @@ impl OpaqueVec {
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut opaque_vec = OpaqueVec::new::<i32>();
+    /// let mut opaque_vec = TypeErasedVec::new::<i32>();
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
@@ -10638,7 +10638,7 @@ impl OpaqueVec {
     /// than or equal to `self.len() + additional`. This method does nothing if the capacity is
     /// already sufficient.
     ///
-    /// [`reserve`]: OpaqueVec::reserve
+    /// [`reserve`]: TypeErasedVec::reserve
     ///
     /// # Panics
     ///
@@ -10653,7 +10653,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -10661,7 +10661,7 @@ impl OpaqueVec {
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut opaque_vec = OpaqueVec::new::<i32>();
+    /// let mut opaque_vec = TypeErasedVec::new::<i32>();
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
@@ -10695,7 +10695,7 @@ impl OpaqueVec {
     /// excess capacity, just as is the case for [`with_capacity`]. See [`Allocator::shrink`] for
     /// more details.
     ///
-    /// [`with_capacity`]: OpaqueVec::with_capacity
+    /// [`with_capacity`]: TypeErasedVec::with_capacity
     ///
     /// # Panics
     ///
@@ -10707,7 +10707,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -10715,7 +10715,7 @@ impl OpaqueVec {
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut opaque_vec = OpaqueVec::with_capacity::<i32>(10);
+    /// let mut opaque_vec = TypeErasedVec::with_capacity::<i32>(10);
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
@@ -10757,7 +10757,7 @@ impl OpaqueVec {
     /// If the current capacity of the type-erased vector is less than the lower bound, the
     /// method does nothing.
     ///
-    /// [`with_capacity`]: OpaqueVec::with_capacity
+    /// [`with_capacity`]: TypeErasedVec::with_capacity
     ///
     /// # Panics
     ///
@@ -10769,7 +10769,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -10777,7 +10777,7 @@ impl OpaqueVec {
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut opaque_vec = OpaqueVec::with_capacity::<i32>(10);
+    /// let mut opaque_vec = TypeErasedVec::with_capacity::<i32>(10);
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
@@ -10851,7 +10851,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -10859,7 +10859,7 @@ impl OpaqueVec {
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut opaque_vec = OpaqueVec::with_capacity::<i32>(10);
+    /// let mut opaque_vec = TypeErasedVec::with_capacity::<i32>(10);
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
@@ -10886,7 +10886,7 @@ impl OpaqueVec {
     }
 }
 
-impl OpaqueVec {
+impl TypeErasedVec {
     /// Creates a splicing iterator that replaces the specified range in the type-erased vector
     /// with the given `replace_with` iterator and yields the removed items.
     /// The argument `replace_with` does not need to be the same length as `range`.
@@ -10920,7 +10920,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::{IntoIter, OpaqueVec};
+    /// # use opaque_vec::{IntoIter, TypeErasedVec};
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -10930,7 +10930,7 @@ impl OpaqueVec {
     /// #
     /// let mut opaque_vec = {
     ///     let array: [i32; 4] = [1, 2, 3, 4];
-    ///     OpaqueVec::from(array)
+    ///     TypeErasedVec::from(array)
     /// };
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
@@ -10938,13 +10938,13 @@ impl OpaqueVec {
     /// #
     /// let new = {
     ///     let array: [i32; 3] = [7, 8, 9];
-    ///     OpaqueVec::from(array)
+    ///     TypeErasedVec::from(array)
     /// };
     /// #
     /// # assert!(new.has_element_type::<i32>());
     /// # assert!(new.has_allocator_type::<Global>());
     /// #
-    /// let opaque_vec2: OpaqueVec = opaque_vec.splice::<_, _, i32, Global>(
+    /// let opaque_vec2: TypeErasedVec = opaque_vec.splice::<_, _, i32, Global>(
     ///         1..3,
     ///         new.into_iter::<i32, Global>()
     ///     ).collect();
@@ -10962,7 +10962,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::{IntoIter, OpaqueVec};
+    /// # use opaque_vec::{IntoIter, TypeErasedVec};
     /// # use std::slice;
     /// #
     /// # #[cfg(feature = "nightly")]
@@ -10973,7 +10973,7 @@ impl OpaqueVec {
     /// #
     /// let mut opaque_vec = {
     ///     let array: [i32; 2] = [1, 5];
-    ///     OpaqueVec::from(array)
+    ///     TypeErasedVec::from(array)
     /// };
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
@@ -10981,13 +10981,13 @@ impl OpaqueVec {
     /// #
     /// let new = {
     ///     let array: [i32; 3] = [2, 3, 4];
-    ///     OpaqueVec::from(array)
+    ///     TypeErasedVec::from(array)
     /// };
     /// #
     /// # assert!(new.has_element_type::<i32>());
     /// # assert!(new.has_allocator_type::<Global>());
     /// #
-    /// let splice: OpaqueVec = opaque_vec.splice::<_, _, i32, Global>(
+    /// let splice: TypeErasedVec = opaque_vec.splice::<_, _, i32, Global>(
     ///         1..1,
     ///         new.into_iter::<i32, Global>()
     ///     ).collect();
@@ -11022,13 +11022,13 @@ impl OpaqueVec {
     /// iterating or the iteration short-circuits, then the remaining elements will be retained.
     /// Use [`retain_mut`] with a negated predicate if you do not need the returned iterator.
     ///
-    /// [`retain_mut`]: OpaqueVec::retain_mut
+    /// [`retain_mut`]: TypeErasedVec::retain_mut
     ///
     /// Using this method is equivalent to the following code:
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::{IntoIter, OpaqueVec};
+    /// # use opaque_vec::{IntoIter, TypeErasedVec};
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -11039,7 +11039,7 @@ impl OpaqueVec {
     /// # let some_predicate = |x: &mut i32| { *x % 2 == 1 };
     /// # let mut opaque_vec = {
     /// #     let array: [i32; 7] = [0, 1, 2, 3, 4, 5, 6];
-    /// #     OpaqueVec::from(array)
+    /// #     TypeErasedVec::from(array)
     /// # };
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
@@ -11053,7 +11053,7 @@ impl OpaqueVec {
     /// # let range = 1..5;
     /// let mut i = range.start;
     /// let end_items = opaque_vec.len() - range.end;
-    /// # let mut extracted = OpaqueVec::new::<i32>();
+    /// # let mut extracted = TypeErasedVec::new::<i32>();
     ///
     /// while i < opaque_vec.len() - end_items {
     ///     if some_predicate(opaque_vec.get_mut::<_, i32, Global>(i).unwrap()) {
@@ -11065,7 +11065,7 @@ impl OpaqueVec {
     ///     }
     /// }
     ///
-    /// # let extracted2: OpaqueVec = opaque_vec2.extract_if::<_, _, i32, Global>(range, some_predicate).collect();
+    /// # let extracted2: TypeErasedVec = opaque_vec2.extract_if::<_, _, i32, Global>(range, some_predicate).collect();
     /// # assert_eq!(opaque_vec.as_slice::<i32, Global>(), opaque_vec2.as_slice::<i32, Global>());
     /// # assert_eq!(extracted.as_slice::<i32, Global>(), extracted2.as_slice::<i32, Global>());
     /// ```
@@ -11090,7 +11090,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::{IntoIter, OpaqueVec};
+    /// # use opaque_vec::{IntoIter, TypeErasedVec};
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -11100,13 +11100,13 @@ impl OpaqueVec {
     /// #
     /// let mut numbers = {
     ///     let array: [i32; 12] = [1, 2, 3, 4, 5, 6, 8, 9, 11, 13, 14, 15];
-    ///     OpaqueVec::from(array)
+    ///     TypeErasedVec::from(array)
     /// };
     /// #
     /// # assert!(numbers.has_element_type::<i32>());
     /// # assert!(numbers.has_allocator_type::<Global>());
     /// #
-    /// let evens: OpaqueVec = numbers.extract_if::<_, _, i32, Global>(.., |x| *x % 2 == 0).collect();
+    /// let evens: TypeErasedVec = numbers.extract_if::<_, _, i32, Global>(.., |x| *x % 2 == 0).collect();
     /// let odds = numbers;
     ///
     /// assert_eq!(evens.as_slice::<i32, Global>(), &[2, 4, 6, 8, 14]);
@@ -11117,7 +11117,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::{IntoIter, OpaqueVec};
+    /// # use opaque_vec::{IntoIter, TypeErasedVec};
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -11127,13 +11127,13 @@ impl OpaqueVec {
     /// #
     /// let mut items = {
     ///     let array: [i32; 13] = [0, 0, 0, 0, 0, 0, 0, 1, 2, 1, 2, 1, 2];
-    ///     OpaqueVec::from(array)
+    ///     TypeErasedVec::from(array)
     /// };
     /// #
     /// # assert!(items.has_element_type::<i32>());
     /// # assert!(items.has_allocator_type::<Global>());
     /// #
-    /// let ones: OpaqueVec = items.extract_if::<_, _, i32, Global>(7.., |x| *x == 1).collect();
+    /// let ones: TypeErasedVec = items.extract_if::<_, _, i32, Global>(7.., |x| *x == 1).collect();
     ///
     /// assert_eq!(items.as_slice::<i32, Global>(), &[0, 0, 0, 0, 0, 0, 0, 2, 2, 2]);
     /// assert_eq!(ones.len(), 3);
@@ -11188,7 +11188,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -11199,12 +11199,12 @@ impl OpaqueVec {
     /// let array: [i32; 6] = [1, 2, 3, 4, 5, 6];
     /// let extension: [i32; 4] = [7, 8, 9, 10];
     /// let combined: [i32; 10] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-    /// let expected = OpaqueVec::from(combined);
+    /// let expected = TypeErasedVec::from(combined);
     /// #
     /// # assert!(expected.has_element_type::<i32>());
     /// # assert!(expected.has_allocator_type::<Global>());
     /// #
-    /// let mut result = OpaqueVec::from(array);
+    /// let mut result = TypeErasedVec::from(array);
     /// #
     /// # assert!(result.has_element_type::<i32>());
     /// # assert!(result.has_allocator_type::<Global>());
@@ -11235,8 +11235,8 @@ impl OpaqueVec {
     ///   this method.
     ///
     /// If you need more flexibility (or want to rely on [`Default`] instead of
-    /// [`Clone`]), use [`OpaqueVec::resize_with`].
-    /// If you only need to resize to a smaller size, use [`OpaqueVec::truncate`].
+    /// [`Clone`]), use [`TypeErasedVec::resize_with`].
+    /// If you only need to resize to a smaller size, use [`TypeErasedVec::truncate`].
     ///
     /// # Panics
     ///
@@ -11252,7 +11252,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -11271,7 +11271,7 @@ impl OpaqueVec {
     ///         "Lobster Thermidor aux Crevettes with a Mornay sauce, garnished with truffle pâté, brandy, with a fried egg on top, and spam",
     ///         "bacon",
     ///     ];
-    ///     OpaqueVec::from(array)
+    ///     TypeErasedVec::from(array)
     /// };
     /// #
     /// # assert!(opaque_vec.has_element_type::<&'static str>());
@@ -11298,7 +11298,7 @@ impl OpaqueVec {
     ///         "spam",
     ///         "spam",
     ///     ];
-    ///     OpaqueVec::from(array)
+    ///     TypeErasedVec::from(array)
     /// };
     /// #
     /// # assert!(expected.has_element_type::<&'static str>());
@@ -11312,7 +11312,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -11337,7 +11337,7 @@ impl OpaqueVec {
     ///         "spam",
     ///         "spam",
     ///     ];
-    ///     OpaqueVec::from(array)
+    ///     TypeErasedVec::from(array)
     /// };
     /// #
     /// # assert!(opaque_vec.has_element_type::<&'static str>());
@@ -11354,7 +11354,7 @@ impl OpaqueVec {
     ///         "Lobster Thermidor aux Crevettes with a Mornay sauce, garnished with truffle pâté, brandy, with a fried egg on top, and spam",
     ///         "bacon",
     ///     ];
-    ///     OpaqueVec::from(array)
+    ///     TypeErasedVec::from(array)
     /// };
     /// #
     /// # assert!(expected.has_element_type::<&'static str>());
@@ -11395,7 +11395,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -11405,7 +11405,7 @@ impl OpaqueVec {
     /// #
     /// let mut opaque_vec = {
     ///     let array: [i32; 6] = [1, 2, 3, 4, 5, 6];
-    ///     OpaqueVec::from(array)
+    ///     TypeErasedVec::from(array)
     /// };
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
@@ -11421,7 +11421,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -11430,7 +11430,7 @@ impl OpaqueVec {
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 6] = [1, 2, 3, 4, 5, 6];
-    /// let mut opaque_vec = OpaqueVec::from(array);
+    /// let mut opaque_vec = TypeErasedVec::from(array);
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
@@ -11445,7 +11445,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -11454,7 +11454,7 @@ impl OpaqueVec {
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 6] = [1, 2, 3, 4, 5, 6];
-    /// let mut opaque_vec = OpaqueVec::from(array);
+    /// let mut opaque_vec = TypeErasedVec::from(array);
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
@@ -11474,7 +11474,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -11484,7 +11484,7 @@ impl OpaqueVec {
     /// #
     /// let mut opaque_vec = {
     ///     let array: [i32; 6] = [1, 2, 3, 4, 5, 6];
-    ///     OpaqueVec::from(array)
+    ///     TypeErasedVec::from(array)
     /// };
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
@@ -11496,8 +11496,8 @@ impl OpaqueVec {
     /// assert_eq!(opaque_vec.as_slice::<i32, Global>(), &[]);
     /// ```
     ///
-    /// [`clear`]: OpaqueVec::clear
-    /// [`drain`]: OpaqueVec::drain
+    /// [`clear`]: TypeErasedVec::clear
+    /// [`drain`]: TypeErasedVec::drain
     #[inline]
     #[track_caller]
     pub fn truncate<T, A>(&mut self, len: usize)
@@ -11511,7 +11511,7 @@ impl OpaqueVec {
     }
 }
 
-impl OpaqueVec {
+impl TypeErasedVec {
     /// Retains only the elements in the type-erased vector that satisfy the supplied predicate.
     ///
     /// This method removes all elements from the collection for which the predicate returns
@@ -11572,7 +11572,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -11582,7 +11582,7 @@ impl OpaqueVec {
     /// #
     /// let mut opaque_vec = {
     ///     let array: [i32; 6] = [1, 2, 3, 4, 5, 6];
-    ///     OpaqueVec::from(array)
+    ///     TypeErasedVec::from(array)
     /// };
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
@@ -11665,7 +11665,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -11675,7 +11675,7 @@ impl OpaqueVec {
     /// #
     /// let mut opaque_vec = {
     ///     let array: [i32; 6] = [1, 2, 3, 4, 5, 6];
-    ///     OpaqueVec::from(array)
+    ///     TypeErasedVec::from(array)
     /// };
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
@@ -11755,7 +11755,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -11765,7 +11765,7 @@ impl OpaqueVec {
     /// #
     /// let mut opaque_vec = {
     ///     let array: [i32; 9] = [1, 2, 3, 2, 2, 2, 6, 4, 4];
-    ///     OpaqueVec::from(array)
+    ///     TypeErasedVec::from(array)
     /// };
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
@@ -11780,7 +11780,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -11790,7 +11790,7 @@ impl OpaqueVec {
     /// #
     /// let mut opaque_vec = {
     ///     let array: [i32; 10] = [1, 2, 3, 3, 3, 3, 4, 4, 4, 5];
-    ///     OpaqueVec::from(array)
+    ///     TypeErasedVec::from(array)
     /// };
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
@@ -11805,7 +11805,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -11815,7 +11815,7 @@ impl OpaqueVec {
     /// #
     /// let mut opaque_vec = {
     ///     let array: [i32; 5] = [1, 2, 3, 4, 5];
-    ///     OpaqueVec::from(array)
+    ///     TypeErasedVec::from(array)
     /// };
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
@@ -11885,7 +11885,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -11895,7 +11895,7 @@ impl OpaqueVec {
     /// #
     /// let mut opaque_vec = {
     ///     let array: [i32; 5] = [10, 20, 21, 30, 20];
-    ///     OpaqueVec::from(array)
+    ///     TypeErasedVec::from(array)
     /// };
     ///
     /// opaque_vec.dedup_by_key::<_, _, i32, Global>(|i| *i / 10);
@@ -11907,7 +11907,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -11917,7 +11917,7 @@ impl OpaqueVec {
     /// #
     /// let mut opaque_vec = {
     ///     let array: [i32; 8] = [10, 20, 20, 21, 30, 30, 30, 40];
-    ///     OpaqueVec::from(array)
+    ///     TypeErasedVec::from(array)
     /// };
     ///
     /// opaque_vec.dedup_by_key::<_, _, i32, Global>(|i| *i / 10);
@@ -11990,7 +11990,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -12005,7 +12005,7 @@ impl OpaqueVec {
     ///         "baz", "bar",
     ///         "quux", "Quux", "QuuX"
     ///     ];
-    ///     OpaqueVec::from(array)
+    ///     TypeErasedVec::from(array)
     /// };
     ///
     /// opaque_vec.dedup_by::<_, &'static str, Global>(|a, b| a.eq_ignore_ascii_case(b));
@@ -12017,7 +12017,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -12034,7 +12034,7 @@ impl OpaqueVec {
     ///         "quux", "Quux", "QuuX",
     ///         "garply"
     ///     ];
-    ///     OpaqueVec::from(array)
+    ///     TypeErasedVec::from(array)
     /// };
     ///
     /// opaque_vec.dedup_by::<_, &'static str, Global>(|a, b| a.eq_ignore_ascii_case(b));
@@ -12054,7 +12054,7 @@ impl OpaqueVec {
     }
 }
 
-impl OpaqueVec {
+impl TypeErasedVec {
     /// Appends all elements from an iterator to the type-erased vector.
     ///
     /// # Panics
@@ -12067,7 +12067,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -12078,12 +12078,12 @@ impl OpaqueVec {
     /// let array: [i32; 6] = [1, 2, 3, 4, 5, 6];
     /// let extension: [i32; 4] = [7, 8, 9, 10];
     /// let combined: [i32; 10] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-    /// let expected = OpaqueVec::from(combined);
+    /// let expected = TypeErasedVec::from(combined);
     /// #
     /// # assert!(expected.has_element_type::<i32>());
     /// # assert!(expected.has_allocator_type::<Global>());
     /// #
-    /// let mut result = OpaqueVec::from(array);
+    /// let mut result = TypeErasedVec::from(array);
     /// #
     /// # assert!(result.has_element_type::<i32>());
     /// # assert!(result.has_allocator_type::<Global>());
@@ -12120,7 +12120,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -12130,12 +12130,12 @@ impl OpaqueVec {
     /// #
     /// let array: [i32; 6] = [1, 2, 3, 4, 5, 6];
     /// let array_rev: [i32; 6] = [6, 5, 4, 3, 2, 1];
-    /// let expected = OpaqueVec::from(array_rev);
+    /// let expected = TypeErasedVec::from(array_rev);
     /// #
     /// # assert!(expected.has_element_type::<i32>());
     /// # assert!(expected.has_allocator_type::<Global>());
     /// #
-    /// let mut result = OpaqueVec::from(array);
+    /// let mut result = TypeErasedVec::from(array);
     /// #
     /// # assert!(result.has_element_type::<i32>());
     /// # assert!(result.has_allocator_type::<Global>());
@@ -12149,7 +12149,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -12158,12 +12158,12 @@ impl OpaqueVec {
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let palindrome: [i32; 7] = [1, 2, 3, 4, 3, 2, 1];
-    /// let expected = OpaqueVec::from(palindrome);
+    /// let expected = TypeErasedVec::from(palindrome);
     /// #
     /// # assert!(expected.has_element_type::<i32>());
     /// # assert!(expected.has_allocator_type::<Global>());
     /// #
-    /// let mut result = OpaqueVec::from(palindrome);
+    /// let mut result = TypeErasedVec::from(palindrome);
     /// #
     /// # assert!(result.has_element_type::<i32>());
     /// # assert!(result.has_allocator_type::<Global>());
@@ -12185,11 +12185,11 @@ impl OpaqueVec {
     }
 }
 
-impl OpaqueVec {
+impl TypeErasedVec {
     /// Clones a type-erased vector.
     ///
     /// This method acts identically to an implementation of the [`Clone`] trait on a
-    /// type-projected vector [`TypedProjVec`], or a generic [`Vec`].
+    /// type-projected vector [`TypeProjectedVec`], or a generic [`Vec`].
     ///
     /// # Panics
     ///
@@ -12203,7 +12203,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -12211,7 +12211,7 @@ impl OpaqueVec {
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let opaque_vec = OpaqueVec::new::<i32>();
+    /// let opaque_vec = TypeErasedVec::new::<i32>();
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
@@ -12232,7 +12232,7 @@ impl OpaqueVec {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_vec::OpaqueVec;
+    /// # use opaque_vec::TypeErasedVec;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -12241,7 +12241,7 @@ impl OpaqueVec {
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let array: [i32; 6] = [1, 2, 3, 4, 5, 6];
-    /// let opaque_vec = OpaqueVec::from(array);
+    /// let opaque_vec = TypeErasedVec::from(array);
     /// #
     /// # assert!(opaque_vec.has_element_type::<i32>());
     /// # assert!(opaque_vec.has_allocator_type::<Global>());
@@ -12267,153 +12267,153 @@ impl OpaqueVec {
     {
         let proj_self = self.as_proj::<T, A>();
         let proj_cloned_self = Clone::clone(proj_self);
-        let cloned_self = OpaqueVec::from_proj(proj_cloned_self);
+        let cloned_self = TypeErasedVec::from_proj(proj_cloned_self);
 
         cloned_self
     }
 }
 
-impl fmt::Debug for OpaqueVec {
+impl fmt::Debug for TypeErasedVec {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter
-            .debug_struct("OpaqueVec")
+            .debug_struct("TypeErasedVec")
             .finish()
     }
 }
 
-impl<T> From<&[T]> for OpaqueVec
+impl<T> From<&[T]> for TypeErasedVec
 where
     T: any::Any + Clone,
 {
     fn from(slice: &[T]) -> Self {
-        let proj_vec = TypedProjVec::from(slice);
+        let proj_vec = TypeProjectedVec::from(slice);
 
         Self::from_proj(proj_vec)
     }
 }
 
-impl<T> From<&mut [T]> for OpaqueVec
+impl<T> From<&mut [T]> for TypeErasedVec
 where
     T: any::Any + Clone,
 {
     fn from(slice: &mut [T]) -> Self {
-        let proj_vec = TypedProjVec::from(slice);
+        let proj_vec = TypeProjectedVec::from(slice);
 
         Self::from_proj(proj_vec)
     }
 }
 
-impl<const N: usize, T> From<&[T; N]> for OpaqueVec
+impl<const N: usize, T> From<&[T; N]> for TypeErasedVec
 where
     T: any::Any + Clone,
 {
     fn from(array: &[T; N]) -> Self {
-        let proj_vec = TypedProjVec::from(array);
+        let proj_vec = TypeProjectedVec::from(array);
 
         Self::from_proj(proj_vec)
     }
 }
 
-impl<const N: usize, T> From<&mut [T; N]> for OpaqueVec
+impl<const N: usize, T> From<&mut [T; N]> for TypeErasedVec
 where
     T: any::Any + Clone,
 {
     fn from(array: &mut [T; N]) -> Self {
-        let proj_vec = TypedProjVec::from(array);
+        let proj_vec = TypeProjectedVec::from(array);
 
         Self::from_proj(proj_vec)
     }
 }
 
 #[cfg(feature = "nightly")]
-impl<T, A> From<Vec<T, A>> for OpaqueVec
+impl<T, A> From<Vec<T, A>> for TypeErasedVec
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn from(vec: Vec<T, A>) -> Self {
-        let proj_vec = TypedProjVec::from(vec);
+        let proj_vec = TypeProjectedVec::from(vec);
 
         Self::from_proj(proj_vec)
     }
 }
 
 #[cfg(not(feature = "nightly"))]
-impl<T> From<Vec<T>> for OpaqueVec
+impl<T> From<Vec<T>> for TypeErasedVec
 where
     T: any::Any,
 {
     fn from(vec: Vec<T>) -> Self {
-        let proj_vec = TypedProjVec::from(vec);
+        let proj_vec = TypeProjectedVec::from(vec);
 
         Self::from_proj(proj_vec)
     }
 }
 
-impl<T> From<&Vec<T>> for OpaqueVec
+impl<T> From<&Vec<T>> for TypeErasedVec
 where
     T: any::Any + Clone,
 {
     fn from(vec: &Vec<T>) -> Self {
-        let proj_vec = TypedProjVec::from(vec);
+        let proj_vec = TypeProjectedVec::from(vec);
 
         Self::from_proj(proj_vec)
     }
 }
 
-impl<T> From<&mut Vec<T>> for OpaqueVec
+impl<T> From<&mut Vec<T>> for TypeErasedVec
 where
     T: any::Any + Clone,
 {
     fn from(vec: &mut Vec<T>) -> Self {
-        let proj_vec = TypedProjVec::from(vec);
+        let proj_vec = TypeProjectedVec::from(vec);
 
         Self::from_proj(proj_vec)
     }
 }
 
 #[cfg(feature = "nightly")]
-impl<T, A> From<Box<[T], TypedProjAlloc<A>>> for OpaqueVec
+impl<T, A> From<Box<[T], TypeProjectedAlloc<A>>> for TypeErasedVec
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    fn from(slice: Box<[T], TypedProjAlloc<A>>) -> Self {
-        let proj_vec = TypedProjVec::from(slice);
+    fn from(slice: Box<[T], TypeProjectedAlloc<A>>) -> Self {
+        let proj_vec = TypeProjectedVec::from(slice);
 
         Self::from_proj(proj_vec)
     }
 }
 
-impl<const N: usize, T> From<[T; N]> for OpaqueVec
+impl<const N: usize, T> From<[T; N]> for TypeErasedVec
 where
     T: any::Any,
 {
     fn from(array: [T; N]) -> Self {
-        let proj_vec = TypedProjVec::from(array);
+        let proj_vec = TypeProjectedVec::from(array);
 
         Self::from_proj(proj_vec)
     }
 }
 
-impl From<&str> for OpaqueVec {
+impl From<&str> for TypeErasedVec {
     #[track_caller]
     fn from(st: &str) -> Self {
         From::from(st.as_bytes())
     }
 }
 
-impl<T> FromIterator<T> for OpaqueVec
+impl<T> FromIterator<T> for TypeErasedVec
 where
     T: any::Any,
 {
     #[inline]
     #[track_caller]
-    fn from_iter<I>(iterable: I) -> OpaqueVec
+    fn from_iter<I>(iterable: I) -> TypeErasedVec
     where
         I: IntoIterator<Item = T>,
     {
-        let proj_vec = TypedProjVec::from_iter(iterable);
+        let proj_vec = TypeProjectedVec::from_iter(iterable);
 
         Self::from_proj(proj_vec)
     }
@@ -12479,8 +12479,8 @@ mod vec_layout_tests {
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        let expected = mem::size_of::<TypedProjVec<T, A>>();
-        let result = mem::size_of::<OpaqueVec>();
+        let expected = mem::size_of::<TypeProjectedVec<T, A>>();
+        let result = mem::size_of::<TypeErasedVec>();
 
         assert_eq!(result, expected, "Opaque and Typed Projected data types size mismatch");
     }
@@ -12490,8 +12490,8 @@ mod vec_layout_tests {
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        let expected = mem::align_of::<TypedProjVec<T, A>>();
-        let result = mem::align_of::<OpaqueVec>();
+        let expected = mem::align_of::<TypeProjectedVec<T, A>>();
+        let result = mem::align_of::<TypeErasedVec>();
 
         assert_eq!(result, expected, "Opaque and Typed Projected data types alignment mismatch");
     }
@@ -12501,8 +12501,8 @@ mod vec_layout_tests {
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        let expected = mem::offset_of!(TypedProjVec<T, A>, inner);
-        let result = mem::offset_of!(OpaqueVec, inner);
+        let expected = mem::offset_of!(TypeProjectedVec<T, A>, inner);
+        let result = mem::offset_of!(TypeErasedVec, inner);
 
         assert_eq!(result, expected, "Opaque and Typed Projected data types offsets mismatch");
     }
@@ -12557,14 +12557,14 @@ mod vec_assert_send_sync {
     fn test_assert_send_sync1() {
         fn assert_send_sync<T: Send + Sync>() {}
 
-        assert_send_sync::<TypedProjVec<i32, alloc::Global>>();
+        assert_send_sync::<TypeProjectedVec<i32, alloc::Global>>();
     }
 
     #[test]
     fn test_assert_send_sync2() {
         fn assert_send_sync<T: Send + Sync>() {}
 
-        assert_send_sync::<TypedProjVec<i32, dummy::DummyAlloc>>();
+        assert_send_sync::<TypeProjectedVec<i32, dummy::DummyAlloc>>();
     }
 }
 
@@ -12577,7 +12577,7 @@ mod assert_not_send_not_sync {
     fn test_assert_not_send_not_sync() {
         fn assert_send_sync<T: Send + Sync>() {}
 
-        assert_send_sync::<OpaqueVec>();
+        assert_send_sync::<TypeErasedVec>();
     }
 }
 */

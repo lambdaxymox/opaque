@@ -1,5 +1,5 @@
 use crate::set::common::erased::strategy_type_erased_index_set_max_len;
-use opaque_index_map::OpaqueIndexSet;
+use opaque_index_map::TypeErasedIndexSet;
 
 use core::any;
 use core::fmt;
@@ -16,7 +16,7 @@ use opaque_allocator_api::alloc;
 
 use proptest::prelude::*;
 
-fn prop_iter_contains<T, S, A>(entries: OpaqueIndexSet) -> Result<(), TestCaseError>
+fn prop_iter_contains<T, S, A>(entries: TypeErasedIndexSet) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -31,7 +31,7 @@ where
     Ok(())
 }
 
-fn prop_iter_get<T, S, A>(entries: OpaqueIndexSet) -> Result<(), TestCaseError>
+fn prop_iter_get<T, S, A>(entries: TypeErasedIndexSet) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -49,7 +49,7 @@ where
     Ok(())
 }
 
-fn prop_iter_get_full<T, S, A>(entries: OpaqueIndexSet) -> Result<(), TestCaseError>
+fn prop_iter_get_full<T, S, A>(entries: TypeErasedIndexSet) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -67,7 +67,7 @@ where
     Ok(())
 }
 
-fn prop_iter_get_index<T, S, A>(entries: OpaqueIndexSet) -> Result<(), TestCaseError>
+fn prop_iter_get_index<T, S, A>(entries: TypeErasedIndexSet) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -85,7 +85,7 @@ where
     Ok(())
 }
 
-fn prop_iter_get_index_of<T, S, A>(entries: OpaqueIndexSet) -> Result<(), TestCaseError>
+fn prop_iter_get_index_of<T, S, A>(entries: TypeErasedIndexSet) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -117,31 +117,31 @@ macro_rules! generate_props {
             proptest! {
                 #[test]
                 fn prop_iter_contains(entries in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::OpaqueIndexSet = entries;
+                    let entries: super::TypeErasedIndexSet = entries;
                     super::prop_iter_contains::<$value_typ, $build_hasher_typ, $alloc_typ>(entries)?
                 }
 
                 #[test]
                 fn prop_iter_get(entries in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::OpaqueIndexSet = entries;
+                    let entries: super::TypeErasedIndexSet = entries;
                     super::prop_iter_get::<$value_typ, $build_hasher_typ, $alloc_typ>(entries)?
                 }
 
                 #[test]
                 fn prop_iter_get_full(entries in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::OpaqueIndexSet = entries;
+                    let entries: super::TypeErasedIndexSet = entries;
                     super::prop_iter_get_full::<$value_typ, $build_hasher_typ, $alloc_typ>(entries)?
                 }
 
                 #[test]
                 fn prop_iter_get_index(entries in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::OpaqueIndexSet = entries;
+                    let entries: super::TypeErasedIndexSet = entries;
                     super::prop_iter_get_index::<$value_typ, $build_hasher_typ, $alloc_typ>(entries)?
                 }
 
                 #[test]
                 fn prop_iter_get_index_of(entries in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::OpaqueIndexSet = entries;
+                    let entries: super::TypeErasedIndexSet = entries;
                     super::prop_iter_get_index_of::<$value_typ, $build_hasher_typ, $alloc_typ>(entries)?
                 }
             }

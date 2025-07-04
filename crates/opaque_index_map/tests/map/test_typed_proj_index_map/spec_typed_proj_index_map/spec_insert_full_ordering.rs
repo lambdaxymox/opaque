@@ -2,7 +2,7 @@ use crate::map::common::projected::{
     SingleBoundedValue,
     strategy_type_projected_index_map_max_len_nonempty,
 };
-use opaque_index_map::TypedProjIndexMap;
+use opaque_index_map::TypeProjectedIndexMap;
 
 use core::any;
 use core::fmt;
@@ -19,7 +19,7 @@ use opaque_allocator_api::alloc;
 
 use proptest::prelude::*;
 
-fn strategy_prop_insert_full_preserves_order_new_entry<K, V, S, A>(max_length: usize) -> impl Strategy<Value = (TypedProjIndexMap<K, V, S, A>, (K, V))>
+fn strategy_prop_insert_full_preserves_order_new_entry<K, V, S, A>(max_length: usize) -> impl Strategy<Value = (TypeProjectedIndexMap<K, V, S, A>, (K, V))>
 where
     K: any::Any + Clone + Eq + hash::Hash + Ord + Default + fmt::Debug + Arbitrary + SingleBoundedValue,
     V: any::Any + Clone + Eq + Default + fmt::Debug + Arbitrary + SingleBoundedValue,
@@ -34,7 +34,7 @@ where
         })
 }
 
-fn prop_insert_full_preserves_order_new_entry<K, V, S, A>((entries, new_entry): (TypedProjIndexMap<K, V, S, A>, (K, V))) -> Result<(), TestCaseError>
+fn prop_insert_full_preserves_order_new_entry<K, V, S, A>((entries, new_entry): (TypeProjectedIndexMap<K, V, S, A>, (K, V))) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
@@ -82,7 +82,7 @@ macro_rules! generate_props {
                     (entries, new_entry) in
                     super::$map_gen::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>($max_length)
                 ) {
-                    let entries: super::TypedProjIndexMap<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ> = entries;
+                    let entries: super::TypeProjectedIndexMap<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ> = entries;
                     let new_entry: ($key_typ, $value_typ) = new_entry;
                     super::prop_insert_full_preserves_order_new_entry((entries, new_entry))?
                 }

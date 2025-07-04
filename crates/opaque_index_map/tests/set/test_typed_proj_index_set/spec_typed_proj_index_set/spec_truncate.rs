@@ -1,5 +1,5 @@
 use crate::set::common::projected::strategy_type_projected_index_set_max_len;
-use opaque_index_map::TypedProjIndexSet;
+use opaque_index_map::TypeProjectedIndexSet;
 
 use core::any;
 use core::fmt;
@@ -16,14 +16,14 @@ use opaque_allocator_api::alloc;
 
 use proptest::prelude::*;
 
-fn prop_truncate_len_length_less_than_or_equal_to<T, S, A>(entries: TypedProjIndexSet<T, S, A>) -> Result<(), TestCaseError>
+fn prop_truncate_len_length_less_than_or_equal_to<T, S, A>(entries: TypeProjectedIndexSet<T, S, A>) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    fn expected<T, S, A>(set: &TypedProjIndexSet<T, S, A>, len: usize) -> Vec<T>
+    fn expected<T, S, A>(set: &TypeProjectedIndexSet<T, S, A>, len: usize) -> Vec<T>
     where
         T: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
         S: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -39,7 +39,7 @@ where
         vec
     }
 
-    fn result<T, S, A>(set: &TypedProjIndexSet<T, S, A>, len: usize) -> Vec<T>
+    fn result<T, S, A>(set: &TypeProjectedIndexSet<T, S, A>, len: usize) -> Vec<T>
     where
         T: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
         S: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -70,14 +70,14 @@ where
     Ok(())
 }
 
-fn prop_truncate_length_less_than_or_equal_to<T, S, A>(entries: TypedProjIndexSet<T, S, A>) -> Result<(), TestCaseError>
+fn prop_truncate_length_less_than_or_equal_to<T, S, A>(entries: TypeProjectedIndexSet<T, S, A>) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    fn expected<T, S, A>(set: &TypedProjIndexSet<T, S, A>, len: usize) -> Vec<T>
+    fn expected<T, S, A>(set: &TypeProjectedIndexSet<T, S, A>, len: usize) -> Vec<T>
     where
         T: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
         S: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -93,7 +93,7 @@ where
         vec
     }
 
-    fn result<T, S, A>(set: &TypedProjIndexSet<T, S, A>, len: usize) -> Vec<T>
+    fn result<T, S, A>(set: &TypeProjectedIndexSet<T, S, A>, len: usize) -> Vec<T>
     where
         T: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
         S: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -136,13 +136,13 @@ macro_rules! generate_props {
             proptest! {
                 #[test]
                 fn prop_truncate_len_length_less_than_or_equal_to(entries in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::TypedProjIndexSet<$value_typ, $build_hasher_typ, $alloc_typ> = entries;
+                    let entries: super::TypeProjectedIndexSet<$value_typ, $build_hasher_typ, $alloc_typ> = entries;
                     super::prop_truncate_len_length_less_than_or_equal_to(entries)?
                 }
 
                 #[test]
                 fn prop_truncate_length_less_than_or_equal_to(entries in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::TypedProjIndexSet<$value_typ, $build_hasher_typ, $alloc_typ> = entries;
+                    let entries: super::TypeProjectedIndexSet<$value_typ, $build_hasher_typ, $alloc_typ> = entries;
                     super::prop_truncate_length_less_than_or_equal_to(entries)?
                 }
             }

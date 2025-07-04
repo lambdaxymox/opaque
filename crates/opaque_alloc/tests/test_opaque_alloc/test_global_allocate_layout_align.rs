@@ -1,4 +1,4 @@
-use opaque_alloc::OpaqueAlloc;
+use opaque_alloc::TypeErasedAlloc;
 
 use core::any;
 use alloc_crate::format;
@@ -13,7 +13,7 @@ use opaque_allocator_api::alloc;
 use opaque_polyfill::slice_ptr_get;
 
 #[cfg(feature = "nightly")]
-fn run_test_opaque_alloc_allocate_align_with_layout<A>(opaque_alloc: OpaqueAlloc, layout: alloc::Layout)
+fn run_test_opaque_alloc_allocate_align_with_layout<A>(opaque_alloc: TypeErasedAlloc, layout: alloc::Layout)
 where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
@@ -39,7 +39,7 @@ where
 }
 
 #[cfg(not(feature = "nightly"))]
-fn run_test_opaque_alloc_allocate_align_with_layout<A>(opaque_alloc: OpaqueAlloc, layout: alloc::Layout)
+fn run_test_opaque_alloc_allocate_align_with_layout<A>(opaque_alloc: TypeErasedAlloc, layout: alloc::Layout)
 where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
@@ -68,7 +68,7 @@ fn run_test_opaque_alloc_allocate_align_with_size_align<A>(alloc: A, size: usize
 where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    let opaque_alloc = OpaqueAlloc::new::<A>(alloc);
+    let opaque_alloc = TypeErasedAlloc::new::<A>(alloc);
     let layout = alloc::Layout::from_size_align(size, align).expect(&format!(
         "Failed to construct layout with size `{:?}` and alignment `{:?}`",
         size, align

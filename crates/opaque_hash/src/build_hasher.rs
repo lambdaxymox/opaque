@@ -1,5 +1,5 @@
-use crate::hasher::TypedProjHasher;
-use crate::build_hasher_inner::{OpaqueBuildHasherInner, TypedProjBuildHasherInner};
+use crate::hasher::TypeProjectedHasher;
+use crate::build_hasher_inner::{TypeErasedBuildHasherInner, TypeProjectedBuildHasherInner};
 
 use core::any;
 use core::fmt;
@@ -19,22 +19,22 @@ use core::hash;
 /// builders around, type-erasure and type-projection are zero-cost operations, since they have
 /// identical layout.
 ///
-/// For a given hash builder type `S`, the [`TypedProjBuildHasher<S>`] and [`OpaqueHasher`] data
+/// For a given hash builder type `S`, the [`TypeProjectedBuildHasher<S>`] and [`TypeErasedHasher`] data
 /// types also implement the [`BuildHasher`] trait, so we can build hashers with it just as well as
 /// the underlying hash builder of type `S`. The type-projected hash builder's [`BuildHasher`]
 /// implementation will build the same hasher as the underlying hash builder type does with its
 /// [`BuildHasher`] implementation. The type-projected and type-erased hash builders also have an
 /// additional feature where they can build type-projected versions of the underlying hasher with
-/// the `build_hasher_proj` method. See the [`TypedProjBuildHasher::build_hasher_proj`] and
-/// [`OpaqueBuildHasher::build_hasher_proj`] methods for more detail.
+/// the `build_hasher_proj` method. See the [`TypeProjectedBuildHasher::build_hasher_proj`] and
+/// [`TypeErasedBuildHasher::build_hasher_proj`] methods for more detail.
 ///
 /// # Type Erasure And Type Projection
 ///
 /// This allows for more flexible and dynamic data handling, especially when working with
 /// collections of unknown or dynamic types. Some applications of this include implementing
 /// heterogeneous data structures, plugin systems, and managing foreign function interface data.
-/// There are two data types that are dual to each other: [`TypedProjBuildHasher`] and
-/// [`OpaqueBuildHasher`].
+/// There are two data types that are dual to each other: [`TypeProjectedBuildHasher`] and
+/// [`TypeErasedBuildHasher`].
 ///
 /// # Tradeoffs Compared To A Non-Projected Hasher
 ///
@@ -50,18 +50,18 @@ use core::hash;
 ///
 /// # See Also
 ///
-/// - [`OpaqueBuildHasher`]: the type-erased counterpart to [`TypedProjBuildHasher`].
+/// - [`TypeErasedBuildHasher`]: the type-erased counterpart to [`TypeProjectedBuildHasher`].
 ///
 /// # Examples
 ///
 /// Using a type-projected hash builder.
 ///
 /// ```
-/// # use opaque_hash::{TypedProjBuildHasher, TypedProjHasher};
+/// # use opaque_hash::{TypeProjectedBuildHasher, TypeProjectedHasher};
 /// # use std::any::TypeId;
 /// # use std::hash::{BuildHasher, DefaultHasher, RandomState};
 /// #
-/// let proj_build_hasher = TypedProjBuildHasher::new(RandomState::new());
+/// let proj_build_hasher = TypeProjectedBuildHasher::new(RandomState::new());
 ///
 /// assert_eq!(proj_build_hasher.build_hasher_type_id(), TypeId::of::<RandomState>());
 ///
@@ -69,18 +69,18 @@ use core::hash;
 /// let hasher: DefaultHasher = proj_build_hasher.build_hasher();
 ///
 /// // The `build_hasher_proj` method builds a type-projected hasher.
-/// let proj_hasher: TypedProjHasher<DefaultHasher> = proj_build_hasher.build_hasher_proj();
+/// let proj_hasher: TypeProjectedHasher<DefaultHasher> = proj_build_hasher.build_hasher_proj();
 /// ```
 #[repr(transparent)]
-pub struct TypedProjBuildHasher<S>
+pub struct TypeProjectedBuildHasher<S>
 where
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
 {
-    inner: TypedProjBuildHasherInner<S>,
+    inner: TypeProjectedBuildHasherInner<S>,
 }
 
-impl<S> TypedProjBuildHasher<S>
+impl<S> TypeProjectedBuildHasher<S>
 where
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
@@ -90,11 +90,11 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_hash::TypeProjectedBuildHasher;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
     /// #
-    /// let proj_build_hasher = TypedProjBuildHasher::new(RandomState::new());
+    /// let proj_build_hasher = TypeProjectedBuildHasher::new(RandomState::new());
     ///
     /// assert_eq!(proj_build_hasher.build_hasher_type_id(), TypeId::of::<RandomState>());
     /// ```
@@ -108,11 +108,11 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_hash::TypeProjectedBuildHasher;
     /// # use std::any::TypeId;
     /// # use std::hash::{DefaultHasher, RandomState};
     /// #
-    /// let proj_build_hasher = TypedProjBuildHasher::new(RandomState::new());
+    /// let proj_build_hasher = TypeProjectedBuildHasher::new(RandomState::new());
     ///
     /// assert_eq!(proj_build_hasher.hasher_type_id(), TypeId::of::<DefaultHasher>());
     /// ```
@@ -122,7 +122,7 @@ where
     }
 }
 
-impl<S> TypedProjBuildHasher<S>
+impl<S> TypeProjectedBuildHasher<S>
 where
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
@@ -132,18 +132,18 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_hash::TypeProjectedBuildHasher;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
     /// #
-    /// let proj_build_hasher = TypedProjBuildHasher::new(RandomState::new());
+    /// let proj_build_hasher = TypeProjectedBuildHasher::new(RandomState::new());
     ///
     /// assert_eq!(proj_build_hasher.build_hasher_type_id(), TypeId::of::<RandomState>());
     /// assert_ne!(proj_build_hasher.build_hasher_type_id(), TypeId::of::<Box<RandomState>>());
     /// ```
     #[inline]
     pub fn new(build_hasher: S) -> Self {
-        let inner = TypedProjBuildHasherInner::new(build_hasher);
+        let inner = TypeProjectedBuildHasherInner::new(build_hasher);
 
         Self { inner, }
     }
@@ -156,17 +156,17 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_hash::TypeProjectedBuildHasher;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
     /// #
-    /// let proj_build_hasher = TypedProjBuildHasher::from_boxed_build_hasher(Box::new(RandomState::new()));
+    /// let proj_build_hasher = TypeProjectedBuildHasher::from_boxed_build_hasher(Box::new(RandomState::new()));
     ///
     /// assert_eq!(proj_build_hasher.build_hasher_type_id(), TypeId::of::<RandomState>());
     /// assert_ne!(proj_build_hasher.build_hasher_type_id(), TypeId::of::<Box<RandomState>>());
     #[inline]
     pub fn from_boxed_build_hasher(build_hasher: Box<S>) -> Self {
-        let inner = TypedProjBuildHasherInner::from_boxed_build_hasher(build_hasher);
+        let inner = TypeProjectedBuildHasherInner::from_boxed_build_hasher(build_hasher);
 
         Self { inner, }
     }
@@ -176,11 +176,11 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_hash::TypeProjectedBuildHasher;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
     /// #
-    /// let proj_build_hasher = TypedProjBuildHasher::from_boxed_build_hasher(Box::new(RandomState::new()));
+    /// let proj_build_hasher = TypeProjectedBuildHasher::from_boxed_build_hasher(Box::new(RandomState::new()));
     ///
     /// let build_hasher: &RandomState = proj_build_hasher.get_build_hasher();
     /// ```
@@ -193,14 +193,14 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_hash::TypeProjectedBuildHasher;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
     /// #
-    /// let proj_build_hasher = TypedProjBuildHasher::new(RandomState::new());
+    /// let proj_build_hasher = TypeProjectedBuildHasher::new(RandomState::new());
     /// let boxed_build_hasher: Box<RandomState> = proj_build_hasher.into_boxed_build_hasher();
     ///
-    /// let new_proj_build_hasher = TypedProjBuildHasher::from_boxed_build_hasher(boxed_build_hasher);
+    /// let new_proj_build_hasher = TypeProjectedBuildHasher::from_boxed_build_hasher(boxed_build_hasher);
     ///
     /// assert_eq!(new_proj_build_hasher.build_hasher_type_id(), TypeId::of::<RandomState>());
     /// assert_ne!(new_proj_build_hasher.build_hasher_type_id(), TypeId::of::<Box<RandomState>>());
@@ -210,7 +210,7 @@ where
     }
 }
 
-impl<S> hash::BuildHasher for TypedProjBuildHasher<S>
+impl<S> hash::BuildHasher for TypeProjectedBuildHasher<S>
 where
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
@@ -222,7 +222,7 @@ where
     }
 }
 
-impl<S> TypedProjBuildHasher<S>
+impl<S> TypeProjectedBuildHasher<S>
 where
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
@@ -234,23 +234,23 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use opaque_hash::{TypedProjBuildHasher, TypedProjHasher};
+    /// # use opaque_hash::{TypeProjectedBuildHasher, TypeProjectedHasher};
     /// # use std::hash::{DefaultHasher, RandomState};
     /// #
-    /// let proj_build_hasher = TypedProjBuildHasher::new(RandomState::new());
-    /// let proj_hasher: TypedProjHasher<DefaultHasher> = proj_build_hasher.build_hasher_proj();
+    /// let proj_build_hasher = TypeProjectedBuildHasher::new(RandomState::new());
+    /// let proj_hasher: TypeProjectedHasher<DefaultHasher> = proj_build_hasher.build_hasher_proj();
     /// ```
     ///
-    /// [`build_hasher`]: TypedProjBuildHasher::build_hasher
+    /// [`build_hasher`]: TypeProjectedBuildHasher::build_hasher
     #[inline]
-    pub fn build_hasher_proj(&self) -> TypedProjHasher<S::Hasher> {
+    pub fn build_hasher_proj(&self) -> TypeProjectedHasher<S::Hasher> {
         let hasher = self.inner.build_hasher();
 
-        TypedProjHasher::new(hasher)
+        TypeProjectedHasher::new(hasher)
     }
 }
 
-impl<S> Clone for TypedProjBuildHasher<S>
+impl<S> Clone for TypeProjectedBuildHasher<S>
 where
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
@@ -262,7 +262,7 @@ where
     }
 }
 
-impl<S> Default for TypedProjBuildHasher<S>
+impl<S> Default for TypeProjectedBuildHasher<S>
 where
     S: any::Any + hash::BuildHasher + Send + Sync + Default,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
@@ -272,7 +272,7 @@ where
     }
 }
 
-impl<S> PartialEq for TypedProjBuildHasher<S>
+impl<S> PartialEq for TypeProjectedBuildHasher<S>
 where
     S: any::Any + hash::BuildHasher + Send + Sync + PartialEq,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
@@ -285,20 +285,20 @@ where
     }
 }
 
-impl<S> fmt::Debug for TypedProjBuildHasher<S>
+impl<S> fmt::Debug for TypeProjectedBuildHasher<S>
 where
     S: any::Any + hash::BuildHasher + Send + Sync + fmt::Debug,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
 {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter
-            .debug_struct("TypedProjBuildHasher")
+            .debug_struct("TypeProjectedBuildHasher")
             .field("inner", self.inner.get_build_hasher())
             .finish()
     }
 }
 
-impl<S> From<S> for TypedProjBuildHasher<S>
+impl<S> From<S> for TypeProjectedBuildHasher<S>
 where
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
@@ -315,22 +315,22 @@ where
 /// builders around, type-erasure and type-projection are zero-cost operations, since they have
 /// identical layout.
 ///
-/// For a given hash builder type `S`, the [`TypedProjBuildHasher<S>`] and [`OpaqueHasher`] data
+/// For a given hash builder type `S`, the [`TypeProjectedBuildHasher<S>`] and [`TypeErasedHasher`] data
 /// types also implement the [`BuildHasher`] trait, so we can build hashers with it just as well as
 /// the underlying hash builder of type `S`. The type-projected hash builder's [`BuildHasher`]
 /// implementation will build the same hasher as the underlying hash builder type does with its
 /// [`BuildHasher`] implementation. The type-projected and type-erased hash builders also have an
 /// additional feature where they can build type-projected versions of the underlying hasher with
-/// the `build_hasher_proj` method. See the [`TypedProjBuildHasher::build_hasher_proj`] and
-/// [`OpaqueBuildHasher::build_hasher_proj`] methods for more detail.
+/// the `build_hasher_proj` method. See the [`TypeProjectedBuildHasher::build_hasher_proj`] and
+/// [`TypeErasedBuildHasher::build_hasher_proj`] methods for more detail.
 ///
 /// # Type Erasure And Type Projection
 ///
 /// This allows for more flexible and dynamic data handling, especially when working with
 /// collections of unknown or dynamic types. Some applications of this include implementing
 /// heterogeneous data structures, plugin systems, and managing foreign function interface data.
-/// There are two data types that are dual to each other: [`TypedProjBuildHasher`] and
-/// [`OpaqueBuildHasher`].
+/// There are two data types that are dual to each other: [`TypeProjectedBuildHasher`] and
+/// [`TypeErasedBuildHasher`].
 ///
 /// # Tradeoffs Compared To A Non-Projected Hasher
 ///
@@ -346,18 +346,18 @@ where
 ///
 /// # See Also
 ///
-/// - [`TypedProjBuildHasher`]: the type-projected counterpart to [`OpaqueBuildHasher`].
+/// - [`TypeProjectedBuildHasher`]: the type-projected counterpart to [`TypeErasedBuildHasher`].
 ///
 /// # Examples
 ///
 /// Using a type-erased hash builder.
 ///
 /// ```
-/// # use opaque_hash::{OpaqueBuildHasher, TypedProjHasher};
+/// # use opaque_hash::{TypeErasedBuildHasher, TypeProjectedHasher};
 /// # use std::any::TypeId;
 /// # use std::hash::{DefaultHasher, RandomState};
 /// #
-/// let opaque_build_hasher = OpaqueBuildHasher::new::<RandomState>(RandomState::new());
+/// let opaque_build_hasher = TypeErasedBuildHasher::new::<RandomState>(RandomState::new());
 /// #
 /// # assert!(opaque_build_hasher.has_build_hasher_type::<RandomState>());
 /// # assert!(opaque_build_hasher.has_hasher_type::<DefaultHasher>());
@@ -369,24 +369,24 @@ where
 /// let hasher: DefaultHasher = opaque_build_hasher.build_hasher::<RandomState>();
 ///
 /// // The `build_hasher_proj` method builds a type-projected hasher.
-/// let proj_hasher: TypedProjHasher<DefaultHasher> = opaque_build_hasher.build_hasher_proj::<RandomState>();
+/// let proj_hasher: TypeProjectedHasher<DefaultHasher> = opaque_build_hasher.build_hasher_proj::<RandomState>();
 /// ```
 #[repr(transparent)]
-pub struct OpaqueBuildHasher {
-    inner: OpaqueBuildHasherInner,
+pub struct TypeErasedBuildHasher {
+    inner: TypeErasedBuildHasherInner,
 }
 
-impl OpaqueBuildHasher {
+impl TypeErasedBuildHasher {
     /// Returns the [`TypeId`] of the underlying hash builder.
     ///
     /// # Examples
     ///
     /// ```
-    /// # use opaque_hash::OpaqueBuildHasher;
+    /// # use opaque_hash::TypeErasedBuildHasher;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
     /// #
-    /// let opaque_build_hasher = OpaqueBuildHasher::new::<RandomState>(RandomState::new());
+    /// let opaque_build_hasher = TypeErasedBuildHasher::new::<RandomState>(RandomState::new());
     ///
     /// assert_eq!(opaque_build_hasher.build_hasher_type_id(), TypeId::of::<RandomState>());
     /// ```
@@ -400,11 +400,11 @@ impl OpaqueBuildHasher {
     /// # Examples
     ///
     /// ```
-    /// # use opaque_hash::OpaqueBuildHasher;
+    /// # use opaque_hash::TypeErasedBuildHasher;
     /// # use std::any::TypeId;
     /// # use std::hash::{DefaultHasher, RandomState};
     /// #
-    /// let opaque_build_hasher = OpaqueBuildHasher::new::<RandomState>(RandomState::new());
+    /// let opaque_build_hasher = TypeErasedBuildHasher::new::<RandomState>(RandomState::new());
     ///
     /// assert_eq!(opaque_build_hasher.hasher_type_id(), TypeId::of::<DefaultHasher>());
     /// ```
@@ -414,7 +414,7 @@ impl OpaqueBuildHasher {
     }
 }
 
-impl OpaqueBuildHasher {
+impl TypeErasedBuildHasher {
     /// Determines whether underlying the hash builder has the given hash builder type.
     ///
     /// Returns `true` if `self` has the hash builder allocator type. Returns `false` otherwise.
@@ -422,11 +422,11 @@ impl OpaqueBuildHasher {
     /// # Examples
     ///
     /// ```
-    /// # use opaque_hash::OpaqueBuildHasher;
+    /// # use opaque_hash::TypeErasedBuildHasher;
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
     /// #
-    /// let opaque_build_hasher = OpaqueBuildHasher::new::<RandomState>(RandomState::new());
+    /// let opaque_build_hasher = TypeErasedBuildHasher::new::<RandomState>(RandomState::new());
     ///
     /// assert!(opaque_build_hasher.has_build_hasher_type::<RandomState>());;
     /// ```
@@ -445,11 +445,11 @@ impl OpaqueBuildHasher {
     /// # Examples
     ///
     /// ```
-    /// # use opaque_hash::OpaqueBuildHasher;
+    /// # use opaque_hash::TypeErasedBuildHasher;
     /// # use std::any::TypeId;
     /// # use std::hash::{DefaultHasher, RandomState};
     /// #
-    /// let opaque_build_hasher = OpaqueBuildHasher::new::<RandomState>(RandomState::new());
+    /// let opaque_build_hasher = TypeErasedBuildHasher::new::<RandomState>(RandomState::new());
     ///
     /// assert!(opaque_build_hasher.has_hasher_type::<DefaultHasher>());;
     /// ```
@@ -491,7 +491,7 @@ impl OpaqueBuildHasher {
     }
 }
 
-impl OpaqueBuildHasher {
+impl TypeErasedBuildHasher {
     /// Projects the type-erased hash builder reference into a type-projected hash builder
     /// reference.
     ///
@@ -507,26 +507,26 @@ impl OpaqueBuildHasher {
     /// # Examples
     ///
     /// ```
-    /// # use opaque_hash::{OpaqueBuildHasher, TypedProjBuildHasher};
+    /// # use opaque_hash::{TypeErasedBuildHasher, TypeProjectedBuildHasher};
     /// # use std::hash::{DefaultHasher, RandomState};
     /// #
-    /// let opaque_build_hasher = OpaqueBuildHasher::new::<RandomState>(RandomState::new());
+    /// let opaque_build_hasher = TypeErasedBuildHasher::new::<RandomState>(RandomState::new());
     /// #
     /// # assert!(opaque_build_hasher.has_build_hasher_type::<RandomState>());
     /// # assert!(opaque_build_hasher.has_hasher_type::<DefaultHasher>());
     /// #
-    /// let proj_build_hasher: &TypedProjBuildHasher<RandomState> = opaque_build_hasher.as_proj::<RandomState>();
+    /// let proj_build_hasher: &TypeProjectedBuildHasher<RandomState> = opaque_build_hasher.as_proj::<RandomState>();
     /// ```
     #[inline]
     #[track_caller]
-    pub fn as_proj<S>(&self) -> &TypedProjBuildHasher<S>
+    pub fn as_proj<S>(&self) -> &TypeProjectedBuildHasher<S>
     where
         S: any::Any + hash::BuildHasher + Send + Sync,
         S::Hasher: any::Any + hash::Hasher + Send + Sync,
     {
         self.assert_type_safety::<S>();
 
-        unsafe { &*(self as *const OpaqueBuildHasher as *const TypedProjBuildHasher<S>) }
+        unsafe { &*(self as *const TypeErasedBuildHasher as *const TypeProjectedBuildHasher<S>) }
     }
 
     /// Projects the mutable type-erased hash builder reference into a type-projected mutable
@@ -544,26 +544,26 @@ impl OpaqueBuildHasher {
     /// # Examples
     ///
     /// ```
-    /// # use opaque_hash::{OpaqueBuildHasher, TypedProjBuildHasher};
+    /// # use opaque_hash::{TypeErasedBuildHasher, TypeProjectedBuildHasher};
     /// # use std::hash::{DefaultHasher, RandomState};
     /// #
-    /// let mut opaque_build_hasher = OpaqueBuildHasher::new::<RandomState>(RandomState::new());
+    /// let mut opaque_build_hasher = TypeErasedBuildHasher::new::<RandomState>(RandomState::new());
     /// #
     /// # assert!(opaque_build_hasher.has_build_hasher_type::<RandomState>());
     /// # assert!(opaque_build_hasher.has_hasher_type::<DefaultHasher>());
     /// #
-    /// let proj_build_hasher: &mut TypedProjBuildHasher<RandomState> = opaque_build_hasher.as_proj_mut::<RandomState>();
+    /// let proj_build_hasher: &mut TypeProjectedBuildHasher<RandomState> = opaque_build_hasher.as_proj_mut::<RandomState>();
     /// ```
     #[inline]
     #[track_caller]
-    pub fn as_proj_mut<S>(&mut self) -> &mut TypedProjBuildHasher<S>
+    pub fn as_proj_mut<S>(&mut self) -> &mut TypeProjectedBuildHasher<S>
     where
         S: any::Any + hash::BuildHasher + Send + Sync,
         S::Hasher: any::Any + hash::Hasher + Send + Sync,
     {
         self.assert_type_safety::<S>();
 
-        unsafe { &mut *(self as *mut OpaqueBuildHasher as *mut TypedProjBuildHasher<S>) }
+        unsafe { &mut *(self as *mut TypeErasedBuildHasher as *mut TypeProjectedBuildHasher<S>) }
     }
 
     /// Projects the type-erased hash builder value into a type-projected hash builder value.
@@ -580,26 +580,26 @@ impl OpaqueBuildHasher {
     /// # Examples
     ///
     /// ```
-    /// # use opaque_hash::{OpaqueBuildHasher, TypedProjBuildHasher};
+    /// # use opaque_hash::{TypeErasedBuildHasher, TypeProjectedBuildHasher};
     /// # use std::hash::{DefaultHasher, RandomState};
     /// #
-    /// let opaque_build_hasher = OpaqueBuildHasher::new::<RandomState>(RandomState::new());
+    /// let opaque_build_hasher = TypeErasedBuildHasher::new::<RandomState>(RandomState::new());
     /// #
     /// # assert!(opaque_build_hasher.has_build_hasher_type::<RandomState>());
     /// # assert!(opaque_build_hasher.has_hasher_type::<DefaultHasher>());
     /// #
-    /// let proj_build_hasher: TypedProjBuildHasher<RandomState> = opaque_build_hasher.into_proj::<RandomState>();
+    /// let proj_build_hasher: TypeProjectedBuildHasher<RandomState> = opaque_build_hasher.into_proj::<RandomState>();
     /// ```
     #[inline]
     #[track_caller]
-    pub fn into_proj<S>(self) -> TypedProjBuildHasher<S>
+    pub fn into_proj<S>(self) -> TypeProjectedBuildHasher<S>
     where
         S: any::Any + hash::BuildHasher + Send + Sync,
         S::Hasher: any::Any + hash::Hasher + Send + Sync,
     {
         self.assert_type_safety::<S>();
 
-        TypedProjBuildHasher {
+        TypeProjectedBuildHasher {
             inner: self.inner.into_proj(),
         }
     }
@@ -616,43 +616,43 @@ impl OpaqueBuildHasher {
     /// # Examples
     ///
     /// ```
-    /// # use opaque_hash::{OpaqueBuildHasher, TypedProjBuildHasher};
+    /// # use opaque_hash::{TypeErasedBuildHasher, TypeProjectedBuildHasher};
     /// # use std::hash::{DefaultHasher, RandomState};
     /// #
-    /// let proj_build_hasher: TypedProjBuildHasher<RandomState> = TypedProjBuildHasher::new(RandomState::new());
-    /// let opaque_build_hasher: OpaqueBuildHasher = OpaqueBuildHasher::from_proj(proj_build_hasher);
+    /// let proj_build_hasher: TypeProjectedBuildHasher<RandomState> = TypeProjectedBuildHasher::new(RandomState::new());
+    /// let opaque_build_hasher: TypeErasedBuildHasher = TypeErasedBuildHasher::from_proj(proj_build_hasher);
     /// #
     /// # assert!(opaque_build_hasher.has_build_hasher_type::<RandomState>());
     /// # assert!(opaque_build_hasher.has_hasher_type::<DefaultHasher>());
     /// #
     /// ```
     ///
-    /// [`as_proj`]: OpaqueBuildHasher::as_proj,
-    /// [`as_proj_mut`]: OpaqueBuildHasher::as_proj_mut
-    /// [`into_proj`]: OpaqueBuildHasher::into_proj
+    /// [`as_proj`]: TypeErasedBuildHasher::as_proj,
+    /// [`as_proj_mut`]: TypeErasedBuildHasher::as_proj_mut
+    /// [`into_proj`]: TypeErasedBuildHasher::into_proj
     #[inline]
-    pub fn from_proj<S>(proj_self: TypedProjBuildHasher<S>) -> Self
+    pub fn from_proj<S>(proj_self: TypeProjectedBuildHasher<S>) -> Self
     where
         S: any::Any + hash::BuildHasher + Send + Sync,
         S::Hasher: any::Any + hash::Hasher + Send + Sync,
     {
         Self {
-            inner: OpaqueBuildHasherInner::from_proj(proj_self.inner),
+            inner: TypeErasedBuildHasherInner::from_proj(proj_self.inner),
         }
     }
 }
 
-impl OpaqueBuildHasher {
+impl TypeErasedBuildHasher {
     /// Constructs a new type-erased hash builder.
     ///
     /// # Examples
     ///
     /// ```
-    /// # use opaque_hash::OpaqueBuildHasher;
+    /// # use opaque_hash::TypeErasedBuildHasher;
     /// # use std::any::TypeId;
     /// # use std::hash::{DefaultHasher, RandomState};
     /// #
-    /// let opaque_build_hasher = OpaqueBuildHasher::new::<RandomState>(RandomState::new());
+    /// let opaque_build_hasher = TypeErasedBuildHasher::new::<RandomState>(RandomState::new());
     /// #
     /// # assert!(opaque_build_hasher.has_build_hasher_type::<RandomState>());
     /// # assert!(opaque_build_hasher.has_hasher_type::<DefaultHasher>());
@@ -667,7 +667,7 @@ impl OpaqueBuildHasher {
         S: any::Any + hash::BuildHasher + Send + Sync,
         S::Hasher: any::Any + hash::Hasher + Send + Sync,
     {
-        let proj_build_hasher = TypedProjBuildHasher::<S>::new(build_hasher);
+        let proj_build_hasher = TypeProjectedBuildHasher::<S>::new(build_hasher);
 
         Self::from_proj(proj_build_hasher)
     }
@@ -680,11 +680,11 @@ impl OpaqueBuildHasher {
     /// # Examples
     ///
     /// ```
-    /// # use opaque_hash::OpaqueBuildHasher;
+    /// # use opaque_hash::TypeErasedBuildHasher;
     /// # use std::any::TypeId;
     /// # use std::hash::{DefaultHasher, RandomState};
     /// #
-    /// let opaque_build_hasher = OpaqueBuildHasher::from_boxed_build_hasher::<RandomState>(Box::new(RandomState::new()));
+    /// let opaque_build_hasher = TypeErasedBuildHasher::from_boxed_build_hasher::<RandomState>(Box::new(RandomState::new()));
     /// #
     /// # assert!(opaque_build_hasher.has_build_hasher_type::<RandomState>());
     /// # assert!(opaque_build_hasher.has_hasher_type::<DefaultHasher>());
@@ -699,7 +699,7 @@ impl OpaqueBuildHasher {
         S: any::Any + hash::BuildHasher + Send + Sync,
         S::Hasher: any::Any + hash::Hasher + Send + Sync,
     {
-        let proj_build_hasher = TypedProjBuildHasher::<S>::from_boxed_build_hasher(build_hasher);
+        let proj_build_hasher = TypeProjectedBuildHasher::<S>::from_boxed_build_hasher(build_hasher);
 
         Self::from_proj(proj_build_hasher)
     }
@@ -714,11 +714,11 @@ impl OpaqueBuildHasher {
     /// # Examples
     ///
     /// ```
-    /// # use opaque_hash::OpaqueBuildHasher;
+    /// # use opaque_hash::TypeErasedBuildHasher;
     /// # use std::any::TypeId;
     /// # use std::hash::{DefaultHasher, RandomState};
     /// #
-    /// let opaque_build_hasher = OpaqueBuildHasher::from_boxed_build_hasher(Box::new(RandomState::new()));
+    /// let opaque_build_hasher = TypeErasedBuildHasher::from_boxed_build_hasher(Box::new(RandomState::new()));
     /// #
     /// # assert!(opaque_build_hasher.has_build_hasher_type::<RandomState>());
     /// # assert!(opaque_build_hasher.has_hasher_type::<DefaultHasher>());
@@ -748,18 +748,18 @@ impl OpaqueBuildHasher {
     /// # Examples
     ///
     /// ```
-    /// # use opaque_hash::OpaqueBuildHasher;
+    /// # use opaque_hash::TypeErasedBuildHasher;
     /// # use std::any::TypeId;
     /// # use std::hash::{DefaultHasher, RandomState};
     /// #
-    /// let opaque_build_hasher = OpaqueBuildHasher::new(RandomState::new());
+    /// let opaque_build_hasher = TypeErasedBuildHasher::new(RandomState::new());
     /// #
     /// # assert!(opaque_build_hasher.has_build_hasher_type::<RandomState>());
     /// # assert!(opaque_build_hasher.has_hasher_type::<DefaultHasher>());
     /// #
     /// let boxed_build_hasher: Box<RandomState> = opaque_build_hasher.into_boxed_build_hasher::<RandomState>();
     ///
-    /// let new_opaque_build_hasher = OpaqueBuildHasher::from_boxed_build_hasher(boxed_build_hasher);
+    /// let new_opaque_build_hasher = TypeErasedBuildHasher::from_boxed_build_hasher(boxed_build_hasher);
     /// #
     /// # assert!(new_opaque_build_hasher.has_build_hasher_type::<RandomState>());
     /// # assert!(new_opaque_build_hasher.has_hasher_type::<DefaultHasher>());
@@ -780,7 +780,7 @@ impl OpaqueBuildHasher {
     }
 }
 
-impl OpaqueBuildHasher {
+impl TypeErasedBuildHasher {
     /// Returns an unprojected hasher.
     ///
     /// The type of the hasher returned by this method is the same as calling [`BuildHasher::build_hasher`]
@@ -791,10 +791,10 @@ impl OpaqueBuildHasher {
     /// # Examples
     ///
     /// ```
-    /// # use opaque_hash::{OpaqueBuildHasher, TypedProjBuildHasher};
+    /// # use opaque_hash::{TypeErasedBuildHasher, TypeProjectedBuildHasher};
     /// # use std::hash::{DefaultHasher, RandomState};
     /// #
-    /// let opaque_build_hasher = OpaqueBuildHasher::new::<RandomState>(RandomState::new());
+    /// let opaque_build_hasher = TypeErasedBuildHasher::new::<RandomState>(RandomState::new());
     /// #
     /// # assert!(opaque_build_hasher.has_build_hasher_type::<RandomState>());
     /// # assert!(opaque_build_hasher.has_hasher_type::<DefaultHasher>());
@@ -803,7 +803,7 @@ impl OpaqueBuildHasher {
     /// ```
     ///
     /// [`BuildHasher::build_hasher`]: std::hash::BuildHasher::build_hasher
-    /// [`build_hasher_proj`]: OpaqueBuildHasher::build_hasher_proj
+    /// [`build_hasher_proj`]: TypeErasedBuildHasher::build_hasher_proj
     #[track_caller]
     pub fn build_hasher<S>(&self) -> S::Hasher
     where
@@ -812,11 +812,11 @@ impl OpaqueBuildHasher {
     {
         let proj_self = self.as_proj::<S>();
 
-        <TypedProjBuildHasher<S> as hash::BuildHasher>::build_hasher(proj_self)
+        <TypeProjectedBuildHasher<S> as hash::BuildHasher>::build_hasher(proj_self)
     }
 }
 
-impl OpaqueBuildHasher {
+impl TypeErasedBuildHasher {
     /// Returns a type-projected hasher.
     ///
     /// To get an unprojected hasher instead of a type-projected one, use [`build_hasher`] instead.
@@ -824,21 +824,21 @@ impl OpaqueBuildHasher {
     /// # Examples
     ///
     /// ```
-    /// # use opaque_hash::{OpaqueBuildHasher, TypedProjBuildHasher, TypedProjHasher};
+    /// # use opaque_hash::{TypeErasedBuildHasher, TypeProjectedBuildHasher, TypeProjectedHasher};
     /// # use std::hash::{DefaultHasher, RandomState};
     /// #
-    /// let opaque_build_hasher = OpaqueBuildHasher::new::<RandomState>(RandomState::new());
+    /// let opaque_build_hasher = TypeErasedBuildHasher::new::<RandomState>(RandomState::new());
     /// #
     /// # assert!(opaque_build_hasher.has_build_hasher_type::<RandomState>());
     /// # assert!(opaque_build_hasher.has_hasher_type::<DefaultHasher>());
     /// #
-    /// let proj_hasher: TypedProjHasher<DefaultHasher> = opaque_build_hasher.build_hasher_proj::<RandomState>();
+    /// let proj_hasher: TypeProjectedHasher<DefaultHasher> = opaque_build_hasher.build_hasher_proj::<RandomState>();
     /// ```
     ///
-    /// [`build_hasher`]: OpaqueBuildHasher::build_hasher
+    /// [`build_hasher`]: TypeErasedBuildHasher::build_hasher
     #[inline]
     #[track_caller]
-    pub fn build_hasher_proj<S>(&self) -> TypedProjHasher<S::Hasher>
+    pub fn build_hasher_proj<S>(&self) -> TypeProjectedHasher<S::Hasher>
     where
         S: any::Any + hash::BuildHasher + Send + Sync,
         S::Hasher: any::Any + hash::Hasher + Send + Sync,
@@ -849,9 +849,9 @@ impl OpaqueBuildHasher {
     }
 }
 
-impl fmt::Debug for OpaqueBuildHasher {
+impl fmt::Debug for TypeErasedBuildHasher {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.debug_struct("OpaqueBuildHasher").finish()
+        formatter.debug_struct("TypeErasedBuildHasher").finish()
     }
 }
 
@@ -899,8 +899,8 @@ mod build_hasher_layout_tests {
         S: any::Any + hash::BuildHasher + Send + Sync,
         S::Hasher: any::Any + hash::Hasher + Send + Sync,
     {
-        let expected = mem::size_of::<TypedProjBuildHasher<S>>();
-        let result = mem::size_of::<OpaqueBuildHasher>();
+        let expected = mem::size_of::<TypeProjectedBuildHasher<S>>();
+        let result = mem::size_of::<TypeErasedBuildHasher>();
 
         assert_eq!(result, expected, "Opaque and Typed Projected data types size mismatch");
     }
@@ -910,8 +910,8 @@ mod build_hasher_layout_tests {
         S: any::Any + hash::BuildHasher + Send + Sync,
         S::Hasher: any::Any + hash::Hasher + Send + Sync,
     {
-        let expected = mem::align_of::<TypedProjBuildHasher<S>>();
-        let result = mem::align_of::<OpaqueBuildHasher>();
+        let expected = mem::align_of::<TypeProjectedBuildHasher<S>>();
+        let result = mem::align_of::<TypeErasedBuildHasher>();
 
         assert_eq!(result, expected, "Opaque and Typed Projected data types alignment mismatch");
     }
@@ -922,8 +922,8 @@ mod build_hasher_layout_tests {
         S::Hasher: any::Any + hash::Hasher + Send + Sync,
     {
         assert_eq!(
-            mem::offset_of!(TypedProjBuildHasher<S>, inner),
-            mem::offset_of!(OpaqueBuildHasher, inner),
+            mem::offset_of!(TypeProjectedBuildHasher<S>, inner),
+            mem::offset_of!(TypeErasedBuildHasher, inner),
             "Opaque and Typed Projected data types offsets mismatch"
         );
     }
@@ -964,14 +964,14 @@ mod assert_send_sync {
     fn test_assert_send_sync1() {
         fn assert_send_sync<T: Send + Sync>() {}
 
-        assert_send_sync::<TypedProjBuildHasher<hash::RandomState>>();
+        assert_send_sync::<TypeProjectedBuildHasher<hash::RandomState>>();
     }
 
     #[test]
     fn test_assert_send_sync2() {
         fn assert_send_sync<T: Send + Sync>() {}
 
-        assert_send_sync::<TypedProjBuildHasher<dummy::DummyBuildHasher>>();
+        assert_send_sync::<TypeProjectedBuildHasher<dummy::DummyBuildHasher>>();
     }
 
     /*
@@ -979,7 +979,7 @@ mod assert_send_sync {
     fn test_assert_not_send_not_sync() {
         fn assert_send_sync<T: Send + Sync>() {}
 
-        assert_send_sync::<OpaqueBuildHasher>();
+        assert_send_sync::<TypeErasedBuildHasher>();
     }
     */
 }

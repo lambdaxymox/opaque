@@ -1,4 +1,4 @@
-use opaque_index_map::map::OpaqueIndexMap;
+use opaque_index_map::map::TypeErasedIndexMap;
 
 use criterion::{
     Criterion,
@@ -33,7 +33,7 @@ fn bench_index_map_as_slice_index(c: &mut Criterion) {
 fn bench_opaque_index_map_as_slice_index(c: &mut Criterion) {
     let keys = 0..10000;
     let values = 1..10001;
-    let opaque_map = OpaqueIndexMap::from_iter(keys.zip(values));
+    let opaque_map = TypeErasedIndexMap::from_iter(keys.zip(values));
 
     c.bench_function("opaque_index_map_as_slice_index", |b| {
         b.iter(|| {

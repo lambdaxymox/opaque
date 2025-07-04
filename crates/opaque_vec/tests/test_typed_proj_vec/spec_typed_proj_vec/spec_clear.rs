@@ -1,5 +1,5 @@
 use crate::common::projected::strategy_type_projected_vec_max_len;
-use opaque_vec::TypedProjVec;
+use opaque_vec::TypeProjectedVec;
 
 use core::any;
 use core::fmt;
@@ -14,12 +14,12 @@ use opaque_allocator_api::alloc;
 
 use proptest::prelude::*;
 
-fn prop_clear_as_slice<T, A>(values: TypedProjVec<T, A>) -> Result<(), TestCaseError>
+fn prop_clear_as_slice<T, A>(values: TypeProjectedVec<T, A>) -> Result<(), TestCaseError>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
-    let expected = TypedProjVec::new_proj_in(values.allocator().clone());
+    let expected = TypeProjectedVec::new_proj_in(values.allocator().clone());
     let result = {
         let mut _vec = values.clone();
         _vec.clear();
@@ -31,7 +31,7 @@ where
     Ok(())
 }
 
-fn prop_clear_is_empty<T, A>(values: TypedProjVec<T, A>) -> Result<(), TestCaseError>
+fn prop_clear_is_empty<T, A>(values: TypeProjectedVec<T, A>) -> Result<(), TestCaseError>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
@@ -44,7 +44,7 @@ where
     Ok(())
 }
 
-fn prop_clear_len<T, A>(values: TypedProjVec<T, A>) -> Result<(), TestCaseError>
+fn prop_clear_len<T, A>(values: TypeProjectedVec<T, A>) -> Result<(), TestCaseError>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
@@ -64,19 +64,19 @@ macro_rules! generate_props {
             proptest! {
                 #[test]
                 fn prop_clear_as_slice(values in super::$vec_gen::<$typ, $alloc_typ>($max_length)) {
-                    let values: super::TypedProjVec<$typ, $alloc_typ> = values;
+                    let values: super::TypeProjectedVec<$typ, $alloc_typ> = values;
                     super::prop_clear_as_slice(values)?
                 }
 
                 #[test]
                 fn prop_clear_is_empty(values in super::$vec_gen::<$typ, $alloc_typ>($max_length)) {
-                    let values: super::TypedProjVec<$typ, $alloc_typ> = values;
+                    let values: super::TypeProjectedVec<$typ, $alloc_typ> = values;
                     super::prop_clear_is_empty(values)?
                 }
 
                 #[test]
                 fn prop_clear_len(values in super::$vec_gen::<$typ, $alloc_typ>($max_length)) {
-                    let values: super::TypedProjVec<$typ, $alloc_typ> = values;
+                    let values: super::TypeProjectedVec<$typ, $alloc_typ> = values;
                     super::prop_clear_len(values)?
                 }
             }

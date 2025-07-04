@@ -4,7 +4,7 @@ use crate::common::projected::{
     strategy_type_projected_vec_len,
     strategy_type_projected_vec_max_len,
 };
-use opaque_vec::TypedProjVec;
+use opaque_vec::TypeProjectedVec;
 
 use core::any;
 use core::fmt;
@@ -38,7 +38,7 @@ where
     Just(<T as SingleDrainValue>::drain_value())
 }
 
-fn strategy_prop_drain_partial_vec<T, A>(max_length: usize, max_count: usize) -> impl Strategy<Value = (TypedProjVec<T, A>, T, usize, usize)>
+fn strategy_prop_drain_partial_vec<T, A>(max_length: usize, max_count: usize) -> impl Strategy<Value = (TypeProjectedVec<T, A>, T, usize, usize)>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary + SingleBoundedValue + SingleDrainValue,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
@@ -48,7 +48,7 @@ where
     )
 }
 
-fn prop_drain_entire_vec<T, A>(values: TypedProjVec<T, A>) -> Result<(), TestCaseError>
+fn prop_drain_entire_vec<T, A>(values: TypeProjectedVec<T, A>) -> Result<(), TestCaseError>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
@@ -56,7 +56,7 @@ where
     let expected = values.clone();
     let result = {
         let mut _vec = values.clone();
-        let mut _result = TypedProjVec::new_proj_in(values.allocator().clone());
+        let mut _result = TypeProjectedVec::new_proj_in(values.allocator().clone());
         for value in _vec.drain(..) {
             _result.push(value);
         }
@@ -69,20 +69,20 @@ where
     Ok(())
 }
 
-fn prop_drain_nothing_vec<T, A>(values: TypedProjVec<T, A>) -> Result<(), TestCaseError>
+fn prop_drain_nothing_vec<T, A>(values: TypeProjectedVec<T, A>) -> Result<(), TestCaseError>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
     for start in 0..values.len() {
         let mut result = {
-            let mut _result = TypedProjVec::with_capacity_proj_in(values.len(), values.allocator().clone());
+            let mut _result = TypeProjectedVec::with_capacity_proj_in(values.len(), values.allocator().clone());
             _result.extend(values.iter().cloned());
             _result
         };
         let expected = result.clone();
 
-        let mut drained_result = TypedProjVec::new_proj_in(values.allocator().clone());
+        let mut drained_result = TypeProjectedVec::new_proj_in(values.allocator().clone());
         drained_result.extend(result.drain(start..start));
 
         prop_assert!(drained_result.is_empty());
@@ -92,17 +92,17 @@ where
     Ok(())
 }
 
-fn prop_drain_partial_vec<T, A>((values, drain_value, count, index): (TypedProjVec<T, A>, T, usize, usize)) -> Result<(), TestCaseError>
+fn prop_drain_partial_vec<T, A>((values, drain_value, count, index): (TypeProjectedVec<T, A>, T, usize, usize)) -> Result<(), TestCaseError>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
-    fn drained_expected<T, A>(drain_value: T, length: usize, alloc: A) -> TypedProjVec<T, A>
+    fn drained_expected<T, A>(drain_value: T, length: usize, alloc: A) -> TypeProjectedVec<T, A>
     where
         T: any::Any + PartialEq + Clone + Default + fmt::Debug,
         A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
     {
-        let mut vec = TypedProjVec::with_capacity_in(length, alloc);
+        let mut vec = TypeProjectedVec::with_capacity_in(length, alloc);
         for _ in 0..length {
             vec.push(drain_value.clone());
         }
@@ -120,7 +120,7 @@ where
         values.allocator().allocator().clone(),
     );
     let drained_result = {
-        let mut _vec = TypedProjVec::with_capacity_proj_in(count, values.allocator().clone());
+        let mut _vec = TypeProjectedVec::with_capacity_proj_in(count, values.allocator().clone());
         for value in result.drain(index..(index + count)) {
             _vec.push(value);
         }
@@ -141,19 +141,19 @@ macro_rules! generate_props {
             proptest! {
                 #[test]
                 fn prop_drain_entire_vec(values in super::$vec_gen::<$typ, $alloc_typ>($max_length)) {
-                    let values: super::TypedProjVec<$typ, $alloc_typ> = values;
+                    let values: super::TypeProjectedVec<$typ, $alloc_typ> = values;
                     super::prop_drain_entire_vec(values)?
                 }
 
                 #[test]
                 fn prop_drain_nothing_vec(values in super::$vec_gen::<$typ, $alloc_typ>($max_length)) {
-                    let values: super::TypedProjVec<$typ, $alloc_typ> = values;
+                    let values: super::TypeProjectedVec<$typ, $alloc_typ> = values;
                     super::prop_drain_nothing_vec(values)?
                 }
 
                 #[test]
                 fn prop_drain_partial_vec(values in super::strategy_prop_drain_partial_vec::<$typ, $alloc_typ>($max_length, $max_count)) {
-                    let values: (super::TypedProjVec<$typ, $alloc_typ>, $typ, usize, usize) = values;
+                    let values: (super::TypeProjectedVec<$typ, $alloc_typ>, $typ, usize, usize) = values;
                     super::prop_drain_partial_vec(values)?
                 }
             }

@@ -1,4 +1,4 @@
-use opaque_index_map::map::OpaqueIndexMap;
+use opaque_index_map::map::TypeErasedIndexMap;
 
 use criterion::{
     Criterion,
@@ -41,7 +41,7 @@ fn bench_opaque_index_map_shift_remove(c: &mut Criterion) {
 
     c.bench_function("opaque_index_map_shift_remove", |b| {
         b.iter_batched(
-            || OpaqueIndexMap::from_iter(keys.clone().zip(values.clone())),
+            || TypeErasedIndexMap::from_iter(keys.clone().zip(values.clone())),
             |mut opaque_map| {
                 let keys: Vec<i32> = opaque_map.keys::<i32, i32, hash::RandomState, alloc::Global>().cloned().collect();
                 for key in keys.iter() {

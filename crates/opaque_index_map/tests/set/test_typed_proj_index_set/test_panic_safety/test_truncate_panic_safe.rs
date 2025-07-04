@@ -1,4 +1,4 @@
-use opaque_index_map::set::TypedProjIndexSet;
+use opaque_index_map::set::TypeProjectedIndexSet;
 
 use core::any;
 use std::hash;
@@ -110,7 +110,7 @@ impl<T> hash::Hash for UnhashedValueWrapper<T> {
 #[cfg_attr(not(panic = "unwind"), ignore = "test requires unwinding support")]
 fn test_truncate_on_panic_drop_count1() {
     let mut triggering_panic_cell = PanicCell::new((), 0);
-    let mut map = TypedProjIndexSet::new();
+    let mut map = TypeProjectedIndexSet::new();
 
     map.insert(UnhashedValueWrapper::new(0, triggering_panic_cell.clone()));
 
@@ -132,7 +132,7 @@ fn test_truncate_on_panic_drop_count1() {
 fn test_truncate_on_panic_drop_count2() {
     let mut triggering_panic_cell = PanicCell::new((), 0);
     let mut panic_cell = PanicCell::new((), 2);
-    let mut set = TypedProjIndexSet::new();
+    let mut set = TypeProjectedIndexSet::new();
 
     set.insert(UnhashedValueWrapper::new(0, triggering_panic_cell.clone()));
     set.insert(UnhashedValueWrapper::new(1, panic_cell.clone()));
@@ -163,7 +163,7 @@ fn test_truncate_on_panic_drop_count2() {
 fn test_truncate_on_panic_drop_count3() {
     let mut triggering_panic_cell = PanicCell::new((), 0);
     let mut panic_cell = PanicCell::new((), 4);
-    let mut set = TypedProjIndexSet::new();
+    let mut set = TypeProjectedIndexSet::new();
 
     set.insert(UnhashedValueWrapper::new(0, panic_cell.clone()));
     set.insert(UnhashedValueWrapper::new(1, triggering_panic_cell.clone()));
@@ -193,7 +193,7 @@ fn test_truncate_on_panic_drop_count3() {
 #[test]
 fn test_truncate_on_success_drop_count() {
     let mut panic_cell = PanicCell::new((), 2);
-    let mut set = TypedProjIndexSet::new();
+    let mut set = TypeProjectedIndexSet::new();
 
     set.insert(UnhashedValueWrapper::new(0, panic_cell.clone()));
 

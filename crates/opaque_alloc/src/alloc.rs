@@ -1,4 +1,4 @@
-use crate::alloc_inner::{TypedProjAllocInner, OpaqueAllocInner};
+use crate::alloc_inner::{TypeProjectedAllocInner, TypeErasedAllocInner};
 
 use core::any;
 use core::fmt;
@@ -20,7 +20,7 @@ use opaque_allocator_api::alloc;
 /// allocators around, type-erasure and type-projection are zero-cost operations, since they have
 /// identical layout.
 ///
-/// For a given allocator type `A`, the [`TypedProjAlloc`] and [`OpaqueAlloc`] data types also
+/// For a given allocator type `A`, the [`TypeProjectedAlloc`] and [`TypeErasedAlloc`] data types also
 /// implement the [`Allocator`] trait, so we can allocate memory with it just as well as the
 /// underlying allocator of type `A`.
 ///
@@ -29,7 +29,7 @@ use opaque_allocator_api::alloc;
 /// This allows for more flexible and dynamic data handling, especially when working with
 /// collections of unknown or dynamic types. Some applications of this include implementing
 /// heterogeneous data structures, plugin systems, and managing foreign function interface data.
-/// There are two data types that are dual to each other: [`TypedProjAlloc`] and [`OpaqueAlloc`].
+/// There are two data types that are dual to each other: [`TypeProjectedAlloc`] and [`TypeErasedAlloc`].
 ///
 /// # Tradeoffs Compared To A Non-Projected Allocator
 ///
@@ -45,7 +45,7 @@ use opaque_allocator_api::alloc;
 ///
 /// # See Also
 ///
-/// - [`OpaqueAlloc`]: The type-erased counterpart to [`TypedProjAlloc`].
+/// - [`TypeErasedAlloc`]: The type-erased counterpart to [`TypeProjectedAlloc`].
 ///
 /// # Examples
 ///
@@ -53,7 +53,7 @@ use opaque_allocator_api::alloc;
 ///
 /// ```
 /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-/// # use opaque_alloc::TypedProjAlloc;
+/// # use opaque_alloc::TypeProjectedAlloc;
 /// # use std::any::TypeId;
 /// #
 /// # #[cfg(feature = "nightly")]
@@ -62,21 +62,21 @@ use opaque_allocator_api::alloc;
 /// # #[cfg(not(feature = "nightly"))]
 /// # use opaque_allocator_api::alloc::Global;
 /// #
-/// let proj_alloc = TypedProjAlloc::new(Global);
+/// let proj_alloc = TypeProjectedAlloc::new(Global);
 ///
 /// assert_eq!(proj_alloc.allocator_type_id(), TypeId::of::<Global>());
 /// ```
 ///
 /// [`Allocator`]: std::alloc::Allocator
 #[repr(transparent)]
-pub struct TypedProjAlloc<A>
+pub struct TypeProjectedAlloc<A>
 where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    inner: TypedProjAllocInner<A>,
+    inner: TypeProjectedAllocInner<A>,
 }
 
-impl<A> TypedProjAlloc<A>
+impl<A> TypeProjectedAlloc<A>
 where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
@@ -86,7 +86,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_alloc::TypeProjectedAlloc;
     /// # use std::any::TypeId;
     /// #
     /// # #[cfg(feature = "nightly")]
@@ -95,7 +95,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let proj_alloc = TypedProjAlloc::new(Global);
+    /// let proj_alloc = TypeProjectedAlloc::new(Global);
     ///
     /// let expected = TypeId::of::<Global>();
     /// let result = proj_alloc.allocator_type_id();
@@ -108,7 +108,7 @@ where
     }
 }
 
-impl<A> TypedProjAlloc<A>
+impl<A> TypeProjectedAlloc<A>
 where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
@@ -118,7 +118,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_alloc::TypeProjectedAlloc;
     /// # use std::any::TypeId;
     /// #
     /// # #[cfg(feature = "nightly")]
@@ -127,14 +127,14 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let proj_alloc = TypedProjAlloc::new(Global);
+    /// let proj_alloc = TypeProjectedAlloc::new(Global);
     ///
     /// assert_eq!(proj_alloc.allocator_type_id(), TypeId::of::<Global>());
     /// assert_ne!(proj_alloc.allocator_type_id(), TypeId::of::<Box<Global>>());
     /// ```
     #[inline]
     pub fn new(alloc: A) -> Self {
-        let inner = TypedProjAllocInner::new(alloc);
+        let inner = TypeProjectedAllocInner::new(alloc);
 
         Self { inner, }
     }
@@ -148,7 +148,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_alloc::TypeProjectedAlloc;
     /// # use std::any::TypeId;
     /// #
     /// # #[cfg(feature = "nightly")]
@@ -157,14 +157,14 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let proj_alloc = TypedProjAlloc::from_boxed_alloc(Box::new(Global));
+    /// let proj_alloc = TypeProjectedAlloc::from_boxed_alloc(Box::new(Global));
     ///
     /// assert_eq!(proj_alloc.allocator_type_id(), TypeId::of::<Global>());
     /// assert_ne!(proj_alloc.allocator_type_id(), TypeId::of::<Box<Global>>());
     /// ```
     #[inline]
     pub fn from_boxed_alloc(alloc: Box<A>) -> Self {
-        let inner = TypedProjAllocInner::from_boxed_alloc(alloc);
+        let inner = TypeProjectedAllocInner::from_boxed_alloc(alloc);
 
         Self { inner, }
     }
@@ -175,7 +175,7 @@ where
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_alloc::TypeProjectedAlloc;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -183,7 +183,7 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let proj_alloc = TypedProjAlloc::new(Global);
+    /// let proj_alloc = TypeProjectedAlloc::new(Global);
     ///
     /// let alloc: &Global = proj_alloc.allocator();
     /// ```
@@ -195,13 +195,13 @@ where
     /// Converts the type-projected allocator into a boxed memory allocator.
     ///
     /// The resulting boxed memory allocator cannot be type-projected and type-erased again
-    /// unless it is converted back via a method like [`TypedProjAlloc::from_boxed_alloc`].
+    /// unless it is converted back via a method like [`TypeProjectedAlloc::from_boxed_alloc`].
     ///
     /// # Examples
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_alloc::TypeProjectedAlloc;
     /// # use std::any::TypeId;
     /// #
     /// # #[cfg(feature = "nightly")]
@@ -210,10 +210,10 @@ where
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let proj_alloc = TypedProjAlloc::new(Global);
+    /// let proj_alloc = TypeProjectedAlloc::new(Global);
     /// let boxed_alloc: Box<Global> = proj_alloc.into_boxed_alloc();
     ///
-    /// let new_proj_alloc = TypedProjAlloc::from_boxed_alloc(boxed_alloc);
+    /// let new_proj_alloc = TypeProjectedAlloc::from_boxed_alloc(boxed_alloc);
     ///
     /// assert_eq!(new_proj_alloc.allocator_type_id(), TypeId::of::<Global>());
     /// assert_ne!(new_proj_alloc.allocator_type_id(), TypeId::of::<Box<Global>>());
@@ -223,7 +223,7 @@ where
     }
 }
 
-unsafe impl<A> alloc::Allocator for TypedProjAlloc<A>
+unsafe impl<A> alloc::Allocator for TypeProjectedAlloc<A>
 where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
@@ -238,7 +238,7 @@ where
     }
 }
 
-impl<A> Clone for TypedProjAlloc<A>
+impl<A> Clone for TypeProjectedAlloc<A>
 where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
@@ -249,18 +249,18 @@ where
     }
 }
 
-impl<A> fmt::Debug for TypedProjAlloc<A>
+impl<A> fmt::Debug for TypeProjectedAlloc<A>
 where
     A: any::Any + alloc::Allocator + Send + Sync + fmt::Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("TypedProjAlloc")
+        f.debug_struct("TypeProjectedAlloc")
             .field("inner", self.inner.allocator())
             .finish()
     }
 }
 
-impl<A> Default for TypedProjAlloc<A>
+impl<A> Default for TypeProjectedAlloc<A>
 where
     A: any::Any + alloc::Allocator + Send + Sync + Default,
 {
@@ -269,7 +269,7 @@ where
     }
 }
 
-impl<A> From<A> for TypedProjAlloc<A>
+impl<A> From<A> for TypeProjectedAlloc<A>
 where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
@@ -285,7 +285,7 @@ where
 /// allocators around, type-erasure and type-projection are zero-cost operations, since they have
 /// identical layout.
 ///
-/// For a given allocator type `A`, the [`TypedProjAlloc`] and [`OpaqueAlloc`] data types also
+/// For a given allocator type `A`, the [`TypeProjectedAlloc`] and [`TypeErasedAlloc`] data types also
 /// implement the [`Allocator`] trait, so we can allocate memory with it just as well as the
 /// underlying allocator of type `A`.
 ///
@@ -294,7 +294,7 @@ where
 /// This allows for more flexible and dynamic data handling, especially when working with
 /// collections of unknown or dynamic types. Some applications of this include implementing
 /// heterogeneous data structures, plugin systems, and managing foreign function interface data.
-/// There are two data types that are dual to each other: [`TypedProjAlloc`] and [`OpaqueAlloc`].
+/// There are two data types that are dual to each other: [`TypeProjectedAlloc`] and [`TypeErasedAlloc`].
 ///
 /// # Tradeoffs Compared To A Non-Projected Allocator
 ///
@@ -310,7 +310,7 @@ where
 ///
 /// # See Also
 ///
-/// - [`TypedProjAlloc`]: The type-projected counterpart to [`OpaqueAlloc`].
+/// - [`TypeProjectedAlloc`]: The type-projected counterpart to [`TypeErasedAlloc`].
 ///
 /// # Examples
 ///
@@ -318,7 +318,7 @@ where
 ///
 /// ```
 /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-/// # use opaque_alloc::OpaqueAlloc;
+/// # use opaque_alloc::TypeErasedAlloc;
 /// # use std::any::TypeId;
 /// #
 /// # #[cfg(feature = "nightly")]
@@ -327,25 +327,25 @@ where
 /// # #[cfg(not(feature = "nightly"))]
 /// # use opaque_allocator_api::alloc::Global;
 /// #
-/// let opaque_alloc = OpaqueAlloc::new::<Global>(Global);
+/// let opaque_alloc = TypeErasedAlloc::new::<Global>(Global);
 ///
 /// assert_eq!(opaque_alloc.allocator_type_id(), TypeId::of::<Global>());
 /// ```
 ///
 /// [`Allocator`]: std::alloc::Allocator
 #[repr(transparent)]
-pub struct OpaqueAlloc {
-    inner: OpaqueAllocInner,
+pub struct TypeErasedAlloc {
+    inner: TypeErasedAllocInner,
 }
 
-impl OpaqueAlloc {
+impl TypeErasedAlloc {
     /// Returns the [`TypeId`] of the underlying memory allocator.
     ///
     /// # Examples
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_alloc::OpaqueAlloc;
+    /// # use opaque_alloc::TypeErasedAlloc;
     /// # use std::any::TypeId;
     /// #
     /// # #[cfg(feature = "nightly")]
@@ -354,7 +354,7 @@ impl OpaqueAlloc {
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let opaque_alloc = OpaqueAlloc::new::<Global>(Global);
+    /// let opaque_alloc = TypeErasedAlloc::new::<Global>(Global);
     ///
     /// let expected = TypeId::of::<Global>();
     /// let result = opaque_alloc.allocator_type_id();
@@ -367,7 +367,7 @@ impl OpaqueAlloc {
     }
 }
 
-impl OpaqueAlloc {
+impl TypeErasedAlloc {
     /// Determines whether the underlying memory allocator has the given allocator type.
     ///
     /// Returns `true` if `self` has the specified memory allocator type. Returns `false`
@@ -377,7 +377,7 @@ impl OpaqueAlloc {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_alloc::OpaqueAlloc;
+    /// # use opaque_alloc::TypeErasedAlloc;
     /// # use std::any::{Any, TypeId};
     /// # use std::ptr::NonNull;
     /// #
@@ -403,7 +403,7 @@ impl OpaqueAlloc {
     /// # }
     /// #
     ///
-    /// let opaque_alloc = OpaqueAlloc::new::<Global>(Global);
+    /// let opaque_alloc = TypeErasedAlloc::new::<Global>(Global);
     ///
     /// assert!(opaque_alloc.has_allocator_type::<Global>());
     /// assert!(!opaque_alloc.has_allocator_type::<BoxedAllocator>());
@@ -444,7 +444,7 @@ impl OpaqueAlloc {
     }
 }
 
-impl OpaqueAlloc {
+impl TypeErasedAlloc {
     /// Projects the type-erased allocator reference into a type-projected allocator reference.
     ///
     /// # Complexity Characteristics
@@ -460,7 +460,7 @@ impl OpaqueAlloc {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_alloc::{OpaqueAlloc, TypedProjAlloc};
+    /// # use opaque_alloc::{TypeErasedAlloc, TypeProjectedAlloc};
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -468,21 +468,21 @@ impl OpaqueAlloc {
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let opaque_alloc = OpaqueAlloc::new::<Global>(Global);
+    /// let opaque_alloc = TypeErasedAlloc::new::<Global>(Global);
     /// #
     /// # assert!(opaque_alloc.has_allocator_type::<Global>());
     /// #
-    /// let proj_alloc: &TypedProjAlloc<Global> = opaque_alloc.as_proj::<Global>();
+    /// let proj_alloc: &TypeProjectedAlloc<Global> = opaque_alloc.as_proj::<Global>();
     /// ```
     #[inline]
     #[track_caller]
-    pub fn as_proj<A>(&self) -> &TypedProjAlloc<A>
+    pub fn as_proj<A>(&self) -> &TypeProjectedAlloc<A>
     where
         A: any::Any + alloc::Allocator + Send + Sync,
     {
         self.assert_type_safety::<A>();
 
-        unsafe { &*(self as *const OpaqueAlloc as *const TypedProjAlloc<A>) }
+        unsafe { &*(self as *const TypeErasedAlloc as *const TypeProjectedAlloc<A>) }
     }
 
     /// Projects the mutable type-erased allocator reference into a mutable type-projected
@@ -501,7 +501,7 @@ impl OpaqueAlloc {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_alloc::{OpaqueAlloc, TypedProjAlloc};
+    /// # use opaque_alloc::{TypeErasedAlloc, TypeProjectedAlloc};
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -509,21 +509,21 @@ impl OpaqueAlloc {
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let mut opaque_alloc = OpaqueAlloc::new::<Global>(Global);
+    /// let mut opaque_alloc = TypeErasedAlloc::new::<Global>(Global);
     /// #
     /// # assert!(opaque_alloc.has_allocator_type::<Global>());
     /// #
-    /// let proj_alloc: &mut TypedProjAlloc<Global> = opaque_alloc.as_proj_mut::<Global>();
+    /// let proj_alloc: &mut TypeProjectedAlloc<Global> = opaque_alloc.as_proj_mut::<Global>();
     /// ```
     #[inline]
     #[track_caller]
-    pub fn as_proj_mut<A>(&mut self) -> &mut TypedProjAlloc<A>
+    pub fn as_proj_mut<A>(&mut self) -> &mut TypeProjectedAlloc<A>
     where
         A: any::Any + alloc::Allocator + Send + Sync,
     {
         self.assert_type_safety::<A>();
 
-        unsafe { &mut *(self as *mut OpaqueAlloc as *mut TypedProjAlloc<A>) }
+        unsafe { &mut *(self as *mut TypeErasedAlloc as *mut TypeProjectedAlloc<A>) }
     }
 
     /// Projects the type-erased allocator value into a type-projected allocator value.
@@ -541,7 +541,7 @@ impl OpaqueAlloc {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_alloc::{OpaqueAlloc, TypedProjAlloc};
+    /// # use opaque_alloc::{TypeErasedAlloc, TypeProjectedAlloc};
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -549,21 +549,21 @@ impl OpaqueAlloc {
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let opaque_alloc = OpaqueAlloc::new::<Global>(Global);
+    /// let opaque_alloc = TypeErasedAlloc::new::<Global>(Global);
     /// #
     /// # assert!(opaque_alloc.has_allocator_type::<Global>());
     /// #
-    /// let proj_alloc: TypedProjAlloc<Global> = opaque_alloc.into_proj::<Global>();
+    /// let proj_alloc: TypeProjectedAlloc<Global> = opaque_alloc.into_proj::<Global>();
     /// ```
     #[inline]
     #[track_caller]
-    pub fn into_proj<A>(self) -> TypedProjAlloc<A>
+    pub fn into_proj<A>(self) -> TypeProjectedAlloc<A>
     where
         A: any::Any + alloc::Allocator + Send + Sync,
     {
         self.assert_type_safety::<A>();
 
-        TypedProjAlloc {
+        TypeProjectedAlloc {
             inner: self.inner.into_proj_assuming_type::<A>(),
         }
     }
@@ -581,7 +581,7 @@ impl OpaqueAlloc {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_alloc::{OpaqueAlloc, TypedProjAlloc};
+    /// # use opaque_alloc::{TypeErasedAlloc, TypeProjectedAlloc};
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -589,35 +589,35 @@ impl OpaqueAlloc {
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let proj_alloc: TypedProjAlloc<Global> = TypedProjAlloc::new(Global);
-    /// let opaque_alloc: OpaqueAlloc = OpaqueAlloc::from_proj(proj_alloc);
+    /// let proj_alloc: TypeProjectedAlloc<Global> = TypeProjectedAlloc::new(Global);
+    /// let opaque_alloc: TypeErasedAlloc = TypeErasedAlloc::from_proj(proj_alloc);
     /// #
     /// # assert!(opaque_alloc.has_allocator_type::<Global>());
     /// #
     /// ```
     ///
-    /// [`as_proj`]: OpaqueAlloc::as_proj,
-    /// [`as_proj_mut`]: OpaqueAlloc::as_proj_mut
-    /// [`into_proj`]: OpaqueAlloc::into_proj
+    /// [`as_proj`]: TypeErasedAlloc::as_proj,
+    /// [`as_proj_mut`]: TypeErasedAlloc::as_proj_mut
+    /// [`into_proj`]: TypeErasedAlloc::into_proj
     #[inline]
-    pub fn from_proj<A>(proj_self: TypedProjAlloc<A>) -> Self
+    pub fn from_proj<A>(proj_self: TypeProjectedAlloc<A>) -> Self
     where
         A: any::Any + alloc::Allocator + Send + Sync,
     {
         Self {
-            inner: OpaqueAllocInner::from_proj(proj_self.inner),
+            inner: TypeErasedAllocInner::from_proj(proj_self.inner),
         }
     }
 }
 
-impl OpaqueAlloc {
+impl TypeErasedAlloc {
     /// Constructs a new type-erased memory allocator.
     ///
     /// # Examples
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_alloc::OpaqueAlloc;
+    /// # use opaque_alloc::TypeErasedAlloc;
     /// # use std::any::TypeId;
     /// #
     /// # #[cfg(feature = "nightly")]
@@ -626,7 +626,7 @@ impl OpaqueAlloc {
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let proj_alloc = OpaqueAlloc::new(Global);
+    /// let proj_alloc = TypeErasedAlloc::new(Global);
     ///
     /// assert_eq!(proj_alloc.allocator_type_id(), TypeId::of::<Global>());
     /// assert_ne!(proj_alloc.allocator_type_id(), TypeId::of::<Box<Global>>());
@@ -636,7 +636,7 @@ impl OpaqueAlloc {
     where
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        let proj_alloc = TypedProjAlloc::<A>::new(alloc);
+        let proj_alloc = TypeProjectedAlloc::<A>::new(alloc);
 
         Self::from_proj(proj_alloc)
     }
@@ -650,7 +650,7 @@ impl OpaqueAlloc {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_alloc::OpaqueAlloc;
+    /// # use opaque_alloc::TypeErasedAlloc;
     /// # use std::any::TypeId;
     /// #
     /// # #[cfg(feature = "nightly")]
@@ -659,7 +659,7 @@ impl OpaqueAlloc {
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let opaque_alloc = OpaqueAlloc::from_boxed_alloc(Box::new(Global));
+    /// let opaque_alloc = TypeErasedAlloc::from_boxed_alloc(Box::new(Global));
     ///
     /// assert_eq!(opaque_alloc.allocator_type_id(), TypeId::of::<Global>());
     /// assert_ne!(opaque_alloc.allocator_type_id(), TypeId::of::<Box<Global>>());
@@ -669,7 +669,7 @@ impl OpaqueAlloc {
     where
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        let proj_alloc = TypedProjAlloc::<A>::from_boxed_alloc(alloc);
+        let proj_alloc = TypeProjectedAlloc::<A>::from_boxed_alloc(alloc);
 
         Self::from_proj(proj_alloc)
     }
@@ -685,7 +685,7 @@ impl OpaqueAlloc {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_alloc::OpaqueAlloc;
+    /// # use opaque_alloc::TypeErasedAlloc;
     /// #
     /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
@@ -693,7 +693,7 @@ impl OpaqueAlloc {
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let opaque_alloc = OpaqueAlloc::new(Global);
+    /// let opaque_alloc = TypeErasedAlloc::new(Global);
     /// #
     /// # assert!(opaque_alloc.has_allocator_type::<Global>());
     /// #
@@ -714,7 +714,7 @@ impl OpaqueAlloc {
     /// Converts the type-erased allocator into a boxed memory allocator.
     ///
     /// The resulting boxed memory allocator cannot be type-projected and type-erased again
-    /// unless it is converted back via a method like [`TypedProjAlloc::from_boxed_alloc`].
+    /// unless it is converted back via a method like [`TypeProjectedAlloc::from_boxed_alloc`].
     ///
     /// # Panics
     ///
@@ -725,7 +725,7 @@ impl OpaqueAlloc {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_alloc::OpaqueAlloc;
+    /// # use opaque_alloc::TypeErasedAlloc;
     /// # use std::any::TypeId;
     /// #
     /// # #[cfg(feature = "nightly")]
@@ -734,13 +734,13 @@ impl OpaqueAlloc {
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let opaque_alloc = OpaqueAlloc::new(Global);
+    /// let opaque_alloc = TypeErasedAlloc::new(Global);
     /// #
     /// # assert!(opaque_alloc.has_allocator_type::<Global>());
     /// #
     /// let boxed_alloc: Box<Global> = opaque_alloc.into_boxed_alloc::<Global>();
     ///
-    /// let new_opaque_alloc = OpaqueAlloc::from_boxed_alloc(boxed_alloc);
+    /// let new_opaque_alloc = TypeErasedAlloc::from_boxed_alloc(boxed_alloc);
     /// #
     /// # assert!(new_opaque_alloc.has_allocator_type::<Global>());
     /// #
@@ -759,7 +759,7 @@ impl OpaqueAlloc {
     }
 }
 
-unsafe impl alloc::Allocator for OpaqueAlloc {
+unsafe impl alloc::Allocator for TypeErasedAlloc {
     fn allocate(&self, layout: alloc::Layout) -> Result<NonNull<[u8]>, alloc::AllocError> {
         self.inner.allocate(layout)
     }
@@ -771,7 +771,7 @@ unsafe impl alloc::Allocator for OpaqueAlloc {
     }
 }
 
-impl OpaqueAlloc {
+impl TypeErasedAlloc {
     /// Clones a type-erased memory allocator.
     ///
     /// # Panics
@@ -783,7 +783,7 @@ impl OpaqueAlloc {
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-    /// # use opaque_alloc::OpaqueAlloc;
+    /// # use opaque_alloc::TypeErasedAlloc;
     /// # use std::any::TypeId;
     /// #
     /// # #[cfg(feature = "nightly")]
@@ -792,7 +792,7 @@ impl OpaqueAlloc {
     /// # #[cfg(not(feature = "nightly"))]
     /// # use opaque_allocator_api::alloc::Global;
     /// #
-    /// let opaque_alloc = OpaqueAlloc::new(Global);
+    /// let opaque_alloc = TypeErasedAlloc::new(Global);
     /// #
     /// # assert!(opaque_alloc.has_allocator_type::<Global>());
     /// #
@@ -810,9 +810,9 @@ impl OpaqueAlloc {
     }
 }
 
-impl fmt::Debug for OpaqueAlloc {
+impl fmt::Debug for TypeErasedAlloc {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.debug_struct("OpaqueAlloc").finish()
+        formatter.debug_struct("TypeErasedAlloc").finish()
     }
 }
 
@@ -845,8 +845,8 @@ mod alloc_layout_tests {
     where
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        let expected = mem::size_of::<TypedProjAlloc<A>>();
-        let result = mem::size_of::<OpaqueAlloc>();
+        let expected = mem::size_of::<TypeProjectedAlloc<A>>();
+        let result = mem::size_of::<TypeErasedAlloc>();
 
         assert_eq!(result, expected, "Opaque and Typed Projected data types size mismatch");
     }
@@ -855,8 +855,8 @@ mod alloc_layout_tests {
     where
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        let expected = mem::align_of::<TypedProjAlloc<A>>();
-        let result = mem::align_of::<OpaqueAlloc>();
+        let expected = mem::align_of::<TypeProjectedAlloc<A>>();
+        let result = mem::align_of::<TypeErasedAlloc>();
 
         assert_eq!(result, expected, "Opaque and Typed Projected data types alignment mismatch");
     }
@@ -866,8 +866,8 @@ mod alloc_layout_tests {
         A: any::Any + alloc::Allocator + Send + Sync,
     {
         assert_eq!(
-            mem::offset_of!(TypedProjAlloc<A>, inner),
-            mem::offset_of!(OpaqueAlloc, inner),
+            mem::offset_of!(TypeProjectedAlloc<A>, inner),
+            mem::offset_of!(TypeErasedAlloc, inner),
             "Opaque and Typed Projected data types offsets mismatch"
         );
     }
@@ -907,14 +907,14 @@ mod assert_send_sync {
     fn test_assert_send_sync1() {
         fn assert_send_sync<T: Send + Sync>() {}
 
-        assert_send_sync::<TypedProjAlloc<alloc::Global>>();
+        assert_send_sync::<TypeProjectedAlloc<alloc::Global>>();
     }
 
     #[test]
     fn test_assert_send_sync2() {
         fn assert_send_sync<T: Send + Sync>() {}
 
-        assert_send_sync::<TypedProjAlloc<dummy::DummyAlloc>>();
+        assert_send_sync::<TypeProjectedAlloc<dummy::DummyAlloc>>();
     }
 }
 
@@ -927,7 +927,7 @@ mod assert_not_send_not_sync {
     fn test_assert_not_send_not_sync() {
         fn assert_not_send_not_sync<T: Send + Sync>() {}
 
-        assert_not_send_not_sync::<OpaqueAlloc>();
+        assert_not_send_not_sync::<TypeErasedAlloc>();
     }
 }
 */

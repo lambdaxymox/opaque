@@ -1,4 +1,4 @@
-use opaque_hash::OpaqueBuildHasher;
+use opaque_hash::TypeErasedBuildHasher;
 
 use criterion;
 use criterion::criterion_group;
@@ -27,7 +27,7 @@ macro_rules! bench_hasher {
 
         fn $bench_opaque_name(c: &mut criterion::Criterion) {
             let default_build_hasher = RandomState::new();
-            let opaque_build_hasher = OpaqueBuildHasher::new(default_build_hasher);
+            let opaque_build_hasher = TypeErasedBuildHasher::new(default_build_hasher);
             let value: $typ = $value;
 
             c.bench_function(stringify!($bench_opaque_name), |b| {

@@ -1,4 +1,4 @@
-use opaque_index_map::set::OpaqueIndexSet;
+use opaque_index_map::set::TypeErasedIndexSet;
 
 use core::any;
 use core::ptr::NonNull;
@@ -55,7 +55,7 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    let opaque_set = OpaqueIndexSet::with_hasher_in::<T, S, A>(build_hasher, alloc);
+    let opaque_set = TypeErasedIndexSet::with_hasher_in::<T, S, A>(build_hasher, alloc);
 
     assert!(opaque_set.has_value_type::<T>());
     assert!(opaque_set.has_build_hasher_type::<S>());
@@ -69,7 +69,7 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    let opaque_set = OpaqueIndexSet::with_capacity_and_hasher_in::<T, S, A>(1024, build_hasher, alloc);
+    let opaque_set = TypeErasedIndexSet::with_capacity_and_hasher_in::<T, S, A>(1024, build_hasher, alloc);
 
     assert!(opaque_set.has_value_type::<T>());
     assert!(opaque_set.has_build_hasher_type::<S>());
@@ -81,7 +81,7 @@ where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    let opaque_set = OpaqueIndexSet::new_in::<T, A>(alloc);
+    let opaque_set = TypeErasedIndexSet::new_in::<T, A>(alloc);
 
     assert!(opaque_set.has_value_type::<T>());
     assert!(opaque_set.has_build_hasher_type::<hash::RandomState>());
@@ -93,7 +93,7 @@ where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    let opaque_set = OpaqueIndexSet::with_capacity_in::<T, A>(1024, alloc);
+    let opaque_set = TypeErasedIndexSet::with_capacity_in::<T, A>(1024, alloc);
 
     assert!(opaque_set.has_value_type::<T>());
     assert!(opaque_set.has_build_hasher_type::<hash::RandomState>());
@@ -106,7 +106,7 @@ where
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
 {
-    let opaque_set = OpaqueIndexSet::with_hasher::<T, S>(build_hasher);
+    let opaque_set = TypeErasedIndexSet::with_hasher::<T, S>(build_hasher);
 
     assert!(opaque_set.has_value_type::<T>());
     assert!(opaque_set.has_build_hasher_type::<S>());
@@ -119,7 +119,7 @@ where
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
 {
-    let opaque_set = OpaqueIndexSet::with_capacity_and_hasher::<T, S>(1024, build_hasher);
+    let opaque_set = TypeErasedIndexSet::with_capacity_and_hasher::<T, S>(1024, build_hasher);
 
     assert!(opaque_set.has_value_type::<T>());
     assert!(opaque_set.has_build_hasher_type::<S>());
@@ -130,7 +130,7 @@ fn run_test_opaque_index_set_new_has_type<T>()
 where
     T: any::Any,
 {
-    let opaque_set = OpaqueIndexSet::new::<T>();
+    let opaque_set = TypeErasedIndexSet::new::<T>();
 
     assert!(opaque_set.has_value_type::<T>());
     assert!(opaque_set.has_build_hasher_type::<hash::RandomState>());
@@ -141,7 +141,7 @@ fn run_test_opaque_index_set_with_capacity_has_type<T>()
 where
     T: any::Any,
 {
-    let opaque_set = OpaqueIndexSet::with_capacity::<T>(1024);
+    let opaque_set = TypeErasedIndexSet::with_capacity::<T>(1024);
 
     assert!(opaque_set.has_value_type::<T>());
     assert!(opaque_set.has_build_hasher_type::<hash::RandomState>());

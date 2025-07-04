@@ -1,4 +1,4 @@
-use opaque_vec::OpaqueVec;
+use opaque_vec::TypeErasedVec;
 
 use std::cell::RefCell;
 use std::panic;
@@ -93,7 +93,7 @@ impl<T> Drop for PanicCell<T> {
 fn test_replace_insert_on_panic_drop_count1() {
     let mut triggering_panic_cell = PanicCell::new((), 0);
     let mut replacement_panic_cell = PanicCell::new((), 2);
-    let mut vec = OpaqueVec::new::<PanicCell<()>>();
+    let mut vec = TypeErasedVec::new::<PanicCell<()>>();
 
     vec.replace_insert::<PanicCell<()>, alloc::Global>(0, triggering_panic_cell.clone());
 
@@ -118,7 +118,7 @@ fn test_replace_insert_on_panic_drop_count2() {
     let mut triggering_panic_cell = PanicCell::new((), 0);
     let mut replacement_panic_cell = PanicCell::new((), 2);
     let mut panic_cell = PanicCell::new((), 2);
-    let mut vec = OpaqueVec::new::<PanicCell<()>>();
+    let mut vec = TypeErasedVec::new::<PanicCell<()>>();
 
     vec.replace_insert::<PanicCell<()>, alloc::Global>(0, triggering_panic_cell.clone());
     vec.replace_insert::<PanicCell<()>, alloc::Global>(1, panic_cell.clone());
@@ -147,7 +147,7 @@ fn test_replace_insert_on_panic_drop_count3() {
     let mut triggering_panic_cell = PanicCell::new((), 0);
     let mut replacement_panic_cell = PanicCell::new((), 2);
     let mut panic_cell = PanicCell::new((), 2);
-    let mut vec = OpaqueVec::new::<PanicCell<()>>();
+    let mut vec = TypeErasedVec::new::<PanicCell<()>>();
 
     vec.replace_insert::<PanicCell<()>, alloc::Global>(0, panic_cell.clone());
     vec.replace_insert::<PanicCell<()>, alloc::Global>(1, triggering_panic_cell.clone());
@@ -176,7 +176,7 @@ fn test_replace_insert_on_panic_drop_count4() {
     let mut triggering_panic_cell = PanicCell::new((), 0);
     let mut replacement_panic_cell = PanicCell::new((), 2);
     let mut panic_cell = PanicCell::new((), 2);
-    let mut vec = OpaqueVec::new::<PanicCell<()>>();
+    let mut vec = TypeErasedVec::new::<PanicCell<()>>();
 
     vec.replace_insert::<PanicCell<()>, alloc::Global>(0, panic_cell.clone());
     vec.replace_insert::<PanicCell<()>, alloc::Global>(1, triggering_panic_cell.clone());
@@ -203,7 +203,7 @@ fn test_replace_insert_on_panic_drop_count4() {
 #[test]
 fn test_replace_insert_on_success_drop_count() {
     let mut panic_cell = PanicCell::new((), 1);
-    let mut vec = OpaqueVec::new::<PanicCell<()>>();
+    let mut vec = TypeErasedVec::new::<PanicCell<()>>();
 
     vec.replace_insert::<PanicCell<()>, alloc::Global>(0, panic_cell.clone());
 

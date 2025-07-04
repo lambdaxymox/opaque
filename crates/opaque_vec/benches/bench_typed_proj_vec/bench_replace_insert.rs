@@ -1,4 +1,4 @@
-use opaque_vec::TypedProjVec;
+use opaque_vec::TypeProjectedVec;
 
 use criterion::{
     Criterion,
@@ -33,7 +33,7 @@ fn bench_typed_proj_vec_replace_insert_last(c: &mut Criterion) {
 
     c.bench_function("typed_proj_vec_replace_insert_last", |b| {
         b.iter(|| {
-            let mut proj_vec = TypedProjVec::new();
+            let mut proj_vec = TypeProjectedVec::new();
             for _ in 0..1024 {
                 let last_index = if proj_vec.len() == 0 { 0 } else { proj_vec.len() - 1 };
                 proj_vec.replace_insert(last_index, core::hint::black_box(dummy_data));

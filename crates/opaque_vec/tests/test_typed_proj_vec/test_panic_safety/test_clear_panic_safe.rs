@@ -1,4 +1,4 @@
-use opaque_vec::TypedProjVec;
+use opaque_vec::TypeProjectedVec;
 
 use std::cell::RefCell;
 use std::panic;
@@ -91,7 +91,7 @@ impl<T> Drop for PanicCell<T> {
 #[cfg_attr(not(panic = "unwind"), ignore = "test requires unwinding support")]
 fn test_truncate_on_panic_drop_count1() {
     let mut triggering_panic_cell = PanicCell::new((), 0);
-    let mut vec = TypedProjVec::new();
+    let mut vec = TypeProjectedVec::new();
 
     vec.push(triggering_panic_cell.clone());
 
@@ -113,7 +113,7 @@ fn test_truncate_on_panic_drop_count1() {
 fn test_truncate_on_panic_drop_count2() {
     let mut triggering_panic_cell = PanicCell::new((), 0);
     let mut panic_cell = PanicCell::new((), 2);
-    let mut vec = TypedProjVec::new();
+    let mut vec = TypeProjectedVec::new();
 
     vec.push(triggering_panic_cell.clone());
     vec.push(panic_cell.clone());
@@ -139,7 +139,7 @@ fn test_truncate_on_panic_drop_count2() {
 fn test_truncate_on_panic_drop_count3() {
     let mut triggering_panic_cell = PanicCell::new((), 0);
     let mut panic_cell = PanicCell::new((), 4);
-    let mut vec = TypedProjVec::new();
+    let mut vec = TypeProjectedVec::new();
 
     vec.push(panic_cell.clone());
     vec.push(triggering_panic_cell.clone());
@@ -164,7 +164,7 @@ fn test_truncate_on_panic_drop_count3() {
 #[test]
 fn test_truncate_on_success_drop_count() {
     let mut panic_cell = PanicCell::new((), 2);
-    let mut vec = TypedProjVec::new();
+    let mut vec = TypeProjectedVec::new();
 
     vec.push(panic_cell.clone());
 

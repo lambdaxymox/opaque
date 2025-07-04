@@ -1,5 +1,5 @@
 use crate::set::common::erased::strategy_type_erased_index_set_max_len;
-use opaque_index_map::OpaqueIndexSet;
+use opaque_index_map::TypeErasedIndexSet;
 
 use core::any;
 use core::fmt;
@@ -16,14 +16,14 @@ use opaque_allocator_api::alloc;
 
 use proptest::prelude::*;
 
-fn prop_truncate_len_length_less_than_or_equal_to<T, S, A>(entries: OpaqueIndexSet) -> Result<(), TestCaseError>
+fn prop_truncate_len_length_less_than_or_equal_to<T, S, A>(entries: TypeErasedIndexSet) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    fn expected<T, S, A>(set: &OpaqueIndexSet, len: usize) -> Vec<T>
+    fn expected<T, S, A>(set: &TypeErasedIndexSet, len: usize) -> Vec<T>
     where
         T: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
         S: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -39,7 +39,7 @@ where
         vec
     }
 
-    fn result<T, S, A>(set: &OpaqueIndexSet, len: usize) -> Vec<T>
+    fn result<T, S, A>(set: &TypeErasedIndexSet, len: usize) -> Vec<T>
     where
         T: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
         S: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -70,14 +70,14 @@ where
     Ok(())
 }
 
-fn prop_truncate_length_less_than_or_equal_to<T, S, A>(entries: OpaqueIndexSet) -> Result<(), TestCaseError>
+fn prop_truncate_length_less_than_or_equal_to<T, S, A>(entries: TypeErasedIndexSet) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    fn expected<T, S, A>(set: &OpaqueIndexSet, len: usize) -> Vec<T>
+    fn expected<T, S, A>(set: &TypeErasedIndexSet, len: usize) -> Vec<T>
     where
         T: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
         S: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -93,7 +93,7 @@ where
         vec
     }
 
-    fn result<T, S, A>(set: &OpaqueIndexSet, len: usize) -> Vec<T>
+    fn result<T, S, A>(set: &TypeErasedIndexSet, len: usize) -> Vec<T>
     where
         T: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
         S: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -136,13 +136,13 @@ macro_rules! generate_props {
             proptest! {
                 #[test]
                 fn prop_truncate_len_length_less_than_or_equal_to(entries in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::OpaqueIndexSet = entries;
+                    let entries: super::TypeErasedIndexSet = entries;
                     super::prop_truncate_len_length_less_than_or_equal_to::<$value_typ, $build_hasher_typ, $alloc_typ>(entries)?
                 }
 
                 #[test]
                 fn prop_truncate_length_less_than_or_equal_to(entries in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::OpaqueIndexSet = entries;
+                    let entries: super::TypeErasedIndexSet = entries;
                     super::prop_truncate_length_less_than_or_equal_to::<$value_typ, $build_hasher_typ, $alloc_typ>(entries)?
                 }
             }

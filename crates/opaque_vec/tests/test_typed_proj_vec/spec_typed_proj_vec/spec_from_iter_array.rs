@@ -1,5 +1,5 @@
 use crate::common::projected::strategy_array;
-use opaque_vec::TypedProjVec;
+use opaque_vec::TypeProjectedVec;
 
 use core::any;
 use core::fmt;
@@ -18,7 +18,7 @@ fn prop_from_iter_array<const N: usize, T>(expected: [T; N]) -> Result<(), TestC
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
 {
-    let vec = TypedProjVec::from_iter(expected.iter().cloned());
+    let vec = TypeProjectedVec::from_iter(expected.iter().cloned());
     let result = vec.as_slice();
 
     prop_assert_eq!(result, expected);

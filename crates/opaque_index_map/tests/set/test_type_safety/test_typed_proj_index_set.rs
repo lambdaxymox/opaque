@@ -1,4 +1,4 @@
-use opaque_index_map::set::{OpaqueIndexSet, TypedProjIndexSet};
+use opaque_index_map::set::{TypeErasedIndexSet, TypeProjectedIndexSet};
 
 use core::any;
 use core::ptr::NonNull;
@@ -55,8 +55,8 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    let proj_set = TypedProjIndexSet::<T, S, A>::with_hasher_in(build_hasher, alloc);
-    let opaque_set = OpaqueIndexSet::from_proj(proj_set);
+    let proj_set = TypeProjectedIndexSet::<T, S, A>::with_hasher_in(build_hasher, alloc);
+    let opaque_set = TypeErasedIndexSet::from_proj(proj_set);
 
     assert!(opaque_set.has_value_type::<T>());
     assert!(opaque_set.has_build_hasher_type::<S>());
@@ -70,8 +70,8 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    let proj_set = TypedProjIndexSet::<T, S, A>::with_capacity_and_hasher_in(1024, build_hasher, alloc);
-    let opaque_set = OpaqueIndexSet::from_proj(proj_set);
+    let proj_set = TypeProjectedIndexSet::<T, S, A>::with_capacity_and_hasher_in(1024, build_hasher, alloc);
+    let opaque_set = TypeErasedIndexSet::from_proj(proj_set);
 
     assert!(opaque_set.has_value_type::<T>());
     assert!(opaque_set.has_build_hasher_type::<S>());
@@ -83,8 +83,8 @@ where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    let proj_set = TypedProjIndexSet::<T, _, A>::new_in(alloc);
-    let opaque_set = OpaqueIndexSet::from_proj(proj_set);
+    let proj_set = TypeProjectedIndexSet::<T, _, A>::new_in(alloc);
+    let opaque_set = TypeErasedIndexSet::from_proj(proj_set);
 
     assert!(opaque_set.has_value_type::<T>());
     assert!(opaque_set.has_build_hasher_type::<hash::RandomState>());
@@ -96,8 +96,8 @@ where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    let proj_set = TypedProjIndexSet::<T, _, A>::with_capacity_in(1024, alloc);
-    let opaque_set = OpaqueIndexSet::from_proj(proj_set);
+    let proj_set = TypeProjectedIndexSet::<T, _, A>::with_capacity_in(1024, alloc);
+    let opaque_set = TypeErasedIndexSet::from_proj(proj_set);
 
     assert!(opaque_set.has_value_type::<T>());
     assert!(opaque_set.has_build_hasher_type::<hash::RandomState>());
@@ -110,8 +110,8 @@ where
     S: any::Any + hash::BuildHasher + Send  + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
 {
-    let proj_set = TypedProjIndexSet::<T, S, _>::with_hasher(build_hasher);
-    let opaque_set = OpaqueIndexSet::from_proj(proj_set);
+    let proj_set = TypeProjectedIndexSet::<T, S, _>::with_hasher(build_hasher);
+    let opaque_set = TypeErasedIndexSet::from_proj(proj_set);
 
     assert!(opaque_set.has_value_type::<T>());
     assert!(opaque_set.has_build_hasher_type::<S>());
@@ -124,8 +124,8 @@ where
     S: any::Any + hash::BuildHasher + Send  + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
 {
-    let proj_set = TypedProjIndexSet::<T, S, _>::with_capacity_and_hasher(1024, build_hasher);
-    let opaque_set = OpaqueIndexSet::from_proj(proj_set);
+    let proj_set = TypeProjectedIndexSet::<T, S, _>::with_capacity_and_hasher(1024, build_hasher);
+    let opaque_set = TypeErasedIndexSet::from_proj(proj_set);
 
     assert!(opaque_set.has_value_type::<T>());
     assert!(opaque_set.has_build_hasher_type::<S>());
@@ -136,8 +136,8 @@ fn run_test_opaque_index_set_new_has_type<T>()
 where
     T: any::Any,
 {
-    let proj_set = TypedProjIndexSet::<T, _, _>::new();
-    let opaque_set = OpaqueIndexSet::from_proj(proj_set);
+    let proj_set = TypeProjectedIndexSet::<T, _, _>::new();
+    let opaque_set = TypeErasedIndexSet::from_proj(proj_set);
 
     assert!(opaque_set.has_value_type::<T>());
     assert!(opaque_set.has_build_hasher_type::<hash::RandomState>());
@@ -148,8 +148,8 @@ fn run_test_opaque_index_set_with_capacity_has_type<T>()
 where
     T: any::Any,
 {
-    let proj_set = TypedProjIndexSet::<T, _, _>::with_capacity(1024);
-    let opaque_set = OpaqueIndexSet::from_proj(proj_set);
+    let proj_set = TypeProjectedIndexSet::<T, _, _>::with_capacity(1024);
+    let opaque_set = TypeErasedIndexSet::from_proj(proj_set);
 
     assert!(opaque_set.has_value_type::<T>());
     assert!(opaque_set.has_build_hasher_type::<hash::RandomState>());

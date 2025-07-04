@@ -1,4 +1,4 @@
-use opaque_alloc::TypedProjAlloc;
+use opaque_alloc::TypeProjectedAlloc;
 
 use core::any;
 use alloc_crate::format;
@@ -15,7 +15,7 @@ use opaque_polyfill::slice_ptr_get;
 use alloc::Allocator;
 
 #[cfg(feature = "nightly")]
-fn run_test_typed_proj_alloc_allocate_align_with_layout_over_aligned_allocation<A>(proj_alloc: TypedProjAlloc<A>, layout: alloc::Layout)
+fn run_test_typed_proj_alloc_allocate_align_with_layout_over_aligned_allocation<A>(proj_alloc: TypeProjectedAlloc<A>, layout: alloc::Layout)
 where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
@@ -37,7 +37,7 @@ where
 }
 
 #[cfg(not(feature = "nightly"))]
-fn run_test_typed_proj_alloc_allocate_align_with_layout_over_aligned_allocation<A>(proj_alloc: TypedProjAlloc<A>, layout: alloc::Layout)
+fn run_test_typed_proj_alloc_allocate_align_with_layout_over_aligned_allocation<A>(proj_alloc: TypeProjectedAlloc<A>, layout: alloc::Layout)
 where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
@@ -62,7 +62,7 @@ fn run_test_typed_proj_alloc_allocate_align_over_aligned_allocation_with_size_al
 where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    let proj_alloc = TypedProjAlloc::new(alloc);
+    let proj_alloc = TypeProjectedAlloc::new(alloc);
     let layout = alloc::Layout::from_size_align(size, align).expect(&format!(
         "Failed to construct layout with size `{:?}` and alignment `{:?}`",
         size, align

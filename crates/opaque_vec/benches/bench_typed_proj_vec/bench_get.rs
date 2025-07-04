@@ -1,4 +1,4 @@
-use opaque_vec::TypedProjVec;
+use opaque_vec::TypeProjectedVec;
 
 use criterion::{
     Criterion,
@@ -28,7 +28,7 @@ fn bench_vec_get(c: &mut Criterion) {
 
 fn bench_typed_proj_vec_get(c: &mut Criterion) {
     let dummy_data = 0_i32;
-    let proj_vec = TypedProjVec::from_iter((0..1000).map(|_| dummy_data));
+    let proj_vec = TypeProjectedVec::from_iter((0..1000).map(|_| dummy_data));
 
     c.bench_function("typed_proj_vec_get", |b| {
         b.iter(|| {

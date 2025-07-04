@@ -1,4 +1,4 @@
-use opaque_vec::OpaqueVec;
+use opaque_vec::TypeErasedVec;
 
 use core::any;
 use core::fmt;
@@ -13,12 +13,12 @@ use opaque_allocator_api::alloc;
 
 use proptest::prelude::*;
 
-pub fn shift_insert_slice<T, A>(values: &[T], slice: &[T], start: usize, alloc: A) -> OpaqueVec
+pub fn shift_insert_slice<T, A>(values: &[T], slice: &[T], start: usize, alloc: A) -> TypeErasedVec
 where
     T: any::Any + Clone,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let mut vec = OpaqueVec::new_in::<T, A>(alloc);
+    let mut vec = TypeErasedVec::new_in::<T, A>(alloc);
     for value in values.iter().cloned() {
         vec.push::<T, A>(value);
     }
@@ -64,21 +64,21 @@ where
     Just(A::default())
 }
 
-pub fn strategy_type_erased_vec_len<T, A>(length: usize) -> impl Strategy<Value = OpaqueVec>
+pub fn strategy_type_erased_vec_len<T, A>(length: usize) -> impl Strategy<Value =TypeErasedVec>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary + SingleBoundedValue,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
     (proptest::collection::vec(strategy_bounded_value::<T>(), length), strategy_alloc::<A>())
         .prop_map(move |(values, alloc)| {
-            let mut opaque_vec = OpaqueVec::new_in::<T, A>(alloc);
+            let mut opaque_vec = TypeErasedVec::new_in::<T, A>(alloc);
             opaque_vec.extend::<_, T, A>(values.iter().cloned());
 
             opaque_vec
         })
 }
 
-pub fn strategy_type_erased_vec_max_len<T, A>(max_length: usize) -> impl Strategy<Value = OpaqueVec>
+pub fn strategy_type_erased_vec_max_len<T, A>(max_length: usize) -> impl Strategy<Value =TypeErasedVec>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary + SingleBoundedValue,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
@@ -86,7 +86,7 @@ where
     (0..=max_length).prop_flat_map(move |length| strategy_type_erased_vec_len::<T, A>(length))
 }
 
-pub fn strategy_type_erased_vec_max_len_nonempty<T, A>(max_length: usize) -> impl Strategy<Value = OpaqueVec>
+pub fn strategy_type_erased_vec_max_len_nonempty<T, A>(max_length: usize) -> impl Strategy<Value =TypeErasedVec>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary + SingleBoundedValue,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,

@@ -1,4 +1,4 @@
-use opaque_index_map::map::{OpaqueIndexMap, TypedProjIndexMap};
+use opaque_index_map::map::{TypeErasedIndexMap, TypeProjectedIndexMap};
 
 use core::any;
 use core::ptr::NonNull;
@@ -56,8 +56,8 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    let proj_map = TypedProjIndexMap::<K, V, S, A>::with_hasher_in(build_hasher, alloc);
-    let opaque_map = OpaqueIndexMap::from_proj(proj_map);
+    let proj_map = TypeProjectedIndexMap::<K, V, S, A>::with_hasher_in(build_hasher, alloc);
+    let opaque_map = TypeErasedIndexMap::from_proj(proj_map);
 
     assert!(opaque_map.has_key_type::<K>());
     assert!(opaque_map.has_value_type::<V>());
@@ -73,8 +73,8 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    let proj_map = TypedProjIndexMap::<K, V, S, A>::with_capacity_and_hasher_in(1024, build_hasher, alloc);
-    let opaque_map = OpaqueIndexMap::from_proj(proj_map);
+    let proj_map = TypeProjectedIndexMap::<K, V, S, A>::with_capacity_and_hasher_in(1024, build_hasher, alloc);
+    let opaque_map = TypeErasedIndexMap::from_proj(proj_map);
 
     assert!(opaque_map.has_key_type::<K>());
     assert!(opaque_map.has_value_type::<V>());
@@ -88,8 +88,8 @@ where
     V: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    let proj_map = TypedProjIndexMap::<K, V, _, A>::new_in(alloc);
-    let opaque_map = OpaqueIndexMap::from_proj(proj_map);
+    let proj_map = TypeProjectedIndexMap::<K, V, _, A>::new_in(alloc);
+    let opaque_map = TypeErasedIndexMap::from_proj(proj_map);
 
     assert!(opaque_map.has_key_type::<K>());
     assert!(opaque_map.has_value_type::<V>());
@@ -103,8 +103,8 @@ where
     V: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    let proj_map = TypedProjIndexMap::<K, V, _, A>::with_capacity_in(1024, alloc);
-    let opaque_map = OpaqueIndexMap::from_proj(proj_map);
+    let proj_map = TypeProjectedIndexMap::<K, V, _, A>::with_capacity_in(1024, alloc);
+    let opaque_map = TypeErasedIndexMap::from_proj(proj_map);
 
     assert!(opaque_map.has_key_type::<K>());
     assert!(opaque_map.has_value_type::<V>());
@@ -119,8 +119,8 @@ where
     S: any::Any + hash::BuildHasher + Send  + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
 {
-    let proj_map = TypedProjIndexMap::<K, V, S, _>::with_hasher(build_hasher);
-    let opaque_map = OpaqueIndexMap::from_proj(proj_map);
+    let proj_map = TypeProjectedIndexMap::<K, V, S, _>::with_hasher(build_hasher);
+    let opaque_map = TypeErasedIndexMap::from_proj(proj_map);
 
     assert!(opaque_map.has_key_type::<K>());
     assert!(opaque_map.has_value_type::<V>());
@@ -135,8 +135,8 @@ where
     S: any::Any + hash::BuildHasher + Send  + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
 {
-    let proj_map = TypedProjIndexMap::<K, V, S, _>::with_capacity_and_hasher(1024, build_hasher);
-    let opaque_map = OpaqueIndexMap::from_proj(proj_map);
+    let proj_map = TypeProjectedIndexMap::<K, V, S, _>::with_capacity_and_hasher(1024, build_hasher);
+    let opaque_map = TypeErasedIndexMap::from_proj(proj_map);
 
     assert!(opaque_map.has_key_type::<K>());
     assert!(opaque_map.has_value_type::<V>());
@@ -149,8 +149,8 @@ where
     K: any::Any,
     V: any::Any,
 {
-    let proj_map = TypedProjIndexMap::<K, V, _, _>::new();
-    let opaque_map = OpaqueIndexMap::from_proj(proj_map);
+    let proj_map = TypeProjectedIndexMap::<K, V, _, _>::new();
+    let opaque_map = TypeErasedIndexMap::from_proj(proj_map);
 
     assert!(opaque_map.has_key_type::<K>());
     assert!(opaque_map.has_value_type::<V>());
@@ -163,8 +163,8 @@ where
     K: any::Any,
     V: any::Any,
 {
-    let proj_map = TypedProjIndexMap::<K, V, _, _>::with_capacity(1024);
-    let opaque_map = OpaqueIndexMap::from_proj(proj_map);
+    let proj_map = TypeProjectedIndexMap::<K, V, _, _>::with_capacity(1024);
+    let opaque_map = TypeErasedIndexMap::from_proj(proj_map);
 
     assert!(opaque_map.has_key_type::<K>());
     assert!(opaque_map.has_value_type::<V>());

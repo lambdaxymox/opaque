@@ -2,7 +2,7 @@ use crate::common::projected::{
     strategy_type_projected_vec_max_len,
     strategy_type_projected_vec_max_len_nonempty,
 };
-use opaque_vec::TypedProjVec;
+use opaque_vec::TypeProjectedVec;
 
 use core::any;
 use core::fmt;
@@ -17,7 +17,7 @@ use opaque_allocator_api::alloc;
 
 use proptest::prelude::*;
 
-fn prop_shift_remove_end<T, A>(values: TypedProjVec<T, A>) -> Result<(), TestCaseError>
+fn prop_shift_remove_end<T, A>(values: TypeProjectedVec<T, A>) -> Result<(), TestCaseError>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
@@ -34,17 +34,17 @@ where
     Ok(())
 }
 
-fn prop_shift_remove_start<T, A>(values: TypedProjVec<T, A>) -> Result<(), TestCaseError>
+fn prop_shift_remove_start<T, A>(values: TypeProjectedVec<T, A>) -> Result<(), TestCaseError>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
-    fn expected<T, A>(values: &TypedProjVec<T, A>, start: usize) -> TypedProjVec<T, A>
+    fn expected<T, A>(values: &TypeProjectedVec<T, A>, start: usize) -> TypeProjectedVec<T, A>
     where
         T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
         A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
     {
-        let mut vec = TypedProjVec::new_proj_in(values.allocator().clone());
+        let mut vec = TypeProjectedVec::new_proj_in(values.allocator().clone());
         for value in values.iter().skip(start).skip(1).cloned() {
             vec.push(value);
         }
@@ -65,7 +65,7 @@ where
     Ok(())
 }
 
-fn prop_shift_remove_get_from_end<T, A>(values: TypedProjVec<T, A>) -> Result<(), TestCaseError>
+fn prop_shift_remove_get_from_end<T, A>(values: TypeProjectedVec<T, A>) -> Result<(), TestCaseError>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
@@ -83,7 +83,7 @@ where
     Ok(())
 }
 
-fn prop_shift_remove_len<T, A>(values: TypedProjVec<T, A>) -> Result<(), TestCaseError>
+fn prop_shift_remove_len<T, A>(values: TypeProjectedVec<T, A>) -> Result<(), TestCaseError>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
@@ -113,25 +113,25 @@ macro_rules! generate_props {
             proptest! {
                 #[test]
                 fn prop_shift_remove_end(values in super::$nonempty_vec_gen::<$typ, $alloc_typ>($max_length)) {
-                    let values: super::TypedProjVec<$typ, $alloc_typ> = values;
+                    let values: super::TypeProjectedVec<$typ, $alloc_typ> = values;
                     super::prop_shift_remove_end(values)?
                 }
 
                 #[test]
                 fn prop_shift_remove_start(values in super::$vec_gen::<$typ, $alloc_typ>($max_length)) {
-                    let values: super::TypedProjVec<$typ, $alloc_typ> = values;
+                    let values: super::TypeProjectedVec<$typ, $alloc_typ> = values;
                     super::prop_shift_remove_start(values)?
                 }
 
                 #[test]
                 fn prop_shift_remove_get_from_end(values in super::$vec_gen::<$typ, $alloc_typ>($max_length)) {
-                    let values: super::TypedProjVec<$typ, $alloc_typ> = values;
+                    let values: super::TypeProjectedVec<$typ, $alloc_typ> = values;
                     super::prop_shift_remove_get_from_end(values)?
                 }
 
                 #[test]
                 fn prop_shift_remove_len(values in super::$vec_gen::<$typ, $alloc_typ>($max_length)) {
-                    let values: super::TypedProjVec<$typ, $alloc_typ> = values;
+                    let values: super::TypeProjectedVec<$typ, $alloc_typ> = values;
                     super::prop_shift_remove_len(values)?
                 }
             }

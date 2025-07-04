@@ -1,4 +1,4 @@
-use opaque_vec::{OpaqueVec, TypedProjVec};
+use opaque_vec::{TypeErasedVec, TypeProjectedVec};
 
 use core::any;
 use core::ptr::NonNull;
@@ -51,8 +51,8 @@ where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    let proj_vec = TypedProjVec::<T, A>::new_in(alloc);
-    let opaque_vec = OpaqueVec::from_proj(proj_vec);
+    let proj_vec = TypeProjectedVec::<T, A>::new_in(alloc);
+    let opaque_vec = TypeErasedVec::from_proj(proj_vec);
 
     assert!(opaque_vec.has_element_type::<T>());
     assert!(opaque_vec.has_allocator_type::<A>());
@@ -63,8 +63,8 @@ where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    let proj_vec = TypedProjVec::<T, A>::with_capacity_in(1024, alloc);
-    let opaque_vec = OpaqueVec::from_proj(proj_vec);
+    let proj_vec = TypeProjectedVec::<T, A>::with_capacity_in(1024, alloc);
+    let opaque_vec = TypeErasedVec::from_proj(proj_vec);
 
     assert!(opaque_vec.has_element_type::<T>());
     assert!(opaque_vec.has_allocator_type::<A>());
@@ -74,8 +74,8 @@ fn run_test_typed_proj_vec_new_has_type<T>()
 where
     T: any::Any,
 {
-    let proj_vec = TypedProjVec::<T, Global>::new();
-    let opaque_vec = OpaqueVec::from_proj(proj_vec);
+    let proj_vec = TypeProjectedVec::<T, Global>::new();
+    let opaque_vec = TypeErasedVec::from_proj(proj_vec);
 
     assert!(opaque_vec.has_element_type::<T>());
     assert!(opaque_vec.has_allocator_type::<Global>());
@@ -85,8 +85,8 @@ fn run_test_typed_proj_vec_with_capacity_has_type<T>()
 where
     T: any::Any,
 {
-    let proj_vec = TypedProjVec::<T, Global>::with_capacity(1024);
-    let opaque_vec = OpaqueVec::from_proj(proj_vec);
+    let proj_vec = TypeProjectedVec::<T, Global>::with_capacity(1024);
+    let opaque_vec = TypeErasedVec::from_proj(proj_vec);
 
     assert!(opaque_vec.has_element_type::<T>());
     assert!(opaque_vec.has_allocator_type::<Global>());

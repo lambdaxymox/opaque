@@ -2,7 +2,7 @@ use crate::set::common::projected::{
     SingleBoundedValue,
     strategy_type_projected_index_set_max_len_nonempty,
 };
-use opaque_index_map::TypedProjIndexSet;
+use opaque_index_map::TypeProjectedIndexSet;
 
 use core::any;
 use core::fmt;
@@ -19,7 +19,7 @@ use opaque_allocator_api::alloc;
 
 use proptest::prelude::*;
 
-fn strategy_prop_insert_full_preserves_order_new_entry<T, S, A>(max_length: usize) -> impl Strategy<Value = (TypedProjIndexSet<T, S, A>, T)>
+fn strategy_prop_insert_full_preserves_order_new_entry<T, S, A>(max_length: usize) -> impl Strategy<Value = (TypeProjectedIndexSet<T, S, A>, T)>
 where
     T: any::Any + Clone + Eq + hash::Hash + Ord + Default + fmt::Debug + Arbitrary + SingleBoundedValue,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone + Default + fmt::Debug,
@@ -33,7 +33,7 @@ where
         })
 }
 
-fn prop_insert_full_preserves_order_new_entry<T, S, A>((entries, new_entry): (TypedProjIndexSet<T, S, A>, T)) -> Result<(), TestCaseError>
+fn prop_insert_full_preserves_order_new_entry<T, S, A>((entries, new_entry): (TypeProjectedIndexSet<T, S, A>, T)) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -76,7 +76,7 @@ macro_rules! generate_props {
             proptest! {
                 #[test]
                 fn prop_insert_full_preserves_order_new_entry((entries, new_entry) in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::TypedProjIndexSet<$value_typ, $build_hasher_typ, $alloc_typ> = entries;
+                    let entries: super::TypeProjectedIndexSet<$value_typ, $build_hasher_typ, $alloc_typ> = entries;
                     let new_entry: $value_typ = new_entry;
                     super::prop_insert_full_preserves_order_new_entry((entries, new_entry))?
                 }

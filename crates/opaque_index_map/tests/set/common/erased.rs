@@ -1,4 +1,4 @@
-use opaque_index_map::OpaqueIndexSet;
+use opaque_index_map::TypeErasedIndexSet;
 
 use core::any;
 use core::fmt;
@@ -100,7 +100,7 @@ where
     Just(S::default())
 }
 
-pub fn strategy_type_erased_index_set_len<T, S, A>(length: usize) -> impl Strategy<Value = OpaqueIndexSet>
+pub fn strategy_type_erased_index_set_len<T, S, A>(length: usize) -> impl Strategy<Value =TypeErasedIndexSet>
 where
     T: any::Any + Clone + Eq + hash::Hash + Ord + Default + fmt::Debug + Arbitrary + SingleBoundedValue,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone + Default + fmt::Debug,
@@ -109,14 +109,14 @@ where
 {
     (proptest::collection::vec(strategy_bounded_value::<T>(), length), strategy_build_hasher::<S>(), strategy_alloc::<A>())
         .prop_map(move |(values, build_hasher, alloc)| {
-            let mut opaque_set = OpaqueIndexSet::with_hasher_in::<T, S, A>(build_hasher, alloc);
+            let mut opaque_set = TypeErasedIndexSet::with_hasher_in::<T, S, A>(build_hasher, alloc);
             opaque_set.extend::<_, T, S, A>(values);
 
             opaque_set
         })
 }
 
-pub fn strategy_type_erased_index_set_max_len<T, S, A>(max_length: usize) -> impl Strategy<Value = OpaqueIndexSet>
+pub fn strategy_type_erased_index_set_max_len<T, S, A>(max_length: usize) -> impl Strategy<Value =TypeErasedIndexSet>
 where
     T: any::Any + Clone + Eq + hash::Hash + Ord + Default + fmt::Debug + Arbitrary + SingleBoundedValue,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone + Default + fmt::Debug,
@@ -126,7 +126,7 @@ where
     (0..=max_length).prop_flat_map(move |length| strategy_type_erased_index_set_len::<T, S, A>(length))
 }
 
-pub fn strategy_type_erased_index_set_max_len_nonempty<T, S, A>(max_length: usize) -> impl Strategy<Value = OpaqueIndexSet>
+pub fn strategy_type_erased_index_set_max_len_nonempty<T, S, A>(max_length: usize) -> impl Strategy<Value =TypeErasedIndexSet>
 where
     T: any::Any + Clone + Eq + hash::Hash + Ord + Default + fmt::Debug + Arbitrary + SingleBoundedValue,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone + Default + fmt::Debug,

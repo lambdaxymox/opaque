@@ -10,13 +10,13 @@ use alloc_crate::alloc;
 #[cfg(not(feature = "nightly"))]
 use opaque_allocator_api::alloc;
 
-/// This trait exists to define the [`TypedProjAllocInner`] data type. It is not meant for public use.
+/// This trait exists to define the [`TypeProjectedAllocInner`] data type. It is not meant for public use.
 trait AnyAllocator: any::Any + alloc::Allocator + Send + Sync {}
 
 impl<A> AnyAllocator for A where A: any::Any + alloc::Allocator + Send + Sync {}
 
 #[repr(C)]
-pub(crate) struct TypedProjAllocInner<A>
+pub(crate) struct TypeProjectedAllocInner<A>
 where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
@@ -25,7 +25,7 @@ where
     _marker: marker::PhantomData<A>,
 }
 
-impl<A> TypedProjAllocInner<A>
+impl<A> TypeProjectedAllocInner<A>
 where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
@@ -34,7 +34,7 @@ where
     }
 }
 
-impl<A> TypedProjAllocInner<A>
+impl<A> TypeProjectedAllocInner<A>
 where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
@@ -79,7 +79,7 @@ where
     }
 }
 
-impl<A> Clone for TypedProjAllocInner<A>
+impl<A> Clone for TypeProjectedAllocInner<A>
 where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
@@ -90,7 +90,7 @@ where
     }
 }
 
-unsafe impl<A> alloc::Allocator for TypedProjAllocInner<A>
+unsafe impl<A> alloc::Allocator for TypeProjectedAllocInner<A>
 where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
@@ -108,47 +108,47 @@ where
 }
 
 #[repr(C)]
-pub(crate) struct OpaqueAllocInner {
+pub(crate) struct TypeErasedAllocInner {
     alloc: Box<dyn AnyAllocator>,
     alloc_type_id: any::TypeId,
 }
 
-impl OpaqueAllocInner {
+impl TypeErasedAllocInner {
     #[inline]
     pub(crate) const fn allocator_type_id(&self) -> any::TypeId {
         self.alloc_type_id
     }
 }
 
-impl OpaqueAllocInner {
+impl TypeErasedAllocInner {
     #[inline(always)]
-    pub(crate) fn as_proj_assuming_type<A>(&self) -> &TypedProjAllocInner<A>
+    pub(crate) fn as_proj_assuming_type<A>(&self) -> &TypeProjectedAllocInner<A>
     where
         A: any::Any + alloc::Allocator + Send + Sync,
     {
         debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
 
-        unsafe { &*(self as *const OpaqueAllocInner as *const TypedProjAllocInner<A>) }
+        unsafe { &*(self as *const TypeErasedAllocInner as *const TypeProjectedAllocInner<A>) }
     }
 
     #[inline(always)]
-    pub(crate) fn as_proj_mut_assuming_type<A>(&mut self) -> &mut TypedProjAllocInner<A>
+    pub(crate) fn as_proj_mut_assuming_type<A>(&mut self) -> &mut TypeProjectedAllocInner<A>
     where
         A: any::Any + alloc::Allocator + Send + Sync,
     {
         debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
 
-        unsafe { &mut *(self as *mut OpaqueAllocInner as *mut TypedProjAllocInner<A>) }
+        unsafe { &mut *(self as *mut TypeErasedAllocInner as *mut TypeProjectedAllocInner<A>) }
     }
 
     #[inline(always)]
-    pub(crate) fn into_proj_assuming_type<A>(self) -> TypedProjAllocInner<A>
+    pub(crate) fn into_proj_assuming_type<A>(self) -> TypeProjectedAllocInner<A>
     where
         A: any::Any + alloc::Allocator + Send + Sync,
     {
         debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
 
-        TypedProjAllocInner {
+        TypeProjectedAllocInner {
             alloc: self.alloc,
             alloc_type_id: self.alloc_type_id,
             _marker: marker::PhantomData,
@@ -156,7 +156,7 @@ impl OpaqueAllocInner {
     }
 
     #[inline(always)]
-    pub(crate) fn from_proj<A>(proj_self: TypedProjAllocInner<A>) -> Self
+    pub(crate) fn from_proj<A>(proj_self: TypeProjectedAllocInner<A>) -> Self
     where
         A: any::Any + alloc::Allocator + Send + Sync,
     {
@@ -167,7 +167,7 @@ impl OpaqueAllocInner {
     }
 }
 
-unsafe impl alloc::Allocator for OpaqueAllocInner {
+unsafe impl alloc::Allocator for TypeErasedAllocInner {
     #[inline]
     fn allocate(&self, layout: alloc::Layout) -> Result<NonNull<[u8]>, alloc::AllocError> {
         self.alloc.allocate(layout)
@@ -210,8 +210,8 @@ mod alloc_inner_layout_tests {
     where
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        let expected = mem::size_of::<TypedProjAllocInner<A>>();
-        let result = mem::size_of::<OpaqueAllocInner>();
+        let expected = mem::size_of::<TypeProjectedAllocInner<A>>();
+        let result = mem::size_of::<TypeErasedAllocInner>();
 
         assert_eq!(result, expected, "Opaque and Typed Projected data types size mismatch");
     }
@@ -220,8 +220,8 @@ mod alloc_inner_layout_tests {
     where
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        let expected = mem::align_of::<TypedProjAllocInner<A>>();
-        let result = mem::align_of::<OpaqueAllocInner>();
+        let expected = mem::align_of::<TypeProjectedAllocInner<A>>();
+        let result = mem::align_of::<TypeErasedAllocInner>();
 
         assert_eq!(result, expected, "Opaque and Typed Projected data types alignment mismatch");
     }
@@ -231,13 +231,13 @@ mod alloc_inner_layout_tests {
         A: any::Any + alloc::Allocator + Send + Sync,
     {
         assert_eq!(
-            mem::offset_of!(TypedProjAllocInner<A>, alloc),
-            mem::offset_of!(OpaqueAllocInner, alloc),
+            mem::offset_of!(TypeProjectedAllocInner<A>, alloc),
+            mem::offset_of!(TypeErasedAllocInner, alloc),
             "Opaque and Typed Projected data types offsets mismatch"
         );
         assert_eq!(
-            mem::offset_of!(TypedProjAllocInner<A>, alloc_type_id),
-            mem::offset_of!(OpaqueAllocInner, alloc_type_id),
+            mem::offset_of!(TypeProjectedAllocInner<A>, alloc_type_id),
+            mem::offset_of!(TypeErasedAllocInner, alloc_type_id),
             "Opaque and Typed Projected data types offsets mismatch"
         );
     }
@@ -277,14 +277,14 @@ mod assert_send_sync {
     fn test_assert_send_sync1() {
         fn assert_send_sync<T: Send + Sync>() {}
 
-        assert_send_sync::<TypedProjAllocInner<alloc::Global>>();
+        assert_send_sync::<TypeProjectedAllocInner<alloc::Global>>();
     }
 
     #[test]
     fn test_assert_send_sync2() {
         fn assert_send_sync<T: Send + Sync>() {}
 
-        assert_send_sync::<TypedProjAllocInner<dummy::DummyAlloc>>();
+        assert_send_sync::<TypeProjectedAllocInner<dummy::DummyAlloc>>();
     }
 }
 
@@ -297,7 +297,7 @@ mod assert_not_send_not_sync {
     fn test_assert_not_send_not_sync() {
         fn assert_not_send_not_sync<T: Send + Sync>() {}
 
-        assert_not_send_not_sync::<OpaqueAllocInner>();
+        assert_not_send_not_sync::<TypeErasedAllocInner>();
     }
 }
 */

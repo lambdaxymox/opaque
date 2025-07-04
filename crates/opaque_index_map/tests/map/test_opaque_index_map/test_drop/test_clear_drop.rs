@@ -1,4 +1,4 @@
-use opaque_index_map::map::OpaqueIndexMap;
+use opaque_index_map::map::TypeErasedIndexMap;
 
 use core::any;
 use std::hash;
@@ -37,14 +37,14 @@ impl Drop for DropCounter {
     }
 }
 
-fn create_drop_counter_index_map_in<S, A>(len: usize, build_hasher: S, alloc: A) -> (DropCounter, OpaqueIndexMap)
+fn create_drop_counter_index_map_in<S, A>(len: usize, build_hasher: S, alloc: A) -> (DropCounter, TypeErasedIndexMap)
 where
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let drop_counter = DropCounter::new(Rc::new(RefCell::new(0)));
-    let mut map = OpaqueIndexMap::with_capacity_and_hasher_in::<usize, DropCounter, S, A>(len, build_hasher, alloc);
+    let mut map = TypeErasedIndexMap::with_capacity_and_hasher_in::<usize, DropCounter, S, A>(len, build_hasher, alloc);
     for i in 0..len {
         map.insert::<usize, DropCounter, S, A>(i, drop_counter.clone());
     }

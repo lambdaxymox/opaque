@@ -4,7 +4,7 @@ use crate::set::common::erased::{
     WrappingBuildHasher2,
     strategy_type_erased_index_set_max_len,
 };
-use opaque_index_map::OpaqueIndexSet;
+use opaque_index_map::TypeErasedIndexSet;
 
 use core::any;
 use core::fmt;
@@ -22,8 +22,8 @@ use opaque_allocator_api::alloc;
 use proptest::prelude::*;
 
 fn prop_append_contains_source<T, S1, S2, A>(
-    entries1: OpaqueIndexSet,
-    entries2: OpaqueIndexSet,
+    entries1: TypeErasedIndexSet,
+    entries2: TypeErasedIndexSet,
 ) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -50,8 +50,8 @@ where
 }
 
 fn prop_append_contains_destination<T, S1, S2, A>(
-    entries1: OpaqueIndexSet,
-    entries2: OpaqueIndexSet,
+    entries1: TypeErasedIndexSet,
+    entries2: TypeErasedIndexSet,
 ) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -78,8 +78,8 @@ where
 }
 
 fn prop_append_get_source<T, S1, S2, A>(
-    entries1: OpaqueIndexSet,
-    entries2: OpaqueIndexSet,
+    entries1: TypeErasedIndexSet,
+    entries2: TypeErasedIndexSet,
 ) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -112,8 +112,8 @@ where
 }
 
 fn prop_append_get_destination<T, S1, S2, A>(
-    entries1: OpaqueIndexSet,
-    entries2: OpaqueIndexSet,
+    entries1: TypeErasedIndexSet,
+    entries2: TypeErasedIndexSet,
 ) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -140,8 +140,8 @@ where
 }
 
 fn prop_append_get_full_source<T, S1, S2, A>(
-    entries1: OpaqueIndexSet,
-    entries2: OpaqueIndexSet,
+    entries1: TypeErasedIndexSet,
+    entries2: TypeErasedIndexSet,
 ) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -174,8 +174,8 @@ where
 }
 
 fn prop_append_get_full_destination<T, S1, S2, A>(
-    entries1: OpaqueIndexSet,
-    entries2: OpaqueIndexSet,
+    entries1: TypeErasedIndexSet,
+    entries2: TypeErasedIndexSet,
 ) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -202,8 +202,8 @@ where
 }
 
 fn prop_append_get_index_of_source<T, S1, S2, A>(
-    entries1: OpaqueIndexSet,
-    entries2: OpaqueIndexSet,
+    entries1: TypeErasedIndexSet,
+    entries2: TypeErasedIndexSet,
 ) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -236,8 +236,8 @@ where
 }
 
 fn prop_append_get_index_of_destination<T, S1, S2, A>(
-    entries1: OpaqueIndexSet,
-    entries2: OpaqueIndexSet,
+    entries1: TypeErasedIndexSet,
+    entries2: TypeErasedIndexSet,
 ) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -264,8 +264,8 @@ where
 }
 
 fn prop_append_len_source<T, S1, S2, A>(
-    entries1: OpaqueIndexSet,
-    entries2: OpaqueIndexSet,
+    entries1: TypeErasedIndexSet,
+    entries2: TypeErasedIndexSet,
 ) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -286,8 +286,8 @@ where
 }
 
 fn prop_append_len_destination<T, S1, S2, A>(
-    entries1: OpaqueIndexSet,
-    entries2: OpaqueIndexSet,
+    entries1: TypeErasedIndexSet,
+    entries2: TypeErasedIndexSet,
 ) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -324,8 +324,8 @@ macro_rules! generate_props {
                     entries1 in super::$set_gen::<$value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_length),
                     entries2 in super::$set_gen::<$value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_length),
                 ) {
-                    let entries1: super::OpaqueIndexSet = entries1;
-                    let entries2: super::OpaqueIndexSet = entries2;
+                    let entries1: super::TypeErasedIndexSet = entries1;
+                    let entries2: super::TypeErasedIndexSet = entries2;
                     super::prop_append_contains_source::<
                         $value_typ,
                         super::WrappingBuildHasher1<$build_hasher_typ>,
@@ -339,8 +339,8 @@ macro_rules! generate_props {
                     entries1 in super::$set_gen::<$value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_length),
                     entries2 in super::$set_gen::<$value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_length),
                 ) {
-                    let entries1: super::OpaqueIndexSet = entries1;
-                    let entries2: super::OpaqueIndexSet = entries2;
+                    let entries1: super::TypeErasedIndexSet = entries1;
+                    let entries2: super::TypeErasedIndexSet = entries2;
                     super::prop_append_contains_destination::<
                         $value_typ,
                         super::WrappingBuildHasher1<$build_hasher_typ>,
@@ -354,8 +354,8 @@ macro_rules! generate_props {
                     entries1 in super::$set_gen::<$value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_length),
                     entries2 in super::$set_gen::<$value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_length),
                 ) {
-                    let entries1: super::OpaqueIndexSet = entries1;
-                    let entries2: super::OpaqueIndexSet = entries2;
+                    let entries1: super::TypeErasedIndexSet = entries1;
+                    let entries2: super::TypeErasedIndexSet = entries2;
                     super::prop_append_get_source::<
                         $value_typ,
                         super::WrappingBuildHasher1<$build_hasher_typ>,
@@ -369,8 +369,8 @@ macro_rules! generate_props {
                     entries1 in super::$set_gen::<$value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_length),
                     entries2 in super::$set_gen::<$value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_length),
                 ) {
-                    let entries1: super::OpaqueIndexSet = entries1;
-                    let entries2: super::OpaqueIndexSet = entries2;
+                    let entries1: super::TypeErasedIndexSet = entries1;
+                    let entries2: super::TypeErasedIndexSet = entries2;
                     super::prop_append_get_destination::<
                         $value_typ,
                         super::WrappingBuildHasher1<$build_hasher_typ>,
@@ -384,8 +384,8 @@ macro_rules! generate_props {
                     entries1 in super::$set_gen::<$value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_length),
                     entries2 in super::$set_gen::<$value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_length),
                 ) {
-                    let entries1: super::OpaqueIndexSet = entries1;
-                    let entries2: super::OpaqueIndexSet = entries2;
+                    let entries1: super::TypeErasedIndexSet = entries1;
+                    let entries2: super::TypeErasedIndexSet = entries2;
                     super::prop_append_get_full_source::<
                         $value_typ,
                         super::WrappingBuildHasher1<$build_hasher_typ>,
@@ -399,8 +399,8 @@ macro_rules! generate_props {
                     entries1 in super::$set_gen::<$value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_length),
                     entries2 in super::$set_gen::<$value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_length),
                 ) {
-                    let entries1: super::OpaqueIndexSet = entries1;
-                    let entries2: super::OpaqueIndexSet = entries2;
+                    let entries1: super::TypeErasedIndexSet = entries1;
+                    let entries2: super::TypeErasedIndexSet = entries2;
                     super::prop_append_get_full_destination::<
                         $value_typ,
                         super::WrappingBuildHasher1<$build_hasher_typ>,
@@ -414,8 +414,8 @@ macro_rules! generate_props {
                     entries1 in super::$set_gen::<$value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_length),
                     entries2 in super::$set_gen::<$value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_length),
                 ) {
-                    let entries1: super::OpaqueIndexSet = entries1;
-                    let entries2: super::OpaqueIndexSet = entries2;
+                    let entries1: super::TypeErasedIndexSet = entries1;
+                    let entries2: super::TypeErasedIndexSet = entries2;
                     super::prop_append_get_index_of_source::<
                         $value_typ,
                         super::WrappingBuildHasher1<$build_hasher_typ>,
@@ -429,8 +429,8 @@ macro_rules! generate_props {
                     entries1 in super::$set_gen::<$value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_length),
                     entries2 in super::$set_gen::<$value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_length),
                 ) {
-                    let entries1: super::OpaqueIndexSet = entries1;
-                    let entries2: super::OpaqueIndexSet = entries2;
+                    let entries1: super::TypeErasedIndexSet = entries1;
+                    let entries2: super::TypeErasedIndexSet = entries2;
                     super::prop_append_get_index_of_destination::<
                         $value_typ,
                         super::WrappingBuildHasher1<$build_hasher_typ>,
@@ -444,8 +444,8 @@ macro_rules! generate_props {
                     entries1 in super::$set_gen::<$value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_length),
                     entries2 in super::$set_gen::<$value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_length),
                 ) {
-                    let entries1: super::OpaqueIndexSet = entries1;
-                    let entries2: super::OpaqueIndexSet = entries2;
+                    let entries1: super::TypeErasedIndexSet = entries1;
+                    let entries2: super::TypeErasedIndexSet = entries2;
                     super::prop_append_len_source::<
                         $value_typ,
                         super::WrappingBuildHasher1<$build_hasher_typ>,
@@ -459,8 +459,8 @@ macro_rules! generate_props {
                     entries1 in super::$set_gen::<$value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_length),
                     entries2 in super::$set_gen::<$value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_length),
                 ) {
-                    let entries1: super::OpaqueIndexSet = entries1;
-                    let entries2: super::OpaqueIndexSet = entries2;
+                    let entries1: super::TypeErasedIndexSet = entries1;
+                    let entries2: super::TypeErasedIndexSet = entries2;
                     super::prop_append_len_destination::<
                         $value_typ,
                         super::WrappingBuildHasher1<$build_hasher_typ>,

@@ -1,4 +1,4 @@
-use opaque_index_map::map::OpaqueIndexMap;
+use opaque_index_map::map::TypeErasedIndexMap;
 
 use core::any;
 use core::ptr::NonNull;
@@ -56,7 +56,7 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    let opaque_map = OpaqueIndexMap::with_hasher_in::<K, V, S, A>(build_hasher, alloc);
+    let opaque_map = TypeErasedIndexMap::with_hasher_in::<K, V, S, A>(build_hasher, alloc);
 
     assert!(opaque_map.has_key_type::<K>());
     assert!(opaque_map.has_value_type::<V>());
@@ -72,7 +72,7 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    let opaque_map = OpaqueIndexMap::with_capacity_and_hasher_in::<K, V, S, A>(1024, build_hasher, alloc);
+    let opaque_map = TypeErasedIndexMap::with_capacity_and_hasher_in::<K, V, S, A>(1024, build_hasher, alloc);
 
     assert!(opaque_map.has_key_type::<K>());
     assert!(opaque_map.has_value_type::<V>());
@@ -86,7 +86,7 @@ where
     V: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    let opaque_map = OpaqueIndexMap::new_in::<K, V, A>(alloc);
+    let opaque_map = TypeErasedIndexMap::new_in::<K, V, A>(alloc);
 
     assert!(opaque_map.has_key_type::<K>());
     assert!(opaque_map.has_value_type::<V>());
@@ -100,7 +100,7 @@ where
     V: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    let opaque_map = OpaqueIndexMap::with_capacity_in::<K, V, A>(1024, alloc);
+    let opaque_map = TypeErasedIndexMap::with_capacity_in::<K, V, A>(1024, alloc);
 
     assert!(opaque_map.has_key_type::<K>());
     assert!(opaque_map.has_value_type::<V>());
@@ -115,7 +115,7 @@ where
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
 {
-    let opaque_map = OpaqueIndexMap::with_hasher::<K, V, S>(build_hasher);
+    let opaque_map = TypeErasedIndexMap::with_hasher::<K, V, S>(build_hasher);
 
     assert!(opaque_map.has_key_type::<K>());
     assert!(opaque_map.has_value_type::<V>());
@@ -130,7 +130,7 @@ where
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
 {
-    let opaque_map = OpaqueIndexMap::with_capacity_and_hasher::<K, V, S>(1024, build_hasher);
+    let opaque_map = TypeErasedIndexMap::with_capacity_and_hasher::<K, V, S>(1024, build_hasher);
 
     assert!(opaque_map.has_key_type::<K>());
     assert!(opaque_map.has_value_type::<V>());
@@ -143,7 +143,7 @@ where
     K: any::Any,
     V: any::Any,
 {
-    let opaque_map = OpaqueIndexMap::new::<K, V>();
+    let opaque_map = TypeErasedIndexMap::new::<K, V>();
 
     assert!(opaque_map.has_key_type::<K>());
     assert!(opaque_map.has_value_type::<V>());
@@ -156,7 +156,7 @@ where
     K: any::Any,
     V: any::Any,
 {
-    let opaque_map = OpaqueIndexMap::with_capacity::<K, V>(1024);
+    let opaque_map = TypeErasedIndexMap::with_capacity::<K, V>(1024);
 
     assert!(opaque_map.has_key_type::<K>());
     assert!(opaque_map.has_value_type::<V>());

@@ -1,4 +1,4 @@
-use opaque_index_map::map::TypedProjIndexMap;
+use opaque_index_map::map::TypeProjectedIndexMap;
 
 use criterion::{
     Criterion,
@@ -33,7 +33,7 @@ fn bench_typed_proj_index_map_insert_full(c: &mut Criterion) {
         b.iter(|| {
             let keys = 0..1000;
             let values = 1..1001;
-            let mut proj_map = TypedProjIndexMap::new();
+            let mut proj_map = TypeProjectedIndexMap::new();
             for (key, value) in keys.zip(values) {
                 proj_map.insert_full(key, value);
             }

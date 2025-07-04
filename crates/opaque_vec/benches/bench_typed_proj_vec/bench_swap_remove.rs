@@ -1,4 +1,4 @@
-use opaque_vec::TypedProjVec;
+use opaque_vec::TypeProjectedVec;
 
 use criterion::{
     Criterion,
@@ -35,7 +35,7 @@ fn bench_typed_proj_vec_swap_remove(c: &mut Criterion) {
 
     c.bench_function("typed_proj_vec_swap_remove", |b| {
         b.iter_batched(
-            || TypedProjVec::from_iter((0..1000).map(|_| dummy_data)),
+            || TypeProjectedVec::from_iter((0..1000).map(|_| dummy_data)),
             |mut proj_vec| {
                 for _ in 0..proj_vec.len() {
                     let _ = core::hint::black_box(proj_vec.swap_remove(0));

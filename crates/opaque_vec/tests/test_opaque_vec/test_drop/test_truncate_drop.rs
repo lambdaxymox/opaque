@@ -1,4 +1,4 @@
-use opaque_vec::OpaqueVec;
+use opaque_vec::TypeErasedVec;
 
 use core::any;
 use std::cell::RefCell;
@@ -36,12 +36,12 @@ impl Drop for DropCounter {
     }
 }
 
-fn create_drop_counter_vec_in<A>(len: usize, alloc: A) -> (DropCounter, OpaqueVec)
+fn create_drop_counter_vec_in<A>(len: usize, alloc: A) -> (DropCounter, TypeErasedVec)
 where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let drop_counter = DropCounter::new(Rc::new(RefCell::new(0)));
-    let mut vec = OpaqueVec::with_capacity_in::<DropCounter, A>(len, alloc);
+    let mut vec = TypeErasedVec::with_capacity_in::<DropCounter, A>(len, alloc);
     for i in 0..len {
         vec.push::<DropCounter, A>(drop_counter.clone());
     }

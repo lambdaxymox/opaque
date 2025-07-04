@@ -1,4 +1,4 @@
-use opaque_index_map::set::TypedProjIndexSet;
+use opaque_index_map::set::TypeProjectedIndexSet;
 
 use criterion::{
     Criterion,
@@ -31,7 +31,7 @@ fn bench_index_set_as_slice_index(c: &mut Criterion) {
 
 fn bench_typed_proj_index_set_as_slice_index(c: &mut Criterion) {
     let values = 0..10000;
-    let proj_set = TypedProjIndexSet::<i32, hash::RandomState, alloc::Global>::from_iter(values);
+    let proj_set = TypeProjectedIndexSet::<i32, hash::RandomState, alloc::Global>::from_iter(values);
 
     c.bench_function("typed_proj_index_set_as_slice_index", |b| {
         b.iter(|| {

@@ -1,5 +1,5 @@
 use crate::common::projected::strategy_type_projected_vec_max_len;
-use opaque_vec::TypedProjVec;
+use opaque_vec::TypeProjectedVec;
 
 use core::any;
 use core::fmt;
@@ -16,7 +16,7 @@ use opaque_allocator_api::alloc;
 use proptest::prelude::*;
 
 #[cfg(feature = "nightly")]
-fn prop_from_vec<T, A>(values: TypedProjVec<T, A>) -> Result<(), TestCaseError>
+fn prop_from_vec<T, A>(values: TypeProjectedVec<T, A>) -> Result<(), TestCaseError>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
@@ -33,7 +33,7 @@ where
     }
 
     let expected_values = expected(values.as_slice(), values.allocator().allocator().clone());
-    let vec = TypedProjVec::from(expected_values.clone());
+    let vec = TypeProjectedVec::from(expected_values.clone());
 
     let expected = expected_values.as_slice();
     let result = vec.as_slice();
@@ -51,7 +51,7 @@ macro_rules! generate_props {
             proptest! {
                 #[test]
                 fn prop_from_vec(values in super::$vec_gen::<$typ, $alloc_typ>($max_length)) {
-                    let values: super::TypedProjVec<$typ, $alloc_typ> = values;
+                    let values: super::TypeProjectedVec<$typ, $alloc_typ> = values;
                     super::prop_from_vec(values)?
                 }
             }

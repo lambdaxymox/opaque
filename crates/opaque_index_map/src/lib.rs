@@ -26,10 +26,10 @@ pub mod set;
 pub use crate::equivalent::Equivalent;
 pub use crate::get_disjoint_mut_error::GetDisjointMutError;
 pub use crate::map::{
-    TypedProjIndexMap,
-    OpaqueIndexMap,
+    TypeProjectedIndexMap,
+    TypeErasedIndexMap,
 };
 pub use crate::set::{
-    TypedProjIndexSet,
-    OpaqueIndexSet,
+    TypeProjectedIndexSet,
+    TypeErasedIndexSet,
 };

@@ -13,7 +13,7 @@ use alloc_crate::alloc;
 use opaque_allocator_api::alloc;
 
 use opaque_polyfill::range_types::UsizeNoHighBit;
-use opaque_alloc::{OpaqueAlloc, TypedProjAlloc};
+use opaque_alloc::{TypeErasedAlloc, TypeProjectedAlloc};
 use opaque_error::{TryReserveError, TryReserveErrorKind};
 
 // One central function responsible for reporting capacity overflows. This will
@@ -166,7 +166,7 @@ where
 }
 
 #[repr(transparent)]
-pub(crate) struct TypedProjRawVec<T, A = alloc::Global>
+pub(crate) struct TypeProjectedRawVec<T, A = alloc::Global>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -175,21 +175,21 @@ where
     _marker: marker::PhantomData<(T, A)>,
 }
 
-unsafe impl<T, A> Send for TypedProjRawVec<T, A>
+unsafe impl<T, A> Send for TypeProjectedRawVec<T, A>
 where
     T: any::Any + Send,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
 }
 
-unsafe impl<T, A> Sync for TypedProjRawVec<T, A>
+unsafe impl<T, A> Sync for TypeProjectedRawVec<T, A>
 where
     T: any::Any + Sync,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
 }
 
-impl<T, A> TypedProjRawVec<T, A>
+impl<T, A> TypeProjectedRawVec<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -200,7 +200,7 @@ where
     }
 }
 
-impl<T, A> TypedProjRawVec<T, A>
+impl<T, A> TypeProjectedRawVec<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -216,18 +216,18 @@ where
     }
 
     #[inline]
-    pub(crate) fn allocator(&self) -> &TypedProjAlloc<A> {
+    pub(crate) fn allocator(&self) -> &TypeProjectedAlloc<A> {
         self.inner.allocator()
     }
 }
 
-impl<T, A> TypedProjRawVec<T, A>
+impl<T, A> TypeProjectedRawVec<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[inline]
-    pub(crate) fn new_in(alloc: TypedProjAlloc<A>) -> Self {
+    pub(crate) fn new_in(alloc: TypeProjectedAlloc<A>) -> Self {
         let element_layout = alloc::Layout::new::<T>();
 
         Self {
@@ -238,7 +238,7 @@ where
 
     #[inline]
     #[track_caller]
-    pub(crate) fn with_capacity_in(capacity: usize, alloc: TypedProjAlloc<A>) -> Self {
+    pub(crate) fn with_capacity_in(capacity: usize, alloc: TypeProjectedAlloc<A>) -> Self {
         let element_layout = alloc::Layout::new::<T>();
 
         Self {
@@ -248,7 +248,7 @@ where
     }
 
     #[inline]
-    pub(crate) fn try_with_capacity_in(capacity: usize, alloc: TypedProjAlloc<A>) -> Result<Self, TryReserveError> {
+    pub(crate) fn try_with_capacity_in(capacity: usize, alloc: TypeProjectedAlloc<A>) -> Result<Self, TryReserveError> {
         let element_layout = alloc::Layout::new::<T>();
 
         match RawVecMemory::try_with_capacity_in(capacity, alloc, element_layout) {
@@ -259,7 +259,7 @@ where
 
     #[inline]
     #[track_caller]
-    pub(crate) fn with_capacity_zeroed_in(capacity: usize, alloc: TypedProjAlloc<A>) -> Self {
+    pub(crate) fn with_capacity_zeroed_in(capacity: usize, alloc: TypeProjectedAlloc<A>) -> Self {
         let element_layout = alloc::Layout::new::<T>();
 
         Self {
@@ -269,7 +269,7 @@ where
     }
 
     #[cfg(feature = "nightly")]
-    pub(crate) unsafe fn into_box(self, len: usize) -> Box<[MaybeUninit<T>], TypedProjAlloc<A>> {
+    pub(crate) unsafe fn into_box(self, len: usize) -> Box<[MaybeUninit<T>], TypeProjectedAlloc<A>> {
         // Sanity-check one half of the safety requirement (we cannot check the other half).
         debug_assert!(
             len <= self.capacity(),
@@ -284,7 +284,7 @@ where
     }
 
     #[inline]
-    pub(crate) unsafe fn from_raw_parts_in(ptr: *mut T, capacity: usize, alloc: TypedProjAlloc<A>) -> Self {
+    pub(crate) unsafe fn from_raw_parts_in(ptr: *mut T, capacity: usize, alloc: TypeProjectedAlloc<A>) -> Self {
         let element_layout = alloc::Layout::new::<T>();
 
         // SAFETY: Precondition passed to the caller
@@ -300,7 +300,7 @@ where
     }
 
     #[inline]
-    pub(crate) unsafe fn from_non_null_in(ptr: NonNull<T>, capacity: usize, alloc: TypedProjAlloc<A>) -> Self {
+    pub(crate) unsafe fn from_non_null_in(ptr: NonNull<T>, capacity: usize, alloc: TypeProjectedAlloc<A>) -> Self {
         let element_layout = alloc::Layout::new::<T>();
 
         // SAFETY: Precondition passed to the caller
@@ -316,7 +316,7 @@ where
     }
 }
 
-impl<T, A> TypedProjRawVec<T, A>
+impl<T, A> TypeProjectedRawVec<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -373,7 +373,7 @@ where
     }
 }
 
-impl<T, A> Drop for TypedProjRawVec<T, A>
+impl<T, A> Drop for TypeProjectedRawVec<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -386,31 +386,31 @@ where
 }
 
 #[repr(transparent)]
-pub(crate) struct OpaqueRawVec {
+pub(crate) struct TypeErasedRawVec {
     inner: RawVecMemory,
 }
 
-impl OpaqueRawVec {
+impl TypeErasedRawVec {
     #[inline(always)]
-    pub(crate) fn as_proj_assuming_type<T, A>(&self) -> &TypedProjRawVec<T, A>
+    pub(crate) fn as_proj_assuming_type<T, A>(&self) -> &TypeProjectedRawVec<T, A>
     where
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        unsafe { &*(self as *const OpaqueRawVec as *const TypedProjRawVec<T, A>) }
+        unsafe { &*(self as *const TypeErasedRawVec as *const TypeProjectedRawVec<T, A>) }
     }
 
     #[inline(always)]
-    pub(crate) fn as_proj_mut_assuming_type<T, A>(&mut self) -> &mut TypedProjRawVec<T, A>
+    pub(crate) fn as_proj_mut_assuming_type<T, A>(&mut self) -> &mut TypeProjectedRawVec<T, A>
     where
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        unsafe { &mut *(self as *mut OpaqueRawVec as *mut TypedProjRawVec<T, A>) }
+        unsafe { &mut *(self as *mut TypeErasedRawVec as *mut TypeProjectedRawVec<T, A>) }
     }
 
     #[inline(always)]
-    pub(crate) fn into_proj_assuming_type<T, A>(self) -> TypedProjRawVec<T, A>
+    pub(crate) fn into_proj_assuming_type<T, A>(self) -> TypeProjectedRawVec<T, A>
     where
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
@@ -419,7 +419,7 @@ impl OpaqueRawVec {
     }
 
     #[inline(always)]
-    pub(crate) fn from_proj<T, A>(proj_self: TypedProjRawVec<T, A>) -> Self
+    pub(crate) fn from_proj<T, A>(proj_self: TypeProjectedRawVec<T, A>) -> Self
     where
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
@@ -428,14 +428,14 @@ impl OpaqueRawVec {
     }
 }
 
-impl OpaqueRawVec {
+impl TypeErasedRawVec {
     #[inline]
     pub(crate) const fn allocator_type_id(&self) -> any::TypeId {
         self.inner.allocator_type_id()
     }
 }
 
-impl OpaqueRawVec {
+impl TypeErasedRawVec {
     #[inline]
     pub(crate) const fn element_layout(&self) -> alloc::Layout {
         self.inner.element_layout()
@@ -447,14 +447,14 @@ impl OpaqueRawVec {
     }
 }
 
-impl OpaqueRawVec {
+impl TypeErasedRawVec {
     #[inline]
     pub(crate) const fn as_non_null(&self) -> NonNull<u8> {
         self.inner.non_null::<u8>()
     }
 }
 
-impl Drop for OpaqueRawVec {
+impl Drop for TypeErasedRawVec {
     /// Frees the memory owned by the `RawVec` *without* trying to drop its contents.
     fn drop(&mut self) {
         // SAFETY: We are in a Drop impl, self.inner will not be used again.
@@ -466,7 +466,7 @@ struct RawVecMemory {
     ptr: NonNull<u8>,
     capacity: Capacity,
     layout: alloc::Layout,
-    alloc: OpaqueAlloc,
+    alloc: TypeErasedAlloc,
 }
 
 impl RawVecMemory {
@@ -500,7 +500,7 @@ impl RawVecMemory {
     }
 
     #[inline]
-    fn allocator<A>(&self) -> &TypedProjAlloc<A>
+    fn allocator<A>(&self) -> &TypeProjectedAlloc<A>
     where
         A: any::Any + alloc::Allocator + Send + Sync,
     {
@@ -510,13 +510,13 @@ impl RawVecMemory {
 
 impl RawVecMemory {
     #[inline]
-    fn new_in<A>(proj_alloc: TypedProjAlloc<A>, element_layout: alloc::Layout) -> Self
+    fn new_in<A>(proj_alloc: TypeProjectedAlloc<A>, element_layout: alloc::Layout) -> Self
     where
         A: any::Any + alloc::Allocator + Send + Sync,
     {
         let ptr = unsafe { core::mem::transmute(element_layout.align()) };
         let capacity = ZERO_CAPACITY;
-        let opaque_alloc = OpaqueAlloc::from_proj(proj_alloc);
+        let opaque_alloc = TypeErasedAlloc::from_proj(proj_alloc);
 
         Self {
             ptr,
@@ -526,7 +526,7 @@ impl RawVecMemory {
         }
     }
 
-    fn try_allocate_in<A>(capacity: usize, init: AllocInit, proj_alloc: TypedProjAlloc<A>, element_layout: alloc::Layout) -> Result<Self, TryReserveError>
+    fn try_allocate_in<A>(capacity: usize, init: AllocInit, proj_alloc: TypeProjectedAlloc<A>, element_layout: alloc::Layout) -> Result<Self, TryReserveError>
     where
         A: any::Any + alloc::Allocator + Send + Sync,
     {
@@ -560,7 +560,7 @@ impl RawVecMemory {
             Ok(ptr) => ptr,
             Err(_) => return Err(TryReserveErrorKind::AllocError { layout }.into()),
         };
-        let opaque_alloc = OpaqueAlloc::from_proj(proj_alloc);
+        let opaque_alloc = TypeErasedAlloc::from_proj(proj_alloc);
 
         // Allocators currently return a `NonNull<[u8]>` whose length
         // matches the size requested. If that ever changes, the capacity
@@ -574,7 +574,7 @@ impl RawVecMemory {
     }
 
     #[inline]
-    fn try_with_capacity_in<A>(capacity: usize, proj_alloc: TypedProjAlloc<A>, element_layout: alloc::Layout) -> Result<Self, TryReserveError>
+    fn try_with_capacity_in<A>(capacity: usize, proj_alloc: TypeProjectedAlloc<A>, element_layout: alloc::Layout) -> Result<Self, TryReserveError>
     where
         A: any::Any + alloc::Allocator + Send + Sync,
     {
@@ -583,7 +583,7 @@ impl RawVecMemory {
 
     #[inline]
     #[track_caller]
-    fn with_capacity_zeroed_in<A>(capacity: usize, proj_alloc: TypedProjAlloc<A>, element_layout: alloc::Layout) -> Self
+    fn with_capacity_zeroed_in<A>(capacity: usize, proj_alloc: TypeProjectedAlloc<A>, element_layout: alloc::Layout) -> Self
     where
         A: any::Any + alloc::Allocator + Send + Sync,
     {
@@ -595,7 +595,7 @@ impl RawVecMemory {
 
     #[inline]
     #[track_caller]
-    fn with_capacity_in<A>(capacity: usize, proj_alloc: TypedProjAlloc<A>, element_layout: alloc::Layout) -> Self
+    fn with_capacity_in<A>(capacity: usize, proj_alloc: TypeProjectedAlloc<A>, element_layout: alloc::Layout) -> Self
     where
         A: any::Any + alloc::Allocator + Send + Sync,
     {
@@ -612,11 +612,11 @@ impl RawVecMemory {
     }
 
     #[inline]
-    unsafe fn from_raw_parts_in<A>(ptr: *mut u8, capacity: Capacity, element_layout: alloc::Layout, proj_alloc: TypedProjAlloc<A>) -> Self
+    unsafe fn from_raw_parts_in<A>(ptr: *mut u8, capacity: Capacity, element_layout: alloc::Layout, proj_alloc: TypeProjectedAlloc<A>) -> Self
     where
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        let opaque_alloc = OpaqueAlloc::from_proj(proj_alloc);
+        let opaque_alloc = TypeErasedAlloc::from_proj(proj_alloc);
 
         Self {
             ptr: unsafe { NonNull::new_unchecked(ptr) },
@@ -627,11 +627,11 @@ impl RawVecMemory {
     }
 
     #[inline]
-    unsafe fn from_non_null_in<A>(ptr: NonNull<u8>, capacity: Capacity, element_layout: alloc::Layout, proj_alloc: TypedProjAlloc<A>) -> Self
+    unsafe fn from_non_null_in<A>(ptr: NonNull<u8>, capacity: Capacity, element_layout: alloc::Layout, proj_alloc: TypeProjectedAlloc<A>) -> Self
     where
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        let opaque_alloc = OpaqueAlloc::from_proj(proj_alloc);
+        let opaque_alloc = TypeErasedAlloc::from_proj(proj_alloc);
 
         Self {
             ptr: NonNull::from(ptr),
@@ -963,8 +963,8 @@ mod raw_vec_layout_tests {
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        let expected = mem::size_of::<TypedProjRawVec<T, A>>();
-        let result = mem::size_of::<OpaqueRawVec>();
+        let expected = mem::size_of::<TypeProjectedRawVec<T, A>>();
+        let result = mem::size_of::<TypeErasedRawVec>();
 
         assert_eq!(result, expected, "Opaque and Typed Projected data types size mismatch");
     }
@@ -974,8 +974,8 @@ mod raw_vec_layout_tests {
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        let expected = mem::align_of::<TypedProjRawVec<T, A>>();
-        let result = mem::align_of::<OpaqueRawVec>();
+        let expected = mem::align_of::<TypeProjectedRawVec<T, A>>();
+        let result = mem::align_of::<TypeErasedRawVec>();
 
         assert_eq!(result, expected, "Opaque and Typed Projected data types alignment mismatch");
     }
@@ -985,8 +985,8 @@ mod raw_vec_layout_tests {
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        let expected = mem::offset_of!(TypedProjRawVec<T, A>, inner);
-        let result = mem::offset_of!(OpaqueRawVec, inner);
+        let expected = mem::offset_of!(TypeProjectedRawVec<T, A>, inner);
+        let result = mem::offset_of!(TypeErasedRawVec, inner);
 
         assert_eq!(result, expected, "Opaque and Typed Projected data types offsets mismatch");
     }
@@ -1041,14 +1041,14 @@ mod assert_send_sync {
     fn test_assert_send_sync1() {
         fn assert_send_sync<T: Send + Sync>() {}
 
-        assert_send_sync::<TypedProjRawVec<i32, alloc::Global>>();
+        assert_send_sync::<TypeProjectedRawVec<i32, alloc::Global>>();
     }
 
     #[test]
     fn test_assert_send_sync2() {
         fn assert_send_sync<T: Send + Sync>() {}
 
-        assert_send_sync::<TypedProjRawVec<i32, dummy::DummyAlloc>>();
+        assert_send_sync::<TypeProjectedRawVec<i32, dummy::DummyAlloc>>();
     }
 }
 
@@ -1061,7 +1061,7 @@ mod assert_not_send_not_sync {
     fn test_assert_not_send_not_sync() {
         fn assert_send_sync<T: Send + Sync>() {}
 
-        assert_send_sync::<OpaqueRawVec>();
+        assert_send_sync::<TypeErasedRawVec>();
     }
 }
 */

@@ -1,6 +1,6 @@
 use crate::common::erased::strategy_type_erased_vec_max_len;
-use opaque_vec::OpaqueVec;
-use opaque_alloc::TypedProjAlloc;
+use opaque_vec::TypeErasedVec;
+use opaque_alloc::TypeProjectedAlloc;
 
 use core::any;
 use core::fmt;
@@ -17,24 +17,24 @@ use opaque_allocator_api::alloc;
 use proptest::prelude::*;
 
 #[cfg(feature = "nightly")]
-fn prop_from_boxed_slice<T, A>(values: OpaqueVec) -> Result<(), TestCaseError>
+fn prop_from_boxed_slice<T, A>(values: TypeErasedVec) -> Result<(), TestCaseError>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
-    fn expected<T, A>(values: &OpaqueVec) -> Box<[T], TypedProjAlloc<A>>
+    fn expected<T, A>(values: &TypeErasedVec) -> Box<[T], TypeProjectedAlloc<A>>
     where
         T: any::Any + PartialEq + Clone + Default + fmt::Debug,
         A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
     {
-        let mut result = OpaqueVec::with_capacity_proj_in::<T, A>(values.len(), values.allocator::<T, A>().clone());
+        let mut result = TypeErasedVec::with_capacity_proj_in::<T, A>(values.len(), values.allocator::<T, A>().clone());
         result.extend::<_, T, A>(values.iter::<T, A>().cloned());
 
         result.into_boxed_slice::<T, A>()
     }
 
     let boxed_values = expected::<T, A>(&values);
-    let vec = OpaqueVec::from(boxed_values.clone());
+    let vec = TypeErasedVec::from(boxed_values.clone());
 
     let expected = boxed_values.as_ref();
     let result = vec.as_slice::<T, A>();
@@ -52,7 +52,7 @@ macro_rules! generate_props {
             proptest! {
                 #[test]
                 fn prop_from_boxed_slice(values in super::$vec_gen::<$typ, $alloc_typ>($max_length)) {
-                    let values: super::OpaqueVec = values;
+                    let values: super::TypeErasedVec = values;
                     super::prop_from_boxed_slice::<$typ, $alloc_typ>(values)?
                 }
             }

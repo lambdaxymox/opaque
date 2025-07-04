@@ -1,5 +1,5 @@
 use crate::common::erased::strategy_type_erased_vec_max_len;
-use opaque_vec::OpaqueVec;
+use opaque_vec::TypeErasedVec;
 
 use core::any;
 use core::fmt;
@@ -15,7 +15,7 @@ use opaque_allocator_api::alloc;
 
 use proptest::prelude::*;
 
-fn prop_clone_as_slice<T, A>(values: OpaqueVec) -> Result<(), TestCaseError>
+fn prop_clone_as_slice<T, A>(values: TypeErasedVec) -> Result<(), TestCaseError>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
@@ -30,7 +30,7 @@ where
     Ok(())
 }
 
-fn prop_clone_occupy_disjoint_memory_locations<T, A>(vec: OpaqueVec) -> Result<(), TestCaseError>
+fn prop_clone_occupy_disjoint_memory_locations<T, A>(vec: TypeErasedVec) -> Result<(), TestCaseError>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
@@ -48,7 +48,7 @@ where
     Ok(())
 }
 
-fn prop_clone_occupy_disjoint_memory_regions<T, A>(vec: OpaqueVec) -> Result<(), TestCaseError>
+fn prop_clone_occupy_disjoint_memory_regions<T, A>(vec: TypeErasedVec) -> Result<(), TestCaseError>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
@@ -71,7 +71,7 @@ where
     Ok(())
 }
 
-fn prop_clone_len<T, A>(vec: OpaqueVec) -> Result<(), TestCaseError>
+fn prop_clone_len<T, A>(vec: TypeErasedVec) -> Result<(), TestCaseError>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
@@ -93,25 +93,25 @@ macro_rules! generate_props {
             proptest! {
                 #[test]
                 fn prop_clone_as_slice(values in super::$vec_gen::<$typ, $alloc_typ>($max_length)) {
-                    let values: super::OpaqueVec = values;
+                    let values: super::TypeErasedVec = values;
                     super::prop_clone_as_slice::<$typ, $alloc_typ>(values)?
                 }
 
                 #[test]
                 fn prop_clone_occupy_disjoint_memory_locations(values in super::$vec_gen::<$typ, $alloc_typ>($max_length)) {
-                    let values: super::OpaqueVec = values;
+                    let values: super::TypeErasedVec = values;
                     super::prop_clone_occupy_disjoint_memory_locations::<$typ, $alloc_typ>(values)?
                 }
 
                 #[test]
                 fn prop_clone_occupy_disjoint_memory_regions(values in super::$vec_gen::<$typ, $alloc_typ>($max_length)) {
-                    let values: super::OpaqueVec = values;
+                    let values: super::TypeErasedVec = values;
                     super::prop_clone_occupy_disjoint_memory_regions::<$typ, $alloc_typ>(values)?
                 }
 
                 #[test]
                 fn prop_clone_len(values in super::$vec_gen::<$typ, $alloc_typ>($max_length)) {
-                    let values: super::OpaqueVec = values;
+                    let values: super::TypeErasedVec = values;
                     super::prop_clone_len::<$typ, $alloc_typ>(values)?
                 }
             }

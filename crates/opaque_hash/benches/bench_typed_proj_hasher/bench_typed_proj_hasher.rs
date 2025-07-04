@@ -1,4 +1,4 @@
-use opaque_hash::TypedProjBuildHasher;
+use opaque_hash::TypeProjectedBuildHasher;
 
 use criterion;
 use criterion::criterion_group;
@@ -27,7 +27,7 @@ macro_rules! bench_hasher {
 
         fn $bench_typed_proj_name(c: &mut criterion::Criterion) {
             let default_build_hasher = RandomState::new();
-            let proj_build_hasher = TypedProjBuildHasher::new(default_build_hasher);
+            let proj_build_hasher = TypeProjectedBuildHasher::new(default_build_hasher);
             let value: $typ = $value;
 
             c.bench_function(stringify!($bench_typed_proj_name), |b| {

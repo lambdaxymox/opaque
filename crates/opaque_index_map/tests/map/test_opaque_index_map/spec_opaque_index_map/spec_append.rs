@@ -4,7 +4,7 @@ use crate::map::common::erased::{
     WrappingBuildHasher2,
     strategy_type_erased_index_map_max_len,
 };
-use opaque_index_map::OpaqueIndexMap;
+use opaque_index_map::TypeErasedIndexMap;
 
 use core::any;
 use core::fmt;
@@ -22,8 +22,8 @@ use opaque_allocator_api::alloc;
 use proptest::prelude::*;
 
 fn prop_append_contains_key_source<K, V, S1, S2, A>(
-    entries1: OpaqueIndexMap,
-    entries2: OpaqueIndexMap,
+    entries1: TypeErasedIndexMap,
+    entries2: TypeErasedIndexMap,
 ) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -51,8 +51,8 @@ where
 }
 
 fn prop_append_contains_key_destination<K, V, S1, S2, A>(
-    entries1: OpaqueIndexMap,
-    entries2: OpaqueIndexMap,
+    entries1: TypeErasedIndexMap,
+    entries2: TypeErasedIndexMap,
 ) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -80,8 +80,8 @@ where
 }
 
 fn prop_append_get_source<K, V, S1, S2, A>(
-    entries1: OpaqueIndexMap,
-    entries2: OpaqueIndexMap,
+    entries1: TypeErasedIndexMap,
+    entries2: TypeErasedIndexMap,
 ) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -115,8 +115,8 @@ where
 }
 
 fn prop_append_get_destination<K, V, S1, S2, A>(
-    entries1: OpaqueIndexMap,
-    entries2: OpaqueIndexMap,
+    entries1: TypeErasedIndexMap,
+    entries2: TypeErasedIndexMap,
 ) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -144,8 +144,8 @@ where
 }
 
 fn prop_append_get_full_source<K, V, S1, S2, A>(
-    entries1: OpaqueIndexMap,
-    entries2: OpaqueIndexMap,
+    entries1: TypeErasedIndexMap,
+    entries2: TypeErasedIndexMap,
 ) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -179,8 +179,8 @@ where
 }
 
 fn prop_append_get_full_destination<K, V, S1, S2, A>(
-    entries1: OpaqueIndexMap,
-    entries2: OpaqueIndexMap,
+    entries1: TypeErasedIndexMap,
+    entries2: TypeErasedIndexMap,
 ) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -208,8 +208,8 @@ where
 }
 
 fn prop_append_get_index_of_source<K, V, S1, S2, A>(
-    entries1: OpaqueIndexMap,
-    entries2: OpaqueIndexMap,
+    entries1: TypeErasedIndexMap,
+    entries2: TypeErasedIndexMap,
 ) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -243,8 +243,8 @@ where
 }
 
 fn prop_append_get_index_of_destination<K, V, S1, S2, A>(
-    entries1: OpaqueIndexMap,
-    entries2: OpaqueIndexMap,
+    entries1: TypeErasedIndexMap,
+    entries2: TypeErasedIndexMap,
 ) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -268,8 +268,8 @@ where
 }
 
 fn prop_append_get_key_value_source<K, V, S1, S2, A>(
-    entries1: OpaqueIndexMap,
-    entries2: OpaqueIndexMap,
+    entries1: TypeErasedIndexMap,
+    entries2: TypeErasedIndexMap,
 ) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -303,8 +303,8 @@ where
 }
 
 fn prop_append_get_key_value_destination<K, V, S1, S2, A>(
-    entries1: OpaqueIndexMap,
-    entries2: OpaqueIndexMap,
+    entries1: TypeErasedIndexMap,
+    entries2: TypeErasedIndexMap,
 ) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -332,8 +332,8 @@ where
 }
 
 fn prop_append_len_source<K, V, S1, S2, A>(
-    entries1: OpaqueIndexMap,
-    entries2: OpaqueIndexMap,
+    entries1: TypeErasedIndexMap,
+    entries2: TypeErasedIndexMap,
 ) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -355,8 +355,8 @@ where
 }
 
 fn prop_append_len_destination<K, V, S1, S2, A>(
-    entries1: OpaqueIndexMap,
-    entries2: OpaqueIndexMap,
+    entries1: TypeErasedIndexMap,
+    entries2: TypeErasedIndexMap,
 ) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -396,8 +396,8 @@ macro_rules! generate_props {
                     entries1 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_src_length),
                     entries2 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_dst_length),
                 ) {
-                    let entries1: super::OpaqueIndexMap = entries1;
-                    let entries2: super::OpaqueIndexMap = entries2;
+                    let entries1: super::TypeErasedIndexMap = entries1;
+                    let entries2: super::TypeErasedIndexMap = entries2;
                     super::prop_append_contains_key_source::<
                         $key_typ,
                         $value_typ,
@@ -412,8 +412,8 @@ macro_rules! generate_props {
                     entries1 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_src_length),
                     entries2 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_dst_length),
                 ) {
-                    let entries1: super::OpaqueIndexMap = entries1;
-                    let entries2: super::OpaqueIndexMap = entries2;
+                    let entries1: super::TypeErasedIndexMap = entries1;
+                    let entries2: super::TypeErasedIndexMap = entries2;
                     super::prop_append_contains_key_destination::<
                         $key_typ,
                         $value_typ,
@@ -428,8 +428,8 @@ macro_rules! generate_props {
                     entries1 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_src_length),
                     entries2 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_dst_length),
                 ) {
-                    let entries1: super::OpaqueIndexMap = entries1;
-                    let entries2: super::OpaqueIndexMap = entries2;
+                    let entries1: super::TypeErasedIndexMap = entries1;
+                    let entries2: super::TypeErasedIndexMap = entries2;
                     super::prop_append_get_source::<
                         $key_typ,
                         $value_typ,
@@ -444,8 +444,8 @@ macro_rules! generate_props {
                     entries1 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_src_length),
                     entries2 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_dst_length),
                 ) {
-                    let entries1: super::OpaqueIndexMap = entries1;
-                    let entries2: super::OpaqueIndexMap = entries2;
+                    let entries1: super::TypeErasedIndexMap = entries1;
+                    let entries2: super::TypeErasedIndexMap = entries2;
                     super::prop_append_get_destination::<
                         $key_typ,
                         $value_typ,
@@ -460,8 +460,8 @@ macro_rules! generate_props {
                     entries1 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_src_length),
                     entries2 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_dst_length),
                 ) {
-                    let entries1: super::OpaqueIndexMap = entries1;
-                    let entries2: super::OpaqueIndexMap = entries2;
+                    let entries1: super::TypeErasedIndexMap = entries1;
+                    let entries2: super::TypeErasedIndexMap = entries2;
                     super::prop_append_get_full_source::<
                         $key_typ,
                         $value_typ,
@@ -476,8 +476,8 @@ macro_rules! generate_props {
                     entries1 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_src_length),
                     entries2 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_dst_length),
                 ) {
-                    let entries1: super::OpaqueIndexMap = entries1;
-                    let entries2: super::OpaqueIndexMap = entries2;
+                    let entries1: super::TypeErasedIndexMap = entries1;
+                    let entries2: super::TypeErasedIndexMap = entries2;
                     super::prop_append_get_full_destination::<
                         $key_typ,
                         $value_typ,
@@ -492,8 +492,8 @@ macro_rules! generate_props {
                     entries1 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_src_length),
                     entries2 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_dst_length),
                 ) {
-                    let entries1: super::OpaqueIndexMap = entries1;
-                    let entries2: super::OpaqueIndexMap = entries2;
+                    let entries1: super::TypeErasedIndexMap = entries1;
+                    let entries2: super::TypeErasedIndexMap = entries2;
                     super::prop_append_get_index_of_source::<
                         $key_typ,
                         $value_typ,
@@ -508,8 +508,8 @@ macro_rules! generate_props {
                     entries1 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_src_length),
                     entries2 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_dst_length),
                 ) {
-                    let entries1: super::OpaqueIndexMap = entries1;
-                    let entries2: super::OpaqueIndexMap = entries2;
+                    let entries1: super::TypeErasedIndexMap = entries1;
+                    let entries2: super::TypeErasedIndexMap = entries2;
                     super::prop_append_get_index_of_destination::<
                         $key_typ,
                         $value_typ,
@@ -524,8 +524,8 @@ macro_rules! generate_props {
                     entries1 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_src_length),
                     entries2 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_dst_length),
                 ) {
-                    let entries1: super::OpaqueIndexMap = entries1;
-                    let entries2: super::OpaqueIndexMap = entries2;
+                    let entries1: super::TypeErasedIndexMap = entries1;
+                    let entries2: super::TypeErasedIndexMap = entries2;
                     super::prop_append_get_key_value_source::<
                         $key_typ,
                         $value_typ,
@@ -540,8 +540,8 @@ macro_rules! generate_props {
                     entries1 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_src_length),
                     entries2 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_dst_length),
                 ) {
-                    let entries1: super::OpaqueIndexMap = entries1;
-                    let entries2: super::OpaqueIndexMap = entries2;
+                    let entries1: super::TypeErasedIndexMap = entries1;
+                    let entries2: super::TypeErasedIndexMap = entries2;
                     super::prop_append_get_key_value_destination::<
                         $key_typ,
                         $value_typ,
@@ -556,8 +556,8 @@ macro_rules! generate_props {
                     entries1 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_src_length),
                     entries2 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_dst_length),
                 ) {
-                    let entries1: super::OpaqueIndexMap = entries1;
-                    let entries2: super::OpaqueIndexMap = entries2;
+                    let entries1: super::TypeErasedIndexMap = entries1;
+                    let entries2: super::TypeErasedIndexMap = entries2;
                     super::prop_append_len_source::<
                         $key_typ,
                         $value_typ,
@@ -572,8 +572,8 @@ macro_rules! generate_props {
                     entries1 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_src_length),
                     entries2 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_dst_length),
                 ) {
-                    let entries1: super::OpaqueIndexMap = entries1;
-                    let entries2: super::OpaqueIndexMap = entries2;
+                    let entries1: super::TypeErasedIndexMap = entries1;
+                    let entries2: super::TypeErasedIndexMap = entries2;
                     super::prop_append_len_destination::<
                         $key_typ,
                         $value_typ,

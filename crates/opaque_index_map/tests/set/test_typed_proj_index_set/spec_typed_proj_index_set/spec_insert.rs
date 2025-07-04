@@ -1,5 +1,5 @@
 use crate::set::common::projected::strategy_type_projected_index_set_max_len;
-use opaque_index_map::TypedProjIndexSet;
+use opaque_index_map::TypeProjectedIndexSet;
 
 use core::any;
 use core::fmt;
@@ -16,14 +16,14 @@ use opaque_allocator_api::alloc;
 
 use proptest::prelude::*;
 
-fn from_entries_insert_in<T, S, A>(entries: &TypedProjIndexSet<T, S, A>) -> TypedProjIndexSet<T, S, A>
+fn from_entries_insert_in<T, S, A>(entries: &TypeProjectedIndexSet<T, S, A>) -> TypeProjectedIndexSet<T, S, A>
 where
     T: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let mut set: TypedProjIndexSet<T, S, A> = TypedProjIndexSet::with_hasher_proj_in(
+    let mut set: TypeProjectedIndexSet<T, S, A> = TypeProjectedIndexSet::with_hasher_proj_in(
         entries.hasher().clone(),
         entries.allocator().clone(),
     );
@@ -39,14 +39,14 @@ where
     set
 }
 
-fn prop_insert_as_slice<T, S, A>(entries: TypedProjIndexSet<T, S, A>) -> Result<(), TestCaseError>
+fn prop_insert_as_slice<T, S, A>(entries: TypeProjectedIndexSet<T, S, A>) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    fn expected<T, S, A>(set: &TypedProjIndexSet<T, S, A>) -> Vec<T>
+    fn expected<T, S, A>(set: &TypeProjectedIndexSet<T, S, A>) -> Vec<T>
     where
         T: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
         S: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -58,7 +58,7 @@ where
         expected
     }
 
-    fn result<T, S, A>(set: &TypedProjIndexSet<T, S, A>) -> Vec<T>
+    fn result<T, S, A>(set: &TypeProjectedIndexSet<T, S, A>) -> Vec<T>
     where
         T: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
         S: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -79,14 +79,14 @@ where
     Ok(())
 }
 
-fn prop_insert_contains<T, S, A>(entries: TypedProjIndexSet<T, S, A>) -> Result<(), TestCaseError>
+fn prop_insert_contains<T, S, A>(entries: TypeProjectedIndexSet<T, S, A>) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let mut set = TypedProjIndexSet::with_hasher_in(
+    let mut set = TypeProjectedIndexSet::with_hasher_in(
         entries.hasher().clone(),
         entries.allocator().clone(),
     );
@@ -106,7 +106,7 @@ where
     Ok(())
 }
 
-fn prop_insert_get<T, S, A>(entries: TypedProjIndexSet<T, S, A>) -> Result<(), TestCaseError>
+fn prop_insert_get<T, S, A>(entries: TypeProjectedIndexSet<T, S, A>) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -124,7 +124,7 @@ where
     Ok(())
 }
 
-fn prop_insert_get_full<T, S, A>(entries: TypedProjIndexSet<T, S, A>) -> Result<(), TestCaseError>
+fn prop_insert_get_full<T, S, A>(entries: TypeProjectedIndexSet<T, S, A>) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -142,7 +142,7 @@ where
     Ok(())
 }
 
-fn prop_insert_get_index_of<T, S, A>(entries: TypedProjIndexSet<T, S, A>) -> Result<(), TestCaseError>
+fn prop_insert_get_index_of<T, S, A>(entries: TypeProjectedIndexSet<T, S, A>) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -160,7 +160,7 @@ where
     Ok(())
 }
 
-fn prop_insert_iter<T, S, A>(entries: TypedProjIndexSet<T, S, A>) -> Result<(), TestCaseError>
+fn prop_insert_iter<T, S, A>(entries: TypeProjectedIndexSet<T, S, A>) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -175,14 +175,14 @@ where
     Ok(())
 }
 
-fn prop_insert_len<T, S, A>(entries: TypedProjIndexSet<T, S, A>) -> Result<(), TestCaseError>
+fn prop_insert_len<T, S, A>(entries: TypeProjectedIndexSet<T, S, A>) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    fn expected<T, S, A>(set: &TypedProjIndexSet<T, S, A>) -> usize
+    fn expected<T, S, A>(set: &TypeProjectedIndexSet<T, S, A>) -> usize
     where
         T: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
         S: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -222,43 +222,43 @@ macro_rules! generate_props {
             proptest! {
                 #[test]
                 fn prop_insert_as_slice(entries in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::TypedProjIndexSet<$value_typ, $build_hasher_typ, $alloc_typ> = entries;
+                    let entries: super::TypeProjectedIndexSet<$value_typ, $build_hasher_typ, $alloc_typ> = entries;
                     super::prop_insert_as_slice(entries)?
                 }
 
                 #[test]
                 fn prop_insert_contains(entries in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::TypedProjIndexSet<$value_typ, $build_hasher_typ, $alloc_typ> = entries;
+                    let entries: super::TypeProjectedIndexSet<$value_typ, $build_hasher_typ, $alloc_typ> = entries;
                     super::prop_insert_contains(entries)?
                 }
 
                 #[test]
                 fn prop_insert_get(entries in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::TypedProjIndexSet<$value_typ, $build_hasher_typ, $alloc_typ> = entries;
+                    let entries: super::TypeProjectedIndexSet<$value_typ, $build_hasher_typ, $alloc_typ> = entries;
                     super::prop_insert_get(entries)?
                 }
 
                 #[test]
                 fn prop_insert_get_full(entries in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::TypedProjIndexSet<$value_typ, $build_hasher_typ, $alloc_typ> = entries;
+                    let entries: super::TypeProjectedIndexSet<$value_typ, $build_hasher_typ, $alloc_typ> = entries;
                     super::prop_insert_get_full(entries)?
                 }
 
                 #[test]
                 fn prop_insert_get_index_of(entries in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::TypedProjIndexSet<$value_typ, $build_hasher_typ, $alloc_typ> = entries;
+                    let entries: super::TypeProjectedIndexSet<$value_typ, $build_hasher_typ, $alloc_typ> = entries;
                     super::prop_insert_get_index_of(entries)?
                 }
 
                 #[test]
                 fn prop_insert_iter(entries in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::TypedProjIndexSet<$value_typ, $build_hasher_typ, $alloc_typ> = entries;
+                    let entries: super::TypeProjectedIndexSet<$value_typ, $build_hasher_typ, $alloc_typ> = entries;
                     super::prop_insert_iter(entries)?
                 }
 
                 #[test]
                 fn prop_insert_len(entries in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::TypedProjIndexSet<$value_typ, $build_hasher_typ, $alloc_typ> = entries;
+                    let entries: super::TypeProjectedIndexSet<$value_typ, $build_hasher_typ, $alloc_typ> = entries;
                     super::prop_insert_len(entries)?
                 }
             }

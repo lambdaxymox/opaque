@@ -1,4 +1,4 @@
-use opaque_index_map::TypedProjIndexMap;
+use opaque_index_map::TypeProjectedIndexMap;
 
 use core::any;
 use core::fmt;
@@ -110,7 +110,7 @@ where
     Just(S::default())
 }
 
-pub fn strategy_type_projected_index_map_len<K, V, S, A>(length: usize) -> impl Strategy<Value = TypedProjIndexMap<K, V, S, A>>
+pub fn strategy_type_projected_index_map_len<K, V, S, A>(length: usize) -> impl Strategy<Value = TypeProjectedIndexMap<K, V, S, A>>
 where
     K: any::Any + Clone + Eq + hash::Hash + Ord + Default + fmt::Debug + Arbitrary + SingleBoundedValue,
     V: any::Any + Clone + Eq + Default + fmt::Debug + Arbitrary + SingleBoundedValue,
@@ -120,14 +120,14 @@ where
 {
     (proptest::collection::vec(strategy_bounded_value::<(K, V)>(), length), strategy_build_hasher::<S>(), strategy_alloc::<A>())
         .prop_map(move |(values, build_hasher, alloc)| {
-            let mut proj_map = TypedProjIndexMap::with_hasher_in(build_hasher, alloc);
+            let mut proj_map = TypeProjectedIndexMap::with_hasher_in(build_hasher, alloc);
             proj_map.extend(values);
 
             proj_map
         })
 }
 
-pub fn strategy_type_projected_index_map_max_len<K, V, S, A>(max_length: usize) -> impl Strategy<Value = TypedProjIndexMap<K, V, S, A>>
+pub fn strategy_type_projected_index_map_max_len<K, V, S, A>(max_length: usize) -> impl Strategy<Value = TypeProjectedIndexMap<K, V, S, A>>
 where
     K: any::Any + Clone + Eq + hash::Hash + Ord + Default + fmt::Debug + Arbitrary + SingleBoundedValue,
     V: any::Any + Clone + Eq + Default + fmt::Debug + Arbitrary + SingleBoundedValue,
@@ -138,7 +138,7 @@ where
     (0..=max_length).prop_flat_map(move |length| strategy_type_projected_index_map_len(length))
 }
 
-pub fn strategy_type_projected_index_map_max_len_nonempty<K, V, S, A>(max_length: usize) -> impl Strategy<Value = TypedProjIndexMap<K, V, S, A>>
+pub fn strategy_type_projected_index_map_max_len_nonempty<K, V, S, A>(max_length: usize) -> impl Strategy<Value = TypeProjectedIndexMap<K, V, S, A>>
 where
     K: any::Any + Clone + Eq + hash::Hash + Ord + Default + fmt::Debug + Arbitrary + SingleBoundedValue,
     V: any::Any + Clone + Eq + Default + fmt::Debug + Arbitrary + SingleBoundedValue,

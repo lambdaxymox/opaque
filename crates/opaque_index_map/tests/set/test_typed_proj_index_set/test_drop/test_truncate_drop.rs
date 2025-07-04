@@ -1,4 +1,4 @@
-use opaque_index_map::set::TypedProjIndexSet;
+use opaque_index_map::set::TypeProjectedIndexSet;
 
 use core::any;
 use std::hash;
@@ -54,14 +54,14 @@ impl<T> hash::Hash for UnhashedValueWrapper<T> {
     }
 }
 
-fn create_drop_counter_index_set_in<S, A>(len: usize, build_hasher: S, alloc: A) -> (DropCounter, TypedProjIndexSet<UnhashedValueWrapper<DropCounter>, S, A>)
+fn create_drop_counter_index_set_in<S, A>(len: usize, build_hasher: S, alloc: A) -> (DropCounter, TypeProjectedIndexSet<UnhashedValueWrapper<DropCounter>, S, A>)
 where
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let drop_counter = DropCounter::new(Rc::new(RefCell::new(0)));
-    let mut set = TypedProjIndexSet::with_capacity_and_hasher_in(len, build_hasher, alloc);
+    let mut set = TypeProjectedIndexSet::with_capacity_and_hasher_in(len, build_hasher, alloc);
     for i in 0..len {
         set.insert(UnhashedValueWrapper::new(i, drop_counter.clone()));
     }

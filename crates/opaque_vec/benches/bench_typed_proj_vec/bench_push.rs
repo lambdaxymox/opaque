@@ -1,4 +1,4 @@
-use opaque_vec::TypedProjVec;
+use opaque_vec::TypeProjectedVec;
 
 use criterion::{
     Criterion,
@@ -33,7 +33,7 @@ fn bench_typed_proj_vec_push(c: &mut Criterion) {
 
     c.bench_function("typed_proj_vec_push", |b| {
         b.iter(|| {
-            let mut proj_vec = TypedProjVec::new();
+            let mut proj_vec = TypeProjectedVec::new();
             for _ in 0..1024 {
                 proj_vec.push(core::hint::black_box(dummy_data));
             }

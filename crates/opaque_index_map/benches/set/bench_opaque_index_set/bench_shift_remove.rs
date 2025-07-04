@@ -1,4 +1,4 @@
-use opaque_index_map::set::OpaqueIndexSet;
+use opaque_index_map::set::TypeErasedIndexSet;
 
 use criterion::{
     Criterion,
@@ -39,7 +39,7 @@ fn bench_opaque_index_set_shift_remove(c: &mut Criterion) {
 
     c.bench_function("opaque_index_set_shift_remove", |b| {
         b.iter_batched(
-            || OpaqueIndexSet::from_iter(values.clone()),
+            || TypeErasedIndexSet::from_iter(values.clone()),
             |mut opaque_set| {
                 let values_vec: Vec<i32> = opaque_set.iter::<i32, hash::RandomState, alloc::Global>().cloned().collect();
                 for value in values_vec.iter() {

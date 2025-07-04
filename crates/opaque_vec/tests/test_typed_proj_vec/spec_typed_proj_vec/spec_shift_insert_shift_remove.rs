@@ -1,5 +1,5 @@
 use crate::common::projected::strategy_type_projected_vec_max_len;
-use opaque_vec::TypedProjVec;
+use opaque_vec::TypeProjectedVec;
 
 use core::any;
 use core::fmt;
@@ -21,7 +21,7 @@ where
     any::<T>()
 }
 
-fn prop_shift_insert_shift_remove<T, A>(values: TypedProjVec<T, A>, new_value: T) -> Result<(), TestCaseError>
+fn prop_shift_insert_shift_remove<T, A>(values: TypeProjectedVec<T, A>, new_value: T) -> Result<(), TestCaseError>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
@@ -41,7 +41,7 @@ where
     Ok(())
 }
 
-fn prop_shift_remove_shift_insert<T, A>(values: TypedProjVec<T, A>) -> Result<(), TestCaseError>
+fn prop_shift_remove_shift_insert<T, A>(values: TypeProjectedVec<T, A>) -> Result<(), TestCaseError>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
@@ -71,14 +71,14 @@ macro_rules! generate_props {
                     values in super::$vec_gen::<$typ, $alloc_typ>($max_length),
                     new_value in super::$value_gen::<$typ>(),
                 ) {
-                    let values: super::TypedProjVec<$typ, $alloc_typ> = values;
+                    let values: super::TypeProjectedVec<$typ, $alloc_typ> = values;
                     let new_value: $typ = new_value;
                     super::prop_shift_insert_shift_remove(values, new_value)?
                 }
 
                 #[test]
                 fn prop_shift_remove_shift_insert(values in super::$vec_gen::<$typ, $alloc_typ>($max_length)) {
-                    let values: super::TypedProjVec<$typ, $alloc_typ> = values;
+                    let values: super::TypeProjectedVec<$typ, $alloc_typ> = values;
                     super::prop_shift_remove_shift_insert(values)?
                 }
             }

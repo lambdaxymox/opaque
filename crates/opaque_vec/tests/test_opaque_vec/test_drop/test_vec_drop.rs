@@ -1,4 +1,4 @@
-use opaque_vec::OpaqueVec;
+use opaque_vec::TypeErasedVec;
 
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -29,16 +29,16 @@ impl Drop for DropCounter {
 
 #[test]
 fn test_opaque_vec_double_drop() {
-    struct TwoOpaqueVec {
-        x: OpaqueVec,
-        y: OpaqueVec,
+    struct TwoTypeErasedVec {
+        x: TypeErasedVec,
+        y: TypeErasedVec,
     }
 
     let (ref_count_x, ref_count_y) = (Rc::new(RefCell::new(0)), Rc::new(RefCell::new(0)));
     {
-        let mut tv = TwoOpaqueVec {
-            x: OpaqueVec::new::<DropCounter>(),
-            y: OpaqueVec::new::<DropCounter>(),
+        let mut tv = TwoTypeErasedVec {
+            x: TypeErasedVec::new::<DropCounter>(),
+            y: TypeErasedVec::new::<DropCounter>(),
         };
 
         tv.x.push::<DropCounter, alloc::Global>(DropCounter::new(ref_count_x.clone()));
@@ -60,7 +60,7 @@ fn test_opaque_vec_drop_all_items1() {
     let ref_count = Rc::new(RefCell::new(0));
     let counter = DropCounter::new(ref_count.clone());
     {
-        let mut vec = OpaqueVec::new::<DropCounter>();
+        let mut vec = TypeErasedVec::new::<DropCounter>();
         for i in 0..count {
             vec.push::<DropCounter, alloc::Global>(counter.clone());
         }
@@ -74,7 +74,7 @@ fn test_opaque_vec_drop_all_items1() {
 
 #[test]
 fn test_opaque_vec_push_should_not_drop_value() {
-    let mut vec = OpaqueVec::new::<DropCounter>();
+    let mut vec = TypeErasedVec::new::<DropCounter>();
 
     let ref_count = Rc::new(RefCell::new(0));
     let counter = DropCounter::new(ref_count.clone());
@@ -88,7 +88,7 @@ fn test_opaque_vec_push_should_not_drop_value() {
 
 #[test]
 fn test_opaque_vec_replace_insert_should_not_drop_value() {
-    let mut vec = OpaqueVec::new::<DropCounter>();
+    let mut vec = TypeErasedVec::new::<DropCounter>();
 
     let ref_count = Rc::new(RefCell::new(0));
     let counter = DropCounter::new(ref_count.clone());
@@ -102,7 +102,7 @@ fn test_opaque_vec_replace_insert_should_not_drop_value() {
 
 #[test]
 fn test_opaque_vec_swap_remove_should_not_drop_return_value() {
-    let mut vec = OpaqueVec::new::<DropCounter>();
+    let mut vec = TypeErasedVec::new::<DropCounter>();
 
     let ref_count = Rc::new(RefCell::new(0));
     let counter = DropCounter::new(ref_count.clone());
@@ -118,7 +118,7 @@ fn test_opaque_vec_swap_remove_should_not_drop_return_value() {
 
 #[test]
 fn test_opaque_vec_shift_remove_should_not_drop_return_value() {
-    let mut vec = OpaqueVec::new::<DropCounter>();
+    let mut vec = TypeErasedVec::new::<DropCounter>();
 
     let ref_count = Rc::new(RefCell::new(0));
     let counter = DropCounter::new(ref_count.clone());
@@ -134,7 +134,7 @@ fn test_opaque_vec_shift_remove_should_not_drop_return_value() {
 
 #[test]
 fn test_opaque_vec_pop_should_not_drop_return_value() {
-    let mut vec = OpaqueVec::new::<DropCounter>();
+    let mut vec = TypeErasedVec::new::<DropCounter>();
 
     let ref_count = Rc::new(RefCell::new(0));
     let counter = DropCounter::new(ref_count.clone());
@@ -150,7 +150,7 @@ fn test_opaque_vec_pop_should_not_drop_return_value() {
 
 #[test]
 fn test_opaque_vec_clear_should_drop() {
-    let mut vec = OpaqueVec::new::<DropCounter>();
+    let mut vec = TypeErasedVec::new::<DropCounter>();
 
     let ref_count = Rc::new(RefCell::new(0));
     let counter = DropCounter::new(ref_count.clone());
@@ -168,7 +168,7 @@ fn test_opaque_vec_clear_should_drop() {
 fn test_opaque_vec_drop_should_drop_elements() {
     let ref_count = Rc::new(RefCell::new(0));
     {
-        let mut vec = OpaqueVec::new::<DropCounter>();
+        let mut vec = TypeErasedVec::new::<DropCounter>();
 
         let counter = DropCounter::new(ref_count.clone());
 
@@ -185,7 +185,7 @@ fn test_opaque_vec_drop_should_drop_elements() {
 fn test_opaque_vec_drop_should_not_drop_swap_removed_elements() {
     let ref_count = Rc::new(RefCell::new(0));
     let _counter = {
-        let mut vec = OpaqueVec::new::<DropCounter>();
+        let mut vec = TypeErasedVec::new::<DropCounter>();
 
         vec.push::<DropCounter, alloc::Global>(DropCounter::new(ref_count.clone()));
 
@@ -204,7 +204,7 @@ fn test_opaque_vec_drop_should_not_drop_swap_removed_elements() {
 fn test_opaque_vec_drop_should_not_drop_shift_removed_elements() {
     let ref_count = Rc::new(RefCell::new(0));
     let _counter = {
-        let mut vec = OpaqueVec::new::<DropCounter>();
+        let mut vec = TypeErasedVec::new::<DropCounter>();
 
         vec.push::<DropCounter, alloc::Global>(DropCounter::new(ref_count.clone()));
 
@@ -223,7 +223,7 @@ fn test_opaque_vec_drop_should_not_drop_shift_removed_elements() {
 fn test_opaque_vec_drop_should_not_drop_popped_elements() {
     let ref_count = Rc::new(RefCell::new(0));
     let _counter = {
-        let mut vec = OpaqueVec::new::<DropCounter>();
+        let mut vec = TypeErasedVec::new::<DropCounter>();
 
         vec.push::<DropCounter, alloc::Global>(DropCounter::new(ref_count.clone()));
 

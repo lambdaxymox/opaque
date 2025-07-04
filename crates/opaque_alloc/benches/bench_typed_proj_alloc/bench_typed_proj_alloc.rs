@@ -1,4 +1,4 @@
-use opaque_alloc::TypedProjAlloc;
+use opaque_alloc::TypeProjectedAlloc;
 
 use criterion;
 use criterion::criterion_group;
@@ -30,7 +30,7 @@ macro_rules! bench_alloc {
 
         fn $bench_typed_proj_name(c: &mut criterion::Criterion) {
             use alloc::Allocator;
-            let proj_alloc = TypedProjAlloc::new(alloc::Global);
+            let proj_alloc = TypeProjectedAlloc::new(alloc::Global);
             let layout = alloc::Layout::from_size_align($size, $align).unwrap();
 
             c.bench_function(stringify!($bench_typed_proj_name), |b| {
@@ -61,7 +61,7 @@ macro_rules! bench_alloc {
 
         fn $bench_typed_proj_name(c: &mut criterion::Criterion) {
             use alloc::Allocator;
-            let proj_alloc = TypedProjAlloc::new(alloc::Global);
+            let proj_alloc = TypeProjectedAlloc::new(alloc::Global);
             let layout = alloc::Layout::from_size_align($size, $align).unwrap();
 
             c.bench_function(stringify!($bench_typed_proj_name), |b| {

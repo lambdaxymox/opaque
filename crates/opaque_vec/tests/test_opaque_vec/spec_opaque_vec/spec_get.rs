@@ -1,5 +1,5 @@
 use crate::common::erased::strategy_type_erased_vec_max_len;
-use opaque_vec::OpaqueVec;
+use opaque_vec::TypeErasedVec;
 
 use core::any;
 use core::fmt;
@@ -14,7 +14,7 @@ use opaque_allocator_api::alloc;
 
 use proptest::prelude::*;
 
-fn prop_get<T, A>(values: OpaqueVec) -> Result<(), TestCaseError>
+fn prop_get<T, A>(values: TypeErasedVec) -> Result<(), TestCaseError>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
@@ -37,7 +37,7 @@ macro_rules! generate_props {
             proptest! {
                 #[test]
                 fn prop_get(values in super::$vec_gen::<$typ, $alloc_typ>($max_length)) {
-                    let values: super::OpaqueVec = values;
+                    let values: super::TypeErasedVec = values;
                     super::prop_get::<$typ, $alloc_typ>(values)?
                 }
             }

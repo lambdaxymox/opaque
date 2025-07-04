@@ -1,4 +1,4 @@
-use opaque_vec::TypedProjVec;
+use opaque_vec::TypeProjectedVec;
 
 use core::any;
 use std::cell::RefCell;
@@ -36,12 +36,12 @@ impl Drop for DropCounter {
     }
 }
 
-fn create_drop_counter_vec_in<A>(len: usize, alloc: A) -> (DropCounter, TypedProjVec<DropCounter, A>)
+fn create_drop_counter_vec_in<A>(len: usize, alloc: A) -> (DropCounter, TypeProjectedVec<DropCounter, A>)
 where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let drop_counter = DropCounter::new(Rc::new(RefCell::new(0)));
-    let mut vec = TypedProjVec::with_capacity_in(len, alloc);
+    let mut vec = TypeProjectedVec::with_capacity_in(len, alloc);
     for i in 0..len {
         vec.push(drop_counter.clone());
     }

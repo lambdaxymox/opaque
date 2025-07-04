@@ -1,4 +1,4 @@
-use opaque_alloc::OpaqueAlloc;
+use opaque_alloc::TypeErasedAlloc;
 
 use criterion;
 use criterion::criterion_group;
@@ -30,7 +30,7 @@ macro_rules! bench_alloc {
 
         fn $bench_opaque_name(c: &mut criterion::Criterion) {
             use alloc::Allocator;
-            let opaque_alloc = OpaqueAlloc::new::<alloc::Global>(alloc::Global);
+            let opaque_alloc = TypeErasedAlloc::new::<alloc::Global>(alloc::Global);
             let layout = alloc::Layout::from_size_align($size, $align).unwrap();
 
             c.bench_function(stringify!($bench_opaque_name), |b| {
@@ -62,7 +62,7 @@ macro_rules! bench_alloc {
 
         fn $bench_opaque_name(c: &mut criterion::Criterion) {
             use alloc::Allocator;
-            let opaque_alloc = OpaqueAlloc::new::<alloc::Global>(alloc::Global);
+            let opaque_alloc = TypeErasedAlloc::new::<alloc::Global>(alloc::Global);
             let layout = alloc::Layout::from_size_align($size, $align).unwrap();
 
             c.bench_function(stringify!($bench_opaque_name), |b| {

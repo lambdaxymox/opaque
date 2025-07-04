@@ -1,5 +1,5 @@
 use crate::set::common::erased::strategy_type_erased_index_set_max_len;
-use opaque_index_map::OpaqueIndexSet;
+use opaque_index_map::TypeErasedIndexSet;
 
 use core::any;
 use core::fmt;
@@ -16,14 +16,14 @@ use opaque_allocator_api::alloc;
 
 use proptest::prelude::*;
 
-fn from_entries_insert_in<T, S, A>(entries: &OpaqueIndexSet) -> OpaqueIndexSet
+fn from_entries_insert_in<T, S, A>(entries: &TypeErasedIndexSet) -> TypeErasedIndexSet
 where
     T: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let mut set = OpaqueIndexSet::with_hasher_proj_in::<T, S, A>(
+    let mut set = TypeErasedIndexSet::with_hasher_proj_in::<T, S, A>(
         entries.hasher::<T, S, A>().clone(),
         entries.allocator::<T, S, A>().clone(),
     );
@@ -39,14 +39,14 @@ where
     set
 }
 
-fn prop_insert_as_slice<T, S, A>(entries: OpaqueIndexSet) -> Result<(), TestCaseError>
+fn prop_insert_as_slice<T, S, A>(entries: TypeErasedIndexSet) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    fn expected<T, S, A>(set: &OpaqueIndexSet) -> Vec<T>
+    fn expected<T, S, A>(set: &TypeErasedIndexSet) -> Vec<T>
     where
         T: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
         S: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -58,7 +58,7 @@ where
         expected
     }
 
-    fn result<T, S, A>(set: &OpaqueIndexSet) -> Vec<T>
+    fn result<T, S, A>(set: &TypeErasedIndexSet) -> Vec<T>
     where
         T: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
         S: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -79,14 +79,14 @@ where
     Ok(())
 }
 
-fn prop_insert_contains<T, S, A>(entries: OpaqueIndexSet) -> Result<(), TestCaseError>
+fn prop_insert_contains<T, S, A>(entries: TypeErasedIndexSet) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let mut set = OpaqueIndexSet::with_hasher_proj_in::<T, S, A>(
+    let mut set = TypeErasedIndexSet::with_hasher_proj_in::<T, S, A>(
         entries.hasher::<T, S, A>().clone(),
         entries.allocator::<T, S, A>().clone(),
     );
@@ -106,7 +106,7 @@ where
     Ok(())
 }
 
-fn prop_insert_get<T, S, A>(entries: OpaqueIndexSet) -> Result<(), TestCaseError>
+fn prop_insert_get<T, S, A>(entries: TypeErasedIndexSet) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -124,7 +124,7 @@ where
     Ok(())
 }
 
-fn prop_insert_get_full<T, S, A>(entries: OpaqueIndexSet) -> Result<(), TestCaseError>
+fn prop_insert_get_full<T, S, A>(entries: TypeErasedIndexSet) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -142,7 +142,7 @@ where
     Ok(())
 }
 
-fn prop_insert_get_index_of<T, S, A>(entries: OpaqueIndexSet) -> Result<(), TestCaseError>
+fn prop_insert_get_index_of<T, S, A>(entries: TypeErasedIndexSet) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -160,7 +160,7 @@ where
     Ok(())
 }
 
-fn prop_insert_iter<T, S, A>(entries: OpaqueIndexSet) -> Result<(), TestCaseError>
+fn prop_insert_iter<T, S, A>(entries: TypeErasedIndexSet) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -175,14 +175,14 @@ where
     Ok(())
 }
 
-fn prop_insert_len<T, S, A>(entries: OpaqueIndexSet) -> Result<(), TestCaseError>
+fn prop_insert_len<T, S, A>(entries: TypeErasedIndexSet) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    fn expected<T, S, A>(set: &OpaqueIndexSet) -> usize
+    fn expected<T, S, A>(set: &TypeErasedIndexSet) -> usize
     where
         T: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
         S: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -222,43 +222,43 @@ macro_rules! generate_props {
             proptest! {
                 #[test]
                 fn prop_insert_as_slice(entries in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::OpaqueIndexSet = entries;
+                    let entries: super::TypeErasedIndexSet = entries;
                     super::prop_insert_as_slice::<$value_typ, $build_hasher_typ, $alloc_typ>(entries)?
                 }
 
                 #[test]
                 fn prop_insert_contains(entries in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::OpaqueIndexSet = entries;
+                    let entries: super::TypeErasedIndexSet = entries;
                     super::prop_insert_contains::<$value_typ, $build_hasher_typ, $alloc_typ>(entries)?
                 }
 
                 #[test]
                 fn prop_insert_get(entries in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::OpaqueIndexSet = entries;
+                    let entries: super::TypeErasedIndexSet = entries;
                     super::prop_insert_get::<$value_typ, $build_hasher_typ, $alloc_typ>(entries)?
                 }
 
                 #[test]
                 fn prop_insert_get_full(entries in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::OpaqueIndexSet = entries;
+                    let entries: super::TypeErasedIndexSet = entries;
                     super::prop_insert_get_full::<$value_typ, $build_hasher_typ, $alloc_typ>(entries)?
                 }
 
                 #[test]
                 fn prop_insert_get_index_of(entries in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::OpaqueIndexSet = entries;
+                    let entries: super::TypeErasedIndexSet = entries;
                     super::prop_insert_get_index_of::<$value_typ, $build_hasher_typ, $alloc_typ>(entries)?
                 }
 
                 #[test]
                 fn prop_insert_iter(entries in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::OpaqueIndexSet = entries;
+                    let entries: super::TypeErasedIndexSet = entries;
                     super::prop_insert_iter::<$value_typ, $build_hasher_typ, $alloc_typ>(entries)?
                 }
 
                 #[test]
                 fn prop_insert_len(entries in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::OpaqueIndexSet = entries;
+                    let entries: super::TypeErasedIndexSet = entries;
                     super::prop_insert_len::<$value_typ, $build_hasher_typ, $alloc_typ>(entries)?
                 }
             }

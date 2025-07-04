@@ -1,4 +1,4 @@
-use opaque_vec::OpaqueVec;
+use opaque_vec::TypeErasedVec;
 
 use core::any;
 use core::ptr::NonNull;
@@ -51,7 +51,7 @@ where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    let opaque_vec = OpaqueVec::new_in::<T, A>(alloc);
+    let opaque_vec = TypeErasedVec::new_in::<T, A>(alloc);
 
     assert!(opaque_vec.has_element_type::<T>());
     assert!(opaque_vec.has_allocator_type::<A>());
@@ -62,7 +62,7 @@ where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    let opaque_vec = OpaqueVec::with_capacity_in::<T, A>(1024, alloc);
+    let opaque_vec = TypeErasedVec::with_capacity_in::<T, A>(1024, alloc);
 
     assert!(opaque_vec.has_element_type::<T>());
     assert!(opaque_vec.has_allocator_type::<A>());
@@ -72,7 +72,7 @@ fn run_test_opaque_vec_new_has_type<T>()
 where
     T: any::Any,
 {
-    let opaque_vec = OpaqueVec::new::<T>();
+    let opaque_vec = TypeErasedVec::new::<T>();
 
     assert!(opaque_vec.has_element_type::<T>());
     assert!(opaque_vec.has_allocator_type::<Global>());
@@ -82,7 +82,7 @@ fn run_test_opaque_vec_with_capacity_has_type<T>()
 where
     T: any::Any,
 {
-    let opaque_vec = OpaqueVec::with_capacity::<T>(1024);
+    let opaque_vec = TypeErasedVec::with_capacity::<T>(1024);
 
     assert!(opaque_vec.has_element_type::<T>());
     assert!(opaque_vec.has_allocator_type::<Global>());

@@ -1,5 +1,5 @@
 use crate::map::common::erased::strategy_type_erased_index_map_max_len;
-use opaque_index_map::OpaqueIndexMap;
+use opaque_index_map::TypeErasedIndexMap;
 
 use core::any;
 use core::fmt;
@@ -16,7 +16,7 @@ use opaque_allocator_api::alloc;
 
 use proptest::prelude::*;
 
-fn prop_swap_remove_entry_contains_key<K, V, S, A>(entries: OpaqueIndexMap) -> Result<(), TestCaseError>
+fn prop_swap_remove_entry_contains_key<K, V, S, A>(entries: TypeErasedIndexMap) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
@@ -37,7 +37,7 @@ where
     Ok(())
 }
 
-fn prop_swap_remove_entry_get<K, V, S, A>(entries: OpaqueIndexMap) -> Result<(), TestCaseError>
+fn prop_swap_remove_entry_get<K, V, S, A>(entries: TypeErasedIndexMap) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
@@ -61,7 +61,7 @@ where
     Ok(())
 }
 
-fn prop_swap_remove_entry_get_key_value<K, V, S, A>(entries: OpaqueIndexMap) -> Result<(), TestCaseError>
+fn prop_swap_remove_entry_get_key_value<K, V, S, A>(entries: TypeErasedIndexMap) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
@@ -84,7 +84,7 @@ where
     Ok(())
 }
 
-fn prop_swap_remove_entry_get_mut<K, V, S, A>(entries: OpaqueIndexMap) -> Result<(), TestCaseError>
+fn prop_swap_remove_entry_get_mut<K, V, S, A>(entries: TypeErasedIndexMap) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
@@ -108,7 +108,7 @@ where
     Ok(())
 }
 
-fn prop_swap_remove_entry_len<K, V, S, A>(entries: OpaqueIndexMap) -> Result<(), TestCaseError>
+fn prop_swap_remove_entry_len<K, V, S, A>(entries: TypeErasedIndexMap) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
@@ -130,7 +130,7 @@ where
     Ok(())
 }
 
-fn prop_swap_remove_entry_preserves_order<K, V, S, A>(entries: OpaqueIndexMap) -> Result<(), TestCaseError>
+fn prop_swap_remove_entry_preserves_order<K, V, S, A>(entries: TypeErasedIndexMap) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
@@ -138,7 +138,7 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    fn expected<K, V, S, A>(map: &OpaqueIndexMap, index: usize, key: &K) -> Vec<(K, V)>
+    fn expected<K, V, S, A>(map: &TypeErasedIndexMap, index: usize, key: &K) -> Vec<(K, V)>
     where
         K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
         V: any::Any + Clone + Eq + fmt::Debug,
@@ -174,7 +174,7 @@ where
         entries
     }
 
-    fn result<K, V, S, A>(map: &OpaqueIndexMap, key: &K) -> Vec<(K, V)>
+    fn result<K, V, S, A>(map: &TypeErasedIndexMap, key: &K) -> Vec<(K, V)>
     where
         K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
         V: any::Any + Clone + Eq + fmt::Debug,
@@ -220,37 +220,37 @@ macro_rules! generate_props {
             proptest! {
                 #[test]
                 fn prop_swap_remove_entry_contains_key(entries in super::$map_gen::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::OpaqueIndexMap = entries;
+                    let entries: super::TypeErasedIndexMap = entries;
                     super::prop_swap_remove_entry_contains_key::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>(entries)?
                 }
 
                 #[test]
                 fn prop_swap_remove_entry_get(entries in super::$map_gen::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::OpaqueIndexMap = entries;
+                    let entries: super::TypeErasedIndexMap = entries;
                     super::prop_swap_remove_entry_get::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>(entries)?
                 }
 
                 #[test]
                 fn prop_swap_remove_entry_get_key_value(entries in super::$map_gen::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::OpaqueIndexMap = entries;
+                    let entries: super::TypeErasedIndexMap = entries;
                     super::prop_swap_remove_entry_get_key_value::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>(entries)?
                 }
 
                 #[test]
                 fn prop_swap_remove_entry_get_mut(entries in super::$map_gen::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::OpaqueIndexMap = entries;
+                    let entries: super::TypeErasedIndexMap = entries;
                     super::prop_swap_remove_entry_get_mut::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>(entries)?
                 }
 
                 #[test]
                 fn prop_swap_remove_entry_len(entries in super::$map_gen::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::OpaqueIndexMap = entries;
+                    let entries: super::TypeErasedIndexMap = entries;
                     super::prop_swap_remove_entry_len::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>(entries)?
                 }
 
                 #[test]
                 fn prop_swap_remove_entry_preserves_order(entries in super::$map_gen::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::OpaqueIndexMap = entries;
+                    let entries: super::TypeErasedIndexMap = entries;
                     super::prop_swap_remove_entry_preserves_order::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>(entries)?
                 }
             }

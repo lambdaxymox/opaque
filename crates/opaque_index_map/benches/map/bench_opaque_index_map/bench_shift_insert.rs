@@ -1,4 +1,4 @@
-use opaque_index_map::map::OpaqueIndexMap;
+use opaque_index_map::map::TypeErasedIndexMap;
 
 use criterion::{
     Criterion,
@@ -35,7 +35,7 @@ fn bench_opaque_index_map_shift_insert(c: &mut Criterion) {
         b.iter(|| {
             let keys = 0..1000;
             let values = 1..1001;
-            let mut opaque_map = OpaqueIndexMap::new::<i32, i32>();
+            let mut opaque_map = TypeErasedIndexMap::new::<i32, i32>();
             for (index, (key, value)) in keys.zip(values).enumerate() {
                 opaque_map.shift_insert::<i32, i32, hash::RandomState, alloc::Global>(index, key, value);
             }

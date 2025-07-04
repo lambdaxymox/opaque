@@ -1,4 +1,4 @@
-use opaque_vec::OpaqueVec;
+use opaque_vec::TypeErasedVec;
 
 use criterion::{
     Criterion,
@@ -33,7 +33,7 @@ fn bench_opaque_vec_shift_insert_last(c: &mut Criterion) {
 
     c.bench_function("opaque_vec_shift_insert_last", |b| {
         b.iter(|| {
-            let mut opaque_vec = OpaqueVec::new::<i32>();
+            let mut opaque_vec = TypeErasedVec::new::<i32>();
             for i in 0..1024 {
                 opaque_vec.shift_insert::<i32, alloc::Global>(i, core::hint::black_box(dummy_data));
             }

@@ -26,13 +26,13 @@ use opaque_allocator_api::alloc;
 
 use hashbrown::hash_table;
 
-use opaque_alloc::TypedProjAlloc;
+use opaque_alloc::TypeProjectedAlloc;
 use opaque_error::{
     TryReserveError,
     TryReserveErrorKind,
 };
-use opaque_hash::{OpaqueBuildHasher, TypedProjBuildHasher};
-use opaque_vec::{OpaqueVec, TypedProjVec};
+use opaque_hash::{TypeErasedBuildHasher, TypeProjectedBuildHasher};
+use opaque_vec::{TypeErasedVec, TypeProjectedVec};
 
 pub(crate) struct Drain<'a, K, V, A>
 where
@@ -123,7 +123,7 @@ where
     V: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    map: &'a mut TypedProjIndexMapCore<K, V, A>,
+    map: &'a mut TypeProjectedIndexMapCore<K, V, A>,
     new_len: usize,
     current: usize,
     end: usize,
@@ -285,7 +285,7 @@ where
     V: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    fn new(entries: TypedProjVec<Bucket<K, V>, A>) -> Self {
+    fn new(entries: TypeProjectedVec<Bucket<K, V>, A>) -> Self {
         Self { iter: entries.into_iter() }
     }
 }
@@ -357,7 +357,7 @@ where
 {
     fn default() -> Self {
         Self {
-            iter: TypedProjVec::new_in(Default::default()).into_iter(),
+            iter: TypeProjectedVec::new_in(Default::default()).into_iter(),
         }
     }
 }
@@ -486,7 +486,7 @@ where
     V: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    fn new(entries: TypedProjVec<Bucket<K, V>, A>) -> Self {
+    fn new(entries: TypeProjectedVec<Bucket<K, V>, A>) -> Self {
         Self { iter: entries.into_iter() }
     }
 }
@@ -558,7 +558,7 @@ where
 {
     fn default() -> Self {
         Self {
-            iter: TypedProjVec::new_in(Default::default()).into_iter(),
+            iter: TypeProjectedVec::new_in(Default::default()).into_iter(),
         }
     }
 }
@@ -604,7 +604,7 @@ impl<K, V> Slice<K, V> {
         }
     }
 
-    pub(crate) fn into_entries<A>(self: Box<Self, TypedProjAlloc<A>>) -> TypedProjVec<Bucket<K, V>, A>
+    pub(crate) fn into_entries<A>(self: Box<Self, TypeProjectedAlloc<A>>) -> TypeProjectedVec<Bucket<K, V>, A>
     where
         K: any::Any,
         V: any::Any,
@@ -615,19 +615,19 @@ impl<K, V> Slice<K, V> {
             let capacity = len;
             let (ptr, alloc) = Box::into_raw_with_allocator(self.into_boxed_slice());
 
-            TypedProjVec::from_raw_parts_proj_in(ptr as *mut Bucket<K, V>, len, capacity, alloc)
+            TypeProjectedVec::from_raw_parts_proj_in(ptr as *mut Bucket<K, V>, len, capacity, alloc)
         }
     }
 }
 
 impl<K, V> Slice<K, V> {
-    pub(crate) fn to_entries_in<A>(&self, alloc: TypedProjAlloc<A>) -> TypedProjVec<Bucket<K, V>, A>
+    pub(crate) fn to_entries_in<A>(&self, alloc: TypeProjectedAlloc<A>) -> TypeProjectedVec<Bucket<K, V>, A>
     where
         K: any::Any + Clone,
         V: any::Any + Clone,
         A: any::Any + alloc::Allocator + Send + Sync + Clone,
     {
-        let mut entries = TypedProjVec::with_capacity_proj_in(self.len(), alloc);
+        let mut entries = TypeProjectedVec::with_capacity_proj_in(self.len(), alloc);
         entries.extend_from_slice(&self.entries);
 
         entries
@@ -636,7 +636,7 @@ impl<K, V> Slice<K, V> {
 
 #[cfg(feature = "nightly")]
 impl<K, V> Slice<K, V> {
-    pub(crate) fn from_entries_in<A>(vec: TypedProjVec<Bucket<K, V>, A>) -> Box<Self, TypedProjAlloc<A>>
+    pub(crate) fn from_entries_in<A>(vec: TypeProjectedVec<Bucket<K, V>, A>) -> Box<Self, TypeProjectedAlloc<A>>
     where
         K: any::Any,
         V: any::Any,
@@ -777,7 +777,7 @@ impl<K, V> Slice<K, V> {
 
 #[cfg(feature = "nightly")]
 impl<K, V> Slice<K, V> {
-    pub(crate) fn into_keys<A>(self: Box<Self, TypedProjAlloc<A>>) -> IntoKeys<K, V, A>
+    pub(crate) fn into_keys<A>(self: Box<Self, TypeProjectedAlloc<A>>) -> IntoKeys<K, V, A>
     where
         K: any::Any,
         V: any::Any,
@@ -799,7 +799,7 @@ impl<K, V> Slice<K, V> {
 
 #[cfg(feature = "nightly")]
 impl<K, V> Slice<K, V> {
-    pub(crate) fn into_values<A>(self: Box<Self, TypedProjAlloc<A>>) -> IntoValues<K, V, A>
+    pub(crate) fn into_values<A>(self: Box<Self, TypeProjectedAlloc<A>>) -> IntoValues<K, V, A>
     where
         K: any::Any,
         V: any::Any,
@@ -905,7 +905,7 @@ impl<'a, K, V> IntoIterator for &'a mut Slice<K, V> {
 }
 
 #[cfg(feature = "nightly")]
-impl<K, V, A> IntoIterator for Box<Slice<K, V>, TypedProjAlloc<A>>
+impl<K, V, A> IntoIterator for Box<Slice<K, V>, TypeProjectedAlloc<A>>
 where
     K: any::Any,
     V: any::Any,
@@ -958,15 +958,15 @@ where
 }
 
 #[cfg(feature = "nightly")]
-impl<K, V> From<&Slice<K, V>> for Box<Slice<K, V>, TypedProjAlloc<alloc::Global>>
+impl<K, V> From<&Slice<K, V>> for Box<Slice<K, V>, TypeProjectedAlloc<alloc::Global>>
 where
     K: any::Any + Copy,
     V: any::Any + Copy,
 {
     fn from(slice: &Slice<K, V>) -> Self {
-        let alloc = TypedProjAlloc::new(alloc::Global);
+        let alloc = TypeProjectedAlloc::new(alloc::Global);
         let entries = slice.to_entries_in(alloc);
-        let boxed_entries: Box<[Bucket<K, V>], TypedProjAlloc<alloc::Global>> = entries.into_boxed_slice();
+        let boxed_entries: Box<[Bucket<K, V>], TypeProjectedAlloc<alloc::Global>> = entries.into_boxed_slice();
 
         Slice::from_boxed_slice(boxed_entries)
     }
@@ -1269,7 +1269,7 @@ where
     V: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    pub(crate) fn new(entries: TypedProjVec<Bucket<K, V>, A>) -> Self {
+    pub(crate) fn new(entries: TypeProjectedVec<Bucket<K, V>, A>) -> Self {
         Self {
             iter: entries.into_iter(),
         }
@@ -1351,7 +1351,7 @@ where
 {
     fn default() -> Self {
         Self {
-            iter: TypedProjVec::new_in(Default::default()).into_iter(),
+            iter: TypeProjectedVec::new_in(Default::default()).into_iter(),
         }
     }
 }
@@ -1365,8 +1365,8 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    map: &'a mut TypedProjIndexMapInner<K, V, S, A>,
-    tail: TypedProjIndexMapCore<K, V, A>,
+    map: &'a mut TypeProjectedIndexMapInner<K, V, S, A>,
+    tail: TypeProjectedIndexMapCore<K, V, A>,
     drain: opaque_vec::IntoIter<Bucket<K, V>, A>,
     replace_with: I,
 }
@@ -1381,7 +1381,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     #[track_caller]
-    fn new<R>(map: &'a mut TypedProjIndexMapInner<K, V, S, A>, range: R, replace_with: I) -> Self
+    fn new<R>(map: &'a mut TypeProjectedIndexMapInner<K, V, S, A>, range: R, replace_with: I) -> Self
     where
         R: ops::RangeBounds<usize>,
     {
@@ -1631,7 +1631,7 @@ const fn max_entries_capacity<K, V>() -> usize {
     (isize::MAX as usize) / mem::size_of::<Bucket<K, V>>()
 }
 
-fn reserve_entries<K, V, A>(entries: &mut TypedProjVec<Bucket<K, V>, A>, additional: usize, try_capacity: usize)
+fn reserve_entries<K, V, A>(entries: &mut TypeProjectedVec<Bucket<K, V>, A>, additional: usize, try_capacity: usize)
 where
     K: any::Any,
     V: any::Any,
@@ -1654,7 +1654,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     indices: &'a mut hashbrown::HashTable<usize>,
-    entries: &'a mut TypedProjVec<Bucket<K, V>, A>,
+    entries: &'a mut TypeProjectedVec<Bucket<K, V>, A>,
 }
 
 impl<'a, K, V, A> RefMut<'a, K, V, A>
@@ -1664,7 +1664,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[inline]
-    fn new(indices: &'a mut hashbrown::HashTable<usize>, entries: &'a mut TypedProjVec<Bucket<K, V>, A>) -> Self {
+    fn new(indices: &'a mut hashbrown::HashTable<usize>, entries: &'a mut TypeProjectedVec<Bucket<K, V>, A>) -> Self {
         Self {
             indices,
             entries,
@@ -1844,20 +1844,20 @@ where
 }
 
 #[repr(C)]
-pub(crate) struct TypedProjIndexMapCore<K, V, A>
+pub(crate) struct TypeProjectedIndexMapCore<K, V, A>
 where
     K: any::Any,
     V: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     indices: hashbrown::HashTable<usize>,
-    entries: TypedProjVec<Bucket<K, V>, A>,
+    entries: TypeProjectedVec<Bucket<K, V>, A>,
     key_type_id: any::TypeId,
     value_type_id: any::TypeId,
     allocator_type_id: any::TypeId,
 }
 
-impl<K, V, A> TypedProjIndexMapCore<K, V, A>
+impl<K, V, A> TypeProjectedIndexMapCore<K, V, A>
 where
     K: any::Any,
     V: any::Any,
@@ -1879,15 +1879,15 @@ where
     }
 }
 
-impl<K, V, A> TypedProjIndexMapCore<K, V, A>
+impl<K, V, A> TypeProjectedIndexMapCore<K, V, A>
 where
     K: any::Any,
     V: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    pub(crate) fn new_proj_in(alloc: TypedProjAlloc<A>) -> Self {
+    pub(crate) fn new_proj_in(alloc: TypeProjectedAlloc<A>) -> Self {
         let indices = hashbrown::HashTable::new();
-        let entries = TypedProjVec::new_proj_in(alloc);
+        let entries = TypeProjectedVec::new_proj_in(alloc);
         let key_type_id = any::TypeId::of::<K>();
         let value_type_id = any::TypeId::of::<V>();
         let allocator_type_id = any::TypeId::of::<A>();
@@ -1901,9 +1901,9 @@ where
         }
     }
 
-    pub(crate) fn with_capacity_proj_in(capacity: usize, alloc: TypedProjAlloc<A>) -> Self {
+    pub(crate) fn with_capacity_proj_in(capacity: usize, alloc: TypeProjectedAlloc<A>) -> Self {
         let indices = hashbrown::HashTable::with_capacity(capacity);
-        let entries = TypedProjVec::with_capacity_proj_in(capacity, alloc);
+        let entries = TypeProjectedVec::with_capacity_proj_in(capacity, alloc);
         let key_type_id = any::TypeId::of::<K>();
         let value_type_id = any::TypeId::of::<V>();
         let allocator_type_id = any::TypeId::of::<A>();
@@ -1918,7 +1918,7 @@ where
     }
 }
 
-impl<K, V, A> TypedProjIndexMapCore<K, V, A>
+impl<K, V, A> TypeProjectedIndexMapCore<K, V, A>
 where
     K: any::Any,
     V: any::Any,
@@ -1927,7 +1927,7 @@ where
     #[inline]
     pub(crate) fn new_in(alloc: A) -> Self {
         let indices = hashbrown::HashTable::new();
-        let entries = TypedProjVec::new_in(alloc);
+        let entries = TypeProjectedVec::new_in(alloc);
         let key_type_id = any::TypeId::of::<K>();
         let value_type_id = any::TypeId::of::<V>();
         let allocator_type_id = any::TypeId::of::<A>();
@@ -1944,7 +1944,7 @@ where
     #[inline]
     pub(crate) fn with_capacity_in(capacity: usize, alloc: A) -> Self {
         let indices = hashbrown::HashTable::with_capacity(capacity);
-        let entries = TypedProjVec::with_capacity_in(capacity, alloc);
+        let entries = TypeProjectedVec::with_capacity_in(capacity, alloc);
         let key_type_id = any::TypeId::of::<K>();
         let value_type_id = any::TypeId::of::<V>();
         let allocator_type_id = any::TypeId::of::<A>();
@@ -1959,7 +1959,7 @@ where
     }
 }
 
-impl<K, V> TypedProjIndexMapCore<K, V, alloc::Global>
+impl<K, V> TypeProjectedIndexMapCore<K, V, alloc::Global>
 where
     K: any::Any,
     V: any::Any,
@@ -1975,7 +1975,7 @@ where
     }
 }
 
-impl<K, V, A> TypedProjIndexMapCore<K, V, A>
+impl<K, V, A> TypeProjectedIndexMapCore<K, V, A>
 where
     K: any::Any,
     V: any::Any,
@@ -1997,14 +1997,14 @@ where
     }
 }
 
-impl<K, V, A> TypedProjIndexMapCore<K, V, A>
+impl<K, V, A> TypeProjectedIndexMapCore<K, V, A>
 where
     K: any::Any,
     V: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[inline]
-    pub(crate) fn allocator(&self) -> &TypedProjAlloc<A> {
+    pub(crate) fn allocator(&self) -> &TypeProjectedAlloc<A> {
         debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
         debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
         debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
@@ -2013,7 +2013,7 @@ where
     }
 }
 
-impl<K, V, A> TypedProjIndexMapCore<K, V, A>
+impl<K, V, A> TypeProjectedIndexMapCore<K, V, A>
 where
     K: any::Any,
     V: any::Any,
@@ -2522,14 +2522,14 @@ where
     }
 }
 
-impl<K, V, A> TypedProjIndexMapCore<K, V, A>
+impl<K, V, A> TypeProjectedIndexMapCore<K, V, A>
 where
     K: any::Any,
     V: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[inline]
-    fn into_entries(self) -> TypedProjVec<Bucket<K, V>, A> {
+    fn into_entries(self) -> TypeProjectedVec<Bucket<K, V>, A> {
         self.entries
     }
 
@@ -2553,7 +2553,7 @@ where
     }
 }
 
-impl<K, V, A> TypedProjIndexMapCore<K, V, A>
+impl<K, V, A> TypeProjectedIndexMapCore<K, V, A>
 where
     K: any::Any + Eq,
     V: any::Any,
@@ -2580,7 +2580,7 @@ where
     }
 }
 
-impl<K, V, A> Clone for TypedProjIndexMapCore<K, V, A>
+impl<K, V, A> Clone for TypeProjectedIndexMapCore<K, V, A>
 where
     K: any::Any + Clone,
     V: any::Any + Clone,
@@ -2612,15 +2612,15 @@ where
 }
 
 #[repr(C)]
-struct OpaqueIndexMapCore {
+struct TypeErasedIndexMapCore {
     indices: hashbrown::HashTable<usize>,
-    entries: OpaqueVec,
+    entries: TypeErasedVec,
     key_type_id: any::TypeId,
     value_type_id: any::TypeId,
     allocator_type_id: any::TypeId,
 }
 
-impl OpaqueIndexMapCore {
+impl TypeErasedIndexMapCore {
     #[inline]
     pub(crate) const fn key_type_id(&self) -> any::TypeId {
         self.key_type_id
@@ -2637,9 +2637,9 @@ impl OpaqueIndexMapCore {
     }
 }
 
-impl OpaqueIndexMapCore {
+impl TypeErasedIndexMapCore {
     #[inline(always)]
-    fn as_proj_assuming_type<K, V, A>(&self) -> &TypedProjIndexMapCore<K, V, A>
+    fn as_proj_assuming_type<K, V, A>(&self) -> &TypeProjectedIndexMapCore<K, V, A>
     where
         K: any::Any,
         V: any::Any,
@@ -2649,11 +2649,11 @@ impl OpaqueIndexMapCore {
         debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
         debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
 
-        unsafe { &*(self as *const OpaqueIndexMapCore as *const TypedProjIndexMapCore<K, V, A>) }
+        unsafe { &*(self as *const TypeErasedIndexMapCore as *const TypeProjectedIndexMapCore<K, V, A>) }
     }
 
     #[inline(always)]
-    fn as_proj_mut_assuming_type<K, V, A>(&mut self) -> &mut TypedProjIndexMapCore<K, V, A>
+    fn as_proj_mut_assuming_type<K, V, A>(&mut self) -> &mut TypeProjectedIndexMapCore<K, V, A>
     where
         K: any::Any,
         V: any::Any,
@@ -2663,11 +2663,11 @@ impl OpaqueIndexMapCore {
         debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
         debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
 
-        unsafe { &mut *(self as *mut OpaqueIndexMapCore as *mut TypedProjIndexMapCore<K, V, A>) }
+        unsafe { &mut *(self as *mut TypeErasedIndexMapCore as *mut TypeProjectedIndexMapCore<K, V, A>) }
     }
 
     #[inline(always)]
-    fn into_proj_assuming_type<K, V, A>(self) -> TypedProjIndexMapCore<K, V, A>
+    fn into_proj_assuming_type<K, V, A>(self) -> TypeProjectedIndexMapCore<K, V, A>
     where
         K: any::Any,
         V: any::Any,
@@ -2677,7 +2677,7 @@ impl OpaqueIndexMapCore {
         debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
         debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
 
-        TypedProjIndexMapCore {
+        TypeProjectedIndexMapCore {
             indices: self.indices,
             entries: self.entries.into_proj::<Bucket<K, V>, A>(),
             key_type_id: self.key_type_id,
@@ -2687,7 +2687,7 @@ impl OpaqueIndexMapCore {
     }
 
     #[inline(always)]
-    fn from_proj_assuming_type<K, V, A>(proj_self: TypedProjIndexMapCore<K, V, A>) -> Self
+    fn from_proj_assuming_type<K, V, A>(proj_self: TypeProjectedIndexMapCore<K, V, A>) -> Self
     where
         K: any::Any,
         V: any::Any,
@@ -2695,7 +2695,7 @@ impl OpaqueIndexMapCore {
     {
         Self {
             indices: proj_self.indices,
-            entries: OpaqueVec::from_proj(proj_self.entries),
+            entries: TypeErasedVec::from_proj(proj_self.entries),
             key_type_id: proj_self.key_type_id,
             value_type_id: proj_self.value_type_id,
             allocator_type_id: proj_self.allocator_type_id,
@@ -2703,7 +2703,7 @@ impl OpaqueIndexMapCore {
     }
 }
 
-impl OpaqueIndexMapCore {
+impl TypeErasedIndexMapCore {
     #[inline]
     fn capacity(&self) -> usize {
         Ord::min(self.indices.capacity(), self.entries.capacity())
@@ -2833,7 +2833,7 @@ where
     V: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    entries: &'a mut TypedProjVec<Bucket<K, V>, A>,
+    entries: &'a mut TypeProjectedVec<Bucket<K, V>, A>,
     index: hash_table::OccupiedEntry<'a, usize>,
 }
 
@@ -2843,7 +2843,7 @@ where
     V: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    pub(crate) fn new(entries: &'a mut TypedProjVec<Bucket<K, V>, A>, index: hash_table::OccupiedEntry<'a, usize>) -> Self {
+    pub(crate) fn new(entries: &'a mut TypeProjectedVec<Bucket<K, V>, A>, index: hash_table::OccupiedEntry<'a, usize>) -> Self {
         Self {
             entries,
             index,
@@ -3054,7 +3054,7 @@ where
     V: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    pub(crate) fn new(map: &'a mut TypedProjIndexMapCore<K, V, A>, index: usize) -> Self
+    pub(crate) fn new(map: &'a mut TypeProjectedIndexMapCore<K, V, A>, index: usize) -> Self
     where
         K: Ord,
     {
@@ -3166,7 +3166,7 @@ mod entry_assert_send_sync {
 }
 
 #[repr(C)]
-pub(crate) struct TypedProjIndexMapInner<K, V, S, A>
+pub(crate) struct TypeProjectedIndexMapInner<K, V, S, A>
 where
     K: any::Any,
     V: any::Any,
@@ -3174,11 +3174,11 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    inner: TypedProjIndexMapCore<K, V, A>,
-    build_hasher: TypedProjBuildHasher<S>,
+    inner: TypeProjectedIndexMapCore<K, V, A>,
+    build_hasher: TypeProjectedBuildHasher<S>,
 }
 
-impl<K, V, S, A> TypedProjIndexMapInner<K, V, S, A>
+impl<K, V, S, A> TypeProjectedIndexMapInner<K, V, S, A>
 where
     K: any::Any,
     V: any::Any,
@@ -3207,7 +3207,7 @@ where
     }
 }
 
-impl<K, V, S, A> TypedProjIndexMapInner<K, V, S, A>
+impl<K, V, S, A> TypeProjectedIndexMapInner<K, V, S, A>
 where
     K: any::Any,
     V: any::Any,
@@ -3216,7 +3216,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[inline]
-    pub(crate) fn into_entries(self) -> TypedProjVec<Bucket<K, V>, A> {
+    pub(crate) fn into_entries(self) -> TypeProjectedVec<Bucket<K, V>, A> {
         self.inner.into_entries()
     }
 
@@ -3238,7 +3238,7 @@ where
     }
 }
 
-impl<K, V, S, A> TypedProjIndexMapInner<K, V, S, A>
+impl<K, V, S, A> TypeProjectedIndexMapInner<K, V, S, A>
 where
     K: any::Any,
     V: any::Any,
@@ -3247,8 +3247,8 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[inline]
-    pub(crate) fn with_hasher_proj_in(proj_build_hasher: TypedProjBuildHasher<S>, proj_alloc: TypedProjAlloc<A>) -> Self {
-        let proj_inner = TypedProjIndexMapCore::<K, V, A>::new_proj_in(proj_alloc);
+    pub(crate) fn with_hasher_proj_in(proj_build_hasher: TypeProjectedBuildHasher<S>, proj_alloc: TypeProjectedAlloc<A>) -> Self {
+        let proj_inner = TypeProjectedIndexMapCore::<K, V, A>::new_proj_in(proj_alloc);
 
         Self {
             inner: proj_inner,
@@ -3257,11 +3257,11 @@ where
     }
 
     #[inline]
-    pub(crate) fn with_capacity_and_hasher_proj_in(capacity: usize, proj_build_hasher: TypedProjBuildHasher<S>, proj_alloc: TypedProjAlloc<A>) -> Self {
+    pub(crate) fn with_capacity_and_hasher_proj_in(capacity: usize, proj_build_hasher: TypeProjectedBuildHasher<S>, proj_alloc: TypeProjectedAlloc<A>) -> Self {
         if capacity == 0 {
             Self::with_hasher_proj_in(proj_build_hasher, proj_alloc)
         } else {
-            let proj_inner = TypedProjIndexMapCore::<K, V, A>::with_capacity_proj_in(capacity, proj_alloc);
+            let proj_inner = TypeProjectedIndexMapCore::<K, V, A>::with_capacity_proj_in(capacity, proj_alloc);
 
             Self {
                 inner: proj_inner,
@@ -3272,15 +3272,15 @@ where
 }
 
 #[cfg(feature = "std")]
-impl<K, V, A> TypedProjIndexMapInner<K, V, hash::RandomState, A>
+impl<K, V, A> TypeProjectedIndexMapInner<K, V, hash::RandomState, A>
 where
     K: any::Any,
     V: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    pub(crate) fn new_proj_in(proj_alloc: TypedProjAlloc<A>) -> Self {
-        let proj_inner = TypedProjIndexMapCore::<K, V, A>::new_proj_in(proj_alloc);
-        let proj_build_hasher = TypedProjBuildHasher::new(hash::RandomState::new());
+    pub(crate) fn new_proj_in(proj_alloc: TypeProjectedAlloc<A>) -> Self {
+        let proj_inner = TypeProjectedIndexMapCore::<K, V, A>::new_proj_in(proj_alloc);
+        let proj_build_hasher = TypeProjectedBuildHasher::new(hash::RandomState::new());
 
         Self {
             inner : proj_inner,
@@ -3288,9 +3288,9 @@ where
         }
     }
 
-    pub(crate) fn with_capacity_proj_in(capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self {
-        let proj_inner = TypedProjIndexMapCore::<K, V, A>::with_capacity_proj_in(capacity, proj_alloc);
-        let proj_build_hasher = TypedProjBuildHasher::new(hash::RandomState::new());
+    pub(crate) fn with_capacity_proj_in(capacity: usize, proj_alloc: TypeProjectedAlloc<A>) -> Self {
+        let proj_inner = TypeProjectedIndexMapCore::<K, V, A>::with_capacity_proj_in(capacity, proj_alloc);
+        let proj_build_hasher = TypeProjectedBuildHasher::new(hash::RandomState::new());
 
         Self {
             inner : proj_inner,
@@ -3299,7 +3299,7 @@ where
     }
 }
 
-impl<K, V, S, A> TypedProjIndexMapInner<K, V, S, A>
+impl<K, V, S, A> TypeProjectedIndexMapInner<K, V, S, A>
 where
     K: any::Any,
     V: any::Any,
@@ -3309,8 +3309,8 @@ where
 {
     #[inline]
     pub(crate) fn with_hasher_in(build_hasher: S, alloc: A) -> Self {
-        let proj_inner = TypedProjIndexMapCore::<K, V, A>::new_in(alloc);
-        let proj_build_hasher = TypedProjBuildHasher::new(build_hasher);
+        let proj_inner = TypeProjectedIndexMapCore::<K, V, A>::new_in(alloc);
+        let proj_build_hasher = TypeProjectedBuildHasher::new(build_hasher);
 
         Self {
             inner : proj_inner,
@@ -3323,8 +3323,8 @@ where
         if capacity == 0 {
             Self::with_hasher_in(build_hasher, alloc)
         } else {
-            let proj_inner = TypedProjIndexMapCore::<K, V, A>::with_capacity_in(capacity, alloc);
-            let proj_build_hasher = TypedProjBuildHasher::new(build_hasher);
+            let proj_inner = TypeProjectedIndexMapCore::<K, V, A>::with_capacity_in(capacity, alloc);
+            let proj_build_hasher = TypeProjectedBuildHasher::new(build_hasher);
 
             Self {
                 inner: proj_inner,
@@ -3335,15 +3335,15 @@ where
 }
 
 #[cfg(feature = "std")]
-impl<K, V, A> TypedProjIndexMapInner<K, V, hash::RandomState, A>
+impl<K, V, A> TypeProjectedIndexMapInner<K, V, hash::RandomState, A>
 where
     K: any::Any,
     V: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     pub(crate) fn new_in(alloc: A) -> Self {
-        let proj_inner = TypedProjIndexMapCore::<K, V, A>::new_in(alloc);
-        let proj_build_hasher = TypedProjBuildHasher::<hash::RandomState>::new(hash::RandomState::default());
+        let proj_inner = TypeProjectedIndexMapCore::<K, V, A>::new_in(alloc);
+        let proj_build_hasher = TypeProjectedBuildHasher::<hash::RandomState>::new(hash::RandomState::default());
 
         Self {
             inner : proj_inner,
@@ -3352,8 +3352,8 @@ where
     }
 
     pub(crate) fn with_capacity_in(capacity: usize, alloc: A) -> Self {
-        let proj_inner = TypedProjIndexMapCore::<K, V, A>::with_capacity_in(capacity, alloc);
-        let proj_build_hasher = TypedProjBuildHasher::<hash::RandomState>::new(hash::RandomState::default());
+        let proj_inner = TypeProjectedIndexMapCore::<K, V, A>::with_capacity_in(capacity, alloc);
+        let proj_build_hasher = TypeProjectedBuildHasher::<hash::RandomState>::new(hash::RandomState::default());
 
         Self {
             inner: proj_inner,
@@ -3362,7 +3362,7 @@ where
     }
 }
 
-impl<K, V, S> TypedProjIndexMapInner<K, V, S, alloc::Global>
+impl<K, V, S> TypeProjectedIndexMapInner<K, V, S, alloc::Global>
 where
     K: any::Any,
     V: any::Any,
@@ -3381,7 +3381,7 @@ where
 }
 
 #[cfg(feature = "std")]
-impl<K, V> TypedProjIndexMapInner<K, V, hash::RandomState, alloc::Global>
+impl<K, V> TypeProjectedIndexMapInner<K, V, hash::RandomState, alloc::Global>
 where
     K: any::Any,
     V: any::Any,
@@ -3397,7 +3397,7 @@ where
     }
 }
 
-impl<K, V, S, A> TypedProjIndexMapInner<K, V, S, A>
+impl<K, V, S, A> TypeProjectedIndexMapInner<K, V, S, A>
 where
     K: any::Any,
     V: any::Any,
@@ -3421,7 +3421,7 @@ where
     }
 }
 
-impl<K, V, S, A> TypedProjIndexMapInner<K, V, S, A>
+impl<K, V, S, A> TypeProjectedIndexMapInner<K, V, S, A>
 where
     K: any::Any,
     V: any::Any,
@@ -3430,17 +3430,17 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[inline]
-    pub(crate) const fn hasher(&self) -> &TypedProjBuildHasher<S> {
+    pub(crate) const fn hasher(&self) -> &TypeProjectedBuildHasher<S> {
         &self.build_hasher
     }
 
     #[inline]
-    pub(crate) fn allocator(&self) -> &TypedProjAlloc<A> {
+    pub(crate) fn allocator(&self) -> &TypeProjectedAlloc<A> {
         self.inner.allocator()
     }
 }
 
-impl<K, V, S, A> TypedProjIndexMapInner<K, V, S, A>
+impl<K, V, S, A> TypeProjectedIndexMapInner<K, V, S, A>
 where
     K: any::Any,
     V: any::Any,
@@ -3862,7 +3862,7 @@ where
     }
 }
 
-impl<K, V, S, A> TypedProjIndexMapInner<K, V, S, A>
+impl<K, V, S, A> TypeProjectedIndexMapInner<K, V, S, A>
 where
     K: any::Any,
     V: any::Any,
@@ -4018,7 +4018,7 @@ where
     }
 }
 
-impl<K, V, S, A> TypedProjIndexMapInner<K, V, S, A>
+impl<K, V, S, A> TypeProjectedIndexMapInner<K, V, S, A>
 where
     K: any::Any,
     V: any::Any,
@@ -4026,7 +4026,7 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    pub(crate) fn append<S2>(&mut self, other: &mut TypedProjIndexMapInner<K, V, S2, A>)
+    pub(crate) fn append<S2>(&mut self, other: &mut TypeProjectedIndexMapInner<K, V, S2, A>)
     where
         K: Eq + hash::Hash,
         S2: any::Any + hash::BuildHasher + Send + Sync,
@@ -4046,7 +4046,7 @@ where
     }
 }
 
-impl<K, V, S, A> Default for TypedProjIndexMapInner<K, V, S, A>
+impl<K, V, S, A> Default for TypeProjectedIndexMapInner<K, V, S, A>
 where
     K: any::Any,
     V: any::Any,
@@ -4059,7 +4059,7 @@ where
     }
 }
 
-impl<K, V, S, A> Clone for TypedProjIndexMapInner<K, V, S, A>
+impl<K, V, S, A> Clone for TypeProjectedIndexMapInner<K, V, S, A>
 where
     K: any::Any + Clone,
     V: any::Any + Clone,
@@ -4087,7 +4087,7 @@ where
     }
 }
 
-impl<K, V, S, A> Extend<(K, V)> for TypedProjIndexMapInner<K, V, S, A>
+impl<K, V, S, A> Extend<(K, V)> for TypeProjectedIndexMapInner<K, V, S, A>
 where
     K: any::Any + hash::Hash + Eq,
     V: any::Any,
@@ -4122,7 +4122,7 @@ where
     }
 }
 
-impl<'a, K, V, S, A> Extend<(&'a K, &'a V)> for TypedProjIndexMapInner<K, V, S, A>
+impl<'a, K, V, S, A> Extend<(&'a K, &'a V)> for TypeProjectedIndexMapInner<K, V, S, A>
 where
     K: any::Any + hash::Hash + Eq + Copy,
     V: any::Any + Copy,
@@ -4143,7 +4143,7 @@ where
     }
 }
 
-impl<K, V, S, A> TypedProjIndexMapInner<K, V, S, A>
+impl<K, V, S, A> TypeProjectedIndexMapInner<K, V, S, A>
 where
     K: any::Any,
     V: any::Any,
@@ -4396,7 +4396,7 @@ where
 }
 
 #[cfg(feature = "nightly")]
-impl<K, V, S, A> TypedProjIndexMapInner<K, V, S, A>
+impl<K, V, S, A> TypeProjectedIndexMapInner<K, V, S, A>
 where
     K: any::Any,
     V: any::Any,
@@ -4404,7 +4404,7 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    pub(crate) fn into_boxed_slice(self) -> Box<Slice<K, V>, TypedProjAlloc<A>> {
+    pub(crate) fn into_boxed_slice(self) -> Box<Slice<K, V>, TypeProjectedAlloc<A>> {
         debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
         debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
         debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
@@ -4414,7 +4414,7 @@ where
     }
 }
 
-impl<K, V, S, A> TypedProjIndexMapInner<K, V, S, A>
+impl<K, V, S, A> TypeProjectedIndexMapInner<K, V, S, A>
 where
     K: any::Any,
     V: any::Any,
@@ -4599,12 +4599,12 @@ where
 }
 
 #[repr(C)]
-pub(crate) struct OpaqueIndexMapInner {
-    inner: OpaqueIndexMapCore,
-    build_hasher: OpaqueBuildHasher,
+pub(crate) struct TypeErasedIndexMapInner {
+    inner: TypeErasedIndexMapCore,
+    build_hasher: TypeErasedBuildHasher,
 }
 
-impl OpaqueIndexMapInner {
+impl TypeErasedIndexMapInner {
     #[inline]
     pub(crate) const fn key_type_id(&self) -> any::TypeId {
         self.inner.key_type_id()
@@ -4626,9 +4626,9 @@ impl OpaqueIndexMapInner {
     }
 }
 
-impl OpaqueIndexMapInner {
+impl TypeErasedIndexMapInner {
     #[inline(always)]
-    pub(crate) fn as_proj<K, V, S, A>(&self) -> &TypedProjIndexMapInner<K, V, S, A>
+    pub(crate) fn as_proj<K, V, S, A>(&self) -> &TypeProjectedIndexMapInner<K, V, S, A>
     where
         K: any::Any,
         V: any::Any,
@@ -4641,11 +4641,11 @@ impl OpaqueIndexMapInner {
         debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
         debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
 
-        unsafe { &*(self as *const OpaqueIndexMapInner as *const TypedProjIndexMapInner<K, V, S, A>) }
+        unsafe { &*(self as *const TypeErasedIndexMapInner as *const TypeProjectedIndexMapInner<K, V, S, A>) }
     }
 
     #[inline(always)]
-    pub(crate) fn as_proj_mut<K, V, S, A>(&mut self) -> &mut TypedProjIndexMapInner<K, V, S, A>
+    pub(crate) fn as_proj_mut<K, V, S, A>(&mut self) -> &mut TypeProjectedIndexMapInner<K, V, S, A>
     where
         K: any::Any,
         V: any::Any,
@@ -4658,11 +4658,11 @@ impl OpaqueIndexMapInner {
         debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
         debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
 
-        unsafe { &mut *(self as *mut OpaqueIndexMapInner as *mut TypedProjIndexMapInner<K, V, S, A>) }
+        unsafe { &mut *(self as *mut TypeErasedIndexMapInner as *mut TypeProjectedIndexMapInner<K, V, S, A>) }
     }
 
     #[inline(always)]
-    pub(crate) fn into_proj<K, V, S, A>(self) -> TypedProjIndexMapInner<K, V, S, A>
+    pub(crate) fn into_proj<K, V, S, A>(self) -> TypeProjectedIndexMapInner<K, V, S, A>
     where
         K: any::Any,
         V: any::Any,
@@ -4678,14 +4678,14 @@ impl OpaqueIndexMapInner {
         let proj_inner = self.inner.into_proj_assuming_type::<K, V, A>();
         let proj_build_hasher = self.build_hasher.into_proj::<S>();
 
-        TypedProjIndexMapInner {
+        TypeProjectedIndexMapInner {
             inner: proj_inner,
             build_hasher: proj_build_hasher,
         }
     }
 
     #[inline(always)]
-    pub(crate) fn from_proj<K, V, S, A>(proj_self: TypedProjIndexMapInner<K, V, S, A>) -> Self
+    pub(crate) fn from_proj<K, V, S, A>(proj_self: TypeProjectedIndexMapInner<K, V, S, A>) -> Self
     where
         K: any::Any,
         V: any::Any,
@@ -4693,8 +4693,8 @@ impl OpaqueIndexMapInner {
         S::Hasher: any::Any + hash::Hasher + Send + Sync,
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        let opaque_inner = OpaqueIndexMapCore::from_proj_assuming_type::<K, V, A>(proj_self.inner);
-        let opaque_build_hasher = OpaqueBuildHasher::from_proj::<S>(proj_self.build_hasher);
+        let opaque_inner = TypeErasedIndexMapCore::from_proj_assuming_type::<K, V, A>(proj_self.inner);
+        let opaque_build_hasher = TypeErasedBuildHasher::from_proj::<S>(proj_self.build_hasher);
 
         Self {
             inner: opaque_inner,
@@ -4703,7 +4703,7 @@ impl OpaqueIndexMapInner {
     }
 }
 
-impl OpaqueIndexMapInner {
+impl TypeErasedIndexMapInner {
     #[inline]
     pub(crate) fn capacity(&self) -> usize {
         self.inner.capacity()
@@ -4810,8 +4810,8 @@ mod index_map_core_layout_tests {
         V: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        let expected = mem::size_of::<TypedProjIndexMapCore<K, V, A>>();
-        let result = mem::size_of::<OpaqueIndexMapCore>();
+        let expected = mem::size_of::<TypeProjectedIndexMapCore<K, V, A>>();
+        let result = mem::size_of::<TypeErasedIndexMapCore>();
 
         assert_eq!(result, expected, "Opaque and Typed Projected data types size mismatch");
     }
@@ -4822,8 +4822,8 @@ mod index_map_core_layout_tests {
         V: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        let expected = mem::align_of::<TypedProjIndexMapCore<K, V, A>>();
-        let result = mem::align_of::<OpaqueIndexMapCore>();
+        let expected = mem::align_of::<TypeProjectedIndexMapCore<K, V, A>>();
+        let result = mem::align_of::<TypeErasedIndexMapCore>();
 
         assert_eq!(result, expected, "Opaque and Typed Projected data types alignment mismatch");
     }
@@ -4835,28 +4835,28 @@ mod index_map_core_layout_tests {
         A: any::Any + alloc::Allocator + Send + Sync,
     {
         assert_eq!(
-            mem::offset_of!(TypedProjIndexMapCore<K, V, A>, indices),
-            mem::offset_of!(OpaqueIndexMapCore, indices),
+            mem::offset_of!(TypeProjectedIndexMapCore<K, V, A>, indices),
+            mem::offset_of!(TypeErasedIndexMapCore, indices),
             "Opaque and Typed Projected data types offsets mismatch"
         );
         assert_eq!(
-            mem::offset_of!(TypedProjIndexMapCore<K, V, A>, entries),
-            mem::offset_of!(OpaqueIndexMapCore, entries),
+            mem::offset_of!(TypeProjectedIndexMapCore<K, V, A>, entries),
+            mem::offset_of!(TypeErasedIndexMapCore, entries),
             "Opaque and Typed Projected data types offsets mismatch"
         );
         assert_eq!(
-            mem::offset_of!(TypedProjIndexMapCore<K, V, A>, key_type_id),
-            mem::offset_of!(OpaqueIndexMapCore, key_type_id),
+            mem::offset_of!(TypeProjectedIndexMapCore<K, V, A>, key_type_id),
+            mem::offset_of!(TypeErasedIndexMapCore, key_type_id),
             "Opaque and Typed Projected data types offsets mismatch"
         );
         assert_eq!(
-            mem::offset_of!(TypedProjIndexMapCore<K, V, A>, value_type_id),
-            mem::offset_of!(OpaqueIndexMapCore, value_type_id),
+            mem::offset_of!(TypeProjectedIndexMapCore<K, V, A>, value_type_id),
+            mem::offset_of!(TypeErasedIndexMapCore, value_type_id),
             "Opaque and Typed Projected data types offsets mismatch"
         );
         assert_eq!(
-            mem::offset_of!(TypedProjIndexMapCore<K, V, A>, allocator_type_id),
-            mem::offset_of!(OpaqueIndexMapCore, allocator_type_id),
+            mem::offset_of!(TypeProjectedIndexMapCore<K, V, A>, allocator_type_id),
+            mem::offset_of!(TypeErasedIndexMapCore, allocator_type_id),
             "Opaque and Typed Projected data types offsets mismatch"
         );
     }
@@ -4941,14 +4941,14 @@ mod index_map_core_assert_send_sync {
     fn test_assert_send_sync1() {
         fn assert_send_sync<T: Send + Sync>() {}
 
-        assert_send_sync::<TypedProjIndexMapCore<i32, i32, alloc::Global>>();
+        assert_send_sync::<TypeProjectedIndexMapCore<i32, i32, alloc::Global>>();
     }
 
     #[test]
     fn test_assert_send_sync2() {
         fn assert_send_sync<T: Send + Sync>() {}
 
-        assert_send_sync::<TypedProjIndexMapCore<i32, i32, dummy::DummyAlloc>>();
+        assert_send_sync::<TypeProjectedIndexMapCore<i32, i32, dummy::DummyAlloc>>();
     }
 }
 
@@ -4961,7 +4961,7 @@ mod index_map_core_assert_not_send_not_sync {
     fn test_assert_not_send_not_sync() {
         fn assert_send_sync<T: Send + Sync>() {}
 
-        assert_send_sync::<OpaqueIndexMapCore>();
+        assert_send_sync::<TypeErasedIndexMapCore>();
     }
 }
 */
@@ -4979,8 +4979,8 @@ mod index_map_inner_layout_tests {
         S::Hasher: any::Any + hash::Hasher + Send + Sync,
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        let expected = mem::size_of::<TypedProjIndexMapInner<K, V, S, A>>();
-        let result = mem::size_of::<OpaqueIndexMapInner>();
+        let expected = mem::size_of::<TypeProjectedIndexMapInner<K, V, S, A>>();
+        let result = mem::size_of::<TypeErasedIndexMapInner>();
 
         assert_eq!(result, expected, "Opaque and Typed Projected data types size mismatch");
     }
@@ -4993,8 +4993,8 @@ mod index_map_inner_layout_tests {
         S::Hasher: any::Any + hash::Hasher + Send + Sync,
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        let expected = mem::align_of::<TypedProjIndexMapInner<K, V, S, A>>();
-        let result = mem::align_of::<OpaqueIndexMapInner>();
+        let expected = mem::align_of::<TypeProjectedIndexMapInner<K, V, S, A>>();
+        let result = mem::align_of::<TypeErasedIndexMapInner>();
 
         assert_eq!(result, expected, "Opaque and Typed Projected data types alignment mismatch");
     }
@@ -5008,13 +5008,13 @@ mod index_map_inner_layout_tests {
         A: any::Any + alloc::Allocator + Send + Sync,
     {
         assert_eq!(
-            mem::offset_of!(TypedProjIndexMapInner<K, V, S, A>, inner),
-            mem::offset_of!(OpaqueIndexMapInner, inner),
+            mem::offset_of!(TypeProjectedIndexMapInner<K, V, S, A>, inner),
+            mem::offset_of!(TypeErasedIndexMapInner, inner),
             "Opaque and Typed Projected data types offsets mismatch"
         );
         assert_eq!(
-            mem::offset_of!(TypedProjIndexMapInner<K, V, S, A>, build_hasher),
-            mem::offset_of!(OpaqueIndexMapInner, build_hasher),
+            mem::offset_of!(TypeProjectedIndexMapInner<K, V, S, A>, build_hasher),
+            mem::offset_of!(TypeErasedIndexMapInner, build_hasher),
             "Opaque and Typed Projected data types offsets mismatch"
         );
     }
@@ -5139,14 +5139,14 @@ mod index_map_inner_assert_send_sync {
     fn test_assert_send_sync1() {
         fn assert_send_sync<T: Send + Sync>() {}
 
-        assert_send_sync::<TypedProjIndexMapInner<i32, i32, hash::RandomState, alloc::Global>>();
+        assert_send_sync::<TypeProjectedIndexMapInner<i32, i32, hash::RandomState, alloc::Global>>();
     }
 
     #[test]
     fn test_assert_send_sync2() {
         fn assert_send_sync<T: Send + Sync>() {}
 
-        assert_send_sync::<TypedProjIndexMapInner<i32, i32, dummy::DummyBuildHasher, alloc::Global>>();
+        assert_send_sync::<TypeProjectedIndexMapInner<i32, i32, dummy::DummyBuildHasher, alloc::Global>>();
     }
 }
 
@@ -5159,7 +5159,7 @@ mod index_map_inner_assert_not_send_not_sync {
     fn test_assert_not_send_not_sync() {
         fn assert_send_sync<T: Send + Sync>() {}
 
-        assert_send_sync::<OpaqueIndexMapInner>();
+        assert_send_sync::<TypeErasedIndexMapInner>();
     }
 }
 */

@@ -1,5 +1,5 @@
 use crate::map::common::projected::strategy_type_projected_index_map_max_len;
-use opaque_index_map::TypedProjIndexMap;
+use opaque_index_map::TypeProjectedIndexMap;
 
 use core::any;
 use core::fmt;
@@ -16,7 +16,7 @@ use opaque_allocator_api::alloc;
 
 use proptest::prelude::*;
 
-fn prop_keys_contains_key<K, V, S, A>(entries: TypedProjIndexMap<K, V, S, A>) -> Result<(), TestCaseError>
+fn prop_keys_contains_key<K, V, S, A>(entries: TypeProjectedIndexMap<K, V, S, A>) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
@@ -32,7 +32,7 @@ where
     Ok(())
 }
 
-fn prop_keys_get<K, V, S, A>(entries: TypedProjIndexMap<K, V, S, A>) -> Result<(), TestCaseError>
+fn prop_keys_get<K, V, S, A>(entries: TypeProjectedIndexMap<K, V, S, A>) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
@@ -48,7 +48,7 @@ where
     Ok(())
 }
 
-fn prop_keys_get_full<K, V, S, A>(entries: TypedProjIndexMap<K, V, S, A>) -> Result<(), TestCaseError>
+fn prop_keys_get_full<K, V, S, A>(entries: TypeProjectedIndexMap<K, V, S, A>) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
@@ -64,7 +64,7 @@ where
     Ok(())
 }
 
-fn prop_keys_get_full_mut<K, V, S, A>(entries: TypedProjIndexMap<K, V, S, A>) -> Result<(), TestCaseError>
+fn prop_keys_get_full_mut<K, V, S, A>(entries: TypeProjectedIndexMap<K, V, S, A>) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
@@ -81,7 +81,7 @@ where
     Ok(())
 }
 
-fn prop_keys_get_index<K, V, S, A>(entries: TypedProjIndexMap<K, V, S, A>) -> Result<(), TestCaseError>
+fn prop_keys_get_index<K, V, S, A>(entries: TypeProjectedIndexMap<K, V, S, A>) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
@@ -100,7 +100,7 @@ where
     Ok(())
 }
 
-fn prop_keys_get_index_of<K, V, S, A>(entries: TypedProjIndexMap<K, V, S, A>) -> Result<(), TestCaseError>
+fn prop_keys_get_index_of<K, V, S, A>(entries: TypeProjectedIndexMap<K, V, S, A>) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
@@ -119,7 +119,7 @@ where
     Ok(())
 }
 
-fn prop_keys_get_key_value<K, V, S, A>(entries: TypedProjIndexMap<K, V, S, A>) -> Result<(), TestCaseError>
+fn prop_keys_get_key_value<K, V, S, A>(entries: TypeProjectedIndexMap<K, V, S, A>) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
@@ -135,7 +135,7 @@ where
     Ok(())
 }
 
-fn prop_keys_get_mut<K, V, S, A>(entries: TypedProjIndexMap<K, V, S, A>) -> Result<(), TestCaseError>
+fn prop_keys_get_mut<K, V, S, A>(entries: TypeProjectedIndexMap<K, V, S, A>) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
@@ -167,49 +167,49 @@ macro_rules! generate_props {
             proptest! {
                 #[test]
                 fn prop_keys_contains_key(entries in super::$map_gen::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::TypedProjIndexMap<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ> = entries;
+                    let entries: super::TypeProjectedIndexMap<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ> = entries;
                     super::prop_keys_contains_key(entries)?
                 }
 
                 #[test]
                 fn prop_keys_get(entries in super::$map_gen::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::TypedProjIndexMap<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ> = entries;
+                    let entries: super::TypeProjectedIndexMap<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ> = entries;
                     super::prop_keys_get(entries)?
                 }
 
                 #[test]
                 fn prop_keys_get_full(entries in super::$map_gen::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::TypedProjIndexMap<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ> = entries;
+                    let entries: super::TypeProjectedIndexMap<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ> = entries;
                     super::prop_keys_get_full(entries)?
                 }
 
                 #[test]
                 fn prop_keys_get_full_mut(entries in super::$map_gen::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::TypedProjIndexMap<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ> = entries;
+                    let entries: super::TypeProjectedIndexMap<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ> = entries;
                     super::prop_keys_get_full_mut(entries)?
                 }
 
                 #[test]
                 fn prop_keys_get_index(entries in super::$map_gen::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::TypedProjIndexMap<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ> = entries;
+                    let entries: super::TypeProjectedIndexMap<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ> = entries;
                     super::prop_keys_get_index(entries)?
                 }
 
                 #[test]
                 fn prop_keys_get_index_of(entries in super::$map_gen::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::TypedProjIndexMap<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ> = entries;
+                    let entries: super::TypeProjectedIndexMap<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ> = entries;
                     super::prop_keys_get_index_of(entries)?
                 }
 
                 #[test]
                 fn prop_keys_get_key_value(entries in super::$map_gen::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::TypedProjIndexMap<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ> = entries;
+                    let entries: super::TypeProjectedIndexMap<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ> = entries;
                     super::prop_keys_get_key_value(entries)?
                 }
 
                 #[test]
                 fn prop_keys_get_mut(entries in super::$map_gen::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::TypedProjIndexMap<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ> = entries;
+                    let entries: super::TypeProjectedIndexMap<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ> = entries;
                     super::prop_keys_get_mut(entries)?
                 }
             }

@@ -1,4 +1,4 @@
-use opaque_alloc::TypedProjAlloc;
+use opaque_alloc::TypeProjectedAlloc;
 
 use core::any;
 use core::ptr::NonNull;
@@ -13,7 +13,7 @@ fn run_test_opaque_alloc_clone<A>(alloc: A)
 where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let expected = TypedProjAlloc::new(alloc);
+    let expected = TypeProjectedAlloc::new(alloc);
     let _ = expected.clone();
 }
 

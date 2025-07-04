@@ -1,4 +1,4 @@
-use crate::raw_vec::{OpaqueRawVec, TypedProjRawVec};
+use crate::raw_vec::{TypeErasedRawVec, TypeProjectedRawVec};
 use crate::drain::Drain;
 use crate::extract_if::ExtractIf;
 use crate::splice::Splice;
@@ -26,7 +26,7 @@ use opaque_allocator_api::alloc;
 #[cfg(not(feature = "nightly"))]
 use opaque_polyfill;
 
-use opaque_alloc::TypedProjAlloc;
+use opaque_alloc::TypeProjectedAlloc;
 use opaque_error::TryReserveError;
 
 unsafe fn drop_fn<T>(value: NonNull<u8>) {
@@ -47,19 +47,19 @@ const fn get_drop_fn<T>() -> Option<unsafe fn(NonNull<u8>)> {
 }
 
 #[repr(C)]
-pub(crate) struct TypedProjVecInner<T, A>
+pub(crate) struct TypeProjectedVecInner<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    data: TypedProjRawVec<T, A>,
+    data: TypeProjectedRawVec<T, A>,
     length: usize,
     element_type_id: any::TypeId,
     allocator_type_id: any::TypeId,
     drop_fn: Option<unsafe fn(NonNull<u8>)>,
 }
 
-impl<T, A> TypedProjVecInner<T, A>
+impl<T, A> TypeProjectedVecInner<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -75,7 +75,7 @@ where
     }
 }
 
-impl<T, A> TypedProjVecInner<T, A>
+impl<T, A> TypeProjectedVecInner<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -83,8 +83,8 @@ where
     #[inline]
     #[must_use]
     #[track_caller]
-    pub(crate) fn new_proj_in(proj_alloc: TypedProjAlloc<A>) -> Self {
-        let data = TypedProjRawVec::new_in(proj_alloc);
+    pub(crate) fn new_proj_in(proj_alloc: TypeProjectedAlloc<A>) -> Self {
+        let data = TypeProjectedRawVec::new_in(proj_alloc);
         let length = 0;
         let element_type_id = any::TypeId::of::<T>();
         let allocator_type_id = any::TypeId::of::<A>();
@@ -96,8 +96,8 @@ where
     #[inline]
     #[must_use]
     #[track_caller]
-    pub(crate) fn with_capacity_proj_in(capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self {
-        let data = TypedProjRawVec::with_capacity_in(capacity, proj_alloc);
+    pub(crate) fn with_capacity_proj_in(capacity: usize, proj_alloc: TypeProjectedAlloc<A>) -> Self {
+        let data = TypeProjectedRawVec::with_capacity_in(capacity, proj_alloc);
         let length = 0;
         let element_type_id = any::TypeId::of::<T>();
         let allocator_type_id = any::TypeId::of::<A>();
@@ -107,8 +107,8 @@ where
     }
 
     #[inline]
-    pub(crate) fn try_with_capacity_proj_in(capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Result<Self, TryReserveError> {
-        let data = TypedProjRawVec::try_with_capacity_in(capacity, proj_alloc)?;
+    pub(crate) fn try_with_capacity_proj_in(capacity: usize, proj_alloc: TypeProjectedAlloc<A>) -> Result<Self, TryReserveError> {
+        let data = TypeProjectedRawVec::try_with_capacity_in(capacity, proj_alloc)?;
         let length = 0;
         let element_type_id = any::TypeId::of::<T>();
         let allocator_type_id = any::TypeId::of::<A>();
@@ -118,9 +118,9 @@ where
     }
 
     #[inline]
-    pub(crate) unsafe fn from_raw_parts_proj_in(ptr: *mut T, length: usize, capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self {
+    pub(crate) unsafe fn from_raw_parts_proj_in(ptr: *mut T, length: usize, capacity: usize, proj_alloc: TypeProjectedAlloc<A>) -> Self {
         let data = unsafe {
-            TypedProjRawVec::from_raw_parts_in(ptr, capacity, proj_alloc)
+            TypeProjectedRawVec::from_raw_parts_in(ptr, capacity, proj_alloc)
         };
         let element_type_id = any::TypeId::of::<T>();
         let allocator_type_id = any::TypeId::of::<A>();
@@ -130,9 +130,9 @@ where
     }
 
     #[inline]
-    pub(crate) unsafe fn from_parts_proj_in(ptr: NonNull<T>, length: usize, capacity: usize, proj_alloc: TypedProjAlloc<A>) -> Self {
+    pub(crate) unsafe fn from_parts_proj_in(ptr: NonNull<T>, length: usize, capacity: usize, proj_alloc: TypeProjectedAlloc<A>) -> Self {
         let data = unsafe {
-            TypedProjRawVec::from_non_null_in(ptr, capacity, proj_alloc)
+            TypeProjectedRawVec::from_non_null_in(ptr, capacity, proj_alloc)
         };
         let element_type_id = any::TypeId::of::<T>();
         let allocator_type_id = any::TypeId::of::<A>();
@@ -145,7 +145,7 @@ where
     #[must_use]
     #[track_caller]
     pub(crate) fn new_in(alloc: A) -> Self {
-        let proj_alloc = TypedProjAlloc::new(alloc);
+        let proj_alloc = TypeProjectedAlloc::new(alloc);
 
         Self::new_proj_in(proj_alloc)
     }
@@ -154,21 +154,21 @@ where
     #[must_use]
     #[track_caller]
     pub(crate) fn with_capacity_in(capacity: usize, alloc: A) -> Self {
-        let proj_alloc = TypedProjAlloc::new(alloc);
+        let proj_alloc = TypeProjectedAlloc::new(alloc);
 
         Self::with_capacity_proj_in(capacity, proj_alloc)
     }
 
     #[inline]
     pub(crate) fn try_with_capacity_in(capacity: usize, alloc: A) -> Result<Self, TryReserveError> {
-        let proj_alloc = TypedProjAlloc::new(alloc);
+        let proj_alloc = TypeProjectedAlloc::new(alloc);
 
         Self::try_with_capacity_proj_in(capacity, proj_alloc)
     }
 
     #[inline]
     pub(crate) unsafe fn from_raw_parts_in(ptr: *mut T, length: usize, capacity: usize, alloc: A) -> Self {
-        let proj_alloc = TypedProjAlloc::new(alloc);
+        let proj_alloc = TypeProjectedAlloc::new(alloc);
 
         unsafe {
             Self::from_raw_parts_proj_in(ptr, length, capacity, proj_alloc)
@@ -177,7 +177,7 @@ where
 
     #[inline]
     pub(crate) unsafe fn from_parts_in(ptr: NonNull<T>, length: usize, capacity: usize, alloc: A) -> Self {
-        let proj_alloc = TypedProjAlloc::new(alloc);
+        let proj_alloc = TypeProjectedAlloc::new(alloc);
 
         unsafe {
             Self::from_parts_proj_in(ptr, length, capacity, proj_alloc)
@@ -185,7 +185,7 @@ where
     }
 }
 
-impl<T> TypedProjVecInner<T, alloc::Global>
+impl<T> TypeProjectedVecInner<T, alloc::Global>
 where
     T: any::Any,
 {
@@ -223,7 +223,7 @@ where
     }
 }
 
-impl<T, A> TypedProjVecInner<T, A>
+impl<T, A> TypeProjectedVecInner<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -244,13 +244,13 @@ where
     }
 }
 
-impl<T, A> TypedProjVecInner<T, A>
+impl<T, A> TypeProjectedVecInner<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[inline]
-    pub(crate) fn allocator(&self) -> &TypedProjAlloc<A> {
+    pub(crate) fn allocator(&self) -> &TypeProjectedAlloc<A> {
         debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
         debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
 
@@ -258,7 +258,7 @@ where
     }
 }
 
-impl<T, A> TypedProjVecInner<T, A>
+impl<T, A> TypeProjectedVecInner<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -517,7 +517,7 @@ where
 
     #[inline]
     pub(crate) const fn as_non_null(&mut self) -> NonNull<T> {
-        // SAFETY: A [`TypedProjVecInner`] always holds a non-null pointer.
+        // SAFETY: A [`TypeProjectedVecInner`] always holds a non-null pointer.
         self.data.non_null()
     }
 
@@ -563,7 +563,7 @@ where
 
         let mut me = ManuallyDrop::new(self);
 
-        // SAFETY: An `OpaqueVec` always has a non-null pointer.
+        // SAFETY: A `TypeErasedVecInner` always has a non-null pointer.
         let ptr = unsafe { NonNull::new_unchecked(me.as_mut_ptr()) };
         let len = me.len();
         let capacity = me.capacity();
@@ -572,14 +572,14 @@ where
     }
 }
 
-impl<T, A> TypedProjVecInner<T, A>
+impl<T, A> TypeProjectedVecInner<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[inline]
     #[must_use]
-    pub(crate) fn into_raw_parts_with_alloc(self) -> (*mut T, usize, usize, TypedProjAlloc<A>)
+    pub(crate) fn into_raw_parts_with_alloc(self) -> (*mut T, usize, usize, TypeProjectedAlloc<A>)
     where
         A: alloc::Allocator,
     {
@@ -597,7 +597,7 @@ where
 
     #[inline]
     #[must_use]
-    pub(crate) fn into_parts_with_alloc(self) -> (NonNull<T>, usize, usize, TypedProjAlloc<A>)
+    pub(crate) fn into_parts_with_alloc(self) -> (NonNull<T>, usize, usize, TypeProjectedAlloc<A>)
     where
         A: alloc::Allocator,
     {
@@ -606,7 +606,7 @@ where
 
         let mut me = ManuallyDrop::new(self);
 
-        // SAFETY: An `OpaqueVec` always has a non-null pointer.
+        // SAFETY: A `TypeErasedVec` always has a non-null pointer.
         let ptr = unsafe { NonNull::new_unchecked(me.as_mut_ptr()) };
         let len = me.len();
         let capacity = me.capacity();
@@ -617,14 +617,14 @@ where
 }
 
 #[cfg(feature = "nightly")]
-impl<T, A> TypedProjVecInner<T, A>
+impl<T, A> TypeProjectedVecInner<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[inline]
     #[track_caller]
-    pub(crate) fn into_boxed_slice(mut self) -> Box<[T], TypedProjAlloc<A>>
+    pub(crate) fn into_boxed_slice(mut self) -> Box<[T], TypeProjectedAlloc<A>>
     where
         A: alloc::Allocator,
     {
@@ -644,7 +644,7 @@ where
     }
 }
 
-impl<T, A> TypedProjVecInner<T, A>
+impl<T, A> TypeProjectedVecInner<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -664,7 +664,7 @@ where
 }
 
 #[cfg(not(feature = "nightly"))]
-impl<T, A> TypedProjVecInner<T, A>
+impl<T, A> TypeProjectedVecInner<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -701,7 +701,7 @@ where
 }
 
 #[cfg(feature = "nightly")]
-impl<T, A> TypedProjVecInner<T, A>
+impl<T, A> TypeProjectedVecInner<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -737,7 +737,7 @@ where
     }
 }
 
-impl<T, A> TypedProjVecInner<T, A>
+impl<T, A> TypeProjectedVecInner<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -831,9 +831,9 @@ where
         let mut other = {
             let cloned_alloc = self.allocator().clone();
             let box_alloc = cloned_alloc.into_boxed_alloc();
-            let split_alloc = TypedProjAlloc::from_boxed_alloc(box_alloc);
+            let split_alloc = TypeProjectedAlloc::from_boxed_alloc(box_alloc);
 
-            TypedProjVecInner::with_capacity_proj_in(other_len, split_alloc)
+            TypeProjectedVecInner::with_capacity_proj_in(other_len, split_alloc)
         };
 
         // Unsafely `set_len` and copy items to `other`.
@@ -865,7 +865,7 @@ where
     }
 }
 
-impl<T, A> TypedProjVecInner<T, A>
+impl<T, A> TypeProjectedVecInner<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -924,7 +924,7 @@ where
         }
     }
 }
-impl<T, A> TypedProjVecInner<T, A>
+impl<T, A> TypeProjectedVecInner<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -943,7 +943,7 @@ where
     }
 }
 
-impl<T, A> TypedProjVecInner<T, A>
+impl<T, A> TypeProjectedVecInner<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -1058,7 +1058,7 @@ where
     }
 }
 
-impl<T, A> TypedProjVecInner<T, A>
+impl<T, A> TypeProjectedVecInner<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -1108,7 +1108,7 @@ where
             T: any::Any,
             A: any::Any + alloc::Allocator + Send + Sync,
         {
-            v: &'a mut TypedProjVecInner<T, A>,
+            v: &'a mut TypeProjectedVecInner<T, A>,
             processed_len: usize,
             deleted_cnt: usize,
             original_len: usize,
@@ -1239,7 +1239,7 @@ where
             write: usize,
 
             // The Vec that would need correction if `same_bucket` panicked
-            vec: &'a mut TypedProjVecInner<T, A>,
+            vec: &'a mut TypeProjectedVecInner<T, A>,
         }
 
         impl<'a, T, A> Drop for FillGapOnDrop<'a, T, A>
@@ -1354,7 +1354,7 @@ where
     }
 }
 
-impl<T, A> TypedProjVecInner<T, A>
+impl<T, A> TypeProjectedVecInner<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -1401,7 +1401,7 @@ where
     }
 }
 
-impl<T, A> TypedProjVecInner<T, A>
+impl<T, A> TypeProjectedVecInner<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -1416,7 +1416,7 @@ where
     }
 }
 
-impl<T, A> Extend<T> for TypedProjVecInner<T, A>
+impl<T, A> Extend<T> for TypeProjectedVecInner<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -1434,7 +1434,7 @@ where
     }
 }
 
-impl<'a, T, A> Extend<&'a T> for TypedProjVecInner<T, A>
+impl<'a, T, A> Extend<&'a T> for TypeProjectedVecInner<T, A>
 where
     T: any::Any + Copy,
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -1452,19 +1452,19 @@ where
     }
 }
 
-impl<T, A> TypedProjVecInner<T, A>
+impl<T, A> TypeProjectedVecInner<T, A>
 where
     T: any::Any + Clone,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     #[inline]
-    pub(crate) fn from_slice_proj_in(slice: &[T], proj_alloc: TypedProjAlloc<A>) -> TypedProjVecInner<T, A> {
+    pub(crate) fn from_slice_proj_in(slice: &[T], proj_alloc: TypeProjectedAlloc<A>) -> TypeProjectedVecInner<T, A> {
         struct DropGuard<'a, T, A>
         where
             T: any::Any,
             A: any::Any + alloc::Allocator + Send + Sync + Clone,
         {
-            vec: &'a mut TypedProjVecInner<T, A>,
+            vec: &'a mut TypeProjectedVecInner<T, A>,
             num_init: usize,
         }
 
@@ -1483,7 +1483,7 @@ where
             }
         }
 
-        let mut vec: TypedProjVecInner<T, A> = TypedProjVecInner::with_capacity_proj_in(slice.len(), proj_alloc);
+        let mut vec: TypeProjectedVecInner<T, A> = TypeProjectedVecInner::with_capacity_proj_in(slice.len(), proj_alloc);
         let mut guard = DropGuard {
             vec: &mut vec,
             num_init: 0,
@@ -1508,21 +1508,21 @@ where
     }
 
     #[inline]
-    pub(crate) fn from_slice_in(slice: &[T], alloc: A) -> TypedProjVecInner<T, A> {
-        let proj_alloc = TypedProjAlloc::new(alloc);
+    pub(crate) fn from_slice_in(slice: &[T], alloc: A) -> TypeProjectedVecInner<T, A> {
+        let proj_alloc = TypeProjectedAlloc::new(alloc);
 
         Self::from_slice_proj_in(slice, proj_alloc)
     }
 }
 
 #[cfg(feature = "nightly")]
-impl<T, A> TypedProjVecInner<T, A>
+impl<T, A> TypeProjectedVecInner<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     #[inline]
-    pub(crate) fn from_boxed_slice(box_slice: Box<[T], TypedProjAlloc<A>>) -> TypedProjVecInner<T, A> {
+    pub(crate) fn from_boxed_slice(box_slice: Box<[T], TypeProjectedAlloc<A>>) -> TypeProjectedVecInner<T, A> {
         let length = box_slice.len();
         let capacity = box_slice.len();
         let (ptr, alloc) = {
@@ -1531,14 +1531,14 @@ where
             (_ptr, _alloc)
         };
         let vec = unsafe {
-            TypedProjVecInner::from_parts_proj_in(ptr, length, capacity, alloc)
+            TypeProjectedVecInner::from_parts_proj_in(ptr, length, capacity, alloc)
         };
 
         vec
     }
 }
 
-impl<T, A> Clone for TypedProjVecInner<T, A>
+impl<T, A> Clone for TypeProjectedVecInner<T, A>
 where
     T: any::Any + Clone,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
@@ -1554,7 +1554,7 @@ where
     }
 }
 
-impl<T, A> Drop for TypedProjVecInner<T, A>
+impl<T, A> Drop for TypeProjectedVecInner<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -1567,11 +1567,11 @@ where
             ptr::drop_in_place(ptr::slice_from_raw_parts_mut(self.as_mut_ptr(), self.length))
         }
 
-        // TypedProjRawVec handles deallocation
+        // `TypeProjectedRawVec` handles deallocation
     }
 }
 
-impl<T> From<&[T]> for TypedProjVecInner<T, alloc::Global>
+impl<T> From<&[T]> for TypeProjectedVecInner<T, alloc::Global>
 where
     T: any::Any + Clone,
 {
@@ -1580,7 +1580,7 @@ where
     }
 }
 
-impl<T> From<&mut [T]> for TypedProjVecInner<T, alloc::Global>
+impl<T> From<&mut [T]> for TypeProjectedVecInner<T, alloc::Global>
 where
     T: any::Any + Clone,
 {
@@ -1589,7 +1589,7 @@ where
     }
 }
 
-impl<const N: usize, T> From<&[T; N]> for TypedProjVecInner<T, alloc::Global>
+impl<const N: usize, T> From<&[T; N]> for TypeProjectedVecInner<T, alloc::Global>
 where
     T: any::Any + Clone,
 {
@@ -1598,7 +1598,7 @@ where
     }
 }
 
-impl<const N: usize, T> From<&mut [T; N]> for TypedProjVecInner<T, alloc::Global>
+impl<const N: usize, T> From<&mut [T; N]> for TypeProjectedVecInner<T, alloc::Global>
 where
     T: any::Any + Clone,
 {
@@ -1608,7 +1608,7 @@ where
 }
 
 #[cfg(feature = "nightly")]
-impl<T, A> From<Vec<T, A>> for TypedProjVecInner<T, A>
+impl<T, A> From<Vec<T, A>> for TypeProjectedVecInner<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -1617,13 +1617,13 @@ where
         let (ptr, length, capacity, alloc) = vec.into_parts_with_alloc();
 
         unsafe {
-            TypedProjVecInner::from_parts_in(ptr, length, capacity, alloc)
+            TypeProjectedVecInner::from_parts_in(ptr, length, capacity, alloc)
         }
     }
 }
 
 #[cfg(not(feature = "nightly"))]
-impl<T> From<Vec<T>> for TypedProjVecInner<T, alloc::Global>
+impl<T> From<Vec<T>> for TypeProjectedVecInner<T, alloc::Global>
 where
     T: any::Any,
 {
@@ -1634,13 +1634,13 @@ where
         let capacity = vec.capacity();
 
         unsafe {
-            TypedProjVecInner::from_raw_parts(ptr, length, capacity)
+            TypeProjectedVecInner::from_raw_parts(ptr, length, capacity)
         }
     }
 }
 
 #[cfg(feature = "nightly")]
-impl<T, A> From<&Vec<T, A>> for TypedProjVecInner<T, A>
+impl<T, A> From<&Vec<T, A>> for TypeProjectedVecInner<T, A>
 where
     T: any::Any + Clone,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
@@ -1651,7 +1651,7 @@ where
 }
 
 #[cfg(not(feature = "nightly"))]
-impl<T> From<&Vec<T>> for TypedProjVecInner<T, alloc::Global>
+impl<T> From<&Vec<T>> for TypeProjectedVecInner<T, alloc::Global>
 where
     T: any::Any + Clone,
 {
@@ -1661,7 +1661,7 @@ where
 }
 
 #[cfg(feature = "nightly")]
-impl<T, A> From<&mut Vec<T, A>> for TypedProjVecInner<T, A>
+impl<T, A> From<&mut Vec<T, A>> for TypeProjectedVecInner<T, A>
 where
     T: any::Any + Clone,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
@@ -1672,7 +1672,7 @@ where
 }
 
 #[cfg(not(feature = "nightly"))]
-impl<T> From<&mut Vec<T>> for TypedProjVecInner<T, alloc::Global>
+impl<T> From<&mut Vec<T>> for TypeProjectedVecInner<T, alloc::Global>
 where
     T: any::Any + Clone,
 {
@@ -1682,28 +1682,28 @@ where
 }
 
 #[cfg(feature = "nightly")]
-impl<T, A> From<Box<[T], TypedProjAlloc<A>>> for TypedProjVecInner<T, A>
+impl<T, A> From<Box<[T], TypeProjectedAlloc<A>>> for TypeProjectedVecInner<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-    fn from(slice: Box<[T], TypedProjAlloc<A>>) -> Self {
+    fn from(slice: Box<[T], TypeProjectedAlloc<A>>) -> Self {
         Self::from_boxed_slice(slice)
     }
 }
 
 #[cfg(feature = "nightly")]
-impl<const N: usize, T> From<[T; N]> for TypedProjVecInner<T, alloc::Global>
+impl<const N: usize, T> From<[T; N]> for TypeProjectedVecInner<T, alloc::Global>
 where
     T: any::Any,
 {
     fn from(array: [T; N]) -> Self {
-        Self::from_boxed_slice(Box::new_in(array, TypedProjAlloc::new(alloc::Global)))
+        Self::from_boxed_slice(Box::new_in(array, TypeProjectedAlloc::new(alloc::Global)))
     }
 }
 
 #[cfg(not(feature = "nightly"))]
-impl<const N: usize, T> From<[T; N]> for TypedProjVecInner<T, alloc::Global>
+impl<const N: usize, T> From<[T; N]> for TypeProjectedVecInner<T, alloc::Global>
 where
     T: any::Any,
 {
@@ -1719,20 +1719,20 @@ where
     }
 }
 
-impl<T> FromIterator<T> for TypedProjVecInner<T, alloc::Global>
+impl<T> FromIterator<T> for TypeProjectedVecInner<T, alloc::Global>
 where
     T: any::Any,
 {
     #[inline]
     #[track_caller]
-    fn from_iter<I>(iterable: I) -> TypedProjVecInner<T, alloc::Global>
+    fn from_iter<I>(iterable: I) -> TypeProjectedVecInner<T, alloc::Global>
     where
         I: IntoIterator<Item = T>,
     {
         let iterator = iterable.into_iter();
         let (lower, _) = iterator.size_hint();
 
-        let mut vec = TypedProjVecInner::with_capacity(lower);
+        let mut vec = TypeProjectedVecInner::with_capacity(lower);
 
         for item in iterator {
             vec.push(item);
@@ -1743,15 +1743,15 @@ where
 }
 
 #[repr(C)]
-pub(crate) struct OpaqueVecInner {
-    data: OpaqueRawVec,
+pub(crate) struct TypeErasedVecInner {
+    data: TypeErasedRawVec,
     length: usize,
     element_type_id: any::TypeId,
     allocator_type_id: any::TypeId,
     drop_fn: Option<unsafe fn(NonNull<u8>)>,
 }
 
-impl OpaqueVecInner {
+impl TypeErasedVecInner {
     #[inline]
     pub(crate) const fn element_type_id(&self) -> any::TypeId {
         self.element_type_id
@@ -1763,9 +1763,9 @@ impl OpaqueVecInner {
     }
 }
 
-impl OpaqueVecInner {
+impl TypeErasedVecInner {
     #[inline(always)]
-    pub(crate) fn as_proj_assuming_type<T, A>(&self) -> &TypedProjVecInner<T, A>
+    pub(crate) fn as_proj_assuming_type<T, A>(&self) -> &TypeProjectedVecInner<T, A>
     where
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
@@ -1773,11 +1773,11 @@ impl OpaqueVecInner {
         debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
         debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
 
-        unsafe { &*(self as *const OpaqueVecInner as *const TypedProjVecInner<T, A>) }
+        unsafe { &*(self as *const TypeErasedVecInner as *const TypeProjectedVecInner<T, A>) }
     }
 
     #[inline(always)]
-    pub(crate) fn as_proj_mut_assuming_type<T, A>(&mut self) -> &mut TypedProjVecInner<T, A>
+    pub(crate) fn as_proj_mut_assuming_type<T, A>(&mut self) -> &mut TypeProjectedVecInner<T, A>
     where
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
@@ -1785,11 +1785,11 @@ impl OpaqueVecInner {
         debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
         debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
 
-        unsafe { &mut *(self as *mut OpaqueVecInner as *mut TypedProjVecInner<T, A>) }
+        unsafe { &mut *(self as *mut TypeErasedVecInner as *mut TypeProjectedVecInner<T, A>) }
     }
 
     #[inline(always)]
-    pub(crate) fn into_proj_assuming_type<T, A>(self) -> TypedProjVecInner<T, A>
+    pub(crate) fn into_proj_assuming_type<T, A>(self) -> TypeProjectedVecInner<T, A>
     where
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
@@ -1801,7 +1801,7 @@ impl OpaqueVecInner {
     }
 
     #[inline(always)]
-    pub(crate) fn from_proj<T, A>(proj_self: TypedProjVecInner<T, A>) -> Self
+    pub(crate) fn from_proj<T, A>(proj_self: TypeProjectedVecInner<T, A>) -> Self
     where
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
@@ -1810,7 +1810,7 @@ impl OpaqueVecInner {
     }
 }
 
-impl OpaqueVecInner {
+impl TypeErasedVecInner {
     #[inline]
     pub(crate) const fn element_layout(&self) -> alloc::Layout {
         self.data.element_layout()
@@ -1832,7 +1832,7 @@ impl OpaqueVecInner {
     }
 }
 
-impl OpaqueVecInner {
+impl TypeErasedVecInner {
     fn clear(&mut self) {
         struct SetLenOnDrop<'a> {
             length: &'a mut usize,
@@ -1886,10 +1886,10 @@ impl OpaqueVecInner {
     }
 }
 
-impl Drop for  OpaqueVecInner {
+impl Drop for TypeErasedVecInner {
     fn drop(&mut self) {
         self.clear();
-        // `OpaqueRawVec` deallocates `self.data` from memory.
+        // `TypeErasedRawVec` deallocates `self.data` from memory.
     }
 }
 
@@ -1953,8 +1953,8 @@ mod vec_inner_layout_tests {
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        let expected = mem::size_of::<TypedProjVecInner<T, A>>();
-        let result = mem::size_of::<OpaqueVecInner>();
+        let expected = mem::size_of::<TypeProjectedVecInner<T, A>>();
+        let result = mem::size_of::<TypeErasedVecInner>();
 
         assert_eq!(result, expected, "Opaque and Typed Projected data types size mismatch");
     }
@@ -1964,8 +1964,8 @@ mod vec_inner_layout_tests {
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        let expected = mem::align_of::<TypedProjVecInner<T, A>>();
-        let result = mem::align_of::<OpaqueVecInner>();
+        let expected = mem::align_of::<TypeProjectedVecInner<T, A>>();
+        let result = mem::align_of::<TypeErasedVecInner>();
 
         assert_eq!(result, expected, "Opaque and Typed Projected data types alignment mismatch");
     }
@@ -1976,28 +1976,28 @@ mod vec_inner_layout_tests {
         A: any::Any + alloc::Allocator + Send + Sync,
     {
         assert_eq!(
-            mem::offset_of!(TypedProjVecInner<T, A>, data),
-            mem::offset_of!(OpaqueVecInner, data),
+            mem::offset_of!(TypeProjectedVecInner<T, A>, data),
+            mem::offset_of!(TypeErasedVecInner, data),
             "Opaque and Typed Projected data types offsets mismatch"
         );
         assert_eq!(
-            mem::offset_of!(TypedProjVecInner<T, A>, length),
-            mem::offset_of!(OpaqueVecInner, length),
+            mem::offset_of!(TypeProjectedVecInner<T, A>, length),
+            mem::offset_of!(TypeErasedVecInner, length),
             "Opaque and Typed Projected data types offsets mismatch"
         );
         assert_eq!(
-            mem::offset_of!(TypedProjVecInner<T, A>, element_type_id),
-            mem::offset_of!(OpaqueVecInner, element_type_id),
+            mem::offset_of!(TypeProjectedVecInner<T, A>, element_type_id),
+            mem::offset_of!(TypeErasedVecInner, element_type_id),
             "Opaque and Typed Projected data types offsets mismatch"
         );
         assert_eq!(
-            mem::offset_of!(TypedProjVecInner<T, A>, allocator_type_id),
-            mem::offset_of!(OpaqueVecInner, allocator_type_id),
+            mem::offset_of!(TypeProjectedVecInner<T, A>, allocator_type_id),
+            mem::offset_of!(TypeErasedVecInner, allocator_type_id),
             "Opaque and Typed Projected data types offsets mismatch"
         );
         assert_eq!(
-            mem::offset_of!(TypedProjVecInner<T, A>, drop_fn),
-            mem::offset_of!(OpaqueVecInner, drop_fn),
+            mem::offset_of!(TypeProjectedVecInner<T, A>, drop_fn),
+            mem::offset_of!(TypeErasedVecInner, drop_fn),
             "Opaque and Typed Projected data types offsets mismatch"
         );
     }
@@ -2052,14 +2052,14 @@ mod vec_inner_assert_send_sync {
     fn test_assert_send_sync1() {
         fn assert_send_sync<T: Send + Sync>() {}
 
-        assert_send_sync::<TypedProjVecInner<i32, alloc::Global>>();
+        assert_send_sync::<TypeProjectedVecInner<i32, alloc::Global>>();
     }
 
     #[test]
     fn test_assert_send_sync2() {
         fn assert_send_sync<T: Send + Sync>() {}
 
-        assert_send_sync::<TypedProjVecInner<i32, dummy::DummyAlloc>>();
+        assert_send_sync::<TypeProjectedVecInner<i32, dummy::DummyAlloc>>();
     }
 }
 
@@ -2072,7 +2072,7 @@ mod assert_not_send_not_sync {
     fn test_assert_not_send_not_sync() {
         fn assert_send_sync<T: Send + Sync>() {}
 
-        assert_send_sync::<OpaqueVecInner>();
+        assert_send_sync::<TypeErasedVecInner>();
     }
 }
 */

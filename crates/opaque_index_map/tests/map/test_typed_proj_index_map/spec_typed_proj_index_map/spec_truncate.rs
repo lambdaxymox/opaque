@@ -1,5 +1,5 @@
 use crate::map::common::projected::strategy_type_projected_index_map_max_len;
-use opaque_index_map::TypedProjIndexMap;
+use opaque_index_map::TypeProjectedIndexMap;
 
 use core::any;
 use core::fmt;
@@ -16,7 +16,7 @@ use opaque_allocator_api::alloc;
 
 use proptest::prelude::*;
 
-fn prop_truncate_len_length_less_than_or_equal_to<K, V, S, A>(entries: TypedProjIndexMap<K, V, S, A>) -> Result<(), TestCaseError>
+fn prop_truncate_len_length_less_than_or_equal_to<K, V, S, A>(entries: TypeProjectedIndexMap<K, V, S, A>) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
@@ -24,7 +24,7 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    fn expected<K, V, S, A>(entries: &TypedProjIndexMap<K, V, S, A>, len: usize) -> Vec<(K, V)>
+    fn expected<K, V, S, A>(entries: &TypeProjectedIndexMap<K, V, S, A>, len: usize) -> Vec<(K, V)>
     where
         K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
         V: any::Any + Clone + Eq + fmt::Debug,
@@ -41,7 +41,7 @@ where
         vec
     }
 
-    fn result<K, V, S, A>(map: &TypedProjIndexMap<K, V, S, A>, len: usize) -> Vec<(K, V)>
+    fn result<K, V, S, A>(map: &TypeProjectedIndexMap<K, V, S, A>, len: usize) -> Vec<(K, V)>
     where
         K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
         V: any::Any + Clone + Eq + fmt::Debug,
@@ -73,7 +73,7 @@ where
     Ok(())
 }
 
-fn prop_truncate_length_less_than_or_equal_to<K, V, S, A>(entries: TypedProjIndexMap<K, V, S, A>) -> Result<(), TestCaseError>
+fn prop_truncate_length_less_than_or_equal_to<K, V, S, A>(entries: TypeProjectedIndexMap<K, V, S, A>) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
@@ -81,7 +81,7 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    fn expected<K, V, S, A>(entries: &TypedProjIndexMap<K, V, S, A>, len: usize) -> Vec<(K, V)>
+    fn expected<K, V, S, A>(entries: &TypeProjectedIndexMap<K, V, S, A>, len: usize) -> Vec<(K, V)>
     where
         K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
         V: any::Any + Clone + Eq + fmt::Debug,
@@ -98,7 +98,7 @@ where
         vec
     }
 
-    fn result<K, V, S, A>(map: &TypedProjIndexMap<K, V, S, A>, len: usize) -> Vec<(K, V)>
+    fn result<K, V, S, A>(map: &TypeProjectedIndexMap<K, V, S, A>, len: usize) -> Vec<(K, V)>
     where
         K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
         V: any::Any + Clone + Eq + fmt::Debug,
@@ -143,13 +143,13 @@ macro_rules! generate_props {
             proptest! {
                 #[test]
                 fn prop_truncate_len_length_less_than_or_equal_to(entries in super::$map_gen::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::TypedProjIndexMap<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ> = entries;
+                    let entries: super::TypeProjectedIndexMap<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ> = entries;
                     super::prop_truncate_len_length_less_than_or_equal_to(entries)?
                 }
 
                 #[test]
                 fn prop_truncate_length_less_than_or_equal_to(entries in super::$map_gen::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::TypedProjIndexMap<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ> = entries;
+                    let entries: super::TypeProjectedIndexMap<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ> = entries;
                     super::prop_truncate_length_less_than_or_equal_to(entries)?
                 }
             }

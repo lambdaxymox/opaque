@@ -1,5 +1,5 @@
 use crate::set::common::erased::strategy_type_erased_index_set_max_len;
-use opaque_index_map::OpaqueIndexSet;
+use opaque_index_map::TypeErasedIndexSet;
 
 use core::any;
 use core::fmt;
@@ -16,14 +16,14 @@ use opaque_allocator_api::alloc;
 
 use proptest::prelude::*;
 
-fn prop_clear_as_slice<T, S, A>(entries: OpaqueIndexSet) -> Result<(), TestCaseError>
+fn prop_clear_as_slice<T, S, A>(entries: TypeErasedIndexSet) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let expected = OpaqueIndexSet::with_hasher_proj_in::<T, S, A>(
+    let expected = TypeErasedIndexSet::with_hasher_proj_in::<T, S, A>(
         entries.hasher::<T, S, A>().clone(),
         entries.allocator::<T, S, A>().clone(),
     );
@@ -38,7 +38,7 @@ where
     Ok(())
 }
 
-fn prop_clear_is_empty<T, S, A>(entries: OpaqueIndexSet) -> Result<(), TestCaseError>
+fn prop_clear_is_empty<T, S, A>(entries: TypeErasedIndexSet) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -53,7 +53,7 @@ where
     Ok(())
 }
 
-fn prop_clear_len<T, S, A>(entries: OpaqueIndexSet) -> Result<(), TestCaseError>
+fn prop_clear_len<T, S, A>(entries: TypeErasedIndexSet) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -82,19 +82,19 @@ macro_rules! generate_props {
             proptest! {
                 #[test]
                 fn prop_clear_as_slice(entries in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::OpaqueIndexSet = entries;
+                    let entries: super::TypeErasedIndexSet = entries;
                     super::prop_clear_as_slice::<$value_typ, $build_hasher_typ, $alloc_typ>(entries)?
                 }
 
                 #[test]
                 fn prop_clear_is_empty(entries in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::OpaqueIndexSet = entries;
+                    let entries: super::TypeErasedIndexSet = entries;
                     super::prop_clear_is_empty::<$value_typ, $build_hasher_typ, $alloc_typ>(entries)?
                 }
 
                 #[test]
                 fn prop_clear_len(entries in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::OpaqueIndexSet = entries;
+                    let entries: super::TypeErasedIndexSet = entries;
                     super::prop_clear_len::<$value_typ, $build_hasher_typ, $alloc_typ>(entries)?
                 }
             }

@@ -1,4 +1,4 @@
-use opaque_vec::OpaqueVec;
+use opaque_vec::TypeErasedVec;
 
 use criterion::{
     Criterion,
@@ -28,7 +28,7 @@ fn bench_vec_get(c: &mut Criterion) {
 
 fn bench_opaque_vec_get(c: &mut Criterion) {
     let dummy_data = 0_i32;
-    let opaque_vec = OpaqueVec::from_iter((0..1000).map(|_| dummy_data));
+    let opaque_vec = TypeErasedVec::from_iter((0..1000).map(|_| dummy_data));
 
     c.bench_function("opaque_vec_get", |b| {
         b.iter(|| {

@@ -2,7 +2,7 @@ use crate::common::erased::{
     strategy_alloc,
     strategy_type_erased_vec_max_len,
 };
-use opaque_vec::OpaqueVec;
+use opaque_vec::TypeErasedVec;
 
 use core::any;
 use core::fmt;
@@ -29,7 +29,7 @@ where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
-    let mut vec = OpaqueVec::new_in::<T, A>(alloc);
+    let mut vec = TypeErasedVec::new_in::<T, A>(alloc);
 
     prop_assert!(!vec.contains::<T, A>(&value));
 
@@ -40,12 +40,12 @@ where
     Ok(())
 }
 
-fn prop_shift_insert_contains_same_index2<T, A>(values: OpaqueVec) -> Result<(), TestCaseError>
+fn prop_shift_insert_contains_same_index2<T, A>(values: TypeErasedVec) -> Result<(), TestCaseError>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
-    let mut vec = OpaqueVec::new_proj_in::<T, A>(values.allocator::<T, A>().clone());
+    let mut vec = TypeErasedVec::new_proj_in::<T, A>(values.allocator::<T, A>().clone());
     for value in values.iter::<T, A>() {
         prop_assert!(!vec.contains::<T, A>(&value));
     }
@@ -78,7 +78,7 @@ macro_rules! generate_props {
 
                 #[test]
                 fn prop_shift_insert_contains_same_index2(values in super::$vec_gen::<$typ, $alloc_typ>($max_length)) {
-                    let values: super::OpaqueVec = values;
+                    let values: super::TypeErasedVec = values;
                     super::prop_shift_insert_contains_same_index2::<$typ, $alloc_typ>(values)?
                 }
             }

@@ -2,8 +2,8 @@ use crate::common::erased::{
     strategy_type_erased_vec_max_len,
     strategy_type_erased_vec_max_len_nonempty,
 };
-use opaque_vec::OpaqueVec;
-use opaque_alloc::TypedProjAlloc;
+use opaque_vec::TypeErasedVec;
+use opaque_alloc::TypeProjectedAlloc;
 
 use core::any;
 use core::fmt;
@@ -18,7 +18,7 @@ use opaque_allocator_api::alloc;
 
 use proptest::prelude::*;
 
-fn prop_swap_remove_end<T, A>(values: OpaqueVec) -> Result<(), TestCaseError>
+fn prop_swap_remove_end<T, A>(values: TypeErasedVec) -> Result<(), TestCaseError>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
@@ -35,17 +35,17 @@ where
     Ok(())
 }
 
-fn prop_swap_remove_start<T, A>(values: OpaqueVec) -> Result<(), TestCaseError>
+fn prop_swap_remove_start<T, A>(values: TypeErasedVec) -> Result<(), TestCaseError>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
-    fn expected<T, A>(values: &[T], alloc: &TypedProjAlloc<A>) -> OpaqueVec
+    fn expected<T, A>(values: &[T], alloc: &TypeProjectedAlloc<A>) -> TypeErasedVec
     where
         T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
         A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
     {
-        let mut vec = OpaqueVec::new_proj_in::<T, A>(alloc.clone());
+        let mut vec = TypeErasedVec::new_proj_in::<T, A>(alloc.clone());
         for value in values.iter().take(values.len() - 1).cloned() {
             vec.push::<T, A>(value);
         }
@@ -72,7 +72,7 @@ where
     Ok(())
 }
 
-fn prop_swap_remove_get_from_end<T, A>(values: OpaqueVec) -> Result<(), TestCaseError>
+fn prop_swap_remove_get_from_end<T, A>(values: TypeErasedVec) -> Result<(), TestCaseError>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
@@ -90,7 +90,7 @@ where
     Ok(())
 }
 
-fn prop_swap_remove_len<T, A>(values: OpaqueVec) -> Result<(), TestCaseError>
+fn prop_swap_remove_len<T, A>(values: TypeErasedVec) -> Result<(), TestCaseError>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
@@ -120,25 +120,25 @@ macro_rules! generate_props {
             proptest! {
                 #[test]
                 fn prop_swap_remove_end(values in super::$nonempty_vec_gen::<$typ, $alloc_typ>($max_length)) {
-                    let values: super::OpaqueVec = values;
+                    let values: super::TypeErasedVec = values;
                     super::prop_swap_remove_end::<$typ, $alloc_typ>(values)?
                 }
 
                 #[test]
                 fn prop_swap_remove_start(values in super::$vec_gen::<$typ, $alloc_typ>($max_length)) {
-                    let values: super::OpaqueVec = values;
+                    let values: super::TypeErasedVec = values;
                     super::prop_swap_remove_start::<$typ, $alloc_typ>(values)?
                 }
 
                 #[test]
                 fn prop_swap_remove_get_from_end(values in super::$vec_gen::<$typ, $alloc_typ>($max_length)) {
-                    let values: super::OpaqueVec = values;
+                    let values: super::TypeErasedVec = values;
                     super::prop_swap_remove_get_from_end::<$typ, $alloc_typ>(values)?
                 }
 
                 #[test]
                 fn prop_swap_remove_len(values in super::$vec_gen::<$typ, $alloc_typ>($max_length)) {
-                    let values: super::OpaqueVec = values;
+                    let values: super::TypeErasedVec = values;
                     super::prop_swap_remove_len::<$typ, $alloc_typ>(values)?
                 }
             }

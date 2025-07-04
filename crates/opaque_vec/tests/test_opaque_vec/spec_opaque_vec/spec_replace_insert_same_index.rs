@@ -1,5 +1,5 @@
 use crate::common::erased::strategy_alloc;
-use opaque_vec::OpaqueVec;
+use opaque_vec::TypeErasedVec;
 
 use core::any;
 use core::fmt;
@@ -26,7 +26,7 @@ where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
-    let mut vec = OpaqueVec::new_in::<T, A>(alloc);
+    let mut vec = TypeErasedVec::new_in::<T, A>(alloc);
 
     prop_assert!(!vec.contains::<T, A>(&value));
 
@@ -42,7 +42,7 @@ where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
-    let mut vec = OpaqueVec::new_in::<T, A>(alloc);
+    let mut vec = TypeErasedVec::new_in::<T, A>(alloc);
     vec.replace_insert::<T, A>(0, initial_value.clone());
 
     prop_assert!(vec.contains::<T, A>(&initial_value));
@@ -61,7 +61,7 @@ where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
-    let mut vec = OpaqueVec::new_in::<T, A>(alloc);
+    let mut vec = TypeErasedVec::new_in::<T, A>(alloc);
     vec.replace_insert::<T, A>(0, value.clone());
 
     let expected = Some(value.clone());
@@ -77,7 +77,7 @@ where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
-    let mut vec = OpaqueVec::new_in::<T, A>(alloc);
+    let mut vec = TypeErasedVec::new_in::<T, A>(alloc);
     vec.replace_insert::<T, A>(0, initial_value.clone());
 
     let expected_initial = Some(initial_value.clone());
@@ -99,7 +99,7 @@ where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
-    let mut vec = OpaqueVec::new_in::<T, A>(alloc);
+    let mut vec = TypeErasedVec::new_in::<T, A>(alloc);
 
     prop_assert!(vec.is_empty());
 

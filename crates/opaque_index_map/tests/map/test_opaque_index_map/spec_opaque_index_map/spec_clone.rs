@@ -1,5 +1,5 @@
 use crate::map::common::erased::strategy_type_erased_index_map_max_len;
-use opaque_index_map::OpaqueIndexMap;
+use opaque_index_map::TypeErasedIndexMap;
 
 use core::any;
 use core::fmt;
@@ -16,7 +16,7 @@ use opaque_allocator_api::alloc;
 
 use proptest::prelude::*;
 
-fn prop_clone<K, V, S, A>(entries: OpaqueIndexMap) -> Result<(), TestCaseError>
+fn prop_clone<K, V, S, A>(entries: TypeErasedIndexMap) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
@@ -35,7 +35,7 @@ where
     Ok(())
 }
 
-fn prop_clone_len<K, V, S, A>(entries: OpaqueIndexMap) -> Result<(), TestCaseError>
+fn prop_clone_len<K, V, S, A>(entries: TypeErasedIndexMap) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
@@ -69,13 +69,13 @@ macro_rules! generate_props {
             proptest! {
                 #[test]
                 fn prop_clone(entries in super::$map_gen::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::OpaqueIndexMap = entries;
+                    let entries: super::TypeErasedIndexMap = entries;
                     super::prop_clone::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>(entries)?
                 }
 
                 #[test]
                 fn prop_clone_len(entries in super::$map_gen::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::OpaqueIndexMap = entries;
+                    let entries: super::TypeErasedIndexMap = entries;
                     super::prop_clone_len::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>(entries)?
                 }
             }

@@ -4,7 +4,7 @@ use crate::map::common::projected::{
     WrappingBuildHasher2,
     strategy_type_projected_index_map_max_len,
 };
-use opaque_index_map::TypedProjIndexMap;
+use opaque_index_map::TypeProjectedIndexMap;
 
 use core::any;
 use core::fmt;
@@ -22,8 +22,8 @@ use opaque_allocator_api::alloc;
 use proptest::prelude::*;
 
 fn prop_append_contains_key_source<K, V, S1, S2, A>(
-    entries1: TypedProjIndexMap<K, V, S1, A>,
-    entries2: TypedProjIndexMap<K, V, S2, A>,
+    entries1: TypeProjectedIndexMap<K, V, S1, A>,
+    entries2: TypeProjectedIndexMap<K, V, S2, A>,
 ) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -51,8 +51,8 @@ where
 }
 
 fn prop_append_contains_key_destination<K, V, S1, S2, A>(
-    entries1: TypedProjIndexMap<K, V, S1, A>,
-    entries2: TypedProjIndexMap<K, V, S2, A>,
+    entries1: TypeProjectedIndexMap<K, V, S1, A>,
+    entries2: TypeProjectedIndexMap<K, V, S2, A>,
 ) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -80,8 +80,8 @@ where
 }
 
 fn prop_append_get_source<K, V, S1, S2, A>(
-    entries1: TypedProjIndexMap<K, V, S1, A>,
-    entries2: TypedProjIndexMap<K, V, S2, A>,
+    entries1: TypeProjectedIndexMap<K, V, S1, A>,
+    entries2: TypeProjectedIndexMap<K, V, S2, A>,
 ) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -115,8 +115,8 @@ where
 }
 
 fn prop_append_get_destination<K, V, S1, S2, A>(
-    entries1: TypedProjIndexMap<K, V, S1, A>,
-    entries2: TypedProjIndexMap<K, V, S2, A>,
+    entries1: TypeProjectedIndexMap<K, V, S1, A>,
+    entries2: TypeProjectedIndexMap<K, V, S2, A>,
 ) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -144,8 +144,8 @@ where
 }
 
 fn prop_append_get_full_source<K, V, S1, S2, A>(
-    entries1: TypedProjIndexMap<K, V, S1, A>,
-    entries2: TypedProjIndexMap<K, V, S2, A>,
+    entries1: TypeProjectedIndexMap<K, V, S1, A>,
+    entries2: TypeProjectedIndexMap<K, V, S2, A>,
 ) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -179,8 +179,8 @@ where
 }
 
 fn prop_append_get_full_destination<K, V, S1, S2, A>(
-    entries1: TypedProjIndexMap<K, V, S1, A>,
-    entries2: TypedProjIndexMap<K, V, S2, A>,
+    entries1: TypeProjectedIndexMap<K, V, S1, A>,
+    entries2: TypeProjectedIndexMap<K, V, S2, A>,
 ) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -208,8 +208,8 @@ where
 }
 
 fn prop_append_get_index_of_source<K, V, S1, S2, A>(
-    entries1: TypedProjIndexMap<K, V, S1, A>,
-    entries2: TypedProjIndexMap<K, V, S2, A>,
+    entries1: TypeProjectedIndexMap<K, V, S1, A>,
+    entries2: TypeProjectedIndexMap<K, V, S2, A>,
 ) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -243,8 +243,8 @@ where
 }
 
 fn prop_append_get_index_of_destination<K, V, S1, S2, A>(
-    entries1: TypedProjIndexMap<K, V, S1, A>,
-    entries2: TypedProjIndexMap<K, V, S2, A>,
+    entries1: TypeProjectedIndexMap<K, V, S1, A>,
+    entries2: TypeProjectedIndexMap<K, V, S2, A>,
 ) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -268,8 +268,8 @@ where
 }
 
 fn prop_append_get_key_value_source<K, V, S1, S2, A>(
-    entries1: TypedProjIndexMap<K, V, S1, A>,
-    entries2: TypedProjIndexMap<K, V, S2, A>,
+    entries1: TypeProjectedIndexMap<K, V, S1, A>,
+    entries2: TypeProjectedIndexMap<K, V, S2, A>,
 ) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -303,8 +303,8 @@ where
 }
 
 fn prop_append_get_key_value_destination<K, V, S1, S2, A>(
-    entries1: TypedProjIndexMap<K, V, S1, A>,
-    entries2: TypedProjIndexMap<K, V, S2, A>,
+    entries1: TypeProjectedIndexMap<K, V, S1, A>,
+    entries2: TypeProjectedIndexMap<K, V, S2, A>,
 ) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -332,8 +332,8 @@ where
 }
 
 fn prop_append_len_source<K, V, S1, S2, A>(
-    entries1: TypedProjIndexMap<K, V, S1, A>,
-    entries2: TypedProjIndexMap<K, V, S2, A>,
+    entries1: TypeProjectedIndexMap<K, V, S1, A>,
+    entries2: TypeProjectedIndexMap<K, V, S2, A>,
 ) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -355,8 +355,8 @@ where
 }
 
 fn prop_append_len_destination<K, V, S1, S2, A>(
-    entries1: TypedProjIndexMap<K, V, S1, A>,
-    entries2: TypedProjIndexMap<K, V, S2, A>,
+    entries1: TypeProjectedIndexMap<K, V, S1, A>,
+    entries2: TypeProjectedIndexMap<K, V, S2, A>,
 ) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
@@ -396,8 +396,8 @@ macro_rules! generate_props {
                     entries1 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_src_length),
                     entries2 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_dst_length),
                 ) {
-                    let entries1: super::TypedProjIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ> = entries1;
-                    let entries2: super::TypedProjIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ> = entries2;
+                    let entries1: super::TypeProjectedIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ> = entries1;
+                    let entries2: super::TypeProjectedIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ> = entries2;
                     super::prop_append_contains_key_source(entries1, entries2)?
                 }
 
@@ -406,8 +406,8 @@ macro_rules! generate_props {
                     entries1 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_src_length),
                     entries2 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_dst_length),
                 ) {
-                    let entries1: super::TypedProjIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ> = entries1;
-                    let entries2: super::TypedProjIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ> = entries2;
+                    let entries1: super::TypeProjectedIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ> = entries1;
+                    let entries2: super::TypeProjectedIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ> = entries2;
                     super::prop_append_contains_key_destination(entries1, entries2)?
                 }
 
@@ -416,8 +416,8 @@ macro_rules! generate_props {
                     entries1 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_src_length),
                     entries2 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_dst_length),
                 ) {
-                    let entries1: super::TypedProjIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ> = entries1;
-                    let entries2: super::TypedProjIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ> = entries2;
+                    let entries1: super::TypeProjectedIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ> = entries1;
+                    let entries2: super::TypeProjectedIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ> = entries2;
                     super::prop_append_get_source(entries1, entries2)?
                 }
 
@@ -426,8 +426,8 @@ macro_rules! generate_props {
                     entries1 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_src_length),
                     entries2 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_dst_length),
                 ) {
-                    let entries1: super::TypedProjIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ> = entries1;
-                    let entries2: super::TypedProjIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ> = entries2;
+                    let entries1: super::TypeProjectedIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ> = entries1;
+                    let entries2: super::TypeProjectedIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ> = entries2;
                     super::prop_append_get_destination(entries1, entries2)?
                 }
 
@@ -436,8 +436,8 @@ macro_rules! generate_props {
                     entries1 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_src_length),
                     entries2 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_dst_length),
                 ) {
-                    let entries1: super::TypedProjIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ> = entries1;
-                    let entries2: super::TypedProjIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ> = entries2;
+                    let entries1: super::TypeProjectedIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ> = entries1;
+                    let entries2: super::TypeProjectedIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ> = entries2;
                     super::prop_append_get_full_source(entries1, entries2)?
                 }
 
@@ -446,8 +446,8 @@ macro_rules! generate_props {
                     entries1 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_src_length),
                     entries2 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_dst_length),
                 ) {
-                    let entries1: super::TypedProjIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ> = entries1;
-                    let entries2: super::TypedProjIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ> = entries2;
+                    let entries1: super::TypeProjectedIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ> = entries1;
+                    let entries2: super::TypeProjectedIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ> = entries2;
                     super::prop_append_get_full_destination(entries1, entries2)?
                 }
 
@@ -456,8 +456,8 @@ macro_rules! generate_props {
                     entries1 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_src_length),
                     entries2 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_dst_length),
                 ) {
-                    let entries1: super::TypedProjIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ> = entries1;
-                    let entries2: super::TypedProjIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ> = entries2;
+                    let entries1: super::TypeProjectedIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ> = entries1;
+                    let entries2: super::TypeProjectedIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ> = entries2;
                     super::prop_append_get_index_of_source(entries1, entries2)?
                 }
 
@@ -466,8 +466,8 @@ macro_rules! generate_props {
                     entries1 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_src_length),
                     entries2 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_dst_length),
                 ) {
-                    let entries1: super::TypedProjIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ> = entries1;
-                    let entries2: super::TypedProjIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ> = entries2;
+                    let entries1: super::TypeProjectedIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ> = entries1;
+                    let entries2: super::TypeProjectedIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ> = entries2;
                     super::prop_append_get_index_of_destination(entries1, entries2)?
                 }
 
@@ -476,8 +476,8 @@ macro_rules! generate_props {
                     entries1 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_src_length),
                     entries2 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_dst_length),
                 ) {
-                    let entries1: super::TypedProjIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ> = entries1;
-                    let entries2: super::TypedProjIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ> = entries2;
+                    let entries1: super::TypeProjectedIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ> = entries1;
+                    let entries2: super::TypeProjectedIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ> = entries2;
                     super::prop_append_get_key_value_source(entries1, entries2)?
                 }
 
@@ -486,8 +486,8 @@ macro_rules! generate_props {
                     entries1 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_src_length),
                     entries2 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_dst_length),
                 ) {
-                    let entries1: super::TypedProjIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ> = entries1;
-                    let entries2: super::TypedProjIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ> = entries2;
+                    let entries1: super::TypeProjectedIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ> = entries1;
+                    let entries2: super::TypeProjectedIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ> = entries2;
                     super::prop_append_get_key_value_destination(entries1, entries2)?
                 }
 
@@ -496,8 +496,8 @@ macro_rules! generate_props {
                     entries1 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_src_length),
                     entries2 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_dst_length),
                 ) {
-                    let entries1: super::TypedProjIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ> = entries1;
-                    let entries2: super::TypedProjIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ> = entries2;
+                    let entries1: super::TypeProjectedIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ> = entries1;
+                    let entries2: super::TypeProjectedIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ> = entries2;
                     super::prop_append_len_source(entries1, entries2)?
                 }
 
@@ -506,8 +506,8 @@ macro_rules! generate_props {
                     entries1 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ>($max_src_length),
                     entries2 in super::$map_gen::<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ>($max_dst_length),
                 ) {
-                    let entries1: super::TypedProjIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ> = entries1;
-                    let entries2: super::TypedProjIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ> = entries2;
+                    let entries1: super::TypeProjectedIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher1<$build_hasher_typ>, $alloc_typ> = entries1;
+                    let entries2: super::TypeProjectedIndexMap<$key_typ, $value_typ, super::WrappingBuildHasher2<$build_hasher_typ>, $alloc_typ> = entries2;
                     super::prop_append_len_destination(entries1, entries2)?
                 }
             }

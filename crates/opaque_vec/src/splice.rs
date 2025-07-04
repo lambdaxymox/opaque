@@ -12,7 +12,7 @@ use crate::drain::Drain;
 /// An iterator that drains a slice of a vector, then splices a new slice in place of the drained
 /// slice.
 ///
-/// Splicing iterators are created by the [`TypedProjVec::splice`] and [`OpaqueVec::splice`] 
+/// Splicing iterators are created by the [`TypeProjectedVec::splice`] and [`TypeErasedVec::splice`]
 /// methods.
 ///
 /// # Examples
@@ -21,7 +21,7 @@ use crate::drain::Drain;
 ///
 /// ```
 /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
-/// # use opaque_vec::TypedProjVec;
+/// # use opaque_vec::TypeProjectedVec;
 /// #
 /// # #[cfg(feature = "nightly")]
 /// # use std::alloc::Global;
@@ -29,9 +29,9 @@ use crate::drain::Drain;
 /// # #[cfg(not(feature = "nightly"))]
 /// # use opaque_allocator_api::alloc::Global;
 /// #
-/// let mut result = TypedProjVec::from([1, 2, 3, 4, 5]);
+/// let mut result = TypeProjectedVec::from([1, 2, 3, 4, 5]);
 /// let splice_data: [i32; 5] = [7, 8, 9, 10, 11];
-/// let expected = TypedProjVec::from([1, 7, 8, 9, 10, 11, 5]);
+/// let expected = TypeProjectedVec::from([1, 7, 8, 9, 10, 11, 5]);
 /// result.splice(1..4, splice_data);
 ///
 /// assert_eq!(result, expected);
@@ -41,7 +41,7 @@ use crate::drain::Drain;
 ///
 /// ```
 /// #![cfg_attr(feature = "nightly", feature(allocator_api))]
-/// # use opaque_vec::OpaqueVec;
+/// # use opaque_vec::TypeErasedVec;
 /// #
 /// # #[cfg(feature = "nightly")]
 /// # use std::alloc::Global;
@@ -51,7 +51,7 @@ use crate::drain::Drain;
 /// #
 /// let mut result = {
 ///     let array: [i32; 5] = [1, 2, 3, 4, 5];
-///     OpaqueVec::from(array)
+///     TypeErasedVec::from(array)
 /// };
 /// #
 /// # assert!(result.has_element_type::<i32>());
@@ -60,7 +60,7 @@ use crate::drain::Drain;
 /// let splice_data: [i32; 5] = [7, 8, 9, 10, 11];
 /// let expected = {
 ///     let array: [i32; 7] = [1, 7, 8, 9, 10, 11, 5];
-///     OpaqueVec::from(array)
+///     TypeErasedVec::from(array)
 /// };
 /// #
 /// # assert!(expected.has_element_type::<i32>());

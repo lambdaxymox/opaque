@@ -1,4 +1,4 @@
-use opaque_index_map::set::TypedProjIndexSet;
+use opaque_index_map::set::TypeProjectedIndexSet;
 
 use core::any;
 use core::fmt;
@@ -13,7 +13,7 @@ use opaque_allocator_api::alloc;
 
 #[test]
 fn test_empty_len1() {
-    let proj_set: TypedProjIndexSet<u64> = TypedProjIndexSet::new();
+    let proj_set: TypeProjectedIndexSet<u64> = TypeProjectedIndexSet::new();
     let expected = 0;
     let result = proj_set.len();
 
@@ -22,14 +22,14 @@ fn test_empty_len1() {
 
 #[test]
 fn test_empty_is_empty1() {
-    let proj_set: TypedProjIndexSet<u64> = TypedProjIndexSet::new();
+    let proj_set: TypeProjectedIndexSet<u64> = TypeProjectedIndexSet::new();
 
     assert!(proj_set.is_empty());
 }
 
 #[test]
 fn test_empty_contains_no_values1() {
-    let proj_set: TypedProjIndexSet<u64> = TypedProjIndexSet::new();
+    let proj_set: TypeProjectedIndexSet<u64> = TypeProjectedIndexSet::new();
     for value in 0..65536 {
         assert!(!proj_set.contains(&value));
     }
@@ -37,7 +37,7 @@ fn test_empty_contains_no_values1() {
 
 #[test]
 fn test_empty_get1() {
-    let proj_set: TypedProjIndexSet<u64> = TypedProjIndexSet::new();
+    let proj_set: TypeProjectedIndexSet<u64> = TypeProjectedIndexSet::new();
     for value in 0..65536 {
         let result = proj_set.get(&value);
 
@@ -47,7 +47,7 @@ fn test_empty_get1() {
 
 #[test]
 fn test_empty_len2() {
-    let proj_set: TypedProjIndexSet<u64> = TypedProjIndexSet::new();
+    let proj_set: TypeProjectedIndexSet<u64> = TypeProjectedIndexSet::new();
     let expected = 0;
     let result = proj_set.len();
 
@@ -56,14 +56,14 @@ fn test_empty_len2() {
 
 #[test]
 fn test_empty_is_empty2() {
-    let proj_set: TypedProjIndexSet<u64> = TypedProjIndexSet::new();
+    let proj_set: TypeProjectedIndexSet<u64> = TypeProjectedIndexSet::new();
 
     assert!(proj_set.is_empty());
 }
 
 #[test]
 fn test_empty_contains_no_values2() {
-    let proj_set: TypedProjIndexSet<u64> = TypedProjIndexSet::new();
+    let proj_set: TypeProjectedIndexSet<u64> = TypeProjectedIndexSet::new();
     for value in 0..65536 {
         assert!(!proj_set.contains(&value));
     }
@@ -71,7 +71,7 @@ fn test_empty_contains_no_values2() {
 
 #[test]
 fn test_empty_get2() {
-    let proj_set: TypedProjIndexSet<u64> = TypedProjIndexSet::new();
+    let proj_set: TypeProjectedIndexSet<u64> = TypeProjectedIndexSet::new();
     for value in 0..65536 {
         let result = proj_set.get(&value);
 

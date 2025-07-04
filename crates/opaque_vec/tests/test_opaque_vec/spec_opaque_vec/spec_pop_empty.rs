@@ -1,5 +1,5 @@
 use crate::common::erased::strategy_alloc;
-use opaque_vec::OpaqueVec;
+use opaque_vec::TypeErasedVec;
 
 use core::any;
 use core::fmt;
@@ -19,7 +19,7 @@ where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
-    let mut vec = OpaqueVec::new_in::<T, A>(alloc);
+    let mut vec = TypeErasedVec::new_in::<T, A>(alloc);
 
     prop_assert!(vec.pop::<T, A>().is_none());
 
@@ -31,7 +31,7 @@ where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
-    let mut vec = OpaqueVec::new_in::<T, A>(alloc);
+    let mut vec = TypeErasedVec::new_in::<T, A>(alloc);
 
     for _ in 0..65536 {
         prop_assert!(vec.pop::<T, A>().is_none());
@@ -45,7 +45,7 @@ where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
-    let mut vec = OpaqueVec::new_in::<T, A>(alloc);
+    let mut vec = TypeErasedVec::new_in::<T, A>(alloc);
 
     prop_assert!(vec.is_empty());
 
@@ -61,7 +61,7 @@ where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
-    let mut vec = OpaqueVec::new_in::<T, A>(alloc);
+    let mut vec = TypeErasedVec::new_in::<T, A>(alloc);
 
     prop_assert!(vec.is_empty());
 

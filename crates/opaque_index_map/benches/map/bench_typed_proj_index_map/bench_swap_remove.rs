@@ -1,4 +1,4 @@
-use opaque_index_map::map::TypedProjIndexMap;
+use opaque_index_map::map::TypeProjectedIndexMap;
 
 use criterion::{
     Criterion,
@@ -41,7 +41,7 @@ fn bench_typed_proj_index_map_swap_remove(c: &mut Criterion) {
 
     c.bench_function("typed_proj_index_map_swap_remove", |b| {
         b.iter_batched(
-            || TypedProjIndexMap::<i32, i32, hash::RandomState, alloc::Global>::from_iter(keys.clone().zip(values.clone())),
+            || TypeProjectedIndexMap::<i32, i32, hash::RandomState, alloc::Global>::from_iter(keys.clone().zip(values.clone())),
             |mut proj_map| {
                 let keys: Vec<i32> = proj_map.keys().cloned().collect();
                 for key in keys.iter() {

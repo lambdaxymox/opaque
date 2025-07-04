@@ -1,4 +1,4 @@
-use opaque_vec::TypedProjVec;
+use opaque_vec::TypeProjectedVec;
 
 use core::any;
 use core::fmt;
@@ -13,12 +13,12 @@ use opaque_allocator_api::alloc;
 
 use proptest::prelude::*;
 
-pub fn shift_insert_slice<T, A>(values: &[T], slice: &[T], start: usize, alloc: A) -> TypedProjVec<T, A>
+pub fn shift_insert_slice<T, A>(values: &[T], slice: &[T], start: usize, alloc: A) -> TypeProjectedVec<T, A>
 where
     T: any::Any + Clone,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let mut vec = TypedProjVec::new_in(alloc);
+    let mut vec = TypeProjectedVec::new_in(alloc);
     for value in values.iter().cloned() {
         vec.push(value);
     }
@@ -63,21 +63,21 @@ where
     Just(A::default())
 }
 
-pub fn strategy_type_projected_vec_len<T, A>(length: usize) -> impl Strategy<Value = TypedProjVec<T, A>>
+pub fn strategy_type_projected_vec_len<T, A>(length: usize) -> impl Strategy<Value = TypeProjectedVec<T, A>>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary + SingleBoundedValue,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
     (proptest::collection::vec(strategy_bounded_value::<T>(), length), strategy_alloc::<A>())
         .prop_map(move |(values, alloc)| {
-            let mut opaque_vec = TypedProjVec::new_in(alloc);
+            let mut opaque_vec = TypeProjectedVec::new_in(alloc);
             opaque_vec.extend(values);
 
             opaque_vec
         })
 }
 
-pub fn strategy_type_projected_vec_max_len<T, A>(max_length: usize) -> impl Strategy<Value = TypedProjVec<T, A>>
+pub fn strategy_type_projected_vec_max_len<T, A>(max_length: usize) -> impl Strategy<Value = TypeProjectedVec<T, A>>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary + SingleBoundedValue,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
@@ -85,7 +85,7 @@ where
     (0..=max_length).prop_flat_map(move |length| strategy_type_projected_vec_len(length))
 }
 
-pub fn strategy_type_projected_vec_max_len_nonempty<T, A>(max_length: usize) -> impl Strategy<Value = TypedProjVec<T, A>>
+pub fn strategy_type_projected_vec_max_len_nonempty<T, A>(max_length: usize) -> impl Strategy<Value = TypeProjectedVec<T, A>>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary + SingleBoundedValue,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,

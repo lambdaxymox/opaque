@@ -1,4 +1,4 @@
-use opaque_hash::TypedProjBuildHasher;
+use opaque_hash::TypeProjectedBuildHasher;
 
 use core::any;
 use std::hash;
@@ -13,7 +13,7 @@ where
     value.hash(&mut hasher);
     let expected = hasher.finish();
 
-    let proj_build_hasher = TypedProjBuildHasher::new(default_build_hasher);
+    let proj_build_hasher = TypeProjectedBuildHasher::new(default_build_hasher);
     let mut proj_hasher = proj_build_hasher.build_hasher();
     value.hash(&mut proj_hasher);
     let result = proj_hasher.finish();

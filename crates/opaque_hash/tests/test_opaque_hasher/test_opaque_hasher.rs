@@ -1,4 +1,4 @@
-use opaque_hash::OpaqueBuildHasher;
+use opaque_hash::TypeErasedBuildHasher;
 
 use core::any;
 use std::hash;
@@ -13,7 +13,7 @@ where
     value.hash(&mut hasher);
     let expected = hasher.finish();
 
-    let opaque_build_hasher = OpaqueBuildHasher::new(default_build_hasher);
+    let opaque_build_hasher = TypeErasedBuildHasher::new(default_build_hasher);
     let mut opaque_hasher = opaque_build_hasher.build_hasher_proj::<hash::RandomState>();
     value.hash(&mut opaque_hasher);
     let result = opaque_hasher.finish();

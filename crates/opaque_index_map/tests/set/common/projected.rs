@@ -1,4 +1,4 @@
-use opaque_index_map::TypedProjIndexSet;
+use opaque_index_map::TypeProjectedIndexSet;
 
 use core::any;
 use core::fmt;
@@ -100,7 +100,7 @@ where
     Just(S::default())
 }
 
-pub fn strategy_type_projected_index_set_len<T, S, A>(length: usize) -> impl Strategy<Value = TypedProjIndexSet<T, S, A>>
+pub fn strategy_type_projected_index_set_len<T, S, A>(length: usize) -> impl Strategy<Value = TypeProjectedIndexSet<T, S, A>>
 where
     T: any::Any + Clone + Eq + hash::Hash + Ord + Default + fmt::Debug + Arbitrary + SingleBoundedValue,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone + Default + fmt::Debug,
@@ -109,14 +109,14 @@ where
 {
     (proptest::collection::vec(strategy_bounded_value::<T>(), length), strategy_build_hasher::<S>(), strategy_alloc::<A>())
         .prop_map(move |(values, build_hasher, alloc)| {
-            let mut proj_set = TypedProjIndexSet::with_hasher_in(build_hasher, alloc);
+            let mut proj_set = TypeProjectedIndexSet::with_hasher_in(build_hasher, alloc);
             proj_set.extend(values);
 
             proj_set
         })
 }
 
-pub fn strategy_type_projected_index_set_max_len<T, S, A>(max_length: usize) -> impl Strategy<Value = TypedProjIndexSet<T, S, A>>
+pub fn strategy_type_projected_index_set_max_len<T, S, A>(max_length: usize) -> impl Strategy<Value = TypeProjectedIndexSet<T, S, A>>
 where
     T: any::Any + Clone + Eq + hash::Hash + Ord + Default + fmt::Debug + Arbitrary + SingleBoundedValue,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone + Default + fmt::Debug,
@@ -126,7 +126,7 @@ where
     (0..=max_length).prop_flat_map(move |length| strategy_type_projected_index_set_len(length))
 }
 
-pub fn strategy_type_projected_index_set_max_len_nonempty<T, S, A>(max_length: usize) -> impl Strategy<Value = TypedProjIndexSet<T, S, A>>
+pub fn strategy_type_projected_index_set_max_len_nonempty<T, S, A>(max_length: usize) -> impl Strategy<Value = TypeProjectedIndexSet<T, S, A>>
 where
     T: any::Any + Clone + Eq + hash::Hash + Ord + Default + fmt::Debug + Arbitrary + SingleBoundedValue,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone + Default + fmt::Debug,

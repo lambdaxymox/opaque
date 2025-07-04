@@ -1,5 +1,5 @@
 use crate::common::erased::strategy_array;
-use opaque_vec::OpaqueVec;
+use opaque_vec::TypeErasedVec;
 
 use core::any;
 use core::fmt;
@@ -18,7 +18,7 @@ fn prop_from_array_as_slice<const N: usize, T>(expected: [T; N]) -> Result<(), T
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
 {
-    let vec = OpaqueVec::from(expected.clone());
+    let vec = TypeErasedVec::from(expected.clone());
     let result = vec.as_slice::<T, alloc::Global>();
 
     prop_assert_eq!(result, expected);

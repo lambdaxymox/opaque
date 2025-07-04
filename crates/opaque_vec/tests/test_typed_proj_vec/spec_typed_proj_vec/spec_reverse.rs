@@ -1,5 +1,5 @@
 use crate::common::projected::strategy_type_projected_vec_max_len;
-use opaque_vec::TypedProjVec;
+use opaque_vec::TypeProjectedVec;
 
 use core::any;
 use core::fmt;
@@ -14,17 +14,17 @@ use opaque_allocator_api::alloc;
 
 use proptest::prelude::*;
 
-fn prop_reverse<T, A>(values: TypedProjVec<T, A>) -> Result<(), TestCaseError>
+fn prop_reverse<T, A>(values: TypeProjectedVec<T, A>) -> Result<(), TestCaseError>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
-    fn expected<T, A>(values: &TypedProjVec<T, A>) -> TypedProjVec<T, A>
+    fn expected<T, A>(values: &TypeProjectedVec<T, A>) -> TypeProjectedVec<T, A>
     where
         T: any::Any + PartialEq + Clone + Default + fmt::Debug,
         A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
     {
-        let mut vec = TypedProjVec::new_proj_in(values.allocator().clone());
+        let mut vec = TypeProjectedVec::new_proj_in(values.allocator().clone());
         for value in values.iter().rev().cloned() {
             vec.push(value);
         }
@@ -32,7 +32,7 @@ where
         vec
     }
 
-    fn result<T, A>(values: &TypedProjVec<T, A>) -> TypedProjVec<T, A>
+    fn result<T, A>(values: &TypeProjectedVec<T, A>) -> TypeProjectedVec<T, A>
     where
         T: any::Any + PartialEq + Clone + Default + fmt::Debug,
         A: any::Any + alloc::Allocator + Send + Sync + Clone,
@@ -58,7 +58,7 @@ macro_rules! generate_props {
             proptest! {
                 #[test]
                 fn prop_reverse(values in super::$vec_gen::<$typ, $alloc_typ>($max_length)) {
-                    let values: super::TypedProjVec<$typ, $alloc_typ> = values;
+                    let values: super::TypeProjectedVec<$typ, $alloc_typ> = values;
                     super::prop_reverse(values)?
                 }
             }

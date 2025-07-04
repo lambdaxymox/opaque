@@ -1,4 +1,4 @@
-use opaque_index_map::set::OpaqueIndexSet;
+use opaque_index_map::set::TypeErasedIndexSet;
 
 use criterion::{
     Criterion,
@@ -33,7 +33,7 @@ fn bench_opaque_index_set_shift_insert(c: &mut Criterion) {
     c.bench_function("opaque_index_set_shift_insert", |b| {
         b.iter(|| {
             let values = 0..1000;
-            let mut opaque_set = OpaqueIndexSet::new::<i32>();
+            let mut opaque_set = TypeErasedIndexSet::new::<i32>();
             for (index, value) in values.enumerate() {
                 opaque_set.shift_insert::<i32, hash::RandomState, alloc::Global>(index, value);
             }

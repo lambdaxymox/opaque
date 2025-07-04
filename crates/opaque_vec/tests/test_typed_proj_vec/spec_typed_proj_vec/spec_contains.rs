@@ -1,5 +1,5 @@
 use crate::common::projected::strategy_type_projected_vec_max_len;
-use opaque_vec::TypedProjVec;
+use opaque_vec::TypeProjectedVec;
 
 use core::any;
 use core::fmt;
@@ -14,7 +14,7 @@ use opaque_allocator_api::alloc;
 
 use proptest::prelude::*;
 
-fn prop_contains<T, A>(values: TypedProjVec<T, A>) -> Result<(), TestCaseError>
+fn prop_contains<T, A>(values: TypeProjectedVec<T, A>) -> Result<(), TestCaseError>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
@@ -26,12 +26,12 @@ where
     Ok(())
 }
 
-fn prop_contains_empty<T, A>(values: TypedProjVec<T, A>) -> Result<(), TestCaseError>
+fn prop_contains_empty<T, A>(values: TypeProjectedVec<T, A>) -> Result<(), TestCaseError>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
-    let empty_values = TypedProjVec::new_proj_in(values.allocator().clone());
+    let empty_values = TypeProjectedVec::new_proj_in(values.allocator().clone());
     for value in values.iter() {
         prop_assert!(!empty_values.contains(value));
     }
@@ -46,13 +46,13 @@ macro_rules! generate_props {
             proptest! {
                 #[test]
                 fn prop_contains(values in super::$vec_gen::<$typ, $alloc_typ>($max_length)) {
-                    let values: super::TypedProjVec<$typ, $alloc_typ> = values;
+                    let values: super::TypeProjectedVec<$typ, $alloc_typ> = values;
                     super::prop_contains(values)?
                 }
 
                 #[test]
                 fn prop_contains_empty(values in super::$vec_gen::<$typ, $alloc_typ>($max_length)) {
-                    let values: super::TypedProjVec<$typ, $alloc_typ> = values;
+                    let values: super::TypeProjectedVec<$typ, $alloc_typ> = values;
                     super::prop_contains_empty(values)?
                 }
             }

@@ -1,4 +1,4 @@
-use opaque_vec::OpaqueVec;
+use opaque_vec::TypeErasedVec;
 
 use criterion::{
     Criterion,
@@ -35,7 +35,7 @@ fn bench_opaque_vec_shift_remove_last(c: &mut Criterion) {
 
     c.bench_function("opaque_vec_shift_remove_last", |b| {
         b.iter_batched(
-            || OpaqueVec::from_iter((0..1000).map(|_| dummy_data)),
+            || TypeErasedVec::from_iter((0..1000).map(|_| dummy_data)),
             |mut opaque_vec| {
                 for _ in 0..opaque_vec.len() {
                     let last_index = opaque_vec.len() - 1;

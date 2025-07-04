@@ -1,5 +1,5 @@
 use crate::common::erased::strategy_type_erased_vec_max_len;
-use opaque_vec::OpaqueVec;
+use opaque_vec::TypeErasedVec;
 
 use core::any;
 use core::fmt;
@@ -14,7 +14,7 @@ use opaque_allocator_api::alloc;
 
 use proptest::prelude::*;
 
-fn prop_extend_from_slice_values<T, A>(values: OpaqueVec, extension_values: OpaqueVec) -> Result<(), TestCaseError>
+fn prop_extend_from_slice_values<T, A>(values: TypeErasedVec, extension_values: TypeErasedVec) -> Result<(), TestCaseError>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
@@ -36,7 +36,7 @@ where
     Ok(())
 }
 
-fn prop_extend_from_slice_len<T, A>(values: OpaqueVec, extension_values: OpaqueVec) -> Result<(), TestCaseError>
+fn prop_extend_from_slice_len<T, A>(values: TypeErasedVec, extension_values: TypeErasedVec) -> Result<(), TestCaseError>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
@@ -62,8 +62,8 @@ macro_rules! generate_props {
                     values1 in super::$vec_gen::<$typ, $alloc_typ>($max_length),
                     values2 in super::$vec_gen::<$typ, $alloc_typ>($max_length),
                 ) {
-                    let values1: super::OpaqueVec = values1;
-                    let values2: super::OpaqueVec = values2;
+                    let values1: super::TypeErasedVec = values1;
+                    let values2: super::TypeErasedVec = values2;
                     super::prop_extend_from_slice_values::<$typ, $alloc_typ>(values1, values2)?
                 }
 
@@ -72,8 +72,8 @@ macro_rules! generate_props {
                     values1 in super::$vec_gen::<$typ, $alloc_typ>($max_length),
                     values2 in super::$vec_gen::<$typ, $alloc_typ>($max_length),
                 ) {
-                    let values1: super::OpaqueVec = values1;
-                    let values2: super::OpaqueVec = values2;
+                    let values1: super::TypeErasedVec = values1;
+                    let values2: super::TypeErasedVec = values2;
                     super::prop_extend_from_slice_len::<$typ, $alloc_typ>(values1, values2)?
                 }
             }

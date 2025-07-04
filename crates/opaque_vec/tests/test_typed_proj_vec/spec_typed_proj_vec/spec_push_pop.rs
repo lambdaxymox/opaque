@@ -1,5 +1,5 @@
 use crate::common::projected::strategy_type_projected_vec_max_len;
-use opaque_vec::TypedProjVec;
+use opaque_vec::TypeProjectedVec;
 
 use core::any;
 use core::fmt;
@@ -14,17 +14,17 @@ use opaque_allocator_api::alloc;
 
 use proptest::prelude::*;
 
-fn prop_push_pop<T, A>(values: TypedProjVec<T, A>) -> Result<(), TestCaseError>
+fn prop_push_pop<T, A>(values: TypeProjectedVec<T, A>) -> Result<(), TestCaseError>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
-    fn expected<T, A>(values: &TypedProjVec<T, A>) -> TypedProjVec<T, A>
+    fn expected<T, A>(values: &TypeProjectedVec<T, A>) -> TypeProjectedVec<T, A>
     where
         T: any::Any + PartialEq + Clone + Default + fmt::Debug,
         A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
     {
-        let mut expected_vec = TypedProjVec::new_proj_in(values.allocator().clone());
+        let mut expected_vec = TypeProjectedVec::new_proj_in(values.allocator().clone());
         for value in values.iter().rev().cloned() {
             expected_vec.push(value);
         }
@@ -32,13 +32,13 @@ where
         expected_vec
     }
 
-    fn result<T, A>(values: &TypedProjVec<T, A>) -> TypedProjVec<T, A>
+    fn result<T, A>(values: &TypeProjectedVec<T, A>) -> TypeProjectedVec<T, A>
     where
         T: any::Any + PartialEq + Clone + Default + fmt::Debug,
         A: any::Any + alloc::Allocator + Send + Sync + Clone,
     {
         let mut vec = values.clone();
-        let mut result_vec = TypedProjVec::new_proj_in(values.allocator().clone());
+        let mut result_vec = TypeProjectedVec::new_proj_in(values.allocator().clone());
         for _ in 0..vec.len() {
             let popped = vec.pop();
 
@@ -56,12 +56,12 @@ where
     Ok(())
 }
 
-fn prop_push_pop_exists<T, A>(values: TypedProjVec<T, A>) -> Result<(), TestCaseError>
+fn prop_push_pop_exists<T, A>(values: TypeProjectedVec<T, A>) -> Result<(), TestCaseError>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
-    let mut vec = TypedProjVec::new_proj_in(values.allocator().clone());
+    let mut vec = TypeProjectedVec::new_proj_in(values.allocator().clone());
     for value in values.iter().cloned() {
         vec.push(value);
     }
@@ -79,12 +79,12 @@ where
     Ok(())
 }
 
-fn prop_push_pop_len<T, A>(values: TypedProjVec<T, A>) -> Result<(), TestCaseError>
+fn prop_push_pop_len<T, A>(values: TypeProjectedVec<T, A>) -> Result<(), TestCaseError>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
-    let mut vec = TypedProjVec::new_proj_in(values.allocator().clone());
+    let mut vec = TypeProjectedVec::new_proj_in(values.allocator().clone());
     for value in values.iter().cloned() {
         vec.push(value);
     }
@@ -106,19 +106,19 @@ macro_rules! generate_props {
             proptest! {
                 #[test]
                 fn prop_push_pop(values in super::$vec_gen::<$typ, $alloc_typ>($max_length)) {
-                    let values: super::TypedProjVec<$typ, $alloc_typ> = values;
+                    let values: super::TypeProjectedVec<$typ, $alloc_typ> = values;
                     super::prop_push_pop(values)?
                 }
 
                 #[test]
                 fn prop_push_pop_exists(values in super::$vec_gen::<$typ, $alloc_typ>($max_length)) {
-                    let values: super::TypedProjVec<$typ, $alloc_typ> = values;
+                    let values: super::TypeProjectedVec<$typ, $alloc_typ> = values;
                     super::prop_push_pop_exists(values)?
                 }
 
                 #[test]
                 fn prop_push_pop_len(values in super::$vec_gen::<$typ, $alloc_typ>($max_length)) {
-                    let values: super::TypedProjVec<$typ, $alloc_typ> = values;
+                    let values: super::TypeProjectedVec<$typ, $alloc_typ> = values;
                     super::prop_push_pop_len(values)?
                 }
             }

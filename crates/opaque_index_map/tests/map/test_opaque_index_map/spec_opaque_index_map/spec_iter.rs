@@ -1,5 +1,5 @@
 use crate::map::common::erased::strategy_type_erased_index_map_max_len;
-use opaque_index_map::OpaqueIndexMap;
+use opaque_index_map::TypeErasedIndexMap;
 
 use core::any;
 use core::fmt;
@@ -16,7 +16,7 @@ use opaque_allocator_api::alloc;
 
 use proptest::prelude::*;
 
-fn prop_iter_contains_key<K, V, S, A>(entries: OpaqueIndexMap) -> Result<(), TestCaseError>
+fn prop_iter_contains_key<K, V, S, A>(entries: TypeErasedIndexMap) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
@@ -32,7 +32,7 @@ where
     Ok(())
 }
 
-fn prop_iter_get<K, V, S, A>(entries: OpaqueIndexMap) -> Result<(), TestCaseError>
+fn prop_iter_get<K, V, S, A>(entries: TypeErasedIndexMap) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
@@ -51,7 +51,7 @@ where
     Ok(())
 }
 
-fn prop_iter_get_full<K, V, S, A>(entries: OpaqueIndexMap) -> Result<(), TestCaseError>
+fn prop_iter_get_full<K, V, S, A>(entries: TypeErasedIndexMap) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
@@ -70,7 +70,7 @@ where
     Ok(())
 }
 
-fn prop_iter_get_full_mut<K, V, S, A>(entries: OpaqueIndexMap) -> Result<(), TestCaseError>
+fn prop_iter_get_full_mut<K, V, S, A>(entries: TypeErasedIndexMap) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
@@ -90,7 +90,7 @@ where
     Ok(())
 }
 
-fn prop_iter_get_index<K, V, S, A>(entries: OpaqueIndexMap) -> Result<(), TestCaseError>
+fn prop_iter_get_index<K, V, S, A>(entries: TypeErasedIndexMap) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
@@ -109,7 +109,7 @@ where
     Ok(())
 }
 
-fn prop_iter_get_index_of<K, V, S, A>(entries: OpaqueIndexMap) -> Result<(), TestCaseError>
+fn prop_iter_get_index_of<K, V, S, A>(entries: TypeErasedIndexMap) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
@@ -128,7 +128,7 @@ where
     Ok(())
 }
 
-fn prop_iter_get_key_value<K, V, S, A>(entries: OpaqueIndexMap) -> Result<(), TestCaseError>
+fn prop_iter_get_key_value<K, V, S, A>(entries: TypeErasedIndexMap) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
@@ -147,7 +147,7 @@ where
     Ok(())
 }
 
-fn prop_iter_get_mut<K, V, S, A>(entries: OpaqueIndexMap) -> Result<(), TestCaseError>
+fn prop_iter_get_mut<K, V, S, A>(entries: TypeErasedIndexMap) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
@@ -182,49 +182,49 @@ macro_rules! generate_props {
             proptest! {
                 #[test]
                 fn prop_iter_contains_key(entries in super::$map_gen::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::OpaqueIndexMap = entries;
+                    let entries: super::TypeErasedIndexMap = entries;
                     super::prop_iter_contains_key::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>(entries)?
                 }
 
                 #[test]
                 fn prop_iter_get(entries in super::$map_gen::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::OpaqueIndexMap = entries;
+                    let entries: super::TypeErasedIndexMap = entries;
                     super::prop_iter_get::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>(entries)?
                 }
 
                 #[test]
                 fn prop_iter_get_full(entries in super::$map_gen::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::OpaqueIndexMap = entries;
+                    let entries: super::TypeErasedIndexMap = entries;
                     super::prop_iter_get_full::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>(entries)?
                 }
 
                 #[test]
                 fn prop_iter_get_full_mut(entries in super::$map_gen::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::OpaqueIndexMap = entries;
+                    let entries: super::TypeErasedIndexMap = entries;
                     super::prop_iter_get_full_mut::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>(entries)?
                 }
 
                 #[test]
                 fn prop_iter_get_index(entries in super::$map_gen::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::OpaqueIndexMap = entries;
+                    let entries: super::TypeErasedIndexMap = entries;
                     super::prop_iter_get_index::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>(entries)?
                 }
 
                 #[test]
                 fn prop_iter_get_index_of(entries in super::$map_gen::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::OpaqueIndexMap = entries;
+                    let entries: super::TypeErasedIndexMap = entries;
                     super::prop_iter_get_index_of::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>(entries)?
                 }
 
                 #[test]
                 fn prop_iter_get_key_value(entries in super::$map_gen::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::OpaqueIndexMap = entries;
+                    let entries: super::TypeErasedIndexMap = entries;
                     super::prop_iter_get_key_value::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>(entries)?
                 }
 
                 #[test]
                 fn prop_iter_get_mut(entries in super::$map_gen::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
-                    let entries: super::OpaqueIndexMap = entries;
+                    let entries: super::TypeErasedIndexMap = entries;
                     super::prop_iter_get_mut::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>(entries)?
                 }
             }

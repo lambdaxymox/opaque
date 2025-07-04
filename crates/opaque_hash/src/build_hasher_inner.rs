@@ -9,7 +9,7 @@ use std::hash;
 use core::hash;
 
 #[repr(C)]
-pub(crate) struct TypedProjBuildHasherInner<S>
+pub(crate) struct TypeProjectedBuildHasherInner<S>
 where
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
@@ -20,7 +20,7 @@ where
     _marker: marker::PhantomData<S>,
 }
 
-impl<S> TypedProjBuildHasherInner<S>
+impl<S> TypeProjectedBuildHasherInner<S>
 where
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
@@ -36,7 +36,7 @@ where
     }
 }
 
-impl<S> TypedProjBuildHasherInner<S>
+impl<S> TypeProjectedBuildHasherInner<S>
 where
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
@@ -89,7 +89,7 @@ where
     }
 }
 
-impl<S> TypedProjBuildHasherInner<S>
+impl<S> TypeProjectedBuildHasherInner<S>
 where
     S: any::Any + hash::BuildHasher + Send + Sync,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
@@ -104,7 +104,7 @@ where
     }
 }
 
-impl<S> Clone for TypedProjBuildHasherInner<S>
+impl<S> Clone for TypeProjectedBuildHasherInner<S>
 where
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
@@ -121,13 +121,13 @@ where
 }
 
 #[repr(C)]
-pub(crate) struct OpaqueBuildHasherInner {
+pub(crate) struct TypeErasedBuildHasherInner {
     build_hasher: Box<dyn any::Any>,
     build_hasher_type_id: any::TypeId,
     hasher_type_id: any::TypeId,
 }
 
-impl OpaqueBuildHasherInner {
+impl TypeErasedBuildHasherInner {
     #[inline]
     pub(crate) const fn build_hasher_type_id(&self) -> any::TypeId {
         self.build_hasher_type_id
@@ -139,7 +139,7 @@ impl OpaqueBuildHasherInner {
     }
 }
 
-impl OpaqueBuildHasherInner {
+impl TypeErasedBuildHasherInner {
     #[inline]
     pub(crate) fn new<S>(build_hasher: S) -> Self
     where
@@ -172,9 +172,9 @@ impl OpaqueBuildHasherInner {
     }
 }
 
-impl OpaqueBuildHasherInner {
+impl TypeErasedBuildHasherInner {
     #[inline(always)]
-    pub(crate) fn as_proj<S>(&self) -> &TypedProjBuildHasherInner<S>
+    pub(crate) fn as_proj<S>(&self) -> &TypeProjectedBuildHasherInner<S>
     where
         S: any::Any + hash::BuildHasher + Send + Sync,
         S::Hasher: any::Any + hash::Hasher + Send + Sync,
@@ -182,11 +182,11 @@ impl OpaqueBuildHasherInner {
         debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
         debug_assert_eq!(self.hasher_type_id(), any::TypeId::of::<S::Hasher>());
 
-        unsafe { &*(self as *const OpaqueBuildHasherInner as *const TypedProjBuildHasherInner<S>) }
+        unsafe { &*(self as *const TypeErasedBuildHasherInner as *const TypeProjectedBuildHasherInner<S>) }
     }
 
     #[inline(always)]
-    pub(crate) fn as_proj_mut<S>(&mut self) -> &mut TypedProjBuildHasherInner<S>
+    pub(crate) fn as_proj_mut<S>(&mut self) -> &mut TypeProjectedBuildHasherInner<S>
     where
         S: any::Any + hash::BuildHasher + Send + Sync,
         S::Hasher: any::Any + hash::Hasher + Send + Sync,
@@ -194,11 +194,11 @@ impl OpaqueBuildHasherInner {
         debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
         debug_assert_eq!(self.hasher_type_id(), any::TypeId::of::<S::Hasher>());
 
-        unsafe { &mut *(self as *mut OpaqueBuildHasherInner as *mut TypedProjBuildHasherInner<S>) }
+        unsafe { &mut *(self as *mut TypeErasedBuildHasherInner as *mut TypeProjectedBuildHasherInner<S>) }
     }
 
     #[inline(always)]
-    pub(crate) fn into_proj<S>(self) -> TypedProjBuildHasherInner<S>
+    pub(crate) fn into_proj<S>(self) -> TypeProjectedBuildHasherInner<S>
     where
         S: any::Any + hash::BuildHasher + Send + Sync,
         S::Hasher: any::Any + hash::Hasher + Send + Sync,
@@ -211,7 +211,7 @@ impl OpaqueBuildHasherInner {
             Box::from_raw(unboxed_build_hasher as *mut S)
         };
 
-        TypedProjBuildHasherInner {
+        TypeProjectedBuildHasherInner {
             build_hasher: boxed_build_hasher,
             build_hasher_type_id: self.build_hasher_type_id,
             hasher_type_id: self.hasher_type_id,
@@ -220,7 +220,7 @@ impl OpaqueBuildHasherInner {
     }
 
     #[inline(always)]
-    pub(crate) fn from_proj<S>(proj_self: TypedProjBuildHasherInner<S>) -> Self
+    pub(crate) fn from_proj<S>(proj_self: TypeProjectedBuildHasherInner<S>) -> Self
     where
         S: any::Any + hash::BuildHasher + Send + Sync,
         S::Hasher: any::Any + hash::Hasher + Send + Sync,
@@ -276,8 +276,8 @@ mod build_hasher_inner_layout_tests {
         S: any::Any + hash::BuildHasher + Send + Sync,
         S::Hasher: any::Any + hash::Hasher + Send + Sync,
     {
-        let expected = core::mem::size_of::<TypedProjBuildHasherInner<S>>();
-        let result = core::mem::size_of::<OpaqueBuildHasherInner>();
+        let expected = core::mem::size_of::<TypeProjectedBuildHasherInner<S>>();
+        let result = core::mem::size_of::<TypeErasedBuildHasherInner>();
 
         assert_eq!(result, expected, "Opaque and Typed Projected data types size mismatch");
     }
@@ -287,8 +287,8 @@ mod build_hasher_inner_layout_tests {
         S: any::Any + hash::BuildHasher + Send + Sync,
         S::Hasher: any::Any + hash::Hasher + Send + Sync,
     {
-        let expected = core::mem::align_of::<TypedProjBuildHasherInner<S>>();
-        let result = core::mem::align_of::<OpaqueBuildHasherInner>();
+        let expected = core::mem::align_of::<TypeProjectedBuildHasherInner<S>>();
+        let result = core::mem::align_of::<TypeErasedBuildHasherInner>();
 
         assert_eq!(result, expected, "Opaque and Typed Projected data types alignment mismatch");
     }
@@ -299,18 +299,18 @@ mod build_hasher_inner_layout_tests {
         S::Hasher: any::Any + hash::Hasher + Send + Sync,
     {
         assert_eq!(
-            core::mem::offset_of!(TypedProjBuildHasherInner<S>, build_hasher),
-            core::mem::offset_of!(OpaqueBuildHasherInner, build_hasher),
+            core::mem::offset_of!(TypeProjectedBuildHasherInner<S>, build_hasher),
+            core::mem::offset_of!(TypeErasedBuildHasherInner, build_hasher),
             "Opaque and Typed Projected data types offsets mismatch"
         );
         assert_eq!(
-            core::mem::offset_of!(TypedProjBuildHasherInner<S>, build_hasher_type_id),
-            core::mem::offset_of!(OpaqueBuildHasherInner, build_hasher_type_id),
+            core::mem::offset_of!(TypeProjectedBuildHasherInner<S>, build_hasher_type_id),
+            core::mem::offset_of!(TypeErasedBuildHasherInner, build_hasher_type_id),
             "Opaque and Typed Projected data types offsets mismatch"
         );
         assert_eq!(
-            core::mem::offset_of!(TypedProjBuildHasherInner<S>, hasher_type_id),
-            core::mem::offset_of!(OpaqueBuildHasherInner, hasher_type_id),
+            core::mem::offset_of!(TypeProjectedBuildHasherInner<S>, hasher_type_id),
+            core::mem::offset_of!(TypeErasedBuildHasherInner, hasher_type_id),
             "Opaque and Typed Projected data types offsets mismatch"
         );
     }
@@ -353,14 +353,14 @@ mod assert_send_sync {
     fn test_assert_send_sync1() {
         fn assert_send_sync<T: Send + Sync>() {}
 
-        assert_send_sync::<TypedProjBuildHasherInner<hash::RandomState>>();
+        assert_send_sync::<TypeProjectedBuildHasherInner<hash::RandomState>>();
     }
 
     #[test]
     fn test_assert_send_sync2() {
         fn assert_send_sync<T: Send + Sync>() {}
 
-        assert_send_sync::<TypedProjBuildHasherInner<dummy::DummyBuildHasher>>();
+        assert_send_sync::<TypeProjectedBuildHasherInner<dummy::DummyBuildHasher>>();
     }
 }
 
@@ -373,7 +373,7 @@ mod assert_not_send_not_sync {
     fn test_assert_not_send_not_sync() {
         fn assert_send_sync<T: Send + Sync>() {}
 
-        assert_send_sync::<OpaqueBuildHasherInner>();
+        assert_send_sync::<TypeErasedBuildHasherInner>();
     }
 }
 */
