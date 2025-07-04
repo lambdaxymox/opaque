@@ -358,6 +358,10 @@ where
 /// # use std::hash::{DefaultHasher, RandomState};
 /// #
 /// let opaque_build_hasher = OpaqueBuildHasher::new::<RandomState>(RandomState::new());
+/// #
+/// # assert!(opaque_build_hasher.has_build_hasher_type::<RandomState>());
+/// # assert!(opaque_build_hasher.has_hasher_type::<DefaultHasher>());
+/// #
 ///
 /// assert_eq!(opaque_build_hasher.build_hasher_type_id(), TypeId::of::<RandomState>());
 ///
@@ -630,9 +634,13 @@ impl OpaqueBuildHasher {
     /// ```
     /// # use opaque_hash::OpaqueBuildHasher;
     /// # use std::any::TypeId;
-    /// # use std::hash::RandomState;
+    /// # use std::hash::{DefaultHasher, RandomState};
     /// #
     /// let opaque_build_hasher = OpaqueBuildHasher::new::<RandomState>(RandomState::new());
+    /// #
+    /// # assert!(opaque_build_hasher.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_build_hasher.has_hasher_type::<DefaultHasher>());
+    /// #
     ///
     /// assert_eq!(opaque_build_hasher.build_hasher_type_id(), TypeId::of::<RandomState>());
     /// assert_ne!(opaque_build_hasher.build_hasher_type_id(), TypeId::of::<Box<RandomState>>());
@@ -658,9 +666,13 @@ impl OpaqueBuildHasher {
     /// ```
     /// # use opaque_hash::OpaqueBuildHasher;
     /// # use std::any::TypeId;
-    /// # use std::hash::RandomState;
+    /// # use std::hash::{DefaultHasher, RandomState};
     /// #
     /// let opaque_build_hasher = OpaqueBuildHasher::from_boxed_build_hasher::<RandomState>(Box::new(RandomState::new()));
+    /// #
+    /// # assert!(opaque_build_hasher.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_build_hasher.has_hasher_type::<DefaultHasher>());
+    /// #
     ///
     /// assert_eq!(opaque_build_hasher.build_hasher_type_id(), TypeId::of::<RandomState>());
     /// assert_ne!(opaque_build_hasher.build_hasher_type_id(), TypeId::of::<Box<RandomState>>());
@@ -688,9 +700,13 @@ impl OpaqueBuildHasher {
     /// ```
     /// # use opaque_hash::OpaqueBuildHasher;
     /// # use std::any::TypeId;
-    /// # use std::hash::RandomState;
+    /// # use std::hash::{DefaultHasher, RandomState};
     /// #
     /// let opaque_build_hasher = OpaqueBuildHasher::from_boxed_build_hasher(Box::new(RandomState::new()));
+    /// #
+    /// # assert!(opaque_build_hasher.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_build_hasher.has_hasher_type::<DefaultHasher>());
+    /// #
     ///
     /// let build_hasher: &RandomState = opaque_build_hasher.get_build_hasher::<RandomState>();
     /// ```
@@ -718,12 +734,20 @@ impl OpaqueBuildHasher {
     /// ```
     /// # use opaque_hash::OpaqueBuildHasher;
     /// # use std::any::TypeId;
-    /// # use std::hash::RandomState;
+    /// # use std::hash::{DefaultHasher, RandomState};
     /// #
     /// let opaque_build_hasher = OpaqueBuildHasher::new(RandomState::new());
+    /// #
+    /// # assert!(opaque_build_hasher.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_build_hasher.has_hasher_type::<DefaultHasher>());
+    /// #
     /// let boxed_build_hasher: Box<RandomState> = opaque_build_hasher.into_boxed_build_hasher::<RandomState>();
     ///
     /// let new_opaque_build_hasher = OpaqueBuildHasher::from_boxed_build_hasher(boxed_build_hasher);
+    /// #
+    /// # assert!(new_opaque_build_hasher.has_build_hasher_type::<RandomState>());
+    /// # assert!(new_opaque_build_hasher.has_hasher_type::<DefaultHasher>());
+    /// #
     ///
     /// assert_eq!(new_opaque_build_hasher.build_hasher_type_id(), TypeId::of::<RandomState>());
     /// assert_ne!(new_opaque_build_hasher.build_hasher_type_id(), TypeId::of::<Box<RandomState>>());

@@ -678,6 +678,9 @@ impl OpaqueAlloc {
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_alloc = OpaqueAlloc::new(Global);
+    /// #
+    /// # assert!(opaque_alloc.has_allocator_type::<Global>());
+    /// #
     ///
     /// let alloc: &Global = opaque_alloc.allocator::<Global>();
     /// ```
@@ -716,9 +719,15 @@ impl OpaqueAlloc {
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_alloc = OpaqueAlloc::new(Global);
+    /// #
+    /// # assert!(opaque_alloc.has_allocator_type::<Global>());
+    /// #
     /// let boxed_alloc: Box<Global> = opaque_alloc.into_boxed_alloc::<Global>();
     ///
     /// let new_opaque_alloc = OpaqueAlloc::from_boxed_alloc(boxed_alloc);
+    /// #
+    /// # assert!(new_opaque_alloc.has_allocator_type::<Global>());
+    /// #
     ///
     /// assert_eq!(new_opaque_alloc.allocator_type_id(), TypeId::of::<Global>());
     /// assert_ne!(new_opaque_alloc.allocator_type_id(), TypeId::of::<Box<Global>>());
@@ -768,6 +777,9 @@ impl OpaqueAlloc {
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_alloc = OpaqueAlloc::new(Global);
+    /// #
+    /// # assert!(opaque_alloc.has_allocator_type::<Global>());
+    /// #
     /// let cloned = opaque_alloc.clone::<Global>();
     /// ```
     #[track_caller]

@@ -283,6 +283,9 @@ where
 /// # use std::hash::DefaultHasher;
 /// #
 /// let opaque_hasher = OpaqueHasher::new::<DefaultHasher>(DefaultHasher::new());
+/// #
+/// # assert!(opaque_hasher.has_hasher_type::<DefaultHasher>());
+/// #
 ///
 /// assert_eq!(opaque_hasher.hasher_type_id(), TypeId::of::<DefaultHasher>());
 /// ```
@@ -302,6 +305,9 @@ impl OpaqueHasher {
     /// # use std::hash::DefaultHasher;
     /// #
     /// let opaque_hasher = OpaqueHasher::new::<DefaultHasher>(DefaultHasher::new());
+    /// #
+    /// # assert!(opaque_hasher.has_hasher_type::<DefaultHasher>());
+    /// #
     ///
     /// assert_eq!(opaque_hasher.hasher_type_id(), TypeId::of::<DefaultHasher>());
     /// ```
@@ -501,6 +507,9 @@ impl OpaqueHasher {
     /// # use std::hash::DefaultHasher;
     /// #
     /// let opaque_hasher = OpaqueHasher::new::<DefaultHasher>(DefaultHasher::new());
+    /// #
+    /// # assert!(opaque_hasher.has_hasher_type::<DefaultHasher>());
+    /// #
     ///
     /// assert_eq!(opaque_hasher.hasher_type_id(), TypeId::of::<DefaultHasher>());
     /// assert_ne!(opaque_hasher.hasher_type_id(), TypeId::of::<Box<DefaultHasher>>());
@@ -528,6 +537,9 @@ impl OpaqueHasher {
     /// # use std::hash::DefaultHasher;
     /// #
     /// let opaque_hasher = OpaqueHasher::from_boxed_hasher(Box::new(DefaultHasher::new()));
+    /// #
+    /// # assert!(opaque_hasher.has_hasher_type::<DefaultHasher>());
+    /// #
     ///
     /// assert_eq!(opaque_hasher.hasher_type_id(), TypeId::of::<DefaultHasher>());
     /// assert_ne!(opaque_hasher.hasher_type_id(), TypeId::of::<Box<DefaultHasher>>());
