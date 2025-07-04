@@ -316,6 +316,7 @@ mod hasher_inner_layout_tests {
 
 #[cfg(test)]
 mod assert_send_sync {
+    use crate::TypedProjBuildHasher;
     use super::*;
 
     #[cfg(feature = "std")]
@@ -333,3 +334,17 @@ mod assert_send_sync {
         assert_send_sync::<TypedProjHasherInner<dummy::DummyHasher>>();
     }
 }
+
+/*
+#[cfg(test)]
+mod assert_not_send_not_sync {
+    use super::*;
+
+    #[test]
+    fn test_assert_not_send_not_sync() {
+        fn assert_send_sync<T: Send + Sync>() {}
+
+        assert_send_sync::<OpaqueHasherInner>();
+    }
+}
+*/

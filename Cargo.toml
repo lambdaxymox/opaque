@@ -10,19 +10,24 @@ std = [
     "opaque_error/std",
     "opaque_hash/std",
     "opaque_index_map/std",
-    "opaque_vec/std"
+    "opaque_vec/std",
+    "opaque_allocator_api/std"
 ]
 nightly = [
     "opaque_alloc/nightly",
     "opaque_hash/nightly",
     "opaque_index_map/nightly",
-    "opaque_vec/nightly"
+    "opaque_vec/nightly",
+    "opaque_allocator_api/nightly"
 ]
 
 [dependencies]
 
 [dependencies.opaque_alloc]
 path = "crates/opaque_alloc"
+
+[dependencies.opaque_allocator_api]
+path = "crates/opaque_allocator_api"
 
 [dependencies.opaque_error]
 path = "crates/opaque_error"

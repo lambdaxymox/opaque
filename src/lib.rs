@@ -6,6 +6,10 @@ extern crate alloc as alloc_crate;
 #[cfg(feature = "std")]
 extern crate std;
 
+pub mod allocator_api {
+    pub use opaque_allocator_api::*;
+}
+
 pub mod alloc {
     pub use opaque_alloc::*;
 }

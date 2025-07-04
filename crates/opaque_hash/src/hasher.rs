@@ -765,4 +765,13 @@ mod assert_send_sync {
 
         assert_send_sync::<TypedProjHasher<dummy::DummyHasher>>();
     }
+
+    /*
+    #[test]
+    fn test_assert_not_send_not_sync() {
+        fn assert_send_sync<T: Send + Sync>() {}
+
+        assert_send_sync::<OpaqueHasher>();
+    }
+    */
 }

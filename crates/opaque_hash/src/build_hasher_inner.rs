@@ -363,3 +363,17 @@ mod assert_send_sync {
         assert_send_sync::<TypedProjBuildHasherInner<dummy::DummyBuildHasher>>();
     }
 }
+
+/*
+#[cfg(test)]
+mod assert_not_send_not_sync {
+    use super::*;
+
+    #[test]
+    fn test_assert_not_send_not_sync() {
+        fn assert_send_sync<T: Send + Sync>() {}
+
+        assert_send_sync::<OpaqueBuildHasherInner>();
+    }
+}
+*/
