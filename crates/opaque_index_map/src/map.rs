@@ -30,7 +30,7 @@ use opaque_vec::TypedProjVec;
 
 /// A draining iterator over the entries of a [`TypedProjIndexMap`] or [`OpaqueIndexMap`].
 ///
-/// Draining iterators are created by the [`TypedProjIndexMap::drain`] or [`OpaqueIndexMap::entry`]
+/// Draining iterators are created by the [`TypedProjIndexMap::drain`] or [`OpaqueIndexMap::drain`]
 /// methods.
 ///
 /// # Examples
@@ -265,6 +265,179 @@ where
 {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt::Debug::fmt(&self.iter, formatter)
+    }
+}
+
+/// An extracting iterator over the entries of an index map.
+///
+/// Extracting iterators are created by the [`TypedProjIndexMap::extract_if`] and
+/// [`OpaqueIndexMap::extract_if`] methods.
+///
+/// # Examples
+///
+/// Using an extracting iterator on a type-projected index map.
+///
+/// ```
+/// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
+/// # use opaque_index_map::TypedProjIndexMap;
+/// # use opaque_hash::TypedProjBuildHasher;
+/// # use opaque_alloc::TypedProjAlloc;
+/// # use opaque_vec::TypedProjVec;
+/// # use std::any::TypeId;
+/// # use std::hash::RandomState;
+/// #
+/// # #[cfg(feature = "nightly")]
+/// # use std::alloc::Global;
+/// #
+/// # #[cfg(not(feature = "nightly"))]
+/// # use opaque_allocator_api::alloc::Global;
+/// #
+/// let mut proj_map = TypedProjIndexMap::from([
+///     (0_usize, 1_i32),
+///     (1_usize, 2_i32),
+///     (2_usize, i32::MAX),
+///     (3_usize, i32::MAX),
+///     (4_usize, 3_i32),
+///     (5_usize, i32::MAX),
+/// ]);
+/// let extracted: TypedProjVec<(usize, i32)> = proj_map
+///     .extract_if(.., |_, v| *v == i32::MAX)
+///     .collect();
+/// let remainder = TypedProjVec::from_iter(proj_map.iter().map(|(k, v)| (k.clone(), v.clone())));
+///
+/// let expected_extracted = TypedProjVec::from([
+///     (2_usize, i32::MAX),
+///     (3_usize, i32::MAX),
+///     (5_usize, i32::MAX),
+/// ]);
+/// let expected_remainder = TypedProjVec::from([
+///     (0_usize, 1_i32),
+///     (1_usize, 2_i32),
+///     (4_usize, 3_i32),
+/// ]);
+///
+/// assert_eq!(extracted.as_slice(), expected_extracted.as_slice());
+/// assert_eq!(remainder.as_slice(), expected_remainder.as_slice());
+/// ```
+///
+/// Using an extracting iterator on a type-erased index map.
+///
+/// ```
+/// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
+/// # use opaque_index_map::OpaqueIndexMap;
+/// # use opaque_hash::TypedProjBuildHasher;
+/// # use opaque_alloc::TypedProjAlloc;
+/// # use opaque_vec::TypedProjVec;
+/// # use std::any::TypeId;
+/// # use std::hash::RandomState;
+/// #
+/// # #[cfg(feature = "nightly")]
+/// # use std::alloc::Global;
+/// #
+/// # #[cfg(not(feature = "nightly"))]
+/// # use opaque_allocator_api::alloc::Global;
+/// #
+/// let mut opaque_map = OpaqueIndexMap::from([
+///     (0_usize, 1_i32),
+///     (1_usize, 2_i32),
+///     (2_usize, i32::MAX),
+///     (3_usize, i32::MAX),
+///     (4_usize, 3_i32),
+///     (5_usize, i32::MAX),
+/// ]);
+/// #
+/// # assert!(opaque_map.has_key_type::<usize>());
+/// # assert!(opaque_map.has_value_type::<i32>());
+/// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+/// # assert!(opaque_map.has_allocator_type::<Global>());
+/// #
+/// let extracted: TypedProjVec<(usize, i32)> = opaque_map
+///     .extract_if::<_, _, usize, i32, RandomState, Global>(.., |_, v| *v == i32::MAX)
+///     .collect();
+/// let remainder = TypedProjVec::from_iter(opaque_map
+///     .iter::<usize, i32, RandomState, Global>()
+///     .map(|(k, v)| (k.clone(), v.clone()))
+/// );
+///
+/// let expected_extracted = TypedProjVec::from([
+///     (2_usize, i32::MAX),
+///     (3_usize, i32::MAX),
+///     (5_usize, i32::MAX),
+/// ]);
+/// let expected_remainder = TypedProjVec::from([
+///     (0_usize, 1_i32),
+///     (1_usize, 2_i32),
+///     (4_usize, 3_i32),
+/// ]);
+///
+/// assert_eq!(extracted.as_slice(), expected_extracted.as_slice());
+/// assert_eq!(remainder.as_slice(), expected_remainder.as_slice());
+/// ```
+pub struct ExtractIf<'a, K, V, F, A>
+where
+    K: any::Any,
+    V: any::Any,
+    F: FnMut(&K, &mut V) -> bool,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    iter: map_inner::Extract<'a, K, V, A>,
+    filter: F,
+}
+
+impl<'a, K, V, F, A> ExtractIf<'a, K, V, F, A>
+where
+    K: any::Any,
+    V: any::Any,
+    F: FnMut(&K, &mut V) -> bool,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    #[inline]
+    const fn new(iter: map_inner::Extract<'a, K, V, A>, filter: F) -> ExtractIf<'a, K, V, F, A> {
+        ExtractIf { iter, filter }
+    }
+}
+
+impl<K, V, F, A> Iterator for ExtractIf<'_, K, V, F, A>
+where
+    K: any::Any,
+    V: any::Any,
+    F: FnMut(&K, &mut V) -> bool,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    type Item = (K, V);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter
+            .extract_if(|bucket| {
+                let (key, value) = bucket.ref_mut();
+                (self.filter)(key, value)
+            })
+            .map(Bucket::key_value)
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (0, Some(self.iter.remaining()))
+    }
+}
+
+impl<K, V, F, A> iter::FusedIterator for ExtractIf<'_, K, V, F, A>
+where
+    K: any::Any,
+    V: any::Any,
+    F: FnMut(&K, &mut V) -> bool,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+}
+
+impl<K, V, F, A> fmt::Debug for ExtractIf<'_, K, V, F, A>
+where
+    K: any::Any + fmt::Debug,
+    V: any::Any + fmt::Debug,
+    F: FnMut(&K, &mut V) -> bool,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.debug_struct("ExtractIf").finish_non_exhaustive()
     }
 }
 
@@ -10063,6 +10236,132 @@ where
         R: ops::RangeBounds<usize>,
     {
         Drain::new(self.inner.drain(range))
+    }
+
+    /// Creates an iterator which uses a closure to determine if a value in the storage range
+    /// should be removed from the index map.
+    ///
+    /// The extracting iterator removes all entries `e` for which `filter(e)` returns `true`. If the
+    /// closure `filter` returns `false`, or panics, the entry `e` remains in the index map and will
+    /// not be returned by the extracting iterator. The only entries from the original range of the
+    /// collection that remain are those for which `filter` returns `false`. The iterator retains
+    /// the relative storage order of the remaining entries in the index map.
+    ///
+    /// If the extracting iterator is dropped before being full consumed, the iterator retains
+    /// any entries not visited by it.
+    ///
+    /// This method can mutate every value in the filter closure, regardless of whether the
+    /// method returns or retains the value.
+    ///
+    /// Only values that fall in the provided range are considered for extraction, but any
+    /// entries after the range will still have to be moved if any entry has been extracted.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if `range` is out of bounds.
+    ///
+    /// # Examples
+    ///
+    /// Extracting from the entire range of an index map.
+    ///
+    /// ```
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
+    /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
+    /// #
+    /// let mut proj_map = TypedProjIndexMap::from([
+    ///     (0_usize, 1_i32),
+    ///     (1_usize, 2_i32),
+    ///     (2_usize, 3_i32),
+    ///     (3_usize, 4_i32),
+    ///     (4_usize, 5_i32),
+    ///     (5_usize, 6_i32),
+    ///     (6_usize, 7_i32),
+    /// ]);
+    /// let extracted: TypedProjVec<(usize, i32)> = proj_map
+    ///     .extract_if(.., |_, v| *v % 2 == 0)
+    ///     .collect();
+    /// let remainder = TypedProjVec::from_iter(proj_map.iter().map(|(k, v)| (k.clone(), v.clone())));
+    ///
+    /// let expected_extracted = TypedProjVec::from([
+    ///     (1_usize, 2_i32),
+    ///     (3_usize, 4_i32),
+    ///     (5_usize, 6_i32),
+    /// ]);
+    /// let expected_remainder = TypedProjVec::from([
+    ///     (0_usize, 1_i32),
+    ///     (2_usize, 3_i32),
+    ///     (4_usize, 5_i32),
+    ///     (6_usize, 7_i32),
+    /// ]);
+    ///
+    /// assert_eq!(extracted.as_slice(), expected_extracted.as_slice());
+    /// assert_eq!(remainder.as_slice(), expected_remainder.as_slice());
+    /// ```
+    ///
+    /// Extracting from a partial range of an index map.
+    ///
+    /// ```
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
+    /// # use opaque_index_map::TypedProjIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
+    /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
+    /// #
+    /// let mut proj_map = TypedProjIndexMap::from([
+    ///     (0_usize, 1_i32),
+    ///     (1_usize, 2_i32),
+    ///     (2_usize, 3_i32),
+    ///     (3_usize, 4_i32),
+    ///     (4_usize, 5_i32),
+    ///     (5_usize, 6_i32),
+    ///     (6_usize, 7_i32),
+    /// ]);
+    /// let extracted: TypedProjVec<(usize, i32)> = proj_map
+    ///     .extract_if(1..5, |_, v| *v % 2 == 0)
+    ///     .collect();
+    /// let remainder = TypedProjVec::from_iter(proj_map.iter().map(|(k, v)| (k.clone(), v.clone())));
+    ///
+    /// let expected_extracted = TypedProjVec::from([
+    ///     (1_usize, 2_i32),
+    ///     (3_usize, 4_i32),
+    /// ]);
+    /// let expected_remainder = TypedProjVec::from([
+    ///     (0_usize, 1_i32),
+    ///     (2_usize, 3_i32),
+    ///     (4_usize, 5_i32),
+    ///     (5_usize, 6_i32),
+    ///     (6_usize, 7_i32),
+    /// ]);
+    ///
+    /// assert_eq!(extracted.as_slice(), expected_extracted.as_slice());
+    /// assert_eq!(remainder.as_slice(), expected_remainder.as_slice());
+    /// ```
+    #[track_caller]
+    pub fn extract_if<F, R>(&mut self, range: R, filter: F) -> ExtractIf<'_, K, V, F, A>
+    where
+        F: FnMut(&K, &mut V) -> bool,
+        R: ops::RangeBounds<usize>,
+    {
+        ExtractIf::new(self.inner.extract(range), filter)
     }
 
     /// Splits a type-projected index map into two type-projected index maps at the given index.
@@ -19993,6 +20292,157 @@ impl OpaqueIndexMap {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
 
         proj_self.drain(range)
+    }
+
+    /// Creates an iterator which uses a closure to determine if a value in the storage range
+    /// should be removed from the index map.
+    ///
+    /// The extracting iterator removes all entries `e` for which `filter(e)` returns `true`. If the
+    /// closure `filter` returns `false`, or panics, the entry `e` remains in the index map and will
+    /// not be returned by the extracting iterator. The only entries from the original range of the
+    /// collection that remain are those for which `filter` returns `false`. The iterator retains
+    /// the relative storage order of the remaining entries in the index map.
+    ///
+    /// If the extracting iterator is dropped before being full consumed, the iterator retains
+    /// any entries not visited by it.
+    ///
+    /// This method can mutate every value in the filter closure, regardless of whether the
+    /// method returns or retains the value.
+    ///
+    /// Only values that fall in the provided range are considered for extraction, but any
+    /// entries after the range will still have to be moved if any entry has been extracted.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if `range` is out of bounds.
+    ///
+    /// # Examples
+    ///
+    /// Extracting from the entire range of an index map.
+    ///
+    /// ```
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
+    /// # use opaque_index_map::OpaqueIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
+    /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
+    /// #
+    /// let mut opaque_map = OpaqueIndexMap::from([
+    ///     (0_usize, 1_i32),
+    ///     (1_usize, 2_i32),
+    ///     (2_usize, 3_i32),
+    ///     (3_usize, 4_i32),
+    ///     (4_usize, 5_i32),
+    ///     (5_usize, 6_i32),
+    ///     (6_usize, 7_i32),
+    /// ]);
+    /// #
+    /// # assert!(opaque_map.has_key_type::<usize>());
+    /// # assert!(opaque_map.has_value_type::<i32>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
+    /// let extracted: TypedProjVec<(usize, i32)> = opaque_map
+    ///     .extract_if::<_, _, usize, i32, RandomState, Global>(.., |_, v| *v % 2 == 0)
+    ///     .collect();
+    /// let remainder = TypedProjVec::from_iter(opaque_map
+    ///     .iter::<usize, i32, RandomState, Global>()
+    ///     .map(|(k, v)| (k.clone(), v.clone()))
+    /// );
+    ///
+    /// let expected_extracted = TypedProjVec::from([
+    ///     (1_usize, 2_i32),
+    ///     (3_usize, 4_i32),
+    ///     (5_usize, 6_i32),
+    /// ]);
+    /// let expected_remainder = TypedProjVec::from([
+    ///     (0_usize, 1_i32),
+    ///     (2_usize, 3_i32),
+    ///     (4_usize, 5_i32),
+    ///     (6_usize, 7_i32),
+    /// ]);
+    ///
+    /// assert_eq!(extracted.as_slice(), expected_extracted.as_slice());
+    /// assert_eq!(remainder.as_slice(), expected_remainder.as_slice());
+    /// ```
+    ///
+    /// Extracting from a partial range of an index map.
+    ///
+    /// ```
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
+    /// # use opaque_index_map::OpaqueIndexMap;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
+    /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
+    /// #
+    /// let mut opaque_map = OpaqueIndexMap::from([
+    ///     (0_usize, 1_i32),
+    ///     (1_usize, 2_i32),
+    ///     (2_usize, 3_i32),
+    ///     (3_usize, 4_i32),
+    ///     (4_usize, 5_i32),
+    ///     (5_usize, 6_i32),
+    ///     (6_usize, 7_i32),
+    /// ]);
+    /// #
+    /// # assert!(opaque_map.has_key_type::<usize>());
+    /// # assert!(opaque_map.has_value_type::<i32>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
+    /// let extracted: TypedProjVec<(usize, i32)> = opaque_map
+    ///     .extract_if::<_, _, usize, i32, RandomState, Global>(1..5, |_, v| *v % 2 == 0)
+    ///     .collect();
+    /// let remainder = TypedProjVec::from_iter(opaque_map
+    ///     .iter::<usize, i32, RandomState, Global>()
+    ///     .map(|(k, v)| (k.clone(), v.clone()))
+    /// );
+    ///
+    /// let expected_extracted = TypedProjVec::from([
+    ///     (1_usize, 2_i32),
+    ///     (3_usize, 4_i32),
+    /// ]);
+    /// let expected_remainder = TypedProjVec::from([
+    ///     (0_usize, 1_i32),
+    ///     (2_usize, 3_i32),
+    ///     (4_usize, 5_i32),
+    ///     (5_usize, 6_i32),
+    ///     (6_usize, 7_i32),
+    /// ]);
+    ///
+    /// assert_eq!(extracted.as_slice(), expected_extracted.as_slice());
+    /// assert_eq!(remainder.as_slice(), expected_remainder.as_slice());
+    /// ```
+    #[track_caller]
+    pub fn extract_if<F, R, K, V, S, A>(&mut self, range: R, filter: F) -> ExtractIf<'_, K, V, F, A>
+    where
+        K: any::Any,
+        V: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+        F: FnMut(&K, &mut V) -> bool,
+        R: ops::RangeBounds<usize>,
+    {
+        let proj_self = self.as_proj_mut::<K, V, S, A>();
+
+        proj_self.extract_if(range, filter)
     }
 
     /// Splits a type-erased index map into two type-erased index maps at the given index.

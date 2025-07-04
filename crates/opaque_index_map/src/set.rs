@@ -1,4 +1,4 @@
-use crate::map_inner;
+use crate::{map_inner, OpaqueIndexMap, TypedProjIndexMap};
 use crate::map_inner::{Bucket, OpaqueIndexMapInner};
 use crate::range_ops;
 use crate::slice_eq;
@@ -1373,7 +1373,7 @@ where
 
 /// A draining iterator over the entries of an index set.
 ///
-/// Draining iterators are created by the [`TypedProjIndexSet::drain`] or [`OpaqueIndexSet::entry`]
+/// Draining iterators are created by the [`TypedProjIndexSet::drain`] or [`OpaqueIndexSet::drain`]
 /// methods.
 ///
 /// # Examples
@@ -1516,6 +1516,171 @@ where
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         let iterator = self.iter.as_slice().iter().map(|tuple| tuple.0);
         formatter.debug_list().entries(iterator).finish()
+    }
+}
+
+/// An extracting iterator over the entries of an index set.
+///
+/// Extracting iterators are created by the [`TypedProjIndexSet::extract_if`] and
+/// [`OpaqueIndexSet::extract_if`] methods.
+///
+/// # Examples
+///
+/// Using an extracting iterator on a type-projected index set.
+///
+/// ```
+/// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
+/// # use opaque_index_map::TypedProjIndexSet;
+/// # use opaque_hash::TypedProjBuildHasher;
+/// # use opaque_alloc::TypedProjAlloc;
+/// # use opaque_vec::TypedProjVec;
+/// # use std::any::TypeId;
+/// # use std::hash::RandomState;
+/// #
+/// # #[cfg(feature = "nightly")]
+/// # use std::alloc::Global;
+/// #
+/// # #[cfg(not(feature = "nightly"))]
+/// # use opaque_allocator_api::alloc::Global;
+/// #
+/// let mut proj_set = TypedProjIndexSet::from([
+///     (0_usize, 1_i32),
+///     (1_usize, 2_i32),
+///     (2_usize, i32::MAX),
+///     (3_usize, i32::MAX),
+///     (4_usize, 3_i32),
+///     (5_usize, i32::MAX),
+/// ]);
+/// let extracted: TypedProjVec<(usize, i32)> = proj_set
+///     .extract_if(.., |(_, v)| *v == i32::MAX)
+///     .collect();
+/// let remainder = TypedProjVec::from_iter(proj_set.iter().map(|(k, v)| (k.clone(), v.clone())));
+///
+/// let expected_extracted = TypedProjVec::from([
+///     (2_usize, i32::MAX),
+///     (3_usize, i32::MAX),
+///     (5_usize, i32::MAX),
+/// ]);
+/// let expected_remainder = TypedProjVec::from([
+///     (0_usize, 1_i32),
+///     (1_usize, 2_i32),
+///     (4_usize, 3_i32),
+/// ]);
+///
+/// assert_eq!(extracted.as_slice(), expected_extracted.as_slice());
+/// assert_eq!(remainder.as_slice(), expected_remainder.as_slice());
+/// ```
+///
+/// Using an extracting iterator on a type-erased index set.
+///
+/// ```
+/// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
+/// # use opaque_index_map::OpaqueIndexSet;
+/// # use opaque_hash::TypedProjBuildHasher;
+/// # use opaque_alloc::TypedProjAlloc;
+/// # use opaque_vec::TypedProjVec;
+/// # use std::any::TypeId;
+/// # use std::hash::RandomState;
+/// #
+/// # #[cfg(feature = "nightly")]
+/// # use std::alloc::Global;
+/// #
+/// # #[cfg(not(feature = "nightly"))]
+/// # use opaque_allocator_api::alloc::Global;
+/// #
+/// let mut opaque_set = OpaqueIndexSet::from([
+///     (0_usize, 1_i32),
+///     (1_usize, 2_i32),
+///     (2_usize, i32::MAX),
+///     (3_usize, i32::MAX),
+///     (4_usize, 3_i32),
+///     (5_usize, i32::MAX),
+/// ]);
+/// #
+/// # assert!(opaque_set.has_value_type::<(usize, i32)>());
+/// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+/// # assert!(opaque_set.has_allocator_type::<Global>());
+/// #
+/// let extracted: TypedProjVec<(usize, i32)> = opaque_set
+///     .extract_if::<_, _, (usize, i32), RandomState, Global>(.., |(_, v)| *v == i32::MAX)
+///     .collect();
+/// let remainder = TypedProjVec::from_iter(opaque_set
+///     .iter::<(usize, i32), RandomState, Global>()
+///     .map(|(k, v)| (k.clone(), v.clone()))
+/// );
+///
+/// let expected_extracted = TypedProjVec::from([
+///     (2_usize, i32::MAX),
+///     (3_usize, i32::MAX),
+///     (5_usize, i32::MAX),
+/// ]);
+/// let expected_remainder = TypedProjVec::from([
+///     (0_usize, 1_i32),
+///     (1_usize, 2_i32),
+///     (4_usize, 3_i32),
+/// ]);
+///
+/// assert_eq!(extracted.as_slice(), expected_extracted.as_slice());
+/// assert_eq!(remainder.as_slice(), expected_remainder.as_slice());
+/// ```
+pub struct ExtractIf<'a, T, F, A>
+where
+    T: any::Any,
+    F: FnMut(&T) -> bool,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    iter: map_inner::Extract<'a, T, (), A>,
+    filter: F,
+}
+
+impl<'a, T, F, A> ExtractIf<'a, T, F, A>
+where
+    T: any::Any,
+    F: FnMut(&T) -> bool,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    // Constructs a new extracting iterator from an inner extracting iterator.
+    #[inline]
+    const fn new(iter: map_inner::Extract<'a, T, (), A>, filter: F) -> ExtractIf<'a, T, F, A> {
+        Self { iter, filter }
+    }
+}
+
+impl<T, F, A> Iterator for ExtractIf<'_, T, F, A>
+where
+    T: any::Any,
+    F: FnMut(&T) -> bool,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    type Item = T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter
+            .extract_if(|bucket| (self.filter)(bucket.key_ref()))
+            .map(Bucket::key)
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (0, Some(self.iter.remaining()))
+    }
+}
+
+impl<T, F, A> iter::FusedIterator for ExtractIf<'_, T, F, A>
+where
+    T: any::Any,
+    F: FnMut(&T) -> bool,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+}
+
+impl<T, F, A> fmt::Debug for ExtractIf<'_, T, F, A>
+where
+    T: any::Any + fmt::Debug,
+    F: FnMut(&T) -> bool,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.debug_struct("ExtractIf").finish_non_exhaustive()
     }
 }
 
@@ -4084,6 +4249,92 @@ where
         R: ops::RangeBounds<usize>,
     {
         Drain::new(self.inner.drain(range))
+    }
+
+    /// Creates an iterator which uses a closure to determine if a value in the storage range
+    /// should be removed from the index set.
+    ///
+    /// The extracting iterator removes all values `v` for which `filter(v)` returns `true`. If the
+    /// closure `filter` returns `false`, or panics, the value `v` remains in the index set and will
+    /// not be returned by the extracting iterator. The only values from the original range of the
+    /// collection that remain are those for which `filter` returns `false`. The iterator retains
+    /// the relative storage order of the remaining values in the index set.
+    ///
+    /// If the extracting iterator is dropped before being full consumed, the iterator retains
+    /// any values not visited by it.
+    ///
+    /// This method can mutate every value in the filter closure, regardless of whether the the
+    /// method returns or retains the value.
+    ///
+    /// Only values that fall in the provided range are considered for extraction, but any
+    /// values after the range will still have to be moved if any value has been extracted.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if `range` is out of bounds.
+    ///
+    /// # Examples
+    ///
+    /// Extracting from the entire range of an index set.
+    ///
+    /// ```
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
+    /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
+    /// #
+    /// let mut proj_set = TypedProjIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32, 7_i32]);
+    /// let extracted: TypedProjVec<i32> = proj_set
+    ///     .extract_if(.., |v| v % 2 == 0)
+    ///     .collect();
+    /// let remainder = TypedProjVec::from_iter(proj_set.iter().cloned());
+    ///
+    /// assert_eq!(extracted.as_slice(), &[2_i32, 4_i32, 6_i32]);
+    /// assert_eq!(remainder.as_slice(), &[1_i32, 3_i32, 5_i32, 7_i32]);
+    /// ```
+    ///
+    /// Extracting from a partial range of an index set.
+    ///
+    /// ```
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
+    /// # use opaque_index_map::TypedProjIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
+    /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
+    /// #
+    /// let mut proj_set = TypedProjIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32, 7_i32]);
+    /// let extracted: TypedProjVec<i32> = proj_set
+    ///     .extract_if(1..5, |v| v % 2 == 0)
+    ///     .collect();
+    /// let remainder = TypedProjVec::from_iter(proj_set.iter().cloned());
+    ///
+    /// assert_eq!(extracted.as_slice(), &[2_i32, 4_i32]);
+    /// assert_eq!(remainder.as_slice(), &[1_i32, 3_i32, 5_i32, 6_i32, 7_i32]);
+    /// ```
+    #[track_caller]
+    pub fn extract_if<F, R>(&mut self, range: R, filter: F) -> ExtractIf<'_, T, F, A>
+    where
+        F: FnMut(&T) -> bool,
+        R: ops::RangeBounds<usize>,
+    {
+        ExtractIf::new(self.inner.extract(range), filter)
     }
 
     /// Splits a type-projected index set into two type-projected index sets at the given index.
@@ -12310,6 +12561,108 @@ impl OpaqueIndexSet {
         let proj_self = self.as_proj_mut::<T, S, A>();
 
         proj_self.drain(range)
+    }
+
+    /// Creates an iterator which uses a closure to determine if a value in the storage range
+    /// should be removed from the index set.
+    ///
+    /// The extracting iterator removes all values `v` for which `filter(v)` returns `true`. If the
+    /// closure `filter` returns `false`, or panics, the value `v` remains in the index set and will
+    /// not be returned by the extracting iterator. The only values from the original range of the
+    /// collection that remain are those for which `filter` returns `false`. The iterator retains
+    /// the relative storage order of the remaining values in the index set.
+    ///
+    /// If the extracting iterator is dropped before being full consumed, the iterator retains
+    /// any values not visited by it.
+    ///
+    /// This method can mutate every value in the filter closure, regardless of whether the the
+    /// method returns or retains the value.
+    ///
+    /// Only values that fall in the provided range are considered for extraction, but any
+    /// values after the range will still have to be moved if any value has been extracted.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if `range` is out of bounds.
+    ///
+    /// # Examples
+    ///
+    /// Extracting from the entire range of an index set.
+    ///
+    /// ```
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
+    /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
+    /// #
+    /// let mut opaque_set = OpaqueIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32, 7_i32]);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<i32>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    /// let extracted: TypedProjVec<i32> = opaque_set
+    ///     .extract_if::<_, _, i32, RandomState, Global>(.., |v| v % 2 == 0)
+    ///     .collect();
+    /// let remainder = TypedProjVec::from_iter(opaque_set.iter::<i32, RandomState, Global>().cloned());
+    ///
+    /// assert_eq!(extracted.as_slice(), &[2_i32, 4_i32, 6_i32]);
+    /// assert_eq!(remainder.as_slice(), &[1_i32, 3_i32, 5_i32, 7_i32]);
+    /// ```
+    ///
+    /// Extracting from a partial range of an index set.
+    ///
+    /// ```
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
+    /// # use opaque_index_map::OpaqueIndexSet;
+    /// # use opaque_hash::TypedProjBuildHasher;
+    /// # use opaque_alloc::TypedProjAlloc;
+    /// # use opaque_vec::TypedProjVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
+    /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
+    /// #
+    /// let mut opaque_set = OpaqueIndexSet::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32, 7_i32]);
+    /// #
+    /// # assert!(opaque_set.has_value_type::<i32>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    /// let extracted: TypedProjVec<i32> = opaque_set
+    ///     .extract_if::<_, _, i32, RandomState, Global>(1..5, |v| v % 2 == 0)
+    ///     .collect();
+    /// let remainder = TypedProjVec::from_iter(opaque_set.iter::<i32, RandomState, Global>().cloned());
+    ///
+    /// assert_eq!(extracted.as_slice(), &[2_i32, 4_i32]);
+    /// assert_eq!(remainder.as_slice(), &[1_i32, 3_i32, 5_i32, 6_i32, 7_i32]);
+    /// ```
+    #[track_caller]
+    pub fn extract_if<F, R, T, S, A>(&mut self, range: R, filter: F) -> ExtractIf<'_, T, F, A>
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+        F: FnMut(&T) -> bool,
+        R: ops::RangeBounds<usize>,
+    {
+        let proj_self = self.as_proj_mut::<T, S, A>();
+
+        proj_self.extract_if(range, filter)
     }
 
     /// Splits a type-erased index set into two type-erased index sets at the given index.
