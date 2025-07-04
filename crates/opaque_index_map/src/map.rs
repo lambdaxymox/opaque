@@ -1466,6 +1466,10 @@ impl<K, V> Slice<K, V> {
     /// of the entry at index `index` in the map, and `value` is the value of the entry at index
     /// `index`. If `index >= self.len()`, this method returns `None`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Examples
     ///
     /// Getting entries from a type-projected index map slice by index.
@@ -1542,6 +1546,10 @@ impl<K, V> Slice<K, V> {
     /// of the entry at index `index` in the map, and `value` is the value of the entry at index
     /// `index`. If `index >= self.len()`, this method returns `None`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Examples
     ///
     /// Getting entries from a type-projected index map slice by index.
@@ -1617,6 +1625,10 @@ impl<K, V> Slice<K, V> {
     /// If the range `range` is in bounds, this method returns `Some(&slice)`, where `slice` is the
     /// slice of entries from the index map slice in the storage range `range`. if the range `range`
     /// is out of bounds, this method returns `None`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Examples
     ///
@@ -1727,6 +1739,10 @@ impl<K, V> Slice<K, V> {
     /// the slice of entries from the index map slice in the storage range `range`. if the range
     /// `range` is out of bounds, this method returns `None`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Examples
     ///
     /// Subslicing a slice from a type-projected index map.
@@ -1835,6 +1851,10 @@ impl<K, V> Slice<K, V> {
     /// If the index map slice is nonempty, this method returns `Some((&key, &value))` where `key`
     /// is the key of the first entry in the index map, and `value` is the value of the first entry
     /// in the index map slice. If the index map slice is empty, this method returns `None`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Examples
     ///
@@ -1955,6 +1975,10 @@ impl<K, V> Slice<K, V> {
     /// first entry in the index map slice. If the index map slice is empty, this method returns
     /// `None`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Examples
     ///
     /// Getting the first entry of a non-empty type-projected index map slice.
@@ -2073,6 +2097,10 @@ impl<K, V> Slice<K, V> {
     /// is the key of the last entry in the index map slice, and `value` is the value of the last
     /// entry in the index map slice. If the index map slice is empty, this method returns `None`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Examples
     ///
     /// Getting the last entry of a non-empty type-projected index map slice.
@@ -2190,6 +2218,10 @@ impl<K, V> Slice<K, V> {
     /// If the index map slice is nonempty, this method returns `Some((&key, &value))` where `key`
     /// is the key of the last entry in the index map slice, and `value` is the value of the last
     /// entry in the index map slice. If the index map slice is empty, this method returns `None`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Examples
     ///
@@ -3159,6 +3191,11 @@ impl<K, V> Slice<K, V> {
     /// `new_index` is the position in the storage where an entry with the key `key` could be
     /// inserted to maintain the sorted order.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(log(n))** time, where `n` is an affine function of the length of
+    /// the index map slice.
+    ///
     /// # Examples
     ///
     /// Binary searching a sorted index map slice.
@@ -3210,6 +3247,11 @@ impl<K, V> Slice<K, V> {
     /// key `key` could be inserted to maintain the sorted order. If multiple entries in the index
     /// map satisfy the comparator, then any one of them could be returned. The index is chosen
     /// deterministically, but this method makes no guarantees as to how it picks that index.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(log(n))** time, where `n` is an affine function of the length of
+    /// the index map slice.
     ///
     /// # Examples
     ///
@@ -3312,6 +3354,11 @@ impl<K, V> Slice<K, V> {
     /// [`binary_search_by`]: Slice::binary_search_by
     /// [`partition_point`]: Slice::partition_point
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(log(n))** time, where `n` is an affine function of the length of
+    /// the index map slice.
+    ///
     /// # Examples
     ///
     /// ```
@@ -3369,6 +3416,11 @@ impl<K, V> Slice<K, V> {
     /// `true` are at the start of the slice, and all entries for which the predicate returns
     /// `false` are at the end of the slice. If the index map slice's storage order does not
     /// partition according to the predicate, the result is unspecified and meaningless.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(log(n))** time, where `n` is an affine function of the length of
+    /// the index map slice.
     ///
     /// # Examples
     ///
@@ -4968,6 +5020,14 @@ where
     ///   entry is in last place in the storage order, and the method returns an occupied entry
     ///   containing the value `value` and the key from the original vacant entry.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in amortized **O(1)** time. The worst case input is when the entry is
+    /// vacant, and the length of the index map equals its capacity. This scenario will trigger
+    /// a reallocation and a copying of all of the entries of the index map to the new memory
+    /// allocation, which takes **O(n)** time, where `n` is an affine function of the length of
+    /// the index map.
+    ///
     /// # Examples
     ///
     /// ```
@@ -5009,6 +5069,14 @@ where
     /// If the entry is occupied, this method does nothing and returns a mutable reference to its
     /// value. If the entry is vacant, this method inserts the provided default value and returns a
     /// mutable reference to the entry's value.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in amortized **O(1)** time. The worst case input is when the entry is
+    /// vacant, and the length of the index map equals its capacity. This scenario will trigger
+    /// a reallocation and a copying of all of the entries of the index map to the new memory
+    /// allocation, which takes **O(n)** time, where `n` is an affine function of the length of
+    /// the index map.
     ///
     /// # Examples
     ///
@@ -5055,6 +5123,14 @@ where
     /// * If the entry is vacant, this method inserts the result of calling the provided function
     ///   `call` and returns a mutable reference to the entry's value.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in amortized **O(1)** time. The worst case input is when the entry is
+    /// vacant, and the length of the index map equals its capacity. This scenario will trigger
+    /// a reallocation and a copying of all of the entries of the index map to the new memory
+    /// allocation, which takes **O(n)** time, where `n` is an affine function of the length of
+    /// the index map.
+    ///
     /// # Examples
     ///
     /// ```
@@ -5100,14 +5176,22 @@ where
     ///
     /// This method behaves as follows:
     ///
-    /// * If the entry is occupied, this method does nothing, and returns a mutable reference to its
-    ///   value.
+    /// * If the entry is occupied, this method does nothing, and returns a mutable reference to
+    ///   its value.
     /// * Is the entry is vacant, this method inserts the result of the default function.
     ///
     /// This method allows for generating key-derived values for insertion by providing the default
     /// function a reference to the key that was moved during the [`entry`] method call.
     ///
     /// [`entry`]: TypedProjIndexMap::entry
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in amortized **O(1)** time. The worst case input is when the entry is
+    /// vacant, and the length of the index map equals its capacity. This scenario will trigger
+    /// a reallocation and a copying of all of the entries of the index map to the new memory
+    /// allocation, which takes **O(n)** time, where `n` is an affine function of the length of
+    /// the index map.
     ///
     /// # Examples
     ///
@@ -5255,6 +5339,14 @@ where
     ///   reference to the value in the entry.
     /// * If the entry is occupied, the method does nothing and returns a mutable reference to the
     ///   value in the entry.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in amortized **O(1)** time. The worst case input is when the entry is
+    /// vacant, and the length of the index map equals its capacity. This scenario will trigger
+    /// a reallocation and a copying of all of the entries of the index map to the new memory
+    /// allocation, which takes **O(n)** time, where `n` is an affine function of the length of
+    /// the index map.
     ///
     /// # Examples
     ///
@@ -5581,6 +5673,10 @@ where
 
     /// Sets the value of the occupied entry to a new value, and returns the old value.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Examples
     ///
     /// ```
@@ -5633,6 +5729,10 @@ where
 
     /// Removes the occupied entry from the index map, and returns the value of the entry.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Examples
     ///
     /// ```
@@ -5683,6 +5783,11 @@ where
     }
 
     /// Removes the occupied entry from the index map, and returns the value of the entry.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in average **O(n)** time, where `n` is an affine function of the length of
+    /// the index map.
     ///
     /// # Examples
     ///
@@ -5735,6 +5840,10 @@ where
 
     /// Removes the occupied entry from the index map, and returns the key-value pair for the entry.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Examples
     ///
     /// ```
@@ -5785,6 +5894,11 @@ where
     }
 
     /// Removes the occupied entry from the index map, and returns the key-value pair for the entry.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in average **O(n)** time, where `n` is an affine function of the length of
+    /// the index map.
     ///
     /// # Examples
     ///
@@ -5842,6 +5956,11 @@ where
     ///
     /// * If `self.index() < to`, the other pairs will shift up while the targeted pair moves down.
     /// * If `self.index() > to`, the other pairs will shift down while the targeted pair moves up.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in average **O(n)** time, where `n` is an affine function of the length of
+    /// the index map.
     ///
     /// # Panics
     ///
@@ -5945,6 +6064,10 @@ where
 
     /// Swaps the position of the occupied entry with the entry located at another storage index in
     /// the index map.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Panics
     ///
@@ -6172,6 +6295,13 @@ where
 
     /// Sets the value of the vacant entry, then returns a mutable reference to the value.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in amortized **O(1)** time. The worst case input is when the length of the
+    /// index map equals its capacity. This scenario will trigger a reallocation and a copying of
+    /// all of the entries of the index map to the new memory allocation, which takes
+    /// **O(n)** time, where `n` is an affine function of the length of the index map.
+    ///
     /// # Examples
     ///
     /// ```
@@ -6219,10 +6349,17 @@ where
     /// Sets the value of the vacant entry in the index map, then returns an occupied entry
     /// corresponding to the key-value pair now stored in the index map.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in amortized **O(1)** time. The worst case input is when the length of the
+    /// index map equals its capacity. This scenario will trigger a reallocation and a copying of
+    /// all of the entries of the index map to the new memory allocation, which takes
+    /// **O(n)** time, where `n` is an affine function of the length of the index map.
+    ///
     /// # Examples
     ///
-    /// Calling this method on a vacant entry from an index map with a set of sorted keys yields the
-    /// index of the entry in the underlying storage.
+    /// Calling this method on a vacant entry from an index map with a set of sorted keys yields
+    /// the index of the entry in the underlying storage.
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
@@ -6283,10 +6420,15 @@ where
     ///   the storage index of the sorted key.
     /// * If the existing keys are **not** sorted order, then the insertion index is unspecified.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in average **O(n)** time, where `n` is an affine function of the length
+    /// of the index map.
+    ///
     /// # Examples
     ///
-    /// Calling this method on a vacant entry from an index map with a set of sorted keys yields the
-    /// index of the entry in the underlying storage.
+    /// Calling this method on a vacant entry from an index map with a set of sorted keys yields
+    /// the index of the entry in the underlying storage.
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
@@ -6378,6 +6520,10 @@ where
     }
 
     /// Sets the value of the vacant entry, then returns a mutable reference to the value.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in average **O(n)** time.
     ///
     /// # Examples
     ///
@@ -6712,6 +6858,10 @@ where
 
     /// Sets the value of the indexed entry to a new value, and returns the old value.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Examples
     ///
     /// ```
@@ -6761,6 +6911,10 @@ where
 
     /// Removes the indexed entry from the index map, and returns the value of the entry.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Examples
     ///
     /// ```
@@ -6808,6 +6962,11 @@ where
     }
 
     /// Removes the indexed entry from the index map, and returns the value of the entry.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in average **O(n)** time, where `n` is an affine function of the length
+    /// of the index map.
     ///
     /// # Examples
     ///
@@ -6857,6 +7016,10 @@ where
 
     /// Removes the indexed entry from the index map, and returns the key-value pair for the entry.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Examples
     ///
     /// ```
@@ -6904,6 +7067,11 @@ where
     }
 
     /// Removes the indexed entry from the index map, and returns the key-value pair for the entry.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in average **O(n)** time, where `n` is an affine function of the length
+    /// of the index map.
     ///
     /// # Examples
     ///
@@ -6958,6 +7126,11 @@ where
     ///
     /// * If `self.index() < to`, the other pairs will shift up while the targeted pair moves down.
     /// * If `self.index() > to`, the other pairs will shift down while the targeted pair moves up.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in average **O(n)** time, where `n` is an affine function of the length
+    /// of the index map.
     ///
     /// # Panics
     ///
@@ -7055,6 +7228,10 @@ where
 
     /// Swaps the position of the indexed entry with the entry located at another storage index in
     /// the index map.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Panics
     ///
@@ -8410,6 +8587,10 @@ where
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Examples
     ///
     /// ```
@@ -8557,6 +8738,10 @@ where
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Examples
     ///
@@ -8707,6 +8892,10 @@ where
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Examples
     ///
     /// ```
@@ -8856,6 +9045,10 @@ where
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Examples
     ///
@@ -9008,6 +9201,10 @@ where
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Examples
     ///
     /// ```
@@ -9156,6 +9353,10 @@ where
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Examples
     ///
@@ -9307,6 +9508,10 @@ where
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Examples
     ///
@@ -9819,6 +10024,11 @@ where
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n)** time, where `n` is an affine function of the length of the
+    /// index map.
+    ///
     /// # Examples
     ///
     /// ```
@@ -9866,6 +10076,11 @@ where
     /// This method keeps the entries of `self` in the range `[0, len)`. In particular,
     /// this method drops every entry with storage index in the range `[len, self.len())`.
     /// This method does nothing when `self.len() <= len`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n)** time, where `n` is an affine function of the length of the
+    /// index map.
     ///
     /// # Examples
     ///
@@ -10610,6 +10825,10 @@ where
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Examples
     ///
     /// Showing how swap removal happens.
@@ -10850,6 +11069,10 @@ where
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Examples
     ///
@@ -11092,6 +11315,10 @@ where
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Examples
     ///
     /// Showing how swap removal happens.
@@ -11326,6 +11553,11 @@ where
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in average **O(n)** time, where `n` is an affine function of the length
+    /// of the index map.
     ///
     /// # Examples
     ///
@@ -11565,6 +11797,11 @@ where
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in average **O(n)** time, where `n` is an affine function of the length
+    /// of the index map.
+    ///
     /// # Examples
     ///
     /// Showing how shift removal happens.
@@ -11802,6 +12039,11 @@ where
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in average **O(n)** time, where `n` is an affine function of the length
+    /// of the index map.
+    ///
     /// # Examples
     ///
     /// Showing how shift removal happens.
@@ -11883,6 +12125,10 @@ where
 
     /// Returns a slice of all the key-value pairs in the index map.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Examples
     ///
     /// ```
@@ -11920,6 +12166,10 @@ where
     }
 
     /// Returns a mutable slice of all the key-value pairs in the index map.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Examples
     ///
@@ -12031,6 +12281,10 @@ where
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in amortized **O(1)** time.
+    ///
     /// # Examples
     ///
     /// ```
@@ -12137,6 +12391,10 @@ where
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in amortized **O(1)** time.
     ///
     /// # Examples
     ///
@@ -12291,6 +12549,11 @@ where
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in average **O(n)** time, where `n` is an affine function of the length
+    /// of the index map.
     ///
     /// # Examples
     ///
@@ -12450,6 +12713,11 @@ where
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in average **O(n)** time, where `n` is an affine function of the length
+    /// of the index map.
     ///
     /// # Panics
     ///
@@ -12755,6 +13023,11 @@ where
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in average **O(n)** time, where `n` is an affine function of the length
+    /// of the index map.
+    ///
     /// # Panics
     ///
     /// This method panics if the index `index` is out of bounds.
@@ -12909,6 +13182,10 @@ where
     ///
     /// The resulting entry can be queried or manipulated directly, instead of going through the
     /// index map to do it.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Examples
     ///
@@ -13325,6 +13602,10 @@ where
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Examples
     ///
     /// Popping from a nonempty index map.
@@ -13459,6 +13740,11 @@ where
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in average **O(n)** time, where `n` is an affine function of the length
+    /// of the index map.
+    ///
     /// # Examples
     ///
     /// ```
@@ -13591,6 +13877,11 @@ where
     ///
     /// This sort is stable because keys are unique.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n * log(n) + c)** time and **O(n)** space, where `n` is the length
+    /// of the index map, and `c` is the capacity of the index map.
+    ///
     /// # Examples
     ///
     /// ```
@@ -13707,6 +13998,11 @@ where
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n * log(n) + c)** time and **O(n)** space, where `n` is the length
+    /// of the index map, and `c` is the capacity of the index map.
     ///
     /// # Examples
     ///
@@ -13850,6 +14146,11 @@ where
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n * log(n) + c)** time, where `n` is the length of the index
+    /// map, and `c` is the capacity of the index map.
+    ///
     /// # Examples
     ///
     /// ```
@@ -13955,6 +14256,11 @@ where
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n * log(n) + c)** time, where `n` is the length of the index
+    /// map, and `c` is the capacity of the index map.
     ///
     /// # Examples
     ///
@@ -14076,6 +14382,11 @@ where
     /// to remember the results of its evaluation. The order of calls to the function is
     /// unspecified. The sort is stable.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n * log(n) + c)** time and **O(n)** space where `n` is the length
+    /// of the index map, and `c` is the capacity of the index map.
+    ///
     /// # Examples
     ///
     /// ```
@@ -14137,6 +14448,11 @@ where
     /// `new_index` is the position in the storage where an entry with the key `key` could be
     /// inserted to maintain the sorted order.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(log(n))** time, where `n` is an affine function of the length of
+    /// the index map.
+    ///
     /// # Examples
     ///
     /// Binary searching a sorted index map.
@@ -14187,6 +14503,11 @@ where
     /// key `key` could be inserted to maintain the sorted order. If multiple entries in the index
     /// map satisfy the comparator, then any one of them could be returned. The index is chosen
     /// deterministically, but this method makes no guarantees as to how it picks that index.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(log(n))** time, where `n` is an affine function of the length of
+    /// the index map.
     ///
     /// # Examples
     ///
@@ -14287,6 +14608,11 @@ where
     /// [`binary_search_by`]: TypedProjIndexMap::binary_search_by
     /// [`partition_point`]: TypedProjIndexMap::partition_point
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(log(n))** time, where `n` is an affine function of the length of
+    /// the index map.
+    ///
     /// # Examples
     ///
     /// ```
@@ -14343,6 +14669,11 @@ where
     /// at the start of the storage, and all entries for which the predicate returns `false` are at
     /// the end of the index map's storage. If the index map's storage order does not partition
     /// according to the predicate, the result is unspecified and meaningless.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(log(n))** time, where `n` is an affine function of the length of
+    /// the index map.
     ///
     /// # Examples
     ///
@@ -14459,6 +14790,11 @@ where
 
     /// Reverses the storage order of the index map's entries in place.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n)** time, where `n` is an affine function of the length of
+    /// the index map, and **O(1)** space.
+    ///
     /// # Examples
     ///
     /// ```
@@ -14504,6 +14840,11 @@ where
     /// After calling this method, the capacity will be greater than or equal to
     /// `self.len() + additional` if it returns. This method does nothing if the collection
     /// capacity is already sufficient. This method preserves the contents even if a panic occurs.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n)** time, where `n` is an affine function of the length of
+    /// the index map.
     ///
     /// # Panics
     ///
@@ -14560,6 +14901,11 @@ where
     /// already sufficient.
     ///
     /// [`reserve`]: TypedProjIndexMap::reserve
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n)** time, where `n` is an affine function of the length of
+    /// the index map.
     ///
     /// # Panics
     ///
@@ -14619,6 +14965,11 @@ where
     ///
     /// This method returns an error if the capacity overflows, or the allocator reports a failure.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n)** time, where `n` is an affine function of the length of
+    /// the index map.
+    ///
     /// # Examples
     ///
     /// ```
@@ -14673,6 +15024,11 @@ where
     ///
     /// This method returns an error if the capacity overflows, or the allocator reports a failure.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n)** time, where `n` is an affine function of the length of
+    /// the index map.
+    ///
     /// # Examples
     ///
     /// ```
@@ -14721,6 +15077,11 @@ where
     /// details.
     ///
     /// [`with_capacity`]: TypedProjIndexMap::with_capacity
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n)** time, where `n` is an affine function of the length of
+    /// the index map.
     ///
     /// # Examples
     ///
@@ -14772,6 +15133,11 @@ where
     /// nothing.
     ///
     /// [`with_capacity`]: TypedProjIndexMap::with_capacity
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n)** time, where `n` is an affine function of the length of
+    /// the index map.
     ///
     /// # Examples
     ///
@@ -14899,6 +15265,10 @@ where
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Examples
     ///
     /// ```
@@ -14963,6 +15333,10 @@ where
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Examples
     ///
     /// ```
@@ -15001,6 +15375,10 @@ where
     /// If `index < self.len()`, this method returns `Some(entry)`, where `entry` is the entry
     /// storage at the index `index` in the index map. If `index >= self.len()`, this method
     /// returns `None`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Examples
     ///
@@ -15108,6 +15486,10 @@ where
     /// slice of entries from the index map in the storage range `range`. if the range `range` is
     /// out of bounds, this method returns `None`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Examples
     ///
     /// ```
@@ -15156,6 +15538,10 @@ where
     /// If the range `range` is in bounds, this method returns `Some(&mut slice)`, where `slice` is
     /// the slice of entries from the index map in the storage range `range`. if the range `range`
     /// is out of bounds, this method returns `None`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Examples
     ///
@@ -15206,6 +15592,10 @@ where
     /// If the index map is nonempty, this method returns `Some((&key, &value))` where `key` is the
     /// key of the first entry in the index map, and `value` is the value of the first entry in the
     /// index map. If the index map is empty, this method returns `None`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Examples
     ///
@@ -15271,6 +15661,10 @@ where
     /// the key of the first entry in the index map, and `value` is the value of the first entry in
     /// the index map. If the index map is empty, this method returns `None`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Examples
     ///
     /// Getting the first entry of a non-empty index map.
@@ -15331,6 +15725,10 @@ where
     ///
     /// If the index map is nonempty, this method returns `Some(entry)` where `entry` is the first
     /// entry in the index map. If the index map is empty, this method returns `None`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Examples
     ///
@@ -15404,6 +15802,10 @@ where
     /// key of the last entry in the index map, and `value` is the value of the last entry in the
     /// index map. If the index map is empty, this method returns `None`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Examples
     ///
     /// Getting the last entry of a non-empty index map.
@@ -15468,6 +15870,10 @@ where
     /// the key of the last entry in the index map, and `value` is the value of the last entry in
     /// the index map. If the index map is empty, this method returns `None`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Examples
     ///
     /// Getting the last entry of a non-empty index map.
@@ -15528,6 +15934,10 @@ where
     ///
     /// If the index map is nonempty, this method returns `Some(entry)` where `entry` is the last
     /// entry in the index map. If the index map is empty, this method returns `None`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Examples
     ///
@@ -15662,6 +16072,10 @@ where
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Examples
     ///
     /// ```
@@ -15758,6 +16172,11 @@ where
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n)** time, where `n` is an affine function of the length of
+    /// the index map.
+    ///
     /// # Examples
     ///
     /// ```
@@ -15848,6 +16267,11 @@ where
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in average **O(n)** time, where `n` is an affine function of the length
+    /// of the index map.
     ///
     /// # Panics
     ///
@@ -15945,6 +16369,10 @@ where
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Panics
     ///
@@ -16687,6 +17115,10 @@ impl OpaqueIndexMap {
 impl OpaqueIndexMap {
     /// Projects the type-erased index map reference into a type-projected index map reference.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
@@ -16737,6 +17169,10 @@ impl OpaqueIndexMap {
     /// Projects the mutable type-erased index map reference into a mutable type-projected
     /// index map reference.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
@@ -16785,6 +17221,10 @@ impl OpaqueIndexMap {
     }
 
     /// Projects the type-erased index map value into a type-projected index map value.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Panics
     ///
@@ -16839,6 +17279,10 @@ impl OpaqueIndexMap {
     ///
     /// Unlike the type projection methods [`as_proj`], [`as_proj_mut`], and [`into_proj`], this
     /// method never panics.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Examples
     ///
@@ -18040,6 +18484,10 @@ impl OpaqueIndexMap {
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
@@ -18208,6 +18656,10 @@ impl OpaqueIndexMap {
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Panics
     ///
@@ -18379,6 +18831,10 @@ impl OpaqueIndexMap {
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
@@ -18549,6 +19005,10 @@ impl OpaqueIndexMap {
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Panics
     ///
@@ -18722,6 +19182,10 @@ impl OpaqueIndexMap {
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
@@ -18891,6 +19355,10 @@ impl OpaqueIndexMap {
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Panics
     ///
@@ -19063,6 +19531,10 @@ impl OpaqueIndexMap {
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Panics
     ///
@@ -19776,6 +20248,11 @@ impl OpaqueIndexMap {
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n)** time, where `n` is an affine function of the length of the
+    /// index map.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
@@ -19844,6 +20321,11 @@ impl OpaqueIndexMap {
     /// This method keeps the entries of `self` in the range `[0, len)`. In particular,
     /// this method drops every entry with storage index in the range `[len, self.len())`.
     /// This method does nothing when `self.len() <= len`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n)** time, where `n` is an affine function of the length of the
+    /// index map.
     ///
     /// # Panics
     ///
@@ -20712,6 +21194,10 @@ impl OpaqueIndexMap {
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
@@ -21021,6 +21507,10 @@ impl OpaqueIndexMap {
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Panics
     ///
@@ -21332,6 +21822,10 @@ impl OpaqueIndexMap {
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
@@ -21636,6 +22130,11 @@ impl OpaqueIndexMap {
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in average **O(n)** time, where `n` is an affine function of the length
+    /// of the index map.
     ///
     /// # Panics
     ///
@@ -21944,6 +22443,11 @@ impl OpaqueIndexMap {
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in average **O(n)** time, where `n` is an affine function of the length
+    /// of the index map.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
@@ -22250,6 +22754,11 @@ impl OpaqueIndexMap {
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in average **O(n)** time, where `n` is an affine function of the length
+    /// of the index map.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
@@ -22400,6 +22909,10 @@ impl OpaqueIndexMap {
 
     /// Returns a slice of all the key-value pairs in the index map.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
@@ -22460,6 +22973,10 @@ impl OpaqueIndexMap {
     }
 
     /// Returns a mutable slice of all the key-value pairs in the index map.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Panics
     ///
@@ -22587,6 +23104,10 @@ impl OpaqueIndexMap {
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in amortized **O(1)** time.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
@@ -22713,6 +23234,10 @@ impl OpaqueIndexMap {
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in amortized **O(1)** time.
     ///
     /// # Panics
     ///
@@ -22887,6 +23412,11 @@ impl OpaqueIndexMap {
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in average **O(n)** time, where `n` is an affine function of the length
+    /// of the index map.
     ///
     /// # Panics
     ///
@@ -23072,6 +23602,11 @@ impl OpaqueIndexMap {
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in average **O(n)** time, where `n` is an affine function of the length
+    /// of the index map.
     ///
     /// # Panics
     ///
@@ -23413,6 +23948,11 @@ impl OpaqueIndexMap {
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in average **O(n)** time, where `n` is an affine function of the length
+    /// of the index map.
+    ///
     /// # Panics
     ///
     /// This method panics under one of the following conditions:
@@ -23604,6 +24144,10 @@ impl OpaqueIndexMap {
     /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
     /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
     /// type `S`, and allocator type `A`, respectively.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Examples
     ///
@@ -24098,6 +24642,10 @@ impl OpaqueIndexMap {
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
@@ -24261,6 +24809,11 @@ impl OpaqueIndexMap {
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in average **O(n)** time, where `n` is an affine function of the length
+    /// of the index map.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
@@ -24414,6 +24967,11 @@ impl OpaqueIndexMap {
     ///
     /// This sort is stable because keys are unique.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n * log(n) + c)** time and **O(n)** space, where `n` is the length
+    /// of the index map, and `c` is the capacity of the index map.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
@@ -24550,6 +25108,11 @@ impl OpaqueIndexMap {
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n * log(n) + c)** time and **O(n)** space, where `n` is the length
+    /// of the index map, and `c` is the capacity of the index map.
     ///
     /// # Panics
     ///
@@ -24735,6 +25298,11 @@ impl OpaqueIndexMap {
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n * log(n) + c)** time, where `n` is the length of the index
+    /// map, and `c` is the capacity of the index map.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
@@ -24860,6 +25428,11 @@ impl OpaqueIndexMap {
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n * log(n) + c)** time, where `n` is the length of the index
+    /// map, and `c` is the capacity of the index map.
     ///
     /// # Panics
     ///
@@ -25029,6 +25602,11 @@ impl OpaqueIndexMap {
     /// to remember the results of its evaluation. The order of calls to the function is
     /// unspecified. The sort is stable.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n * log(n) + c)** time and **O(n)** space where `n` is the length
+    /// of the index map, and `c` is the capacity of the index map.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
@@ -25111,6 +25689,11 @@ impl OpaqueIndexMap {
     /// `new_index` is the position in the storage where an entry with the key `key` could be
     /// inserted to maintain the sorted order.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(log(n))** time, where `n` is an affine function of the length of
+    /// the index map.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
@@ -25181,6 +25764,11 @@ impl OpaqueIndexMap {
     /// key `key` could be inserted to maintain the sorted order. If multiple entries in the index
     /// map satisfy the comparator, then any one of them could be returned. The index is chosen
     /// deterministically, but this method makes no guarantees as to how it picks that index.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(log(n))** time, where `n` is an affine function of the length of
+    /// the index map.
     ///
     /// # Panics
     ///
@@ -25308,6 +25896,11 @@ impl OpaqueIndexMap {
     /// [`binary_search_by`]: OpaqueIndexMap::binary_search_by
     /// [`partition_point`]: OpaqueIndexMap::partition_point
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(log(n))** time, where `n` is an affine function of the length of
+    /// the index map.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
@@ -25385,6 +25978,11 @@ impl OpaqueIndexMap {
     /// at the start of the storage, and all entries for which the predicate returns `false` are at
     /// the end of the index map's storage. If the index map's storage order does not partition
     /// according to the predicate, the result is unspecified and meaningless.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(log(n))** time, where `n` is an affine function of the length of
+    /// the index map.
     ///
     /// # Panics
     ///
@@ -25541,6 +26139,11 @@ impl OpaqueIndexMap {
     /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
     /// type `S`, and allocator type `A`, respectively.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n)** time, where `n` is an affine function of the length of
+    /// the index map, and **O(1)** space.
+    ///
     /// # Examples
     ///
     /// ```
@@ -25602,6 +26205,11 @@ impl OpaqueIndexMap {
     /// After calling this method, the capacity will be greater than or equal to
     /// `self.len() + additional` if it returns. This method does nothing if the collection
     /// capacity is already sufficient. This method preserves the contents even if a panic occurs.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n)** time, where `n` is an affine function of the length of
+    /// the index map.
     ///
     /// # Panics
     ///
@@ -25678,6 +26286,11 @@ impl OpaqueIndexMap {
     /// already sufficient.
     ///
     /// [`reserve`]: OpaqueIndexMap::reserve
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n)** time, where `n` is an affine function of the length of
+    /// the index map.
     ///
     /// # Panics
     ///
@@ -25757,6 +26370,11 @@ impl OpaqueIndexMap {
     ///
     /// This method returns an error if the capacity overflows, or the allocator reports a failure.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n)** time, where `n` is an affine function of the length of
+    /// the index map.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
@@ -25834,6 +26452,11 @@ impl OpaqueIndexMap {
     ///
     /// This method returns an error if the capacity overflows, or the allocator reports a failure.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n)** time, where `n` is an affine function of the length of
+    /// the index map.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
@@ -25905,6 +26528,11 @@ impl OpaqueIndexMap {
     /// details.
     ///
     /// [`with_capacity`]: OpaqueIndexMap::with_capacity
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n)** time, where `n` is an affine function of the length of
+    /// the index map.
     ///
     /// # Panics
     ///
@@ -25979,6 +26607,11 @@ impl OpaqueIndexMap {
     /// nothing.
     ///
     /// [`with_capacity`]: OpaqueIndexMap::with_capacity
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n)** time, where `n` is an affine function of the length of
+    /// the index map.
     ///
     /// # Panics
     ///
@@ -26138,6 +26771,10 @@ impl OpaqueIndexMap {
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
@@ -26225,6 +26862,10 @@ impl OpaqueIndexMap {
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
@@ -26286,6 +26927,10 @@ impl OpaqueIndexMap {
     /// If `index < self.len()`, this method returns `Some(entry)`, where `entry` is the entry
     /// storage at the index `index` in the index map. If `index >= self.len()`, this method
     /// returns `None`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Panics
     ///
@@ -26418,6 +27063,10 @@ impl OpaqueIndexMap {
     /// slice of entries from the index map in the storage range `range`. if the range `range` is
     /// out of bounds, this method returns `None`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
@@ -26486,6 +27135,10 @@ impl OpaqueIndexMap {
     /// If the range `range` is in bounds, this method returns `Some(&mut slice)`, where `slice` is
     /// the slice of entries from the index map in the storage range `range`. if the range `range`
     /// is out of bounds, this method returns `None`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Panics
     ///
@@ -26556,6 +27209,10 @@ impl OpaqueIndexMap {
     /// If the index map is nonempty, this method returns `Some((&key, &value))` where `key` is the
     /// key of the first entry in the index map, and `value` is the value of the first entry in the
     /// index map. If the index map is empty, this method returns `None`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Panics
     ///
@@ -26650,6 +27307,10 @@ impl OpaqueIndexMap {
     /// the key of the first entry in the index map, and `value` is the value of the first entry in
     /// the index map. If the index map is empty, this method returns `None`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
@@ -26739,6 +27400,10 @@ impl OpaqueIndexMap {
     ///
     /// If the index map is nonempty, this method returns `Some(entry)` where `entry` is the first
     /// entry in the index map. If the index map is empty, this method returns `None`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Panics
     ///
@@ -26838,6 +27503,10 @@ impl OpaqueIndexMap {
     /// key of the last entry in the index map, and `value` is the value of the last entry in the
     /// index map. If the index map is empty, this method returns `None`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
@@ -26931,6 +27600,10 @@ impl OpaqueIndexMap {
     /// the key of the last entry in the index map, and `value` is the value of the last entry in
     /// the index map. If the index map is empty, this method returns `None`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
@@ -27020,6 +27693,10 @@ impl OpaqueIndexMap {
     ///
     /// If the index map is nonempty, this method returns `Some(entry)` where `entry` is the last
     /// entry in the index map. If the index map is empty, this method returns `None`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Panics
     ///
@@ -27180,6 +27857,10 @@ impl OpaqueIndexMap {
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
@@ -27299,6 +27980,11 @@ impl OpaqueIndexMap {
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n)** time, where `n` is an affine function of the length of
+    /// the index map.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
@@ -27412,6 +28098,11 @@ impl OpaqueIndexMap {
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in average **O(n)** time, where `n` is an affine function of the length
+    /// of the index map.
     ///
     /// # Panics
     ///
@@ -27536,6 +28227,10 @@ impl OpaqueIndexMap {
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Panics
     ///

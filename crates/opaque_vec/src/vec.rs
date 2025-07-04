@@ -2024,6 +2024,10 @@ where
     /// Returns a reference to an element or subslice of a type-projected vector, if it exists at
     /// the given index or inside the given subslice.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Panics
     ///
     /// This method panics if one of the following conditions holds:
@@ -2068,6 +2072,10 @@ where
 
     /// Returns a mutable reference to an element or subslice of a type-projected vector, if it
     /// exists at the given index or inside the given subslice.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Panics
     ///
@@ -2121,6 +2129,10 @@ where
     ///
     /// The method returns some value or range of values otherwise.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Examples
     ///
     /// ```
@@ -2163,6 +2175,10 @@ where
     /// * If `index` is a slice range, and a subslice of `index` falls out of bounds.
     ///
     /// The method returns some value or range of values otherwise.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Examples
     ///
@@ -2220,6 +2236,13 @@ where
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `vec`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in amortized **O(1)** time. The worst case input is when the vector's
+    /// length equals its capacity. In this case, this method takes **O(n)** time to copy the
+    /// vector's elements to a larger allocation, where `n` is an affine function of the capacity of
+    /// the vector.
     ///
     /// # Panics
     ///
@@ -2279,6 +2302,10 @@ where
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `vec`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Examples
     ///
@@ -2352,6 +2379,10 @@ where
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `vec`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Examples
     ///
@@ -2446,6 +2477,16 @@ where
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `vec`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method's runtime complexity is characterized as follows:
+    ///
+    /// * If `index < self.len()`, this method runs in **O(1)** time.
+    /// * If `index == self.len()`, this method runs in amortized **O(1)** time. The worst case
+    ///   input is when the vector's length equals its capacity. In the worst case, this method
+    ///   takes **O(n)** timme to copy the vector's elements to a larger allocation, where `n` is a
+    ///   linear function of the capacity of the vector.
+    ///
     /// # Panics
     ///
     /// This method panics if the index `index` is larger than the length of the collection.
@@ -2523,6 +2564,13 @@ where
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `vec`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n)** time, where `n` is an affine function of the length of the
+    /// vector. Every value after the insertion index must be shifted to the right. The worst case
+    /// input is when the input index is `index == 0`. In the worst case, every value in the vector
+    /// must be shifted to the right.
     ///
     /// # Panics
     ///
@@ -2602,6 +2650,10 @@ where
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `vec`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Panics
     ///
@@ -2687,6 +2739,12 @@ where
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `vec`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in average **O(n)** time, where `n` is an affine function of the length of
+    /// the vector. The worst case input is when `index == 0`. In the worst case, every remaining
+    /// element of the vector is shifted to the left one index.
+    ///
     /// # Panics
     ///
     /// This method panics if the index `index` is larger than the length of the collection. In
@@ -2759,6 +2817,10 @@ where
     /// ```text
     /// ∀ e :: T. vec.contains(v) ⇔ (e ∈ vec) ⇔ (∃ i ∈ [0, vec.len()). vec[i] = e).
     /// ```
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n)** time. In the worst case, the vector does not contain the value.
     ///
     /// # Examples
     ///
@@ -4083,6 +4145,11 @@ where
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `vec`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n)** time, where `n` is an affine function of the length of the
+    /// vector.
     ///
     /// # Examples
     ///
@@ -5856,6 +5923,10 @@ impl OpaqueVec {
 impl OpaqueVec {
     /// Projects the type-erased vector reference into a type-projected vector reference.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the elements of `self` and the [`TypeId`]
@@ -5896,6 +5967,10 @@ impl OpaqueVec {
     /// Projects the mutable type-erased vector reference into a type-projected
     /// mutable type-projected vector reference.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the elements of `self` and the [`TypeId`]
@@ -5934,6 +6009,10 @@ impl OpaqueVec {
     }
 
     /// Projects a type-erased vector value into a type-projected vector value.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Panics
     ///
@@ -5978,6 +6057,10 @@ impl OpaqueVec {
     ///
     /// Unlike the type projection methods [`as_proj`], [`as_proj_mut`], and [`into_proj`], this
     /// method never panics.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Examples
     ///
@@ -7994,6 +8077,10 @@ impl OpaqueVec {
     /// Returns a reference to an element or subslice of a type-erased vector, if it exists at
     /// the given index or inside the given subslice.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Panics
     ///
     /// This method panics if one of the following conditions holds:
@@ -8048,6 +8135,10 @@ impl OpaqueVec {
 
     /// Returns a mutable reference to an element or subslice of a type-erased vector, if it
     /// exists at the given index or inside the given subslice.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Panics
     ///
@@ -8111,6 +8202,10 @@ impl OpaqueVec {
     ///
     /// The method returns some value or range of values otherwise.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the elements of `self` and the [`TypeId`]
@@ -8168,6 +8263,10 @@ impl OpaqueVec {
     /// * If `index` is a slice range, and a subslice of `index` falls out of bounds.
     ///
     /// The method returns some value or range of values otherwise.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Panics
     ///
@@ -8241,6 +8340,13 @@ impl OpaqueVec {
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `vec`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in amortized **O(1)** time. The worst case input is when the vector's
+    /// length equals its capacity. In this case, this method takes **O(n)** time to copy the
+    /// vector's elements to a larger allocation, where `n` is an affine function of the capacity of
+    /// the vector.
+    ///
     /// # Panics
     ///
     /// This method panics if either condition occurs:
@@ -8313,6 +8419,10 @@ impl OpaqueVec {
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `vec`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Panics
     ///
@@ -8403,6 +8513,10 @@ impl OpaqueVec {
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `vec`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Panics
     ///
@@ -8516,6 +8630,16 @@ impl OpaqueVec {
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `vec`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method's runtime complexity is characterized as follows:
+    ///
+    /// * If `index < self.len()`, this method runs in **O(1)** time.
+    /// * If `index == self.len()`, this method runs in amortized **O(1)** time. The worst case
+    ///   input is when the vector's length equals its capacity. In the worst case, this method
+    ///   takes **O(n)** timme to copy the vector's elements to a larger allocation, where `n` is a
+    ///   linear function of the capacity of the vector.
+    ///
     /// # Panics
     ///
     /// This method panics if one of the following conditions occurs:
@@ -8608,6 +8732,13 @@ impl OpaqueVec {
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `vec`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n)** time, where `n` is an affine function of the length of the
+    /// vector. Every value after the insertion index must be shifted to the right. The worst case
+    /// input is when the input index is `index == 0`. In the worst case, every value in the vector
+    /// must be shifted to the right.
+    ///
     /// # Panics
     ///
     /// This method panics if one of the following conditions occurs:
@@ -8699,6 +8830,10 @@ impl OpaqueVec {
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `vec`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Panics
     ///
@@ -8799,6 +8934,12 @@ impl OpaqueVec {
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `vec`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in average **O(n)** time, where `n` is an affine function of the length of
+    /// the vector. The worst case input is when `index == 0`. In the worst case, every remaining
+    /// element of the vector is shifted to the left one index.
+    ///
     /// # Panics
     ///
     /// This method panics if one of the following conditions occurs:
@@ -8886,6 +9027,10 @@ impl OpaqueVec {
     /// ```text
     /// ∀ e :: T. vec.contains(v) ⇔ (e ∈ vec) ⇔ (∃ i ∈ [0, vec.len()). vec[i] = e).
     /// ```
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n)** time. In the worst case, the vector does not contain the value.
     ///
     /// # Panics
     ///
@@ -10690,6 +10835,11 @@ impl OpaqueVec {
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `vec`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n)** time, where `n` is an affine function of the length of the
+    /// vector.
     ///
     /// # Panics
     ///

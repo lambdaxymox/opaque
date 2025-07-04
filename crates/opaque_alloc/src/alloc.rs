@@ -447,6 +447,10 @@ impl OpaqueAlloc {
 impl OpaqueAlloc {
     /// Projects the type-erased allocator reference into a type-projected allocator reference.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the memory allocator of `self` do not match the
@@ -484,6 +488,10 @@ impl OpaqueAlloc {
     /// Projects the mutable type-erased allocator reference into a mutable type-projected
     /// allocator reference.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the memory allocator of `self` do not match the
@@ -519,6 +527,10 @@ impl OpaqueAlloc {
     }
 
     /// Projects the type-erased allocator value into a type-projected allocator value.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Panics
     ///
@@ -560,6 +572,10 @@ impl OpaqueAlloc {
     ///
     /// Unlike the type projection methods [`as_proj`], [`as_proj_mut`], and [`into_proj`], this
     /// method never panics.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Examples
     ///

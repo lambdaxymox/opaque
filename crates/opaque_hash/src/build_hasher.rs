@@ -495,6 +495,10 @@ impl OpaqueBuildHasher {
     /// Projects the type-erased hash builder reference into a type-projected hash builder
     /// reference.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the hash builder of `self` does not match the
@@ -528,6 +532,10 @@ impl OpaqueBuildHasher {
     /// Projects the mutable type-erased hash builder reference into a type-projected mutable
     /// hash builder reference.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the hash builder of `self` does not match the
@@ -559,6 +567,10 @@ impl OpaqueBuildHasher {
     }
 
     /// Projects the type-erased hash builder value into a type-projected hash builder value.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Panics
     ///
@@ -596,6 +608,10 @@ impl OpaqueBuildHasher {
     ///
     /// Unlike the type projection methods [`as_proj`], [`as_proj_mut`], and [`into_proj`], this
     /// method never panics.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Examples
     ///

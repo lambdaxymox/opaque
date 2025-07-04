@@ -372,6 +372,10 @@ impl OpaqueHasher {
 impl OpaqueHasher {
     /// Projects the type-erased hasher reference into a type-projected hasher reference.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the hasher of `self` do not match the requested
@@ -403,6 +407,10 @@ impl OpaqueHasher {
     /// Projects the mutable type-erased hasher reference into a mutable type-projected
     /// hasher reference.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the hasher of `self` do not match the requested
@@ -432,6 +440,10 @@ impl OpaqueHasher {
     }
 
     /// Projects the type-erased hasher value into a type-projected hasher value.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Panics
     ///
@@ -467,6 +479,10 @@ impl OpaqueHasher {
     ///
     /// Unlike the type projection methods [`as_proj`], [`as_proj_mut`], and [`into_proj`], this
     /// method never panics.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Examples
     ///

@@ -234,6 +234,10 @@ impl<T> Slice<T> {
     /// If `index < self.len()`, this method returns `Some(&value)`, where `value` is the value of
     /// the entry at index `index`. If `index >= self.len()`, this method returns `None`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Examples
     ///
     /// ```
@@ -269,6 +273,10 @@ impl<T> Slice<T> {
     /// If the range `range` is in bounds, this method returns `Some(&slice)`, where `slice` is the
     /// slice of entries from the index set slice in the storage range `range`. if the range `range`
     /// is out of bounds, this method returns `None`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Examples
     ///
@@ -323,6 +331,10 @@ impl<T> Slice<T> {
     /// If the index set slice is nonempty, this method returns `Some(&value)` where `value` is the
     /// value of the first entry in the index set slice. If the index set slice is empty, this
     /// method returns `None`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Examples
     ///
@@ -387,6 +399,10 @@ impl<T> Slice<T> {
     /// If the index set slice is nonempty, this method returns `Some(&value)` where `value` is the
     /// value of the last entry in the index set slice. If the index set slice is empty, this
     /// method returns `None`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Examples
     ///
@@ -600,6 +616,11 @@ impl<T> Slice<T> {
     /// returns `Err(new_index)` where `new_index` is the position in the storage where an entry
     /// with the value `value` could be inserted to maintain the sorted order.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(log(n))** time, where `n` is an affine function of the length of
+    /// the index set.
+    ///
     /// # Examples
     ///
     /// Binary searching a sorted index set slice.
@@ -653,6 +674,11 @@ impl<T> Slice<T> {
     /// index set satisfy the comparator, then any one of them could be returned. The index is
     /// chosen deterministically, but this method makes no guarantees as to how it picks that
     /// index.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(log(n))** time, where `n` is an affine function of the length of
+    /// the index set.
     ///
     /// # Examples
     ///
@@ -717,6 +743,11 @@ impl<T> Slice<T> {
     /// [`binary_search_by`]: TypedProjIndexSet::binary_search_by
     /// [`partition_point`]: TypedProjIndexSet::partition_point
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(log(n))** time, where `n` is an affine function of the length of
+    /// the index set.
+    ///
     /// # Examples
     ///
     /// ```
@@ -775,6 +806,11 @@ impl<T> Slice<T> {
     /// returns `false` are at the end of the index set slice's storage. If the index set slice's
     /// storage order does not partition according to the predicate, the result is unspecified and
     /// meaningless.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(log(n))** time, where `n` is an affine function of the length of
+    /// the index set.
     ///
     /// # Examples
     ///
@@ -3856,6 +3892,11 @@ where
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n)** time, where `n` is an affine function of the length of
+    /// the index set, and **O(1)** space.
+    ///
     /// # Examples
     ///
     /// ```
@@ -3899,6 +3940,11 @@ where
     /// This method keeps the entries of `self` in the range `[0, len)`. In particular,
     /// this method drops every entry with storage index in the range `[len, self.len())`.
     /// This method does nothing when `self.len() <= len`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n)** time, where `n` is an affine function of the length of the
+    /// index set.
     ///
     /// # Examples
     ///
@@ -4424,6 +4470,11 @@ where
     /// `self.len() + additional` if it returns. This method does nothing if the collection
     /// capacity is already sufficient. This method preserves the contents even if a panic occurs.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n)** time, where `n` is an affine function of the length of the
+    /// index set.
+    ///
     /// # Panics
     ///
     /// This method panics if one of the following conditions occurs:
@@ -4472,6 +4523,11 @@ where
     /// already sufficient.
     ///
     /// [`reserve`]: TypedProjIndexSet::reserve
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n)** time, where `n` is an affine function of the length of the
+    /// index set.
     ///
     /// # Panics
     ///
@@ -4525,6 +4581,11 @@ where
     ///
     /// This method returns an error if the capacity overflows, or the allocator reports a failure.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n)** time, where `n` is an affine function of the length of the
+    /// index set.
+    ///
     /// # Examples
     ///
     /// ```
@@ -4572,6 +4633,11 @@ where
     ///
     /// This method returns an error if the capacity overflows, or the allocator reports a failure.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n)** time, where `n` is an affine function of the length of the
+    /// index set.
+    ///
     /// # Examples
     ///
     /// ```
@@ -4613,6 +4679,11 @@ where
     /// details.
     ///
     /// [`with_capacity`]: TypedProjIndexSet::with_capacity
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n)** time, where `n` is an affine function of the length of the
+    /// index set.
     ///
     /// # Examples
     ///
@@ -4664,6 +4735,11 @@ where
     /// nothing.
     ///
     /// [`with_capacity`]: TypedProjIndexSet::with_capacity
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n)** time, where `n` is an affine function of the length of the
+    /// index set.
     ///
     /// # Examples
     ///
@@ -4773,6 +4849,10 @@ where
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in amortized **O(1)** time.
+    ///
     /// # Examples
     ///
     /// ```
@@ -4871,6 +4951,10 @@ where
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in amortized **O(1)** time.
     ///
     /// # Examples
     ///
@@ -5019,6 +5103,11 @@ where
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in average **O(n)** time, where `n` is an affine function of the length
+    /// of the index set.
     ///
     /// # Examples
     ///
@@ -5177,6 +5266,11 @@ where
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in average **O(n)** time, where `n` is an affine function of the length
+    /// of the index set.
     ///
     /// # Panics
     ///
@@ -5474,6 +5568,11 @@ where
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in average **O(n)** time, where `n` is an affine function of the length
+    /// of the index set.
+    ///
     /// # Panics
     ///
     /// This method panics if the index `index` is out of bounds.
@@ -5626,6 +5725,10 @@ where
     ///
     /// This method does not change the storage order of the other elements in the set.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Examples
     ///
     /// Replacing a value where two different string values are equal up to letter case.
@@ -5698,6 +5801,10 @@ where
     /// if it exists, and returns the storage index and value of the existing one.
     ///
     /// This method does not change the storage order of the other elements in the set.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Examples
     ///
@@ -6309,6 +6416,10 @@ where
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Examples
     ///
     /// ```
@@ -6453,6 +6564,10 @@ where
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Examples
     ///
@@ -6600,6 +6715,10 @@ where
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Examples
     ///
     /// ```
@@ -6744,6 +6863,10 @@ where
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Examples
     ///
@@ -6919,6 +7042,10 @@ where
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Examples
     ///
@@ -7119,6 +7246,11 @@ where
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in average **O(n)** time, where `n` is an affine function of the length
+    /// of the index set.
     ///
     /// # Examples
     ///
@@ -7324,6 +7456,10 @@ where
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Examples
     ///
@@ -7534,6 +7670,11 @@ where
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in average **O(n)** time, where `n` is an affine function of the length
+    /// of the index set.
+    ///
     /// # Examples
     ///
     /// Showing how shift removal happens.
@@ -7734,6 +7875,10 @@ where
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Examples
     ///
@@ -7939,6 +8084,11 @@ where
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in average **O(n)** time, where `n` is an affine function of the length
+    /// of the index set.
+    ///
     /// # Examples
     ///
     /// Showing how shift removal happens.
@@ -8048,6 +8198,10 @@ where
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Examples
     ///
@@ -8162,6 +8316,11 @@ where
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in average **O(n)** time, where `n` is an affine function of the length
+    /// of the index set.
     ///
     /// # Examples
     ///
@@ -8281,6 +8440,11 @@ where
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n * log(n) + c)** time and **O(n)** space, where `n` is the length
+    /// of the index set, and `c` is the capacity of the index set.
+    ///
     /// # Examples
     ///
     /// ```
@@ -8395,6 +8559,11 @@ where
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n * log(n) + c)** time and **O(n)** space, where `n` is the length
+    /// of the index set, and `c` is the capacity of the index set.
     ///
     /// # Examples
     ///
@@ -8535,6 +8704,11 @@ where
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n * log(n) + c)** time, where `n` is the length of the index
+    /// map, and `c` is the capacity of the index set.
+    ///
     /// # Examples
     ///
     /// ```
@@ -8639,6 +8813,11 @@ where
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n * log(n) + c)** time, where `n` is the length of the index
+    /// map, and `c` is the capacity of the index set.
     ///
     /// # Examples
     ///
@@ -8762,6 +8941,11 @@ where
     /// to remember the results of its evaluation. The order of calls to the function is
     /// unspecified. The sort is stable.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n * log(n) + c)** time and **O(n)** space where `n` is the length
+    /// of the index set, and `c` is the capacity of the index set.
+    ///
     /// # Examples
     ///
     /// ```
@@ -8825,6 +9009,11 @@ where
     /// `Err(new_index)` where `new_index` is the position in the storage where an entry with the
     /// value `value` could be inserted to maintain the sorted order.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(log(n))** time, where `n` is an affine function of the length of
+    /// the index set.
+    ///
     /// # Examples
     ///
     /// Binary searching a sorted index set.
@@ -8876,6 +9065,11 @@ where
     /// index set satisfy the comparator, then any one of them could be returned. The index is
     /// chosen deterministically, but this method makes no guarantees as to how it picks that
     /// index.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(log(n))** time, where `n` is an affine function of the length of
+    /// the index set.
     ///
     /// # Examples
     ///
@@ -8976,6 +9170,11 @@ where
     /// [`binary_search_by`]: TypedProjIndexSet::binary_search_by
     /// [`partition_point`]: TypedProjIndexSet::partition_point
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(log(n))** time, where `n` is an affine function of the length of
+    /// the index set.
+    ///
     /// # Examples
     ///
     /// ```
@@ -9032,6 +9231,11 @@ where
     /// at the start of the storage, and all entries for which the predicate returns `false` are at
     /// the end of the index set's storage. If the index set's storage order does not partition
     /// according to the predicate, the result is unspecified and meaningless.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(log(n))** time, where `n` is an affine function of the length of
+    /// the index set.
     ///
     /// # Examples
     ///
@@ -9148,6 +9352,11 @@ where
 
     /// Reverses the storage order of the index set's entries in place.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n)** time, where `n` is an affine function of the length of
+    /// the index set, and **O(1)** space.
+    ///
     /// # Examples
     ///
     /// ```
@@ -9177,6 +9386,10 @@ where
     }
 
     /// Returns a slice of all the values in the index set.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Examples
     ///
@@ -9317,6 +9530,10 @@ where
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Examples
     ///
     /// ```
@@ -9355,6 +9572,10 @@ where
     /// If the range `range` is in bounds, this method returns `Some(&slice)`, where `slice` is the
     /// slice of entries from the index set in the storage range `range`. if the range `range` is
     /// out of bounds, this method returns `None`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Examples
     ///
@@ -9405,6 +9626,10 @@ where
     ///
     /// If the index set is nonempty, this method returns `Some(&value)` where `value` is the value
     /// of the first entry in the index set. If the index set is empty, this method returns `None`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Examples
     ///
@@ -9466,6 +9691,10 @@ where
     ///
     /// If the index set is nonempty, this method returns `Some(&value)` where `value` is the value
     /// of the last entry in the index set. If the index set is empty, this method returns `None`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Examples
     ///
@@ -9589,6 +9818,10 @@ where
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Examples
     ///
     /// ```
@@ -9678,6 +9911,11 @@ where
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n)** time, where `n` is an affine function of the length of
+    /// the index set.
+    ///
     /// # Examples
     ///
     /// ```
@@ -9763,6 +10001,11 @@ where
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in average **O(n)** time, where `n` is an affine function of the length
+    /// of the index set.
     ///
     /// # Panics
     ///
@@ -9860,6 +10103,10 @@ where
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Panics
     ///
@@ -10896,6 +11143,10 @@ impl OpaqueIndexSet {
 impl OpaqueIndexSet {
     /// Projects the type-erased index set reference into a type-projected index set reference.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
@@ -10943,6 +11194,10 @@ impl OpaqueIndexSet {
     /// Projects the mutable type-erased index set reference into a mutable type-projected
     /// index set reference.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
@@ -10988,6 +11243,10 @@ impl OpaqueIndexSet {
     }
 
     /// Projects the type-erased index set value into a type-projected index set value.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Panics
     ///
@@ -11039,6 +11298,10 @@ impl OpaqueIndexSet {
     ///
     /// Unlike the type projection methods [`as_proj`], [`as_proj_mut`], and [`into_proj`], this
     /// method never panics.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Examples
     ///
@@ -12092,6 +12355,11 @@ impl OpaqueIndexSet {
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n)** time, where `n` is an affine function of the length of
+    /// the index set, and **O(1)** space.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
@@ -12155,6 +12423,11 @@ impl OpaqueIndexSet {
     /// This method keeps the entries of `self` in the range `[0, len)`. In particular,
     /// this method drops every entry with storage index in the range `[len, self.len())`.
     /// This method does nothing when `self.len() <= len`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n)** time, where `n` is an affine function of the length of the
+    /// index set.
     ///
     /// # Panics
     ///
@@ -12765,6 +13038,11 @@ impl OpaqueIndexSet {
     /// `self.len() + additional` if it returns. This method does nothing if the collection
     /// capacity is already sufficient. This method preserves the contents even if a panic occurs.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n)** time, where `n` is an affine function of the length of the
+    /// index set.
+    ///
     /// # Panics
     ///
     /// This method panics if one of the following conditions occurs:
@@ -12830,6 +13108,11 @@ impl OpaqueIndexSet {
     /// already sufficient.
     ///
     /// [`reserve`]: OpaqueIndexSet::reserve
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n)** time, where `n` is an affine function of the length of the
+    /// index set.
     ///
     /// # Panics
     ///
@@ -12900,6 +13183,11 @@ impl OpaqueIndexSet {
     ///
     /// This method returns an error if the capacity overflows, or the allocator reports a failure.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n)** time, where `n` is an affine function of the length of the
+    /// index set.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
@@ -12967,6 +13255,11 @@ impl OpaqueIndexSet {
     ///
     /// This method returns an error if the capacity overflows, or the allocator reports a failure.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n)** time, where `n` is an affine function of the length of the
+    /// index set.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
@@ -13028,6 +13321,11 @@ impl OpaqueIndexSet {
     /// details.
     ///
     /// [`with_capacity`]: OpaqueIndexSet::with_capacity
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n)** time, where `n` is an affine function of the length of the
+    /// index set.
     ///
     /// # Panics
     ///
@@ -13099,6 +13397,11 @@ impl OpaqueIndexSet {
     /// nothing.
     ///
     /// [`with_capacity`]: OpaqueIndexSet::with_capacity
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n)** time, where `n` is an affine function of the length of the
+    /// index set.
     ///
     /// # Panics
     ///
@@ -13222,6 +13525,10 @@ impl OpaqueIndexSet {
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in amortized **O(1)** time.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
@@ -13340,6 +13647,10 @@ impl OpaqueIndexSet {
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in amortized **O(1)** time.
     ///
     /// # Panics
     ///
@@ -13506,6 +13817,11 @@ impl OpaqueIndexSet {
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in average **O(n)** time, where `n` is an affine function of the length
+    /// of the index set.
     ///
     /// # Panics
     ///
@@ -13685,6 +14001,11 @@ impl OpaqueIndexSet {
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in average **O(n)** time, where `n` is an affine function of the length
+    /// of the index set.
     ///
     /// # Panics
     ///
@@ -14014,6 +14335,11 @@ impl OpaqueIndexSet {
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in average **O(n)** time, where `n` is an affine function of the length
+    /// of the index set.
+    ///
     /// # Panics
     ///
     /// This method panics under one of the following conditions:
@@ -14194,6 +14520,10 @@ impl OpaqueIndexSet {
     ///
     /// This method does not change the storage order of the other elements in the set.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
@@ -14288,6 +14618,10 @@ impl OpaqueIndexSet {
     /// if it exists, and returns the storage index and value of the existing one.
     ///
     /// This method does not change the storage order of the other elements in the set.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Panics
     ///
@@ -15074,6 +15408,10 @@ impl OpaqueIndexSet {
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
@@ -15236,6 +15574,10 @@ impl OpaqueIndexSet {
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Panics
     ///
@@ -15401,6 +15743,10 @@ impl OpaqueIndexSet {
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
@@ -15563,6 +15909,10 @@ impl OpaqueIndexSet {
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Panics
     ///
@@ -15756,6 +16106,10 @@ impl OpaqueIndexSet {
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Panics
     ///
@@ -16026,6 +16380,11 @@ impl OpaqueIndexSet {
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in average **O(n)** time, where `n` is an affine function of the length
+    /// of the index set.
     ///
     /// # Panics
     ///
@@ -16302,6 +16661,10 @@ impl OpaqueIndexSet {
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
@@ -16576,6 +16939,11 @@ impl OpaqueIndexSet {
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in average **O(n)** time, where `n` is an affine function of the length
+    /// of the index set.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
@@ -16846,6 +17214,10 @@ impl OpaqueIndexSet {
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Panics
     ///
@@ -17121,6 +17493,11 @@ impl OpaqueIndexSet {
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in average **O(n)** time, where `n` is an affine function of the length
+    /// of the index set.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
@@ -17296,6 +17673,10 @@ impl OpaqueIndexSet {
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
@@ -17435,6 +17816,11 @@ impl OpaqueIndexSet {
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in average **O(n)** time, where `n` is an affine function of the length
+    /// of the index set.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
@@ -17571,6 +17957,11 @@ impl OpaqueIndexSet {
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n * log(n) + c)** time and **O(n)** space, where `n` is the length
+    /// of the index set, and `c` is the capacity of the index set.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
@@ -17702,6 +18093,11 @@ impl OpaqueIndexSet {
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n * log(n) + c)** time and **O(n)** space, where `n` is the length
+    /// of the index set, and `c` is the capacity of the index set.
     ///
     /// # Panics
     ///
@@ -17875,6 +18271,11 @@ impl OpaqueIndexSet {
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n * log(n) + c)** time, where `n` is the length of the index
+    /// map, and `c` is the capacity of the index set.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
@@ -17996,6 +18397,11 @@ impl OpaqueIndexSet {
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n * log(n) + c)** time, where `n` is the length of the index
+    /// map, and `c` is the capacity of the index set.
     ///
     /// # Panics
     ///
@@ -18152,6 +18558,11 @@ impl OpaqueIndexSet {
     /// to remember the results of its evaluation. The order of calls to the function is
     /// unspecified. The sort is stable.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n * log(n) + c)** time and **O(n)** space where `n` is the length
+    /// of the index set, and `c` is the capacity of the index set.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
@@ -18231,6 +18642,11 @@ impl OpaqueIndexSet {
     /// `Err(new_index)` where `new_index` is the position in the storage where an entry with the
     /// value `value` could be inserted to maintain the sorted order.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(log(n))** time, where `n` is an affine function of the length of
+    /// the index set.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
@@ -18299,6 +18715,11 @@ impl OpaqueIndexSet {
     /// index set satisfy the comparator, then any one of them could be returned. The index is
     /// chosen deterministically, but this method makes no guarantees as to how it picks that
     /// index.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(log(n))** time, where `n` is an affine function of the length of
+    /// the index set.
     ///
     /// # Panics
     ///
@@ -18446,6 +18867,11 @@ impl OpaqueIndexSet {
     /// [`binary_search_by`]: OpaqueIndexSet::binary_search_by
     /// [`partition_point`]: OpaqueIndexSet::partition_point
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(log(n))** time, where `n` is an affine function of the length of
+    /// the index set.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
@@ -18529,6 +18955,11 @@ impl OpaqueIndexSet {
     /// at the start of the storage, and all entries for which the predicate returns `false` are at
     /// the end of the index set's storage. If the index set's storage order does not partition
     /// according to the predicate, the result is unspecified and meaningless.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(log(n))** time, where `n` is an affine function of the length of
+    /// the index set.
     ///
     /// # Panics
     ///
@@ -18688,6 +19119,11 @@ impl OpaqueIndexSet {
 
     /// Reverses the storage order of the index set's entries in place.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n)** time, where `n` is an affine function of the length of
+    /// the index set, and **O(1)** space.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
@@ -18737,6 +19173,10 @@ impl OpaqueIndexSet {
     }
 
     /// Returns a slice of all the values in the index set.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Panics
     ///
@@ -18906,6 +19346,10 @@ impl OpaqueIndexSet {
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
@@ -18964,6 +19408,10 @@ impl OpaqueIndexSet {
     /// If the range `range` is in bounds, this method returns `Some(&slice)`, where `slice` is the
     /// slice of entries from the index set in the storage range `range`. if the range `range` is
     /// out of bounds, this method returns `None`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Panics
     ///
@@ -19030,6 +19478,10 @@ impl OpaqueIndexSet {
     ///
     /// If the index set is nonempty, this method returns `Some(&value)` where `value` is the value
     /// of the first entry in the index set. If the index set is empty, this method returns `None`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Panics
     ///
@@ -19116,6 +19568,10 @@ impl OpaqueIndexSet {
     ///
     /// If the index set is nonempty, this method returns `Some(&value)` where `value` is the value
     /// of the last entry in the index set. If the index set is empty, this method returns `None`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Panics
     ///
@@ -19259,6 +19715,10 @@ impl OpaqueIndexSet {
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
@@ -19368,6 +19828,11 @@ impl OpaqueIndexSet {
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
     ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(n)** time, where `n` is an affine function of the length of
+    /// the index set.
+    ///
     /// # Panics
     ///
     /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
@@ -19473,6 +19938,11 @@ impl OpaqueIndexSet {
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in average **O(n)** time, where `n` is an affine function of the length
+    /// of the index set.
     ///
     /// # Panics
     ///
@@ -19593,6 +20063,10 @@ impl OpaqueIndexSet {
     /// ```
     ///
     /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `set`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
     ///
     /// # Panics
     ///
