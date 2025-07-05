@@ -26,7 +26,7 @@ Common use cases for type-erased collections include:
   communication.
 
 In summary, this library is meant for situations where one requires the ability to hide type information and store data 
-in an type erased form, but doing so in a cache-coherent and memory efficient way.
+in a type erased form, but do so in a cache-coherent and memory efficient way.
 
 ## Getting Started
 
@@ -37,7 +37,7 @@ To use this library in your project, add the **opaque** crate as a dependency in
 opaque = "0.2.0"
 ```
 
-This library has a `nightly` feature to unlock using custom memory allocators for all of the data structures in the 
+This library has a `nightly` feature to unlock using custom memory allocators for all the collections in the 
 library. To use `nightly` add
 
 ```toml
