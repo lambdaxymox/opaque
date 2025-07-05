@@ -15,6 +15,6 @@ extern crate alloc as alloc_crate;
 extern crate std;
 
 mod common;
-mod test_opaque_vec;
-mod test_typed_proj_vec;
+mod test_type_erased_vec;
+mod test_type_projected_vec;
 mod test_type_safety;

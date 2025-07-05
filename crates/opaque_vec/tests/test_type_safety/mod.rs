@@ -1,2 +1,2 @@
-mod test_opaque_vec_type;
-mod test_typed_proj_vec_type;
+mod test_type_erased_vec_type;
+mod test_type_projected_vec_type;
