@@ -28,7 +28,7 @@ fn bench_vec_push(c: &mut Criterion) {
     });
 }
 
-fn bench_opaque_vec_push(c: &mut Criterion) {
+fn bench_type_erased_vec_push(c: &mut Criterion) {
     let dummy_data = 0_i32;
 
     c.bench_function("opaque_vec_push", |b| {
@@ -43,4 +43,4 @@ fn bench_opaque_vec_push(c: &mut Criterion) {
     });
 }
 
-criterion_group!(bench_push, bench_opaque_vec_push, bench_vec_push);
+criterion_group!(bench_push, bench_type_erased_vec_push, bench_vec_push);

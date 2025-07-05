@@ -28,7 +28,7 @@ fn bench_index_set_get_full(c: &mut Criterion) {
     });
 }
 
-fn bench_opaque_index_set_get_full(c: &mut Criterion) {
+fn bench_type_erased_index_set_get_full(c: &mut Criterion) {
     let values = 0..1000;
     let opaque_set = TypeErasedIndexSet::from_iter(values);
 
@@ -41,4 +41,4 @@ fn bench_opaque_index_set_get_full(c: &mut Criterion) {
     });
 }
 
-criterion_group!(bench_get_full, bench_opaque_index_set_get_full, bench_index_set_get_full);
+criterion_group!(bench_get_full, bench_type_erased_index_set_get_full, bench_index_set_get_full);

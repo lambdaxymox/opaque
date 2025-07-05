@@ -894,7 +894,7 @@ mod build_hasher_layout_tests {
     use core::mem;
     use std::hash;
 
-    fn run_test_opaque_build_hasher_match_sizes<S>()
+    fn run_test_type_erased_build_hasher_match_sizes<S>()
     where
         S: any::Any + hash::BuildHasher + Send + Sync,
         S::Hasher: any::Any + hash::Hasher + Send + Sync,
@@ -902,10 +902,10 @@ mod build_hasher_layout_tests {
         let expected = mem::size_of::<TypeProjectedBuildHasher<S>>();
         let result = mem::size_of::<TypeErasedBuildHasher>();
 
-        assert_eq!(result, expected, "Opaque and Typed Projected data types size mismatch");
+        assert_eq!(result, expected, "Type Erased and Type Projected data types size mismatch");
     }
 
-    fn run_test_opaque_build_hasher_match_alignments<S>()
+    fn run_test_type_erased_build_hasher_match_alignments<S>()
     where
         S: any::Any + hash::BuildHasher + Send + Sync,
         S::Hasher: any::Any + hash::Hasher + Send + Sync,
@@ -913,10 +913,10 @@ mod build_hasher_layout_tests {
         let expected = mem::align_of::<TypeProjectedBuildHasher<S>>();
         let result = mem::align_of::<TypeErasedBuildHasher>();
 
-        assert_eq!(result, expected, "Opaque and Typed Projected data types alignment mismatch");
+        assert_eq!(result, expected, "Type Erased and Type Projected data types alignment mismatch");
     }
 
-    fn run_test_opaque_build_hasher_match_offsets<S>()
+    fn run_test_type_erased_build_hasher_match_offsets<S>()
     where
         S: any::Any + hash::BuildHasher + Send + Sync,
         S::Hasher: any::Any + hash::Hasher + Send + Sync,
@@ -924,7 +924,7 @@ mod build_hasher_layout_tests {
         assert_eq!(
             mem::offset_of!(TypeProjectedBuildHasher<S>, inner),
             mem::offset_of!(TypeErasedBuildHasher, inner),
-            "Opaque and Typed Projected data types offsets mismatch"
+            "Type Erased and Type Projected data types offsets mismatch"
         );
     }
 
@@ -935,17 +935,17 @@ mod build_hasher_layout_tests {
 
                 #[test]
                 fn test_build_hasher_layout_match_sizes() {
-                    run_test_opaque_build_hasher_match_sizes::<$build_hasher_typ>();
+                    run_test_type_erased_build_hasher_match_sizes::<$build_hasher_typ>();
                 }
 
                 #[test]
                 fn test_build_hasher_layout_match_alignments() {
-                    run_test_opaque_build_hasher_match_alignments::<$build_hasher_typ>();
+                    run_test_type_erased_build_hasher_match_alignments::<$build_hasher_typ>();
                 }
 
                 #[test]
                 fn test_build_hasher_layout_match_offsets() {
-                    run_test_opaque_build_hasher_match_offsets::<$build_hasher_typ>();
+                    run_test_type_erased_build_hasher_match_offsets::<$build_hasher_typ>();
                 }
             }
         };

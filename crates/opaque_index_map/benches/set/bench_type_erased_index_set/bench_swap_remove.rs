@@ -34,7 +34,7 @@ fn bench_index_set_swap_remove(c: &mut Criterion) {
     });
 }
 
-fn bench_opaque_index_set_swap_remove(c: &mut Criterion) {
+fn bench_type_erased_index_set_swap_remove(c: &mut Criterion) {
     let values = 0..1000;
 
     c.bench_function("opaque_index_set_swap_remove", |b| {
@@ -51,4 +51,4 @@ fn bench_opaque_index_set_swap_remove(c: &mut Criterion) {
     });
 }
 
-criterion_group!(bench_swap_remove, bench_opaque_index_set_swap_remove, bench_index_set_swap_remove);
+criterion_group!(bench_swap_remove, bench_type_erased_index_set_swap_remove, bench_index_set_swap_remove);

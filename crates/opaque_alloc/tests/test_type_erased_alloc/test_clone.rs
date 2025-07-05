@@ -9,7 +9,7 @@ use alloc_crate::alloc;
 #[cfg(not(feature = "nightly"))]
 use opaque_allocator_api::alloc;
 
-fn run_test_opaque_alloc_clone<A>(alloc: A)
+fn run_test_type_erased_alloc_clone<A>(alloc: A)
 where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
@@ -18,14 +18,14 @@ where
 }
 
 #[test]
-fn test_opaque_alloc_clone_global() {
+fn test_type_erased_alloc_clone_global() {
     let alloc = alloc::Global;
 
-    run_test_opaque_alloc_clone(alloc);
+    run_test_type_erased_alloc_clone(alloc);
 }
 
 #[test]
-fn test_opaque_alloc_clone_wrapping_alloc() {
+fn test_type_erased_alloc_clone_wrapping_alloc() {
     #[derive(Clone)]
     struct WrappingAlloc<A> {
         alloc: A,
@@ -57,11 +57,11 @@ fn test_opaque_alloc_clone_wrapping_alloc() {
 
     let alloc = WrappingAlloc::new(alloc::Global);
 
-    run_test_opaque_alloc_clone(alloc);
+    run_test_type_erased_alloc_clone(alloc);
 }
 
 #[test]
-fn test_opaque_alloc_clone_dummy_allocator() {
+fn test_type_erased_alloc_clone_dummy_allocator() {
     #[derive(Clone)]
     struct DummyAlloc {}
 
@@ -78,5 +78,5 @@ fn test_opaque_alloc_clone_dummy_allocator() {
 
     let alloc = DummyAlloc {};
 
-    run_test_opaque_alloc_clone(alloc);
+    run_test_type_erased_alloc_clone(alloc);
 }

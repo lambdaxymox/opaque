@@ -28,11 +28,11 @@ fn bench_index_set_get(c: &mut Criterion) {
     });
 }
 
-fn bench_typed_proj_index_set_get(c: &mut Criterion) {
+fn bench_type_projected_index_set_get(c: &mut Criterion) {
     let values = 0..1000;
     let proj_set = TypeProjectedIndexSet::<i32, hash::RandomState, alloc::Global>::from_iter(values);
 
-    c.bench_function("typed_proj_index_set_get", |b| {
+    c.bench_function("type_projected_index_set_get", |b| {
         b.iter(|| {
             for value in proj_set.iter() {
                 let _ = core::hint::black_box(proj_set.get(value));
@@ -41,4 +41,4 @@ fn bench_typed_proj_index_set_get(c: &mut Criterion) {
     });
 }
 
-criterion_group!(bench_get, bench_typed_proj_index_set_get, bench_index_set_get);
+criterion_group!(bench_get, bench_type_projected_index_set_get, bench_index_set_get);

@@ -29,11 +29,11 @@ fn bench_index_set_as_slice_index(c: &mut Criterion) {
     });
 }
 
-fn bench_typed_proj_index_set_as_slice_index(c: &mut Criterion) {
+fn bench_type_projected_index_set_as_slice_index(c: &mut Criterion) {
     let values = 0..10000;
     let proj_set = TypeProjectedIndexSet::<i32, hash::RandomState, alloc::Global>::from_iter(values);
 
-    c.bench_function("typed_proj_index_set_as_slice_index", |b| {
+    c.bench_function("type_projected_index_set_as_slice_index", |b| {
         b.iter(|| {
             let slice = proj_set.as_slice();
             for i in 0..slice.len() {
@@ -43,4 +43,4 @@ fn bench_typed_proj_index_set_as_slice_index(c: &mut Criterion) {
     });
 }
 
-criterion_group!(bench_as_slice_index, bench_typed_proj_index_set_as_slice_index, bench_index_set_as_slice_index);
+criterion_group!(bench_as_slice_index, bench_type_projected_index_set_as_slice_index, bench_index_set_as_slice_index);

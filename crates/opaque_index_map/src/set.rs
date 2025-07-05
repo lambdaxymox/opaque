@@ -367,7 +367,7 @@ impl<T> Slice<T> {
     /// assert_eq!(result, Some(&String::from("foo")));
     /// ```
     ///
-    /// Getting the first entry from an empty typed-projected index set slice.
+    /// Getting the first entry from an empty type-projected index set slice.
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
@@ -435,7 +435,7 @@ impl<T> Slice<T> {
     /// assert_eq!(result, Some(&String::from("quux")));
     /// ```
     ///
-    /// Getting the last entry from an empty typed-projected index set slice.
+    /// Getting the last entry from an empty type-projected index set slice.
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
@@ -20918,7 +20918,7 @@ mod index_set_layout_tests {
     use super::*;
     use core::mem;
 
-    fn run_test_opaque_index_set_match_sizes<T, S, A>()
+    fn run_test_type_erased_index_set_match_sizes<T, S, A>()
     where
         T: any::Any,
         S: any::Any + hash::BuildHasher + Send + Sync,
@@ -20928,10 +20928,10 @@ mod index_set_layout_tests {
         let expected = mem::size_of::<TypeProjectedIndexSet<T, S, A>>();
         let result = mem::size_of::<TypeErasedIndexSet>();
 
-        assert_eq!(result, expected, "Opaque and Typed Projected data types size mismatch");
+        assert_eq!(result, expected, "Type Erased and Type Projected data types size mismatch");
     }
 
-    fn run_test_opaque_index_set_match_alignments<T, S, A>()
+    fn run_test_type_erased_index_set_match_alignments<T, S, A>()
     where
         T: any::Any,
         S: any::Any + hash::BuildHasher + Send + Sync,
@@ -20941,10 +20941,10 @@ mod index_set_layout_tests {
         let expected = mem::align_of::<TypeProjectedIndexSet<T, S, A>>();
         let result = mem::align_of::<TypeErasedIndexSet>();
 
-        assert_eq!(result, expected, "Opaque and Typed Projected data types alignment mismatch");
+        assert_eq!(result, expected, "Type Erased and Type Projected data types alignment mismatch");
     }
 
-    fn run_test_opaque_index_set_match_offsets<T, S, A>()
+    fn run_test_type_erased_index_set_match_offsets<T, S, A>()
     where
         T: any::Any,
         S: any::Any + hash::BuildHasher + Send + Sync,
@@ -20954,7 +20954,7 @@ mod index_set_layout_tests {
         let expected = mem::offset_of!(TypeProjectedIndexSet<T, S, A>, inner);
         let result = mem::offset_of!(TypeErasedIndexSet, inner);
 
-        assert_eq!(result, expected, "Opaque and Typed Projected data types offsets mismatch");
+        assert_eq!(result, expected, "Type Erased and Type Projected data types offsets mismatch");
     }
 
     macro_rules! layout_tests {
@@ -20963,18 +20963,18 @@ mod index_set_layout_tests {
                 use super::*;
 
                 #[test]
-                fn test_opaque_index_set_layout_match_sizes() {
-                    run_test_opaque_index_set_match_sizes::<$value_typ, $build_hasher_typ, $alloc_typ>();
+                fn test_type_erased_index_set_layout_match_sizes() {
+                    run_test_type_erased_index_set_match_sizes::<$value_typ, $build_hasher_typ, $alloc_typ>();
                 }
 
                 #[test]
-                fn test_opaque_index_set_layout_match_alignments() {
-                    run_test_opaque_index_set_match_alignments::<$value_typ, $build_hasher_typ, $alloc_typ>();
+                fn test_type_erased_index_set_layout_match_alignments() {
+                    run_test_type_erased_index_set_match_alignments::<$value_typ, $build_hasher_typ, $alloc_typ>();
                 }
 
                 #[test]
-                fn test_opaque_index_set_layout_match_offsets() {
-                    run_test_opaque_index_set_match_offsets::<$value_typ, $build_hasher_typ, $alloc_typ>();
+                fn test_type_erased_index_set_layout_match_offsets() {
+                    run_test_type_erased_index_set_match_offsets::<$value_typ, $build_hasher_typ, $alloc_typ>();
                 }
             }
         };

@@ -15,7 +15,7 @@ use opaque_polyfill::slice_ptr_get;
 use alloc::Allocator;
 
 #[cfg(feature = "nightly")]
-fn run_test_opaque_alloc_allocate_size_with_layout_over_aligned_allocation<A>(opaque_alloc: TypeErasedAlloc, layout: alloc::Layout)
+fn run_test_type_erased_alloc_allocate_size_with_layout_over_aligned_allocation<A>(opaque_alloc: TypeErasedAlloc, layout: alloc::Layout)
 where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
@@ -41,7 +41,7 @@ where
 }
 
 #[cfg(not(feature = "nightly"))]
-fn run_test_opaque_alloc_allocate_size_with_layout_over_aligned_allocation<A>(opaque_alloc: TypeErasedAlloc, layout: alloc::Layout)
+fn run_test_type_erased_alloc_allocate_size_with_layout_over_aligned_allocation<A>(opaque_alloc: TypeErasedAlloc, layout: alloc::Layout)
 where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
@@ -66,7 +66,7 @@ where
     );
 }
 
-fn run_test_opaque_alloc_allocate_size_over_aligned_allocation_with_size_align<A>(alloc: A, size: usize, align: usize)
+fn run_test_type_erased_alloc_allocate_size_over_aligned_allocation_with_size_align<A>(alloc: A, size: usize, align: usize)
 where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
@@ -76,26 +76,26 @@ where
         size, align
     ));
 
-    run_test_opaque_alloc_allocate_size_with_layout_over_aligned_allocation::<A>(opaque_alloc, layout);
+    run_test_type_erased_alloc_allocate_size_with_layout_over_aligned_allocation::<A>(opaque_alloc, layout);
 }
 
 #[test]
-fn test_opaque_alloc_allocate_size_over_aligned_allocation_with_size_1024_align_2048() {
+fn test_type_erased_alloc_allocate_size_over_aligned_allocation_with_size_1024_align_2048() {
     let alloc = alloc::Global;
 
-    run_test_opaque_alloc_allocate_size_over_aligned_allocation_with_size_align(alloc,1024, 2048);
+    run_test_type_erased_alloc_allocate_size_over_aligned_allocation_with_size_align(alloc,1024, 2048);
 }
 
 #[test]
-fn test_opaque_alloc_allocate_size_over_aligned_allocation_with_size_1024_align_4096() {
+fn test_type_erased_alloc_allocate_size_over_aligned_allocation_with_size_1024_align_4096() {
     let alloc = alloc::Global;
 
-    run_test_opaque_alloc_allocate_size_over_aligned_allocation_with_size_align(alloc, 1024, 4096);
+    run_test_type_erased_alloc_allocate_size_over_aligned_allocation_with_size_align(alloc, 1024, 4096);
 }
 
 #[test]
-fn test_opaque_alloc_allocate_size_over_aligned_allocation_with_size_1024_align_8192() {
+fn test_type_erased_alloc_allocate_size_over_aligned_allocation_with_size_1024_align_8192() {
     let alloc = alloc::Global;
 
-    run_test_opaque_alloc_allocate_size_over_aligned_allocation_with_size_align(alloc, 1024, 8192);
+    run_test_type_erased_alloc_allocate_size_over_aligned_allocation_with_size_align(alloc, 1024, 8192);
 }

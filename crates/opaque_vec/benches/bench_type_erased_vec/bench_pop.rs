@@ -29,7 +29,7 @@ fn bench_vec_pop(c: &mut Criterion) {
     });
 }
 
-fn bench_opaque_vec_pop(c: &mut Criterion) {
+fn bench_type_erased_vec_pop(c: &mut Criterion) {
     let dummy_data = 0_i32;
 
     c.bench_function("opaque_vec_shift_remove_last", |b| {
@@ -45,4 +45,4 @@ fn bench_opaque_vec_pop(c: &mut Criterion) {
     });
 }
 
-criterion_group!(bench_pop, bench_opaque_vec_pop, bench_vec_pop);
+criterion_group!(bench_pop, bench_type_erased_vec_pop, bench_vec_pop);

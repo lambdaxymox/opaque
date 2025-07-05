@@ -30,7 +30,7 @@ fn bench_index_map_insert_full(c: &mut Criterion) {
     });
 }
 
-fn bench_opaque_index_map_insert_full(c: &mut Criterion) {
+fn bench_type_erased_index_map_insert_full(c: &mut Criterion) {
     c.bench_function("opaque_index_map_insert_full", |b| {
         b.iter(|| {
             let keys = 0..1000;
@@ -47,6 +47,6 @@ fn bench_opaque_index_map_insert_full(c: &mut Criterion) {
 
 criterion_group!(
     bench_insert_full,
-    bench_opaque_index_map_insert_full,
+    bench_type_erased_index_map_insert_full,
     bench_index_map_insert_full
 );

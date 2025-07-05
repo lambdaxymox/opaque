@@ -1887,7 +1887,7 @@ impl<K, V> Slice<K, V> {
     /// assert_eq!(result, Some((&String::from("foo"), &1_usize)));
     /// ```
     ///
-    /// Getting the first entry from an empty typed-projected index map slice.
+    /// Getting the first entry from an empty type-projected index map slice.
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
@@ -1940,7 +1940,7 @@ impl<K, V> Slice<K, V> {
     /// assert_eq!(result, Some((&String::from("foo"), &1_usize)));
     /// ```
     ///
-    /// Getting the first entry from an empty typed-erased index map slice.
+    /// Getting the first entry from an empty type-erased index map slice.
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
@@ -2010,7 +2010,7 @@ impl<K, V> Slice<K, V> {
     /// assert_eq!(result, Some((&String::from("foo"), &mut 1_usize)));
     /// ```
     ///
-    /// Getting the first entry from an empty typed-projected index map slice.
+    /// Getting the first entry from an empty type-projected index map slice.
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
@@ -2063,7 +2063,7 @@ impl<K, V> Slice<K, V> {
     /// assert_eq!(result, Some((&String::from("foo"), &mut 1_usize)));
     /// ```
     ///
-    /// Getting the first entry from an empty typed-erased index map slice.
+    /// Getting the first entry from an empty type-erased index map slice.
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
@@ -2132,7 +2132,7 @@ impl<K, V> Slice<K, V> {
     /// assert_eq!(result, Some((&String::from("quux"), &4_usize)));
     /// ```
     ///
-    /// Getting the last entry from an empty typed-projected index map slice.
+    /// Getting the last entry from an empty type-projected index map slice.
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
@@ -2185,7 +2185,7 @@ impl<K, V> Slice<K, V> {
     /// assert_eq!(result, Some((&String::from("quux"), &4_usize)));
     /// ```
     ///
-    /// Getting the last entry from an empty typed-erased index map slice.
+    /// Getting the last entry from an empty type-erased index map slice.
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
@@ -2254,7 +2254,7 @@ impl<K, V> Slice<K, V> {
     /// assert_eq!(result, Some((&String::from("quux"), &mut 4_usize)));
     /// ```
     ///
-    /// Getting the last entry from an empty typed-projected index map slice.
+    /// Getting the last entry from an empty type-projected index map slice.
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
@@ -2307,7 +2307,7 @@ impl<K, V> Slice<K, V> {
     /// assert_eq!(result, Some((&String::from("quux"), &mut 4_usize)));
     /// ```
     ///
-    /// Getting the last entry from an empty typed-erased index map slice.
+    /// Getting the last entry from an empty type-erased index map slice.
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
@@ -28706,7 +28706,7 @@ mod index_map_layout_tests {
     use super::*;
     use core::mem;
 
-    fn run_test_opaque_index_map_match_sizes<K, V, S, A>()
+    fn run_test_type_erased_index_map_match_sizes<K, V, S, A>()
     where
         K: any::Any,
         V: any::Any,
@@ -28717,10 +28717,10 @@ mod index_map_layout_tests {
         let expected = mem::size_of::<TypeProjectedIndexMap<K, V, S, A>>();
         let result = mem::size_of::<TypeErasedIndexMap>();
 
-        assert_eq!(result, expected, "Opaque and Typed Projected data types size mismatch");
+        assert_eq!(result, expected, "Type Erased and Type Projected data types size mismatch");
     }
 
-    fn run_test_opaque_index_map_match_alignments<K, V, S, A>()
+    fn run_test_type_erased_index_map_match_alignments<K, V, S, A>()
     where
         K: any::Any,
         V: any::Any,
@@ -28731,10 +28731,10 @@ mod index_map_layout_tests {
         let expected = mem::align_of::<TypeProjectedIndexMap<K, V, S, A>>();
         let result = mem::align_of::<TypeErasedIndexMap>();
 
-        assert_eq!(result, expected, "Opaque and Typed Projected data types alignment mismatch");
+        assert_eq!(result, expected, "Type Erased and Type Projected data types alignment mismatch");
     }
 
-    fn run_test_opaque_index_map_match_offsets<K, V, S, A>()
+    fn run_test_type_erased_index_map_match_offsets<K, V, S, A>()
     where
         K: any::Any,
         V: any::Any,
@@ -28745,7 +28745,7 @@ mod index_map_layout_tests {
         let expected = mem::offset_of!(TypeProjectedIndexMap<K, V, S, A>, inner);
         let result = mem::offset_of!(TypeErasedIndexMap, inner);
 
-        assert_eq!(result, expected, "Opaque and Typed Projected data types offsets mismatch");
+        assert_eq!(result, expected, "Type Erased and Type Projected data types offsets mismatch");
     }
 
     macro_rules! layout_tests {
@@ -28754,18 +28754,18 @@ mod index_map_layout_tests {
                 use super::*;
 
                 #[test]
-                fn test_opaque_index_map_layout_match_sizes() {
-                    run_test_opaque_index_map_match_sizes::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>();
+                fn test_type_erased_index_map_layout_match_sizes() {
+                    run_test_type_erased_index_map_match_sizes::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>();
                 }
 
                 #[test]
-                fn test_opaque_index_map_layout_match_alignments() {
-                    run_test_opaque_index_map_match_alignments::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>();
+                fn test_type_erased_index_map_layout_match_alignments() {
+                    run_test_type_erased_index_map_match_alignments::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>();
                 }
 
                 #[test]
-                fn test_opaque_index_map_layout_match_offsets() {
-                    run_test_opaque_index_map_match_offsets::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>();
+                fn test_type_erased_index_map_layout_match_offsets() {
+                    run_test_type_erased_index_map_match_offsets::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>();
                 }
             }
         };

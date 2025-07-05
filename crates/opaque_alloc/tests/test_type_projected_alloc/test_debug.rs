@@ -9,7 +9,7 @@ use alloc_crate::alloc;
 use opaque_allocator_api::alloc;
 
 #[test]
-fn test_typed_proj_alloc_debug1() {
+fn test_type_projected_alloc_debug1() {
     let proj_alloc = TypeProjectedAlloc::new(alloc::Global);
     let debug_str = format!("{:?}", proj_alloc);
 
@@ -17,7 +17,7 @@ fn test_typed_proj_alloc_debug1() {
 }
 
 #[test]
-fn test_typed_proj_alloc_debug2() {
+fn test_type_projected_alloc_debug2() {
     let proj_alloc = TypeProjectedAlloc::new(alloc::Global);
     let debug_str = format!("{:?}", proj_alloc);
 

@@ -206,39 +206,39 @@ mod alloc_inner_layout_tests {
     use super::*;
     use core::mem;
 
-    fn run_test_opaque_alloc_inner_match_sizes<A>()
+    fn run_test_type_erased_alloc_inner_match_sizes<A>()
     where
         A: any::Any + alloc::Allocator + Send + Sync,
     {
         let expected = mem::size_of::<TypeProjectedAllocInner<A>>();
         let result = mem::size_of::<TypeErasedAllocInner>();
 
-        assert_eq!(result, expected, "Opaque and Typed Projected data types size mismatch");
+        assert_eq!(result, expected, "Type Erased and Type Projected data types size mismatch");
     }
 
-    fn run_test_opaque_alloc_inner_match_alignments<A>()
+    fn run_test_type_erased_alloc_inner_match_alignments<A>()
     where
         A: any::Any + alloc::Allocator + Send + Sync,
     {
         let expected = mem::align_of::<TypeProjectedAllocInner<A>>();
         let result = mem::align_of::<TypeErasedAllocInner>();
 
-        assert_eq!(result, expected, "Opaque and Typed Projected data types alignment mismatch");
+        assert_eq!(result, expected, "Type Erased and Type Projected data types alignment mismatch");
     }
 
-    fn run_test_opaque_alloc_inner_match_offsets<A>()
+    fn run_test_type_erased_alloc_inner_match_offsets<A>()
     where
         A: any::Any + alloc::Allocator + Send + Sync,
     {
         assert_eq!(
             mem::offset_of!(TypeProjectedAllocInner<A>, alloc),
             mem::offset_of!(TypeErasedAllocInner, alloc),
-            "Opaque and Typed Projected data types offsets mismatch"
+            "Type Erased and Type Projected data types offsets mismatch"
         );
         assert_eq!(
             mem::offset_of!(TypeProjectedAllocInner<A>, alloc_type_id),
             mem::offset_of!(TypeErasedAllocInner, alloc_type_id),
-            "Opaque and Typed Projected data types offsets mismatch"
+            "Type Erased and Type Projected data types offsets mismatch"
         );
     }
 
@@ -248,18 +248,18 @@ mod alloc_inner_layout_tests {
                 use super::*;
 
                 #[test]
-                fn test_opaque_alloc_inner_layout_match_sizes() {
-                    run_test_opaque_alloc_inner_match_sizes::<$alloc_typ>();
+                fn test_type_erased_alloc_inner_layout_match_sizes() {
+                    run_test_type_erased_alloc_inner_match_sizes::<$alloc_typ>();
                 }
 
                 #[test]
-                fn test_opaque_alloc_inner_layout_match_alignments() {
-                    run_test_opaque_alloc_inner_match_alignments::<$alloc_typ>();
+                fn test_type_erased_alloc_inner_layout_match_alignments() {
+                    run_test_type_erased_alloc_inner_match_alignments::<$alloc_typ>();
                 }
 
                 #[test]
-                fn test_opaque_alloc_inner_layout_match_offsets() {
-                    run_test_opaque_alloc_inner_match_offsets::<$alloc_typ>();
+                fn test_type_erased_alloc_inner_layout_match_offsets() {
+                    run_test_type_erased_alloc_inner_match_offsets::<$alloc_typ>();
                 }
             }
         };

@@ -28,11 +28,11 @@ fn bench_index_set_get_full(c: &mut Criterion) {
     });
 }
 
-fn bench_typed_proj_index_set_get_full(c: &mut Criterion) {
+fn bench_type_projected_index_set_get_full(c: &mut Criterion) {
     let values = 0..1000;
     let proj_set = TypeProjectedIndexSet::<i32, hash::RandomState, alloc::Global>::from_iter(values);
 
-    c.bench_function("typed_proj_index_set_get_full", |b| {
+    c.bench_function("type_projected_index_set_get_full", |b| {
         b.iter(|| {
             for value in proj_set.iter() {
                 let _ = core::hint::black_box(proj_set.get_full(value));
@@ -41,4 +41,4 @@ fn bench_typed_proj_index_set_get_full(c: &mut Criterion) {
     });
 }
 
-criterion_group!(bench_get_full, bench_typed_proj_index_set_get_full, bench_index_set_get_full);
+criterion_group!(bench_get_full, bench_type_projected_index_set_get_full, bench_index_set_get_full);

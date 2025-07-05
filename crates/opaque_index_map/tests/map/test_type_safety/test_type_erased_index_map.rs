@@ -48,7 +48,7 @@ where
     }
 }
 
-fn run_test_opaque_index_map_with_hasher_in_has_type<K, V, S, A>(build_hasher: S, alloc: A)
+fn run_test_type_erased_index_map_with_hasher_in_has_type<K, V, S, A>(build_hasher: S, alloc: A)
 where
     K: any::Any,
     V: any::Any,
@@ -64,7 +64,7 @@ where
     assert!(opaque_map.has_allocator_type::<A>());
 }
 
-fn run_test_opaque_index_map_with_capacity_and_hasher_in_has_type<K, V, S, A>(build_hasher: S, alloc: A)
+fn run_test_type_erased_index_map_with_capacity_and_hasher_in_has_type<K, V, S, A>(build_hasher: S, alloc: A)
 where
     K: any::Any,
     V: any::Any,
@@ -80,7 +80,7 @@ where
     assert!(opaque_map.has_allocator_type::<A>());
 }
 
-fn run_test_opaque_index_map_new_in_has_type<K, V, A>(alloc: A)
+fn run_test_type_erased_index_map_new_in_has_type<K, V, A>(alloc: A)
 where
     K: any::Any,
     V: any::Any,
@@ -94,7 +94,7 @@ where
     assert!(opaque_map.has_allocator_type::<A>());
 }
 
-fn run_test_opaque_index_map_with_capacity_in_has_type<K, V, A>(alloc: A)
+fn run_test_type_erased_index_map_with_capacity_in_has_type<K, V, A>(alloc: A)
 where
     K: any::Any,
     V: any::Any,
@@ -108,7 +108,7 @@ where
     assert!(opaque_map.has_allocator_type::<A>());
 }
 
-fn run_test_opaque_index_map_with_hasher_has_type<K, V, S>(build_hasher: S)
+fn run_test_type_erased_index_map_with_hasher_has_type<K, V, S>(build_hasher: S)
 where
     K: any::Any,
     V: any::Any,
@@ -123,7 +123,7 @@ where
     assert!(opaque_map.has_allocator_type::<alloc::Global>());
 }
 
-fn run_test_opaque_index_map_with_capacity_and_hasher_has_type<K, V, S>(build_hasher: S)
+fn run_test_type_erased_index_map_with_capacity_and_hasher_has_type<K, V, S>(build_hasher: S)
 where
     K: any::Any,
     V: any::Any,
@@ -138,7 +138,7 @@ where
     assert!(opaque_map.has_allocator_type::<alloc::Global>());
 }
 
-fn run_test_opaque_index_map_new_has_type<K, V>()
+fn run_test_type_erased_index_map_new_has_type<K, V>()
 where
     K: any::Any,
     V: any::Any,
@@ -151,7 +151,7 @@ where
     assert!(opaque_map.has_allocator_type::<Global>());
 }
 
-fn run_test_opaque_index_map_with_capacity_has_type<K, V>()
+fn run_test_type_erased_index_map_with_capacity_has_type<K, V>()
 where
     K: any::Any,
     V: any::Any,
@@ -170,50 +170,50 @@ macro_rules! generate_tests {
             use super::*;
 
             #[test]
-            fn test_opaque_index_map_with_hasher_in_has_type() {
+            fn test_type_erased_index_map_with_hasher_in_has_type() {
                 let build_hasher: $build_hasher_typ = Default::default();
                 let alloc: $alloc_typ = Default::default();
-                run_test_opaque_index_map_with_hasher_in_has_type::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>(build_hasher, alloc);
+                run_test_type_erased_index_map_with_hasher_in_has_type::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>(build_hasher, alloc);
             }
 
             #[test]
-            fn test_opaque_index_map_with_capacity_and_hasher_in_has_type() {
+            fn test_type_erased_index_map_with_capacity_and_hasher_in_has_type() {
                 let build_hasher: $build_hasher_typ = Default::default();
                 let alloc: $alloc_typ = Default::default();
-                run_test_opaque_index_map_with_capacity_and_hasher_in_has_type::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>(build_hasher, alloc);
+                run_test_type_erased_index_map_with_capacity_and_hasher_in_has_type::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>(build_hasher, alloc);
             }
 
             #[test]
-            fn test_opaque_index_map_new_in_has_type() {
+            fn test_type_erased_index_map_new_in_has_type() {
                 let alloc: $alloc_typ = Default::default();
-                run_test_opaque_index_map_new_in_has_type::<$key_typ, $value_typ, $alloc_typ>(alloc);
+                run_test_type_erased_index_map_new_in_has_type::<$key_typ, $value_typ, $alloc_typ>(alloc);
             }
 
             #[test]
-            fn test_opaque_index_map_with_capacity_in_has_type() {
+            fn test_type_erased_index_map_with_capacity_in_has_type() {
                 let alloc: $alloc_typ = Default::default();
-                run_test_opaque_index_map_with_capacity_in_has_type::<$key_typ, $value_typ, $alloc_typ>(alloc);
+                run_test_type_erased_index_map_with_capacity_in_has_type::<$key_typ, $value_typ, $alloc_typ>(alloc);
             }
 
             #[test]
-            fn test_opaque_index_map_with_hasher_has_type() {
+            fn test_type_erased_index_map_with_hasher_has_type() {
                 let build_hasher: $build_hasher_typ = Default::default();
-                run_test_opaque_index_map_with_hasher_has_type::<$key_typ, $value_typ, $build_hasher_typ>(build_hasher);
+                run_test_type_erased_index_map_with_hasher_has_type::<$key_typ, $value_typ, $build_hasher_typ>(build_hasher);
             }
 
             #[test]
-            fn test_opaque_index_map_with_capacity_and_hasher_has_type() {
+            fn test_type_erased_index_map_with_capacity_and_hasher_has_type() {
                 let build_hasher: $build_hasher_typ = Default::default();
-                run_test_opaque_index_map_with_capacity_and_hasher_has_type::<$key_typ, $value_typ, $build_hasher_typ>(build_hasher);
+                run_test_type_erased_index_map_with_capacity_and_hasher_has_type::<$key_typ, $value_typ, $build_hasher_typ>(build_hasher);
             }
             #[test]
-            fn test_opaque_index_map_new_has_type() {
-                run_test_opaque_index_map_new_has_type::<$key_typ, $value_typ>();
+            fn test_type_erased_index_map_new_has_type() {
+                run_test_type_erased_index_map_new_has_type::<$key_typ, $value_typ>();
             }
 
             #[test]
-            fn test_opaque_index_map_with_capacity_has_type() {
-                run_test_opaque_index_map_with_capacity_has_type::<$key_typ, $value_typ>();
+            fn test_type_erased_index_map_with_capacity_has_type() {
+                run_test_type_erased_index_map_with_capacity_has_type::<$key_typ, $value_typ>();
             }
         }
     };

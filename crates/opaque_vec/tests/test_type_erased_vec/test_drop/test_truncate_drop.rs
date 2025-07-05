@@ -49,7 +49,7 @@ where
     (drop_counter, vec)
 }
 
-fn run_test_opaque_vec_truncate_drop_to_zero_direct<A>(length: usize, alloc: A)
+fn run_test_type_erased_vec_truncate_drop_to_zero_direct<A>(length: usize, alloc: A)
 where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
@@ -61,7 +61,7 @@ where
     assert_eq!(result, expected);
 }
 
-fn run_test_opaque_vec_truncate_drop_to_zero_steps<A>(length: usize, alloc: A)
+fn run_test_type_erased_vec_truncate_drop_to_zero_steps<A>(length: usize, alloc: A)
 where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
@@ -75,7 +75,7 @@ where
     }
 }
 
-fn run_test_opaque_vec_truncate_drop_to_length<A>(length: usize, alloc: A)
+fn run_test_type_erased_vec_truncate_drop_to_length<A>(length: usize, alloc: A)
 where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
@@ -87,7 +87,7 @@ where
     assert_eq!(result, expected);
 }
 
-fn run_test_opaque_vec_truncate_drop_to_above_length<A>(length: usize, alloc: A)
+fn run_test_type_erased_vec_truncate_drop_to_above_length<A>(length: usize, alloc: A)
 where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
@@ -102,37 +102,37 @@ where
 }
 
 #[test]
-fn test_opaque_vec_truncate_drop_to_zero_direct_range() {
+fn test_type_erased_vec_truncate_drop_to_zero_direct_range() {
     let max_length = 128;
     let alloc = alloc::Global;
     for length in 0..max_length {
-        run_test_opaque_vec_truncate_drop_to_zero_direct(length, alloc.clone());
+        run_test_type_erased_vec_truncate_drop_to_zero_direct(length, alloc.clone());
     }
 }
 
 #[test]
-fn test_opaque_vec_truncate_drop_to_zero_steps_range() {
+fn test_type_erased_vec_truncate_drop_to_zero_steps_range() {
     let max_length = 128;
     let alloc = alloc::Global;
     for length in 0..max_length {
-        run_test_opaque_vec_truncate_drop_to_zero_steps(length, alloc.clone());
+        run_test_type_erased_vec_truncate_drop_to_zero_steps(length, alloc.clone());
     }
 }
 
 #[test]
-fn test_opaque_vec_truncate_drop_to_length() {
+fn test_type_erased_vec_truncate_drop_to_length() {
     let max_length = 128;
     let alloc = alloc::Global;
     for length in 0..max_length {
-        run_test_opaque_vec_truncate_drop_to_length(length, alloc.clone());
+        run_test_type_erased_vec_truncate_drop_to_length(length, alloc.clone());
     }
 }
 
 #[test]
-fn test_opaque_vec_truncate_drop_to_above_length() {
+fn test_type_erased_vec_truncate_drop_to_above_length() {
     let max_length = 128;
     let alloc = alloc::Global;
     for length in 0..max_length {
-        run_test_opaque_vec_truncate_drop_to_above_length(length, alloc.clone());
+        run_test_type_erased_vec_truncate_drop_to_above_length(length, alloc.clone());
     }
 }

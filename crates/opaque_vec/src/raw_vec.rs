@@ -958,7 +958,7 @@ mod raw_vec_layout_tests {
     use super::*;
     use core::mem;
 
-    fn run_test_opaque_raw_vec_match_sizes<T, A>()
+    fn run_test_type_erased_raw_vec_match_sizes<T, A>()
     where
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
@@ -966,10 +966,10 @@ mod raw_vec_layout_tests {
         let expected = mem::size_of::<TypeProjectedRawVec<T, A>>();
         let result = mem::size_of::<TypeErasedRawVec>();
 
-        assert_eq!(result, expected, "Opaque and Typed Projected data types size mismatch");
+        assert_eq!(result, expected, "Type Erased and Type Projected data types size mismatch");
     }
 
-    fn run_test_opaque_raw_vec_match_alignments<T, A>()
+    fn run_test_type_erased_raw_vec_match_alignments<T, A>()
     where
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
@@ -977,10 +977,10 @@ mod raw_vec_layout_tests {
         let expected = mem::align_of::<TypeProjectedRawVec<T, A>>();
         let result = mem::align_of::<TypeErasedRawVec>();
 
-        assert_eq!(result, expected, "Opaque and Typed Projected data types alignment mismatch");
+        assert_eq!(result, expected, "Type Erased and Type Projected data types alignment mismatch");
     }
 
-    fn run_test_opaque_raw_vec_match_offsets<T, A>()
+    fn run_test_type_erased_raw_vec_match_offsets<T, A>()
     where
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
@@ -988,7 +988,7 @@ mod raw_vec_layout_tests {
         let expected = mem::offset_of!(TypeProjectedRawVec<T, A>, inner);
         let result = mem::offset_of!(TypeErasedRawVec, inner);
 
-        assert_eq!(result, expected, "Opaque and Typed Projected data types offsets mismatch");
+        assert_eq!(result, expected, "Type Erased and Type Projected data types offsets mismatch");
     }
 
     macro_rules! layout_tests {
@@ -997,18 +997,18 @@ mod raw_vec_layout_tests {
                 use super::*;
 
                 #[test]
-                fn test_opaque_raw_vec_layout_match_sizes() {
-                    run_test_opaque_raw_vec_match_sizes::<$element_typ, $alloc_typ>();
+                fn test_type_erased_raw_vec_layout_match_sizes() {
+                    run_test_type_erased_raw_vec_match_sizes::<$element_typ, $alloc_typ>();
                 }
 
                 #[test]
-                fn test_opaque_raw_vec_layout_match_alignments() {
-                    run_test_opaque_raw_vec_match_alignments::<$element_typ, $alloc_typ>();
+                fn test_type_erased_raw_vec_layout_match_alignments() {
+                    run_test_type_erased_raw_vec_match_alignments::<$element_typ, $alloc_typ>();
                 }
 
                 #[test]
-                fn test_opaque_raw_vec_layout_match_offsets() {
-                    run_test_opaque_raw_vec_match_offsets::<$element_typ, $alloc_typ>();
+                fn test_type_erased_raw_vec_layout_match_offsets() {
+                    run_test_type_erased_raw_vec_match_offsets::<$element_typ, $alloc_typ>();
                 }
             }
         };

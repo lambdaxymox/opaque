@@ -47,7 +47,7 @@ use core::hash;
 ///
 /// # Examples
 ///
-/// Using a typed-projected hasher.
+/// Using a type-projected hasher.
 ///
 /// ```
 /// # use opaque_hash::TypeProjectedHasher;
@@ -703,34 +703,34 @@ mod hasher_layout_tests {
     use super::*;
     use std::hash;
 
-    fn run_test_opaque_hasher_match_sizes<H>()
+    fn run_test_type_erased_hasher_match_sizes<H>()
     where
         H: any::Any + hash::Hasher + Send + Sync,
     {
         let expected = core::mem::size_of::<TypeProjectedHasher<H>>();
         let result = core::mem::size_of::<TypeErasedHasher>();
 
-        assert_eq!(result, expected, "Opaque and Typed Projected data types size mismatch");
+        assert_eq!(result, expected, "Type Erased and Type Projected data types size mismatch");
     }
 
-    fn run_test_opaque_hasher_match_alignments<H>()
+    fn run_test_type_erased_hasher_match_alignments<H>()
     where
         H: any::Any + hash::Hasher + Send + Sync,
     {
         let expected = core::mem::align_of::<TypeProjectedHasher<H>>();
         let result = core::mem::align_of::<TypeErasedHasher>();
 
-        assert_eq!(result, expected, "Opaque and Typed Projected data types alignment mismatch");
+        assert_eq!(result, expected, "Type Erased and Type Projected data types alignment mismatch");
     }
 
-    fn run_test_opaque_hasher_match_offsets<H>()
+    fn run_test_type_erased_hasher_match_offsets<H>()
     where
         H: any::Any + hash::Hasher + Send + Sync,
     {
         assert_eq!(
             core::mem::offset_of!(TypeProjectedHasher<H>, inner),
             core::mem::offset_of!(TypeErasedHasher, inner),
-            "Opaque and Typed Projected data types offsets mismatch"
+            "Type Erased and Type Projected data types offsets mismatch"
         );
     }
 
@@ -741,17 +741,17 @@ mod hasher_layout_tests {
 
                 #[test]
                 fn test_hasher_layout_match_sizes() {
-                    run_test_opaque_hasher_match_sizes::<$hasher_typ>();
+                    run_test_type_erased_hasher_match_sizes::<$hasher_typ>();
                 }
 
                 #[test]
                 fn test_hasher_layout_match_alignments() {
-                    run_test_opaque_hasher_match_alignments::<$hasher_typ>();
+                    run_test_type_erased_hasher_match_alignments::<$hasher_typ>();
                 }
 
                 #[test]
                 fn test_hasher_layout_match_offsets() {
-                    run_test_opaque_hasher_match_offsets::<$hasher_typ>();
+                    run_test_type_erased_hasher_match_offsets::<$hasher_typ>();
                 }
             }
         };

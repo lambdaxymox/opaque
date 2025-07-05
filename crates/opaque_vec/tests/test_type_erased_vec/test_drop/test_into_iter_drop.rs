@@ -49,7 +49,7 @@ where
     (drop_counter, vec)
 }
 
-fn run_test_opaque_vec_into_iter_drop<A>(length: usize, alloc: A)
+fn run_test_type_erased_vec_into_iter_drop<A>(length: usize, alloc: A)
 where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
@@ -62,7 +62,7 @@ where
     assert_eq!(result, expected);
 }
 
-fn run_test_opaque_vec_into_iter_take_then_drop<A>(length: usize, take_count: usize, alloc: A)
+fn run_test_type_erased_vec_into_iter_take_then_drop<A>(length: usize, take_count: usize, alloc: A)
 where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
@@ -87,23 +87,23 @@ where
 }
 
 #[test]
-fn test_opaque_vec_into_iter_drop() {
+fn test_type_erased_vec_into_iter_drop() {
     let max_length = 128;
     let alloc = alloc::Global;
     for length in 0..max_length {
         for take_count in 0..length {
-            run_test_opaque_vec_into_iter_drop(length, alloc.clone());
+            run_test_type_erased_vec_into_iter_drop(length, alloc.clone());
         }
     }
 }
 
 #[test]
-fn test_opaque_vec_into_iter_take_then_drop() {
+fn test_type_erased_vec_into_iter_take_then_drop() {
     let max_length = 128;
     let alloc = alloc::Global;
     for length in 0..max_length {
         for take_count in 0..length {
-            run_test_opaque_vec_into_iter_take_then_drop(length, take_count, alloc.clone());
+            run_test_type_erased_vec_into_iter_take_then_drop(length, take_count, alloc.clone());
         }
     }
 }

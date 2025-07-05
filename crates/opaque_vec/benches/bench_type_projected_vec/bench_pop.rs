@@ -29,10 +29,10 @@ fn bench_vec_pop(c: &mut Criterion) {
     });
 }
 
-fn bench_typed_proj_vec_pop(c: &mut Criterion) {
+fn bench_type_projected_vec_pop(c: &mut Criterion) {
     let dummy_data = 0_i32;
 
-    c.bench_function("typed_proj_vec_shift_remove_last", |b| {
+    c.bench_function("type_projected_vec_shift_remove_last", |b| {
         b.iter_batched(
             || TypeProjectedVec::from_iter((0..1000).map(|_| dummy_data)),
             |mut proj_vec| {
@@ -45,4 +45,4 @@ fn bench_typed_proj_vec_pop(c: &mut Criterion) {
     });
 }
 
-criterion_group!(bench_pop, bench_typed_proj_vec_pop, bench_vec_pop);
+criterion_group!(bench_pop, bench_type_projected_vec_pop, bench_vec_pop);

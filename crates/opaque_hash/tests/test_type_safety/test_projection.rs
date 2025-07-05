@@ -1,5 +1,6 @@
+use opaque_hash::TypeErasedBuildHasher;
+
 use std::hash;
-use opaque_hash::{TypeProjectedBuildHasher, TypeErasedBuildHasher};
 
 struct ZeroHasher {}
 
@@ -28,19 +29,19 @@ impl BuildZeroHasher {
 }
 
 #[test]
-fn test_opaque_hasher_into_proj_correct_type1() {
+fn test_type_erased_hasher_into_proj_correct_type1() {
     let opaque_build_hasher = TypeErasedBuildHasher::new::<hash::RandomState>(hash::RandomState::new());
     let _ = opaque_build_hasher.into_proj::<hash::RandomState>();
 }
 
 #[test]
-fn test_opaque_hasher_into_proj_correct_type2() {
+fn test_type_erased_hasher_into_proj_correct_type2() {
     let opaque_build_hasher = TypeErasedBuildHasher::new::<BuildZeroHasher>(BuildZeroHasher::new());
     let _ = opaque_build_hasher.into_proj::<BuildZeroHasher>();
 }
 
 #[test]
-fn test_opaque_hasher_into_proj_correct_type3() {
+fn test_type_erased_hasher_into_proj_correct_type3() {
     let mut opaque_build_hasher = TypeErasedBuildHasher::new::<hash::RandomState>(hash::RandomState::new());
     for _ in 0..65536 {
         let proj_build_hasher = opaque_build_hasher.into_proj::<hash::RandomState>();
@@ -49,7 +50,7 @@ fn test_opaque_hasher_into_proj_correct_type3() {
 }
 
 #[test]
-fn test_opaque_hasher_into_proj_correct_type4() {
+fn test_type_erased_hasher_into_proj_correct_type4() {
     let mut opaque_build_hasher = TypeErasedBuildHasher::new::<BuildZeroHasher>(BuildZeroHasher::new());
     for _ in 0..65536 {
         let proj_build_hasher = opaque_build_hasher.into_proj::<BuildZeroHasher>();
@@ -59,32 +60,32 @@ fn test_opaque_hasher_into_proj_correct_type4() {
 
 #[test]
 #[should_panic]
-fn test_opaque_hasher_into_proj_panics_wrong_type1() {
+fn test_type_erased_hasher_into_proj_panics_wrong_type1() {
     let opaque_build_hasher = TypeErasedBuildHasher::new::<BuildZeroHasher>(BuildZeroHasher::new());
     let _ = opaque_build_hasher.into_proj::<hash::RandomState>();
 }
 
 #[test]
 #[should_panic]
-fn test_opaque_hasher_into_proj_panics_wrong_type2() {
+fn test_type_erased_hasher_into_proj_panics_wrong_type2() {
     let opaque_build_hasher = TypeErasedBuildHasher::new::<hash::RandomState>(hash::RandomState::new());
     let _ = opaque_build_hasher.into_proj::<BuildZeroHasher>();
 }
 
 #[test]
-fn test_opaque_hasher_as_proj_correct_type1() {
+fn test_type_erased_hasher_as_proj_correct_type1() {
     let opaque_build_hasher = TypeErasedBuildHasher::new::<hash::RandomState>(hash::RandomState::new());
     let _ = opaque_build_hasher.as_proj::<hash::RandomState>();
 }
 
 #[test]
-fn test_opaque_hasher_as_proj_correct_type2() {
+fn test_type_erased_hasher_as_proj_correct_type2() {
     let opaque_build_hasher = TypeErasedBuildHasher::new::<BuildZeroHasher>(BuildZeroHasher::new());
     let _ = opaque_build_hasher.as_proj::<BuildZeroHasher>();
 }
 
 #[test]
-fn test_opaque_hasher_as_proj_correct_type3() {
+fn test_type_erased_hasher_as_proj_correct_type3() {
     let opaque_build_hasher = TypeErasedBuildHasher::new::<hash::RandomState>(hash::RandomState::new());
     for _ in 0..65536 {
         let _ = opaque_build_hasher.as_proj::<hash::RandomState>();
@@ -92,7 +93,7 @@ fn test_opaque_hasher_as_proj_correct_type3() {
 }
 
 #[test]
-fn test_opaque_hasher_as_proj_correct_type4() {
+fn test_type_erased_hasher_as_proj_correct_type4() {
     let opaque_build_hasher = TypeErasedBuildHasher::new::<BuildZeroHasher>(BuildZeroHasher::new());
     for _ in 0..65536 {
         let _ = opaque_build_hasher.as_proj::<BuildZeroHasher>();
@@ -101,32 +102,32 @@ fn test_opaque_hasher_as_proj_correct_type4() {
 
 #[test]
 #[should_panic]
-fn test_opaque_hasher_as_proj_panics_wrong_type1() {
+fn test_type_erased_hasher_as_proj_panics_wrong_type1() {
     let opaque_build_hasher = TypeErasedBuildHasher::new::<hash::RandomState>(hash::RandomState::new());
     let _ = opaque_build_hasher.as_proj::<BuildZeroHasher>();
 }
 
 #[test]
 #[should_panic]
-fn test_opaque_hasher_as_proj_panics_wrong_type2() {
+fn test_type_erased_hasher_as_proj_panics_wrong_type2() {
     let opaque_build_hasher = TypeErasedBuildHasher::new::<BuildZeroHasher>(BuildZeroHasher::new());
     let _ = opaque_build_hasher.as_proj::<hash::RandomState>();
 }
 
 #[test]
-fn test_opaque_hasher_as_proj_mut_correct_type1() {
+fn test_type_erased_hasher_as_proj_mut_correct_type1() {
     let mut opaque_build_hasher = TypeErasedBuildHasher::new::<hash::RandomState>(hash::RandomState::new());
     let _ = opaque_build_hasher.as_proj_mut::<hash::RandomState>();
 }
 
 #[test]
-fn test_opaque_hasher_as_proj_mut_correct_type2() {
+fn test_type_erased_hasher_as_proj_mut_correct_type2() {
     let mut opaque_build_hasher = TypeErasedBuildHasher::new::<BuildZeroHasher>(BuildZeroHasher::new());
     let _ = opaque_build_hasher.as_proj_mut::<BuildZeroHasher>();
 }
 
 #[test]
-fn test_opaque_hasher_as_proj_mut_correct_type3() {
+fn test_type_erased_hasher_as_proj_mut_correct_type3() {
     let mut opaque_build_hasher = TypeErasedBuildHasher::new::<hash::RandomState>(hash::RandomState::new());
     for _ in 0..65536 {
         let _ = opaque_build_hasher.as_proj_mut::<hash::RandomState>();
@@ -134,7 +135,7 @@ fn test_opaque_hasher_as_proj_mut_correct_type3() {
 }
 
 #[test]
-fn test_opaque_hasher_as_proj_mut_correct_type4() {
+fn test_type_erased_hasher_as_proj_mut_correct_type4() {
     let mut opaque_build_hasher = TypeErasedBuildHasher::new::<BuildZeroHasher>(BuildZeroHasher::new());
     for _ in 0..65536 {
         let _ = opaque_build_hasher.as_proj_mut::<BuildZeroHasher>();
@@ -143,14 +144,14 @@ fn test_opaque_hasher_as_proj_mut_correct_type4() {
 
 #[test]
 #[should_panic]
-fn test_opaque_hasher_as_proj_mut_panics_wrong_type1() {
+fn test_type_erased_hasher_as_proj_mut_panics_wrong_type1() {
     let mut opaque_build_hasher = TypeErasedBuildHasher::new::<hash::RandomState>(hash::RandomState::new());
     let _ = opaque_build_hasher.as_proj_mut::<BuildZeroHasher>();
 }
 
 #[test]
 #[should_panic]
-fn test_opaque_hasher_as_proj_mut_panics_wrong_type2() {
+fn test_type_erased_hasher_as_proj_mut_panics_wrong_type2() {
     let mut opaque_build_hasher = TypeErasedBuildHasher::new::<BuildZeroHasher>(BuildZeroHasher::new());
     let _ = opaque_build_hasher.as_proj_mut::<hash::RandomState>();
 }

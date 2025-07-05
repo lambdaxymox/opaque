@@ -238,7 +238,7 @@ where
     ///
     /// # Examples
     ///
-    /// Using a draining iterator on a typed-projected vector.
+    /// Using a draining iterator on a type-projected vector.
     ///
     /// ```
     /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]

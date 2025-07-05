@@ -15,7 +15,7 @@ use opaque_allocator_api::alloc;
 
 fn bench_vec_as_slice_index(c: &mut Criterion) {
     let dummy_data = 0_i32;
-    let mut vec = Vec::from_iter((0..10000).map(|_| dummy_data));
+    let vec = Vec::from_iter((0..10000).map(|_| dummy_data));
 
     c.bench_function("vec_as_slice_index", |b| {
         b.iter(|| {
@@ -27,7 +27,7 @@ fn bench_vec_as_slice_index(c: &mut Criterion) {
     });
 }
 
-fn bench_opaque_vec_as_slice_index(c: &mut Criterion) {
+fn bench_type_erased_vec_as_slice_index(c: &mut Criterion) {
     let dummy_data = 0_i32;
     let opaque_vec = TypeErasedVec::from_iter((0..10000).map(|_| dummy_data));
 
@@ -41,4 +41,4 @@ fn bench_opaque_vec_as_slice_index(c: &mut Criterion) {
     });
 }
 
-criterion_group!(bench_as_slice_index, bench_opaque_vec_as_slice_index, bench_vec_as_slice_index);
+criterion_group!(bench_as_slice_index, bench_type_erased_vec_as_slice_index, bench_vec_as_slice_index);

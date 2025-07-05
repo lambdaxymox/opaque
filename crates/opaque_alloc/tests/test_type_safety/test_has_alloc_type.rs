@@ -39,21 +39,21 @@ where
 }
 
 #[test]
-fn test_opaque_alloc_has_alloc_type1() {
+fn test_type_erased_alloc_has_alloc_type1() {
     let opaque_alloc = TypeErasedAlloc::new::<alloc::Global>(alloc::Global);
 
     assert!(opaque_alloc.has_allocator_type::<alloc::Global>());
 }
 
 #[test]
-fn test_opaque_alloc_has_alloc_type2() {
+fn test_type_erased_alloc_has_alloc_type2() {
     let opaque_alloc = TypeErasedAlloc::new::<WrappingAlloc<alloc::Global>>(WrappingAlloc::new(alloc::Global));
 
     assert!(opaque_alloc.has_allocator_type::<WrappingAlloc<alloc::Global>>());
 }
 
 #[test]
-fn test_opaque_alloc_into_proj_has_alloc_type1() {
+fn test_type_erased_alloc_into_proj_has_alloc_type1() {
     let opaque_alloc = TypeErasedAlloc::new::<alloc::Global>(alloc::Global);
     let proj_alloc = opaque_alloc.into_proj::<alloc::Global>();
     let opaque_alloc = TypeErasedAlloc::from_proj(proj_alloc);
@@ -62,7 +62,7 @@ fn test_opaque_alloc_into_proj_has_alloc_type1() {
 }
 
 #[test]
-fn test_opaque_alloc_into_proj_has_alloc_type2() {
+fn test_type_erased_alloc_into_proj_has_alloc_type2() {
     let opaque_alloc = TypeErasedAlloc::new::<WrappingAlloc<alloc::Global>>(WrappingAlloc::new(alloc::Global));
     let proj_alloc = opaque_alloc.into_proj::<WrappingAlloc<alloc::Global>>();
     let opaque_alloc = TypeErasedAlloc::from_proj(proj_alloc);
@@ -71,21 +71,21 @@ fn test_opaque_alloc_into_proj_has_alloc_type2() {
 }
 
 #[test]
-fn test_opaque_alloc_not_has_alloc_type1() {
+fn test_type_erased_alloc_not_has_alloc_type1() {
     let opaque_alloc = TypeErasedAlloc::new::<WrappingAlloc<alloc::Global>>(WrappingAlloc::new(alloc::Global));
 
     assert!(!opaque_alloc.has_allocator_type::<alloc::Global>());
 }
 
 #[test]
-fn test_opaque_alloc_not_has_alloc_type2() {
+fn test_type_erased_alloc_not_has_alloc_type2() {
     let opaque_alloc = TypeErasedAlloc::new::<alloc::Global>(alloc::Global);
 
     assert!(!opaque_alloc.has_allocator_type::<WrappingAlloc<alloc::Global>>());
 }
 
 #[test]
-fn test_opaque_alloc_into_proj_not_has_alloc_type1() {
+fn test_type_erased_alloc_into_proj_not_has_alloc_type1() {
     let opaque_alloc = TypeErasedAlloc::new::<WrappingAlloc<alloc::Global>>(WrappingAlloc::new(alloc::Global));
     let proj_alloc = opaque_alloc.into_proj::<WrappingAlloc<alloc::Global>>();
     let opaque_alloc = TypeErasedAlloc::from_proj(proj_alloc);
@@ -94,7 +94,7 @@ fn test_opaque_alloc_into_proj_not_has_alloc_type1() {
 }
 
 #[test]
-fn test_opaque_alloc_into_proj_not_has_alloc_type2() {
+fn test_type_erased_alloc_into_proj_not_has_alloc_type2() {
     let opaque_alloc = TypeErasedAlloc::new::<alloc::Global>(alloc::Global);
     let proj_alloc = opaque_alloc.into_proj::<alloc::Global>();
     let opaque_alloc = TypeErasedAlloc::from_proj(proj_alloc);

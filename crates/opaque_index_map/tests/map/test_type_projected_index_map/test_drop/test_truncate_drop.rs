@@ -52,7 +52,7 @@ where
     (drop_counter, map)
 }
 
-fn run_test_typed_proj_index_map_truncate_drop_to_zero_direct<S, A>(length: usize, build_hasher: S, alloc: A)
+fn run_test_type_projected_index_map_truncate_drop_to_zero_direct<S, A>(length: usize, build_hasher: S, alloc: A)
 where
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
@@ -67,7 +67,7 @@ where
     assert_eq!(result, expected);
 }
 
-fn run_test_typed_proj_index_map_truncate_drop_to_zero_steps<S, A>(length: usize, build_hasher: S, alloc: A)
+fn run_test_type_projected_index_map_truncate_drop_to_zero_steps<S, A>(length: usize, build_hasher: S, alloc: A)
 where
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
@@ -83,7 +83,7 @@ where
     }
 }
 
-fn run_test_typed_proj_index_map_truncate_drop_to_length<S, A>(length: usize, build_hasher: S, alloc: A)
+fn run_test_type_projected_index_map_truncate_drop_to_length<S, A>(length: usize, build_hasher: S, alloc: A)
 where
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
@@ -97,7 +97,7 @@ where
     assert_eq!(result, expected);
 }
 
-fn run_test_typed_proj_index_map_truncate_drop_to_above_length<S, A>(length: usize, build_hasher: S, alloc: A)
+fn run_test_type_projected_index_map_truncate_drop_to_above_length<S, A>(length: usize, build_hasher: S, alloc: A)
 where
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
@@ -114,41 +114,41 @@ where
 }
 
 #[test]
-fn test_typed_proj_index_map_truncate_drop_to_zero_direct_range() {
+fn test_type_projected_index_map_truncate_drop_to_zero_direct_range() {
     let max_length = 128;
     let build_hasher = hash::RandomState::new();
     let alloc = alloc::Global;
     for length in 0..max_length {
-        run_test_typed_proj_index_map_truncate_drop_to_zero_direct(length, build_hasher.clone(), alloc.clone());
+        run_test_type_projected_index_map_truncate_drop_to_zero_direct(length, build_hasher.clone(), alloc.clone());
     }
 }
 
 #[test]
-fn test_typed_proj_index_map_truncate_drop_to_zero_steps_range() {
+fn test_type_projected_index_map_truncate_drop_to_zero_steps_range() {
     let max_length = 128;
     let build_hasher = hash::RandomState::new();
     let alloc = alloc::Global;
     for length in 0..max_length {
-        run_test_typed_proj_index_map_truncate_drop_to_zero_steps(length, build_hasher.clone(), alloc.clone());
+        run_test_type_projected_index_map_truncate_drop_to_zero_steps(length, build_hasher.clone(), alloc.clone());
     }
 }
 
 #[test]
-fn test_typed_proj_index_map_truncate_drop_to_length() {
+fn test_type_projected_index_map_truncate_drop_to_length() {
     let max_length = 128;
     let build_hasher = hash::RandomState::new();
     let alloc = alloc::Global;
     for length in 0..max_length {
-        run_test_typed_proj_index_map_truncate_drop_to_length(length, build_hasher.clone(), alloc.clone());
+        run_test_type_projected_index_map_truncate_drop_to_length(length, build_hasher.clone(), alloc.clone());
     }
 }
 
 #[test]
-fn test_typed_proj_index_map_truncate_drop_to_above_length() {
+fn test_type_projected_index_map_truncate_drop_to_above_length() {
     let max_length = 128;
     let build_hasher = hash::RandomState::new();
     let alloc = alloc::Global;
     for length in 0..max_length {
-        run_test_typed_proj_index_map_truncate_drop_to_above_length(length, build_hasher.clone(), alloc.clone());
+        run_test_type_projected_index_map_truncate_drop_to_above_length(length, build_hasher.clone(), alloc.clone());
     }
 }

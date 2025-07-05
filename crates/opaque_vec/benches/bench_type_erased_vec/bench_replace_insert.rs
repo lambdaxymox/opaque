@@ -28,7 +28,7 @@ fn bench_vec_replace_insert_last(c: &mut Criterion) {
     });
 }
 
-fn bench_opaque_vec_replace_insert_last(c: &mut Criterion) {
+fn bench_type_erased_vec_replace_insert_last(c: &mut Criterion) {
     let dummy_data = 0_i32;
 
     c.bench_function("opaque_vec_replace_insert_last", |b| {
@@ -46,6 +46,6 @@ fn bench_opaque_vec_replace_insert_last(c: &mut Criterion) {
 
 criterion_group!(
     bench_replace_insert,
-    bench_opaque_vec_replace_insert_last,
+    bench_type_erased_vec_replace_insert_last,
     bench_vec_replace_insert_last
 );

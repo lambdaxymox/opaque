@@ -28,8 +28,8 @@ fn bench_index_map_insert_full(c: &mut Criterion) {
     });
 }
 
-fn bench_typed_proj_index_map_insert_full(c: &mut Criterion) {
-    c.bench_function("typed_proj_index_map_insert_full", |b| {
+fn bench_type_projected_index_map_insert_full(c: &mut Criterion) {
+    c.bench_function("type_projected_index_map_insert_full", |b| {
         b.iter(|| {
             let keys = 0..1000;
             let values = 1..1001;
@@ -45,6 +45,6 @@ fn bench_typed_proj_index_map_insert_full(c: &mut Criterion) {
 
 criterion_group!(
     bench_insert_full,
-    bench_typed_proj_index_map_insert_full,
+    bench_type_projected_index_map_insert_full,
     bench_index_map_insert_full
 );

@@ -28,11 +28,11 @@ fn bench_index_map_get_index_of(c: &mut Criterion) {
     });
 }
 
-fn bench_typed_proj_index_map_get_index_of(c: &mut Criterion) {
+fn bench_type_projected_index_map_get_index_of(c: &mut Criterion) {
     let values = 0..1000;
     let proj_set = TypeProjectedIndexSet::<i32, hash::RandomState, alloc::Global>::from_iter(values);
 
-    c.bench_function("typed_proj_index_map_get_index_of", |b| {
+    c.bench_function("type_projected_index_map_get_index_of", |b| {
         b.iter(|| {
             for value in proj_set.iter() {
                 let _ = core::hint::black_box(proj_set.get_index_of(value));
@@ -41,4 +41,4 @@ fn bench_typed_proj_index_map_get_index_of(c: &mut Criterion) {
     });
 }
 
-criterion_group!(bench_get_index_of, bench_typed_proj_index_map_get_index_of, bench_index_map_get_index_of);
+criterion_group!(bench_get_index_of, bench_type_projected_index_map_get_index_of, bench_index_map_get_index_of);

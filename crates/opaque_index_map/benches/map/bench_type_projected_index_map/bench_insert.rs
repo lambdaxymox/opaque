@@ -28,8 +28,8 @@ fn bench_index_map_insert(c: &mut Criterion) {
     });
 }
 
-fn bench_typed_proj_index_map_insert(c: &mut Criterion) {
-    c.bench_function("typed_proj_index_map_insert", |b| {
+fn bench_type_projected_index_map_insert(c: &mut Criterion) {
+    c.bench_function("type_projected_index_map_insert", |b| {
         b.iter(|| {
             let keys = 0..1000;
             let values = 1..1001;
@@ -45,6 +45,6 @@ fn bench_typed_proj_index_map_insert(c: &mut Criterion) {
 
 criterion_group!(
     bench_insert,
-    bench_typed_proj_index_map_insert,
+    bench_type_projected_index_map_insert,
     bench_index_map_insert
 );

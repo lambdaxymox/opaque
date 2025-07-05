@@ -28,7 +28,7 @@ impl Drop for DropCounter {
 }
 
 #[test]
-fn test_typed_proj_vec_double_drop() {
+fn test_type_projected_vec_double_drop() {
     struct TwoTypeProjectedVec {
         x: TypeProjectedVec<DropCounter, alloc::Global>,
         y: TypeProjectedVec<DropCounter, alloc::Global>,
@@ -55,7 +55,7 @@ fn test_typed_proj_vec_double_drop() {
 }
 
 #[test]
-fn test_typed_proj_vec_drop_all_items1() {
+fn test_type_projected_vec_drop_all_items1() {
     let count = 1024;
     let ref_count = Rc::new(RefCell::new(0));
     let counter = DropCounter::new(ref_count.clone());
@@ -73,7 +73,7 @@ fn test_typed_proj_vec_drop_all_items1() {
 }
 
 #[test]
-fn test_typed_proj_vec_push_should_not_drop_value() {
+fn test_type_projected_vec_push_should_not_drop_value() {
     let mut vec = TypeProjectedVec::new();
 
     let ref_count = Rc::new(RefCell::new(0));
@@ -87,7 +87,7 @@ fn test_typed_proj_vec_push_should_not_drop_value() {
 }
 
 #[test]
-fn test_typed_proj_vec_replace_insert_should_not_drop_value() {
+fn test_type_projected_vec_replace_insert_should_not_drop_value() {
     let mut vec = TypeProjectedVec::new();
 
     let ref_count = Rc::new(RefCell::new(0));
@@ -101,7 +101,7 @@ fn test_typed_proj_vec_replace_insert_should_not_drop_value() {
 }
 
 #[test]
-fn test_typed_proj_vec_swap_remove_should_not_drop_return_value() {
+fn test_type_projected_vec_swap_remove_should_not_drop_return_value() {
     let mut vec = TypeProjectedVec::new();
 
     let ref_count = Rc::new(RefCell::new(0));
@@ -117,7 +117,7 @@ fn test_typed_proj_vec_swap_remove_should_not_drop_return_value() {
 }
 
 #[test]
-fn test_typed_proj_vec_shift_remove_should_not_drop_return_value() {
+fn test_type_projected_vec_shift_remove_should_not_drop_return_value() {
     let mut vec = TypeProjectedVec::new();
 
     let ref_count = Rc::new(RefCell::new(0));
@@ -133,7 +133,7 @@ fn test_typed_proj_vec_shift_remove_should_not_drop_return_value() {
 }
 
 #[test]
-fn test_typed_proj_vec_pop_should_not_drop_return_value() {
+fn test_type_projected_vec_pop_should_not_drop_return_value() {
     let mut vec = TypeProjectedVec::new();
 
     let ref_count = Rc::new(RefCell::new(0));
@@ -149,7 +149,7 @@ fn test_typed_proj_vec_pop_should_not_drop_return_value() {
 }
 
 #[test]
-fn test_typed_proj_vec_clear_should_drop() {
+fn test_type_projected_vec_clear_should_drop() {
     let mut vec = TypeProjectedVec::new();
 
     let ref_count = Rc::new(RefCell::new(0));
@@ -165,7 +165,7 @@ fn test_typed_proj_vec_clear_should_drop() {
 }
 
 #[test]
-fn test_typed_proj_vec_drop_should_drop_elements() {
+fn test_type_projected_vec_drop_should_drop_elements() {
     let ref_count = Rc::new(RefCell::new(0));
     {
         let mut vec = TypeProjectedVec::new();
@@ -182,7 +182,7 @@ fn test_typed_proj_vec_drop_should_drop_elements() {
 }
 
 #[test]
-fn test_typed_proj_vec_drop_should_not_drop_swap_removed_elements() {
+fn test_type_projected_vec_drop_should_not_drop_swap_removed_elements() {
     let ref_count = Rc::new(RefCell::new(0));
     let _counter = {
         let mut vec = TypeProjectedVec::new();
@@ -201,7 +201,7 @@ fn test_typed_proj_vec_drop_should_not_drop_swap_removed_elements() {
 }
 
 #[test]
-fn test_typed_proj_vec_drop_should_not_drop_shift_removed_elements() {
+fn test_type_projected_vec_drop_should_not_drop_shift_removed_elements() {
     let ref_count = Rc::new(RefCell::new(0));
     let _counter = {
         let mut vec = TypeProjectedVec::new();
@@ -220,7 +220,7 @@ fn test_typed_proj_vec_drop_should_not_drop_shift_removed_elements() {
 }
 
 #[test]
-fn test_typed_proj_vec_drop_should_not_drop_popped_elements() {
+fn test_type_projected_vec_drop_should_not_drop_popped_elements() {
     let ref_count = Rc::new(RefCell::new(0));
     let _counter = {
         let mut vec = TypeProjectedVec::new();

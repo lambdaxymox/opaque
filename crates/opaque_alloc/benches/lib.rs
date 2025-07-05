@@ -16,6 +16,6 @@ mod bench_type_projected_alloc;
 use criterion::criterion_main;
 
 criterion_main!(
-    bench_type_erased_alloc::bench_opaque_alloc,
-    bench_type_projected_alloc::bench_typed_proj_alloc,
+    bench_type_erased_alloc::bench_type_erased_alloc,
+    bench_type_projected_alloc::bench_type_projected_alloc,
 );

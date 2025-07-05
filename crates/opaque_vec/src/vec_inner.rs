@@ -1948,7 +1948,7 @@ mod vec_inner_layout_tests {
     use super::*;
     use core::mem;
 
-    fn run_test_opaque_vec_inner_match_sizes<T, A>()
+    fn run_test_type_erased_vec_inner_match_sizes<T, A>()
     where
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
@@ -1956,10 +1956,10 @@ mod vec_inner_layout_tests {
         let expected = mem::size_of::<TypeProjectedVecInner<T, A>>();
         let result = mem::size_of::<TypeErasedVecInner>();
 
-        assert_eq!(result, expected, "Opaque and Typed Projected data types size mismatch");
+        assert_eq!(result, expected, "Type Erased and Type Projected data types size mismatch");
     }
 
-    fn run_test_opaque_vec_inner_match_alignments<T, A>()
+    fn run_test_type_erased_vec_inner_match_alignments<T, A>()
     where
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
@@ -1967,10 +1967,10 @@ mod vec_inner_layout_tests {
         let expected = mem::align_of::<TypeProjectedVecInner<T, A>>();
         let result = mem::align_of::<TypeErasedVecInner>();
 
-        assert_eq!(result, expected, "Opaque and Typed Projected data types alignment mismatch");
+        assert_eq!(result, expected, "Type Erased and Type Projected data types alignment mismatch");
     }
 
-    fn run_test_opaque_vec_inner_match_offsets<T, A>()
+    fn run_test_type_erased_vec_inner_match_offsets<T, A>()
     where
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
@@ -1978,27 +1978,27 @@ mod vec_inner_layout_tests {
         assert_eq!(
             mem::offset_of!(TypeProjectedVecInner<T, A>, data),
             mem::offset_of!(TypeErasedVecInner, data),
-            "Opaque and Typed Projected data types offsets mismatch"
+            "Type Erased and Type Projected data types offsets mismatch"
         );
         assert_eq!(
             mem::offset_of!(TypeProjectedVecInner<T, A>, length),
             mem::offset_of!(TypeErasedVecInner, length),
-            "Opaque and Typed Projected data types offsets mismatch"
+            "Type Erased and Type Projected data types offsets mismatch"
         );
         assert_eq!(
             mem::offset_of!(TypeProjectedVecInner<T, A>, element_type_id),
             mem::offset_of!(TypeErasedVecInner, element_type_id),
-            "Opaque and Typed Projected data types offsets mismatch"
+            "Type Erased and Type Projected data types offsets mismatch"
         );
         assert_eq!(
             mem::offset_of!(TypeProjectedVecInner<T, A>, allocator_type_id),
             mem::offset_of!(TypeErasedVecInner, allocator_type_id),
-            "Opaque and Typed Projected data types offsets mismatch"
+            "Type Erased and Type Projected data types offsets mismatch"
         );
         assert_eq!(
             mem::offset_of!(TypeProjectedVecInner<T, A>, drop_fn),
             mem::offset_of!(TypeErasedVecInner, drop_fn),
-            "Opaque and Typed Projected data types offsets mismatch"
+            "Type Erased and Type Projected data types offsets mismatch"
         );
     }
 
@@ -2008,18 +2008,18 @@ mod vec_inner_layout_tests {
                 use super::*;
 
                 #[test]
-                fn test_opaque_vec_inner_layout_match_sizes() {
-                    run_test_opaque_vec_inner_match_sizes::<$element_typ, $alloc_typ>();
+                fn test_type_erased_vec_inner_layout_match_sizes() {
+                    run_test_type_erased_vec_inner_match_sizes::<$element_typ, $alloc_typ>();
                 }
 
                 #[test]
-                fn test_opaque_vec_inner_layout_match_alignments() {
-                    run_test_opaque_vec_inner_match_alignments::<$element_typ, $alloc_typ>();
+                fn test_type_erased_vec_inner_layout_match_alignments() {
+                    run_test_type_erased_vec_inner_match_alignments::<$element_typ, $alloc_typ>();
                 }
 
                 #[test]
-                fn test_opaque_vec_inner_layout_match_offsets() {
-                    run_test_opaque_vec_inner_match_offsets::<$element_typ, $alloc_typ>();
+                fn test_type_erased_vec_inner_layout_match_offsets() {
+                    run_test_type_erased_vec_inner_match_offsets::<$element_typ, $alloc_typ>();
                 }
             }
         };

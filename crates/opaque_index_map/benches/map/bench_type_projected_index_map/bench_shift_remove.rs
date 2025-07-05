@@ -35,11 +35,11 @@ fn bench_index_map_shift_remove(c: &mut Criterion) {
     });
 }
 
-fn bench_typed_proj_index_map_shift_remove(c: &mut Criterion) {
+fn bench_type_projected_index_map_shift_remove(c: &mut Criterion) {
     let keys = 0..100;
     let values = 1..101;
 
-    c.bench_function("typed_proj_index_map_shift_remove", |b| {
+    c.bench_function("type_projected_index_map_shift_remove", |b| {
         b.iter_batched(
             || TypeProjectedIndexMap::<i32, i32, hash::RandomState, alloc::Global>::from_iter(keys.clone().zip(values.clone())),
             |mut proj_map| {
@@ -53,4 +53,4 @@ fn bench_typed_proj_index_map_shift_remove(c: &mut Criterion) {
     });
 }
 
-criterion_group!(bench_shift_remove, bench_typed_proj_index_map_shift_remove, bench_index_map_shift_remove);
+criterion_group!(bench_shift_remove, bench_type_projected_index_map_shift_remove, bench_index_map_shift_remove);

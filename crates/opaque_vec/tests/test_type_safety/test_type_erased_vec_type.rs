@@ -46,7 +46,7 @@ where
     }
 }
 
-fn run_test_opaque_vec_new_in_has_type<T, A>(alloc: A)
+fn run_test_type_erased_vec_new_in_has_type<T, A>(alloc: A)
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -57,7 +57,7 @@ where
     assert!(opaque_vec.has_allocator_type::<A>());
 }
 
-fn run_test_opaque_vec_with_capacity_in_has_type<T, A>(alloc: A)
+fn run_test_type_erased_vec_with_capacity_in_has_type<T, A>(alloc: A)
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
@@ -68,7 +68,7 @@ where
     assert!(opaque_vec.has_allocator_type::<A>());
 }
 
-fn run_test_opaque_vec_new_has_type<T>()
+fn run_test_type_erased_vec_new_has_type<T>()
 where
     T: any::Any,
 {
@@ -78,7 +78,7 @@ where
     assert!(opaque_vec.has_allocator_type::<Global>());
 }
 
-fn run_test_opaque_vec_with_capacity_has_type<T>()
+fn run_test_type_erased_vec_with_capacity_has_type<T>()
 where
     T: any::Any,
 {
@@ -94,25 +94,25 @@ macro_rules! generate_tests {
             use super::*;
 
             #[test]
-            fn test_opaque_vec_new_in_has_type() {
+            fn test_type_erased_vec_new_in_has_type() {
                 let alloc: $alloc_typ = Default::default();
-                run_test_opaque_vec_new_in_has_type::<$element_typ, $alloc_typ>(alloc);
+                run_test_type_erased_vec_new_in_has_type::<$element_typ, $alloc_typ>(alloc);
             }
 
             #[test]
-            fn test_opaque_vec_with_capacity_in_has_type() {
+            fn test_type_erased_vec_with_capacity_in_has_type() {
                 let alloc: $alloc_typ = Default::default();
-                run_test_opaque_vec_with_capacity_in_has_type::<$element_typ, $alloc_typ>(alloc);
+                run_test_type_erased_vec_with_capacity_in_has_type::<$element_typ, $alloc_typ>(alloc);
             }
 
             #[test]
-            fn test_opaque_vec_new_has_type() {
-                run_test_opaque_vec_new_has_type::<$element_typ>();
+            fn test_type_erased_vec_new_has_type() {
+                run_test_type_erased_vec_new_has_type::<$element_typ>();
             }
 
             #[test]
-            fn test_opaque_vec_with_capacity_has_type() {
-                run_test_opaque_vec_with_capacity_has_type::<$element_typ>();
+            fn test_type_erased_vec_with_capacity_has_type() {
+                run_test_type_erased_vec_with_capacity_has_type::<$element_typ>();
             }
         }
     };

@@ -271,7 +271,7 @@ mod build_hasher_inner_layout_tests {
     use super::*;
     use std::hash;
 
-    fn run_test_opaque_hasher_match_sizes<S>()
+    fn run_test_type_erased_hasher_match_sizes<S>()
     where
         S: any::Any + hash::BuildHasher + Send + Sync,
         S::Hasher: any::Any + hash::Hasher + Send + Sync,
@@ -279,10 +279,10 @@ mod build_hasher_inner_layout_tests {
         let expected = core::mem::size_of::<TypeProjectedBuildHasherInner<S>>();
         let result = core::mem::size_of::<TypeErasedBuildHasherInner>();
 
-        assert_eq!(result, expected, "Opaque and Typed Projected data types size mismatch");
+        assert_eq!(result, expected, "Type Erased and Type Projected data types size mismatch");
     }
 
-    fn run_test_opaque_hasher_match_alignments<S>()
+    fn run_test_type_erased_hasher_match_alignments<S>()
     where
         S: any::Any + hash::BuildHasher + Send + Sync,
         S::Hasher: any::Any + hash::Hasher + Send + Sync,
@@ -290,10 +290,10 @@ mod build_hasher_inner_layout_tests {
         let expected = core::mem::align_of::<TypeProjectedBuildHasherInner<S>>();
         let result = core::mem::align_of::<TypeErasedBuildHasherInner>();
 
-        assert_eq!(result, expected, "Opaque and Typed Projected data types alignment mismatch");
+        assert_eq!(result, expected, "Type Erased and Type Projected data types alignment mismatch");
     }
 
-    fn run_test_opaque_hasher_match_offsets<S>()
+    fn run_test_type_erased_hasher_match_offsets<S>()
     where
         S: any::Any + hash::BuildHasher + Send + Sync,
         S::Hasher: any::Any + hash::Hasher + Send + Sync,
@@ -301,17 +301,17 @@ mod build_hasher_inner_layout_tests {
         assert_eq!(
             core::mem::offset_of!(TypeProjectedBuildHasherInner<S>, build_hasher),
             core::mem::offset_of!(TypeErasedBuildHasherInner, build_hasher),
-            "Opaque and Typed Projected data types offsets mismatch"
+            "Type Erased and Type Projected data types offsets mismatch"
         );
         assert_eq!(
             core::mem::offset_of!(TypeProjectedBuildHasherInner<S>, build_hasher_type_id),
             core::mem::offset_of!(TypeErasedBuildHasherInner, build_hasher_type_id),
-            "Opaque and Typed Projected data types offsets mismatch"
+            "Type Erased and Type Projected data types offsets mismatch"
         );
         assert_eq!(
             core::mem::offset_of!(TypeProjectedBuildHasherInner<S>, hasher_type_id),
             core::mem::offset_of!(TypeErasedBuildHasherInner, hasher_type_id),
-            "Opaque and Typed Projected data types offsets mismatch"
+            "Type Erased and Type Projected data types offsets mismatch"
         );
     }
 
@@ -322,17 +322,17 @@ mod build_hasher_inner_layout_tests {
 
                 #[test]
                 fn test_hasher_layout_match_sizes() {
-                    run_test_opaque_hasher_match_sizes::<$hasher_typ>();
+                    run_test_type_erased_hasher_match_sizes::<$hasher_typ>();
                 }
 
                 #[test]
                 fn test_hasher_layout_match_alignments() {
-                    run_test_opaque_hasher_match_alignments::<$hasher_typ>();
+                    run_test_type_erased_hasher_match_alignments::<$hasher_typ>();
                 }
 
                 #[test]
                 fn test_hasher_layout_match_offsets() {
-                    run_test_opaque_hasher_match_offsets::<$hasher_typ>();
+                    run_test_type_erased_hasher_match_offsets::<$hasher_typ>();
                 }
             }
         };

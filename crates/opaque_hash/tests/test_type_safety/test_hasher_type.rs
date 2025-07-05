@@ -1,5 +1,6 @@
-use std::hash;
 use opaque_hash::{TypeErasedHasher, TypeErasedBuildHasher};
+
+use std::hash;
 
 struct ZeroHasher {}
 
@@ -28,7 +29,7 @@ impl BuildZeroHasher {
 }
 
 #[test]
-fn test_opaque_hasher_has_hasher_type1() {
+fn test_type_erased_hasher_has_hasher_type1() {
     let opaque_build_hasher = TypeErasedBuildHasher::new(hash::RandomState::new());
     let opaque_hasher = TypeErasedHasher::from_proj(opaque_build_hasher.build_hasher_proj::<hash::RandomState>());
 
@@ -36,7 +37,7 @@ fn test_opaque_hasher_has_hasher_type1() {
 }
 
 #[test]
-fn test_opaque_hasher_has_hasher_type2() {
+fn test_type_erased_hasher_has_hasher_type2() {
     let opaque_build_hasher = TypeErasedBuildHasher::new(BuildZeroHasher::new());
     let opaque_hasher = TypeErasedHasher::from_proj(opaque_build_hasher.build_hasher_proj::<BuildZeroHasher>());
 
@@ -44,7 +45,7 @@ fn test_opaque_hasher_has_hasher_type2() {
 }
 
 #[test]
-fn test_opaque_hasher_has_hasher_type3() {
+fn test_type_erased_hasher_has_hasher_type3() {
     let opaque_build_hasher = TypeErasedBuildHasher::new(hash::RandomState::new());
     let opaque_hasher = TypeErasedHasher::from_proj(opaque_build_hasher.build_hasher_proj::<hash::RandomState>());
 
@@ -52,7 +53,7 @@ fn test_opaque_hasher_has_hasher_type3() {
 }
 
 #[test]
-fn test_opaque_hasher_has_hasher_type4() {
+fn test_type_erased_hasher_has_hasher_type4() {
     let opaque_build_hasher = TypeErasedBuildHasher::new(BuildZeroHasher::new());
     let opaque_hasher = TypeErasedHasher::from_proj(opaque_build_hasher.build_hasher_proj::<BuildZeroHasher>());
 
@@ -60,7 +61,7 @@ fn test_opaque_hasher_has_hasher_type4() {
 }
 
 #[test]
-fn test_opaque_hasher_not_has_hasher_type1() {
+fn test_type_erased_hasher_not_has_hasher_type1() {
     let opaque_build_hasher = TypeErasedBuildHasher::new(hash::RandomState::new());
     let opaque_hasher = TypeErasedHasher::from_proj(opaque_build_hasher.build_hasher_proj::<hash::RandomState>());
 
@@ -68,7 +69,7 @@ fn test_opaque_hasher_not_has_hasher_type1() {
 }
 
 #[test]
-fn test_opaque_hasher_not_has_hasher_type2() {
+fn test_type_erased_hasher_not_has_hasher_type2() {
     let opaque_build_hasher = TypeErasedBuildHasher::new(BuildZeroHasher::new());
     let opaque_hasher = TypeErasedHasher::from_proj(opaque_build_hasher.build_hasher_proj::<BuildZeroHasher>());
 
@@ -76,42 +77,42 @@ fn test_opaque_hasher_not_has_hasher_type2() {
 }
 
 #[test]
-fn test_opaque_build_hasher_has_hasher_type1() {
+fn test_type_erased_build_hasher_has_hasher_type1() {
     let opaque_build_hasher = TypeErasedBuildHasher::new(hash::RandomState::new());
 
     assert!(opaque_build_hasher.has_hasher_type::<hash::DefaultHasher>());
 }
 
 #[test]
-fn test_opaque_build_hasher_has_hasher_type2() {
+fn test_type_erased_build_hasher_has_hasher_type2() {
     let opaque_build_hasher = TypeErasedBuildHasher::new(BuildZeroHasher::new());
 
     assert!(opaque_build_hasher.has_hasher_type::<ZeroHasher>());
 }
 
 #[test]
-fn test_opaque_build_hasher_has_build_hasher_type1() {
+fn test_type_erased_build_hasher_has_build_hasher_type1() {
     let opaque_build_hasher = TypeErasedBuildHasher::new(hash::RandomState::new());
 
     assert!(opaque_build_hasher.has_hasher_type::<hash::DefaultHasher>());
 }
 
 #[test]
-fn test_opaque_build_hasher_has_build_hasher_type2() {
+fn test_type_erased_build_hasher_has_build_hasher_type2() {
     let opaque_build_hasher = TypeErasedBuildHasher::new(BuildZeroHasher::new());
 
     assert!(opaque_build_hasher.has_hasher_type::<ZeroHasher>());
 }
 
 #[test]
-fn test_opaque_build_hasher_not_has_build_hasher_type1() {
+fn test_type_erased_build_hasher_not_has_build_hasher_type1() {
     let opaque_build_hasher = TypeErasedBuildHasher::new(hash::RandomState::new());
 
     assert!(!opaque_build_hasher.has_hasher_type::<ZeroHasher>());
 }
 
 #[test]
-fn test_opaque_build_hasher_not_has_build_hasher_type2() {
+fn test_type_erased_build_hasher_not_has_build_hasher_type2() {
     let opaque_build_hasher = TypeErasedBuildHasher::new(BuildZeroHasher::new());
 
     assert!(!opaque_build_hasher.has_hasher_type::<hash::DefaultHasher>());

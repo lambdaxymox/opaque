@@ -52,7 +52,7 @@ where
     (drop_counter, map)
 }
 
-fn run_test_typed_proj_index_map_clear<S, A>(length: usize, build_hasher: S, alloc: A)
+fn run_test_type_projected_index_map_clear<S, A>(length: usize, build_hasher: S, alloc: A)
 where
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
@@ -67,11 +67,11 @@ where
 }
 
 #[test]
-fn test_typed_proj_index_map_clear_range() {
+fn test_type_projected_index_map_clear_range() {
     let max_length = 128;
     let build_hasher = hash::RandomState::new();
     let alloc = alloc::Global;
     for length in 0..max_length {
-        run_test_typed_proj_index_map_clear(length, build_hasher.clone(), alloc.clone());
+        run_test_type_projected_index_map_clear(length, build_hasher.clone(), alloc.clone());
     }
 }

@@ -15,7 +15,7 @@ use opaque_allocator_api::alloc;
 
 fn bench_vec_get(c: &mut Criterion) {
     let dummy_data = 0_i32;
-    let mut vec = Vec::from_iter((0..1000).map(|_| dummy_data));
+    let vec = Vec::from_iter((0..1000).map(|_| dummy_data));
 
     c.bench_function("vec_get", |b| {
         b.iter(|| {
@@ -26,7 +26,7 @@ fn bench_vec_get(c: &mut Criterion) {
     });
 }
 
-fn bench_opaque_vec_get(c: &mut Criterion) {
+fn bench_type_erased_vec_get(c: &mut Criterion) {
     let dummy_data = 0_i32;
     let opaque_vec = TypeErasedVec::from_iter((0..1000).map(|_| dummy_data));
 
@@ -39,4 +39,4 @@ fn bench_opaque_vec_get(c: &mut Criterion) {
     });
 }
 
-criterion_group!(bench_get, bench_opaque_vec_get, bench_vec_get);
+criterion_group!(bench_get, bench_type_erased_vec_get, bench_vec_get);

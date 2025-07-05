@@ -29,7 +29,7 @@ fn bench_index_set_as_slice_index(c: &mut Criterion) {
     });
 }
 
-fn bench_opaque_index_set_as_slice_index(c: &mut Criterion) {
+fn bench_type_erased_index_set_as_slice_index(c: &mut Criterion) {
     let values = 0..10000;
     let opaque_set = TypeErasedIndexSet::from_iter(values);
 
@@ -43,4 +43,4 @@ fn bench_opaque_index_set_as_slice_index(c: &mut Criterion) {
     });
 }
 
-criterion_group!(bench_as_slice_index, bench_opaque_index_set_as_slice_index, bench_index_set_as_slice_index);
+criterion_group!(bench_as_slice_index, bench_type_erased_index_set_as_slice_index, bench_index_set_as_slice_index);

@@ -29,7 +29,7 @@ fn bench_index_set_insert(c: &mut Criterion) {
     });
 }
 
-fn bench_opaque_index_set_insert(c: &mut Criterion) {
+fn bench_type_erased_index_set_insert(c: &mut Criterion) {
     c.bench_function("opaque_index_set_insert", |b| {
         b.iter(|| {
             let values = 0..1000;
@@ -45,6 +45,6 @@ fn bench_opaque_index_set_insert(c: &mut Criterion) {
 
 criterion_group!(
     bench_insert,
-    bench_opaque_index_set_insert,
+    bench_type_erased_index_set_insert,
     bench_index_set_insert
 );

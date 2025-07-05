@@ -15,7 +15,6 @@ use opaque_allocator_api::alloc;
 
 fn bench_vec_swap_remove(c: &mut Criterion) {
     let dummy_data = 0_i32;
-    let mut vec = Vec::from_iter((0..1000).map(|_| dummy_data));
 
     c.bench_function("vec_swap_remove", |b| {
         b.iter_batched(
@@ -30,10 +29,10 @@ fn bench_vec_swap_remove(c: &mut Criterion) {
     });
 }
 
-fn bench_typed_proj_vec_swap_remove(c: &mut Criterion) {
+fn bench_type_projected_vec_swap_remove(c: &mut Criterion) {
     let dummy_data = 0_i32;
 
-    c.bench_function("typed_proj_vec_swap_remove", |b| {
+    c.bench_function("type_projected_vec_swap_remove", |b| {
         b.iter_batched(
             || TypeProjectedVec::from_iter((0..1000).map(|_| dummy_data)),
             |mut proj_vec| {
@@ -46,4 +45,4 @@ fn bench_typed_proj_vec_swap_remove(c: &mut Criterion) {
     });
 }
 
-criterion_group!(bench_swap_remove, bench_typed_proj_vec_swap_remove, bench_vec_swap_remove);
+criterion_group!(bench_swap_remove, bench_type_projected_vec_swap_remove, bench_vec_swap_remove);

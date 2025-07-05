@@ -9,7 +9,7 @@ use alloc_crate::alloc;
 use opaque_allocator_api::alloc;
 
 #[test]
-fn test_opaque_alloc_debug1() {
+fn test_type_erased_alloc_debug1() {
     let opaque_alloc = TypeErasedAlloc::new::<alloc::Global>(alloc::Global);
     let debug_str = format!("{:?}", opaque_alloc);
 
@@ -17,7 +17,7 @@ fn test_opaque_alloc_debug1() {
 }
 
 #[test]
-fn test_opaque_alloc_debug2() {
+fn test_type_erased_alloc_debug2() {
     let opaque_alloc = TypeErasedAlloc::new::<alloc::Global>(alloc::Global);
     let debug_str = format!("{:?}", opaque_alloc);
 

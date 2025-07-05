@@ -1028,7 +1028,7 @@ fn test_vec_splice6() {
 }
 
 #[test]
-fn test_opaque_vec_debug_fmt_empty_unit() {
+fn test_type_erased_vec_debug_fmt_empty_unit() {
     let vec: TypeProjectedVec<()> = TypeProjectedVec::from([]);
     let expected = "[]";
     let result = format!("{:?}", vec.as_slice());
@@ -1037,7 +1037,7 @@ fn test_opaque_vec_debug_fmt_empty_unit() {
 }
 
 #[test]
-fn test_opaque_vec_debug_fmt_empty_u8() {
+fn test_type_erased_vec_debug_fmt_empty_u8() {
     let vec: TypeProjectedVec<u8> = TypeProjectedVec::from([]);
     let expected = "[]";
     let result = format!("{:?}", vec.as_slice());
@@ -1046,7 +1046,7 @@ fn test_opaque_vec_debug_fmt_empty_u8() {
 }
 
 #[test]
-fn test_opaque_vec_debug_fmt_empty_u16() {
+fn test_type_erased_vec_debug_fmt_empty_u16() {
     let vec: TypeProjectedVec<u16> = TypeProjectedVec::from([]);
     let expected = "[]";
     let result = format!("{:?}", vec.as_slice());
@@ -1055,7 +1055,7 @@ fn test_opaque_vec_debug_fmt_empty_u16() {
 }
 
 #[test]
-fn test_opaque_vec_debug_fmt_empty_u32() {
+fn test_type_erased_vec_debug_fmt_empty_u32() {
     let vec: TypeProjectedVec<u8> = TypeProjectedVec::from([]);
     let expected = "[]";
     let result = format!("{:?}", vec.as_slice());
@@ -1064,7 +1064,7 @@ fn test_opaque_vec_debug_fmt_empty_u32() {
 }
 
 #[test]
-fn test_opaque_vec_debug_fmt_empty_u64() {
+fn test_type_erased_vec_debug_fmt_empty_u64() {
     let vec: TypeProjectedVec<u8> = TypeProjectedVec::from([]);
     let expected = "[]";
     let result = format!("{:?}", vec.as_slice());
@@ -1073,7 +1073,7 @@ fn test_opaque_vec_debug_fmt_empty_u64() {
 }
 
 #[test]
-fn test_opaque_vec_debug_fmt_empty_usize() {
+fn test_type_erased_vec_debug_fmt_empty_usize() {
     let vec: TypeProjectedVec<u8> = TypeProjectedVec::from([]);
     let expected = "[]";
     let result = format!("{:?}", vec.as_slice());
@@ -1082,7 +1082,7 @@ fn test_opaque_vec_debug_fmt_empty_usize() {
 }
 
 #[test]
-fn test_opaque_vec_debug_fmt_empty_string() {
+fn test_type_erased_vec_debug_fmt_empty_string() {
     let vec: TypeProjectedVec<u8> = TypeProjectedVec::from([]);
     let expected = "[]";
     let result = format!("{:?}", vec.as_slice());

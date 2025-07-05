@@ -30,7 +30,7 @@ fn bench_index_map_as_slice_index(c: &mut Criterion) {
     });
 }
 
-fn bench_opaque_index_map_as_slice_index(c: &mut Criterion) {
+fn bench_type_erased_index_map_as_slice_index(c: &mut Criterion) {
     let keys = 0..10000;
     let values = 1..10001;
     let opaque_map = TypeErasedIndexMap::from_iter(keys.zip(values));
@@ -45,4 +45,4 @@ fn bench_opaque_index_map_as_slice_index(c: &mut Criterion) {
     });
 }
 
-criterion_group!(bench_as_slice_index, bench_opaque_index_map_as_slice_index, bench_index_map_as_slice_index);
+criterion_group!(bench_as_slice_index, bench_type_erased_index_map_as_slice_index, bench_index_map_as_slice_index);

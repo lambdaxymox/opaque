@@ -35,7 +35,7 @@ fn bench_index_map_swap_remove(c: &mut Criterion) {
     });
 }
 
-fn bench_opaque_index_map_swap_remove(c: &mut Criterion) {
+fn bench_type_erased_index_map_swap_remove(c: &mut Criterion) {
     let keys = 0..1000;
     let values = 1..1001;
 
@@ -53,4 +53,4 @@ fn bench_opaque_index_map_swap_remove(c: &mut Criterion) {
     });
 }
 
-criterion_group!(bench_swap_remove, bench_opaque_index_map_swap_remove, bench_index_map_swap_remove);
+criterion_group!(bench_swap_remove, bench_type_erased_index_map_swap_remove, bench_index_map_swap_remove);

@@ -4804,7 +4804,7 @@ mod index_map_core_layout_tests {
     use super::*;
     use core::mem;
 
-    fn run_test_opaque_index_map_core_match_sizes<K, V, A>()
+    fn run_test_type_erased_index_map_core_match_sizes<K, V, A>()
     where
         K: any::Any,
         V: any::Any,
@@ -4813,10 +4813,10 @@ mod index_map_core_layout_tests {
         let expected = mem::size_of::<TypeProjectedIndexMapCore<K, V, A>>();
         let result = mem::size_of::<TypeErasedIndexMapCore>();
 
-        assert_eq!(result, expected, "Opaque and Typed Projected data types size mismatch");
+        assert_eq!(result, expected, "Type Erased and Type Projected data types size mismatch");
     }
 
-    fn run_test_opaque_index_map_core_match_alignments<K, V, A>()
+    fn run_test_type_erased_index_map_core_match_alignments<K, V, A>()
     where
         K: any::Any,
         V: any::Any,
@@ -4825,10 +4825,10 @@ mod index_map_core_layout_tests {
         let expected = mem::align_of::<TypeProjectedIndexMapCore<K, V, A>>();
         let result = mem::align_of::<TypeErasedIndexMapCore>();
 
-        assert_eq!(result, expected, "Opaque and Typed Projected data types alignment mismatch");
+        assert_eq!(result, expected, "Type Erased and Type Projected data types alignment mismatch");
     }
 
-    fn run_test_opaque_index_map_core_match_offsets<K, V, A>()
+    fn run_test_type_erased_index_map_core_match_offsets<K, V, A>()
     where
         K: any::Any,
         V: any::Any,
@@ -4837,27 +4837,27 @@ mod index_map_core_layout_tests {
         assert_eq!(
             mem::offset_of!(TypeProjectedIndexMapCore<K, V, A>, indices),
             mem::offset_of!(TypeErasedIndexMapCore, indices),
-            "Opaque and Typed Projected data types offsets mismatch"
+            "Type Erased and Type Projected data types offsets mismatch"
         );
         assert_eq!(
             mem::offset_of!(TypeProjectedIndexMapCore<K, V, A>, entries),
             mem::offset_of!(TypeErasedIndexMapCore, entries),
-            "Opaque and Typed Projected data types offsets mismatch"
+            "Type Erased and Type Projected data types offsets mismatch"
         );
         assert_eq!(
             mem::offset_of!(TypeProjectedIndexMapCore<K, V, A>, key_type_id),
             mem::offset_of!(TypeErasedIndexMapCore, key_type_id),
-            "Opaque and Typed Projected data types offsets mismatch"
+            "Type Erased and Type Projected data types offsets mismatch"
         );
         assert_eq!(
             mem::offset_of!(TypeProjectedIndexMapCore<K, V, A>, value_type_id),
             mem::offset_of!(TypeErasedIndexMapCore, value_type_id),
-            "Opaque and Typed Projected data types offsets mismatch"
+            "Type Erased and Type Projected data types offsets mismatch"
         );
         assert_eq!(
             mem::offset_of!(TypeProjectedIndexMapCore<K, V, A>, allocator_type_id),
             mem::offset_of!(TypeErasedIndexMapCore, allocator_type_id),
-            "Opaque and Typed Projected data types offsets mismatch"
+            "Type Erased and Type Projected data types offsets mismatch"
         );
     }
 
@@ -4867,18 +4867,18 @@ mod index_map_core_layout_tests {
                 use super::*;
 
                 #[test]
-                fn test_opaque_index_map_core_layout_match_sizes() {
-                    run_test_opaque_index_map_core_match_sizes::<$key_typ, $value_typ, $alloc_typ>();
+                fn test_type_erased_index_map_core_layout_match_sizes() {
+                    run_test_type_erased_index_map_core_match_sizes::<$key_typ, $value_typ, $alloc_typ>();
                 }
 
                 #[test]
-                fn test_opaque_index_map_core_layout_match_alignments() {
-                    run_test_opaque_index_map_core_match_alignments::<$key_typ, $value_typ, $alloc_typ>();
+                fn test_type_erased_index_map_core_layout_match_alignments() {
+                    run_test_type_erased_index_map_core_match_alignments::<$key_typ, $value_typ, $alloc_typ>();
                 }
 
                 #[test]
-                fn test_opaque_index_map_core_layout_match_offsets() {
-                    run_test_opaque_index_map_core_match_offsets::<$key_typ, $value_typ, $alloc_typ>();
+                fn test_type_erased_index_map_core_layout_match_offsets() {
+                    run_test_type_erased_index_map_core_match_offsets::<$key_typ, $value_typ, $alloc_typ>();
                 }
             }
         };
@@ -4971,7 +4971,7 @@ mod index_map_inner_layout_tests {
     use super::*;
     use core::mem;
 
-    fn run_test_opaque_index_map_inner_match_sizes<K, V, S, A>()
+    fn run_test_type_erased_index_map_inner_match_sizes<K, V, S, A>()
     where
         K: any::Any,
         V: any::Any,
@@ -4982,10 +4982,10 @@ mod index_map_inner_layout_tests {
         let expected = mem::size_of::<TypeProjectedIndexMapInner<K, V, S, A>>();
         let result = mem::size_of::<TypeErasedIndexMapInner>();
 
-        assert_eq!(result, expected, "Opaque and Typed Projected data types size mismatch");
+        assert_eq!(result, expected, "Type Erased and Type Projected data types size mismatch");
     }
 
-    fn run_test_opaque_index_map_inner_match_alignments<K, V, S, A>()
+    fn run_test_type_erased_index_map_inner_match_alignments<K, V, S, A>()
     where
         K: any::Any,
         V: any::Any,
@@ -4996,10 +4996,10 @@ mod index_map_inner_layout_tests {
         let expected = mem::align_of::<TypeProjectedIndexMapInner<K, V, S, A>>();
         let result = mem::align_of::<TypeErasedIndexMapInner>();
 
-        assert_eq!(result, expected, "Opaque and Typed Projected data types alignment mismatch");
+        assert_eq!(result, expected, "Type Erased and Type Projected data types alignment mismatch");
     }
 
-    fn run_test_opaque_index_map_inner_match_offsets<K, V, S, A>()
+    fn run_test_type_erased_index_map_inner_match_offsets<K, V, S, A>()
     where
         K: any::Any,
         V: any::Any,
@@ -5010,12 +5010,12 @@ mod index_map_inner_layout_tests {
         assert_eq!(
             mem::offset_of!(TypeProjectedIndexMapInner<K, V, S, A>, inner),
             mem::offset_of!(TypeErasedIndexMapInner, inner),
-            "Opaque and Typed Projected data types offsets mismatch"
+            "Type Erased and Type Projected data types offsets mismatch"
         );
         assert_eq!(
             mem::offset_of!(TypeProjectedIndexMapInner<K, V, S, A>, build_hasher),
             mem::offset_of!(TypeErasedIndexMapInner, build_hasher),
-            "Opaque and Typed Projected data types offsets mismatch"
+            "Type Erased and Type Projected data types offsets mismatch"
         );
     }
 
@@ -5025,18 +5025,18 @@ mod index_map_inner_layout_tests {
                 use super::*;
 
                 #[test]
-                fn test_opaque_index_map_inner_layout_match_sizes() {
-                    run_test_opaque_index_map_inner_match_sizes::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>();
+                fn test_type_erased_index_map_inner_layout_match_sizes() {
+                    run_test_type_erased_index_map_inner_match_sizes::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>();
                 }
 
                 #[test]
-                fn test_opaque_index_map_inner_layout_match_alignments() {
-                    run_test_opaque_index_map_inner_match_alignments::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>();
+                fn test_type_erased_index_map_inner_layout_match_alignments() {
+                    run_test_type_erased_index_map_inner_match_alignments::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>();
                 }
 
                 #[test]
-                fn test_opaque_index_map_inner_layout_match_offsets() {
-                    run_test_opaque_index_map_inner_match_offsets::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>();
+                fn test_type_erased_index_map_inner_layout_match_offsets() {
+                    run_test_type_erased_index_map_inner_match_offsets::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>();
                 }
             }
         };
