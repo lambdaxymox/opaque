@@ -65,13 +65,13 @@ to your `lib.rs` or `main.rs` file, but this is not strictly necessary.
 
 To run the tests for the library, run
 
-```
+```text
 cargo test --workspace
 ```
 
 on stable Rust. Run
 
-```
+```text
 cargo +nightly test --workspace --features "nightly" 
 ```
 

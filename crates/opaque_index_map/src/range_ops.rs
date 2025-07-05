@@ -1,3 +1,9 @@
+// Portions of this file are derived from `indexmap`,
+// Copyright (c) 2016--2017 The indexmap Developers
+// Licensed under either of
+//   * Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+//   * MIT license (http://opensource.org/licenses/MIT)
+// at your option.
 use core::ops;
 
 pub(crate) fn try_simplify_range<R>(range: R, len: usize) -> Option<ops::Range<usize>>

@@ -1,3 +1,9 @@
+// Portions of this file are derived from `rust`,
+// Copyright (c) <year> The Rust Project Contributors
+// Licensed under either of
+//   * Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+//   * MIT license (http://opensource.org/licenses/MIT)
+// at your option.
 use crate::vec_inner::TypeProjectedVecInner;
 
 use core::any;
