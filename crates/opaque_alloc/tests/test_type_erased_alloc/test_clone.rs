@@ -9,21 +9,12 @@ use alloc_crate::alloc;
 #[cfg(not(feature = "nightly"))]
 use opaque_allocator_api::alloc;
 
-fn clone<A>(opaque_alloc: TypeErasedAlloc) -> TypeErasedAlloc
-where
-    A: any::Any + alloc::Allocator + Send + Sync + Clone,
-{
-    let proj_alloc = opaque_alloc.as_proj::<A>();
-    let cloned_proj_alloc = proj_alloc.clone();
-    TypeErasedAlloc::from_proj(cloned_proj_alloc)
-}
-
 fn run_test_opaque_alloc_clone<A>(alloc: A)
 where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let expected = TypeErasedAlloc::new(alloc);
-    let _ = clone::<A>(expected);
+    let _ = expected.clone::<A>();
 }
 
 #[test]
