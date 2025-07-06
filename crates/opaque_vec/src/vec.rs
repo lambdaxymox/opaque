@@ -3,6 +3,7 @@ use crate::drain::Drain;
 use crate::extract_if::ExtractIf;
 use crate::splice::Splice;
 use crate::vec_inner::{TypeErasedVecInner, TypeProjectedVecInner};
+use crate::try_project_vec_error::{TryProjectVecErrorKind, TryProjectVecError};
 
 use core::any;
 use core::cmp;
@@ -6094,6 +6095,191 @@ impl TypeErasedVec {
         Self {
             inner: TypeErasedVecInner::from_proj(proj_self.inner),
         }
+    }
+}
+
+impl TypeErasedVec {
+    /// Projects the type-erased vector reference into a type-projected vector reference.
+    ///
+    /// # Errors
+    ///
+    /// This method returns an error if the [`TypeId`] of the elements of `self` and the [`TypeId`]
+    /// of the memory allocator of `self` do not match the requested element type `T` and
+    /// allocator type `A`, respectively.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
+    /// # use opaque_vec::{TypeErasedVec, TypeProjectedVec};
+    /// #
+    /// # #[cfg(feature = "nightly")]
+    /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
+    /// #
+    /// let opaque_vec = TypeErasedVec::new_in::<i32, Global>(Global);
+    /// #
+    /// # assert!(opaque_vec.has_element_type::<i32>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    /// #
+    /// let proj_vec = opaque_vec.try_as_proj::<i32, Global>();
+    ///
+    /// assert!(proj_vec.is_ok());
+    /// ```
+    #[inline]
+    pub fn try_as_proj<T, A>(&self) -> Result<&TypeProjectedVec<T, A>, TryProjectVecError>
+    where
+        T: any::Any,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        if !self.has_element_type::<T>() {
+            return Err(TryProjectVecError::new(
+                TryProjectVecErrorKind::Element,
+                self.element_type_id(),
+                any::TypeId::of::<T>()
+            ));
+        }
+
+        if !self.has_allocator_type::<A>() {
+            return Err(TryProjectVecError::new(
+                TryProjectVecErrorKind::Allocator,
+                self.allocator_type_id(),
+                any::TypeId::of::<A>()
+            ));
+        }
+
+        let result = unsafe { &*(self as *const TypeErasedVec as *const TypeProjectedVec<T, A>) };
+
+        Ok(result)
+    }
+
+    /// Projects the mutable type-erased vector reference into a type-projected
+    /// mutable type-projected vector reference.
+    ///
+    /// # Errors
+    ///
+    /// This method returns an error if the [`TypeId`] of the elements of `self` and the [`TypeId`]
+    /// of the memory allocator of `self` do not match the requested element type `T` and
+    /// allocator type `A`, respectively.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
+    /// # use opaque_vec::{TypeErasedVec, TypeProjectedVec};
+    /// #
+    /// # #[cfg(feature = "nightly")]
+    /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
+    /// #
+    /// let mut opaque_vec = TypeErasedVec::new_in::<i32, Global>(Global);
+    /// #
+    /// # assert!(opaque_vec.has_element_type::<i32>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    /// #
+    /// let proj_vec = opaque_vec.try_as_proj_mut::<i32, Global>();
+    ///
+    /// assert!(proj_vec.is_ok());
+    /// ```
+    #[inline]
+    pub fn try_as_proj_mut<T, A>(&mut self) -> Result<&mut TypeProjectedVec<T, A>, TryProjectVecError>
+    where
+        T: any::Any,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        if !self.has_element_type::<T>() {
+            return Err(TryProjectVecError::new(
+                TryProjectVecErrorKind::Element,
+                self.element_type_id(),
+                any::TypeId::of::<T>()
+            ));
+        }
+
+        if !self.has_allocator_type::<A>() {
+            return Err(TryProjectVecError::new(
+                TryProjectVecErrorKind::Allocator,
+                self.allocator_type_id(),
+                any::TypeId::of::<A>()
+            ));
+        }
+
+        let result = unsafe { &mut *(self as *mut TypeErasedVec as *mut TypeProjectedVec<T, A>) };
+
+        Ok(result)
+    }
+
+    /// Projects a type-erased vector value into a type-projected vector value.
+    ///
+    /// # Errors
+    ///
+    /// This method returns an error if the [`TypeId`] of the elements of `self` and the [`TypeId`]
+    /// of the memory allocator of `self` do not match the requested element type `T` and
+    /// allocator type `A`, respectively.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
+    /// # use opaque_vec::{TypeErasedVec, TypeProjectedVec};
+    /// #
+    /// # #[cfg(feature = "nightly")]
+    /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
+    /// #
+    /// let opaque_vec = TypeErasedVec::new_in::<i32, Global>(Global);
+    /// #
+    /// # assert!(opaque_vec.has_element_type::<i32>());
+    /// # assert!(opaque_vec.has_allocator_type::<Global>());
+    /// #
+    /// let proj_vec = opaque_vec.try_into_proj::<i32, Global>();
+    ///
+    /// assert!(proj_vec.is_ok());
+    /// ```
+    #[inline]
+    pub fn try_into_proj<T, A>(self) -> Result<TypeProjectedVec<T, A>, TryProjectVecError>
+    where
+        T: any::Any,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        if !self.has_element_type::<T>() {
+            return Err(TryProjectVecError::new(
+                TryProjectVecErrorKind::Element,
+                self.element_type_id(),
+                any::TypeId::of::<T>()
+            ));
+        }
+
+        if !self.has_allocator_type::<A>() {
+            return Err(TryProjectVecError::new(
+                TryProjectVecErrorKind::Allocator,
+                self.allocator_type_id(),
+                any::TypeId::of::<A>()
+            ));
+        }
+
+        let result =  TypeProjectedVec {
+            inner: self.inner.into_proj_assuming_type::<T, A>(),
+        };
+
+        Ok(result)
     }
 }
 

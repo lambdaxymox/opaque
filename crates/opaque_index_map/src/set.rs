@@ -1,8 +1,9 @@
-use crate::{map_inner, TypeErasedIndexMap, TypeProjectedIndexMap};
+use crate::map_inner;
 use crate::map_inner::{Bucket, TypeErasedIndexMapInner};
 use crate::range_ops;
 use crate::slice_eq;
 use crate::equivalent::Equivalent;
+use crate::try_project_index_set_error::{TryProjectIndexSetError, TryProjectIndexSetErrorKind};
 
 use core::any;
 use core::cmp;
@@ -11342,6 +11343,236 @@ impl TypeErasedIndexSet {
         Self {
             inner: TypeErasedIndexMapInner::from_proj(proj_self.inner),
         }
+    }
+}
+
+impl TypeErasedIndexSet {
+    /// Projects the type-erased index set reference into a type-projected index set reference.
+    ///
+    /// # Errors
+    ///
+    /// This method returns an error if the [`TypeId`] of the values of `self`, the [`TypeId`] for
+    /// the hash builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not
+    /// match the value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
+    /// # use opaque_index_map::{TypeErasedIndexSet, TypeProjectedIndexSet};
+    /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
+    /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
+    /// #
+    /// let opaque_set = TypeErasedIndexSet::with_hasher_in::<usize, RandomState, Global>(
+    ///     RandomState::new(),
+    ///     Global
+    /// );
+    /// #
+    /// # assert!(opaque_set.has_value_type::<usize>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    /// let proj_set = opaque_set.try_as_proj::<usize, RandomState, Global>();
+    ///
+    /// assert!(proj_set.is_ok());
+    /// ```
+    #[inline]
+    pub fn try_as_proj<T, S, A>(&self) -> Result<&TypeProjectedIndexSet<T, S, A>, TryProjectIndexSetError>
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        if !self.has_value_type::<T>() {
+            return Err(TryProjectIndexSetError::new(
+                TryProjectIndexSetErrorKind::Value,
+                self.value_type_id(),
+                any::TypeId::of::<T>()
+            ));
+        }
+
+        if !self.has_build_hasher_type::<S>() {
+            return Err(TryProjectIndexSetError::new(
+                TryProjectIndexSetErrorKind::BuildHasher,
+                self.build_hasher_type_id(),
+                any::TypeId::of::<S>()
+            ));
+        }
+
+        if !self.has_allocator_type::<A>() {
+            return Err(TryProjectIndexSetError::new(
+                TryProjectIndexSetErrorKind::Allocator,
+                self.allocator_type_id(),
+                any::TypeId::of::<A>()
+            ));
+        }
+
+        let result = unsafe { &*(self as *const TypeErasedIndexSet as *const TypeProjectedIndexSet<T, S, A>) };
+
+        Ok(result)
+    }
+
+    /// Projects the mutable type-erased index set reference into a mutable type-projected
+    /// index set reference.
+    ///
+    /// # Errors
+    ///
+    /// This method returns an error if the [`TypeId`] of the values of `self`, the [`TypeId`] for
+    /// the hash builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not
+    /// match the value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
+    /// # use opaque_index_map::{TypeErasedIndexSet, TypeProjectedIndexSet};
+    /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
+    /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
+    /// #
+    /// let mut opaque_set = TypeErasedIndexSet::with_hasher_in::<usize, RandomState, Global>(
+    ///     RandomState::new(),
+    ///     Global
+    /// );
+    /// #
+    /// # assert!(opaque_set.has_value_type::<usize>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    /// let proj_set = opaque_set.try_as_proj_mut::<usize, RandomState, Global>();
+    ///
+    /// assert!(proj_set.is_ok());
+    /// ```
+    #[inline]
+    pub fn try_as_proj_mut<T, S, A>(&mut self) -> Result<&mut TypeProjectedIndexSet<T, S, A>, TryProjectIndexSetError>
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        if !self.has_value_type::<T>() {
+            return Err(TryProjectIndexSetError::new(
+                TryProjectIndexSetErrorKind::Value,
+                self.value_type_id(),
+                any::TypeId::of::<T>()
+            ));
+        }
+
+        if !self.has_build_hasher_type::<S>() {
+            return Err(TryProjectIndexSetError::new(
+                TryProjectIndexSetErrorKind::BuildHasher,
+                self.build_hasher_type_id(),
+                any::TypeId::of::<S>()
+            ));
+        }
+
+        if !self.has_allocator_type::<A>() {
+            return Err(TryProjectIndexSetError::new(
+                TryProjectIndexSetErrorKind::Allocator,
+                self.allocator_type_id(),
+                any::TypeId::of::<A>()
+            ));
+        }
+
+        let result = unsafe { &mut *(self as *mut TypeErasedIndexSet as *mut TypeProjectedIndexSet<T, S, A>) };
+
+        Ok(result)
+    }
+
+    /// Projects the type-erased index set value into a type-projected index set value.
+    ///
+    /// # Errors
+    ///
+    /// This method returns an error if the [`TypeId`] of the values of `self`, the [`TypeId`] for
+    /// the hash builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not
+    /// match the value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
+    /// # use opaque_index_map::{TypeErasedIndexSet, TypeProjectedIndexSet};
+    /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
+    /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
+    /// #
+    /// let opaque_set = TypeErasedIndexSet::with_hasher_in::<usize, RandomState, Global>(
+    ///     RandomState::new(),
+    ///     Global
+    /// );
+    /// #
+    /// # assert!(opaque_set.has_value_type::<usize>());
+    /// # assert!(opaque_set.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_set.has_allocator_type::<Global>());
+    /// #
+    /// let proj_set = opaque_set.try_into_proj::<usize, RandomState, Global>();
+    ///
+    /// assert!(proj_set.is_ok());
+    /// ```
+    #[inline]
+    pub fn try_into_proj<T, S, A>(self) -> Result<TypeProjectedIndexSet<T, S, A>, TryProjectIndexSetError>
+    where
+        T: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        if !self.has_value_type::<T>() {
+            return Err(TryProjectIndexSetError::new(
+                TryProjectIndexSetErrorKind::Value,
+                self.value_type_id(),
+                any::TypeId::of::<T>()
+            ));
+        }
+
+        if !self.has_build_hasher_type::<S>() {
+            return Err(TryProjectIndexSetError::new(
+                TryProjectIndexSetErrorKind::BuildHasher,
+                self.build_hasher_type_id(),
+                any::TypeId::of::<S>()
+            ));
+        }
+
+        if !self.has_allocator_type::<A>() {
+            return Err(TryProjectIndexSetError::new(
+                TryProjectIndexSetErrorKind::Allocator,
+                self.allocator_type_id(),
+                any::TypeId::of::<A>()
+            ));
+        }
+
+        let result = TypeProjectedIndexSet {
+            inner: self.inner.into_proj::<T, (), S, A>(),
+        };
+
+        Ok(result)
     }
 }
 

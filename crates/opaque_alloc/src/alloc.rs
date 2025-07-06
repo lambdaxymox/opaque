@@ -1,4 +1,5 @@
 use crate::alloc_inner::{TypeProjectedAllocInner, TypeErasedAllocInner};
+use crate::try_project_alloc_error::{TryProjectAllocErrorKind, TryProjectAllocError};
 
 use core::any;
 use core::fmt;
@@ -607,6 +608,158 @@ impl TypeErasedAlloc {
         Self {
             inner: TypeErasedAllocInner::from_proj(proj_self.inner),
         }
+    }
+}
+
+impl TypeErasedAlloc {
+    /// Projects the type-erased allocator reference into a type-projected allocator reference.
+    ///
+    /// # Errors
+    ///
+    /// This method returns an error if the [`TypeId`] of the memory allocator of `self` do not
+    /// match the requested allocator type `A`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
+    /// # use opaque_alloc::{TypeErasedAlloc, TypeProjectedAlloc};
+    /// #
+    /// # #[cfg(feature = "nightly")]
+    /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
+    /// #
+    /// let opaque_alloc = TypeErasedAlloc::new::<Global>(Global);
+    /// #
+    /// # assert!(opaque_alloc.has_allocator_type::<Global>());
+    /// #
+    /// let proj_alloc = opaque_alloc.try_as_proj::<Global>();
+    ///
+    /// assert!(proj_alloc.is_ok());
+    /// ```
+    #[inline]
+    pub fn try_as_proj<A>(&self) -> Result<&TypeProjectedAlloc<A>, TryProjectAllocError>
+    where
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        if !self.has_allocator_type::<A>() {
+            return Err(TryProjectAllocError::new(
+                TryProjectAllocErrorKind::Allocator,
+                self.allocator_type_id(),
+                any::TypeId::of::<A>()
+            ));
+        }
+
+        let result = unsafe { &*(self as *const TypeErasedAlloc as *const TypeProjectedAlloc<A>) };
+
+        Ok(result)
+    }
+
+    /// Projects the mutable type-erased allocator reference into a mutable type-projected
+    /// allocator reference.
+    ///
+    /// # Errors
+    ///
+    /// This method returns an error if the [`TypeId`] of the memory allocator of `self` do not
+    /// match the requested allocator type `A`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
+    /// # use opaque_alloc::{TypeErasedAlloc, TypeProjectedAlloc};
+    /// #
+    /// # #[cfg(feature = "nightly")]
+    /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
+    /// #
+    /// let mut opaque_alloc = TypeErasedAlloc::new::<Global>(Global);
+    /// #
+    /// # assert!(opaque_alloc.has_allocator_type::<Global>());
+    /// #
+    /// let proj_alloc = opaque_alloc.try_as_proj_mut::<Global>();
+    ///
+    /// assert!(proj_alloc.is_ok());
+    /// ```
+    #[inline]
+    pub fn try_as_proj_mut<A>(&mut self) -> Result<&mut TypeProjectedAlloc<A>, TryProjectAllocError>
+    where
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        if !self.has_allocator_type::<A>() {
+            return Err(TryProjectAllocError::new(
+                TryProjectAllocErrorKind::Allocator,
+                self.allocator_type_id(),
+                any::TypeId::of::<A>()
+            ));
+        }
+
+        let result = unsafe { &mut *(self as *mut TypeErasedAlloc as *mut TypeProjectedAlloc<A>) };
+
+        Ok(result)
+    }
+
+    /// Projects the type-erased allocator value into a type-projected allocator value.
+    ///
+    /// # Errors
+    ///
+    /// This method returns an error if the [`TypeId`] of the memory allocator of `self` do not
+    /// match the requested allocator type `A`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
+    /// # use opaque_alloc::{TypeErasedAlloc, TypeProjectedAlloc};
+    /// #
+    /// # #[cfg(feature = "nightly")]
+    /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
+    /// #
+    /// let opaque_alloc = TypeErasedAlloc::new::<Global>(Global);
+    /// #
+    /// # assert!(opaque_alloc.has_allocator_type::<Global>());
+    /// #
+    /// let proj_alloc = opaque_alloc.try_into_proj::<Global>();
+    ///
+    /// assert!(proj_alloc.is_ok());
+    /// ```
+    #[inline]
+    pub fn try_into_proj<A>(self) -> Result<TypeProjectedAlloc<A>, TryProjectAllocError>
+    where
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        if !self.has_allocator_type::<A>() {
+            return Err(TryProjectAllocError::new(
+                TryProjectAllocErrorKind::Allocator,
+                self.allocator_type_id(),
+                any::TypeId::of::<A>()
+            ));
+        }
+
+        let result = TypeProjectedAlloc {
+            inner: self.inner.into_proj_assuming_type::<A>(),
+        };
+
+        Ok(result)
     }
 }
 

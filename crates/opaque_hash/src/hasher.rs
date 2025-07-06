@@ -1,4 +1,5 @@
 use crate::hasher_inner::{TypeErasedHasherInner, TypeProjectedHasherInner};
+use crate::try_project_hasher_error::{TryProjectHasherError, TryProjectHasherErrorKind};
 
 use core::any;
 use core::fmt;
@@ -511,6 +512,139 @@ impl TypeErasedHasher {
     }
 }
 
+impl TypeErasedHasher {
+    /// Projects the type-erased hasher reference into a type-projected hasher reference.
+    ///
+    /// # Errors
+    ///
+    /// This method returns an error if the [`TypeId`] of the hasher of `self` do not match the
+    /// requested hasher type `H`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use opaque_hash::{TypeErasedHasher, TypeProjectedHasher};
+    /// # use std::hash::DefaultHasher;
+    /// #
+    /// let opaque_hasher = TypeErasedHasher::new::<DefaultHasher>(DefaultHasher::new());
+    /// #
+    /// # assert!(opaque_hasher.has_hasher_type::<DefaultHasher>());
+    /// #
+    /// let proj_hasher = opaque_hasher.try_as_proj::<DefaultHasher>();
+    ///
+    /// assert!(proj_hasher.is_ok());
+    /// ```
+    #[inline]
+    pub fn try_as_proj<H>(&self) -> Result<&TypeProjectedHasher<H>, TryProjectHasherError>
+    where
+        H: any::Any + hash::Hasher + Send + Sync,
+    {
+        if !self.has_hasher_type::<H>() {
+            return Err(TryProjectHasherError::new(
+                TryProjectHasherErrorKind::Hasher,
+                self.hasher_type_id(),
+                any::TypeId::of::<H>()
+            ));
+        }
+
+        let result = unsafe { &*(self as *const TypeErasedHasher as *const TypeProjectedHasher<H>) };
+
+        Ok(result)
+    }
+
+    /// Projects the mutable type-erased hasher reference into a mutable type-projected
+    /// hasher reference.
+    ///
+    /// # Errors
+    ///
+    /// This method returns an error if the [`TypeId`] of the hasher of `self` do not match the
+    /// requested hasher type `H`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use opaque_hash::{TypeErasedHasher, TypeProjectedHasher};
+    /// # use std::hash::DefaultHasher;
+    /// #
+    /// let mut opaque_hasher = TypeErasedHasher::new::<DefaultHasher>(DefaultHasher::new());
+    /// #
+    /// # assert!(opaque_hasher.has_hasher_type::<DefaultHasher>());
+    /// #
+    /// let proj_hasher = opaque_hasher.try_as_proj_mut::<DefaultHasher>();
+    ///
+    /// assert!(proj_hasher.is_ok());
+    /// ```
+    #[inline]
+    pub fn try_as_proj_mut<H>(&mut self) -> Result<&mut TypeProjectedHasher<H>, TryProjectHasherError>
+    where
+        H: any::Any + hash::Hasher + Send + Sync,
+    {
+        if !self.has_hasher_type::<H>() {
+            return Err(TryProjectHasherError::new(
+                TryProjectHasherErrorKind::Hasher,
+                self.hasher_type_id(),
+                any::TypeId::of::<H>()
+            ));
+        }
+
+        let result = unsafe { &mut *(self as *mut TypeErasedHasher as *mut TypeProjectedHasher<H>) };
+
+        Ok(result)
+    }
+
+    /// Projects the type-erased hasher value into a type-projected hasher value.
+    ///
+    /// # Errors
+    ///
+    /// This method returns an error if the [`TypeId`] of the hasher of `self` do not match the
+    /// requested hasher type `H`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use opaque_hash::{TypeErasedHasher, TypeProjectedHasher};
+    /// # use std::hash::DefaultHasher;
+    /// #
+    /// let opaque_hasher = TypeErasedHasher::new::<DefaultHasher>(DefaultHasher::new());
+    /// #
+    /// # assert!(opaque_hasher.has_hasher_type::<DefaultHasher>());
+    /// #
+    /// let proj_hasher = opaque_hasher.try_into_proj::<DefaultHasher>();
+    ///
+    /// assert!(proj_hasher.is_ok());
+    /// ```
+    #[inline]
+    pub fn try_into_proj<H>(self) -> Result<TypeProjectedHasher<H>, TryProjectHasherError>
+    where
+        H: any::Any + hash::Hasher + Send + Sync,
+    {
+        if !self.has_hasher_type::<H>() {
+            return Err(TryProjectHasherError::new(
+                TryProjectHasherErrorKind::Hasher,
+                self.hasher_type_id(),
+                any::TypeId::of::<H>()
+            ));
+        }
+
+        let result = TypeProjectedHasher {
+            inner: self.inner.into_proj(),
+        };
+
+        Ok(result)
+    }
+}
 
 impl TypeErasedHasher {
     /// Constructs a new type-erased hasher.

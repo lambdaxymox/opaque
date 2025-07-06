@@ -16,6 +16,8 @@ mod hasher_inner;
 mod build_hasher_inner;
 mod hasher;
 mod build_hasher;
+mod try_project_hasher_error;
+mod try_project_build_hasher_error;
 
 pub use crate::hasher::*;
 pub use crate::build_hasher::*;

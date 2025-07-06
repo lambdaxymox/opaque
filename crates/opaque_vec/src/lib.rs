@@ -21,9 +21,11 @@ mod drain;
 mod splice;
 mod extract_if;
 mod vec;
+mod try_project_vec_error;
 
 pub use crate::into_iter::*;
 pub use crate::drain::*;
 pub use crate::splice::*;
 pub use crate::extract_if::*;
 pub use crate::vec::*;
+pub use crate::try_project_vec_error::*;

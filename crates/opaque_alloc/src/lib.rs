@@ -8,12 +8,14 @@
     )
 )]
 #![no_std]
-mod alloc_inner;
-mod alloc;
-
 extern crate alloc as alloc_crate;
 
 #[cfg(feature = "std")]
 extern crate std;
 
+mod alloc_inner;
+mod alloc;
+mod try_project_alloc_error;
+
 pub use crate::alloc::*;
+pub use crate::try_project_alloc_error::*;

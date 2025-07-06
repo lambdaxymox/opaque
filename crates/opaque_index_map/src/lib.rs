@@ -22,6 +22,8 @@ pub mod equivalent;
 pub mod get_disjoint_mut_error;
 pub mod map;
 pub mod set;
+mod try_project_index_map_error;
+mod try_project_index_set_error;
 
 pub use crate::equivalent::Equivalent;
 pub use crate::get_disjoint_mut_error::GetDisjointMutError;
@@ -32,4 +34,12 @@ pub use crate::map::{
 pub use crate::set::{
     TypeProjectedIndexSet,
     TypeErasedIndexSet,
+};
+pub use crate::try_project_index_map_error::{
+    TryProjectIndexMapError,
+    TryProjectIndexMapErrorKind,
+};
+pub use crate::try_project_index_set_error::{
+    TryProjectIndexSetError,
+    TryProjectIndexSetErrorKind,
 };

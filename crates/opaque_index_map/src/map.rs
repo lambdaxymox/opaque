@@ -1,7 +1,8 @@
+use crate::map_inner;
+use crate::map_inner::{Bucket, TypeErasedIndexMapInner, TypeProjectedIndexMapInner};
 use crate::equivalent::Equivalent;
 use crate::get_disjoint_mut_error::GetDisjointMutError;
-use crate::map_inner::{Bucket, TypeErasedIndexMapInner, TypeProjectedIndexMapInner};
-use crate::map_inner;
+use crate::try_project_index_map_error::{TryProjectIndexMapError, TryProjectIndexMapErrorKind};
 
 use core::any;
 use core::cmp;
@@ -26,7 +27,7 @@ use opaque_allocator_api::alloc;
 use opaque_alloc::TypeProjectedAlloc;
 use opaque_error::TryReserveError;
 use opaque_hash::TypeProjectedBuildHasher;
-use opaque_vec::TypeProjectedVec;
+use opaque_vec::{TryProjectVecError, TryProjectVecErrorKind, TypeProjectedVec};
 
 /// A draining iterator over the entries of a [`TypeProjectedIndexMap`] or [`TypeErasedIndexMap`].
 ///
@@ -17325,6 +17326,269 @@ impl TypeErasedIndexMap {
         Self {
             inner: TypeErasedIndexMapInner::from_proj(proj_self.inner),
         }
+    }
+}
+
+impl TypeErasedIndexMap {
+    /// Projects the type-erased index map reference into a type-projected index map reference.
+    ///
+    /// # Errors
+    ///
+    /// This method returns an error if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the
+    /// values of `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the
+    /// memory allocator of `self` do not match the requested key type `K`, value type `V`, hash
+    /// builder type `S`, and allocator type `A`, respectively.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
+    /// # use opaque_index_map::{TypeErasedIndexMap, TypeProjectedIndexMap};
+    /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
+    /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
+    /// #
+    /// let opaque_map = TypeErasedIndexMap::with_hasher_in::<usize, f64, RandomState, Global>(
+    ///     RandomState::new(),
+    ///     Global
+    /// );
+    /// #
+    /// # assert!(opaque_map.has_key_type::<usize>());
+    /// # assert!(opaque_map.has_value_type::<f64>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
+    /// let proj_map = opaque_map.try_as_proj::<usize, f64, RandomState, Global>();
+    ///
+    /// assert!(proj_map.is_ok());
+    /// ```
+    #[inline]
+    pub fn try_as_proj<K, V, S, A>(&self) -> Result<&TypeProjectedIndexMap<K, V, S, A>, TryProjectIndexMapError>
+    where
+        K: any::Any,
+        V: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        if !self.has_key_type::<K>() {
+            return Err(TryProjectIndexMapError::new(
+                TryProjectIndexMapErrorKind::Key,
+                self.key_type_id(),
+                any::TypeId::of::<K>()
+            ));
+        }
+
+        if !self.has_value_type::<V>() {
+            return Err(TryProjectIndexMapError::new(
+                TryProjectIndexMapErrorKind::Value,
+                self.value_type_id(),
+                any::TypeId::of::<V>()
+            ));
+        }
+
+        if !self.has_build_hasher_type::<S>() {
+            return Err(TryProjectIndexMapError::new(
+                TryProjectIndexMapErrorKind::BuildHasher,
+                self.build_hasher_type_id(),
+                any::TypeId::of::<S>()
+            ));
+        }
+
+        if !self.has_allocator_type::<A>() {
+            return Err(TryProjectIndexMapError::new(
+                TryProjectIndexMapErrorKind::Allocator,
+                self.allocator_type_id(),
+                any::TypeId::of::<A>()
+            ));
+        }
+
+        let result = unsafe { &*(self as *const TypeErasedIndexMap as *const TypeProjectedIndexMap<K, V, S, A>) };
+
+        Ok(result)
+    }
+
+    /// Projects the mutable type-erased index map reference into a mutable type-projected
+    /// index map reference.
+    ///
+    /// # Errors
+    ///
+    /// This method returns an error if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the
+    /// values of `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the
+    /// memory allocator of `self` do not match the requested key type `K`, value type `V`, hash
+    /// builder type `S`, and allocator type `A`, respectively.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
+    /// # use opaque_index_map::{TypeErasedIndexMap, TypeProjectedIndexMap};
+    /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
+    /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
+    /// #
+    /// let mut opaque_map = TypeErasedIndexMap::with_hasher_in::<usize, f64, RandomState, Global>(
+    ///     RandomState::new(),
+    ///     Global
+    /// );
+    /// #
+    /// # assert!(opaque_map.has_key_type::<usize>());
+    /// # assert!(opaque_map.has_value_type::<f64>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
+    /// let proj_map = opaque_map.try_as_proj_mut::<usize, f64, RandomState, Global>();
+    ///
+    /// assert!(proj_map.is_ok());
+    /// ```
+    #[inline]
+    pub fn try_as_proj_mut<K, V, S, A>(&mut self) -> Result<&mut TypeProjectedIndexMap<K, V, S, A>, TryProjectIndexMapError>
+    where
+        K: any::Any,
+        V: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        if !self.has_key_type::<K>() {
+            return Err(TryProjectIndexMapError::new(
+                TryProjectIndexMapErrorKind::Key,
+                self.key_type_id(),
+                any::TypeId::of::<K>()
+            ));
+        }
+
+        if !self.has_value_type::<V>() {
+            return Err(TryProjectIndexMapError::new(
+                TryProjectIndexMapErrorKind::Value,
+                self.value_type_id(),
+                any::TypeId::of::<V>()
+            ));
+        }
+
+        if !self.has_build_hasher_type::<S>() {
+            return Err(TryProjectIndexMapError::new(
+                TryProjectIndexMapErrorKind::BuildHasher,
+                self.build_hasher_type_id(),
+                any::TypeId::of::<S>()
+            ));
+        }
+
+        if !self.has_allocator_type::<A>() {
+            return Err(TryProjectIndexMapError::new(
+                TryProjectIndexMapErrorKind::Allocator,
+                self.allocator_type_id(),
+                any::TypeId::of::<A>()
+            ));
+        }
+
+        let result = unsafe { &mut *(self as *mut TypeErasedIndexMap as *mut TypeProjectedIndexMap<K, V, S, A>) };
+
+        Ok(result)
+    }
+
+    /// Projects the type-erased index map value into a type-projected index map value.
+    ///
+    /// # Errors
+    ///
+    /// This method returns an error if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the
+    /// values of `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the
+    /// memory allocator of `self` do not match the requested key type `K`, value type `V`, hash
+    /// builder type `S`, and allocator type `A`, respectively.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
+    /// # use opaque_index_map::{TypeErasedIndexMap, TypeProjectedIndexMap};
+    /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
+    /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
+    /// #
+    /// let opaque_map = TypeErasedIndexMap::with_hasher_in::<usize, f64, RandomState, Global>(
+    ///     RandomState::new(),
+    ///     Global
+    /// );
+    /// #
+    /// # assert!(opaque_map.has_key_type::<usize>());
+    /// # assert!(opaque_map.has_value_type::<f64>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
+    /// let proj_map = opaque_map.try_into_proj::<usize, f64, RandomState, Global>();
+    ///
+    /// assert!(proj_map.is_ok());
+    /// ```
+    #[inline]
+    pub fn try_into_proj<K, V, S, A>(self) -> Result<TypeProjectedIndexMap<K, V, S, A>, TryProjectIndexMapError>
+    where
+        K: any::Any,
+        V: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        if !self.has_key_type::<K>() {
+            return Err(TryProjectIndexMapError::new(
+                TryProjectIndexMapErrorKind::Key,
+                self.key_type_id(),
+                any::TypeId::of::<K>()
+            ));
+        }
+
+        if !self.has_value_type::<V>() {
+            return Err(TryProjectIndexMapError::new(
+                TryProjectIndexMapErrorKind::Value,
+                self.value_type_id(),
+                any::TypeId::of::<V>()
+            ));
+        }
+
+        if !self.has_build_hasher_type::<S>() {
+            return Err(TryProjectIndexMapError::new(
+                TryProjectIndexMapErrorKind::BuildHasher,
+                self.build_hasher_type_id(),
+                any::TypeId::of::<S>()
+            ));
+        }
+
+        if !self.has_allocator_type::<A>() {
+            return Err(TryProjectIndexMapError::new(
+                TryProjectIndexMapErrorKind::Allocator,
+                self.allocator_type_id(),
+                any::TypeId::of::<A>()
+            ));
+        }
+
+        let result = TypeProjectedIndexMap {
+            inner: self.inner.into_proj::<K, V, S, A>(),
+        };
+
+        Ok(result)
     }
 }
 

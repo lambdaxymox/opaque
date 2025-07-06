@@ -1,5 +1,6 @@
 use crate::hasher::TypeProjectedHasher;
 use crate::build_hasher_inner::{TypeErasedBuildHasherInner, TypeProjectedBuildHasherInner};
+use crate::try_project_build_hasher_error::{TryProjectBuildHasherError, TryProjectBuildHasherErrorKind};
 
 use core::any;
 use core::fmt;
@@ -11,6 +12,7 @@ use std::hash;
 
 #[cfg(not(feature = "std"))]
 use core::hash;
+use crate::try_project_hasher_error::{TryProjectHasherError, TryProjectHasherErrorKind};
 
 /// A type-projected hash builder.
 ///
@@ -639,6 +641,147 @@ impl TypeErasedBuildHasher {
         Self {
             inner: TypeErasedBuildHasherInner::from_proj(proj_self.inner),
         }
+    }
+}
+
+impl TypeErasedBuildHasher {
+    /// Projects the type-erased hash builder reference into a type-projected hash builder
+    /// reference.
+    ///
+    /// # Errors
+    ///
+    /// This method returns an error if the [`TypeId`] of the hash builder of `self` does not match
+    /// the requested hash builder type `S`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use opaque_hash::{TypeErasedBuildHasher, TypeProjectedBuildHasher};
+    /// # use std::hash::{DefaultHasher, RandomState};
+    /// #
+    /// let opaque_build_hasher = TypeErasedBuildHasher::new::<RandomState>(RandomState::new());
+    /// #
+    /// # assert!(opaque_build_hasher.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_build_hasher.has_hasher_type::<DefaultHasher>());
+    /// #
+    /// let proj_build_hasher = opaque_build_hasher.try_as_proj::<RandomState>();
+    ///
+    /// assert!(proj_build_hasher.is_ok());
+    /// ```
+    #[inline]
+    pub fn try_as_proj<S>(&self) -> Result<&TypeProjectedBuildHasher<S>, TryProjectBuildHasherError>
+    where
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    {
+        if !self.has_build_hasher_type::<S>() {
+            return Err(TryProjectBuildHasherError::new(
+                TryProjectBuildHasherErrorKind::BuildHasher,
+                self.build_hasher_type_id(),
+                any::TypeId::of::<S>()
+            ));
+        }
+
+        let result = unsafe { &*(self as *const TypeErasedBuildHasher as *const TypeProjectedBuildHasher<S>) };
+
+        Ok(result)
+    }
+
+    /// Projects the mutable type-erased hash builder reference into a type-projected mutable
+    /// hash builder reference.
+    ///
+    /// # Errors
+    ///
+    /// This method returns an error if the [`TypeId`] of the hash builder of `self` does not match
+    /// the requested hash builder type `S`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use opaque_hash::{TypeErasedBuildHasher, TypeProjectedBuildHasher};
+    /// # use std::hash::{DefaultHasher, RandomState};
+    /// #
+    /// let mut opaque_build_hasher = TypeErasedBuildHasher::new::<RandomState>(RandomState::new());
+    /// #
+    /// # assert!(opaque_build_hasher.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_build_hasher.has_hasher_type::<DefaultHasher>());
+    /// #
+    /// let proj_build_hasher = opaque_build_hasher.try_as_proj_mut::<RandomState>();
+    ///
+    /// assert!(proj_build_hasher.is_ok());
+    /// ```
+    #[inline]
+    pub fn try_as_proj_mut<S>(&mut self) -> Result<&mut TypeProjectedBuildHasher<S>, TryProjectBuildHasherError>
+    where
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    {
+        if !self.has_build_hasher_type::<S>() {
+            return Err(TryProjectBuildHasherError::new(
+                TryProjectBuildHasherErrorKind::BuildHasher,
+                self.build_hasher_type_id(),
+                any::TypeId::of::<S>()
+            ));
+        }
+
+        let result = unsafe { &mut *(self as *mut TypeErasedBuildHasher as *mut TypeProjectedBuildHasher<S>) };
+
+        Ok(result)
+    }
+
+    /// Projects the type-erased hash builder value into a type-projected hash builder value.
+    ///
+    /// # Errors
+    ///
+    /// This method returns an error if the [`TypeId`] of the hash builder of `self` does not match
+    /// the requested hash builder type `S`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use opaque_hash::{TypeErasedBuildHasher, TypeProjectedBuildHasher};
+    /// # use std::hash::{DefaultHasher, RandomState};
+    /// #
+    /// let opaque_build_hasher = TypeErasedBuildHasher::new::<RandomState>(RandomState::new());
+    /// #
+    /// # assert!(opaque_build_hasher.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_build_hasher.has_hasher_type::<DefaultHasher>());
+    /// #
+    /// let proj_build_hasher = opaque_build_hasher.try_into_proj::<RandomState>();
+    ///
+    /// assert!(proj_build_hasher.is_ok());
+    /// ```
+    #[inline]
+    pub fn try_into_proj<S>(self) -> Result<TypeProjectedBuildHasher<S>, TryProjectBuildHasherError>
+    where
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    {
+        if !self.has_build_hasher_type::<S>() {
+            return Err(TryProjectBuildHasherError::new(
+                TryProjectBuildHasherErrorKind::BuildHasher,
+                self.build_hasher_type_id(),
+                any::TypeId::of::<S>()
+            ));
+        }
+
+        let result = TypeProjectedBuildHasher {
+            inner: self.inner.into_proj(),
+        };
+
+        Ok(result)
     }
 }
 
