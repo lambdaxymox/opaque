@@ -1,4 +1,4 @@
-use crate::map_inner;
+use crate::{map_inner, TypeErasedIndexMap};
 use crate::map_inner::{Bucket, TypeErasedIndexMapInner};
 use crate::range_ops;
 use crate::slice_eq;
@@ -21027,6 +21027,76 @@ impl TypeErasedIndexSet {
         let proj_self = self.as_proj_mut::<T, S, A>();
 
         proj_self.extend(iterable)
+    }
+}
+
+impl TypeErasedIndexSet {
+    /// Returns a moving iterator for the type-erased index set.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the values of `self`, the [`TypeId`] for the hash
+    /// builder of `self`, and the [`TypeId`] of the memory allocator of `self` do not match the
+    /// value type `T`, hash builder type `S`, and allocator type `A`, respectively.
+    ///
+    /// # Examples
+    ///
+    /// Iterating over a type-erased index set.
+    ///
+    /// ```
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
+    /// # use opaque_index_map::TypeErasedIndexSet;
+    /// # use opaque_hash::TypeProjectedBuildHasher;
+    /// # use opaque_alloc::TypeProjectedAlloc;
+    /// # use opaque_vec::TypeProjectedVec;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
+    /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
+    /// #
+    /// let opaque_map = TypeErasedIndexSet::from([
+    ///     (0_usize, 1_i32),
+    ///     (1_usize, 2_i32),
+    ///     (2_usize, 3_i32),
+    ///     (3_usize, 4_i32),
+    ///     (4_usize, 5_i32),
+    ///     (5_usize, 6_i32),
+    /// ]);
+    /// #
+    /// # assert!(opaque_map.has_value_type::<(usize, i32)>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
+    /// let mut iterator = opaque_map.into_iter::<(usize, i32), RandomState, Global>();
+    ///
+    /// assert_eq!(iterator.next(), Some((0_usize, 1_i32)));
+    /// assert_eq!(iterator.next(), Some((1_usize, 2_i32)));
+    /// assert_eq!(iterator.next(), Some((2_usize, 3_i32)));
+    /// assert_eq!(iterator.next(), Some((3_usize, 4_i32)));
+    /// assert_eq!(iterator.next(), Some((4_usize, 5_i32)));
+    /// assert_eq!(iterator.next(), Some((5_usize, 6_i32)));
+    /// assert_eq!(iterator.next(), None);
+    ///
+    /// for _ in 0..100 {
+    ///     assert_eq!(iterator.next(), None);
+    /// }
+    /// ```
+    #[inline]
+    #[track_caller]
+    pub fn into_iter<T, S, A>(self) -> IntoIter<T, A>
+    where
+        T: any::Any + hash::Hash + Eq,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+    {
+        let proj_self = self.into_proj::<T, S, A>();
+
+        proj_self.into_iter()
     }
 }
 

@@ -15,3 +15,4 @@ mod spec_swap_remove_entry;
 mod spec_swap_remove_full;
 mod spec_truncate;
 mod spec_extract_if;
+mod spec_into_iter;
