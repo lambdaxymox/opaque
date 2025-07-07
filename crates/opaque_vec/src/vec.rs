@@ -3635,7 +3635,7 @@ where
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use opaque_allocator_api::boxed::Box;
+    /// # use std::boxed::Box;
     /// #
     /// let mut proj_vec = {
     ///     let mut _proj_vec = TypeProjectedVec::with_capacity(10);
@@ -10379,7 +10379,7 @@ impl TypeErasedVec {
     /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// # #[cfg(not(feature = "nightly"))]
-    /// # use opaque_allocator_api::boxed::Box;
+    /// # use std::boxed::Box;
     /// #
     /// let mut opaque_vec = {
     ///     let mut _opaque_vec = TypeErasedVec::with_capacity::<i32>(10);
