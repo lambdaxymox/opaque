@@ -2447,6 +2447,52 @@ where
         self.inner.push_within_capacity(value)
     }
 
+    /// Removes and returns the last element from a vector depending on whether it satisfies the
+    /// provided predicate.
+    ///
+    /// This method returns behaves as follows:
+    /// * If the vector is nonempty, let `value` be the last element in the vector. If
+    ///   `predicate(value) == true`, this method returns `Some(value)`. If
+    ///   `predicate(value) == false`, this method returns `None`.
+    /// * If the vector is empty, this method returns `None`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
+    /// # use opaque_vec::TypeProjectedVec;
+    /// #
+    /// # #[cfg(feature = "nightly")]
+    /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
+    /// #
+    /// let mut proj_vec = TypeProjectedVec::from([
+    ///     "foo",
+    ///     "bar",
+    ///     "baz",
+    ///     "quux",
+    /// ]);
+    /// let predicate = |st: &mut &str| { st.len() % 2 == 0 };
+    ///
+    /// assert_eq!(proj_vec.pop_if(predicate), Some("quux"));
+    /// assert_eq!(proj_vec.as_slice(), &["foo", "bar", "baz"]);
+    /// assert_eq!(proj_vec.pop_if(predicate), None);
+    /// assert_eq!(proj_vec.as_slice(), &["foo", "bar", "baz"]);
+    /// ```
+    pub fn pop_if<F>(&mut self, predicate: F) -> Option<T>
+    where
+        F: FnOnce(&mut T) -> bool,
+    {
+        let last = self.last_mut()?;
+        if predicate(last) {
+            self.pop()
+        } else {
+            None
+        }
+    }
+
     /// Inserts a new value into a type-projected vector, replacing the old value.
     ///
     /// This method behaves with respect to `index` as follows:
@@ -8783,6 +8829,52 @@ impl TypeErasedVec {
         let proj_self = self.as_proj_mut::<T, A>();
 
         proj_self.push_within_capacity(value)
+    }
+
+    /// Removes and returns the last element from a vector depending on whether it satisfies the
+    /// provided predicate.
+    ///
+    /// This method returns behaves as follows:
+    /// * If the vector is nonempty, let `value` be the last element in the vector. If
+    ///   `predicate(value) == true`, this method returns `Some(value)`. If
+    ///   `predicate(value) == false`, this method returns `None`.
+    /// * If the vector is empty, this method returns `None`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
+    /// # use opaque_vec::TypeErasedVec;
+    /// #
+    /// # #[cfg(feature = "nightly")]
+    /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
+    /// #
+    /// let mut opaque_vec = TypeErasedVec::from([
+    ///     "foo",
+    ///     "bar",
+    ///     "baz",
+    ///     "quux",
+    /// ]);
+    /// let predicate = |st: &mut &str| { st.len() % 2 == 0 };
+    ///
+    /// assert_eq!(opaque_vec.pop_if::<_, &str, Global>(predicate), Some("quux"));
+    /// assert_eq!(opaque_vec.as_slice::<&str, Global>(), &["foo", "bar", "baz"]);
+    /// assert_eq!(opaque_vec.pop_if::<_, &str, Global>(predicate), None);
+    /// assert_eq!(opaque_vec.as_slice::<&str, Global>(), &["foo", "bar", "baz"]);
+    /// ```
+    #[track_caller]
+    pub fn pop_if<F, T, A>(&mut self, predicate: F) -> Option<T>
+    where
+        T: any::Any,
+        A: any::Any + alloc::Allocator + Send + Sync,
+        F: FnOnce(&mut T) -> bool,
+    {
+        let proj_self = self.as_proj_mut::<T, A>();
+
+        proj_self.pop_if(predicate)
     }
 
     /// Inserts a new value into a type-erased vector, replacing the old value.

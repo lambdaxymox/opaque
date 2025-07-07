@@ -129,6 +129,15 @@ fn test_vec_push_len3() {
 }
 
 #[test]
+fn test_vec_push_zst_capacity() {
+    for len in [0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024] {
+        let vec: TypeProjectedVec<()> = TypeProjectedVec::with_capacity(len);
+        assert_eq!(vec.len(), 0);
+        assert_eq!(vec.capacity(), usize::MAX);
+    }
+}
+
+#[test]
 fn test_vec_pop_empty() {
     let mut vec: TypeProjectedVec<i32> = TypeProjectedVec::new();
 
@@ -1569,6 +1578,7 @@ fn test_extract_if_many4() {
 fn test_vec_retain1() {
     let mut vec = TypeProjectedVec::from([1, 2, 3, 4, 5, 6]);
     vec.retain(|&x| x % 2 == 0);
+
     assert_eq!(vec.as_slice(), [2, 4, 6]);
 }
 
@@ -1576,6 +1586,7 @@ fn test_vec_retain1() {
 fn test_vec_retain2() {
     let mut vec = TypeProjectedVec::from([1, 2, 3, 4, 5, 6]);
     vec.retain(|&x| true);
+
     assert_eq!(vec.as_slice(), [1, 2, 3, 4, 5, 6]);
 }
 
@@ -1583,6 +1594,212 @@ fn test_vec_retain2() {
 fn test_vec_retain3() {
     let mut vec = TypeProjectedVec::from([1, 2, 3, 4, 5, 6]);
     vec.retain(|&x| false);
+
     assert_eq!(vec.as_slice(), []);
+}
+
+#[test]
+fn test_vec_shift_insert_first() {
+    let mut vec = TypeProjectedVec::new();
+    assert!(vec.is_empty());
+    vec.shift_insert(0, 1);
+    assert_eq!(vec.len(), 1);
+    assert_eq!(vec.as_slice(), &[1]);
+    vec.shift_insert(0, 2);
+    assert_eq!(vec.len(), 2);
+    assert_eq!(vec.as_slice(), &[2, 1]);
+    vec.shift_insert(0, 3);
+    assert_eq!(vec.len(), 3);
+    assert_eq!(vec.as_slice(), &[3, 2, 1]);
+}
+
+#[test]
+fn test_vec_shift_insert_last() {
+    let mut vec = TypeProjectedVec::new();
+    assert!(vec.is_empty());
+    vec.shift_insert(0, 1);
+    assert_eq!(vec.len(), 1);
+    assert_eq!(vec.as_slice(), &[1]);
+    vec.shift_insert(1, 2);
+    assert_eq!(vec.len(), 2);
+    assert_eq!(vec.as_slice(), &[1, 2]);
+    vec.shift_insert(2, 3);
+    assert_eq!(vec.len(), 3);
+    assert_eq!(vec.as_slice(), &[1, 2, 3]);
+}
+
+#[test]
+fn test_vec_shift_insert_middle() {
+    let mut vec = TypeProjectedVec::from([i32::MAX, i32::MAX]);
+    assert_eq!(vec.len(), 2);
+    vec.shift_insert(1, 1);
+    assert_eq!(vec.len(), 3);
+    assert_eq!(vec.as_slice(), &[i32::MAX, 1, i32::MAX]);
+    vec.shift_insert(1, 2);
+    assert_eq!(vec.len(), 4);
+    assert_eq!(vec.as_slice(), &[i32::MAX, 2, 1, i32::MAX]);
+    vec.shift_insert(1, 3);
+    assert_eq!(vec.len(), 5);
+    assert_eq!(vec.as_slice(), &[i32::MAX, 3, 2, 1, i32::MAX]);
+}
+
+#[test]
+#[should_panic]
+fn test_vec_shift_insert_out_of_bounds() {
+    let mut vec = TypeProjectedVec::from([]);
+    vec.shift_insert(2, 1);
+
+    assert!(true);
+}
+
+#[test]
+fn test_vec_swap_remove1() {
+    let mut vec = TypeProjectedVec::from(['a', 'b', 'c']);
+    let result = vec.swap_remove(0);
+
+    assert_eq!(result, 'a');
+    assert_eq!(vec.len(), 2);
+    assert_eq!(vec.as_slice(), &['c', 'b']);
+}
+
+#[test]
+fn test_vec_swap_remove2() {
+    let mut vec = TypeProjectedVec::from(['a', 'b', 'c']);
+    let result = vec.swap_remove(1);
+
+    assert_eq!(result, 'b');
+    assert_eq!(vec.len(), 2);
+    assert_eq!(vec.as_slice(), &['a', 'c']);
+}
+
+#[test]
+fn test_vec_swap_remove3() {
+    let mut vec = TypeProjectedVec::from(['a', 'b', 'c']);
+    let result = vec.swap_remove(2);
+
+    assert_eq!(result, 'c');
+    assert_eq!(vec.len(), 2);
+    assert_eq!(vec.as_slice(), &['a', 'b']);
+}
+
+
+#[test]
+#[should_panic]
+fn test_vec_swap_remove_out_of_bounds() {
+    let mut vec: TypeProjectedVec<i32> = TypeProjectedVec::from([]);
+    vec.swap_remove(2);
+
+    assert!(true);
+}
+
+#[test]
+fn test_vec_shift_remove1() {
+    let mut vec = TypeProjectedVec::from(['a', 'b', 'c', 'd', 'e']);
+    let result = vec.shift_remove(0);
+
+    assert_eq!(result, 'a');
+    assert_eq!(vec.len(), 4);
+    assert_eq!(vec.as_slice(), &['b', 'c', 'd', 'e']);
+}
+
+#[test]
+fn test_vec_shift_remove2() {
+    let mut vec = TypeProjectedVec::from(['a', 'b', 'c', 'd', 'e']);
+    let result = vec.shift_remove(1);
+
+    assert_eq!(result, 'b');
+    assert_eq!(vec.len(), 4);
+    assert_eq!(vec.as_slice(), &['a', 'c', 'd', 'e']);
+}
+
+#[test]
+fn test_vec_shift_remove3() {
+    let mut vec = TypeProjectedVec::from(['a', 'b', 'c', 'd', 'e']);
+    let result = vec.shift_remove(2);
+
+    assert_eq!(result, 'c');
+    assert_eq!(vec.len(), 4);
+    assert_eq!(vec.as_slice(), &['a', 'b', 'd', 'e']);
+}
+
+#[test]
+fn test_vec_shift_remove4() {
+    let mut vec = TypeProjectedVec::from(['a', 'b', 'c', 'd', 'e']);
+    let result = vec.shift_remove(3);
+
+    assert_eq!(result, 'd');
+    assert_eq!(vec.len(), 4);
+    assert_eq!(vec.as_slice(), &['a', 'b', 'c', 'e']);
+}
+
+#[test]
+fn test_vec_shift_remove5() {
+    let mut vec = TypeProjectedVec::from(['a', 'b', 'c', 'd', 'e']);
+    let result = vec.shift_remove(4);
+
+    assert_eq!(result, 'e');
+    assert_eq!(vec.len(), 4);
+    assert_eq!(vec.as_slice(), &['a', 'b', 'c', 'd']);
+}
+
+#[test]
+fn test_vec_shift_remove6() {
+    let mut vec = TypeProjectedVec::from(['a', 'b', 'c', 'd', 'e']);
+    assert_eq!(vec.shift_remove(0), 'a');
+    assert_eq!(vec.len(), 4);
+    assert_eq!(vec.as_slice(), &['b', 'c', 'd', 'e']);
+    assert_eq!(vec.shift_remove(0), 'b');
+    assert_eq!(vec.len(), 3);
+    assert_eq!(vec.as_slice(), &['c', 'd', 'e']);
+    assert_eq!(vec.shift_remove(0), 'c');
+    assert_eq!(vec.len(), 2);
+    assert_eq!(vec.as_slice(), &['d', 'e']);
+    assert_eq!(vec.shift_remove(0), 'd');
+    assert_eq!(vec.len(), 1);
+    assert_eq!(vec.as_slice(), &['e']);
+    assert_eq!(vec.shift_remove(0), 'e');
+    assert_eq!(vec.len(), 0);
+    assert!(vec.is_empty());
+}
+
+#[test]
+#[should_panic]
+fn test_vec_shift_remove_out_of_bounds() {
+    let mut vec: TypeProjectedVec<i32> = TypeProjectedVec::from([]);
+    vec.shift_remove(2);
+
+    assert!(true);
+}
+
+#[test]
+fn test_vec_pop_if_empty_true() {
+    let mut vec: TypeProjectedVec<i32> = TypeProjectedVec::from([]);
+
+    assert_eq!(vec.pop_if(|_| true), None);
+    assert!(vec.is_empty());
+}
+
+#[test]
+fn test_vec_pop_if_empty_false() {
+    let mut vec: TypeProjectedVec<i32> = TypeProjectedVec::from([]);
+
+    assert_eq!(vec.pop_if(|_| false), None);
+    assert!(vec.is_empty());
+}
+
+#[test]
+fn test_vec_pop_if_true() {
+    let mut vec = TypeProjectedVec::from([1, 2, 3]);
+
+    assert_eq!(vec.pop_if(|_| true), Some(3));
+    assert_eq!(vec.as_slice(), &[1, 2]);
+}
+
+#[test]
+fn test_vec_pop_if_false() {
+    let mut vec: TypeProjectedVec<i32> = TypeProjectedVec::from([1, 2, 3]);
+
+    assert_eq!(vec.pop_if(|_| false), None);
+    assert_eq!(vec.as_slice(), &[1, 2, 3]);
 }
 
