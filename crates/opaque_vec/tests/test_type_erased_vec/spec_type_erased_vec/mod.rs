@@ -25,3 +25,4 @@ mod spec_shift_insert_shift_remove;
 mod spec_shift_remove;
 mod spec_swap_remove;
 mod spec_truncate;
+mod spec_extract_if;

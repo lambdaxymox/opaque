@@ -52,7 +52,7 @@ where
     let mut result = values.clone();
     result.clear();
 
-    assert_eq!(result.len(), 0);
+    prop_assert_eq!(result.len(), 0);
 
     Ok(())
 }
