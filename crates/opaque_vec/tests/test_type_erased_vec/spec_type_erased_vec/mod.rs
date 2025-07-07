@@ -27,3 +27,4 @@ mod spec_swap_remove;
 mod spec_truncate;
 mod spec_extract_if;
 mod spec_iter;
+mod spec_splice;
