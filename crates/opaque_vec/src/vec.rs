@@ -2615,9 +2615,9 @@ where
     /// # Complexity Characteristics
     ///
     /// This method runs in **O(n)** time, where `n` is an affine function of the length of the
-    /// vector. Every value after the insertion index must be shifted to the right. The worst case
+    /// vector. Every value after the insertion index must be shifted up. The worst case
     /// input is when the input index is `index == 0`. In the worst case, every value in the vector
-    /// must be shifted to the right.
+    /// must be shifted up.
     ///
     /// # Panics
     ///
@@ -2790,7 +2790,7 @@ where
     ///
     /// This method runs in average **O(n)** time, where `n` is an affine function of the length of
     /// the vector. The worst case input is when `index == 0`. In the worst case, every remaining
-    /// element of the vector is shifted to the left one index.
+    /// element of the vector is shifted down one index.
     ///
     /// # Panics
     ///
@@ -9013,9 +9013,9 @@ impl TypeErasedVec {
     /// # Complexity Characteristics
     ///
     /// This method runs in **O(n)** time, where `n` is an affine function of the length of the
-    /// vector. Every value after the insertion index must be shifted to the right. The worst case
+    /// vector. Every value after the insertion index must be shifted up. The worst case
     /// input is when the input index is `index == 0`. In the worst case, every value in the vector
-    /// must be shifted to the right.
+    /// must be shifted up.
     ///
     /// # Panics
     ///
@@ -9216,7 +9216,7 @@ impl TypeErasedVec {
     ///
     /// This method runs in average **O(n)** time, where `n` is an affine function of the length of
     /// the vector. The worst case input is when `index == 0`. In the worst case, every remaining
-    /// element of the vector is shifted to the left one index.
+    /// element of the vector is shifted down one index.
     ///
     /// # Panics
     ///
