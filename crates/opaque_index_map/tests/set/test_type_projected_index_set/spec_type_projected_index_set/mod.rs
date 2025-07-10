@@ -14,3 +14,4 @@ mod spec_truncate;
 mod spec_extract_if;
 mod spec_into_iter;
 mod spec_get_full;
+mod spec_reverse;
