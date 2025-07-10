@@ -1,5 +1,5 @@
 use crate::common::erased::strategy_type_erased_vec_max_len;
-use opaque_vec::TypeErasedVec;
+use opaque_vec::{TypeErasedVec, TypeProjectedVec};
 
 use core::any;
 use core::fmt;
@@ -51,6 +51,37 @@ where
     Ok(())
 }
 
+fn prop_reverse_len<T, A>(values: TypeErasedVec) -> Result<(), TestCaseError>
+where
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
+{
+    let mut reversed = values.clone::<T, A>();
+    reversed.reverse::<T, A>();
+
+    let expected = values.len();
+    let result = reversed.len();
+
+    prop_assert_eq!(result, expected);
+
+    Ok(())
+}
+
+fn prop_reverse_reverse<T, A>(values: TypeErasedVec) -> Result<(), TestCaseError>
+where
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
+{
+    let expected = values.clone::<T, A>();
+    let mut result = values.clone::<T, A>();
+    result.reverse::<T, A>();
+    result.reverse::<T, A>();
+
+    prop_assert_eq!(result.as_slice::<T, A>(), expected.as_slice::<T, A>());
+
+    Ok(())
+}
+
 macro_rules! generate_props {
     ($module_name:ident, $typ:ty, $alloc_typ:ty, $max_length:expr, $vec_gen:ident) => {
         mod $module_name {
@@ -60,6 +91,18 @@ macro_rules! generate_props {
                 fn prop_reverse(values in super::$vec_gen::<$typ, $alloc_typ>($max_length)) {
                     let values: super::TypeErasedVec = values;
                     super::prop_reverse::<$typ, $alloc_typ>(values)?
+                }
+
+                #[test]
+                fn prop_reverse_len(values in super::$vec_gen::<$typ, $alloc_typ>($max_length)) {
+                    let values: super::TypeErasedVec = values;
+                    super::prop_reverse_len::<$typ, $alloc_typ>(values)?
+                }
+
+                #[test]
+                fn prop_reverse_reverse(values in super::$vec_gen::<$typ, $alloc_typ>($max_length)) {
+                    let values: super::TypeErasedVec = values;
+                    super::prop_reverse_reverse::<$typ, $alloc_typ>(values)?
                 }
             }
         }
