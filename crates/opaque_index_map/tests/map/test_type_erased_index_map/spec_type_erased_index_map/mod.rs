@@ -18,3 +18,6 @@ mod spec_extract_if;
 mod spec_into_iter;
 mod spec_get_full;
 mod spec_reverse;
+mod spec_binary_search_by;
+mod spec_binary_search_by_key;
+mod spec_partition_point;
