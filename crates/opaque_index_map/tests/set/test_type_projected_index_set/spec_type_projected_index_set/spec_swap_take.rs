@@ -16,7 +16,7 @@ use opaque_allocator_api::alloc;
 
 use proptest::prelude::*;
 
-fn prop_swap_remove_contains<T, S, A>(entries: TypeProjectedIndexSet<T, S, A>) -> Result<(), TestCaseError>
+fn prop_swap_take_contains<T, S, A>(entries: TypeProjectedIndexSet<T, S, A>) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -28,7 +28,7 @@ where
     for value in values.iter() {
         prop_assert!(set.contains(value));
 
-        set.swap_remove(value);
+        set.swap_take(value);
 
         prop_assert!(!set.contains(value));
     }
@@ -36,7 +36,7 @@ where
     Ok(())
 }
 
-fn prop_swap_remove_get<T, S, A>(entries: TypeProjectedIndexSet<T, S, A>) -> Result<(), TestCaseError>
+fn prop_swap_take_get<T, S, A>(entries: TypeProjectedIndexSet<T, S, A>) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -47,20 +47,15 @@ where
     let values: Vec<T> = set.iter().cloned().collect();
     for value in values.iter() {
         let expected = set.get(value).cloned();
+        let result = set.swap_take(value);
 
-        prop_assert!(expected.is_some());
-
-        set.swap_remove(value);
-
-        let result = set.get(value);
-
-        prop_assert!(result.is_none());
+        prop_assert_eq!(result, expected);
     }
 
     Ok(())
 }
 
-fn prop_swap_remove_len<T, S, A>(entries: TypeProjectedIndexSet<T, S, A>) -> Result<(), TestCaseError>
+fn prop_swap_take_len<T, S, A>(entries: TypeProjectedIndexSet<T, S, A>) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -70,7 +65,7 @@ where
     let mut set = entries.clone();
     let values: Vec<T> = set.iter().cloned().collect();
     for (i, value_i) in values.iter().enumerate() {
-        set.swap_remove(value_i);
+        set.swap_take(value_i);
 
         let expected = values.len() - i - 1;
         let result = set.len();
@@ -81,7 +76,7 @@ where
     Ok(())
 }
 
-fn prop_swap_remove_preserves_order<T, S, A>(entries: TypeProjectedIndexSet<T, S, A>) -> Result<(), TestCaseError>
+fn prop_swap_take_preserves_order<T, S, A>(entries: TypeProjectedIndexSet<T, S, A>) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -110,7 +105,7 @@ where
         A: any::Any + alloc::Allocator + Send + Sync + Clone,
     {
         let mut new_set = set.clone();
-        new_set.swap_remove(value);
+        new_set.swap_take(value);
 
         let ordered_entries: Vec<T> = new_set
             .iter()
@@ -145,27 +140,27 @@ macro_rules! generate_props {
             use super::*;
             proptest! {
                 #[test]
-                fn prop_swap_remove_contains(entries in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
+                fn prop_swap_take_contains(entries in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
                     let entries: super::TypeProjectedIndexSet<$value_typ, $build_hasher_typ, $alloc_typ> = entries;
-                    super::prop_swap_remove_contains(entries)?
+                    super::prop_swap_take_contains(entries)?
                 }
 
                 #[test]
-                fn prop_swap_remove_get(entries in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
+                fn prop_swap_take_get(entries in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
                     let entries: super::TypeProjectedIndexSet<$value_typ, $build_hasher_typ, $alloc_typ> = entries;
-                    super::prop_swap_remove_get(entries)?
+                    super::prop_swap_take_get(entries)?
                 }
 
                 #[test]
-                fn prop_swap_remove_len(entries in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
+                fn prop_swap_take_len(entries in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
                     let entries: super::TypeProjectedIndexSet<$value_typ, $build_hasher_typ, $alloc_typ> = entries;
-                    super::prop_swap_remove_len(entries)?
+                    super::prop_swap_take_len(entries)?
                 }
 
                 #[test]
-                fn prop_swap_remove_preserves_order(entries in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
+                fn prop_swap_take_preserves_order(entries in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
                     let entries: super::TypeProjectedIndexSet<$value_typ, $build_hasher_typ, $alloc_typ> = entries;
-                    super::prop_swap_remove_preserves_order(entries)?
+                    super::prop_swap_take_preserves_order(entries)?
                 }
             }
         }

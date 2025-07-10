@@ -18,3 +18,5 @@ mod spec_reverse;
 mod spec_binary_search_by;
 mod spec_binary_search_by_key;
 mod spec_partition_point;
+mod spec_swap_take;
+mod spec_shift_take;

@@ -16,7 +16,7 @@ use opaque_allocator_api::alloc;
 
 use proptest::prelude::*;
 
-fn prop_swap_remove_contains<T, S, A>(entries: TypeErasedIndexSet) -> Result<(), TestCaseError>
+fn prop_swap_take_contains<T, S, A>(entries: TypeErasedIndexSet) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -28,7 +28,7 @@ where
     for value in values.iter() {
         prop_assert!(set.contains::<_, T, S, A>(value));
 
-        set.swap_remove::<_, T, S, A>(value);
+        set.swap_take::<_, T, S, A>(value);
 
         prop_assert!(!set.contains::<_, T, S, A>(value));
     }
@@ -36,7 +36,7 @@ where
     Ok(())
 }
 
-fn prop_swap_remove_get<T, S, A>(entries: TypeErasedIndexSet) -> Result<(), TestCaseError>
+fn prop_swap_take_get<T, S, A>(entries: TypeErasedIndexSet) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -47,20 +47,15 @@ where
     let values: Vec<T> = set.iter::<T, S, A>().cloned().collect();
     for value in values.iter() {
         let expected = set.get::<_, T, S, A>(value).cloned();
+        let result = set.swap_take::<_, T, S, A>(value);
 
-        prop_assert!(expected.is_some());
-
-        set.swap_remove::<_, T, S, A>(value);
-
-        let result = set.get::<_, T, S, A>(value);
-
-        prop_assert!(result.is_none());
+        prop_assert_eq!(result, expected);
     }
 
     Ok(())
 }
 
-fn prop_swap_remove_len<T, S, A>(entries: TypeErasedIndexSet) -> Result<(), TestCaseError>
+fn prop_swap_take_len<T, S, A>(entries: TypeErasedIndexSet) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -70,7 +65,7 @@ where
     let mut set = entries.clone::<T, S, A>();
     let values: Vec<T> = set.iter::<T, S, A>().cloned().collect();
     for (i, value_i) in values.iter().enumerate() {
-        set.swap_remove::<_, T, S, A>(value_i);
+        set.swap_take::<_, T, S, A>(value_i);
 
         let expected = values.len() - i - 1;
         let result = set.len();
@@ -81,7 +76,7 @@ where
     Ok(())
 }
 
-fn prop_swap_remove_preserves_order<T, S, A>(entries: TypeErasedIndexSet) -> Result<(), TestCaseError>
+fn prop_swap_take_preserves_order<T, S, A>(entries: TypeErasedIndexSet) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -110,7 +105,7 @@ where
         A: any::Any + alloc::Allocator + Send + Sync + Clone,
     {
         let mut new_set = set.clone::<T, S, A>();
-        new_set.swap_remove::<_, T, S, A>(value);
+        new_set.swap_take::<_, T, S, A>(value);
 
         let ordered_entries: Vec<T> = new_set
             .iter::<T, S, A>()
@@ -145,27 +140,27 @@ macro_rules! generate_props {
             use super::*;
             proptest! {
                 #[test]
-                fn prop_swap_remove_contains(entries in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
+                fn prop_swap_take_contains(entries in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
                     let entries: super::TypeErasedIndexSet = entries;
-                    super::prop_swap_remove_contains::<$value_typ, $build_hasher_typ, $alloc_typ>(entries)?
+                    super::prop_swap_take_contains::<$value_typ, $build_hasher_typ, $alloc_typ>(entries)?
                 }
 
                 #[test]
-                fn prop_swap_remove_get(entries in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
+                fn prop_swap_take_get(entries in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
                     let entries: super::TypeErasedIndexSet = entries;
-                    super::prop_swap_remove_get::<$value_typ, $build_hasher_typ, $alloc_typ>(entries)?
+                    super::prop_swap_take_get::<$value_typ, $build_hasher_typ, $alloc_typ>(entries)?
                 }
 
                 #[test]
-                fn prop_swap_remove_len(entries in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
+                fn prop_swap_take_len(entries in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
                     let entries: super::TypeErasedIndexSet = entries;
-                    super::prop_swap_remove_len::<$value_typ, $build_hasher_typ, $alloc_typ>(entries)?
+                    super::prop_swap_take_len::<$value_typ, $build_hasher_typ, $alloc_typ>(entries)?
                 }
 
                 #[test]
-                fn prop_swap_remove_preserves_order(entries in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
+                fn prop_swap_take_preserves_order(entries in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
                     let entries: super::TypeErasedIndexSet = entries;
-                    super::prop_swap_remove_preserves_order::<$value_typ, $build_hasher_typ, $alloc_typ>(entries)?
+                    super::prop_swap_take_preserves_order::<$value_typ, $build_hasher_typ, $alloc_typ>(entries)?
                 }
             }
         }
