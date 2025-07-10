@@ -2864,3 +2864,321 @@ fn test_type_projected_index_map_reverse() {
     assert_eq!(map.len(), expected.len());
     assert_eq!(map.as_slice(), expected.as_slice());
 }
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_binary_search_by1() {
+    let map: TypeProjectedIndexMap<usize, i32> = TypeProjectedIndexMap::new();
+
+    for i in -128..128 {
+        assert_eq!(map.binary_search_by(|_k, v| v.cmp(&i)), Err(0));
+    }
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_binary_search_by2() {
+    let map: TypeProjectedIndexMap<usize, i32> = TypeProjectedIndexMap::from([(92_usize, 4_i32)]);
+
+    assert_eq!(map.binary_search_by(|_k, v| v.cmp(&0)), Err(0));
+    assert_eq!(map.binary_search_by(|_k, v| v.cmp(&1)), Err(0));
+    assert_eq!(map.binary_search_by(|_k, v| v.cmp(&2)), Err(0));
+    assert_eq!(map.binary_search_by(|_k, v| v.cmp(&3)), Err(0));
+    assert_eq!(map.binary_search_by(|_k, v| v.cmp(&4)), Ok(0));
+    assert_eq!(map.binary_search_by(|_k, v| v.cmp(&5)), Err(1));
+    assert_eq!(map.binary_search_by(|_k, v| v.cmp(&6)), Err(1));
+    assert_eq!(map.binary_search_by(|_k, v| v.cmp(&7)), Err(1));
+    assert_eq!(map.binary_search_by(|_k, v| v.cmp(&8)), Err(1));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_binary_search_by3() {
+    let map: TypeProjectedIndexMap<usize, i32> = TypeProjectedIndexMap::from([
+        (130_usize, 1_i32),
+        (92_usize,  4_i32),
+        (6_usize,   7_i32),
+    ]);
+
+    assert_eq!(map.binary_search_by(|_k, v| v.cmp(&0)), Err(0));
+    assert_eq!(map.binary_search_by(|_k, v| v.cmp(&1)), Ok(0));
+    assert_eq!(map.binary_search_by(|_k, v| v.cmp(&2)), Err(1));
+    assert_eq!(map.binary_search_by(|_k, v| v.cmp(&3)), Err(1));
+    assert_eq!(map.binary_search_by(|_k, v| v.cmp(&4)), Ok(1));
+    assert_eq!(map.binary_search_by(|_k, v| v.cmp(&5)), Err(2));
+    assert_eq!(map.binary_search_by(|_k, v| v.cmp(&6)), Err(2));
+    assert_eq!(map.binary_search_by(|_k, v| v.cmp(&7)), Ok(2));
+    assert_eq!(map.binary_search_by(|_k, v| v.cmp(&8)), Err(3));
+    assert_eq!(map.binary_search_by(|_k, v| v.cmp(&9)), Err(3));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_binary_search_by4() {
+    let map: TypeProjectedIndexMap<usize, i32> = TypeProjectedIndexMap::from([
+        (130_usize, 1_i32),
+        (45_usize,  3_i32),
+        (92_usize,  4_i32),
+        (6_usize,   7_i32),
+        (9_usize,   8_i32),
+        (10_usize,  9_i32),
+    ]);
+
+    assert_eq!(map.binary_search_by(|_k, v| v.cmp(&0)),  Err(0));
+    assert_eq!(map.binary_search_by(|_k, v| v.cmp(&1)),  Ok(0));
+    assert_eq!(map.binary_search_by(|_k, v| v.cmp(&2)),  Err(1));
+    assert_eq!(map.binary_search_by(|_k, v| v.cmp(&3)),  Ok(1));
+    assert_eq!(map.binary_search_by(|_k, v| v.cmp(&4)),  Ok(2));
+    assert_eq!(map.binary_search_by(|_k, v| v.cmp(&5)),  Err(3));
+    assert_eq!(map.binary_search_by(|_k, v| v.cmp(&6)),  Err(3));
+    assert_eq!(map.binary_search_by(|_k, v| v.cmp(&7)),  Ok(3));
+    assert_eq!(map.binary_search_by(|_k, v| v.cmp(&8)),  Ok(4));
+    assert_eq!(map.binary_search_by(|_k, v| v.cmp(&9)),  Ok(5));
+    assert_eq!(map.binary_search_by(|_k, v| v.cmp(&10)), Err(6));
+    assert_eq!(map.binary_search_by(|_k, v| v.cmp(&11)), Err(6));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_binary_search_by5() {
+    let map: TypeProjectedIndexMap<usize, i32> = TypeProjectedIndexMap::from([
+        (130_usize, 1_i32),
+        (45_usize,  3_i32),
+        (92_usize,  4_i32),
+        (60_usize,  4_i32),
+        (9_usize,   4_i32),
+        (16_usize,  7_i32),
+        (19_usize,  8_i32),
+        (10_usize,  9_i32),
+    ]);
+
+    assert_eq!(map.binary_search_by(|_k, v| v.cmp(&0)),  Err(0));
+    assert_eq!(map.binary_search_by(|_k, v| v.cmp(&1)),  Ok(0));
+    assert_eq!(map.binary_search_by(|_k, v| v.cmp(&2)),  Err(1));
+    assert_eq!(map.binary_search_by(|_k, v| v.cmp(&3)),  Ok(1));
+
+    assert!(match map.binary_search_by(|_k, v| v.cmp(&4)) {
+        Ok(2..=4) => true,
+        _ => false,
+    });
+
+    assert_eq!(map.binary_search_by(|_k, v| v.cmp(&5)),  Err(5));
+    assert_eq!(map.binary_search_by(|_k, v| v.cmp(&6)),  Err(5));
+    assert_eq!(map.binary_search_by(|_k, v| v.cmp(&7)),  Ok(5));
+    assert_eq!(map.binary_search_by(|_k, v| v.cmp(&8)),  Ok(6));
+    assert_eq!(map.binary_search_by(|_k, v| v.cmp(&9)),  Ok(7));
+    assert_eq!(map.binary_search_by(|_k, v| v.cmp(&10)), Err(8));
+    assert_eq!(map.binary_search_by(|_k, v| v.cmp(&11)), Err(8));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_binary_search_by_key1() {
+    let map: TypeProjectedIndexMap<usize, i32> = TypeProjectedIndexMap::new();
+
+    for i in -128..128 {
+        assert_eq!(map.binary_search_by_key(&i, |_k, v| *v), Err(0));
+    }
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_binary_search_by_key2() {
+    let map: TypeProjectedIndexMap<usize, i32> = TypeProjectedIndexMap::from([(92_usize, 4_i32)]);
+
+    assert_eq!(map.binary_search_by_key(&0, |_k, v| *v), Err(0));
+    assert_eq!(map.binary_search_by_key(&1, |_k, v| *v), Err(0));
+    assert_eq!(map.binary_search_by_key(&2, |_k, v| *v), Err(0));
+    assert_eq!(map.binary_search_by_key(&3, |_k, v| *v), Err(0));
+    assert_eq!(map.binary_search_by_key(&4, |_k, v| *v), Ok(0));
+    assert_eq!(map.binary_search_by_key(&5, |_k, v| *v), Err(1));
+    assert_eq!(map.binary_search_by_key(&6, |_k, v| *v), Err(1));
+    assert_eq!(map.binary_search_by_key(&7, |_k, v| *v), Err(1));
+    assert_eq!(map.binary_search_by_key(&8, |_k, v| *v), Err(1));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_binary_search_by_key3() {
+    let map: TypeProjectedIndexMap<usize, i32> = TypeProjectedIndexMap::from([
+        (130_usize, 1_i32),
+        (92_usize,  4_i32),
+        (6_usize,   7_i32),
+    ]);
+
+    assert_eq!(map.binary_search_by_key(&0, |_k, v| *v), Err(0));
+    assert_eq!(map.binary_search_by_key(&1, |_k, v| *v), Ok(0));
+    assert_eq!(map.binary_search_by_key(&2, |_k, v| *v), Err(1));
+    assert_eq!(map.binary_search_by_key(&3, |_k, v| *v), Err(1));
+    assert_eq!(map.binary_search_by_key(&4, |_k, v| *v), Ok(1));
+    assert_eq!(map.binary_search_by_key(&5, |_k, v| *v), Err(2));
+    assert_eq!(map.binary_search_by_key(&6, |_k, v| *v), Err(2));
+    assert_eq!(map.binary_search_by_key(&7, |_k, v| *v), Ok(2));
+    assert_eq!(map.binary_search_by_key(&8, |_k, v| *v), Err(3));
+    assert_eq!(map.binary_search_by_key(&9, |_k, v| *v), Err(3));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_binary_search_by_key4() {
+    let map: TypeProjectedIndexMap<usize, i32> = TypeProjectedIndexMap::from([
+        (130_usize, 1_i32),
+        (45_usize,  3_i32),
+        (92_usize,  4_i32),
+        (6_usize,   7_i32),
+        (9_usize,   8_i32),
+        (10_usize,  9_i32),
+    ]);
+
+    assert_eq!(map.binary_search_by_key(&0,  |_k, v| *v),  Err(0));
+    assert_eq!(map.binary_search_by_key(&1,  |_k, v| *v),  Ok(0));
+    assert_eq!(map.binary_search_by_key(&2,  |_k, v| *v),  Err(1));
+    assert_eq!(map.binary_search_by_key(&3,  |_k, v| *v),  Ok(1));
+    assert_eq!(map.binary_search_by_key(&4,  |_k, v| *v),  Ok(2));
+    assert_eq!(map.binary_search_by_key(&5,  |_k, v| *v),  Err(3));
+    assert_eq!(map.binary_search_by_key(&6,  |_k, v| *v),  Err(3));
+    assert_eq!(map.binary_search_by_key(&7,  |_k, v| *v),  Ok(3));
+    assert_eq!(map.binary_search_by_key(&8,  |_k, v| *v),  Ok(4));
+    assert_eq!(map.binary_search_by_key(&9,  |_k, v| *v),  Ok(5));
+    assert_eq!(map.binary_search_by_key(&10, |_k, v| *v), Err(6));
+    assert_eq!(map.binary_search_by_key(&11, |_k, v| *v), Err(6));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_binary_search_by_key5() {
+    let map: TypeProjectedIndexMap<usize, i32> = TypeProjectedIndexMap::from([
+        (130_usize, 1_i32),
+        (45_usize,  3_i32),
+        (92_usize,  4_i32),
+        (60_usize,  4_i32),
+        (9_usize,   4_i32),
+        (16_usize,  7_i32),
+        (19_usize,  8_i32),
+        (10_usize,  9_i32),
+    ]);
+
+    assert_eq!(map.binary_search_by_key(&0, |_k, v| *v),  Err(0));
+    assert_eq!(map.binary_search_by_key(&1, |_k, v| *v),  Ok(0));
+    assert_eq!(map.binary_search_by_key(&2, |_k, v| *v),  Err(1));
+    assert_eq!(map.binary_search_by_key(&3, |_k, v| *v),  Ok(1));
+
+    assert!(match map.binary_search_by_key(&4, |_k, v| *v) {
+        Ok(2..=4) => true,
+        _ => false,
+    });
+
+    assert_eq!(map.binary_search_by_key(&5,  |_k, v| *v), Err(5));
+    assert_eq!(map.binary_search_by_key(&6,  |_k, v| *v), Err(5));
+    assert_eq!(map.binary_search_by_key(&7,  |_k, v| *v), Ok(5));
+    assert_eq!(map.binary_search_by_key(&8,  |_k, v| *v), Ok(6));
+    assert_eq!(map.binary_search_by_key(&9,  |_k, v| *v), Ok(7));
+    assert_eq!(map.binary_search_by_key(&10, |_k, v| *v), Err(8));
+    assert_eq!(map.binary_search_by_key(&11, |_k, v| *v), Err(8));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_partition_point1() {
+    let map: TypeProjectedIndexMap<usize, i32> = TypeProjectedIndexMap::new();
+
+    for i in -128..128 {
+        assert_eq!(map.partition_point(|_k, v| *v < i), 0);
+    }
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_partition_point2() {
+    let map: TypeProjectedIndexMap<usize, i32> = TypeProjectedIndexMap::from([(92_usize, 4_i32)]);
+
+    assert_eq!(map.partition_point(|_k, v| *v < 0), 0);
+    assert_eq!(map.partition_point(|_k, v| *v < 1), 0);
+    assert_eq!(map.partition_point(|_k, v| *v < 2), 0);
+    assert_eq!(map.partition_point(|_k, v| *v < 3), 0);
+    assert_eq!(map.partition_point(|_k, v| *v < 4), 0);
+    assert_eq!(map.partition_point(|_k, v| *v < 5), 1);
+    assert_eq!(map.partition_point(|_k, v| *v < 6), 1);
+    assert_eq!(map.partition_point(|_k, v| *v < 7), 1);
+    assert_eq!(map.partition_point(|_k, v| *v < 8), 1);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_partition_point3() {
+    let map: TypeProjectedIndexMap<usize, i32> = TypeProjectedIndexMap::from([
+        (130_usize, 1_i32),
+        (92_usize,  4_i32),
+        (6_usize,   7_i32),
+    ]);
+
+    assert_eq!(map.partition_point(|_k, v| *v < 0), 0);
+    assert_eq!(map.partition_point(|_k, v| *v < 1), 0);
+    assert_eq!(map.partition_point(|_k, v| *v < 2), 1);
+    assert_eq!(map.partition_point(|_k, v| *v < 3), 1);
+    assert_eq!(map.partition_point(|_k, v| *v < 4), 1);
+    assert_eq!(map.partition_point(|_k, v| *v < 5), 2);
+    assert_eq!(map.partition_point(|_k, v| *v < 6), 2);
+    assert_eq!(map.partition_point(|_k, v| *v < 7), 2);
+    assert_eq!(map.partition_point(|_k, v| *v < 8), 3);
+    assert_eq!(map.partition_point(|_k, v| *v < 9), 3);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_partition_point4() {
+    let map: TypeProjectedIndexMap<usize, i32> = TypeProjectedIndexMap::from([
+        (130_usize, 1_i32),
+        (45_usize,  3_i32),
+        (92_usize,  4_i32),
+        (6_usize,   7_i32),
+        (9_usize,   8_i32),
+        (10_usize,  9_i32),
+    ]);
+
+    assert_eq!(map.partition_point(|_k, v| *v < 0),  0);
+    assert_eq!(map.partition_point(|_k, v| *v < 1),  0);
+    assert_eq!(map.partition_point(|_k, v| *v < 2),  1);
+    assert_eq!(map.partition_point(|_k, v| *v < 3),  1);
+    assert_eq!(map.partition_point(|_k, v| *v < 4),  2);
+    assert_eq!(map.partition_point(|_k, v| *v < 5),  3);
+    assert_eq!(map.partition_point(|_k, v| *v < 6),  3);
+    assert_eq!(map.partition_point(|_k, v| *v < 7),  3);
+    assert_eq!(map.partition_point(|_k, v| *v < 8),  4);
+    assert_eq!(map.partition_point(|_k, v| *v < 9),  5);
+    assert_eq!(map.partition_point(|_k, v| *v < 10), 6);
+    assert_eq!(map.partition_point(|_k, v| *v < 11), 6);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_partition_point5() {
+    let map: TypeProjectedIndexMap<usize, i32> = TypeProjectedIndexMap::from([
+        (130_usize, 1_i32),
+        (45_usize,  3_i32),
+        (92_usize,  4_i32),
+        (60_usize,  4_i32),
+        (9_usize,   4_i32),
+        (16_usize,  7_i32),
+        (19_usize,  8_i32),
+        (10_usize,  9_i32),
+    ]);
+
+    assert_eq!(map.partition_point(|_k, v| *v < 0), 0);
+    assert_eq!(map.partition_point(|_k, v| *v < 1), 0);
+    assert_eq!(map.partition_point(|_k, v| *v < 2), 1);
+    assert_eq!(map.partition_point(|_k, v| *v < 3), 1);
+
+    assert!(match map.partition_point(|_k, v| *v < 4) {
+        2..=4 => true,
+        _ => false,
+    });
+
+    assert_eq!(map.partition_point(|_k, v| *v < 5),  5);
+    assert_eq!(map.partition_point(|_k, v| *v < 6),  5);
+    assert_eq!(map.partition_point(|_k, v| *v < 7),  5);
+    assert_eq!(map.partition_point(|_k, v| *v < 8),  6);
+    assert_eq!(map.partition_point(|_k, v| *v < 9),  7);
+    assert_eq!(map.partition_point(|_k, v| *v < 10), 8);
+    assert_eq!(map.partition_point(|_k, v| *v < 11), 8);
+}
