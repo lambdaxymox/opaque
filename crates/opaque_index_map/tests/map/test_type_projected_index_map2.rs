@@ -5,6 +5,7 @@ use core::any;
 use core::fmt;
 use std::iter;
 use std::hash;
+use std::string::String;
 
 #[cfg(feature = "nightly")]
 use std::alloc;
@@ -2300,3 +2301,444 @@ fn test_type_projected_index_map_append5() {
     assert_eq!(map1.len(), 1);
     assert_eq!(map1.as_slice(), expected.as_slice());
 }
+
+#[test]
+fn test_type_projected_index_map_retain1() {
+    let mut map = TypeProjectedIndexMap::from([
+        (344_usize,  ()),
+        (1646_usize, ()),
+        (2371_usize, ()),
+        (52_usize,   ()),
+        (789_usize,  ()),
+        (1205_usize, ()),
+        (28_usize,   ()),
+        (136_usize,  ()),
+    ]);
+    let expected = map.clone();
+    map.retain(|_k, _v| true);
+
+    assert_eq!(map.len(), 8);
+    assert_eq!(map.as_slice(), expected.as_slice());
+}
+
+#[test]
+fn test_type_projected_index_map_retain2() {
+    let mut map = TypeProjectedIndexMap::from([
+        (344_usize,  ()),
+        (1646_usize, ()),
+        (2371_usize, ()),
+        (52_usize,   ()),
+        (789_usize,  ()),
+        (1205_usize, ()),
+        (28_usize,   ()),
+        (136_usize,  ()),
+    ]);
+    let expected = TypeProjectedIndexMap::new();
+    map.retain(|_k, _v| false);
+
+    assert_eq!(map.len(), 0);
+    assert_eq!(map.as_slice(), expected.as_slice());
+}
+
+#[test]
+fn test_type_projected_index_map_retain3() {
+    let mut map = TypeProjectedIndexMap::from([
+        (344_usize,  ()),
+        (1646_usize, ()),
+        (2371_usize, ()),
+        (52_usize,   ()),
+        (789_usize,  ()),
+        (1205_usize, ()),
+        (28_usize,   ()),
+        (136_usize,  ()),
+    ]);
+    let expected = TypeProjectedIndexMap::from([
+        (344_usize,  ()),
+        (1646_usize, ()),
+        (52_usize,   ()),
+        (28_usize,   ()),
+        (136_usize,  ()),
+    ]);
+    map.retain(|k, _v| k % 2 == 0);
+
+    assert_eq!(map.len(), 5);
+    assert_eq!(map.as_slice(), expected.as_slice());
+}
+
+#[test]
+fn test_type_projected_index_map_retain4() {
+    let mut map = TypeProjectedIndexMap::from([
+        (344_usize,  ()),
+        (1646_usize, ()),
+        (2371_usize, ()),
+        (52_usize,   ()),
+        (789_usize,  ()),
+        (1205_usize, ()),
+        (28_usize,   ()),
+        (136_usize,  ()),
+    ]);
+    let expected = TypeProjectedIndexMap::from([
+        (2371_usize, ()),
+        (789_usize,  ()),
+        (1205_usize, ()),
+    ]);
+    map.retain(|k, _v| k % 2 != 0);
+
+    assert_eq!(map.len(), 3);
+    assert_eq!(map.as_slice(), expected.as_slice());
+}
+
+#[test]
+fn test_type_projected_index_map_sort_keys1() {
+    let mut map = TypeProjectedIndexMap::from([
+        (6_usize,   ()),
+        (7_usize,   ()),
+        (10_usize,  ()),
+        (17_usize,  ()),
+        (22_usize,  ()),
+        (23_usize,  ()),
+        (47_usize,  ()),
+        (79_usize,  ()),
+        (141_usize, ()),
+        (176_usize, ()),
+        (200_usize, ()),
+    ]);
+    let expected = TypeProjectedIndexMap::from([
+        (6_usize,   ()),
+        (7_usize,   ()),
+        (10_usize,  ()),
+        (17_usize,  ()),
+        (22_usize,  ()),
+        (23_usize,  ()),
+        (47_usize,  ()),
+        (79_usize,  ()),
+        (141_usize, ()),
+        (176_usize, ()),
+        (200_usize, ()),
+    ]);
+    map.sort_keys();
+
+    assert_eq!(map.len(), expected.len());
+    assert_eq!(map.as_slice(), expected.as_slice());
+}
+
+#[test]
+fn test_type_projected_index_map_sort_keys2() {
+    let mut map = TypeProjectedIndexMap::from([
+        (10_usize,  ()),
+        (47_usize,  ()),
+        (22_usize,  ()),
+        (17_usize,  ()),
+        (141_usize, ()),
+        (6_usize,   ()),
+        (176_usize, ()),
+        (23_usize,  ()),
+        (79_usize,  ()),
+        (200_usize, ()),
+        (7_usize,   ()),
+    ]);
+    let expected = TypeProjectedIndexMap::from([
+        (6_usize,   ()),
+        (7_usize,   ()),
+        (10_usize,  ()),
+        (17_usize,  ()),
+        (22_usize,  ()),
+        (23_usize,  ()),
+        (47_usize,  ()),
+        (79_usize,  ()),
+        (141_usize, ()),
+        (176_usize, ()),
+        (200_usize, ()),
+    ]);
+    map.sort_keys();
+
+    assert_eq!(map.len(), expected.len());
+    assert_eq!(map.as_slice(), expected.as_slice());
+}
+
+#[test]
+fn test_type_projected_index_map_sort_keys3() {
+    let mut map = TypeProjectedIndexMap::from([
+        (200_usize, ()),
+        (176_usize, ()),
+        (141_usize, ()),
+        (79_usize,  ()),
+        (47_usize,  ()),
+        (23_usize,  ()),
+        (22_usize,  ()),
+        (17_usize,  ()),
+        (10_usize,  ()),
+        (7_usize,   ()),
+        (6_usize,   ()),
+    ]);
+    let expected = TypeProjectedIndexMap::from([
+        (6_usize,   ()),
+        (7_usize,   ()),
+        (10_usize,  ()),
+        (17_usize,  ()),
+        (22_usize,  ()),
+        (23_usize,  ()),
+        (47_usize,  ()),
+        (79_usize,  ()),
+        (141_usize, ()),
+        (176_usize, ()),
+        (200_usize, ()),
+    ]);
+    map.sort_keys();
+
+    assert_eq!(map.len(), expected.len());
+    assert_eq!(map.as_slice(), expected.as_slice());
+}
+
+#[test]
+fn test_type_projected_index_map_sort_by1() {
+    let mut map = TypeProjectedIndexMap::from([
+        (1952_usize, 1390_i32),
+        (2900_usize, 2846_i32),
+        (2999_usize, 760_i32),
+        (828_usize, 491_i32),
+        (1738_usize, 1984_i32),
+        (339_usize, 1996_i32),
+    ]);
+    let expected = TypeProjectedIndexMap::from([
+        (828_usize, 491_i32),
+        (2999_usize, 760_i32),
+        (1952_usize, 1390_i32),
+        (1738_usize, 1984_i32),
+        (339_usize, 1996_i32),
+        (2900_usize, 2846_i32),
+    ]);
+    map.sort_by(|_k1, v1, _k2, v2| v1.cmp(v2));
+}
+
+#[test]
+fn test_type_projected_index_map_sort_by2() {
+    let mut map = TypeProjectedIndexMap::from([
+        (String::from("4"), ()),
+        (String::from("101"), ()),
+        (String::from("1"), ()),
+        (String::from("2"), ()),
+        (String::from("10"), ()),
+        (String::from("3"), ()),
+    ]);
+    let expected = TypeProjectedIndexMap::from([
+        (String::from("1"), ()),
+        (String::from("10"), ()),
+        (String::from("101"), ()),
+        (String::from("2"), ()),
+        (String::from("3"), ()),
+        (String::from("4"), ()),
+    ]);
+    map.sort_by(|k1, _v1, k2, _v2| k1.cmp(k2));
+}
+
+#[test]
+fn test_type_projected_index_map_sort_by3() {
+    let mut map = TypeProjectedIndexMap::from([
+        (String::from("400"), ()),
+        (String::from("101"), ()),
+        (String::from("1"), ()),
+        (String::from("2"), ()),
+        (String::from("10"), ()),
+        (String::from("3"), ()),
+    ]);
+    let expected = TypeProjectedIndexMap::from([
+        (String::from("1"), ()),
+        (String::from("2"), ()),
+        (String::from("3"), ()),
+        (String::from("10"), ()),
+        (String::from("400"), ()),
+        (String::from("101"), ()),
+    ]);
+    map.sort_by(|k1, _v1, k2, _v2| k1.len().cmp(&k2.len()));
+}
+
+#[test]
+fn test_type_projected_index_map_sort_unstable_keys1() {
+    let mut map = TypeProjectedIndexMap::from([
+        (6_usize,   ()),
+        (7_usize,   ()),
+        (10_usize,  ()),
+        (17_usize,  ()),
+        (22_usize,  ()),
+        (23_usize,  ()),
+        (47_usize,  ()),
+        (79_usize,  ()),
+        (141_usize, ()),
+        (176_usize, ()),
+        (200_usize, ()),
+    ]);
+    let expected = TypeProjectedIndexMap::from([
+        (6_usize,   ()),
+        (7_usize,   ()),
+        (10_usize,  ()),
+        (17_usize,  ()),
+        (22_usize,  ()),
+        (23_usize,  ()),
+        (47_usize,  ()),
+        (79_usize,  ()),
+        (141_usize, ()),
+        (176_usize, ()),
+        (200_usize, ()),
+    ]);
+    map.sort_unstable_keys();
+
+    assert_eq!(map.len(), expected.len());
+    assert_eq!(map.as_slice(), expected.as_slice());
+}
+
+#[test]
+fn test_type_projected_index_map_sort_unstable_keys2() {
+    let mut map = TypeProjectedIndexMap::from([
+        (10_usize,  ()),
+        (47_usize,  ()),
+        (22_usize,  ()),
+        (17_usize,  ()),
+        (141_usize, ()),
+        (6_usize,   ()),
+        (176_usize, ()),
+        (23_usize,  ()),
+        (79_usize,  ()),
+        (200_usize, ()),
+        (7_usize,   ()),
+    ]);
+    let expected = TypeProjectedIndexMap::from([
+        (6_usize,   ()),
+        (7_usize,   ()),
+        (10_usize,  ()),
+        (17_usize,  ()),
+        (22_usize,  ()),
+        (23_usize,  ()),
+        (47_usize,  ()),
+        (79_usize,  ()),
+        (141_usize, ()),
+        (176_usize, ()),
+        (200_usize, ()),
+    ]);
+    map.sort_unstable_keys();
+
+    assert_eq!(map.len(), expected.len());
+    assert_eq!(map.as_slice(), expected.as_slice());
+}
+
+#[test]
+fn test_type_projected_index_map_sort_unstable_keys3() {
+    let mut map = TypeProjectedIndexMap::from([
+        (200_usize, ()),
+        (176_usize, ()),
+        (141_usize, ()),
+        (79_usize,  ()),
+        (47_usize,  ()),
+        (23_usize,  ()),
+        (22_usize,  ()),
+        (17_usize,  ()),
+        (10_usize,  ()),
+        (7_usize,   ()),
+        (6_usize,   ()),
+    ]);
+    let expected = TypeProjectedIndexMap::from([
+        (6_usize,   ()),
+        (7_usize,   ()),
+        (10_usize,  ()),
+        (17_usize,  ()),
+        (22_usize,  ()),
+        (23_usize,  ()),
+        (47_usize,  ()),
+        (79_usize,  ()),
+        (141_usize, ()),
+        (176_usize, ()),
+        (200_usize, ()),
+    ]);
+    map.sort_unstable_keys();
+
+    assert_eq!(map.len(), expected.len());
+    assert_eq!(map.as_slice(), expected.as_slice());
+}
+
+#[test]
+fn test_type_projected_index_map_sort_unstable_by1() {
+    let mut map = TypeProjectedIndexMap::from([
+        (1952_usize, 1390_i32),
+        (2900_usize, 2846_i32),
+        (2999_usize, 760_i32),
+        (828_usize, 491_i32),
+        (1738_usize, 1984_i32),
+        (339_usize, 1996_i32),
+    ]);
+    let expected = TypeProjectedIndexMap::from([
+        (828_usize, 491_i32),
+        (2999_usize, 760_i32),
+        (1952_usize, 1390_i32),
+        (1738_usize, 1984_i32),
+        (339_usize, 1996_i32),
+        (2900_usize, 2846_i32),
+    ]);
+    map.sort_unstable_by(|_k1, v1, _k2, v2| v1.cmp(v2));
+}
+
+#[test]
+fn test_type_projected_index_map_sort_unstable_by2() {
+    let mut map = TypeProjectedIndexMap::from([
+        (String::from("4"), ()),
+        (String::from("101"), ()),
+        (String::from("1"), ()),
+        (String::from("2"), ()),
+        (String::from("10"), ()),
+        (String::from("3"), ()),
+    ]);
+    let expected = TypeProjectedIndexMap::from([
+        (String::from("1"), ()),
+        (String::from("10"), ()),
+        (String::from("101"), ()),
+        (String::from("2"), ()),
+        (String::from("3"), ()),
+        (String::from("4"), ()),
+    ]);
+    map.sort_unstable_by(|k1, _v1, k2, _v2| k1.cmp(k2));
+}
+
+#[test]
+fn test_type_projected_index_map_sort_unstable_by3() {
+    let mut map = TypeProjectedIndexMap::from([
+        (String::from("400"), ()),
+        (String::from("101"), ()),
+        (String::from("1"), ()),
+        (String::from("2"), ()),
+        (String::from("10"), ()),
+        (String::from("3"), ()),
+    ]);
+    let expected = TypeProjectedIndexMap::from([
+        (String::from("1"), ()),
+        (String::from("2"), ()),
+        (String::from("3"), ()),
+        (String::from("10"), ()),
+        (String::from("400"), ()),
+        (String::from("101"), ()),
+    ]);
+    map.sort_unstable_by(|k1, _v1, k2, _v2| k1.len().cmp(&k2.len()));
+}
+
+#[test]
+fn test_type_projected_index_map_reverse() {
+    let mut map = TypeProjectedIndexMap::from([
+        (39_usize,   2757_i32),
+        (144_usize,  1357_i32),
+        (1846_usize, 1138_i32),
+        (698_usize,  473_i32),
+        (642_usize,  2172_i32),
+        (2101_usize, 1894_i32),
+    ]);
+    let expected = TypeProjectedIndexMap::from([
+        (2101_usize, 1894_i32),
+        (642_usize,  2172_i32),
+        (698_usize,  473_i32),
+        (1846_usize, 1138_i32),
+        (144_usize,  1357_i32),
+        (39_usize,   2757_i32),
+    ]);
+    map.reverse();
+
+    assert_eq!(map.len(), expected.len());
+    assert_eq!(map.as_slice(), expected.as_slice());
+}
+
