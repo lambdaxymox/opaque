@@ -3295,3 +3295,363 @@ fn test_type_projected_index_map_partition_point5() {
     assert_eq!(map.partition_point(|_k, v| *v < 10), 8);
     assert_eq!(map.partition_point(|_k, v| *v < 11), 8);
 }
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_reserve1() {
+    let mut map: TypeProjectedIndexMap<usize, usize> = TypeProjectedIndexMap::new();
+    let additional = 100;
+
+    assert_eq!(map.capacity(), 0);
+
+    map.reserve(additional);
+
+    assert!(map.capacity() >= additional);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_reserve2() {
+    let mut map: TypeProjectedIndexMap<usize, usize> = TypeProjectedIndexMap::new();
+    let additional = 100;
+
+    assert_eq!(map.capacity(), 0);
+
+    map.reserve(additional);
+
+    assert!(map.capacity() >= additional);
+
+    let old_capacity = map.capacity();
+    map.insert(0, usize::MAX);
+    for i in 1..(map.capacity() - 1) {
+        map.insert(i, 0);
+    }
+
+    map.insert(map.capacity() - 1, usize::MAX);
+
+    assert_eq!(map.len(), map.capacity());
+    assert_eq!(map.capacity(), old_capacity);
+
+    assert_eq!(map[0], usize::MAX);
+    for i in 1..(map.len() - 1) {
+        assert_eq!(map[i], 0);
+    }
+    assert_eq!(map[map.len() - 1], usize::MAX);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_reserve3() {
+    let mut map: TypeProjectedIndexMap<usize, usize> = TypeProjectedIndexMap::new();
+    let additional = 100;
+
+    assert_eq!(map.capacity(), 0);
+    assert_eq!(map.len(), 0);
+
+    for i in 0..4 {
+        let old_capacity = map.capacity();
+        map.reserve(additional);
+
+        assert!(map.capacity() >= old_capacity + additional);
+        assert!(map.len() <= map.capacity());
+
+        let length = map.len();
+        map.insert(length, usize::MAX);
+        for j in (length + 1)..(map.capacity() - 1) {
+            map.insert(j, i);
+        }
+        map.insert(map.capacity() - 1, usize::MAX);
+
+        assert_eq!(map.len(), map.capacity());
+    }
+
+    let mut current_start = 0;
+    let mut current_end = 1;
+    for i in 0..4 {
+        for j in (current_start + 1)..map.len() {
+            if map[j] == usize::MAX {
+                break;
+            }
+
+            current_end += 1;
+        }
+
+        assert!(current_start < current_end);
+        assert_eq!(map[current_start], usize::MAX);
+        for value in map[(current_start + 1)..current_end].values().copied() {
+            assert_eq!(value, i);
+        }
+        assert_eq!(map[current_end], usize::MAX);
+
+        current_start = current_end + 1;
+        current_end = current_start + 1;
+    }
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_reserve_exact1() {
+    let mut map: TypeProjectedIndexMap<usize, usize> = TypeProjectedIndexMap::new();
+    let additional = 100;
+
+    assert_eq!(map.capacity(), 0);
+
+    map.reserve_exact(additional);
+
+    assert!(map.capacity() >= additional);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_reserve_exact2() {
+    let mut map: TypeProjectedIndexMap<usize, usize> = TypeProjectedIndexMap::new();
+    let additional = 100;
+
+    assert_eq!(map.capacity(), 0);
+
+    map.reserve_exact(additional);
+
+    assert!(map.capacity() >= additional);
+
+    let old_capacity = map.capacity();
+    map.insert(0, usize::MAX);
+    for i in 1..(map.capacity() - 1) {
+        map.insert(i, 0);
+    }
+
+    map.insert(map.capacity() - 1, usize::MAX);
+
+    assert_eq!(map.len(), map.capacity());
+    assert_eq!(map.capacity(), old_capacity);
+
+    assert_eq!(map[0], usize::MAX);
+    for i in 1..(map.len() - 1) {
+        assert_eq!(map[i], 0);
+    }
+    assert_eq!(map[map.len() - 1], usize::MAX);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_reserve_exact3() {
+    let mut map: TypeProjectedIndexMap<usize, usize> = TypeProjectedIndexMap::new();
+    let additional = 100;
+
+    assert_eq!(map.capacity(), 0);
+    assert_eq!(map.len(), 0);
+
+    for i in 0..32 {
+        let old_capacity = map.capacity();
+        map.reserve_exact(additional);
+
+        assert!(map.capacity() >= old_capacity + additional);
+        assert!(map.len() <= map.capacity());
+
+        let length = map.len();
+        map.insert(length, usize::MAX);
+        for j in (length + 1)..(map.capacity() - 1) {
+            map.insert(j, i);
+        }
+        map.insert(map.capacity() - 1, usize::MAX);
+
+        assert_eq!(map.len(), map.capacity());
+    }
+
+    let mut current_start = 0;
+    let mut current_end = 1;
+    for i in 0..4 {
+        for j in (current_start + 1)..map.len() {
+            if map[j] == usize::MAX {
+                break;
+            }
+
+            current_end += 1;
+        }
+
+        assert!(current_start < current_end);
+        assert_eq!(map[current_start], usize::MAX);
+        for value in map[(current_start + 1)..current_end].values().copied() {
+            assert_eq!(value, i);
+        }
+        assert_eq!(map[current_end], usize::MAX);
+
+        current_start = current_end + 1;
+        current_end = current_start + 1;
+    }
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_try_reserve1() {
+    let mut map: TypeProjectedIndexMap<usize, usize> = TypeProjectedIndexMap::new();
+    let additional = 100;
+
+    assert_eq!(map.capacity(), 0);
+    assert_eq!(map.try_reserve(additional), Ok(()));
+    assert!(map.capacity() >= additional);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_try_reserve2() {
+    let mut map: TypeProjectedIndexMap<usize, usize> = TypeProjectedIndexMap::new();
+    let additional = 100;
+
+    assert_eq!(map.capacity(), 0);
+    assert_eq!(map.try_reserve(additional), Ok(()));
+    assert!(map.capacity() >= additional);
+
+    let old_capacity = map.capacity();
+    map.insert(0, usize::MAX);
+    for i in 1..(map.capacity() - 1) {
+        map.insert(i, 0);
+    }
+
+    map.insert(map.capacity() - 1, usize::MAX);
+
+    assert_eq!(map.len(), map.capacity());
+    assert_eq!(map.capacity(), old_capacity);
+
+    assert_eq!(map[0], usize::MAX);
+    for i in 1..(map.len() - 1) {
+        assert_eq!(map[i], 0);
+    }
+    assert_eq!(map[map.len() - 1], usize::MAX);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_try_reserve3() {
+    let mut map: TypeProjectedIndexMap<usize, usize> = TypeProjectedIndexMap::new();
+    let additional = 100;
+
+    assert_eq!(map.capacity(), 0);
+    assert_eq!(map.len(), 0);
+
+    for i in 0..4 {
+        let old_capacity = map.capacity();
+        assert_eq!(map.try_reserve(additional), Ok(()));
+
+        assert!(map.capacity() >= old_capacity + additional);
+        assert!(map.len() <= map.capacity());
+
+        let length = map.len();
+        map.insert(length, usize::MAX);
+        for j in (length + 1)..(map.capacity() - 1) {
+            map.insert(j, i);
+        }
+        map.insert(map.capacity() - 1, usize::MAX);
+
+        assert_eq!(map.len(), map.capacity());
+    }
+
+    let mut current_start = 0;
+    let mut current_end = 1;
+    for i in 0..4 {
+        for j in (current_start + 1)..map.len() {
+            if map[j] == usize::MAX {
+                break;
+            }
+
+            current_end += 1;
+        }
+
+        assert!(current_start < current_end);
+        assert_eq!(map[current_start], usize::MAX);
+        for value in map[(current_start + 1)..current_end].values().copied() {
+            assert_eq!(value, i);
+        }
+        assert_eq!(map[current_end], usize::MAX);
+
+        current_start = current_end + 1;
+        current_end = current_start + 1;
+    }
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_try_reserve_exact1() {
+    let mut map: TypeProjectedIndexMap<usize, usize> = TypeProjectedIndexMap::new();
+    let additional = 100;
+
+    assert_eq!(map.capacity(), 0);
+    assert_eq!(map.try_reserve_exact(additional), Ok(()));
+    assert!(map.capacity() >= additional);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_try_reserve_exact2() {
+    let mut map: TypeProjectedIndexMap<usize, usize> = TypeProjectedIndexMap::new();
+    let additional = 100;
+
+    assert_eq!(map.capacity(), 0);
+    assert_eq!(map.try_reserve_exact(additional), Ok(()));
+    assert!(map.capacity() >= additional);
+
+    let old_capacity = map.capacity();
+    map.insert(0, usize::MAX);
+    for i in 1..(map.capacity() - 1) {
+        map.insert(i, 0);
+    }
+
+    map.insert(map.capacity() - 1, usize::MAX);
+
+    assert_eq!(map.len(), map.capacity());
+    assert_eq!(map.capacity(), old_capacity);
+
+    assert_eq!(map[0], usize::MAX);
+    for i in 1..(map.len() - 1) {
+        assert_eq!(map[i], 0);
+    }
+    assert_eq!(map[map.len() - 1], usize::MAX);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_try_reserve_exact3() {
+    let mut map: TypeProjectedIndexMap<usize, usize> = TypeProjectedIndexMap::new();
+    let additional = 100;
+
+    assert_eq!(map.capacity(), 0);
+    assert_eq!(map.len(), 0);
+
+    for i in 0..32 {
+        let old_capacity = map.capacity();
+        assert_eq!(map.try_reserve_exact(additional), Ok(()));
+
+        assert!(map.capacity() >= old_capacity + additional);
+        assert!(map.len() <= map.capacity());
+
+        let length = map.len();
+        map.insert(length, usize::MAX);
+        for j in (length + 1)..(map.capacity() - 1) {
+            map.insert(j, i);
+        }
+        map.insert(map.capacity() - 1, usize::MAX);
+
+        assert_eq!(map.len(), map.capacity());
+    }
+
+    let mut current_start = 0;
+    let mut current_end = 1;
+    for i in 0..4 {
+        for j in (current_start + 1)..map.len() {
+            if map[j] == usize::MAX {
+                break;
+            }
+
+            current_end += 1;
+        }
+
+        assert!(current_start < current_end);
+        assert_eq!(map[current_start], usize::MAX);
+        for value in map[(current_start + 1)..current_end].values().copied() {
+            assert_eq!(value, i);
+        }
+        assert_eq!(map[current_end], usize::MAX);
+
+        current_start = current_end + 1;
+        current_end = current_start + 1;
+    }
+}
