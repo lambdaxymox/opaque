@@ -1,10 +1,6 @@
 use opaque_index_map::{GetDisjointMutError, TypeProjectedIndexMap};
 use opaque_vec::TypeProjectedVec;
 
-use core::any;
-use core::fmt;
-use std::iter;
-use std::hash;
 use std::string::String;
 
 #[cfg(feature = "nightly")]
@@ -1159,6 +1155,7 @@ fn test_type_projected_index_map_swap_remove2() {
     ]);
 
     assert_eq!(map.len(), 6);
+
     let _ = map.swap_remove(&1_usize);
     assert_eq!(map.len(), 5);
     assert_eq!(map.as_slice(), &[
@@ -1168,6 +1165,7 @@ fn test_type_projected_index_map_swap_remove2() {
         (4_usize, 20994_i32),
         (5_usize, 302_i32),
     ]);
+
     let _ = map.swap_remove(&2_usize);
     assert_eq!(map.len(), 4);
     assert_eq!(map.as_slice(), &[
@@ -1176,6 +1174,7 @@ fn test_type_projected_index_map_swap_remove2() {
         (3_usize, 4904_i32),
         (4_usize, 20994_i32),
     ]);
+
     let _ = map.swap_remove(&3_usize);
     assert_eq!(map.len(), 3);
     assert_eq!(map.as_slice(), &[
@@ -1183,12 +1182,20 @@ fn test_type_projected_index_map_swap_remove2() {
         (5_usize, 302_i32),
         (4_usize, 20994_i32),
     ]);
+
     let _ = map.swap_remove(&4_usize);
     assert_eq!(map.len(), 2);
-    assert_eq!(map.as_slice(), &[(6_usize, 5_i32), (5_usize, 302_i32)]);
+    assert_eq!(map.as_slice(), &[
+        (6_usize, 5_i32),
+        (5_usize, 302_i32),
+    ]);
+
     let _ = map.swap_remove(&5_usize);
     assert_eq!(map.len(), 1);
-    assert_eq!(map.as_slice(), &[(6_usize, 5_i32)]);
+    assert_eq!(map.as_slice(), &[
+        (6_usize, 5_i32),
+    ]);
+
     let _ = map.swap_remove(&6_usize);
     assert_eq!(map.len(), 0);
     assert_eq!(map.as_slice(), &[]);
@@ -1207,6 +1214,7 @@ fn test_type_projected_index_map_swap_remove3() {
     ]);
 
     assert_eq!(map.len(), 6);
+
     let _ = map.swap_remove(&6_usize);
     assert_eq!(map.len(), 5);
     assert_eq!(map.as_slice(), &[
@@ -1216,6 +1224,7 @@ fn test_type_projected_index_map_swap_remove3() {
         (4_usize, 20994_i32),
         (5_usize, 302_i32),
     ]);
+
     let _ = map.swap_remove(&5_usize);
     assert_eq!(map.len(), 4);
     assert_eq!(map.as_slice(), &[
@@ -1224,6 +1233,7 @@ fn test_type_projected_index_map_swap_remove3() {
         (3_usize, 4904_i32),
         (4_usize, 20994_i32),
     ]);
+
     let _ = map.swap_remove(&4_usize);
     assert_eq!(map.len(), 3);
     assert_eq!(map.as_slice(), &[
@@ -1231,12 +1241,20 @@ fn test_type_projected_index_map_swap_remove3() {
         (2_usize, 2043_i32),
         (3_usize, 4904_i32),
     ]);
+
     let _ = map.swap_remove(&3_usize);
     assert_eq!(map.len(), 2);
-    assert_eq!(map.as_slice(), &[(1_usize, 20_i32), (2_usize, 2043_i32)]);
+    assert_eq!(map.as_slice(), &[
+        (1_usize, 20_i32),
+        (2_usize, 2043_i32),
+    ]);
+
     let _ = map.swap_remove(&2_usize);
     assert_eq!(map.len(), 1);
-    assert_eq!(map.as_slice(), &[(1_usize, 20_i32)]);
+    assert_eq!(map.as_slice(), &[
+        (1_usize, 20_i32),
+    ]);
+
     let _ = map.swap_remove(&1_usize);
     assert_eq!(map.len(), 0);
     assert_eq!(map.as_slice(), &[]);
@@ -1295,6 +1313,7 @@ fn test_type_projected_index_map_swap_remove_entry2() {
     ]);
 
     assert_eq!(map.len(), 6);
+
     let _ = map.swap_remove_entry(&1_usize);
     assert_eq!(map.len(), 5);
     assert_eq!(map.as_slice(), &[
@@ -1304,6 +1323,7 @@ fn test_type_projected_index_map_swap_remove_entry2() {
         (4_usize, 20994_i32),
         (5_usize, 302_i32),
     ]);
+
     let _ = map.swap_remove_entry(&2_usize);
     assert_eq!(map.len(), 4);
     assert_eq!(map.as_slice(), &[
@@ -1312,6 +1332,7 @@ fn test_type_projected_index_map_swap_remove_entry2() {
         (3_usize, 4904_i32),
         (4_usize, 20994_i32),
     ]);
+
     let _ = map.swap_remove_entry(&3_usize);
     assert_eq!(map.len(), 3);
     assert_eq!(map.as_slice(), &[
@@ -1319,12 +1340,20 @@ fn test_type_projected_index_map_swap_remove_entry2() {
         (5_usize, 302_i32),
         (4_usize, 20994_i32),
     ]);
+
     let _ = map.swap_remove_entry(&4_usize);
     assert_eq!(map.len(), 2);
-    assert_eq!(map.as_slice(), &[(6_usize, 5_i32), (5_usize, 302_i32)]);
+    assert_eq!(map.as_slice(), &[
+        (6_usize, 5_i32),
+        (5_usize, 302_i32),
+    ]);
+
     let _ = map.swap_remove_entry(&5_usize);
     assert_eq!(map.len(), 1);
-    assert_eq!(map.as_slice(), &[(6_usize, 5_i32)]);
+    assert_eq!(map.as_slice(), &[
+        (6_usize, 5_i32),
+    ]);
+
     let _ = map.swap_remove_entry(&6_usize);
     assert_eq!(map.len(), 0);
     assert_eq!(map.as_slice(), &[]);
@@ -1343,6 +1372,7 @@ fn test_type_projected_index_map_swap_remove_entry3() {
     ]);
 
     assert_eq!(map.len(), 6);
+
     let _ = map.swap_remove_entry(&6_usize);
     assert_eq!(map.len(), 5);
     assert_eq!(map.as_slice(), &[
@@ -1352,6 +1382,7 @@ fn test_type_projected_index_map_swap_remove_entry3() {
         (4_usize, 20994_i32),
         (5_usize, 302_i32),
     ]);
+
     let _ = map.swap_remove_entry(&5_usize);
     assert_eq!(map.len(), 4);
     assert_eq!(map.as_slice(), &[
@@ -1360,6 +1391,7 @@ fn test_type_projected_index_map_swap_remove_entry3() {
         (3_usize, 4904_i32),
         (4_usize, 20994_i32),
     ]);
+
     let _ = map.swap_remove_entry(&4_usize);
     assert_eq!(map.len(), 3);
     assert_eq!(map.as_slice(), &[
@@ -1367,12 +1399,15 @@ fn test_type_projected_index_map_swap_remove_entry3() {
         (2_usize, 2043_i32),
         (3_usize, 4904_i32),
     ]);
+
     let _ = map.swap_remove_entry(&3_usize);
     assert_eq!(map.len(), 2);
     assert_eq!(map.as_slice(), &[(1_usize, 20_i32), (2_usize, 2043_i32)]);
+
     let _ = map.swap_remove_entry(&2_usize);
     assert_eq!(map.len(), 1);
     assert_eq!(map.as_slice(), &[(1_usize, 20_i32)]);
+
     let _ = map.swap_remove_entry(&1_usize);
     assert_eq!(map.len(), 0);
     assert_eq!(map.as_slice(), &[]);
@@ -1431,6 +1466,7 @@ fn test_type_projected_index_map_swap_remove_full2() {
     ]);
 
     assert_eq!(map.len(), 6);
+
     let _ = map.swap_remove_full(&1_usize);
     assert_eq!(map.len(), 5);
     assert_eq!(map.as_slice(), &[
@@ -1440,6 +1476,7 @@ fn test_type_projected_index_map_swap_remove_full2() {
         (4_usize, 20994_i32),
         (5_usize, 302_i32),
     ]);
+
     let _ = map.swap_remove_full(&2_usize);
     assert_eq!(map.len(), 4);
     assert_eq!(map.as_slice(), &[
@@ -1448,6 +1485,7 @@ fn test_type_projected_index_map_swap_remove_full2() {
         (3_usize, 4904_i32),
         (4_usize, 20994_i32),
     ]);
+
     let _ = map.swap_remove_full(&3_usize);
     assert_eq!(map.len(), 3);
     assert_eq!(map.as_slice(), &[
@@ -1455,12 +1493,20 @@ fn test_type_projected_index_map_swap_remove_full2() {
         (5_usize, 302_i32),
         (4_usize, 20994_i32),
     ]);
+
     let _ = map.swap_remove_full(&4_usize);
     assert_eq!(map.len(), 2);
-    assert_eq!(map.as_slice(), &[(6_usize, 5_i32), (5_usize, 302_i32)]);
+    assert_eq!(map.as_slice(), &[
+        (6_usize, 5_i32),
+        (5_usize, 302_i32),
+    ]);
+
     let _ = map.swap_remove_full(&5_usize);
     assert_eq!(map.len(), 1);
-    assert_eq!(map.as_slice(), &[(6_usize, 5_i32)]);
+    assert_eq!(map.as_slice(), &[
+        (6_usize, 5_i32),
+    ]);
+
     let _ = map.swap_remove_full(&6_usize);
     assert_eq!(map.len(), 0);
     assert_eq!(map.as_slice(), &[]);
@@ -1479,6 +1525,7 @@ fn test_type_projected_index_map_swap_remove_full3() {
     ]);
 
     assert_eq!(map.len(), 6);
+
     let _ = map.swap_remove_full(&6_usize);
     assert_eq!(map.len(), 5);
     assert_eq!(map.as_slice(), &[
@@ -1488,6 +1535,7 @@ fn test_type_projected_index_map_swap_remove_full3() {
         (4_usize, 20994_i32),
         (5_usize, 302_i32),
     ]);
+
     let _ = map.swap_remove_full(&5_usize);
     assert_eq!(map.len(), 4);
     assert_eq!(map.as_slice(), &[
@@ -1496,6 +1544,7 @@ fn test_type_projected_index_map_swap_remove_full3() {
         (3_usize, 4904_i32),
         (4_usize, 20994_i32),
     ]);
+
     let _ = map.swap_remove_full(&4_usize);
     assert_eq!(map.len(), 3);
     assert_eq!(map.as_slice(), &[
@@ -1503,12 +1552,20 @@ fn test_type_projected_index_map_swap_remove_full3() {
         (2_usize, 2043_i32),
         (3_usize, 4904_i32),
     ]);
+
     let _ = map.swap_remove_full(&3_usize);
     assert_eq!(map.len(), 2);
-    assert_eq!(map.as_slice(), &[(1_usize, 20_i32), (2_usize, 2043_i32)]);
+    assert_eq!(map.as_slice(), &[
+        (1_usize, 20_i32),
+        (2_usize, 2043_i32),
+    ]);
+
     let _ = map.swap_remove_full(&2_usize);
     assert_eq!(map.len(), 1);
-    assert_eq!(map.as_slice(), &[(1_usize, 20_i32)]);
+    assert_eq!(map.as_slice(), &[
+        (1_usize, 20_i32),
+    ]);
+
     let _ = map.swap_remove_full(&1_usize);
     assert_eq!(map.len(), 0);
     assert_eq!(map.as_slice(), &[]);
@@ -1567,6 +1624,7 @@ fn test_type_projected_index_map_shift_remove2() {
     ]);
 
     assert_eq!(map.len(), 6);
+
     let _ = map.shift_remove(&1655_usize);
     assert_eq!(map.len(), 5);
     assert_eq!(map.as_slice(), &[
@@ -1576,6 +1634,7 @@ fn test_type_projected_index_map_shift_remove2() {
         (199_usize,  1881_i32),
         (1098_usize, 1466_i32),
     ]);
+
     let _ = map.shift_remove(&1992_usize);
     assert_eq!(map.len(), 4);
     assert_eq!(map.as_slice(), &[
@@ -1584,6 +1643,7 @@ fn test_type_projected_index_map_shift_remove2() {
         (199_usize,  1881_i32),
         (1098_usize, 1466_i32),
     ]);
+
     let _ = map.shift_remove(&783_usize);
     assert_eq!(map.len(), 3);
     assert_eq!(map.as_slice(), &[
@@ -1591,12 +1651,20 @@ fn test_type_projected_index_map_shift_remove2() {
         (199_usize,  1881_i32),
         (1098_usize, 1466_i32),
     ]);
+
     let _ = map.shift_remove(&376_usize);
     assert_eq!(map.len(), 2);
-    assert_eq!(map.as_slice(), &[(199_usize, 1881_i32), (1098_usize, 1466_i32)]);
+    assert_eq!(map.as_slice(), &[
+        (199_usize,  1881_i32),
+        (1098_usize, 1466_i32),
+    ]);
+
     let _ = map.shift_remove(&199_usize);
     assert_eq!(map.len(), 1);
-    assert_eq!(map.as_slice(), &[(1098_usize, 1466_i32)]);
+    assert_eq!(map.as_slice(), &[
+        (1098_usize, 1466_i32),
+    ]);
+
     let _ = map.shift_remove(&1098_usize);
     assert_eq!(map.len(), 0);
     assert_eq!(map.as_slice(), &[]);
@@ -1615,6 +1683,7 @@ fn test_type_projected_index_map_shift_remove3() {
     ]);
 
     assert_eq!(map.len(), 6);
+
     let _ = map.shift_remove(&1098_usize);
     assert_eq!(map.len(), 5);
     assert_eq!(map.as_slice(), &[
@@ -1624,6 +1693,7 @@ fn test_type_projected_index_map_shift_remove3() {
         (376_usize,  834_i32),
         (199_usize,  1881_i32),
     ]);
+
     let _ = map.shift_remove(&199_usize);
     assert_eq!(map.len(), 4);
     assert_eq!(map.as_slice(), &[
@@ -1632,6 +1702,7 @@ fn test_type_projected_index_map_shift_remove3() {
         (783_usize,  603_i32),
         (376_usize,  834_i32),
     ]);
+
     let _ = map.shift_remove(&376_usize);
     assert_eq!(map.len(), 3);
     assert_eq!(map.as_slice(), &[
@@ -1639,12 +1710,20 @@ fn test_type_projected_index_map_shift_remove3() {
         (1992_usize, 2910_i32),
         (783_usize,  603_i32),
     ]);
+
     let _ = map.shift_remove(&783_usize);
     assert_eq!(map.len(), 2);
-    assert_eq!(map.as_slice(), &[(1655_usize, 2427_i32), (1992_usize, 2910_i32)]);
+    assert_eq!(map.as_slice(), &[
+        (1655_usize, 2427_i32),
+        (1992_usize, 2910_i32),
+    ]);
+
     let _ = map.shift_remove(&1992_usize);
     assert_eq!(map.len(), 1);
-    assert_eq!(map.as_slice(), &[(1655_usize, 2427_i32)]);
+    assert_eq!(map.as_slice(), &[
+        (1655_usize, 2427_i32),
+    ]);
+
     let _ = map.shift_remove(&1655_usize);
     assert_eq!(map.len(), 0);
     assert_eq!(map.as_slice(), &[]);
@@ -1703,6 +1782,7 @@ fn test_type_projected_index_map_shift_remove_entry2() {
     ]);
 
     assert_eq!(map.len(), 6);
+
     let _ = map.shift_remove_entry(&1655_usize);
     assert_eq!(map.len(), 5);
     assert_eq!(map.as_slice(), &[
@@ -1712,6 +1792,7 @@ fn test_type_projected_index_map_shift_remove_entry2() {
         (199_usize,  1881_i32),
         (1098_usize, 1466_i32),
     ]);
+
     let _ = map.shift_remove_entry(&1992_usize);
     assert_eq!(map.len(), 4);
     assert_eq!(map.as_slice(), &[
@@ -1720,6 +1801,7 @@ fn test_type_projected_index_map_shift_remove_entry2() {
         (199_usize,  1881_i32),
         (1098_usize, 1466_i32),
     ]);
+
     let _ = map.shift_remove_entry(&783_usize);
     assert_eq!(map.len(), 3);
     assert_eq!(map.as_slice(), &[
@@ -1727,12 +1809,20 @@ fn test_type_projected_index_map_shift_remove_entry2() {
         (199_usize,  1881_i32),
         (1098_usize, 1466_i32),
     ]);
+
     let _ = map.shift_remove_entry(&376_usize);
     assert_eq!(map.len(), 2);
-    assert_eq!(map.as_slice(), &[(199_usize, 1881_i32), (1098_usize, 1466_i32)]);
+    assert_eq!(map.as_slice(), &[
+        (199_usize,  1881_i32),
+        (1098_usize, 1466_i32),
+    ]);
+
     let _ = map.shift_remove_entry(&199_usize);
     assert_eq!(map.len(), 1);
-    assert_eq!(map.as_slice(), &[(1098_usize, 1466_i32)]);
+    assert_eq!(map.as_slice(), &[
+        (1098_usize, 1466_i32),
+    ]);
+
     let _ = map.shift_remove_entry(&1098_usize);
     assert_eq!(map.len(), 0);
     assert_eq!(map.as_slice(), &[]);
@@ -1751,6 +1841,7 @@ fn test_type_projected_index_map_shift_remove_entry3() {
     ]);
 
     assert_eq!(map.len(), 6);
+
     let _ = map.shift_remove_entry(&1098_usize);
     assert_eq!(map.len(), 5);
     assert_eq!(map.as_slice(), &[
@@ -1760,6 +1851,7 @@ fn test_type_projected_index_map_shift_remove_entry3() {
         (376_usize,  834_i32),
         (199_usize,  1881_i32),
     ]);
+
     let _ = map.shift_remove_entry(&199_usize);
     assert_eq!(map.len(), 4);
     assert_eq!(map.as_slice(), &[
@@ -1768,6 +1860,7 @@ fn test_type_projected_index_map_shift_remove_entry3() {
         (783_usize,  603_i32),
         (376_usize,  834_i32),
     ]);
+
     let _ = map.shift_remove_entry(&376_usize);
     assert_eq!(map.len(), 3);
     assert_eq!(map.as_slice(), &[
@@ -1775,12 +1868,20 @@ fn test_type_projected_index_map_shift_remove_entry3() {
         (1992_usize, 2910_i32),
         (783_usize,  603_i32),
     ]);
+
     let _ = map.shift_remove_entry(&783_usize);
     assert_eq!(map.len(), 2);
-    assert_eq!(map.as_slice(), &[(1655_usize, 2427_i32), (1992_usize, 2910_i32)]);
+    assert_eq!(map.as_slice(), &[
+        (1655_usize, 2427_i32),
+        (1992_usize, 2910_i32),
+    ]);
+
     let _ = map.shift_remove_entry(&1992_usize);
     assert_eq!(map.len(), 1);
-    assert_eq!(map.as_slice(), &[(1655_usize, 2427_i32)]);
+    assert_eq!(map.as_slice(), &[
+        (1655_usize, 2427_i32),
+    ]);
+
     let _ = map.shift_remove_entry(&1655_usize);
     assert_eq!(map.len(), 0);
     assert_eq!(map.as_slice(), &[]);
@@ -1839,6 +1940,7 @@ fn test_type_projected_index_map_shift_remove_full2() {
     ]);
 
     assert_eq!(map.len(), 6);
+
     let _ = map.shift_remove_full(&1655_usize);
     assert_eq!(map.len(), 5);
     assert_eq!(map.as_slice(), &[
@@ -1848,6 +1950,7 @@ fn test_type_projected_index_map_shift_remove_full2() {
         (199_usize,  1881_i32),
         (1098_usize, 1466_i32),
     ]);
+
     let _ = map.shift_remove_full(&1992_usize);
     assert_eq!(map.len(), 4);
     assert_eq!(map.as_slice(), &[
@@ -1856,6 +1959,7 @@ fn test_type_projected_index_map_shift_remove_full2() {
         (199_usize,  1881_i32),
         (1098_usize, 1466_i32),
     ]);
+
     let _ = map.shift_remove_full(&783_usize);
     assert_eq!(map.len(), 3);
     assert_eq!(map.as_slice(), &[
@@ -1863,12 +1967,20 @@ fn test_type_projected_index_map_shift_remove_full2() {
         (199_usize,  1881_i32),
         (1098_usize, 1466_i32),
     ]);
+
     let _ = map.shift_remove_full(&376_usize);
     assert_eq!(map.len(), 2);
-    assert_eq!(map.as_slice(), &[(199_usize, 1881_i32), (1098_usize, 1466_i32)]);
+    assert_eq!(map.as_slice(), &[
+        (199_usize, 1881_i32),
+        (1098_usize, 1466_i32),
+    ]);
+
     let _ = map.shift_remove_full(&199_usize);
     assert_eq!(map.len(), 1);
-    assert_eq!(map.as_slice(), &[(1098_usize, 1466_i32)]);
+    assert_eq!(map.as_slice(), &[
+        (1098_usize, 1466_i32),
+    ]);
+
     let _ = map.shift_remove_full(&1098_usize);
     assert_eq!(map.len(), 0);
     assert_eq!(map.as_slice(), &[]);
@@ -1887,6 +1999,7 @@ fn test_type_projected_index_map_shift_remove_full3() {
     ]);
 
     assert_eq!(map.len(), 6);
+
     let _ = map.shift_remove_full(&1098_usize);
     assert_eq!(map.len(), 5);
     assert_eq!(map.as_slice(), &[
@@ -1896,6 +2009,7 @@ fn test_type_projected_index_map_shift_remove_full3() {
         (376_usize,  834_i32),
         (199_usize,  1881_i32),
     ]);
+
     let _ = map.shift_remove_full(&199_usize);
     assert_eq!(map.len(), 4);
     assert_eq!(map.as_slice(), &[
@@ -1904,6 +2018,7 @@ fn test_type_projected_index_map_shift_remove_full3() {
         (783_usize,  603_i32),
         (376_usize,  834_i32),
     ]);
+
     let _ = map.shift_remove_full(&376_usize);
     assert_eq!(map.len(), 3);
     assert_eq!(map.as_slice(), &[
@@ -1911,12 +2026,20 @@ fn test_type_projected_index_map_shift_remove_full3() {
         (1992_usize, 2910_i32),
         (783_usize,  603_i32),
     ]);
+
     let _ = map.shift_remove_full(&783_usize);
     assert_eq!(map.len(), 2);
-    assert_eq!(map.as_slice(), &[(1655_usize, 2427_i32), (1992_usize, 2910_i32)]);
+    assert_eq!(map.as_slice(), &[
+        (1655_usize, 2427_i32),
+        (1992_usize, 2910_i32),
+    ]);
+
     let _ = map.shift_remove_full(&1992_usize);
     assert_eq!(map.len(), 1);
-    assert_eq!(map.as_slice(), &[(1655_usize, 2427_i32)]);
+    assert_eq!(map.as_slice(), &[
+        (1655_usize, 2427_i32),
+    ]);
+
     let _ = map.shift_remove_full(&1655_usize);
     assert_eq!(map.len(), 0);
     assert_eq!(map.as_slice(), &[]);
@@ -1965,11 +2088,16 @@ fn test_type_projected_index_map_insert2() {
 
     let _ = map.insert(1803_usize, 1778_i32);
     assert_eq!(map.len(), 1);
-    assert_eq!(map.as_slice(), &[(1803_usize, 1778_i32)]);
+    assert_eq!(map.as_slice(), &[
+        (1803_usize, 1778_i32),
+    ]);
 
     let _ = map.insert(1057_usize, 2437_i32);
     assert_eq!(map.len(), 2);
-    assert_eq!(map.as_slice(), &[(1803_usize, 1778_i32), (1057_usize, 2437_i32)]);
+    assert_eq!(map.as_slice(), &[
+        (1803_usize, 1778_i32),
+        (1057_usize, 2437_i32),
+    ]);
 
     let _ = map.insert(1924_usize, 185_i32);
     assert_eq!(map.len(), 3);
@@ -2033,11 +2161,16 @@ fn test_type_projected_index_map_insert_full2() {
 
     let _ = map.insert_full(1803_usize, 1778_i32);
     assert_eq!(map.len(), 1);
-    assert_eq!(map.as_slice(), &[(1803_usize, 1778_i32)]);
+    assert_eq!(map.as_slice(), &[
+        (1803_usize, 1778_i32),
+    ]);
 
     let _ = map.insert_full(1057_usize, 2437_i32);
     assert_eq!(map.len(), 2);
-    assert_eq!(map.as_slice(), &[(1803_usize, 1778_i32), (1057_usize, 2437_i32)]);
+    assert_eq!(map.as_slice(), &[
+        (1803_usize, 1778_i32),
+        (1057_usize, 2437_i32),
+    ]);
 
     let _ = map.insert_full(1924_usize, 185_i32);
     assert_eq!(map.len(), 3);
@@ -2100,11 +2233,16 @@ fn test_type_projected_index_map_insert_before2() {
 
     let _ = map.insert_before(0, 370_usize, 2339_i32);
     assert_eq!(map.len(), 1);
-    assert_eq!(map.as_slice(), &[(370_usize, 2339_i32)]);
+    assert_eq!(map.as_slice(), &[
+        (370_usize, 2339_i32),
+    ]);
 
     let _ = map.insert_before(0, 1977_usize, 2387_i32);
     assert_eq!(map.len(), 2);
-    assert_eq!(map.as_slice(), &[(1977_usize, 2387_i32), (370_usize, 2339_i32)]);
+    assert_eq!(map.as_slice(), &[
+        (1977_usize, 2387_i32),
+        (370_usize,  2339_i32),
+    ]);
 
     let _ = map.insert_before(0, 1244_usize, 2741_i32);
     assert_eq!(map.len(), 3);
@@ -2277,11 +2415,16 @@ fn test_type_projected_index_map_shift_insert2() {
 
     let _ = map.shift_insert(0, 1809_usize, 2381_i32);
     assert_eq!(map.len(), 1);
-    assert_eq!(map.as_slice(), &[(1809_usize, 2381_i32)]);
+    assert_eq!(map.as_slice(), &[
+        (1809_usize, 2381_i32),
+    ]);
 
     let _ = map.shift_insert(0, 603_usize, 2834_i32);
     assert_eq!(map.len(), 2);
-    assert_eq!(map.as_slice(), &[(603_usize, 2834_i32), (1809_usize, 2381_i32)]);
+    assert_eq!(map.as_slice(), &[
+        (603_usize,  2834_i32),
+        (1809_usize, 2381_i32),
+    ]);
 
     let _ = map.shift_insert(0, 2564_usize, 621_i32);
     assert_eq!(map.len(), 3);
@@ -2338,14 +2481,6 @@ fn test_type_projected_index_map_shift_insert3() {
 #[rustfmt::skip]
 #[test]
 fn test_type_projected_index_map_shift_insert4() {
-    let mut map = TypeProjectedIndexMap::from([
-        (477_usize,  2084_i32),
-        (57_usize,   2657_i32),
-        (360_usize,  1352_i32),
-        (2564_usize, 621_i32),
-        (603_usize,  2834_i32),
-        (1809_usize, 2381_i32),
-    ]);
     let mut map = TypeProjectedIndexMap::new();
 
     assert_eq!(map.len(), 0);
@@ -2353,11 +2488,16 @@ fn test_type_projected_index_map_shift_insert4() {
 
     let _ = map.shift_insert(0, 477_usize, 2084_i32);
     assert_eq!(map.len(), 1);
-    assert_eq!(map.as_slice(), &[(477_usize, 2084_i32)]);
+    assert_eq!(map.as_slice(), &[
+        (477_usize, 2084_i32),
+    ]);
 
     let _ = map.shift_insert(1, 57_usize, 2657_i32);
     assert_eq!(map.len(), 2);
-    assert_eq!(map.as_slice(), &[(477_usize, 2084_i32), (57_usize, 2657_i32)]);
+    assert_eq!(map.as_slice(), &[
+        (477_usize, 2084_i32),
+        (57_usize,  2657_i32),
+    ]);
 
     let _ = map.shift_insert(2, 360_usize, 1352_i32);
     assert_eq!(map.len(), 3);
@@ -2915,6 +3055,9 @@ fn test_type_projected_index_map_sort_unstable_by1() {
         (2900_usize, 2846_i32),
     ]);
     map.sort_unstable_by(|_k1, v1, _k2, v2| v1.cmp(v2));
+
+    assert_eq!(map.len(), expected.len());
+    assert_eq!(map.as_slice(), expected.as_slice());
 }
 
 #[rustfmt::skip]
@@ -2937,6 +3080,9 @@ fn test_type_projected_index_map_sort_unstable_by2() {
         (String::from("4"),   ()),
     ]);
     map.sort_unstable_by(|k1, _v1, k2, _v2| k1.cmp(k2));
+
+    assert_eq!(map.len(), expected.len());
+    assert_eq!(map.as_slice(), expected.as_slice());
 }
 
 #[rustfmt::skip]
@@ -2959,6 +3105,9 @@ fn test_type_projected_index_map_sort_unstable_by3() {
         (String::from("101"), ()),
     ]);
     map.sort_unstable_by(|k1, _v1, k2, _v2| k1.len().cmp(&k2.len()));
+
+    assert_eq!(map.len(), expected.len());
+    assert_eq!(map.as_slice(), expected.as_slice());
 }
 
 #[rustfmt::skip]
