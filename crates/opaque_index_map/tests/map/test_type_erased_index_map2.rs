@@ -11,6 +11,7 @@ use std::alloc;
 #[cfg(not(feature = "nightly"))]
 use opaque_allocator_api::alloc;
 
+#[rustfmt::skip]
 #[test]
 fn test_type_erased_index_map_empty_len1() {
     let opaque_map = TypeErasedIndexMap::new::<u64, i64>();
@@ -18,6 +19,7 @@ fn test_type_erased_index_map_empty_len1() {
     assert_eq!(opaque_map.len(), 0);
 }
 
+#[rustfmt::skip]
 #[test]
 fn test_type_erased_index_map_empty_is_empty1() {
     let opaque_map = TypeErasedIndexMap::new::<u64, i64>();
@@ -25,6 +27,7 @@ fn test_type_erased_index_map_empty_is_empty1() {
     assert!(opaque_map.is_empty());
 }
 
+#[rustfmt::skip]
 #[test]
 fn test_type_erased_index_map_empty_contains_no_values1() {
     let opaque_map = TypeErasedIndexMap::new::<u64, i64>();
@@ -33,6 +36,7 @@ fn test_type_erased_index_map_empty_contains_no_values1() {
     }
 }
 
+#[rustfmt::skip]
 #[test]
 fn test_type_erased_index_map_empty_get1() {
     let opaque_map = TypeErasedIndexMap::new::<u64, i64>();
@@ -43,6 +47,7 @@ fn test_type_erased_index_map_empty_get1() {
     }
 }
 
+#[rustfmt::skip]
 #[test]
 fn test_type_erased_index_map_empty_len2() {
    let opaque_map = TypeErasedIndexMap::new::<usize, i64>();
@@ -50,6 +55,7 @@ fn test_type_erased_index_map_empty_len2() {
     assert_eq!(opaque_map.len(), 0);
 }
 
+#[rustfmt::skip]
 #[test]
 fn test_type_erased_index_map_empty_is_empty2() {
    let opaque_map = TypeErasedIndexMap::new::<usize, i64>();
@@ -57,6 +63,7 @@ fn test_type_erased_index_map_empty_is_empty2() {
     assert!(opaque_map.is_empty());
 }
 
+#[rustfmt::skip]
 #[test]
 fn test_type_erased_index_map_empty_contains_no_values2() {
    let opaque_map = TypeErasedIndexMap::new::<usize, i64>();
@@ -65,6 +72,7 @@ fn test_type_erased_index_map_empty_contains_no_values2() {
     }
 }
 
+#[rustfmt::skip]
 #[test]
 fn test_type_erased_index_map_empty_get2() {
    let opaque_map = TypeErasedIndexMap::new::<usize, i64>();

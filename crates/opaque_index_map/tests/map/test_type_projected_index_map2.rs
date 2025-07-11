@@ -13,6 +13,7 @@ use std::alloc;
 #[cfg(not(feature = "nightly"))]
 use opaque_allocator_api::alloc;
 
+#[rustfmt::skip]
 #[test]
 fn test_type_projected_index_map_empty_len1() {
     let proj_map: TypeProjectedIndexMap<u64, i64> = TypeProjectedIndexMap::new();
@@ -20,6 +21,7 @@ fn test_type_projected_index_map_empty_len1() {
     assert_eq!(proj_map.len(), 0);
 }
 
+#[rustfmt::skip]
 #[test]
 fn test_type_projected_index_map_empty_is_empty1() {
     let proj_map: TypeProjectedIndexMap<u64, i64> = TypeProjectedIndexMap::new();
@@ -27,6 +29,7 @@ fn test_type_projected_index_map_empty_is_empty1() {
     assert!(proj_map.is_empty());
 }
 
+#[rustfmt::skip]
 #[test]
 fn test_type_projected_index_map_empty_contains_no_values1() {
     let proj_map: TypeProjectedIndexMap<u64, i64> = TypeProjectedIndexMap::new();
@@ -35,6 +38,7 @@ fn test_type_projected_index_map_empty_contains_no_values1() {
     }
 }
 
+#[rustfmt::skip]
 #[test]
 fn test_type_projected_index_map_empty_get1() {
     let proj_map: TypeProjectedIndexMap<u64, i64> = TypeProjectedIndexMap::new();
@@ -45,6 +49,7 @@ fn test_type_projected_index_map_empty_get1() {
     }
 }
 
+#[rustfmt::skip]
 #[test]
 fn test_type_projected_index_map_empty_len2() {
     let proj_map: TypeProjectedIndexMap<usize, i64> = TypeProjectedIndexMap::new();
@@ -52,6 +57,7 @@ fn test_type_projected_index_map_empty_len2() {
     assert_eq!(proj_map.len(), 0);
 }
 
+#[rustfmt::skip]
 #[test]
 fn test_type_projected_index_map_empty_is_empty2() {
     let proj_map: TypeProjectedIndexMap<usize, i64> = TypeProjectedIndexMap::new();
@@ -59,6 +65,7 @@ fn test_type_projected_index_map_empty_is_empty2() {
     assert!(proj_map.is_empty());
 }
 
+#[rustfmt::skip]
 #[test]
 fn test_type_projected_index_map_empty_contains_no_values2() {
     let proj_map: TypeProjectedIndexMap<usize, i64> = TypeProjectedIndexMap::new();
@@ -67,6 +74,7 @@ fn test_type_projected_index_map_empty_contains_no_values2() {
     }
 }
 
+#[rustfmt::skip]
 #[test]
 fn test_type_projected_index_map_empty_get2() {
     let proj_map: TypeProjectedIndexMap<usize, i64> = TypeProjectedIndexMap::new();
@@ -3459,7 +3467,7 @@ fn test_type_projected_index_map_reserve_exact3() {
 
     let mut current_start = 0;
     let mut current_end = 1;
-    for i in 0..4 {
+    for i in 0..32 {
         for j in (current_start + 1)..map.len() {
             if map[j] == usize::MAX {
                 break;
@@ -3635,7 +3643,7 @@ fn test_type_projected_index_map_try_reserve_exact3() {
 
     let mut current_start = 0;
     let mut current_end = 1;
-    for i in 0..4 {
+    for i in 0..32 {
         for j in (current_start + 1)..map.len() {
             if map[j] == usize::MAX {
                 break;
@@ -3653,5 +3661,40 @@ fn test_type_projected_index_map_try_reserve_exact3() {
 
         current_start = current_end + 1;
         current_end = current_start + 1;
+    }
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_shrink_to_fit1() {
+    let mut map: TypeProjectedIndexMap<usize, usize> = TypeProjectedIndexMap::with_capacity(10);
+    assert_eq!(map.capacity(), 10);
+
+    map.extend([(1_usize, usize::MAX), (2_usize, usize::MAX), (3_usize, usize::MAX)]);
+    assert!(map.len() <= map.capacity());
+    map.shrink_to_fit();
+    assert_eq!(map.len(), map.capacity());
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_shrink_to_fit2() {
+    let mut map: TypeProjectedIndexMap<usize, usize> = TypeProjectedIndexMap::new();
+    for i in 0..128 {
+        assert_eq!(map.len(), i);
+
+        map.insert(i, i * i);
+
+        assert_eq!(map.len(), i + 1);
+        assert!(map.capacity() >= i + 1);
+        assert_eq!(map[i], i * i);
+        assert_eq!(map.get(&i), Some(&(i * i)));
+
+        map.shrink_to_fit();
+
+        assert_eq!(map.len(), i + 1);
+        assert_eq!(map.capacity(), i + 1);
+        assert_eq!(map[i], i * i);
+        assert_eq!(map.get(&i), Some(&(i * i)));
     }
 }
