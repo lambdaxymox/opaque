@@ -84,7 +84,7 @@ fn test_type_erased_index_map_empty_get2() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_get_index_of1() {
+fn test_type_erased_index_map_get_index_of1() {
     let mut map = TypeErasedIndexMap::new::<&str, i32>();
     assert_eq!(map.get_index_of::<_, &str, i32, hash::RandomState, alloc::Global>(&"a"), None);
 
@@ -100,7 +100,7 @@ fn test_type_projected_index_map_get_index_of1() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_get_index_of2() {
+fn test_type_erased_index_map_get_index_of2() {
     let mut map = TypeErasedIndexMap::from([
         (0_usize, 1_i32),
         (1_usize, 2_i32),
@@ -121,7 +121,7 @@ fn test_type_projected_index_map_get_index_of2() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_get_index_of3() {
+fn test_type_erased_index_map_get_index_of3() {
     let mut map = TypeErasedIndexMap::from([("a", 1), ("b", 2), ("c", 3)]);
 
     assert_eq!(map.get_index_of::<_, &str, i32, hash::RandomState, alloc::Global>(&"a"), Some(0));
@@ -137,7 +137,7 @@ fn test_type_projected_index_map_get_index_of3() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_get_index_of4() {
+fn test_type_erased_index_map_get_index_of4() {
     let mut map: TypeErasedIndexMap = ('a'..='z').map(|c| (c, ())).collect();
     assert_eq!(map.get_index_of::<_, char, (), hash::RandomState, alloc::Global>(&'*'), None);
 
@@ -151,7 +151,7 @@ fn test_type_projected_index_map_get_index_of4() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_get_index_of5() {
+fn test_type_erased_index_map_get_index_of5() {
     let mut map: TypeErasedIndexMap = ('a'..='z').map(|c| (c, ())).collect();
     assert_eq!(map.get_index_of::<_, char, (), hash::RandomState, alloc::Global>(&'*'), None);
 
@@ -165,7 +165,7 @@ fn test_type_projected_index_map_get_index_of5() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_get_index_of6() {
+fn test_type_erased_index_map_get_index_of6() {
     let mut map = TypeErasedIndexMap::from([("a", 1), ("b", 2)]);
 
     assert_eq!(map.get_index_of::<_, &str, i32, hash::RandomState, alloc::Global>(&"a"), Some(0));
@@ -181,7 +181,7 @@ fn test_type_projected_index_map_get_index_of6() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_get1() {
+fn test_type_erased_index_map_get1() {
     let mut map = TypeErasedIndexMap::new::<&str, i32>();
 
     assert_eq!(map.get::<_, &str, i32, hash::RandomState, alloc::Global>(&"a"), None);
@@ -201,7 +201,7 @@ fn test_type_projected_index_map_get1() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_get2() {
+fn test_type_erased_index_map_get2() {
     let map = TypeErasedIndexMap::from([
         (0_usize, 1_i32),
         (1_usize, 2_i32),
@@ -222,7 +222,7 @@ fn test_type_projected_index_map_get2() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_get3() {
+fn test_type_erased_index_map_get3() {
     let mut map = TypeErasedIndexMap::from([("a", 1), ("b", 2), ("c", 3)]);
 
     assert_eq!(map.get::<_, &str, i32, hash::RandomState, alloc::Global>(&"a"), Some(&1));
@@ -238,7 +238,7 @@ fn test_type_projected_index_map_get3() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_get4() {
+fn test_type_erased_index_map_get4() {
     let mut map: TypeErasedIndexMap = ('a'..='z').map(|c| (c, ())).collect();
     assert_eq!(map.get::<_, char, (), hash::RandomState, alloc::Global>(&'*'), None);
 
@@ -252,7 +252,7 @@ fn test_type_projected_index_map_get4() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_get5() {
+fn test_type_erased_index_map_get5() {
     let mut map: TypeErasedIndexMap = ('a'..='z').map(|c| (c, ())).collect();
     assert_eq!(map.get::<_, char, (), hash::RandomState, alloc::Global>(&'*'), None);
 
@@ -266,7 +266,7 @@ fn test_type_projected_index_map_get5() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_get6() {
+fn test_type_erased_index_map_get6() {
     let mut map = TypeErasedIndexMap::from([("a", 1), ("b", 2)]);
 
     assert_eq!(map.get::<_, &str, i32, hash::RandomState, alloc::Global>(&"a"), Some(&1));
@@ -282,7 +282,7 @@ fn test_type_projected_index_map_get6() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_get_key_value1() {
+fn test_type_erased_index_map_get_key_value1() {
     let mut map = TypeErasedIndexMap::new::<&str, i32>();
 
     assert_eq!(map.get_key_value::<_, &str, i32, hash::RandomState, alloc::Global>(&"a"), None);
@@ -302,7 +302,7 @@ fn test_type_projected_index_map_get_key_value1() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_get_key_value2() {
+fn test_type_erased_index_map_get_key_value2() {
     let map = TypeErasedIndexMap::from([
         (0_usize, 1_i32),
         (1_usize, 2_i32),
@@ -323,7 +323,7 @@ fn test_type_projected_index_map_get_key_value2() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_get_key_value3() {
+fn test_type_erased_index_map_get_key_value3() {
     let mut map = TypeErasedIndexMap::from([("a", 1), ("b", 2), ("c", 3)]);
 
     assert_eq!(map.get_key_value::<_, &str, i32, hash::RandomState, alloc::Global>(&"a"), Some((&"a", &1)));
@@ -339,7 +339,7 @@ fn test_type_projected_index_map_get_key_value3() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_get_key_value4() {
+fn test_type_erased_index_map_get_key_value4() {
     let mut map: TypeErasedIndexMap = ('a'..='z').map(|c| (c, ())).collect();
     assert_eq!(map.get_key_value::<_, char, (), hash::RandomState, alloc::Global>(&'*'), None);
 
@@ -353,7 +353,7 @@ fn test_type_projected_index_map_get_key_value4() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_get_key_value5() {
+fn test_type_erased_index_map_get_key_value5() {
     let mut map: TypeErasedIndexMap = ('a'..='z').map(|c| (c, ())).collect();
     assert_eq!(map.get_key_value::<_, char, (), hash::RandomState, alloc::Global>(&'*'), None);
 
@@ -367,7 +367,7 @@ fn test_type_projected_index_map_get_key_value5() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_get_key_value6() {
+fn test_type_erased_index_map_get_key_value6() {
     let mut map = TypeErasedIndexMap::from([("a", 1), ("b", 2)]);
 
     assert_eq!(map.get_key_value::<_, &str, i32, hash::RandomState, alloc::Global>(&"a"), Some((&"a", &1)));
@@ -383,7 +383,7 @@ fn test_type_projected_index_map_get_key_value6() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_get_full1() {
+fn test_type_erased_index_map_get_full1() {
     let mut map = TypeErasedIndexMap::new::<&str, i32>();
 
     assert_eq!(map.get_full::<_, &str, i32, hash::RandomState, alloc::Global>(&"a"), None);
@@ -403,7 +403,7 @@ fn test_type_projected_index_map_get_full1() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_get_full2() {
+fn test_type_erased_index_map_get_full2() {
     let map = TypeErasedIndexMap::from([
         (0_usize, 1_i32),
         (1_usize, 2_i32),
@@ -424,7 +424,7 @@ fn test_type_projected_index_map_get_full2() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_get_full3() {
+fn test_type_erased_index_map_get_full3() {
     let mut map = TypeErasedIndexMap::from([("a", 1), ("b", 2), ("c", 3)]);
 
     assert_eq!(map.get_full::<_, &str, i32, hash::RandomState, alloc::Global>(&"a"), Some((0, &"a", &1)));
@@ -440,7 +440,7 @@ fn test_type_projected_index_map_get_full3() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_get_full4() {
+fn test_type_erased_index_map_get_full4() {
     let mut map: TypeErasedIndexMap = ('a'..='z').map(|c| (c, ())).collect();
     assert_eq!(map.get_full::<_, char, (), hash::RandomState, alloc::Global>(&'*'), None);
 
@@ -454,7 +454,7 @@ fn test_type_projected_index_map_get_full4() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_get_full5() {
+fn test_type_erased_index_map_get_full5() {
     let mut map: TypeErasedIndexMap = ('a'..='z').map(|c| (c, ())).collect();
     assert_eq!(map.get_full::<_, char, (), hash::RandomState, alloc::Global>(&'*'), None);
 
@@ -468,7 +468,7 @@ fn test_type_projected_index_map_get_full5() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_get_full6() {
+fn test_type_erased_index_map_get_full6() {
     let mut map = TypeErasedIndexMap::from([("a", 1), ("b", 2)]);
 
     assert_eq!(map.get_full::<_, &str, i32, hash::RandomState, alloc::Global>(&"a"), Some((0, &"a", &1)));
@@ -484,7 +484,7 @@ fn test_type_projected_index_map_get_full6() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_get_index1() {
+fn test_type_erased_index_map_get_index1() {
     let mut map = TypeErasedIndexMap::new::<&str, i32>();
 
     assert_eq!(map.get_index::<&str, i32, hash::RandomState, alloc::Global>(0), None);
@@ -504,7 +504,7 @@ fn test_type_projected_index_map_get_index1() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_get_index2() {
+fn test_type_erased_index_map_get_index2() {
     let map = TypeErasedIndexMap::from([
         (0_usize, 1_i32),
         (1_usize, 2_i32),
@@ -525,7 +525,7 @@ fn test_type_projected_index_map_get_index2() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_get_index3() {
+fn test_type_erased_index_map_get_index3() {
     let mut map = TypeErasedIndexMap::from([("a", 1), ("b", 2), ("c", 3)]);
 
     assert_eq!(map.get_index::<&str, i32, hash::RandomState, alloc::Global>(0), Some((&"a", &1)));
@@ -541,7 +541,7 @@ fn test_type_projected_index_map_get_index3() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_get_index4() {
+fn test_type_erased_index_map_get_index4() {
     let mut map: TypeErasedIndexMap = ('a'..='z').map(|c| (c, ())).collect();
     assert_eq!(map.get_index::<char, (), hash::RandomState, alloc::Global>(10), Some((&'k', &())));
 
@@ -555,7 +555,7 @@ fn test_type_projected_index_map_get_index4() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_get_index5() {
+fn test_type_erased_index_map_get_index5() {
     let mut map: TypeErasedIndexMap = ('a'..='z').map(|c| (c, ())).collect();
     assert_eq!(map.get_index::<char, (), hash::RandomState, alloc::Global>(10), Some((&'k', &())));
 
@@ -569,7 +569,7 @@ fn test_type_projected_index_map_get_index5() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_get_index6() {
+fn test_type_erased_index_map_get_index6() {
     let mut map = TypeErasedIndexMap::from([("a", 1), ("b", 2)]);
 
     assert_eq!(map.get_index::<&str, i32, hash::RandomState, alloc::Global>(0), Some((&"a", &1)));
@@ -585,7 +585,7 @@ fn test_type_projected_index_map_get_index6() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_get_disjoint_mut2() {
+fn test_type_erased_index_map_get_disjoint_mut2() {
     let mut map = TypeErasedIndexMap::from([
         ("1", 10),
         ("2", 20),
@@ -609,7 +609,7 @@ fn test_type_projected_index_map_get_disjoint_mut2() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_get_disjoint_mut3() {
+fn test_type_erased_index_map_get_disjoint_mut3() {
     let mut map = TypeErasedIndexMap::from([
         ("1", 10),
         ("2", 20),
@@ -630,7 +630,7 @@ fn test_type_projected_index_map_get_disjoint_mut3() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_get_disjoint_mut4() {
+fn test_type_erased_index_map_get_disjoint_mut4() {
     let mut map = TypeErasedIndexMap::from([
         ("1", 10),
         ("2", 20),
@@ -651,7 +651,7 @@ fn test_type_projected_index_map_get_disjoint_mut4() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_get_disjoint_mut5() {
+fn test_type_erased_index_map_get_disjoint_mut5() {
     let mut map = TypeErasedIndexMap::from([
         ("1", 10),
         ("2", 20),
@@ -672,7 +672,7 @@ fn test_type_projected_index_map_get_disjoint_mut5() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_get_disjoint_mut6() {
+fn test_type_erased_index_map_get_disjoint_mut6() {
     let mut map = TypeErasedIndexMap::from([
         ("1", 10),
         ("2", 20),
@@ -693,7 +693,7 @@ fn test_type_projected_index_map_get_disjoint_mut6() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_get_disjoint_mut_partial_success1() {
+fn test_type_erased_index_map_get_disjoint_mut_partial_success1() {
     let mut map = TypeErasedIndexMap::from([
         ("1", 10),
         ("2", 20),
@@ -717,7 +717,7 @@ fn test_type_projected_index_map_get_disjoint_mut_partial_success1() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_get_disjoint_mut_partial_success2() {
+fn test_type_erased_index_map_get_disjoint_mut_partial_success2() {
     let mut map = TypeErasedIndexMap::from([
         ("1", 10),
         ("2", 20),
@@ -744,7 +744,7 @@ fn test_type_projected_index_map_get_disjoint_mut_partial_success2() {
 #[rustfmt::skip]
 #[test]
 #[should_panic]
-fn test_type_projected_index_map_get_disjoint_mut_repeat_indices1() {
+fn test_type_erased_index_map_get_disjoint_mut_repeat_indices1() {
     let mut map = TypeErasedIndexMap::from([
         ("1", 10),
         ("2", 20),
@@ -761,7 +761,7 @@ fn test_type_projected_index_map_get_disjoint_mut_repeat_indices1() {
 #[rustfmt::skip]
 #[test]
 #[should_panic]
-fn test_type_projected_index_map_get_disjoint_mut_repeat_indices2() {
+fn test_type_erased_index_map_get_disjoint_mut_repeat_indices2() {
     let mut map = TypeErasedIndexMap::from([
         (1_usize, 10_i32),
         (2_usize, 20_i32),
@@ -777,7 +777,7 @@ fn test_type_projected_index_map_get_disjoint_mut_repeat_indices2() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_get_disjoint_indices_mut1() {
+fn test_type_erased_index_map_get_disjoint_indices_mut1() {
     let mut map = TypeErasedIndexMap::from([
         (1_u32, 10_i32),
         (2_u32, 20_i32),
@@ -791,7 +791,7 @@ fn test_type_projected_index_map_get_disjoint_indices_mut1() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_get_disjoint_indices_mut2() {
+fn test_type_erased_index_map_get_disjoint_indices_mut2() {
     let mut map = TypeErasedIndexMap::from([
         (1_u32, 10_i32),
         (2_u32, 20_i32),
@@ -805,7 +805,7 @@ fn test_type_projected_index_map_get_disjoint_indices_mut2() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_get_disjoint_indices_mut3() {
+fn test_type_erased_index_map_get_disjoint_indices_mut3() {
     let mut map = TypeErasedIndexMap::from([
         (1_u32, 10_i32),
         (2_u32, 20_i32),
@@ -819,7 +819,7 @@ fn test_type_projected_index_map_get_disjoint_indices_mut3() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_get_disjoint_indices_mut4() {
+fn test_type_erased_index_map_get_disjoint_indices_mut4() {
     let mut map = TypeErasedIndexMap::from([
         (1_u32, 10_i32),
         (2_u32, 20_i32),
@@ -833,7 +833,7 @@ fn test_type_projected_index_map_get_disjoint_indices_mut4() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_get_disjoint_indices_mut_out_of_bounds() {
+fn test_type_erased_index_map_get_disjoint_indices_mut_out_of_bounds() {
     let mut map = TypeErasedIndexMap::from([
         (1_u32, 10_i32),
         (2_u32, 20_i32),
@@ -847,7 +847,7 @@ fn test_type_projected_index_map_get_disjoint_indices_mut_out_of_bounds() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_get_disjoint_indices_mut_fail_duplicate() {
+fn test_type_erased_index_map_get_disjoint_indices_mut_fail_duplicate() {
     let mut map = TypeErasedIndexMap::from([
         (1_u32, 10_i32),
         (2_u32, 20_i32),
@@ -861,7 +861,7 @@ fn test_type_projected_index_map_get_disjoint_indices_mut_fail_duplicate() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_keys1() {
+fn test_type_erased_index_map_keys1() {
     let map = TypeErasedIndexMap::from([
         (1_usize, 10_i32),
         (2_usize, 24_i32),
@@ -874,7 +874,7 @@ fn test_type_projected_index_map_keys1() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_keys2() {
+fn test_type_erased_index_map_keys2() {
     let map = TypeErasedIndexMap::from([
         (1_usize, 10_i32),
         (2_usize, 24_i32),
@@ -888,7 +888,7 @@ fn test_type_projected_index_map_keys2() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_keys3() {
+fn test_type_erased_index_map_keys3() {
     let map = TypeErasedIndexMap::from([
         (1_usize, 10_i32),
         (2_usize, 24_i32),
@@ -904,7 +904,7 @@ fn test_type_projected_index_map_keys3() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_keys4() {
+fn test_type_erased_index_map_keys4() {
     let map = TypeErasedIndexMap::from([
         (1_usize, 10_i32),
         (2_usize, 24_i32),
@@ -919,7 +919,7 @@ fn test_type_projected_index_map_keys4() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_values1() {
+fn test_type_erased_index_map_values1() {
     let map = TypeErasedIndexMap::from([
         (1_usize, 10_i32),
         (2_usize, 24_i32),
@@ -933,7 +933,7 @@ fn test_type_projected_index_map_values1() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_values2() {
+fn test_type_erased_index_map_values2() {
     let map: TypeErasedIndexMap = TypeErasedIndexMap::new::<usize, i32>();
     let expected = TypeProjectedVec::new();
     let result: TypeProjectedVec<i32> = map.values::<usize, i32, hash::RandomState, alloc::Global>().cloned().collect();
@@ -943,7 +943,7 @@ fn test_type_projected_index_map_values2() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_values3() {
+fn test_type_erased_index_map_values3() {
     let map = TypeErasedIndexMap::from([
         (1_usize, 10_i32),
         (2_usize, 24_i32),
@@ -959,7 +959,7 @@ fn test_type_projected_index_map_values3() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_clear1() {
+fn test_type_erased_index_map_clear1() {
     let mut map = TypeErasedIndexMap::new::<usize, i32>();
 
     assert!(map.is_empty());
@@ -973,7 +973,7 @@ fn test_type_projected_index_map_clear1() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_clear2() {
+fn test_type_erased_index_map_clear2() {
     let mut map = TypeErasedIndexMap::from([
         (1_usize, 20_i32),
         (2_usize, 2043_i32),
@@ -994,7 +994,7 @@ fn test_type_projected_index_map_clear2() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_clear3() {
+fn test_type_erased_index_map_clear3() {
     let mut map = TypeErasedIndexMap::from([
         (1_usize, 20_i32),
         (2_usize, 2043_i32),
@@ -1023,7 +1023,7 @@ fn test_type_projected_index_map_clear3() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_split_off1() {
+fn test_type_erased_index_map_split_off1() {
     let mut map = TypeErasedIndexMap::from([
         (1_usize, 20_i32),
         (2_usize, 2043_i32),
@@ -1060,7 +1060,7 @@ fn test_type_projected_index_map_split_off1() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_split_off2() {
+fn test_type_erased_index_map_split_off2() {
     let mut map = TypeErasedIndexMap::from([
         (1_usize, 20_i32),
         (2_usize, 2043_i32),
@@ -1088,7 +1088,7 @@ fn test_type_projected_index_map_split_off2() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_split_off3() {
+fn test_type_erased_index_map_split_off3() {
     let mut map = TypeErasedIndexMap::from([
         (1_usize, 20_i32),
         (2_usize, 2043_i32),
@@ -1117,7 +1117,7 @@ fn test_type_projected_index_map_split_off3() {
 #[rustfmt::skip]
 #[test]
 #[should_panic]
-fn test_type_projected_index_map_split_off_out_of_bounds1() {
+fn test_type_erased_index_map_split_off_out_of_bounds1() {
     let mut map = TypeErasedIndexMap::new::<usize, i32>();
     let _ = map.split_off::<usize, i32, hash::RandomState, alloc::Global>(map.len() + 1);
 
@@ -1127,7 +1127,7 @@ fn test_type_projected_index_map_split_off_out_of_bounds1() {
 #[rustfmt::skip]
 #[test]
 #[should_panic]
-fn test_type_projected_index_map_split_off_out_of_bounds2() {
+fn test_type_erased_index_map_split_off_out_of_bounds2() {
     let mut map = TypeErasedIndexMap::from([
         (1_usize, 20_i32),
         (2_usize, 2043_i32),
@@ -1143,7 +1143,7 @@ fn test_type_projected_index_map_split_off_out_of_bounds2() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_swap_remove1() {
+fn test_type_erased_index_map_swap_remove1() {
     let mut map = TypeErasedIndexMap::from([
         (1_usize, 20_i32),
         (2_usize, 2043_i32),
@@ -1163,7 +1163,7 @@ fn test_type_projected_index_map_swap_remove1() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_swap_remove2() {
+fn test_type_erased_index_map_swap_remove2() {
     let mut map = TypeErasedIndexMap::from([
         (1_usize, 20_i32),
         (2_usize, 2043_i32),
@@ -1222,7 +1222,7 @@ fn test_type_projected_index_map_swap_remove2() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_swap_remove3() {
+fn test_type_erased_index_map_swap_remove3() {
     let mut map = TypeErasedIndexMap::from([
         (1_usize, 20_i32),
         (2_usize, 2043_i32),
@@ -1281,7 +1281,7 @@ fn test_type_projected_index_map_swap_remove3() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_swap_remove4() {
+fn test_type_erased_index_map_swap_remove4() {
     let mut map = TypeErasedIndexMap::from([
         (1_usize, 20_i32),
         (2_usize, 2043_i32),
@@ -1301,7 +1301,7 @@ fn test_type_projected_index_map_swap_remove4() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_swap_remove_entry1() {
+fn test_type_erased_index_map_swap_remove_entry1() {
     let mut map = TypeErasedIndexMap::from([
         (1_usize, 20_i32),
         (2_usize, 2043_i32),
@@ -1321,7 +1321,7 @@ fn test_type_projected_index_map_swap_remove_entry1() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_swap_remove_entry2() {
+fn test_type_erased_index_map_swap_remove_entry2() {
     let mut map = TypeErasedIndexMap::from([
         (1_usize, 20_i32),
         (2_usize, 2043_i32),
@@ -1380,7 +1380,7 @@ fn test_type_projected_index_map_swap_remove_entry2() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_swap_remove_entry3() {
+fn test_type_erased_index_map_swap_remove_entry3() {
     let mut map = TypeErasedIndexMap::from([
         (1_usize, 20_i32),
         (2_usize, 2043_i32),
@@ -1439,7 +1439,7 @@ fn test_type_projected_index_map_swap_remove_entry3() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_swap_remove_entry4() {
+fn test_type_erased_index_map_swap_remove_entry4() {
     let mut map = TypeErasedIndexMap::from([
         (1_usize, 20_i32),
         (2_usize, 2043_i32),
@@ -1459,7 +1459,7 @@ fn test_type_projected_index_map_swap_remove_entry4() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_swap_remove_full1() {
+fn test_type_erased_index_map_swap_remove_full1() {
     let mut map = TypeErasedIndexMap::from([
         (1_usize, 20_i32),
         (2_usize, 2043_i32),
@@ -1479,7 +1479,7 @@ fn test_type_projected_index_map_swap_remove_full1() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_swap_remove_full2() {
+fn test_type_erased_index_map_swap_remove_full2() {
     let mut map = TypeErasedIndexMap::from([
         (1_usize, 20_i32),
         (2_usize, 2043_i32),
@@ -1538,7 +1538,7 @@ fn test_type_projected_index_map_swap_remove_full2() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_swap_remove_full3() {
+fn test_type_erased_index_map_swap_remove_full3() {
     let mut map = TypeErasedIndexMap::from([
         (1_usize, 20_i32),
         (2_usize, 2043_i32),
@@ -1597,7 +1597,7 @@ fn test_type_projected_index_map_swap_remove_full3() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_swap_remove_full4() {
+fn test_type_erased_index_map_swap_remove_full4() {
     let mut map = TypeErasedIndexMap::from([
         (1_usize, 20_i32),
         (2_usize, 2043_i32),
@@ -1617,7 +1617,7 @@ fn test_type_projected_index_map_swap_remove_full4() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_shift_remove1() {
+fn test_type_erased_index_map_shift_remove1() {
     let mut map = TypeErasedIndexMap::from([
         (1655_usize, 2427_i32),
         (1992_usize, 2910_i32),
@@ -1637,7 +1637,7 @@ fn test_type_projected_index_map_shift_remove1() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_shift_remove2() {
+fn test_type_erased_index_map_shift_remove2() {
     let mut map = TypeErasedIndexMap::from([
         (1655_usize, 2427_i32),
         (1992_usize, 2910_i32),
@@ -1696,7 +1696,7 @@ fn test_type_projected_index_map_shift_remove2() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_shift_remove3() {
+fn test_type_erased_index_map_shift_remove3() {
     let mut map = TypeErasedIndexMap::from([
         (1655_usize, 2427_i32),
         (1992_usize, 2910_i32),
@@ -1755,7 +1755,7 @@ fn test_type_projected_index_map_shift_remove3() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_shift_remove4() {
+fn test_type_erased_index_map_shift_remove4() {
     let mut map = TypeErasedIndexMap::from([
         (1655_usize, 2427_i32),
         (1992_usize, 2910_i32),
@@ -1775,7 +1775,7 @@ fn test_type_projected_index_map_shift_remove4() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_shift_remove_entry1() {
+fn test_type_erased_index_map_shift_remove_entry1() {
     let mut map = TypeErasedIndexMap::from([
         (1655_usize, 2427_i32),
         (1992_usize, 2910_i32),
@@ -1795,7 +1795,7 @@ fn test_type_projected_index_map_shift_remove_entry1() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_shift_remove_entry2() {
+fn test_type_erased_index_map_shift_remove_entry2() {
     let mut map = TypeErasedIndexMap::from([
         (1655_usize, 2427_i32),
         (1992_usize, 2910_i32),
@@ -1854,7 +1854,7 @@ fn test_type_projected_index_map_shift_remove_entry2() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_shift_remove_entry3() {
+fn test_type_erased_index_map_shift_remove_entry3() {
     let mut map = TypeErasedIndexMap::from([
         (1655_usize, 2427_i32),
         (1992_usize, 2910_i32),
@@ -1913,7 +1913,7 @@ fn test_type_projected_index_map_shift_remove_entry3() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_shift_remove_entry4() {
+fn test_type_erased_index_map_shift_remove_entry4() {
     let mut map = TypeErasedIndexMap::from([
         (1655_usize, 2427_i32),
         (1992_usize, 2910_i32),
@@ -1933,7 +1933,7 @@ fn test_type_projected_index_map_shift_remove_entry4() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_shift_remove_full1() {
+fn test_type_erased_index_map_shift_remove_full1() {
     let mut map = TypeErasedIndexMap::from([
         (1655_usize, 2427_i32),
         (1992_usize, 2910_i32),
@@ -1953,7 +1953,7 @@ fn test_type_projected_index_map_shift_remove_full1() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_shift_remove_full2() {
+fn test_type_erased_index_map_shift_remove_full2() {
     let mut map = TypeErasedIndexMap::from([
         (1655_usize, 2427_i32),
         (1992_usize, 2910_i32),
@@ -2012,7 +2012,7 @@ fn test_type_projected_index_map_shift_remove_full2() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_shift_remove_full3() {
+fn test_type_erased_index_map_shift_remove_full3() {
     let mut map = TypeErasedIndexMap::from([
         (1655_usize, 2427_i32),
         (1992_usize, 2910_i32),
@@ -2071,7 +2071,7 @@ fn test_type_projected_index_map_shift_remove_full3() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_shift_remove_full4() {
+fn test_type_erased_index_map_shift_remove_full4() {
     let mut map = TypeErasedIndexMap::from([
         (1655_usize, 2427_i32),
         (1992_usize, 2910_i32),
@@ -2091,7 +2091,7 @@ fn test_type_projected_index_map_shift_remove_full4() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_insert1() {
+fn test_type_erased_index_map_insert1() {
     let mut map = TypeErasedIndexMap::new::<usize, i32>();
 
     assert_eq!(map.insert::<usize, i32, hash::RandomState, alloc::Global>(1803_usize, 1778_i32), None);
@@ -2104,7 +2104,7 @@ fn test_type_projected_index_map_insert1() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_insert2() {
+fn test_type_erased_index_map_insert2() {
     let mut map = TypeErasedIndexMap::new::<usize, i32>();
 
     assert!(map.is_empty());
@@ -2164,7 +2164,7 @@ fn test_type_projected_index_map_insert2() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_insert_full1() {
+fn test_type_erased_index_map_insert_full1() {
     let mut map = TypeErasedIndexMap::new::<usize, i32>();
 
     assert_eq!(map.insert_full::<usize, i32, hash::RandomState, alloc::Global>(1803_usize, 1778_i32), (0, None));
@@ -2177,7 +2177,7 @@ fn test_type_projected_index_map_insert_full1() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_insert_full2() {
+fn test_type_erased_index_map_insert_full2() {
     let mut map = TypeErasedIndexMap::new::<usize, i32>();
 
     assert!(map.is_empty());
@@ -2237,7 +2237,7 @@ fn test_type_projected_index_map_insert_full2() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_insert_before1() {
+fn test_type_erased_index_map_insert_before1() {
     let mut map = TypeErasedIndexMap::new::<usize, i32>();
 
     assert_eq!(map.insert_before::<usize, i32, hash::RandomState, alloc::Global>(0, 370_usize, 2339_i32),  (0, None));
@@ -2250,7 +2250,7 @@ fn test_type_projected_index_map_insert_before1() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_insert_before2() {
+fn test_type_erased_index_map_insert_before2() {
     let mut map = TypeErasedIndexMap::new::<usize, i32>();
 
     assert_eq!(map.len(), 0);
@@ -2309,7 +2309,7 @@ fn test_type_projected_index_map_insert_before2() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_insert_before3() {
+fn test_type_erased_index_map_insert_before3() {
     let mut map = TypeErasedIndexMap::from([
         (2712_usize, 509_i32),
         (289_usize,  464_i32),
@@ -2336,7 +2336,7 @@ fn test_type_projected_index_map_insert_before3() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_insert_before4() {
+fn test_type_erased_index_map_insert_before4() {
     let mut map = TypeErasedIndexMap::from([
         (2712_usize, 509_i32),
         (289_usize,  464_i32),
@@ -2363,7 +2363,7 @@ fn test_type_projected_index_map_insert_before4() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_insert_before5() {
+fn test_type_erased_index_map_insert_before5() {
     let mut map = TypeErasedIndexMap::from([
         (2712_usize, 509_i32),
         (289_usize,  464_i32),
@@ -2390,7 +2390,7 @@ fn test_type_projected_index_map_insert_before5() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_insert_before6() {
+fn test_type_erased_index_map_insert_before6() {
     let mut map = TypeErasedIndexMap::from([
         (2712_usize, 509_i32),
         (289_usize,  464_i32),
@@ -2418,7 +2418,7 @@ fn test_type_projected_index_map_insert_before6() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_shift_insert1() {
+fn test_type_erased_index_map_shift_insert1() {
     let mut map = TypeErasedIndexMap::new::<usize, i32>();
 
     assert_eq!(map.shift_insert::<usize, i32, hash::RandomState, alloc::Global>(0, 1809_usize, 2381_i32), None);
@@ -2431,7 +2431,7 @@ fn test_type_projected_index_map_shift_insert1() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_shift_insert2() {
+fn test_type_erased_index_map_shift_insert2() {
     let mut map = TypeErasedIndexMap::new::<usize, i32>();
 
     assert_eq!(map.len(), 0);
@@ -2491,7 +2491,7 @@ fn test_type_projected_index_map_shift_insert2() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_shift_insert3() {
+fn test_type_erased_index_map_shift_insert3() {
     let mut map = TypeErasedIndexMap::new::<usize, i32>();
 
     assert_eq!(map.shift_insert::<usize, i32, hash::RandomState, alloc::Global>(0, 477_usize, 2084_i32),  None);
@@ -2504,7 +2504,7 @@ fn test_type_projected_index_map_shift_insert3() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_shift_insert4() {
+fn test_type_erased_index_map_shift_insert4() {
     let mut map = TypeErasedIndexMap::new::<usize, i32>();
 
     assert_eq!(map.len(), 0);
@@ -2564,7 +2564,7 @@ fn test_type_projected_index_map_shift_insert4() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_append1() {
+fn test_type_erased_index_map_append1() {
     let mut map1 = TypeErasedIndexMap::from([
         (605_usize,  2879_i32),
         (1804_usize, 1728_i32),
@@ -2598,7 +2598,7 @@ fn test_type_projected_index_map_append1() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_append2() {
+fn test_type_erased_index_map_append2() {
     let mut map1 = TypeErasedIndexMap::from([
         (605_usize,  2879_i32),
         (1804_usize, 1728_i32),
@@ -2630,7 +2630,7 @@ fn test_type_projected_index_map_append2() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_append3() {
+fn test_type_erased_index_map_append3() {
     let mut map1 = TypeErasedIndexMap::from([
         (605_usize,  2879_i32),
         (1804_usize, 1728_i32),
@@ -2657,7 +2657,7 @@ fn test_type_projected_index_map_append3() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_append4() {
+fn test_type_erased_index_map_append4() {
     let mut map1 = TypeErasedIndexMap::new::<usize, i32>();
     let mut map2 = TypeErasedIndexMap::from([
         (605_usize,  2879_i32),
@@ -2684,7 +2684,7 @@ fn test_type_projected_index_map_append4() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_append5() {
+fn test_type_erased_index_map_append5() {
     let mut map1 = TypeErasedIndexMap::from([(usize::MAX, 1_i32)]);
     let mut map2 = TypeErasedIndexMap::from([(usize::MAX, i32::MAX)]);
     let expected = TypeErasedIndexMap::from([(usize::MAX, i32::MAX)]);
@@ -2701,7 +2701,7 @@ fn test_type_projected_index_map_append5() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_retain1() {
+fn test_type_erased_index_map_retain1() {
     let mut map = TypeErasedIndexMap::from([
         (344_usize,  ()),
         (1646_usize, ()),
@@ -2724,7 +2724,7 @@ fn test_type_projected_index_map_retain1() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_retain2() {
+fn test_type_erased_index_map_retain2() {
     let mut map = TypeErasedIndexMap::from([
         (344_usize,  ()),
         (1646_usize, ()),
@@ -2747,7 +2747,7 @@ fn test_type_projected_index_map_retain2() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_retain3() {
+fn test_type_erased_index_map_retain3() {
     let mut map = TypeErasedIndexMap::from([
         (344_usize,  ()),
         (1646_usize, ()),
@@ -2776,7 +2776,7 @@ fn test_type_projected_index_map_retain3() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_retain4() {
+fn test_type_erased_index_map_retain4() {
     let mut map = TypeErasedIndexMap::from([
         (344_usize,  ()),
         (1646_usize, ()),
@@ -2803,7 +2803,7 @@ fn test_type_projected_index_map_retain4() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_sort_keys1() {
+fn test_type_erased_index_map_sort_keys1() {
     let mut map = TypeErasedIndexMap::from([
         (6_usize,   ()),
         (7_usize,   ()),
@@ -2841,7 +2841,7 @@ fn test_type_projected_index_map_sort_keys1() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_sort_keys2() {
+fn test_type_erased_index_map_sort_keys2() {
     let mut map = TypeErasedIndexMap::from([
         (10_usize,  ()),
         (47_usize,  ()),
@@ -2879,7 +2879,7 @@ fn test_type_projected_index_map_sort_keys2() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_sort_keys3() {
+fn test_type_erased_index_map_sort_keys3() {
     let mut map = TypeErasedIndexMap::from([
         (200_usize, ()),
         (176_usize, ()),
@@ -2917,7 +2917,7 @@ fn test_type_projected_index_map_sort_keys3() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_sort_by1() {
+fn test_type_erased_index_map_sort_by1() {
     let mut map = TypeErasedIndexMap::from([
         (1952_usize, 1390_i32),
         (2900_usize, 2846_i32),
@@ -2945,7 +2945,7 @@ fn test_type_projected_index_map_sort_by1() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_sort_by2() {
+fn test_type_erased_index_map_sort_by2() {
     let mut map = TypeErasedIndexMap::from([
         (String::from("4"),   ()),
         (String::from("101"), ()),
@@ -2973,7 +2973,7 @@ fn test_type_projected_index_map_sort_by2() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_sort_by3() {
+fn test_type_erased_index_map_sort_by3() {
     let mut map = TypeErasedIndexMap::from([
         (String::from("400"), ()),
         (String::from("101"), ()),
@@ -3001,7 +3001,7 @@ fn test_type_projected_index_map_sort_by3() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_sort_unstable_keys1() {
+fn test_type_erased_index_map_sort_unstable_keys1() {
     let mut map = TypeErasedIndexMap::from([
         (6_usize,   ()),
         (7_usize,   ()),
@@ -3039,7 +3039,7 @@ fn test_type_projected_index_map_sort_unstable_keys1() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_sort_unstable_keys2() {
+fn test_type_erased_index_map_sort_unstable_keys2() {
     let mut map = TypeErasedIndexMap::from([
         (10_usize,  ()),
         (47_usize,  ()),
@@ -3077,7 +3077,7 @@ fn test_type_projected_index_map_sort_unstable_keys2() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_sort_unstable_keys3() {
+fn test_type_erased_index_map_sort_unstable_keys3() {
     let mut map = TypeErasedIndexMap::from([
         (200_usize, ()),
         (176_usize, ()),
@@ -3115,7 +3115,7 @@ fn test_type_projected_index_map_sort_unstable_keys3() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_sort_unstable_by1() {
+fn test_type_erased_index_map_sort_unstable_by1() {
     let mut map = TypeErasedIndexMap::from([
         (1952_usize, 1390_i32),
         (2900_usize, 2846_i32),
@@ -3143,7 +3143,7 @@ fn test_type_projected_index_map_sort_unstable_by1() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_sort_unstable_by2() {
+fn test_type_erased_index_map_sort_unstable_by2() {
     let mut map = TypeErasedIndexMap::from([
         (String::from("4"),   ()),
         (String::from("101"), ()),
@@ -3171,7 +3171,7 @@ fn test_type_projected_index_map_sort_unstable_by2() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_sort_unstable_by3() {
+fn test_type_erased_index_map_sort_unstable_by3() {
     let mut map = TypeErasedIndexMap::from([
         (String::from("400"), ()),
         (String::from("101"), ()),
@@ -3199,7 +3199,7 @@ fn test_type_projected_index_map_sort_unstable_by3() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_reverse() {
+fn test_type_erased_index_map_reverse() {
     let mut map = TypeErasedIndexMap::from([
         (39_usize,   2757_i32),
         (144_usize,  1357_i32),
@@ -3227,7 +3227,7 @@ fn test_type_projected_index_map_reverse() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_binary_search_by1() {
+fn test_type_erased_index_map_binary_search_by1() {
     let map = TypeErasedIndexMap::new::<usize, i32>();
 
     for i in -128..128 {
@@ -3237,7 +3237,7 @@ fn test_type_projected_index_map_binary_search_by1() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_binary_search_by2() {
+fn test_type_erased_index_map_binary_search_by2() {
     let map = TypeErasedIndexMap::from([(92_usize, 4_i32)]);
 
     assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&0)), Err(0));
@@ -3253,7 +3253,7 @@ fn test_type_projected_index_map_binary_search_by2() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_binary_search_by3() {
+fn test_type_erased_index_map_binary_search_by3() {
     let map = TypeErasedIndexMap::from([
         (130_usize, 1_i32),
         (92_usize,  4_i32),
@@ -3274,7 +3274,7 @@ fn test_type_projected_index_map_binary_search_by3() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_binary_search_by4() {
+fn test_type_erased_index_map_binary_search_by4() {
     let map = TypeErasedIndexMap::from([
         (130_usize, 1_i32),
         (45_usize,  3_i32),
@@ -3300,7 +3300,7 @@ fn test_type_projected_index_map_binary_search_by4() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_binary_search_by5() {
+fn test_type_erased_index_map_binary_search_by5() {
     let map = TypeErasedIndexMap::from([
         (130_usize, 1_i32),
         (45_usize,  3_i32),
@@ -3333,7 +3333,7 @@ fn test_type_projected_index_map_binary_search_by5() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_binary_search_by_key1() {
+fn test_type_erased_index_map_binary_search_by_key1() {
     let map = TypeErasedIndexMap::new::<usize, i32>();
 
     for i in -128..128 {
@@ -3343,7 +3343,7 @@ fn test_type_projected_index_map_binary_search_by_key1() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_binary_search_by_key2() {
+fn test_type_erased_index_map_binary_search_by_key2() {
     let map = TypeErasedIndexMap::from([(92_usize, 4_i32)]);
 
     assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&0, |_k, v| *v), Err(0));
@@ -3359,7 +3359,7 @@ fn test_type_projected_index_map_binary_search_by_key2() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_binary_search_by_key3() {
+fn test_type_erased_index_map_binary_search_by_key3() {
     let map = TypeErasedIndexMap::from([
         (130_usize, 1_i32),
         (92_usize,  4_i32),
@@ -3380,7 +3380,7 @@ fn test_type_projected_index_map_binary_search_by_key3() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_binary_search_by_key4() {
+fn test_type_erased_index_map_binary_search_by_key4() {
     let map = TypeErasedIndexMap::from([
         (130_usize, 1_i32),
         (45_usize,  3_i32),
@@ -3406,7 +3406,7 @@ fn test_type_projected_index_map_binary_search_by_key4() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_binary_search_by_key5() {
+fn test_type_erased_index_map_binary_search_by_key5() {
     let map = TypeErasedIndexMap::from([
         (130_usize, 1_i32),
         (45_usize,  3_i32),
@@ -3439,7 +3439,7 @@ fn test_type_projected_index_map_binary_search_by_key5() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_partition_point1() {
+fn test_type_erased_index_map_partition_point1() {
     let map = TypeErasedIndexMap::new::<usize, i32>();
 
     for i in -128..128 {
@@ -3449,7 +3449,7 @@ fn test_type_projected_index_map_partition_point1() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_partition_point2() {
+fn test_type_erased_index_map_partition_point2() {
     let map = TypeErasedIndexMap::from([(92_usize, 4_i32)]);
 
     assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 0), 0);
@@ -3465,7 +3465,7 @@ fn test_type_projected_index_map_partition_point2() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_partition_point3() {
+fn test_type_erased_index_map_partition_point3() {
     let map = TypeErasedIndexMap::from([
         (130_usize, 1_i32),
         (92_usize,  4_i32),
@@ -3486,7 +3486,7 @@ fn test_type_projected_index_map_partition_point3() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_partition_point4() {
+fn test_type_erased_index_map_partition_point4() {
     let map = TypeErasedIndexMap::from([
         (130_usize, 1_i32),
         (45_usize,  3_i32),
@@ -3512,7 +3512,7 @@ fn test_type_projected_index_map_partition_point4() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_partition_point5() {
+fn test_type_erased_index_map_partition_point5() {
     let map = TypeErasedIndexMap::from([
         (130_usize, 1_i32),
         (45_usize,  3_i32),
@@ -3545,7 +3545,7 @@ fn test_type_projected_index_map_partition_point5() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_reserve1() {
+fn test_type_erased_index_map_reserve1() {
     let mut map = TypeErasedIndexMap::new::<usize, usize>();
     let additional = 100;
 
@@ -3558,7 +3558,7 @@ fn test_type_projected_index_map_reserve1() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_reserve2() {
+fn test_type_erased_index_map_reserve2() {
     let mut map = TypeErasedIndexMap::new::<usize, usize>();
     let additional = 100;
 
@@ -3588,7 +3588,7 @@ fn test_type_projected_index_map_reserve2() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_reserve3() {
+fn test_type_erased_index_map_reserve3() {
     let mut map = TypeErasedIndexMap::new::<usize, usize>();
     let additional = 100;
 
@@ -3641,7 +3641,7 @@ fn test_type_projected_index_map_reserve3() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_reserve_exact1() {
+fn test_type_erased_index_map_reserve_exact1() {
     let mut map = TypeErasedIndexMap::new::<usize, usize>();
     let additional = 100;
 
@@ -3654,7 +3654,7 @@ fn test_type_projected_index_map_reserve_exact1() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_reserve_exact2() {
+fn test_type_erased_index_map_reserve_exact2() {
     let mut map = TypeErasedIndexMap::new::<usize, usize>();
     let additional = 100;
 
@@ -3684,7 +3684,7 @@ fn test_type_projected_index_map_reserve_exact2() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_reserve_exact3() {
+fn test_type_erased_index_map_reserve_exact3() {
     let mut map = TypeErasedIndexMap::new::<usize, usize>();
     let additional = 100;
 
@@ -3737,7 +3737,7 @@ fn test_type_projected_index_map_reserve_exact3() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_try_reserve1() {
+fn test_type_erased_index_map_try_reserve1() {
     let mut map = TypeErasedIndexMap::new::<usize, usize>();
     let additional = 100;
 
@@ -3748,7 +3748,7 @@ fn test_type_projected_index_map_try_reserve1() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_try_reserve2() {
+fn test_type_erased_index_map_try_reserve2() {
     let mut map = TypeErasedIndexMap::new::<usize, usize>();
     let additional = 100;
 
@@ -3776,7 +3776,7 @@ fn test_type_projected_index_map_try_reserve2() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_try_reserve3() {
+fn test_type_erased_index_map_try_reserve3() {
     let mut map = TypeErasedIndexMap::new::<usize, usize>();
     let additional = 100;
 
@@ -3829,7 +3829,7 @@ fn test_type_projected_index_map_try_reserve3() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_try_reserve_exact1() {
+fn test_type_erased_index_map_try_reserve_exact1() {
     let mut map = TypeErasedIndexMap::new::<usize, usize>();
     let additional = 100;
 
@@ -3840,7 +3840,7 @@ fn test_type_projected_index_map_try_reserve_exact1() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_try_reserve_exact2() {
+fn test_type_erased_index_map_try_reserve_exact2() {
     let mut map = TypeErasedIndexMap::new::<usize, usize>();
     let additional = 100;
 
@@ -3868,7 +3868,7 @@ fn test_type_projected_index_map_try_reserve_exact2() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_try_reserve_exact3() {
+fn test_type_erased_index_map_try_reserve_exact3() {
     let mut map = TypeErasedIndexMap::new::<usize, usize>();
     let additional = 100;
 
@@ -3921,7 +3921,7 @@ fn test_type_projected_index_map_try_reserve_exact3() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_shrink_to_fit1() {
+fn test_type_erased_index_map_shrink_to_fit1() {
     let mut map = TypeErasedIndexMap::with_capacity::<usize, usize>(10);
     assert_eq!(map.capacity(), 10);
 
@@ -3937,7 +3937,7 @@ fn test_type_projected_index_map_shrink_to_fit1() {
 
 #[rustfmt::skip]
 #[test]
-fn test_type_projected_index_map_shrink_to_fit2() {
+fn test_type_erased_index_map_shrink_to_fit2() {
     let mut map = TypeErasedIndexMap::new::<usize, usize>();
     for i in 0..128 {
         assert_eq!(map.len(), i);
