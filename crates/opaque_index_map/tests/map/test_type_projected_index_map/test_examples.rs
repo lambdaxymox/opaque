@@ -584,6 +584,16 @@ fn test_type_projected_index_map_get_index6() {
 
 #[rustfmt::skip]
 #[test]
+fn test_type_projected_index_map_get_disjoint_mut1() {
+    let mut map: TypeProjectedIndexMap<&str, i32> = TypeProjectedIndexMap::new();
+    let expected = [None, None, None, None, None, None];
+    let result = map.get_disjoint_mut([&"1", &"2", &"3", &"4", &"5", &"6"]);
+
+    assert_eq!(result, expected);
+}
+
+#[rustfmt::skip]
+#[test]
 fn test_type_projected_index_map_get_disjoint_mut2() {
     let mut map = TypeProjectedIndexMap::from([
         ("1", 10_i32),
@@ -3481,7 +3491,7 @@ fn test_type_projected_index_map_reserve2() {
     let old_capacity = map.capacity();
     map.insert(0, usize::MAX);
     for i in 1..(map.capacity() - 1) {
-        map.insert(i, 0);
+        map.insert(i, 0_usize);
     }
 
     map.insert(map.capacity() - 1, usize::MAX);
@@ -3491,7 +3501,7 @@ fn test_type_projected_index_map_reserve2() {
 
     assert_eq!(map[0], usize::MAX);
     for i in 1..(map.len() - 1) {
-        assert_eq!(map[i], 0);
+        assert_eq!(map[i], 0_usize);
     }
     assert_eq!(map[map.len() - 1], usize::MAX);
 }
@@ -3573,7 +3583,7 @@ fn test_type_projected_index_map_reserve_exact2() {
     let old_capacity = map.capacity();
     map.insert(0, usize::MAX);
     for i in 1..(map.capacity() - 1) {
-        map.insert(i, 0);
+        map.insert(i, 0_usize);
     }
 
     map.insert(map.capacity() - 1, usize::MAX);
@@ -3583,7 +3593,7 @@ fn test_type_projected_index_map_reserve_exact2() {
 
     assert_eq!(map[0], usize::MAX);
     for i in 1..(map.len() - 1) {
-        assert_eq!(map[i], 0);
+        assert_eq!(map[i], 0_usize);
     }
     assert_eq!(map[map.len() - 1], usize::MAX);
 }
@@ -3661,7 +3671,7 @@ fn test_type_projected_index_map_try_reserve2() {
     let old_capacity = map.capacity();
     map.insert(0, usize::MAX);
     for i in 1..(map.capacity() - 1) {
-        map.insert(i, 0);
+        map.insert(i, 0_usize);
     }
 
     map.insert(map.capacity() - 1, usize::MAX);
@@ -3671,7 +3681,7 @@ fn test_type_projected_index_map_try_reserve2() {
 
     assert_eq!(map[0], usize::MAX);
     for i in 1..(map.len() - 1) {
-        assert_eq!(map[i], 0);
+        assert_eq!(map[i], 0_usize);
     }
     assert_eq!(map[map.len() - 1], usize::MAX);
 }
@@ -3749,7 +3759,7 @@ fn test_type_projected_index_map_try_reserve_exact2() {
     let old_capacity = map.capacity();
     map.insert(0, usize::MAX);
     for i in 1..(map.capacity() - 1) {
-        map.insert(i, 0);
+        map.insert(i, 0_usize);
     }
 
     map.insert(map.capacity() - 1, usize::MAX);
@@ -3759,7 +3769,7 @@ fn test_type_projected_index_map_try_reserve_exact2() {
 
     assert_eq!(map[0], usize::MAX);
     for i in 1..(map.len() - 1) {
-        assert_eq!(map[i], 0);
+        assert_eq!(map[i], 0_usize);
     }
     assert_eq!(map[map.len() - 1], usize::MAX);
 }

@@ -585,6 +585,16 @@ fn test_type_erased_index_map_get_index6() {
 
 #[rustfmt::skip]
 #[test]
+fn test_type_erased_index_map_get_disjoint_mut1() {
+    let mut map = TypeErasedIndexMap::new::<&str, i32>();
+    let expected = [None, None, None, None, None, None];
+    let result = map.get_disjoint_mut::<_, 6, &str, i32, hash::RandomState, alloc::Global>([&"1", &"2", &"3", &"4", &"5", &"6"]);
+
+    assert_eq!(result, expected);
+}
+
+#[rustfmt::skip]
+#[test]
 fn test_type_erased_index_map_get_disjoint_mut2() {
     let mut map = TypeErasedIndexMap::from([
         ("1", 10_i32),
@@ -3571,7 +3581,7 @@ fn test_type_erased_index_map_reserve2() {
     let old_capacity = map.capacity();
     map.insert::<usize, usize, hash::RandomState, alloc::Global>(0, usize::MAX);
     for i in 1..(map.capacity() - 1) {
-        map.insert::<usize, usize, hash::RandomState, alloc::Global>(i, 0);
+        map.insert::<usize, usize, hash::RandomState, alloc::Global>(i, 0_usize);
     }
 
     map.insert::<usize, usize, hash::RandomState, alloc::Global>(map.capacity() - 1, usize::MAX);
@@ -3581,7 +3591,7 @@ fn test_type_erased_index_map_reserve2() {
 
     assert_eq!(map.as_slice::<usize, usize, hash::RandomState, alloc::Global>()[0], usize::MAX);
     for i in 1..(map.len() - 1) {
-        assert_eq!(map.as_slice::<usize, usize, hash::RandomState, alloc::Global>()[i], 0);
+        assert_eq!(map.as_slice::<usize, usize, hash::RandomState, alloc::Global>()[i], 0_usize);
     }
     assert_eq!(map.as_slice::<usize, usize, hash::RandomState, alloc::Global>()[map.len() - 1], usize::MAX);
 }
@@ -3667,7 +3677,7 @@ fn test_type_erased_index_map_reserve_exact2() {
     let old_capacity = map.capacity();
     map.insert::<usize, usize, hash::RandomState, alloc::Global>(0, usize::MAX);
     for i in 1..(map.capacity() - 1) {
-        map.insert::<usize, usize, hash::RandomState, alloc::Global>(i, 0);
+        map.insert::<usize, usize, hash::RandomState, alloc::Global>(i, 0_usize);
     }
 
     map.insert::<usize, usize, hash::RandomState, alloc::Global>(map.capacity() - 1, usize::MAX);
@@ -3677,7 +3687,7 @@ fn test_type_erased_index_map_reserve_exact2() {
 
     assert_eq!(map.as_slice::<usize, usize, hash::RandomState, alloc::Global>()[0], usize::MAX);
     for i in 1..(map.len() - 1) {
-        assert_eq!(map.as_slice::<usize, usize, hash::RandomState, alloc::Global>()[i], 0);
+        assert_eq!(map.as_slice::<usize, usize, hash::RandomState, alloc::Global>()[i], 0_usize);
     }
     assert_eq!(map.as_slice::<usize, usize, hash::RandomState, alloc::Global>()[map.len() - 1], usize::MAX);
 }
@@ -3759,7 +3769,7 @@ fn test_type_erased_index_map_try_reserve2() {
     let old_capacity = map.capacity();
     map.insert::<usize, usize, hash::RandomState, alloc::Global>(0, usize::MAX);
     for i in 1..(map.capacity() - 1) {
-        map.insert::<usize, usize, hash::RandomState, alloc::Global>(i, 0);
+        map.insert::<usize, usize, hash::RandomState, alloc::Global>(i, 0_usize);
     }
 
     map.insert::<usize, usize, hash::RandomState, alloc::Global>(map.capacity() - 1, usize::MAX);
@@ -3769,7 +3779,7 @@ fn test_type_erased_index_map_try_reserve2() {
 
     assert_eq!(map.as_slice::<usize, usize, hash::RandomState, alloc::Global>()[0], usize::MAX);
     for i in 1..(map.len() - 1) {
-        assert_eq!(map.as_slice::<usize, usize, hash::RandomState, alloc::Global>()[i], 0);
+        assert_eq!(map.as_slice::<usize, usize, hash::RandomState, alloc::Global>()[i], 0_usize);
     }
     assert_eq!(map.as_slice::<usize, usize, hash::RandomState, alloc::Global>()[map.len() - 1], usize::MAX);
 }
@@ -3851,7 +3861,7 @@ fn test_type_erased_index_map_try_reserve_exact2() {
     let old_capacity = map.capacity();
     map.insert::<usize, usize, hash::RandomState, alloc::Global>(0, usize::MAX);
     for i in 1..(map.capacity() - 1) {
-        map.insert::<usize, usize, hash::RandomState, alloc::Global>(i, 0);
+        map.insert::<usize, usize, hash::RandomState, alloc::Global>(i, 0_usize);
     }
 
     map.insert::<usize, usize, hash::RandomState, alloc::Global>(map.capacity() - 1, usize::MAX);
@@ -3861,7 +3871,7 @@ fn test_type_erased_index_map_try_reserve_exact2() {
 
     assert_eq!(map.as_slice::<usize, usize, hash::RandomState, alloc::Global>()[0], usize::MAX);
     for i in 1..(map.len() - 1) {
-        assert_eq!(map.as_slice::<usize, usize, hash::RandomState, alloc::Global>()[i], 0);
+        assert_eq!(map.as_slice::<usize, usize, hash::RandomState, alloc::Global>()[i], 0_usize);
     }
     assert_eq!(map.as_slice::<usize, usize, hash::RandomState, alloc::Global>()[map.len() - 1], usize::MAX);
 }
