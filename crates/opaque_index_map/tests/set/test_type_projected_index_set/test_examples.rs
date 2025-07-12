@@ -519,6 +519,166 @@ fn test_type_projected_index_set_iter3() {
 
 #[rustfmt::skip]
 #[test]
+fn test_type_projected_index_set_into_iter1() {
+    let set = TypeProjectedIndexSet::from([
+        89_usize,
+        40_usize,
+        80_usize,
+        39_usize,
+        62_usize,
+        81_usize,
+    ]);
+
+    for value in set.clone().into_iter() {
+        assert!(set.contains(&value));
+    }
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_set_into_iter2() {
+    let set = TypeProjectedIndexSet::from([
+        89_usize,
+        40_usize,
+        80_usize,
+        39_usize,
+        62_usize,
+        81_usize,
+    ]);
+
+    for value in set.clone().into_iter() {
+        let expected = Some(&value);
+        let result = set.get(&value);
+
+        assert_eq!(result, expected);
+    }
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_set_into_iter3() {
+    let set = TypeProjectedIndexSet::from([
+        89_usize,
+        40_usize,
+        80_usize,
+        39_usize,
+        62_usize,
+        81_usize,
+    ]);
+    let expected = TypeProjectedVec::from([
+        89_usize,
+        40_usize,
+        80_usize,
+        39_usize,
+        62_usize,
+        81_usize,
+    ]);
+    let result: TypeProjectedVec<usize> = set
+        .iter()
+        .cloned()
+        .collect();
+
+    assert_eq!(result, expected);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_set_into_iter4() {
+    let set = TypeProjectedIndexSet::from([
+        89_usize,
+        40_usize,
+        80_usize,
+        39_usize,
+        62_usize,
+        81_usize,
+    ]);
+    let mut iter = set.into_iter();
+
+    assert_eq!(iter.next(), Some(89_usize));
+    assert_eq!(iter.next(), Some(40_usize));
+    assert_eq!(iter.next(), Some(80_usize));
+    assert_eq!(iter.next(), Some(39_usize));
+    assert_eq!(iter.next(), Some(62_usize));
+    assert_eq!(iter.next(), Some(81_usize));
+    assert_eq!(iter.next(), None);
+    assert_eq!(iter.next(), None);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_set_into_iter5() {
+    let set = TypeProjectedIndexSet::from([
+        89_usize,
+        40_usize,
+        80_usize,
+        39_usize,
+        62_usize,
+        81_usize,
+    ]);
+    let mut iter = set.into_iter();
+
+    assert_eq!(iter.len(), 6);
+    assert_eq!(iter.as_slice(), &[89_usize, 40_usize, 80_usize, 39_usize, 62_usize, 81_usize]);
+
+    let _ = iter.next();
+    assert_eq!(iter.len(), 5);
+    assert_eq!(iter.as_slice(), &[40_usize, 80_usize, 39_usize, 62_usize, 81_usize]);
+
+    let _ = iter.next();
+    assert_eq!(iter.len(), 4);
+    assert_eq!(iter.as_slice(), &[80_usize, 39_usize, 62_usize, 81_usize]);
+
+    let _ = iter.next();
+    assert_eq!(iter.len(), 3);
+    assert_eq!(iter.as_slice(), &[39_usize, 62_usize, 81_usize]);
+
+    let _ = iter.next();
+    assert_eq!(iter.len(), 2);
+    assert_eq!(iter.as_slice(), &[62_usize, 81_usize]);
+
+    let _ = iter.next();
+    assert_eq!(iter.len(), 1);
+    assert_eq!(iter.as_slice(), &[81_usize]);
+
+    let _ = iter.next();
+    assert_eq!(iter.len(), 0);
+    assert_eq!(iter.as_slice(), &[]);
+
+    let _ = iter.next();
+    assert_eq!(iter.len(), 0);
+    assert_eq!(iter.as_slice(), &[]);
+
+    let _ = iter.next();
+    assert_eq!(iter.len(), 0);
+    assert_eq!(iter.as_slice(), &[]);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_set_into_iter6() {
+    let set: TypeProjectedIndexSet<usize> = TypeProjectedIndexSet::new();
+    let mut iter = set.into_iter();
+
+    for _ in 0..65536 {
+        assert!(iter.next().is_none());
+    }
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_set_into_iter7() {
+    let set: TypeProjectedIndexSet<usize> = TypeProjectedIndexSet::new();
+    let mut iter = set.into_iter();
+
+    for _ in 0..65536 {
+        let _ = iter.next().is_none();
+        assert_eq!(iter.len(), 0);
+        assert!(iter.as_slice().is_empty());
+    }
+}
+
+#[rustfmt::skip]
+#[test]
 fn test_type_projected_index_set_clear1() {
     let mut set: TypeProjectedIndexSet<i32> = TypeProjectedIndexSet::new();
 

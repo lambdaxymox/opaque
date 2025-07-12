@@ -968,6 +968,291 @@ fn test_type_projected_index_map_values3() {
 
 #[rustfmt::skip]
 #[test]
+fn test_type_projected_index_map_iter1() {
+    let map = TypeProjectedIndexMap::from([
+        (89_usize, 92_i32),
+        (40_usize, 59_i32),
+        (80_usize, 87_i32),
+        (39_usize, 5_i32),
+        (62_usize, 11_i32),
+        (81_usize, 36_i32),
+    ]);
+
+    for (key, value) in map.iter() {
+        assert!(map.contains_key(key));
+    }
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_iter2() {
+    let map = TypeProjectedIndexMap::from([
+        (89_usize, 92_i32),
+        (40_usize, 59_i32),
+        (80_usize, 87_i32),
+        (39_usize, 5_i32),
+        (62_usize, 11_i32),
+        (81_usize, 36_i32),
+    ]);
+
+    for (key, value) in map.iter() {
+        let expected = Some(value);
+        let result = map.get(key);
+
+        assert_eq!(result, expected);
+    }
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_iter3() {
+    let map = TypeProjectedIndexMap::from([
+        (89_usize, 92_i32),
+        (40_usize, 59_i32),
+        (80_usize, 87_i32),
+        (39_usize, 5_i32),
+        (62_usize, 11_i32),
+        (81_usize, 36_i32),
+    ]);
+    let expected = TypeProjectedVec::from([
+        (89_usize, 92_i32),
+        (40_usize, 59_i32),
+        (80_usize, 87_i32),
+        (39_usize, 5_i32),
+        (62_usize, 11_i32),
+        (81_usize, 36_i32),
+    ]);
+    let result: TypeProjectedVec<(usize, i32)> = map
+        .iter()
+        .map(|(k, v)| (k.clone(), v.clone()))
+        .collect();
+
+    assert_eq!(result, expected);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_iter4() {
+    let map = TypeProjectedIndexMap::from([
+        (89_usize, 92_i32),
+        (40_usize, 59_i32),
+        (80_usize, 87_i32),
+        (39_usize, 5_i32),
+        (62_usize, 11_i32),
+        (81_usize, 36_i32),
+    ]);
+    let mut iter = map.iter();
+
+    assert_eq!(iter.next(), Some((&89_usize, &92_i32)));
+    assert_eq!(iter.next(), Some((&40_usize, &59_i32)));
+    assert_eq!(iter.next(), Some((&80_usize, &87_i32)));
+    assert_eq!(iter.next(), Some((&39_usize, &5_i32)));
+    assert_eq!(iter.next(), Some((&62_usize, &11_i32)));
+    assert_eq!(iter.next(), Some((&81_usize, &36_i32)));
+    assert_eq!(iter.next(), None);
+    assert_eq!(iter.next(), None);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_iter5() {
+    let map: TypeProjectedIndexMap<usize, i32> = TypeProjectedIndexMap::new();
+    let mut iter = map.iter();
+
+    for _ in 0..65536 {
+        assert!(iter.next().is_none());
+    }
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_into_iter1() {
+    let map = TypeProjectedIndexMap::from([
+        (89_usize, 92_i32),
+        (40_usize, 59_i32),
+        (80_usize, 87_i32),
+        (39_usize, 5_i32),
+        (62_usize, 11_i32),
+        (81_usize, 36_i32),
+    ]);
+
+    for (key, value) in map.clone().into_iter() {
+        assert!(map.contains_key(&key));
+    }
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_into_iter2() {
+    let map = TypeProjectedIndexMap::from([
+        (89_usize, 92_i32),
+        (40_usize, 59_i32),
+        (80_usize, 87_i32),
+        (39_usize, 5_i32),
+        (62_usize, 11_i32),
+        (81_usize, 36_i32),
+    ]);
+
+    for (key, value) in map.clone().into_iter() {
+        let expected = Some(&value);
+        let result = map.get(&key);
+
+        assert_eq!(result, expected);
+    }
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_into_iter3() {
+    let map = TypeProjectedIndexMap::from([
+        (89_usize, 92_i32),
+        (40_usize, 59_i32),
+        (80_usize, 87_i32),
+        (39_usize, 5_i32),
+        (62_usize, 11_i32),
+        (81_usize, 36_i32),
+    ]);
+    let expected = TypeProjectedVec::from([
+        (89_usize, 92_i32),
+        (40_usize, 59_i32),
+        (80_usize, 87_i32),
+        (39_usize, 5_i32),
+        (62_usize, 11_i32),
+        (81_usize, 36_i32),
+    ]);
+    let result: TypeProjectedVec<(usize, i32)> = map
+        .iter()
+        .map(|(k, v)| (k.clone(), v.clone()))
+        .collect();
+
+    assert_eq!(result, expected);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_into_iter4() {
+    let map = TypeProjectedIndexMap::from([
+        (89_usize, 92_i32),
+        (40_usize, 59_i32),
+        (80_usize, 87_i32),
+        (39_usize, 5_i32),
+        (62_usize, 11_i32),
+        (81_usize, 36_i32),
+    ]);
+    let mut iter = map.into_iter();
+
+    assert_eq!(iter.next(), Some((89_usize, 92_i32)));
+    assert_eq!(iter.next(), Some((40_usize, 59_i32)));
+    assert_eq!(iter.next(), Some((80_usize, 87_i32)));
+    assert_eq!(iter.next(), Some((39_usize, 5_i32)));
+    assert_eq!(iter.next(), Some((62_usize, 11_i32)));
+    assert_eq!(iter.next(), Some((81_usize, 36_i32)));
+    assert_eq!(iter.next(), None);
+    assert_eq!(iter.next(), None);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_into_iter5() {
+    let map = TypeProjectedIndexMap::from([
+        (89_usize, 92_i32),
+        (40_usize, 59_i32),
+        (80_usize, 87_i32),
+        (39_usize, 5_i32),
+        (62_usize, 11_i32),
+        (81_usize, 36_i32),
+    ]);
+    let mut iter = map.into_iter();
+
+    assert_eq!(iter.len(), 6);
+    assert_eq!(iter.as_slice(), &[
+        (89_usize, 92_i32),
+        (40_usize, 59_i32),
+        (80_usize, 87_i32),
+        (39_usize, 5_i32),
+        (62_usize, 11_i32),
+        (81_usize, 36_i32),
+    ]);
+
+    let _ = iter.next();
+    assert_eq!(iter.len(), 5);
+    assert_eq!(iter.as_slice(), &[
+        (40_usize, 59_i32),
+        (80_usize, 87_i32),
+        (39_usize, 5_i32),
+        (62_usize, 11_i32),
+        (81_usize, 36_i32),
+    ]);
+
+    let _ = iter.next();
+    assert_eq!(iter.len(), 4);
+    assert_eq!(iter.as_slice(), &[
+        (80_usize, 87_i32),
+        (39_usize, 5_i32),
+        (62_usize, 11_i32),
+        (81_usize, 36_i32),
+    ]);
+
+    let _ = iter.next();
+    assert_eq!(iter.len(), 3);
+    assert_eq!(iter.as_slice(), &[
+        (39_usize, 5_i32),
+        (62_usize, 11_i32),
+        (81_usize, 36_i32),
+    ]);
+
+    let _ = iter.next();
+    assert_eq!(iter.len(), 2);
+    assert_eq!(iter.as_slice(), &[
+        (62_usize, 11_i32),
+        (81_usize, 36_i32),
+    ]);
+
+    let _ = iter.next();
+    assert_eq!(iter.len(), 1);
+    assert_eq!(iter.as_slice(), &[
+        (81_usize, 36_i32),
+    ]);
+
+    let _ = iter.next();
+    assert_eq!(iter.len(), 0);
+    assert_eq!(iter.as_slice(), &[]);
+
+    let _ = iter.next();
+    assert_eq!(iter.len(), 0);
+    assert_eq!(iter.as_slice(), &[]);
+
+    let _ = iter.next();
+    assert_eq!(iter.len(), 0);
+    assert_eq!(iter.as_slice(), &[]);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_into_iter6() {
+    let map: TypeProjectedIndexMap<usize, i32> = TypeProjectedIndexMap::new();
+    let mut iter = map.into_iter();
+
+    for _ in 0..65536 {
+        assert!(iter.next().is_none());
+    }
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_into_iter7() {
+    let map: TypeProjectedIndexMap<usize, i32> = TypeProjectedIndexMap::new();
+    let mut iter = map.into_iter();
+
+    for _ in 0..65536 {
+        let _ = iter.next().is_none();
+        assert_eq!(iter.len(), 0);
+        assert!(iter.as_slice().is_empty());
+    }
+}
+
+#[rustfmt::skip]
+#[test]
 fn test_type_projected_index_map_clear1() {
     let mut map: TypeProjectedIndexMap<usize, i32> = TypeProjectedIndexMap::new();
 
