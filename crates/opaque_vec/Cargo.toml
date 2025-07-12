@@ -5,8 +5,8 @@ edition = "2024"
 
 [features]
 default = ["std"]
-std = ["opaque_alloc/std", "opaque_error/std", "opaque_polyfill/std"]
-nightly = ["opaque_alloc/nightly"]
+std = ["opaque_alloc/std", "opaque_error/std", "opaque_polyfill/std", "opaque_allocator_api/std"]
+nightly = ["opaque_alloc/nightly", "opaque_allocator_api/nightly"]
 
 [dependencies]
 
