@@ -1477,6 +1477,298 @@ fn test_type_projected_index_set_shift_remove_full4() {
 
 #[rustfmt::skip]
 #[test]
+fn test_type_projected_index_set_swap_take1() {
+    let mut set = TypeProjectedIndexSet::from([
+        20_i32,
+        21_i32,
+        65_i32,
+        6_i32,
+        86_i32,
+        54_i32,
+        99_i32,
+        17_i32,
+    ]);
+
+    assert_eq!(set.swap_take(&20_i32), Some(20_i32));
+    assert_eq!(set.swap_take(&21_i32), Some(21_i32));
+    assert_eq!(set.swap_take(&65_i32), Some(65_i32));
+    assert_eq!(set.swap_take(&6_i32),  Some(6_i32));
+    assert_eq!(set.swap_take(&86_i32), Some(86_i32));
+    assert_eq!(set.swap_take(&54_i32), Some(54_i32));
+    assert_eq!(set.swap_take(&99_i32), Some(99_i32));
+    assert_eq!(set.swap_take(&17_i32), Some(17_i32));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_set_swap_take2() {
+    let mut set = TypeProjectedIndexSet::from([
+        20_i32,
+        21_i32,
+        65_i32,
+        6_i32,
+        86_i32,
+        54_i32,
+        99_i32,
+        17_i32,
+    ]);
+
+    assert_eq!(set.len(), 8);
+
+    let _ = set.swap_take(&20_i32);
+    assert_eq!(set.len(), 7);
+    assert_eq!(set.as_slice(), &[17_i32, 21_i32, 65_i32, 6_i32, 86_i32, 54_i32, 99_i32]);
+
+    let _ = set.swap_take(&21_i32);
+    assert_eq!(set.len(), 6);
+    assert_eq!(set.as_slice(), &[17_i32, 99_i32, 65_i32, 6_i32, 86_i32, 54_i32]);
+
+    let _ = set.swap_take(&65_i32);
+    assert_eq!(set.len(), 5);
+    assert_eq!(set.as_slice(), &[17_i32, 99_i32, 54_i32, 6_i32, 86_i32]);
+
+    let _ = set.swap_take(&6_i32);
+    assert_eq!(set.len(), 4);
+    assert_eq!(set.as_slice(), &[17_i32, 99_i32, 54_i32, 86_i32]);
+
+    let _ = set.swap_take(&86_i32);
+    assert_eq!(set.len(), 3);
+    assert_eq!(set.as_slice(), &[17_i32, 99_i32, 54_i32]);
+
+    let _ = set.swap_take(&54_i32);
+    assert_eq!(set.len(), 2);
+    assert_eq!(set.as_slice(), &[17_i32, 99_i32]);
+
+    let _ = set.swap_take(&99_i32);
+    assert_eq!(set.len(), 1);
+    assert_eq!(set.as_slice(), &[17_i32]);
+
+    let _ = set.swap_take(&17_i32);
+    assert_eq!(set.len(), 0);
+    assert_eq!(set.as_slice(), &[]);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_set_swap_take3() {
+    let mut set = TypeProjectedIndexSet::from([
+        20_i32,
+        21_i32,
+        65_i32,
+        6_i32,
+        86_i32,
+        54_i32,
+        99_i32,
+        17_i32,
+    ]);
+
+    assert_eq!(set.swap_take(&17_i32), Some(17_i32));
+    assert_eq!(set.swap_take(&99_i32), Some(99_i32));
+    assert_eq!(set.swap_take(&54_i32), Some(54_i32));
+    assert_eq!(set.swap_take(&86_i32), Some(86_i32));
+    assert_eq!(set.swap_take(&6_i32),  Some(6_i32));
+    assert_eq!(set.swap_take(&65_i32), Some(65_i32));
+    assert_eq!(set.swap_take(&21_i32), Some(21_i32));
+    assert_eq!(set.swap_take(&20_i32), Some(20_i32));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_set_swap_take4() {
+    let mut set = TypeProjectedIndexSet::from([
+        20_i32,
+        21_i32,
+        65_i32,
+        6_i32,
+        86_i32,
+        54_i32,
+        99_i32,
+        17_i32,
+    ]);
+
+    assert_eq!(set.len(), 8);
+
+    let _ = set.swap_take(&17_i32);
+    assert_eq!(set.len(), 7);
+    assert_eq!(set.as_slice(), &[20_i32, 21_i32, 65_i32, 6_i32, 86_i32, 54_i32, 99_i32]);
+
+    let _ = set.swap_take(&99_i32);
+    assert_eq!(set.len(), 6);
+    assert_eq!(set.as_slice(), &[20_i32, 21_i32, 65_i32, 6_i32, 86_i32, 54_i32]);
+
+    let _ = set.swap_take(&54_i32);
+    assert_eq!(set.len(), 5);
+    assert_eq!(set.as_slice(), &[20_i32, 21_i32, 65_i32, 6_i32, 86_i32]);
+
+    let _ = set.swap_take(&86_i32);
+    assert_eq!(set.len(), 4);
+    assert_eq!(set.as_slice(), &[20_i32, 21_i32, 65_i32, 6_i32]);
+
+    let _ = set.swap_take(&6_i32);
+    assert_eq!(set.len(), 3);
+    assert_eq!(set.as_slice(), &[20_i32, 21_i32, 65_i32]);
+
+    let _ = set.swap_take(&65_i32);
+    assert_eq!(set.len(), 2);
+    assert_eq!(set.as_slice(), &[20_i32, 21_i32]);
+
+    let _ = set.swap_take(&21_i32);
+    assert_eq!(set.len(), 1);
+    assert_eq!(set.as_slice(), &[20_i32]);
+
+    let _ = set.swap_take(&20_i32);
+    assert_eq!(set.len(), 0);
+    assert_eq!(set.as_slice(), &[]);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_set_shift_take1() {
+    let mut set = TypeProjectedIndexSet::from([
+        20_i32,
+        21_i32,
+        65_i32,
+        6_i32,
+        86_i32,
+        54_i32,
+        99_i32,
+        17_i32,
+    ]);
+
+    assert_eq!(set.shift_take(&20_i32), Some(20_i32));
+    assert_eq!(set.shift_take(&21_i32), Some(21_i32));
+    assert_eq!(set.shift_take(&65_i32), Some(65_i32));
+    assert_eq!(set.shift_take(&6_i32),  Some(6_i32));
+    assert_eq!(set.shift_take(&86_i32), Some(86_i32));
+    assert_eq!(set.shift_take(&54_i32), Some(54_i32));
+    assert_eq!(set.shift_take(&99_i32), Some(99_i32));
+    assert_eq!(set.shift_take(&17_i32), Some(17_i32));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_set_shift_take2() {
+    let mut set = TypeProjectedIndexSet::from([
+        20_i32,
+        21_i32,
+        65_i32,
+        6_i32,
+        86_i32,
+        54_i32,
+        99_i32,
+        17_i32,
+    ]);
+
+    assert_eq!(set.len(), 8);
+
+    let _ = set.shift_take(&20_i32);
+    assert_eq!(set.len(), 7);
+    assert_eq!(set.as_slice(), &[21_i32, 65_i32, 6_i32, 86_i32, 54_i32, 99_i32, 17_i32]);
+
+    let _ = set.shift_take(&21_i32);
+    assert_eq!(set.len(), 6);
+    assert_eq!(set.as_slice(), &[65_i32, 6_i32, 86_i32, 54_i32, 99_i32, 17_i32]);
+
+    let _ = set.shift_take(&65_i32);
+    assert_eq!(set.len(), 5);
+    assert_eq!(set.as_slice(), &[6_i32, 86_i32, 54_i32, 99_i32, 17_i32]);
+
+    let _ = set.shift_take(&6_i32);
+    assert_eq!(set.len(), 4);
+    assert_eq!(set.as_slice(), &[86_i32, 54_i32, 99_i32, 17_i32]);
+
+    let _ = set.shift_take(&86_i32);
+    assert_eq!(set.len(), 3);
+    assert_eq!(set.as_slice(), &[54_i32, 99_i32, 17_i32]);
+
+    let _ = set.shift_take(&54_i32);
+    assert_eq!(set.len(), 2);
+    assert_eq!(set.as_slice(), &[99_i32, 17_i32]);
+
+    let _ = set.shift_take(&99_i32);
+    assert_eq!(set.len(), 1);
+    assert_eq!(set.as_slice(), &[17_i32]);
+
+    let _ = set.shift_take(&17_i32);
+    assert_eq!(set.len(), 0);
+    assert_eq!(set.as_slice(), &[]);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_set_shift_take3() {
+    let mut set = TypeProjectedIndexSet::from([
+        20_i32,
+        21_i32,
+        65_i32,
+        6_i32,
+        86_i32,
+        54_i32,
+        99_i32,
+        17_i32,
+    ]);
+
+    assert_eq!(set.shift_take(&17_i32), Some(17_i32));
+    assert_eq!(set.shift_take(&99_i32), Some(99_i32));
+    assert_eq!(set.shift_take(&54_i32), Some(54_i32));
+    assert_eq!(set.shift_take(&86_i32), Some(86_i32));
+    assert_eq!(set.shift_take(&6_i32),  Some(6_i32));
+    assert_eq!(set.shift_take(&65_i32), Some(65_i32));
+    assert_eq!(set.shift_take(&21_i32), Some(21_i32));
+    assert_eq!(set.shift_take(&20_i32), Some(20_i32));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_set_shift_take4() {
+    let mut set = TypeProjectedIndexSet::from([
+        20_i32,
+        21_i32,
+        65_i32,
+        6_i32,
+        86_i32,
+        54_i32,
+        99_i32,
+        17_i32,
+    ]);
+
+    assert_eq!(set.len(), 8);
+
+    let _ = set.shift_take(&17_i32);
+    assert_eq!(set.len(), 7);
+    assert_eq!(set.as_slice(), &[20_i32, 21_i32, 65_i32, 6_i32, 86_i32, 54_i32, 99_i32]);
+
+    let _ = set.shift_take(&99_i32);
+    assert_eq!(set.len(), 6);
+    assert_eq!(set.as_slice(), &[20_i32, 21_i32, 65_i32, 6_i32, 86_i32, 54_i32]);
+
+    let _ = set.shift_take(&54_i32);
+    assert_eq!(set.len(), 5);
+    assert_eq!(set.as_slice(), &[20_i32, 21_i32, 65_i32, 6_i32, 86_i32]);
+
+    let _ = set.shift_take(&86_i32);
+    assert_eq!(set.len(), 4);
+    assert_eq!(set.as_slice(), &[20_i32, 21_i32, 65_i32, 6_i32]);
+
+    let _ = set.shift_take(&6_i32);
+    assert_eq!(set.len(), 3);
+    assert_eq!(set.as_slice(), &[20_i32, 21_i32, 65_i32]);
+
+    let _ = set.shift_take(&65_i32);
+    assert_eq!(set.len(), 2);
+    assert_eq!(set.as_slice(), &[20_i32, 21_i32]);
+
+    let _ = set.shift_take(&21_i32);
+    assert_eq!(set.len(), 1);
+    assert_eq!(set.as_slice(), &[20_i32]);
+
+    let _ = set.shift_take(&20_i32);
+    assert_eq!(set.len(), 0);
+    assert_eq!(set.as_slice(), &[]);
+}
+
+#[rustfmt::skip]
+#[test]
 fn test_type_projected_index_set_insert1() {
     let mut set = TypeProjectedIndexSet::new();
 
