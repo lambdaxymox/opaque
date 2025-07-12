@@ -2772,15 +2772,15 @@ fn test_type_projected_index_set_binary_search_by1() {
 fn test_type_projected_index_set_binary_search_by2() {
     let set: TypeProjectedIndexSet<(usize, i32)> = TypeProjectedIndexSet::from([(92_usize, 4_i32)]);
 
-    assert_eq!(set.binary_search_by(|v| v.1.cmp(&0)), Err(0));
-    assert_eq!(set.binary_search_by(|v| v.1.cmp(&1)), Err(0));
-    assert_eq!(set.binary_search_by(|v| v.1.cmp(&2)), Err(0));
-    assert_eq!(set.binary_search_by(|v| v.1.cmp(&3)), Err(0));
-    assert_eq!(set.binary_search_by(|v| v.1.cmp(&4)), Ok(0));
-    assert_eq!(set.binary_search_by(|v| v.1.cmp(&5)), Err(1));
-    assert_eq!(set.binary_search_by(|v| v.1.cmp(&6)), Err(1));
-    assert_eq!(set.binary_search_by(|v| v.1.cmp(&7)), Err(1));
-    assert_eq!(set.binary_search_by(|v| v.1.cmp(&8)), Err(1));
+    assert_eq!(set.binary_search_by(|v| v.1.cmp(&0_i32)), Err(0));
+    assert_eq!(set.binary_search_by(|v| v.1.cmp(&1_i32)), Err(0));
+    assert_eq!(set.binary_search_by(|v| v.1.cmp(&2_i32)), Err(0));
+    assert_eq!(set.binary_search_by(|v| v.1.cmp(&3_i32)), Err(0));
+    assert_eq!(set.binary_search_by(|v| v.1.cmp(&4_i32)), Ok(0));
+    assert_eq!(set.binary_search_by(|v| v.1.cmp(&5_i32)), Err(1));
+    assert_eq!(set.binary_search_by(|v| v.1.cmp(&6_i32)), Err(1));
+    assert_eq!(set.binary_search_by(|v| v.1.cmp(&7_i32)), Err(1));
+    assert_eq!(set.binary_search_by(|v| v.1.cmp(&8_i32)), Err(1));
 }
 
 #[rustfmt::skip]
@@ -2792,16 +2792,16 @@ fn test_type_projected_index_set_binary_search_by3() {
         (6_usize,   7_i32),
     ]);
 
-    assert_eq!(set.binary_search_by(|v| v.1.cmp(&0)), Err(0));
-    assert_eq!(set.binary_search_by(|v| v.1.cmp(&1)), Ok(0));
-    assert_eq!(set.binary_search_by(|v| v.1.cmp(&2)), Err(1));
-    assert_eq!(set.binary_search_by(|v| v.1.cmp(&3)), Err(1));
-    assert_eq!(set.binary_search_by(|v| v.1.cmp(&4)), Ok(1));
-    assert_eq!(set.binary_search_by(|v| v.1.cmp(&5)), Err(2));
-    assert_eq!(set.binary_search_by(|v| v.1.cmp(&6)), Err(2));
-    assert_eq!(set.binary_search_by(|v| v.1.cmp(&7)), Ok(2));
-    assert_eq!(set.binary_search_by(|v| v.1.cmp(&8)), Err(3));
-    assert_eq!(set.binary_search_by(|v| v.1.cmp(&9)), Err(3));
+    assert_eq!(set.binary_search_by(|v| v.1.cmp(&0_i32)), Err(0));
+    assert_eq!(set.binary_search_by(|v| v.1.cmp(&1_i32)), Ok(0));
+    assert_eq!(set.binary_search_by(|v| v.1.cmp(&2_i32)), Err(1));
+    assert_eq!(set.binary_search_by(|v| v.1.cmp(&3_i32)), Err(1));
+    assert_eq!(set.binary_search_by(|v| v.1.cmp(&4_i32)), Ok(1));
+    assert_eq!(set.binary_search_by(|v| v.1.cmp(&5_i32)), Err(2));
+    assert_eq!(set.binary_search_by(|v| v.1.cmp(&6_i32)), Err(2));
+    assert_eq!(set.binary_search_by(|v| v.1.cmp(&7_i32)), Ok(2));
+    assert_eq!(set.binary_search_by(|v| v.1.cmp(&8_i32)), Err(3));
+    assert_eq!(set.binary_search_by(|v| v.1.cmp(&9_i32)), Err(3));
 }
 
 #[rustfmt::skip]
@@ -2816,18 +2816,18 @@ fn test_type_projected_index_set_binary_search_by4() {
         (10_usize,  9_i32),
     ]);
 
-    assert_eq!(set.binary_search_by(|v| v.1.cmp(&0)),  Err(0));
-    assert_eq!(set.binary_search_by(|v| v.1.cmp(&1)),  Ok(0));
-    assert_eq!(set.binary_search_by(|v| v.1.cmp(&2)),  Err(1));
-    assert_eq!(set.binary_search_by(|v| v.1.cmp(&3)),  Ok(1));
-    assert_eq!(set.binary_search_by(|v| v.1.cmp(&4)),  Ok(2));
-    assert_eq!(set.binary_search_by(|v| v.1.cmp(&5)),  Err(3));
-    assert_eq!(set.binary_search_by(|v| v.1.cmp(&6)),  Err(3));
-    assert_eq!(set.binary_search_by(|v| v.1.cmp(&7)),  Ok(3));
-    assert_eq!(set.binary_search_by(|v| v.1.cmp(&8)),  Ok(4));
-    assert_eq!(set.binary_search_by(|v| v.1.cmp(&9)),  Ok(5));
-    assert_eq!(set.binary_search_by(|v| v.1.cmp(&10)), Err(6));
-    assert_eq!(set.binary_search_by(|v| v.1.cmp(&11)), Err(6));
+    assert_eq!(set.binary_search_by(|v| v.1.cmp(&0_i32)),  Err(0));
+    assert_eq!(set.binary_search_by(|v| v.1.cmp(&1_i32)),  Ok(0));
+    assert_eq!(set.binary_search_by(|v| v.1.cmp(&2_i32)),  Err(1));
+    assert_eq!(set.binary_search_by(|v| v.1.cmp(&3_i32)),  Ok(1));
+    assert_eq!(set.binary_search_by(|v| v.1.cmp(&4_i32)),  Ok(2));
+    assert_eq!(set.binary_search_by(|v| v.1.cmp(&5_i32)),  Err(3));
+    assert_eq!(set.binary_search_by(|v| v.1.cmp(&6_i32)),  Err(3));
+    assert_eq!(set.binary_search_by(|v| v.1.cmp(&7_i32)),  Ok(3));
+    assert_eq!(set.binary_search_by(|v| v.1.cmp(&8_i32)),  Ok(4));
+    assert_eq!(set.binary_search_by(|v| v.1.cmp(&9_i32)),  Ok(5));
+    assert_eq!(set.binary_search_by(|v| v.1.cmp(&10_i32)), Err(6));
+    assert_eq!(set.binary_search_by(|v| v.1.cmp(&11_i32)), Err(6));
 }
 
 #[rustfmt::skip]
@@ -2844,23 +2844,23 @@ fn test_type_projected_index_set_binary_search_by5() {
         (10_usize,  9_i32),
     ]);
 
-    assert_eq!(set.binary_search_by(|v| v.1.cmp(&0)),  Err(0));
-    assert_eq!(set.binary_search_by(|v| v.1.cmp(&1)),  Ok(0));
-    assert_eq!(set.binary_search_by(|v| v.1.cmp(&2)),  Err(1));
-    assert_eq!(set.binary_search_by(|v| v.1.cmp(&3)),  Ok(1));
+    assert_eq!(set.binary_search_by(|v| v.1.cmp(&0_i32)),  Err(0));
+    assert_eq!(set.binary_search_by(|v| v.1.cmp(&1_i32)),  Ok(0));
+    assert_eq!(set.binary_search_by(|v| v.1.cmp(&2_i32)),  Err(1));
+    assert_eq!(set.binary_search_by(|v| v.1.cmp(&3_i32)),  Ok(1));
 
-    assert!(match set.binary_search_by(|v| v.1.cmp(&4)) {
+    assert!(match set.binary_search_by(|v| v.1.cmp(&4_i32)) {
         Ok(2..=4) => true,
         _ => false,
     });
 
-    assert_eq!(set.binary_search_by(|v| v.1.cmp(&5)),  Err(5));
-    assert_eq!(set.binary_search_by(|v| v.1.cmp(&6)),  Err(5));
-    assert_eq!(set.binary_search_by(|v| v.1.cmp(&7)),  Ok(5));
-    assert_eq!(set.binary_search_by(|v| v.1.cmp(&8)),  Ok(6));
-    assert_eq!(set.binary_search_by(|v| v.1.cmp(&9)),  Ok(7));
-    assert_eq!(set.binary_search_by(|v| v.1.cmp(&10)), Err(8));
-    assert_eq!(set.binary_search_by(|v| v.1.cmp(&11)), Err(8));
+    assert_eq!(set.binary_search_by(|v| v.1.cmp(&5_i32)),  Err(5));
+    assert_eq!(set.binary_search_by(|v| v.1.cmp(&6_i32)),  Err(5));
+    assert_eq!(set.binary_search_by(|v| v.1.cmp(&7_i32)),  Ok(5));
+    assert_eq!(set.binary_search_by(|v| v.1.cmp(&8_i32)),  Ok(6));
+    assert_eq!(set.binary_search_by(|v| v.1.cmp(&9_i32)),  Ok(7));
+    assert_eq!(set.binary_search_by(|v| v.1.cmp(&10_i32)), Err(8));
+    assert_eq!(set.binary_search_by(|v| v.1.cmp(&11_i32)), Err(8));
 }
 
 #[rustfmt::skip]
@@ -2878,15 +2878,15 @@ fn test_type_projected_index_set_binary_search_by_key1() {
 fn test_type_projected_index_set_binary_search_by_key2() {
     let set: TypeProjectedIndexSet<(usize, i32)> = TypeProjectedIndexSet::from([(92_usize, 4_i32)]);
 
-    assert_eq!(set.binary_search_by_key(&0, |v| v.1), Err(0));
-    assert_eq!(set.binary_search_by_key(&1, |v| v.1), Err(0));
-    assert_eq!(set.binary_search_by_key(&2, |v| v.1), Err(0));
-    assert_eq!(set.binary_search_by_key(&3, |v| v.1), Err(0));
-    assert_eq!(set.binary_search_by_key(&4, |v| v.1), Ok(0));
-    assert_eq!(set.binary_search_by_key(&5, |v| v.1), Err(1));
-    assert_eq!(set.binary_search_by_key(&6, |v| v.1), Err(1));
-    assert_eq!(set.binary_search_by_key(&7, |v| v.1), Err(1));
-    assert_eq!(set.binary_search_by_key(&8, |v| v.1), Err(1));
+    assert_eq!(set.binary_search_by_key(&0_i32, |v| v.1), Err(0));
+    assert_eq!(set.binary_search_by_key(&1_i32, |v| v.1), Err(0));
+    assert_eq!(set.binary_search_by_key(&2_i32, |v| v.1), Err(0));
+    assert_eq!(set.binary_search_by_key(&3_i32, |v| v.1), Err(0));
+    assert_eq!(set.binary_search_by_key(&4_i32, |v| v.1), Ok(0));
+    assert_eq!(set.binary_search_by_key(&5_i32, |v| v.1), Err(1));
+    assert_eq!(set.binary_search_by_key(&6_i32, |v| v.1), Err(1));
+    assert_eq!(set.binary_search_by_key(&7_i32, |v| v.1), Err(1));
+    assert_eq!(set.binary_search_by_key(&8_i32, |v| v.1), Err(1));
 }
 
 #[rustfmt::skip]
@@ -2898,16 +2898,16 @@ fn test_type_projected_index_set_binary_search_by_key3() {
         (6_usize,   7_i32),
     ]);
 
-    assert_eq!(set.binary_search_by_key(&0, |v| v.1), Err(0));
-    assert_eq!(set.binary_search_by_key(&1, |v| v.1), Ok(0));
-    assert_eq!(set.binary_search_by_key(&2, |v| v.1), Err(1));
-    assert_eq!(set.binary_search_by_key(&3, |v| v.1), Err(1));
-    assert_eq!(set.binary_search_by_key(&4, |v| v.1), Ok(1));
-    assert_eq!(set.binary_search_by_key(&5, |v| v.1), Err(2));
-    assert_eq!(set.binary_search_by_key(&6, |v| v.1), Err(2));
-    assert_eq!(set.binary_search_by_key(&7, |v| v.1), Ok(2));
-    assert_eq!(set.binary_search_by_key(&8, |v| v.1), Err(3));
-    assert_eq!(set.binary_search_by_key(&9, |v| v.1), Err(3));
+    assert_eq!(set.binary_search_by_key(&0_i32, |v| v.1), Err(0));
+    assert_eq!(set.binary_search_by_key(&1_i32, |v| v.1), Ok(0));
+    assert_eq!(set.binary_search_by_key(&2_i32, |v| v.1), Err(1));
+    assert_eq!(set.binary_search_by_key(&3_i32, |v| v.1), Err(1));
+    assert_eq!(set.binary_search_by_key(&4_i32, |v| v.1), Ok(1));
+    assert_eq!(set.binary_search_by_key(&5_i32, |v| v.1), Err(2));
+    assert_eq!(set.binary_search_by_key(&6_i32, |v| v.1), Err(2));
+    assert_eq!(set.binary_search_by_key(&7_i32, |v| v.1), Ok(2));
+    assert_eq!(set.binary_search_by_key(&8_i32, |v| v.1), Err(3));
+    assert_eq!(set.binary_search_by_key(&9_i32, |v| v.1), Err(3));
 }
 
 #[rustfmt::skip]
@@ -2922,18 +2922,18 @@ fn test_type_projected_index_set_binary_search_by_key4() {
         (10_usize,  9_i32),
     ]);
 
-    assert_eq!(set.binary_search_by_key(&0,  |v| v.1),  Err(0));
-    assert_eq!(set.binary_search_by_key(&1,  |v| v.1),  Ok(0));
-    assert_eq!(set.binary_search_by_key(&2,  |v| v.1),  Err(1));
-    assert_eq!(set.binary_search_by_key(&3,  |v| v.1),  Ok(1));
-    assert_eq!(set.binary_search_by_key(&4,  |v| v.1),  Ok(2));
-    assert_eq!(set.binary_search_by_key(&5,  |v| v.1),  Err(3));
-    assert_eq!(set.binary_search_by_key(&6,  |v| v.1),  Err(3));
-    assert_eq!(set.binary_search_by_key(&7,  |v| v.1),  Ok(3));
-    assert_eq!(set.binary_search_by_key(&8,  |v| v.1),  Ok(4));
-    assert_eq!(set.binary_search_by_key(&9,  |v| v.1),  Ok(5));
-    assert_eq!(set.binary_search_by_key(&10, |v| v.1), Err(6));
-    assert_eq!(set.binary_search_by_key(&11, |v| v.1), Err(6));
+    assert_eq!(set.binary_search_by_key(&0_i32,  |v| v.1),  Err(0));
+    assert_eq!(set.binary_search_by_key(&1_i32,  |v| v.1),  Ok(0));
+    assert_eq!(set.binary_search_by_key(&2_i32,  |v| v.1),  Err(1));
+    assert_eq!(set.binary_search_by_key(&3_i32,  |v| v.1),  Ok(1));
+    assert_eq!(set.binary_search_by_key(&4_i32,  |v| v.1),  Ok(2));
+    assert_eq!(set.binary_search_by_key(&5_i32,  |v| v.1),  Err(3));
+    assert_eq!(set.binary_search_by_key(&6_i32,  |v| v.1),  Err(3));
+    assert_eq!(set.binary_search_by_key(&7_i32,  |v| v.1),  Ok(3));
+    assert_eq!(set.binary_search_by_key(&8_i32,  |v| v.1),  Ok(4));
+    assert_eq!(set.binary_search_by_key(&9_i32,  |v| v.1),  Ok(5));
+    assert_eq!(set.binary_search_by_key(&10_i32, |v| v.1), Err(6));
+    assert_eq!(set.binary_search_by_key(&11_i32, |v| v.1), Err(6));
 }
 
 #[rustfmt::skip]
@@ -2950,23 +2950,23 @@ fn test_type_projected_index_set_binary_search_by_key5() {
         (10_usize,  9_i32),
     ]);
 
-    assert_eq!(set.binary_search_by_key(&0, |v| v.1),  Err(0));
-    assert_eq!(set.binary_search_by_key(&1, |v| v.1),  Ok(0));
-    assert_eq!(set.binary_search_by_key(&2, |v| v.1),  Err(1));
-    assert_eq!(set.binary_search_by_key(&3, |v| v.1),  Ok(1));
+    assert_eq!(set.binary_search_by_key(&0_i32, |v| v.1),  Err(0));
+    assert_eq!(set.binary_search_by_key(&1_i32, |v| v.1),  Ok(0));
+    assert_eq!(set.binary_search_by_key(&2_i32, |v| v.1),  Err(1));
+    assert_eq!(set.binary_search_by_key(&3_i32, |v| v.1),  Ok(1));
 
-    assert!(match set.binary_search_by_key(&4, |v| v.1) {
+    assert!(match set.binary_search_by_key(&4_i32, |v| v.1) {
         Ok(2..=4) => true,
         _ => false,
     });
 
-    assert_eq!(set.binary_search_by_key(&5,  |v| v.1), Err(5));
-    assert_eq!(set.binary_search_by_key(&6,  |v| v.1), Err(5));
-    assert_eq!(set.binary_search_by_key(&7,  |v| v.1), Ok(5));
-    assert_eq!(set.binary_search_by_key(&8,  |v| v.1), Ok(6));
-    assert_eq!(set.binary_search_by_key(&9,  |v| v.1), Ok(7));
-    assert_eq!(set.binary_search_by_key(&10, |v| v.1), Err(8));
-    assert_eq!(set.binary_search_by_key(&11, |v| v.1), Err(8));
+    assert_eq!(set.binary_search_by_key(&5_i32,  |v| v.1), Err(5));
+    assert_eq!(set.binary_search_by_key(&6_i32,  |v| v.1), Err(5));
+    assert_eq!(set.binary_search_by_key(&7_i32,  |v| v.1), Ok(5));
+    assert_eq!(set.binary_search_by_key(&8_i32,  |v| v.1), Ok(6));
+    assert_eq!(set.binary_search_by_key(&9_i32,  |v| v.1), Ok(7));
+    assert_eq!(set.binary_search_by_key(&10_i32, |v| v.1), Err(8));
+    assert_eq!(set.binary_search_by_key(&11_i32, |v| v.1), Err(8));
 }
 
 #[rustfmt::skip]
@@ -2984,15 +2984,15 @@ fn test_type_projected_index_set_partition_point1() {
 fn test_type_projected_index_set_partition_point2() {
     let set: TypeProjectedIndexSet<(usize, i32)> = TypeProjectedIndexSet::from([(92_usize, 4_i32)]);
 
-    assert_eq!(set.partition_point(|v| v.1 < 0), 0);
-    assert_eq!(set.partition_point(|v| v.1 < 1), 0);
-    assert_eq!(set.partition_point(|v| v.1 < 2), 0);
-    assert_eq!(set.partition_point(|v| v.1 < 3), 0);
-    assert_eq!(set.partition_point(|v| v.1 < 4), 0);
-    assert_eq!(set.partition_point(|v| v.1 < 5), 1);
-    assert_eq!(set.partition_point(|v| v.1 < 6), 1);
-    assert_eq!(set.partition_point(|v| v.1 < 7), 1);
-    assert_eq!(set.partition_point(|v| v.1 < 8), 1);
+    assert_eq!(set.partition_point(|v| v.1 < 0_i32), 0);
+    assert_eq!(set.partition_point(|v| v.1 < 1_i32), 0);
+    assert_eq!(set.partition_point(|v| v.1 < 2_i32), 0);
+    assert_eq!(set.partition_point(|v| v.1 < 3_i32), 0);
+    assert_eq!(set.partition_point(|v| v.1 < 4_i32), 0);
+    assert_eq!(set.partition_point(|v| v.1 < 5_i32), 1);
+    assert_eq!(set.partition_point(|v| v.1 < 6_i32), 1);
+    assert_eq!(set.partition_point(|v| v.1 < 7_i32), 1);
+    assert_eq!(set.partition_point(|v| v.1 < 8_i32), 1);
 }
 
 #[rustfmt::skip]
@@ -3004,16 +3004,16 @@ fn test_type_projected_index_set_partition_point3() {
         (6_usize,   7_i32),
     ]);
 
-    assert_eq!(set.partition_point(|v| v.1 < 0), 0);
-    assert_eq!(set.partition_point(|v| v.1 < 1), 0);
-    assert_eq!(set.partition_point(|v| v.1 < 2), 1);
-    assert_eq!(set.partition_point(|v| v.1 < 3), 1);
-    assert_eq!(set.partition_point(|v| v.1 < 4), 1);
-    assert_eq!(set.partition_point(|v| v.1 < 5), 2);
-    assert_eq!(set.partition_point(|v| v.1 < 6), 2);
-    assert_eq!(set.partition_point(|v| v.1 < 7), 2);
-    assert_eq!(set.partition_point(|v| v.1 < 8), 3);
-    assert_eq!(set.partition_point(|v| v.1 < 9), 3);
+    assert_eq!(set.partition_point(|v| v.1 < 0_i32), 0);
+    assert_eq!(set.partition_point(|v| v.1 < 1_i32), 0);
+    assert_eq!(set.partition_point(|v| v.1 < 2_i32), 1);
+    assert_eq!(set.partition_point(|v| v.1 < 3_i32), 1);
+    assert_eq!(set.partition_point(|v| v.1 < 4_i32), 1);
+    assert_eq!(set.partition_point(|v| v.1 < 5_i32), 2);
+    assert_eq!(set.partition_point(|v| v.1 < 6_i32), 2);
+    assert_eq!(set.partition_point(|v| v.1 < 7_i32), 2);
+    assert_eq!(set.partition_point(|v| v.1 < 8_i32), 3);
+    assert_eq!(set.partition_point(|v| v.1 < 9_i32), 3);
 }
 
 #[rustfmt::skip]
@@ -3028,18 +3028,18 @@ fn test_type_projected_index_set_partition_point4() {
         (10_usize,  9_i32),
     ]);
 
-    assert_eq!(set.partition_point(|v| v.1 < 0),  0);
-    assert_eq!(set.partition_point(|v| v.1 < 1),  0);
-    assert_eq!(set.partition_point(|v| v.1 < 2),  1);
-    assert_eq!(set.partition_point(|v| v.1 < 3),  1);
-    assert_eq!(set.partition_point(|v| v.1 < 4),  2);
-    assert_eq!(set.partition_point(|v| v.1 < 5),  3);
-    assert_eq!(set.partition_point(|v| v.1 < 6),  3);
-    assert_eq!(set.partition_point(|v| v.1 < 7),  3);
-    assert_eq!(set.partition_point(|v| v.1 < 8),  4);
-    assert_eq!(set.partition_point(|v| v.1 < 9),  5);
-    assert_eq!(set.partition_point(|v| v.1 < 10), 6);
-    assert_eq!(set.partition_point(|v| v.1 < 11), 6);
+    assert_eq!(set.partition_point(|v| v.1 < 0_i32),  0);
+    assert_eq!(set.partition_point(|v| v.1 < 1_i32),  0);
+    assert_eq!(set.partition_point(|v| v.1 < 2_i32),  1);
+    assert_eq!(set.partition_point(|v| v.1 < 3_i32),  1);
+    assert_eq!(set.partition_point(|v| v.1 < 4_i32),  2);
+    assert_eq!(set.partition_point(|v| v.1 < 5_i32),  3);
+    assert_eq!(set.partition_point(|v| v.1 < 6_i32),  3);
+    assert_eq!(set.partition_point(|v| v.1 < 7_i32),  3);
+    assert_eq!(set.partition_point(|v| v.1 < 8_i32),  4);
+    assert_eq!(set.partition_point(|v| v.1 < 9_i32),  5);
+    assert_eq!(set.partition_point(|v| v.1 < 10_i32), 6);
+    assert_eq!(set.partition_point(|v| v.1 < 11_i32), 6);
 }
 
 #[rustfmt::skip]
@@ -3056,23 +3056,23 @@ fn test_type_projected_index_set_partition_point5() {
         (10_usize,  9_i32),
     ]);
 
-    assert_eq!(set.partition_point(|v| v.1 < 0), 0);
-    assert_eq!(set.partition_point(|v| v.1 < 1), 0);
-    assert_eq!(set.partition_point(|v| v.1 < 2), 1);
-    assert_eq!(set.partition_point(|v| v.1 < 3), 1);
+    assert_eq!(set.partition_point(|v| v.1 < 0_i32), 0);
+    assert_eq!(set.partition_point(|v| v.1 < 1_i32), 0);
+    assert_eq!(set.partition_point(|v| v.1 < 2_i32), 1);
+    assert_eq!(set.partition_point(|v| v.1 < 3_i32), 1);
 
-    assert!(match set.partition_point(|v| v.1 < 4) {
+    assert!(match set.partition_point(|v| v.1 < 4_i32) {
         2..=4 => true,
         _ => false,
     });
 
-    assert_eq!(set.partition_point(|v| v.1 < 5),  5);
-    assert_eq!(set.partition_point(|v| v.1 < 6),  5);
-    assert_eq!(set.partition_point(|v| v.1 < 7),  5);
-    assert_eq!(set.partition_point(|v| v.1 < 8),  6);
-    assert_eq!(set.partition_point(|v| v.1 < 9),  7);
-    assert_eq!(set.partition_point(|v| v.1 < 10), 8);
-    assert_eq!(set.partition_point(|v| v.1 < 11), 8);
+    assert_eq!(set.partition_point(|v| v.1 < 5_i32),  5);
+    assert_eq!(set.partition_point(|v| v.1 < 6_i32),  5);
+    assert_eq!(set.partition_point(|v| v.1 < 7_i32),  5);
+    assert_eq!(set.partition_point(|v| v.1 < 8_i32),  6);
+    assert_eq!(set.partition_point(|v| v.1 < 9_i32),  7);
+    assert_eq!(set.partition_point(|v| v.1 < 10_i32), 8);
+    assert_eq!(set.partition_point(|v| v.1 < 11_i32), 8);
 }
 
 #[rustfmt::skip]

@@ -3541,15 +3541,15 @@ fn test_type_erased_index_map_binary_search_by1() {
 fn test_type_erased_index_map_binary_search_by2() {
     let map = TypeErasedIndexMap::from([(92_usize, 4_i32)]);
 
-    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&0)), Err(0));
-    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&1)), Err(0));
-    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&2)), Err(0));
-    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&3)), Err(0));
-    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&4)), Ok(0));
-    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&5)), Err(1));
-    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&6)), Err(1));
-    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&7)), Err(1));
-    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&8)), Err(1));
+    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&0_i32)), Err(0));
+    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&1_i32)), Err(0));
+    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&2_i32)), Err(0));
+    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&3_i32)), Err(0));
+    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&4_i32)), Ok(0));
+    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&5_i32)), Err(1));
+    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&6_i32)), Err(1));
+    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&7_i32)), Err(1));
+    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&8_i32)), Err(1));
 }
 
 #[rustfmt::skip]
@@ -3561,16 +3561,16 @@ fn test_type_erased_index_map_binary_search_by3() {
         (6_usize,   7_i32),
     ]);
 
-    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&0)), Err(0));
-    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&1)), Ok(0));
-    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&2)), Err(1));
-    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&3)), Err(1));
-    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&4)), Ok(1));
-    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&5)), Err(2));
-    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&6)), Err(2));
-    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&7)), Ok(2));
-    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&8)), Err(3));
-    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&9)), Err(3));
+    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&0_i32)), Err(0));
+    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&1_i32)), Ok(0));
+    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&2_i32)), Err(1));
+    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&3_i32)), Err(1));
+    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&4_i32)), Ok(1));
+    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&5_i32)), Err(2));
+    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&6_i32)), Err(2));
+    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&7_i32)), Ok(2));
+    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&8_i32)), Err(3));
+    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&9_i32)), Err(3));
 }
 
 #[rustfmt::skip]
@@ -3585,18 +3585,18 @@ fn test_type_erased_index_map_binary_search_by4() {
         (10_usize,  9_i32),
     ]);
 
-    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&0)),  Err(0));
-    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&1)),  Ok(0));
-    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&2)),  Err(1));
-    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&3)),  Ok(1));
-    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&4)),  Ok(2));
-    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&5)),  Err(3));
-    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&6)),  Err(3));
-    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&7)),  Ok(3));
-    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&8)),  Ok(4));
-    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&9)),  Ok(5));
-    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&10)), Err(6));
-    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&11)), Err(6));
+    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&0_i32)),  Err(0));
+    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&1_i32)),  Ok(0));
+    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&2_i32)),  Err(1));
+    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&3_i32)),  Ok(1));
+    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&4_i32)),  Ok(2));
+    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&5_i32)),  Err(3));
+    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&6_i32)),  Err(3));
+    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&7_i32)),  Ok(3));
+    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&8_i32)),  Ok(4));
+    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&9_i32)),  Ok(5));
+    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&10_i32)), Err(6));
+    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&11_i32)), Err(6));
 }
 
 #[rustfmt::skip]
@@ -3613,23 +3613,23 @@ fn test_type_erased_index_map_binary_search_by5() {
         (10_usize,  9_i32),
     ]);
 
-    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&0)),  Err(0));
-    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&1)),  Ok(0));
-    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&2)),  Err(1));
-    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&3)),  Ok(1));
+    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&0_i32)),  Err(0));
+    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&1_i32)),  Ok(0));
+    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&2_i32)),  Err(1));
+    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&3_i32)),  Ok(1));
 
-    assert!(match map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&4)) {
+    assert!(match map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&4_i32)) {
         Ok(2..=4) => true,
         _ => false,
     });
 
-    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&5)),  Err(5));
-    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&6)),  Err(5));
-    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&7)),  Ok(5));
-    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&8)),  Ok(6));
-    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&9)),  Ok(7));
-    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&10)), Err(8));
-    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&11)), Err(8));
+    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&5_i32)),  Err(5));
+    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&6_i32)),  Err(5));
+    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&7_i32)),  Ok(5));
+    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&8_i32)),  Ok(6));
+    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&9_i32)),  Ok(7));
+    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&10_i32)), Err(8));
+    assert_eq!(map.binary_search_by::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| v.cmp(&11_i32)), Err(8));
 }
 
 #[rustfmt::skip]
@@ -3647,15 +3647,15 @@ fn test_type_erased_index_map_binary_search_by_key1() {
 fn test_type_erased_index_map_binary_search_by_key2() {
     let map = TypeErasedIndexMap::from([(92_usize, 4_i32)]);
 
-    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&0, |_k, v| *v), Err(0));
-    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&1, |_k, v| *v), Err(0));
-    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&2, |_k, v| *v), Err(0));
-    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&3, |_k, v| *v), Err(0));
-    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&4, |_k, v| *v), Ok(0));
-    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&5, |_k, v| *v), Err(1));
-    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&6, |_k, v| *v), Err(1));
-    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&7, |_k, v| *v), Err(1));
-    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&8, |_k, v| *v), Err(1));
+    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&0_i32, |_k, v| *v), Err(0));
+    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&1_i32, |_k, v| *v), Err(0));
+    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&2_i32, |_k, v| *v), Err(0));
+    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&3_i32, |_k, v| *v), Err(0));
+    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&4_i32, |_k, v| *v), Ok(0));
+    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&5_i32, |_k, v| *v), Err(1));
+    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&6_i32, |_k, v| *v), Err(1));
+    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&7_i32, |_k, v| *v), Err(1));
+    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&8_i32, |_k, v| *v), Err(1));
 }
 
 #[rustfmt::skip]
@@ -3667,16 +3667,16 @@ fn test_type_erased_index_map_binary_search_by_key3() {
         (6_usize,   7_i32),
     ]);
 
-    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&0, |_k, v| *v), Err(0));
-    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&1, |_k, v| *v), Ok(0));
-    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&2, |_k, v| *v), Err(1));
-    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&3, |_k, v| *v), Err(1));
-    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&4, |_k, v| *v), Ok(1));
-    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&5, |_k, v| *v), Err(2));
-    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&6, |_k, v| *v), Err(2));
-    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&7, |_k, v| *v), Ok(2));
-    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&8, |_k, v| *v), Err(3));
-    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&9, |_k, v| *v), Err(3));
+    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&0_i32, |_k, v| *v), Err(0));
+    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&1_i32, |_k, v| *v), Ok(0));
+    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&2_i32, |_k, v| *v), Err(1));
+    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&3_i32, |_k, v| *v), Err(1));
+    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&4_i32, |_k, v| *v), Ok(1));
+    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&5_i32, |_k, v| *v), Err(2));
+    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&6_i32, |_k, v| *v), Err(2));
+    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&7_i32, |_k, v| *v), Ok(2));
+    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&8_i32, |_k, v| *v), Err(3));
+    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&9_i32, |_k, v| *v), Err(3));
 }
 
 #[rustfmt::skip]
@@ -3691,18 +3691,18 @@ fn test_type_erased_index_map_binary_search_by_key4() {
         (10_usize,  9_i32),
     ]);
 
-    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&0,  |_k, v| *v),  Err(0));
-    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&1,  |_k, v| *v),  Ok(0));
-    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&2,  |_k, v| *v),  Err(1));
-    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&3,  |_k, v| *v),  Ok(1));
-    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&4,  |_k, v| *v),  Ok(2));
-    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&5,  |_k, v| *v),  Err(3));
-    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&6,  |_k, v| *v),  Err(3));
-    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&7,  |_k, v| *v),  Ok(3));
-    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&8,  |_k, v| *v),  Ok(4));
-    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&9,  |_k, v| *v),  Ok(5));
-    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&10, |_k, v| *v), Err(6));
-    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&11, |_k, v| *v), Err(6));
+    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&0_i32,  |_k, v| *v),  Err(0));
+    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&1_i32,  |_k, v| *v),  Ok(0));
+    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&2_i32,  |_k, v| *v),  Err(1));
+    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&3_i32,  |_k, v| *v),  Ok(1));
+    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&4_i32,  |_k, v| *v),  Ok(2));
+    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&5_i32,  |_k, v| *v),  Err(3));
+    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&6_i32,  |_k, v| *v),  Err(3));
+    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&7_i32,  |_k, v| *v),  Ok(3));
+    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&8_i32,  |_k, v| *v),  Ok(4));
+    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&9_i32,  |_k, v| *v),  Ok(5));
+    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&10_i32, |_k, v| *v), Err(6));
+    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&11_i32, |_k, v| *v), Err(6));
 }
 
 #[rustfmt::skip]
@@ -3719,23 +3719,23 @@ fn test_type_erased_index_map_binary_search_by_key5() {
         (10_usize,  9_i32),
     ]);
 
-    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&0, |_k, v| *v),  Err(0));
-    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&1, |_k, v| *v),  Ok(0));
-    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&2, |_k, v| *v),  Err(1));
-    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&3, |_k, v| *v),  Ok(1));
+    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&0_i32, |_k, v| *v),  Err(0));
+    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&1_i32, |_k, v| *v),  Ok(0));
+    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&2_i32, |_k, v| *v),  Err(1));
+    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&3_i32, |_k, v| *v),  Ok(1));
 
-    assert!(match map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&4, |_k, v| *v) {
+    assert!(match map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&4_i32, |_k, v| *v) {
         Ok(2..=4) => true,
         _ => false,
     });
 
-    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&5,  |_k, v| *v), Err(5));
-    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&6,  |_k, v| *v), Err(5));
-    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&7,  |_k, v| *v), Ok(5));
-    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&8,  |_k, v| *v), Ok(6));
-    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&9,  |_k, v| *v), Ok(7));
-    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&10, |_k, v| *v), Err(8));
-    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&11, |_k, v| *v), Err(8));
+    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&5_i32,  |_k, v| *v), Err(5));
+    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&6_i32,  |_k, v| *v), Err(5));
+    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&7_i32,  |_k, v| *v), Ok(5));
+    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&8_i32,  |_k, v| *v), Ok(6));
+    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&9_i32,  |_k, v| *v), Ok(7));
+    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&10_i32, |_k, v| *v), Err(8));
+    assert_eq!(map.binary_search_by_key::<_, _, usize, i32, hash::RandomState, alloc::Global>(&11_i32, |_k, v| *v), Err(8));
 }
 
 #[rustfmt::skip]
@@ -3753,15 +3753,15 @@ fn test_type_erased_index_map_partition_point1() {
 fn test_type_erased_index_map_partition_point2() {
     let map = TypeErasedIndexMap::from([(92_usize, 4_i32)]);
 
-    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 0), 0);
-    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 1), 0);
-    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 2), 0);
-    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 3), 0);
-    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 4), 0);
-    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 5), 1);
-    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 6), 1);
-    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 7), 1);
-    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 8), 1);
+    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 0_i32), 0);
+    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 1_i32), 0);
+    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 2_i32), 0);
+    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 3_i32), 0);
+    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 4_i32), 0);
+    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 5_i32), 1);
+    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 6_i32), 1);
+    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 7_i32), 1);
+    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 8_i32), 1);
 }
 
 #[rustfmt::skip]
@@ -3773,16 +3773,16 @@ fn test_type_erased_index_map_partition_point3() {
         (6_usize,   7_i32),
     ]);
 
-    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 0), 0);
-    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 1), 0);
-    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 2), 1);
-    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 3), 1);
-    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 4), 1);
-    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 5), 2);
-    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 6), 2);
-    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 7), 2);
-    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 8), 3);
-    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 9), 3);
+    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 0_i32), 0);
+    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 1_i32), 0);
+    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 2_i32), 1);
+    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 3_i32), 1);
+    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 4_i32), 1);
+    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 5_i32), 2);
+    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 6_i32), 2);
+    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 7_i32), 2);
+    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 8_i32), 3);
+    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 9_i32), 3);
 }
 
 #[rustfmt::skip]
@@ -3797,18 +3797,18 @@ fn test_type_erased_index_map_partition_point4() {
         (10_usize,  9_i32),
     ]);
 
-    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 0),  0);
-    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 1),  0);
-    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 2),  1);
-    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 3),  1);
-    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 4),  2);
-    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 5),  3);
-    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 6),  3);
-    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 7),  3);
-    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 8),  4);
-    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 9),  5);
-    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 10), 6);
-    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 11), 6);
+    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 0_i32),  0);
+    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 1_i32),  0);
+    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 2_i32),  1);
+    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 3_i32),  1);
+    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 4_i32),  2);
+    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 5_i32),  3);
+    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 6_i32),  3);
+    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 7_i32),  3);
+    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 8_i32),  4);
+    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 9_i32),  5);
+    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 10_i32), 6);
+    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 11_i32), 6);
 }
 
 #[rustfmt::skip]
@@ -3825,23 +3825,23 @@ fn test_type_erased_index_map_partition_point5() {
         (10_usize,  9_i32),
     ]);
 
-    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 0), 0);
-    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 1), 0);
-    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 2), 1);
-    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 3), 1);
+    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 0_i32), 0);
+    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 1_i32), 0);
+    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 2_i32), 1);
+    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 3_i32), 1);
 
-    assert!(match map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 4) {
+    assert!(match map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 4_i32) {
         2..=4 => true,
         _ => false,
     });
 
-    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 5),  5);
-    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 6),  5);
-    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 7),  5);
-    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 8),  6);
-    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 9),  7);
-    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 10), 8);
-    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 11), 8);
+    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 5_i32),  5);
+    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 6_i32),  5);
+    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 7_i32),  5);
+    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 8_i32),  6);
+    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 9_i32),  7);
+    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 10_i32), 8);
+    assert_eq!(map.partition_point::<_, usize, i32, hash::RandomState, alloc::Global>(|_k, v| *v < 11_i32), 8);
 }
 
 #[rustfmt::skip]
