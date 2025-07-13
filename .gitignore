@@ -7,4 +7,4 @@ Cargo.lock
 ._.DS_Store
 .vscode
 *.proptest-regressions
-
+proptest-regressions
