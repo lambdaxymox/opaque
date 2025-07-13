@@ -83,6 +83,1094 @@ fn test_type_projected_empty_get2() {
 
 #[rustfmt::skip]
 #[test]
+fn test_type_projected_index_set_eq1() {
+    assert_eq!(
+        TypeProjectedIndexSet::<usize>::new(),
+        TypeProjectedIndexSet::<usize>::new(),
+    );
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_set_eq2() {
+    assert_eq!(
+        TypeProjectedIndexSet::from([0_usize]),
+        TypeProjectedIndexSet::from([0_usize]),
+    );
+    assert_eq!(
+        TypeProjectedIndexSet::from([1_usize]),
+        TypeProjectedIndexSet::from([1_usize]),
+    );
+    assert_eq!(
+        TypeProjectedIndexSet::from([2_usize]),
+        TypeProjectedIndexSet::from([2_usize]),
+    );
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_set_eq3() {
+    assert_eq!(
+        TypeProjectedIndexSet::from([0_usize, 1_usize]),
+        TypeProjectedIndexSet::from([0_usize, 1_usize]),
+    );
+    assert_eq!(
+        TypeProjectedIndexSet::from([0_usize, 1_usize]),
+        TypeProjectedIndexSet::from([1_usize, 0_usize]),
+    );
+    assert_eq!(
+        TypeProjectedIndexSet::from([0_usize, 2_usize]),
+        TypeProjectedIndexSet::from([0_usize, 2_usize]),
+    );
+    assert_eq!(
+        TypeProjectedIndexSet::from([0_usize, 2_usize]),
+        TypeProjectedIndexSet::from([2_usize, 0_usize]),
+    );
+    assert_eq!(
+        TypeProjectedIndexSet::from([1_usize, 2_usize]),
+        TypeProjectedIndexSet::from([1_usize, 2_usize]),
+    );
+    assert_eq!(
+        TypeProjectedIndexSet::from([1_usize, 2_usize]),
+        TypeProjectedIndexSet::from([2_usize, 1_usize]),
+    );
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_set_eq4() {
+    assert_eq!(
+        TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+        TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+    );
+    assert_eq!(
+        TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+        TypeProjectedIndexSet::from([0_usize, 2_usize, 1_usize]),
+    );
+    assert_eq!(
+        TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+        TypeProjectedIndexSet::from([2_usize, 0_usize, 1_usize]),
+    );
+    assert_eq!(
+        TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+        TypeProjectedIndexSet::from([2_usize, 1_usize, 0_usize]),
+    );
+    assert_eq!(
+        TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+        TypeProjectedIndexSet::from([1_usize, 2_usize, 0_usize]),
+    );
+    assert_eq!(
+        TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+        TypeProjectedIndexSet::from([1_usize, 0_usize, 2_usize]),
+    );
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_set_not_eq1() {
+    assert_ne!(
+        TypeProjectedIndexSet::new(),
+        TypeProjectedIndexSet::from([0_usize]),
+    );
+    assert_ne!(
+        TypeProjectedIndexSet::from([0_usize]),
+        TypeProjectedIndexSet::new(),
+    );
+    assert_ne!(
+        TypeProjectedIndexSet::new(),
+        TypeProjectedIndexSet::from([1_usize]),
+    );
+    assert_ne!(
+        TypeProjectedIndexSet::from([1_usize]),
+        TypeProjectedIndexSet::new(),
+    );
+    assert_ne!(
+        TypeProjectedIndexSet::new(),
+        TypeProjectedIndexSet::from([2_usize]),
+    );
+    assert_ne!(
+        TypeProjectedIndexSet::from([2_usize]),
+        TypeProjectedIndexSet::new(),
+    );
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_set_not_eq2() {
+    assert_ne!(
+        TypeProjectedIndexSet::from([0_usize]),
+        TypeProjectedIndexSet::from([1_usize]),
+    );
+    assert_ne!(
+        TypeProjectedIndexSet::from([1_usize]),
+        TypeProjectedIndexSet::from([0_usize]),
+    );
+    assert_ne!(
+        TypeProjectedIndexSet::from([0_usize]),
+        TypeProjectedIndexSet::from([2_usize]),
+    );
+    assert_ne!(
+        TypeProjectedIndexSet::from([2_usize]),
+        TypeProjectedIndexSet::from([0_usize]),
+    );
+    assert_ne!(
+        TypeProjectedIndexSet::from([1_usize]),
+        TypeProjectedIndexSet::from([2_usize]),
+    );
+    assert_ne!(
+        TypeProjectedIndexSet::from([2_usize]),
+        TypeProjectedIndexSet::from([1_usize]),
+    );
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_set_not_eq3() {
+    assert_ne!(
+        TypeProjectedIndexSet::new(),
+        TypeProjectedIndexSet::from([0_usize, 1_usize]),
+    );
+    assert_ne!(
+        TypeProjectedIndexSet::from([0_usize, 1_usize]),
+        TypeProjectedIndexSet::new(),
+    );
+    assert_ne!(
+        TypeProjectedIndexSet::new(),
+        TypeProjectedIndexSet::from([0_usize, 2_usize]),
+    );
+    assert_ne!(
+        TypeProjectedIndexSet::from([0_usize, 2_usize]),
+        TypeProjectedIndexSet::new(),
+    );
+    assert_ne!(
+        TypeProjectedIndexSet::new(),
+        TypeProjectedIndexSet::from([1_usize, 2_usize]),
+    );
+    assert_ne!(
+        TypeProjectedIndexSet::from([1_usize, 2_usize]),
+        TypeProjectedIndexSet::new(),
+    );
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_set_not_eq4() {
+    assert_ne!(
+        TypeProjectedIndexSet::from([0_usize]),
+        TypeProjectedIndexSet::from([0_usize, 1_usize]),
+    );
+    assert_ne!(
+        TypeProjectedIndexSet::from([0_usize, 1_usize]),
+        TypeProjectedIndexSet::from([0_usize]),
+    );
+    assert_ne!(
+        TypeProjectedIndexSet::from([1_usize]),
+        TypeProjectedIndexSet::from([0_usize, 1_usize]),
+    );
+    assert_ne!(
+        TypeProjectedIndexSet::from([0_usize, 1_usize]),
+        TypeProjectedIndexSet::from([1_usize]),
+    );
+    assert_ne!(
+        TypeProjectedIndexSet::from([2_usize]),
+        TypeProjectedIndexSet::from([0_usize, 1_usize]),
+    );
+    assert_ne!(
+        TypeProjectedIndexSet::from([0_usize, 1_usize]),
+        TypeProjectedIndexSet::from([2_usize]),
+    );
+    assert_ne!(
+        TypeProjectedIndexSet::from([0_usize]),
+        TypeProjectedIndexSet::from([0_usize, 2_usize]),
+    );
+    assert_ne!(
+        TypeProjectedIndexSet::from([0_usize, 2_usize]),
+        TypeProjectedIndexSet::from([0_usize]),
+    );
+    assert_ne!(
+        TypeProjectedIndexSet::from([2_usize]),
+        TypeProjectedIndexSet::from([0_usize, 2_usize]),
+    );
+    assert_ne!(
+        TypeProjectedIndexSet::from([0_usize, 2_usize]),
+        TypeProjectedIndexSet::from([2_usize]),
+    );
+    assert_ne!(
+        TypeProjectedIndexSet::from([1_usize]),
+        TypeProjectedIndexSet::from([0_usize, 2_usize]),
+    );
+    assert_ne!(
+        TypeProjectedIndexSet::from([0_usize, 2_usize]),
+        TypeProjectedIndexSet::from([1_usize]),
+    );
+    assert_ne!(
+        TypeProjectedIndexSet::from([1_usize]),
+        TypeProjectedIndexSet::from([1_usize, 2_usize]),
+    );
+    assert_ne!(
+        TypeProjectedIndexSet::from([1_usize, 2_usize]),
+        TypeProjectedIndexSet::from([1_usize]),
+    );
+    assert_ne!(
+        TypeProjectedIndexSet::from([2_usize]),
+        TypeProjectedIndexSet::from([1_usize, 2_usize]),
+    );
+    assert_ne!(
+        TypeProjectedIndexSet::from([1_usize, 2_usize]),
+        TypeProjectedIndexSet::from([2_usize]),
+    );
+    assert_ne!(
+        TypeProjectedIndexSet::from([0_usize]),
+        TypeProjectedIndexSet::from([1_usize, 2_usize]),
+    );
+    assert_ne!(
+        TypeProjectedIndexSet::from([1_usize, 2_usize]),
+        TypeProjectedIndexSet::from([0_usize]),
+    );
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_set_not_eq5() {
+    assert_ne!(
+        TypeProjectedIndexSet::from([0_usize, 1_usize]),
+        TypeProjectedIndexSet::from([0_usize, 2_usize]),
+    );
+    assert_ne!(
+        TypeProjectedIndexSet::from([0_usize, 2_usize]),
+        TypeProjectedIndexSet::from([0_usize, 1_usize]),
+    );
+    assert_ne!(
+        TypeProjectedIndexSet::from([0_usize, 1_usize]),
+        TypeProjectedIndexSet::from([1_usize, 2_usize]),
+    );
+    assert_ne!(
+        TypeProjectedIndexSet::from([0_usize, 2_usize]),
+        TypeProjectedIndexSet::from([1_usize, 2_usize]),
+    );
+    assert_ne!(
+        TypeProjectedIndexSet::from([1_usize, 2_usize]),
+        TypeProjectedIndexSet::from([0_usize, 1_usize]),
+    );
+    assert_ne!(
+        TypeProjectedIndexSet::from([1_usize, 2_usize]),
+        TypeProjectedIndexSet::from([0_usize, 2_usize]),
+    );
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_set_not_eq6() {
+    assert_ne!(
+        TypeProjectedIndexSet::new(),
+        TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+    );
+    assert_ne!(
+        TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+        TypeProjectedIndexSet::new(),
+    );
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_set_not_eq7() {
+    assert_ne!(
+        TypeProjectedIndexSet::from([0_usize]),
+        TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+    );
+    assert_ne!(
+        TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+        TypeProjectedIndexSet::from([0_usize]),
+    );
+    assert_ne!(
+        TypeProjectedIndexSet::from([1_usize]),
+        TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+    );
+    assert_ne!(
+        TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+        TypeProjectedIndexSet::from([1_usize]),
+    );
+    assert_ne!(
+        TypeProjectedIndexSet::from([2_usize]),
+        TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+    );
+    assert_ne!(
+        TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+        TypeProjectedIndexSet::from([2_usize]),
+    );
+    assert_ne!(
+        TypeProjectedIndexSet::from([0_usize, 1_usize]),
+        TypeProjectedIndexSet::from([2_usize, 0_usize, 1_usize]),
+    );
+    assert_ne!(
+        TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+        TypeProjectedIndexSet::from([0_usize, 1_usize]),
+    );
+    assert_ne!(
+        TypeProjectedIndexSet::from([0_usize, 2_usize]),
+        TypeProjectedIndexSet::from([2_usize, 0_usize, 1_usize]),
+    );
+    assert_ne!(
+        TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+        TypeProjectedIndexSet::from([0_usize, 2_usize]),
+    );
+    assert_ne!(
+        TypeProjectedIndexSet::from([1_usize, 2_usize]),
+        TypeProjectedIndexSet::from([2_usize, 0_usize, 1_usize]),
+    );
+    assert_ne!(
+        TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+        TypeProjectedIndexSet::from([1_usize, 2_usize]),
+    );
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_set_is_subset1() {
+    assert!(TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::<usize>::new(),
+        &TypeProjectedIndexSet::<usize>::new(),
+    ));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_set_is_subset2() {
+    assert!(TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::new(),
+        &TypeProjectedIndexSet::from([0_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::new(),
+        &TypeProjectedIndexSet::from([1_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::new(),
+        &TypeProjectedIndexSet::from([2_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::from([0_usize]),
+        &TypeProjectedIndexSet::from([0_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::from([1_usize]),
+        &TypeProjectedIndexSet::from([1_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::from([2_usize]),
+        &TypeProjectedIndexSet::from([2_usize]),
+    ));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_set_is_subset3() {
+    assert!(TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::new(),
+        &TypeProjectedIndexSet::from([0_usize, 1_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::from([0_usize]),
+        &TypeProjectedIndexSet::from([0_usize, 1_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::from([1_usize]),
+        &TypeProjectedIndexSet::from([0_usize, 1_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::from([0_usize, 1_usize]),
+        &TypeProjectedIndexSet::from([0_usize, 1_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::new(),
+        &TypeProjectedIndexSet::from([0_usize, 2_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::from([0_usize]),
+        &TypeProjectedIndexSet::from([0_usize, 2_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::from([2_usize]),
+        &TypeProjectedIndexSet::from([0_usize, 2_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::from([0_usize, 2_usize]),
+        &TypeProjectedIndexSet::from([0_usize, 2_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::new(),
+        &TypeProjectedIndexSet::from([1_usize, 2_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::from([1_usize]),
+        &TypeProjectedIndexSet::from([1_usize, 2_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::from([2_usize]),
+        &TypeProjectedIndexSet::from([1_usize, 2_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::from([1_usize, 2_usize]),
+        &TypeProjectedIndexSet::from([1_usize, 2_usize]),
+    ));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_set_is_subset4() {
+    assert!(TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::new(),
+        &TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::from([0_usize]),
+        &TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::from([1_usize]),
+        &TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::from([2_usize]),
+        &TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::from([0_usize, 1_usize]),
+        &TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::from([0_usize, 2_usize]),
+        &TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::from([1_usize, 2_usize]),
+        &TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+        &TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+    ));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_set_not_is_subset1() {
+    assert!(!TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::from([0_usize]),
+        &TypeProjectedIndexSet::new(),
+    ));
+    assert!(!TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::from([1_usize]),
+        &TypeProjectedIndexSet::new(),
+    ));
+    assert!(!TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::from([2_usize]),
+        &TypeProjectedIndexSet::new(),
+    ));
+    assert!(!TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::from([0_usize]),
+        &TypeProjectedIndexSet::from([1_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::from([1_usize]),
+        &TypeProjectedIndexSet::from([0_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::from([0_usize]),
+        &TypeProjectedIndexSet::from([2_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::from([2_usize]),
+        &TypeProjectedIndexSet::from([0_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::from([1_usize]),
+        &TypeProjectedIndexSet::from([2_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::from([1_usize]),
+        &TypeProjectedIndexSet::from([2_usize]),
+    ));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_set_not_is_subset2() {
+    assert!(!TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::from([0_usize, 1_usize]),
+        &TypeProjectedIndexSet::new(),
+    ));
+    assert!(!TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::from([0_usize, 1_usize]),
+        &TypeProjectedIndexSet::from([0_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::from([0_usize, 1_usize]),
+        &TypeProjectedIndexSet::from([1_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::from([0_usize, 2_usize]),
+        &TypeProjectedIndexSet::new(),
+    ));
+    assert!(!TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::from([0_usize, 2_usize]),
+        &TypeProjectedIndexSet::from([0_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::from([0_usize, 2_usize]),
+        &TypeProjectedIndexSet::from([2_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::from([1_usize, 2_usize]),
+        &TypeProjectedIndexSet::new(),
+    ));
+    assert!(!TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::from([1_usize, 2_usize]),
+        &TypeProjectedIndexSet::from([1_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::from([1_usize, 2_usize]),
+        &TypeProjectedIndexSet::from([2_usize]),
+    ));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_set_not_is_subset3() {
+    assert!(!TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+        &TypeProjectedIndexSet::new(),
+    ));
+    assert!(!TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+        &TypeProjectedIndexSet::from([0_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+        &TypeProjectedIndexSet::from([1_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+        &TypeProjectedIndexSet::from([2_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+        &TypeProjectedIndexSet::from([0_usize, 1_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+        &TypeProjectedIndexSet::from([0_usize, 2_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_subset(
+        &TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+        &TypeProjectedIndexSet::from([1_usize, 2_usize]),
+    ));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_set_is_superset1() {
+    assert!(TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::<usize>::new(),
+        &TypeProjectedIndexSet::<usize>::new(),
+    ));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_set_is_superset2() {
+    assert!(TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::from([0_usize]),
+        &TypeProjectedIndexSet::new(),
+    ));
+    assert!(TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::from([1_usize]),
+        &TypeProjectedIndexSet::new(),
+    ));
+    assert!(TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::from([2_usize]),
+        &TypeProjectedIndexSet::new(),
+    ));
+    assert!(TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::from([0_usize]),
+        &TypeProjectedIndexSet::from([0_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::from([1_usize]),
+        &TypeProjectedIndexSet::from([1_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::from([2_usize]),
+        &TypeProjectedIndexSet::from([2_usize]),
+    ));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_set_is_superset3() {
+    assert!(TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::from([0_usize, 1_usize]),
+        &TypeProjectedIndexSet::new(),
+    ));
+    assert!(TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::from([0_usize, 1_usize]),
+        &TypeProjectedIndexSet::from([0_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::from([0_usize, 1_usize]),
+        &TypeProjectedIndexSet::from([1_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::from([0_usize, 1_usize]),
+        &TypeProjectedIndexSet::from([0_usize, 1_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::from([0_usize, 2_usize]),
+        &TypeProjectedIndexSet::new(),
+    ));
+    assert!(TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::from([0_usize, 2_usize]),
+        &TypeProjectedIndexSet::from([0_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::from([0_usize, 2_usize]),
+        &TypeProjectedIndexSet::from([2_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::from([0_usize, 2_usize]),
+        &TypeProjectedIndexSet::from([0_usize, 2_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::from([1_usize, 2_usize]),
+        &TypeProjectedIndexSet::new(),
+    ));
+    assert!(TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::from([1_usize, 2_usize]),
+        &TypeProjectedIndexSet::from([1_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::from([1_usize, 2_usize]),
+        &TypeProjectedIndexSet::from([2_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::from([1_usize, 2_usize]),
+        &TypeProjectedIndexSet::from([1_usize, 2_usize]),
+    ));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_set_is_superset4() {
+    assert!(TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+        &TypeProjectedIndexSet::new(),
+    ));
+    assert!(TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+        &TypeProjectedIndexSet::from([0_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+        &TypeProjectedIndexSet::from([1_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+        &TypeProjectedIndexSet::from([2_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+        &TypeProjectedIndexSet::from([0_usize, 1_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+        &TypeProjectedIndexSet::from([0_usize, 2_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+        &TypeProjectedIndexSet::from([1_usize, 2_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+        &TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+    ));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_set_not_is_superset1() {
+    assert!(!TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::new(),
+        &TypeProjectedIndexSet::from([0_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::new(),
+        &TypeProjectedIndexSet::from([1_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::new(),
+        &TypeProjectedIndexSet::from([2_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::from([1_usize]),
+        &TypeProjectedIndexSet::from([0_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::from([0_usize]),
+        &TypeProjectedIndexSet::from([1_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::from([2_usize]),
+        &TypeProjectedIndexSet::from([0_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::from([0_usize]),
+        &TypeProjectedIndexSet::from([2_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::from([2_usize]),
+        &TypeProjectedIndexSet::from([1_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::from([1_usize]),
+        &TypeProjectedIndexSet::from([2_usize]),
+    ));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_set_not_is_superset2() {
+    assert!(!TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::new(),
+        &TypeProjectedIndexSet::from([0_usize, 1_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::from([0_usize]),
+        &TypeProjectedIndexSet::from([0_usize, 1_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::from([1_usize]),
+        &TypeProjectedIndexSet::from([0_usize, 1_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::new(),
+        &TypeProjectedIndexSet::from([0_usize, 2_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::from([0_usize]),
+        &TypeProjectedIndexSet::from([0_usize, 2_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::from([2_usize]),
+        &TypeProjectedIndexSet::from([0_usize, 2_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::new(),
+        &TypeProjectedIndexSet::from([1_usize, 2_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::from([1_usize]),
+        &TypeProjectedIndexSet::from([1_usize, 2_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::from([2_usize]),
+        &TypeProjectedIndexSet::from([1_usize, 2_usize]),
+    ));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_set_not_is_superset3() {
+    assert!(!TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::new(),
+        &TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::from([0_usize]),
+        &TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::from([1_usize]),
+        &TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::from([2_usize]),
+        &TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::from([0_usize, 1_usize]),
+        &TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::from([0_usize, 2_usize]),
+        &TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_superset(
+        &TypeProjectedIndexSet::from([1_usize, 2_usize]),
+        &TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+    ));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_set_is_disjoint1() {
+    assert!(TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::<usize>::new(),
+        &TypeProjectedIndexSet::<usize>::new(),
+    ));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_set_is_disjoint2() {
+    assert!(TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::from([0_usize]),
+        &TypeProjectedIndexSet::new(),
+    ));
+    assert!(TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::new(),
+        &TypeProjectedIndexSet::from([0_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::from([1_usize]),
+        &TypeProjectedIndexSet::new(),
+    ));
+    assert!(TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::new(),
+        &TypeProjectedIndexSet::from([1_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::from([2_usize]),
+        &TypeProjectedIndexSet::new(),
+    ));
+    assert!(TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::new(),
+        &TypeProjectedIndexSet::from([2_usize]),
+    ));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_set_is_disjoint3() {
+    assert!(TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::from([1_usize]),
+        &TypeProjectedIndexSet::from([0_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::from([0_usize]),
+        &TypeProjectedIndexSet::from([1_usize]),
+    ));
+     assert!(TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::from([2_usize]),
+        &TypeProjectedIndexSet::from([0_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::from([0_usize]),
+        &TypeProjectedIndexSet::from([2_usize]),
+    ));
+     assert!(TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::from([1_usize]),
+        &TypeProjectedIndexSet::from([2_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::from([2_usize]),
+        &TypeProjectedIndexSet::from([1_usize]),
+    ));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_set_is_disjoint4() {
+    assert!(TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::from([0_usize, 1_usize]),
+        &TypeProjectedIndexSet::new(),
+    ));
+    assert!(TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::new(),
+        &TypeProjectedIndexSet::from([0_usize, 1_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::from([0_usize, 1_usize]),
+        &TypeProjectedIndexSet::from([2_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::from([1_usize]),
+        &TypeProjectedIndexSet::from([0_usize, 2_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::from([0_usize, 2_usize]),
+        &TypeProjectedIndexSet::new(),
+    ));
+    assert!(TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::new(),
+        &TypeProjectedIndexSet::from([0_usize, 2_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::from([0_usize, 2_usize]),
+        &TypeProjectedIndexSet::from([1_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::from([1_usize]),
+        &TypeProjectedIndexSet::from([0_usize, 2_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::from([1_usize, 2_usize]),
+        &TypeProjectedIndexSet::new(),
+    ));
+    assert!(TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::new(),
+        &TypeProjectedIndexSet::from([1_usize, 2_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::from([1_usize, 2_usize]),
+        &TypeProjectedIndexSet::from([0_usize]),
+    ));
+    assert!(TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::from([0_usize]),
+        &TypeProjectedIndexSet::from([1_usize, 2_usize]),
+    ));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_set_not_is_disjoint1() {
+    assert!(!TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::from([0_usize]),
+        &TypeProjectedIndexSet::from([0_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::from([1_usize]),
+        &TypeProjectedIndexSet::from([1_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::from([2_usize]),
+        &TypeProjectedIndexSet::from([2_usize]),
+    ));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_set_not_is_disjoint2() {
+    assert!(!TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::from([0_usize, 1_usize]),
+        &TypeProjectedIndexSet::from([0_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::from([0_usize]),
+        &TypeProjectedIndexSet::from([0_usize, 1_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::from([0_usize, 1_usize]),
+        &TypeProjectedIndexSet::from([1_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::from([1_usize]),
+        &TypeProjectedIndexSet::from([0_usize, 1_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::from([0_usize, 2_usize]),
+        &TypeProjectedIndexSet::from([0_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::from([0_usize]),
+        &TypeProjectedIndexSet::from([0_usize, 2_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::from([0_usize, 2_usize]),
+        &TypeProjectedIndexSet::from([2_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::from([2_usize]),
+        &TypeProjectedIndexSet::from([0_usize, 2_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::from([1_usize, 2_usize]),
+        &TypeProjectedIndexSet::from([1_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::from([1_usize]),
+        &TypeProjectedIndexSet::from([1_usize, 2_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::from([1_usize, 2_usize]),
+        &TypeProjectedIndexSet::from([2_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::from([2_usize]),
+        &TypeProjectedIndexSet::from([1_usize, 2_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::from([0_usize, 1_usize]),
+        &TypeProjectedIndexSet::from([0_usize, 1_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::from([0_usize, 2_usize]),
+        &TypeProjectedIndexSet::from([0_usize, 2_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::from([1_usize, 2_usize]),
+        &TypeProjectedIndexSet::from([1_usize, 2_usize]),
+    ));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_set_not_is_disjoint3() {
+    assert!(!TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+        &TypeProjectedIndexSet::from([0_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::from([0_usize]),
+        &TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+        &TypeProjectedIndexSet::from([1_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::from([1_usize]),
+        &TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+        &TypeProjectedIndexSet::from([2_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::from([2_usize]),
+        &TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+        &TypeProjectedIndexSet::from([0_usize, 1_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::from([0_usize, 1_usize]),
+        &TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+        &TypeProjectedIndexSet::from([0_usize, 2_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::from([0_usize, 2_usize]),
+        &TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+        &TypeProjectedIndexSet::from([1_usize, 2_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::from([1_usize, 2_usize]),
+        &TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+    ));
+    assert!(!TypeProjectedIndexSet::is_disjoint(
+        &TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+        &TypeProjectedIndexSet::from([0_usize, 1_usize, 2_usize]),
+    ));
+}
+
+#[rustfmt::skip]
+#[test]
 fn test_type_projected_index_set_get_index_of1() {
     let mut set = TypeProjectedIndexSet::new();
     assert_eq!(set.get_index_of(&"a"), None);
