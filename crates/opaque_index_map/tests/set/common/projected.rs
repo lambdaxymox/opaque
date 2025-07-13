@@ -61,6 +61,29 @@ where
     }
 }
 
+#[derive(Clone, Default, Debug)]
+pub struct WrappingBuildHasher3<S> {
+    build_hasher: S,
+}
+
+impl<S> WrappingBuildHasher3<S> {
+    #[inline]
+    pub const fn new(build_hasher: S) -> Self {
+        Self { build_hasher }
+    }
+}
+
+impl<S> hash::BuildHasher for WrappingBuildHasher3<S>
+where
+    S: any::Any + hash::BuildHasher + Send + Sync,
+{
+    type Hasher = S::Hasher;
+
+    fn build_hasher(&self) -> Self::Hasher {
+        self.build_hasher.build_hasher()
+    }
+}
+
 pub trait SingleBoundedValue: Arbitrary {
     fn bounded_any() -> impl Strategy<Value = Self>;
 }

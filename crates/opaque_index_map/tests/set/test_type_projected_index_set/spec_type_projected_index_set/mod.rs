@@ -20,3 +20,7 @@ mod spec_binary_search_by_key;
 mod spec_partition_point;
 mod spec_swap_take;
 mod spec_shift_take;
+mod spec_difference;
+mod spec_symmetric_difference;
+mod spec_intersection;
+mod spec_union;
