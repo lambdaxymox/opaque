@@ -45,6 +45,30 @@ where
     set
 }
 
+fn from_union_in<T, S1, S2, A>(
+    entries1: &TypeProjectedIndexSet<T, S1, A>,
+    entries2: &TypeProjectedIndexSet<T, S2, A>,
+) -> TypeProjectedIndexSet<T, S1, A>
+where
+    T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
+    S1: any::Any + hash::BuildHasher + Send + Sync + Clone + Default,
+    S1::Hasher: any::Any + hash::Hasher + Send + Sync,
+    S2: any::Any + hash::BuildHasher + Send + Sync + Clone + Default,
+    S2::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
+{
+    let mut set = TypeProjectedIndexSet::with_hasher_proj_in(
+        entries1.hasher().clone(),
+        entries1.allocator().clone(),
+    );
+
+    for value in entries1.union(&entries2).cloned() {
+        set.insert(value);
+    }
+
+    set
+}
+
 fn prop_intersection_with_self<T, S, A>(entries: TypeProjectedIndexSet<T, S, A>) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
@@ -194,6 +218,35 @@ where
     Ok(())
 }
 
+fn prop_intersection_distributive_with_union<T, S1, S2, S3, A>(
+    entries1: TypeProjectedIndexSet<T, S1, A>,
+    entries2: TypeProjectedIndexSet<T, S2, A>,
+    entries3: TypeProjectedIndexSet<T, S3, A>,
+) -> Result<(), TestCaseError>
+where
+    T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
+    S1: any::Any + hash::BuildHasher + Send + Sync + Clone + Default,
+    S1::Hasher: any::Any + hash::Hasher + Send + Sync,
+    S2: any::Any + hash::BuildHasher + Send + Sync + Clone + Default,
+    S2::Hasher: any::Any + hash::Hasher + Send + Sync,
+    S3: any::Any + hash::BuildHasher + Send + Sync + Clone + Default,
+    S3::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
+{
+    let lhs = from_intersection_in(
+        &entries1,
+        &from_union_in(&entries2, &entries3),
+    );
+    let rhs = from_union_in(
+        &from_intersection_in(&entries1, &entries2),
+        &from_intersection_in(&entries1, &entries3),
+    );
+
+    prop_assert_eq!(lhs, rhs);
+
+    Ok(())
+}
+
 fn prop_intersection_is_subset<T, S1, S2, A>(entries1: TypeProjectedIndexSet<T, S1, A>, entries2: TypeProjectedIndexSet<T, S2, A>) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
@@ -321,6 +374,18 @@ macro_rules! generate_props {
                     let entries2: super::TypeProjectedIndexSet<$value_typ, $build_hasher_typ2, $alloc_typ> = entries2;
                     let entries3: super::TypeProjectedIndexSet<$value_typ, $build_hasher_typ3, $alloc_typ> = entries3;
                     super::prop_intersection_associative(entries1, entries2, entries3)?
+                }
+
+                #[test]
+                fn prop_intersection_distributive_with_union(
+                    entries1 in super::$set_gen::<$value_typ, $build_hasher_typ1, $alloc_typ>($max_length),
+                    entries2 in super::$set_gen::<$value_typ, $build_hasher_typ2, $alloc_typ>($max_length),
+                    entries3 in super::$set_gen::<$value_typ, $build_hasher_typ3, $alloc_typ>($max_length),
+                ) {
+                    let entries1: super::TypeProjectedIndexSet<$value_typ, $build_hasher_typ1, $alloc_typ> = entries1;
+                    let entries2: super::TypeProjectedIndexSet<$value_typ, $build_hasher_typ2, $alloc_typ> = entries2;
+                    let entries3: super::TypeProjectedIndexSet<$value_typ, $build_hasher_typ3, $alloc_typ> = entries3;
+                    super::prop_intersection_distributive_with_union(entries1, entries2, entries3)?
                 }
 
                 #[test]
