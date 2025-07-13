@@ -24,3 +24,5 @@ mod spec_difference;
 mod spec_symmetric_difference;
 mod spec_intersection;
 mod spec_union;
+mod spec_shift_remove_index;
+mod spec_swap_remove_index;
