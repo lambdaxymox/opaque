@@ -4944,7 +4944,7 @@ fn test_type_projected_index_set_difference2() {
     let set2: TypeProjectedIndexSet<u64> = TypeProjectedIndexSet::new();
     let mut iter = set1.difference(&set2);
 
-    for i in 0..65536 {
+    for _ in 0..65536 {
         assert_eq!(iter.next(), None);
     }
 }
@@ -4964,7 +4964,7 @@ fn test_type_projected_index_set_difference3() {
         34_u64,
     ]);
     let set2: TypeProjectedIndexSet<u64> = TypeProjectedIndexSet::new();
-    let expected: TypeProjectedIndexSet<u64> = set1.clone();
+    let expected = set1.clone();
     let result: TypeProjectedIndexSet<u64> = set1.difference(&set2).cloned().collect();
 
     assert_eq!(result, expected);
@@ -5039,7 +5039,7 @@ fn test_type_projected_index_set_difference6() {
     ]);
     let mut iter = set1.difference(&set2);
 
-    for i in 0..65536 {
+    for _ in 0..65536 {
         assert_eq!(iter.next(), None);
     }
 }
@@ -5058,7 +5058,7 @@ fn test_type_projected_index_set_difference7() {
         92_u64,
         34_u64,
     ]);
-    let set2: TypeProjectedIndexSet<u64> = TypeProjectedIndexSet::from([
+    let set2 = TypeProjectedIndexSet::from([
         88_u64,
         82_u64,
         98_u64,
@@ -5069,7 +5069,7 @@ fn test_type_projected_index_set_difference7() {
         83_u64,
         19_u64,
     ]);
-    let expected: TypeProjectedIndexSet<u64> = set1.clone();
+    let expected = set1.clone();
     let result: TypeProjectedIndexSet<u64> = set1.difference(&set2).cloned().collect();
 
     assert_eq!(result, expected);
@@ -5089,7 +5089,7 @@ fn test_type_projected_index_set_difference8() {
         92_u64,
         34_u64,
     ]);
-    let set2: TypeProjectedIndexSet<u64> = TypeProjectedIndexSet::from([
+    let set2 = TypeProjectedIndexSet::from([
         88_u64,
         82_u64,
         98_u64,
@@ -5130,7 +5130,7 @@ fn test_type_projected_index_set_difference9() {
         92_u64,
         34_u64,
     ]);
-    let set2: TypeProjectedIndexSet<u64> = TypeProjectedIndexSet::from([
+    let set2 = TypeProjectedIndexSet::from([
         40_u64,
         42_u64,
         51_u64,
@@ -5138,7 +5138,7 @@ fn test_type_projected_index_set_difference9() {
         18_u64,
         70_u64,
     ]);
-    let expected: TypeProjectedIndexSet<u64> = TypeProjectedIndexSet::from([
+    let expected = TypeProjectedIndexSet::from([
         73_u64,
         32_u64,
         21_u64,
@@ -5165,7 +5165,7 @@ fn test_type_projected_index_set_difference10() {
         92_u64,
         34_u64,
     ]);
-    let set2: TypeProjectedIndexSet<u64> = TypeProjectedIndexSet::from([
+    let set2 = TypeProjectedIndexSet::from([
         40_u64,
         42_u64,
         51_u64,
@@ -5201,7 +5201,7 @@ fn test_type_projected_index_set_intersection2() {
     let set2: TypeProjectedIndexSet<u64> = TypeProjectedIndexSet::new();
     let mut iter = set1.intersection(&set2);
 
-    for i in 0..65536 {
+    for _ in 0..65536 {
         assert_eq!(iter.next(), None);
     }
 }
@@ -5287,7 +5287,7 @@ fn test_type_projected_index_set_intersection6() {
     ]);
     let mut iter = set1.intersection(&set2);
 
-    for i in 0..65536 {
+    for _ in 0..65536 {
         assert_eq!(iter.next(), None);
     }
 }
@@ -5306,7 +5306,7 @@ fn test_type_projected_index_set_intersection7() {
         92_u64,
         34_u64,
     ]);
-    let set2: TypeProjectedIndexSet<u64> = TypeProjectedIndexSet::from([
+    let set2 = TypeProjectedIndexSet::from([
         88_u64,
         82_u64,
         98_u64,
@@ -5337,7 +5337,7 @@ fn test_type_projected_index_set_intersection8() {
         92_u64,
         34_u64,
     ]);
-    let set2: TypeProjectedIndexSet<u64> = TypeProjectedIndexSet::from([
+    let set2 = TypeProjectedIndexSet::from([
         88_u64,
         82_u64,
         98_u64,
@@ -5350,7 +5350,7 @@ fn test_type_projected_index_set_intersection8() {
     ]);
     let mut iter = set1.intersection(&set2);
 
-    for i in 0..65536 {
+    for _ in 0..65536 {
         assert_eq!(iter.next(), None);
     }
 }
@@ -5369,7 +5369,7 @@ fn test_type_projected_index_set_intersection9() {
         92_u64,
         34_u64,
     ]);
-    let set2: TypeProjectedIndexSet<u64> = TypeProjectedIndexSet::from([
+    let set2 = TypeProjectedIndexSet::from([
         40_u64,
         42_u64,
         51_u64,
@@ -5377,7 +5377,7 @@ fn test_type_projected_index_set_intersection9() {
         18_u64,
         70_u64,
     ]);
-    let expected: TypeProjectedIndexSet<u64> = TypeProjectedIndexSet::from([
+    let expected = TypeProjectedIndexSet::from([
         42_u64,
         40_u64,
         51_u64,
@@ -5402,7 +5402,7 @@ fn test_type_projected_index_set_intersection10() {
         92_u64,
         34_u64,
     ]);
-    let set2: TypeProjectedIndexSet<u64> = TypeProjectedIndexSet::from([
+    let set2 = TypeProjectedIndexSet::from([
         40_u64,
         42_u64,
         51_u64,
@@ -5436,7 +5436,7 @@ fn test_type_projected_index_set_union2() {
     let set2: TypeProjectedIndexSet<u64> = TypeProjectedIndexSet::new();
     let mut iter = set1.union(&set2);
 
-    for i in 0..65536 {
+    for _ in 0..65536 {
         assert_eq!(iter.next(), None);
     }
 }
@@ -5456,7 +5456,7 @@ fn test_type_projected_index_set_union3() {
         34_u64,
     ]);
     let set2: TypeProjectedIndexSet<u64> = TypeProjectedIndexSet::new();
-    let expected: TypeProjectedIndexSet<u64> = set1.clone();
+    let expected = set1.clone();
     let result: TypeProjectedIndexSet<u64> = set1.union(&set2).cloned().collect();
 
     assert_eq!(result, expected);
@@ -5508,7 +5508,7 @@ fn test_type_projected_index_set_union5() {
         92_u64,
         34_u64,
     ]);
-    let expected: TypeProjectedIndexSet<u64> = set2.clone();
+    let expected = set2.clone();
     let result: TypeProjectedIndexSet<u64> = set1.union(&set2).cloned().collect();
 
     assert_eq!(result, expected);
@@ -5559,7 +5559,7 @@ fn test_type_projected_index_set_union7() {
         92_u64,
         34_u64,
     ]);
-    let set2: TypeProjectedIndexSet<u64> = TypeProjectedIndexSet::from([
+    let set2 = TypeProjectedIndexSet::from([
         88_u64,
         82_u64,
         98_u64,
@@ -5570,7 +5570,7 @@ fn test_type_projected_index_set_union7() {
         83_u64,
         19_u64,
     ]);
-    let expected: TypeProjectedIndexSet<u64> = TypeProjectedIndexSet::from([
+    let expected = TypeProjectedIndexSet::from([
         42_u64, 40_u64, 73_u64, 32_u64, 21_u64, 10_u64, 51_u64, 18_u64, 92_u64, 34_u64,
         88_u64, 82_u64, 98_u64, 17_u64, 60_u64, 62_u64, 26_u64, 83_u64, 19_u64,
     ]);
@@ -5593,7 +5593,7 @@ fn test_type_projected_index_set_union8() {
         92_u64,
         34_u64,
     ]);
-    let set2: TypeProjectedIndexSet<u64> = TypeProjectedIndexSet::from([
+    let set2 = TypeProjectedIndexSet::from([
         88_u64,
         82_u64,
         98_u64,
@@ -5645,7 +5645,7 @@ fn test_type_projected_index_set_union9() {
         92_u64,
         34_u64,
     ]);
-    let set2: TypeProjectedIndexSet<u64> = TypeProjectedIndexSet::from([
+    let set2 = TypeProjectedIndexSet::from([
         40_u64,
         42_u64,
         51_u64,
@@ -5653,7 +5653,7 @@ fn test_type_projected_index_set_union9() {
         18_u64,
         70_u64,
     ]);
-    let expected: TypeProjectedIndexSet<u64> = TypeProjectedIndexSet::from([
+    let expected = TypeProjectedIndexSet::from([
         42_u64, 40_u64, 73_u64, 32_u64, 21_u64, 10_u64, 51_u64, 18_u64, 92_u64, 34_u64,
         86_u64, 70_u64,
     ]);
@@ -5676,7 +5676,7 @@ fn test_type_projected_index_set_union10() {
         92_u64,
         34_u64,
     ]);
-    let set2: TypeProjectedIndexSet<u64> = TypeProjectedIndexSet::from([
+    let set2 = TypeProjectedIndexSet::from([
         40_u64,
         42_u64,
         51_u64,
@@ -5720,7 +5720,7 @@ fn test_type_projected_index_set_symmetric_difference2() {
     let set2: TypeProjectedIndexSet<u64> = TypeProjectedIndexSet::new();
     let mut iter = set1.symmetric_difference(&set2);
 
-    for i in 0..65536 {
+    for _ in 0..65536 {
         assert_eq!(iter.next(), None);
     }
 }
@@ -5740,7 +5740,7 @@ fn test_type_projected_index_set_symmetric_difference3() {
         34_u64,
     ]);
     let set2: TypeProjectedIndexSet<u64> = TypeProjectedIndexSet::new();
-    let expected: TypeProjectedIndexSet<u64> = set1.clone();
+    let expected = set1.clone();
     let result: TypeProjectedIndexSet<u64> = set1.symmetric_difference(&set2).cloned().collect();
 
     assert_eq!(result, expected);
@@ -5792,7 +5792,7 @@ fn test_type_projected_index_set_symmetric_difference5() {
         92_u64,
         34_u64,
     ]);
-    let expected: TypeProjectedIndexSet<u64> = set2.clone();
+    let expected = set2.clone();
     let result: TypeProjectedIndexSet<u64> = set1.symmetric_difference(&set2).cloned().collect();
 
     assert_eq!(result, expected);
@@ -5843,7 +5843,7 @@ fn test_type_projected_index_set_symmetric_difference7() {
         92_u64,
         34_u64,
     ]);
-    let set2: TypeProjectedIndexSet<u64> = TypeProjectedIndexSet::from([
+    let set2 = TypeProjectedIndexSet::from([
         88_u64,
         82_u64,
         98_u64,
@@ -5854,7 +5854,7 @@ fn test_type_projected_index_set_symmetric_difference7() {
         83_u64,
         19_u64,
     ]);
-    let expected: TypeProjectedIndexSet<u64> = TypeProjectedIndexSet::from([
+    let expected = TypeProjectedIndexSet::from([
         42_u64, 40_u64, 73_u64, 32_u64, 21_u64, 10_u64, 51_u64, 18_u64, 92_u64, 34_u64,
         88_u64, 82_u64, 98_u64, 17_u64, 60_u64, 62_u64, 26_u64, 83_u64, 19_u64,
     ]);
@@ -5877,7 +5877,7 @@ fn test_type_projected_index_set_symmetric_difference8() {
         92_u64,
         34_u64,
     ]);
-    let set2: TypeProjectedIndexSet<u64> = TypeProjectedIndexSet::from([
+    let set2 = TypeProjectedIndexSet::from([
         88_u64,
         82_u64,
         98_u64,
@@ -5929,7 +5929,7 @@ fn test_type_projected_index_set_symmetric_difference9() {
         92_u64,
         34_u64,
     ]);
-    let set2: TypeProjectedIndexSet<u64> = TypeProjectedIndexSet::from([
+    let set2 = TypeProjectedIndexSet::from([
         40_u64,
         42_u64,
         51_u64,
@@ -5937,7 +5937,7 @@ fn test_type_projected_index_set_symmetric_difference9() {
         18_u64,
         70_u64,
     ]);
-    let expected: TypeProjectedIndexSet<u64> = TypeProjectedIndexSet::from([
+    let expected = TypeProjectedIndexSet::from([
         73_u64, 32_u64, 21_u64, 10_u64, 92_u64, 34_u64,
         86_u64, 70_u64,
     ]);
@@ -5960,7 +5960,7 @@ fn test_type_projected_index_set_symmetric_difference10() {
         92_u64,
         34_u64,
     ]);
-    let set2: TypeProjectedIndexSet<u64> = TypeProjectedIndexSet::from([
+    let set2 = TypeProjectedIndexSet::from([
         40_u64,
         42_u64,
         51_u64,
