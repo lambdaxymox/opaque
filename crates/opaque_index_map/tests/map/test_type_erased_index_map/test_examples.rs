@@ -1918,6 +1918,191 @@ fn test_type_erased_index_map_swap_remove_full4() {
 
 #[rustfmt::skip]
 #[test]
+fn test_type_erased_index_map_swap_remove_index1() {
+    let mut map = TypeErasedIndexMap::from([
+        (1_usize, 20_i32),
+        (2_usize, 2043_i32),
+        (3_usize, 4904_i32),
+        (4_usize, 20994_i32),
+        (5_usize, 302_i32),
+        (6_usize, 5_i32),
+    ]);
+
+    assert_eq!(map.swap_remove_index::<usize, i32, hash::RandomState, alloc::Global>(0), Some((1_usize, 20_i32)));
+    assert_eq!(map.swap_remove_index::<usize, i32, hash::RandomState, alloc::Global>(1), Some((2_usize, 2043_i32)));
+    assert_eq!(map.swap_remove_index::<usize, i32, hash::RandomState, alloc::Global>(2), Some((3_usize, 4904_i32)));
+    assert_eq!(map.swap_remove_index::<usize, i32, hash::RandomState, alloc::Global>(2), Some((4_usize, 20994_i32)));
+    assert_eq!(map.swap_remove_index::<usize, i32, hash::RandomState, alloc::Global>(1), Some((5_usize, 302_i32)));
+    assert_eq!(map.swap_remove_index::<usize, i32, hash::RandomState, alloc::Global>(0), Some((6_usize, 5_i32)));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_erased_index_map_swap_remove_index2() {
+    let mut map = TypeErasedIndexMap::from([
+        (1_usize, 20_i32),
+        (2_usize, 2043_i32),
+        (3_usize, 4904_i32),
+        (4_usize, 20994_i32),
+        (5_usize, 302_i32),
+        (6_usize, 5_i32),
+    ]);
+
+    assert_eq!(map.len(), 6);
+
+    let _ = map.swap_remove_index::<usize, i32, hash::RandomState, alloc::Global>(0);
+    assert_eq!(map.len(), 5);
+    assert_eq!(map.as_slice::<usize, i32, hash::RandomState, alloc::Global>(), &[
+        (6_usize, 5_i32),
+        (2_usize, 2043_i32),
+        (3_usize, 4904_i32),
+        (4_usize, 20994_i32),
+        (5_usize, 302_i32),
+    ]);
+
+    let _ = map.swap_remove_index::<usize, i32, hash::RandomState, alloc::Global>(1);
+    assert_eq!(map.len(), 4);
+    assert_eq!(map.as_slice::<usize, i32, hash::RandomState, alloc::Global>(), &[
+        (6_usize, 5_i32),
+        (5_usize, 302_i32),
+        (3_usize, 4904_i32),
+        (4_usize, 20994_i32),
+    ]);
+
+    let _ = map.swap_remove_index::<usize, i32, hash::RandomState, alloc::Global>(2);
+    assert_eq!(map.len(), 3);
+    assert_eq!(map.as_slice::<usize, i32, hash::RandomState, alloc::Global>(), &[
+        (6_usize, 5_i32),
+        (5_usize, 302_i32),
+        (4_usize, 20994_i32),
+    ]);
+
+    let _ = map.swap_remove_index::<usize, i32, hash::RandomState, alloc::Global>(2);
+    assert_eq!(map.len(), 2);
+    assert_eq!(map.as_slice::<usize, i32, hash::RandomState, alloc::Global>(), &[
+        (6_usize, 5_i32),
+        (5_usize, 302_i32),
+    ]);
+
+    let _ = map.swap_remove_index::<usize, i32, hash::RandomState, alloc::Global>(1);
+    assert_eq!(map.len(), 1);
+    assert_eq!(map.as_slice::<usize, i32, hash::RandomState, alloc::Global>(), &[
+        (6_usize, 5_i32),
+    ]);
+
+    let _ = map.swap_remove_index::<usize, i32, hash::RandomState, alloc::Global>(0);
+    assert_eq!(map.len(), 0);
+    assert_eq!(map.as_slice::<usize, i32, hash::RandomState, alloc::Global>(), &[]);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_erased_index_map_swap_remove_index3() {
+    let mut map = TypeErasedIndexMap::from([
+        (1_usize, 20_i32),
+        (2_usize, 2043_i32),
+        (3_usize, 4904_i32),
+        (4_usize, 20994_i32),
+        (5_usize, 302_i32),
+        (6_usize, 5_i32),
+    ]);
+
+    assert_eq!(map.len(), 6);
+
+    let _ = map.swap_remove_index::<usize, i32, hash::RandomState, alloc::Global>(5);
+    assert_eq!(map.len(), 5);
+    assert_eq!(map.as_slice::<usize, i32, hash::RandomState, alloc::Global>(), &[
+        (1_usize, 20_i32),
+        (2_usize, 2043_i32),
+        (3_usize, 4904_i32),
+        (4_usize, 20994_i32),
+        (5_usize, 302_i32),
+    ]);
+
+    let _ = map.swap_remove_index::<usize, i32, hash::RandomState, alloc::Global>(4);
+    assert_eq!(map.len(), 4);
+    assert_eq!(map.as_slice::<usize, i32, hash::RandomState, alloc::Global>(), &[
+        (1_usize, 20_i32),
+        (2_usize, 2043_i32),
+        (3_usize, 4904_i32),
+        (4_usize, 20994_i32),
+    ]);
+
+    let _ = map.swap_remove_index::<usize, i32, hash::RandomState, alloc::Global>(3);
+    assert_eq!(map.len(), 3);
+    assert_eq!(map.as_slice::<usize, i32, hash::RandomState, alloc::Global>(), &[
+        (1_usize, 20_i32),
+        (2_usize, 2043_i32),
+        (3_usize, 4904_i32),
+    ]);
+
+    let _ = map.swap_remove_index::<usize, i32, hash::RandomState, alloc::Global>(2);
+    assert_eq!(map.len(), 2);
+    assert_eq!(map.as_slice::<usize, i32, hash::RandomState, alloc::Global>(), &[
+        (1_usize, 20_i32),
+        (2_usize, 2043_i32),
+    ]);
+
+    let _ = map.swap_remove_index::<usize, i32, hash::RandomState, alloc::Global>(1);
+    assert_eq!(map.len(), 1);
+    assert_eq!(map.as_slice::<usize, i32, hash::RandomState, alloc::Global>(), &[
+        (1_usize, 20_i32),
+    ]);
+
+    let _ = map.swap_remove_index::<usize, i32, hash::RandomState, alloc::Global>(0);
+    assert_eq!(map.len(), 0);
+    assert_eq!(map.as_slice::<usize, i32, hash::RandomState, alloc::Global>(), &[]);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_erased_index_map_swap_remove_index4() {
+    let mut map = TypeErasedIndexMap::from([
+        (1_usize, 20_i32),
+        (2_usize, 2043_i32),
+        (3_usize, 4904_i32),
+        (4_usize, 20994_i32),
+        (5_usize, 302_i32),
+        (6_usize, 5_i32),
+    ]);
+
+    assert_eq!(map.swap_remove_index::<usize, i32, hash::RandomState, alloc::Global>(5), Some((6_usize, 5_i32)));
+    assert_eq!(map.swap_remove_index::<usize, i32, hash::RandomState, alloc::Global>(4), Some((5_usize, 302_i32)));
+    assert_eq!(map.swap_remove_index::<usize, i32, hash::RandomState, alloc::Global>(3), Some((4_usize, 20994_i32)));
+    assert_eq!(map.swap_remove_index::<usize, i32, hash::RandomState, alloc::Global>(2), Some((3_usize, 4904_i32)));
+    assert_eq!(map.swap_remove_index::<usize, i32, hash::RandomState, alloc::Global>(1), Some((2_usize, 2043_i32)));
+    assert_eq!(map.swap_remove_index::<usize, i32, hash::RandomState, alloc::Global>(0), Some((1_usize, 20_i32)));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_erased_index_map_swap_remove_index_out_of_bounds1() {
+    let mut map = TypeErasedIndexMap::new::<usize, i32>();
+
+    for i in 0..65536 {
+        assert_eq!(map.swap_remove_index::<usize, i32, hash::RandomState, alloc::Global>(i), None);
+    }
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_erased_index_map_swap_remove_index_out_of_bounds2() {
+    let mut map = TypeErasedIndexMap::from([
+        (1_usize, 20_i32),
+        (2_usize, 2043_i32),
+        (3_usize, 4904_i32),
+        (4_usize, 20994_i32),
+        (5_usize, 302_i32),
+        (6_usize, 5_i32),
+    ]);
+
+    for i in map.len()..65536 {
+        assert_eq!(map.swap_remove_index::<usize, i32, hash::RandomState, alloc::Global>(i), None);
+    }
+}
+
+#[rustfmt::skip]
+#[test]
 fn test_type_erased_index_map_shift_remove1() {
     let mut map = TypeErasedIndexMap::from([
         (1655_usize, 2427_i32),
@@ -2388,6 +2573,191 @@ fn test_type_erased_index_map_shift_remove_full4() {
     assert_eq!(map.shift_remove_full::<_, usize, i32, hash::RandomState, alloc::Global>(&783_usize),  Some((2, 783_usize, 603_i32)));
     assert_eq!(map.shift_remove_full::<_, usize, i32, hash::RandomState, alloc::Global>(&1992_usize), Some((1, 1992_usize, 2910_i32)));
     assert_eq!(map.shift_remove_full::<_, usize, i32, hash::RandomState, alloc::Global>(&1655_usize), Some((0, 1655_usize, 2427_i32)));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_erased_index_map_shift_remove_index1() {
+    let mut map = TypeErasedIndexMap::from([
+        (1655_usize, 2427_i32),
+        (1992_usize, 2910_i32),
+        (783_usize,  603_i32),
+        (376_usize,  834_i32),
+        (199_usize,  1881_i32),
+        (1098_usize, 1466_i32),
+    ]);
+
+    assert_eq!(map.shift_remove_index::<usize, i32, hash::RandomState, alloc::Global>(0), Some((1655_usize, 2427_i32)));
+    assert_eq!(map.shift_remove_index::<usize, i32, hash::RandomState, alloc::Global>(0), Some((1992_usize, 2910_i32)));
+    assert_eq!(map.shift_remove_index::<usize, i32, hash::RandomState, alloc::Global>(0), Some((783_usize, 603_i32)));
+    assert_eq!(map.shift_remove_index::<usize, i32, hash::RandomState, alloc::Global>(0), Some((376_usize, 834_i32)));
+    assert_eq!(map.shift_remove_index::<usize, i32, hash::RandomState, alloc::Global>(0), Some((199_usize, 1881_i32)));
+    assert_eq!(map.shift_remove_index::<usize, i32, hash::RandomState, alloc::Global>(0), Some((1098_usize, 1466_i32)));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_erased_index_map_shift_remove_index2() {
+    let mut map = TypeErasedIndexMap::from([
+        (1655_usize, 2427_i32),
+        (1992_usize, 2910_i32),
+        (783_usize,  603_i32),
+        (376_usize,  834_i32),
+        (199_usize,  1881_i32),
+        (1098_usize, 1466_i32),
+    ]);
+
+    assert_eq!(map.len(), 6);
+
+    let _ = map.shift_remove_index::<usize, i32, hash::RandomState, alloc::Global>(0);
+    assert_eq!(map.len(), 5);
+    assert_eq!(map.as_slice::<usize, i32, hash::RandomState, alloc::Global>(), &[
+        (1992_usize, 2910_i32),
+        (783_usize,  603_i32),
+        (376_usize,  834_i32),
+        (199_usize,  1881_i32),
+        (1098_usize, 1466_i32),
+    ]);
+
+    let _ = map.shift_remove_index::<usize, i32, hash::RandomState, alloc::Global>(0);
+    assert_eq!(map.len(), 4);
+    assert_eq!(map.as_slice::<usize, i32, hash::RandomState, alloc::Global>(), &[
+        (783_usize,  603_i32),
+        (376_usize,  834_i32),
+        (199_usize,  1881_i32),
+        (1098_usize, 1466_i32),
+    ]);
+
+    let _ = map.shift_remove_index::<usize, i32, hash::RandomState, alloc::Global>(0);
+    assert_eq!(map.len(), 3);
+    assert_eq!(map.as_slice::<usize, i32, hash::RandomState, alloc::Global>(), &[
+        (376_usize,  834_i32),
+        (199_usize,  1881_i32),
+        (1098_usize, 1466_i32),
+    ]);
+
+    let _ = map.shift_remove_index::<usize, i32, hash::RandomState, alloc::Global>(0);
+    assert_eq!(map.len(), 2);
+    assert_eq!(map.as_slice::<usize, i32, hash::RandomState, alloc::Global>(), &[
+        (199_usize, 1881_i32),
+        (1098_usize, 1466_i32),
+    ]);
+
+    let _ = map.shift_remove_index::<usize, i32, hash::RandomState, alloc::Global>(0);
+    assert_eq!(map.len(), 1);
+    assert_eq!(map.as_slice::<usize, i32, hash::RandomState, alloc::Global>(), &[
+        (1098_usize, 1466_i32),
+    ]);
+
+    let _ = map.shift_remove_index::<usize, i32, hash::RandomState, alloc::Global>(0);
+    assert_eq!(map.len(), 0);
+    assert_eq!(map.as_slice::<usize, i32, hash::RandomState, alloc::Global>(), &[]);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_erased_index_map_shift_remove_index3() {
+    let mut map = TypeErasedIndexMap::from([
+        (1655_usize, 2427_i32),
+        (1992_usize, 2910_i32),
+        (783_usize,  603_i32),
+        (376_usize,  834_i32),
+        (199_usize,  1881_i32),
+        (1098_usize, 1466_i32),
+    ]);
+
+    assert_eq!(map.len(), 6);
+
+    let _ = map.shift_remove_index::<usize, i32, hash::RandomState, alloc::Global>(5);
+    assert_eq!(map.len(), 5);
+    assert_eq!(map.as_slice::<usize, i32, hash::RandomState, alloc::Global>(), &[
+        (1655_usize, 2427_i32),
+        (1992_usize, 2910_i32),
+        (783_usize,  603_i32),
+        (376_usize,  834_i32),
+        (199_usize,  1881_i32),
+    ]);
+
+    let _ = map.shift_remove_index::<usize, i32, hash::RandomState, alloc::Global>(4);
+    assert_eq!(map.len(), 4);
+    assert_eq!(map.as_slice::<usize, i32, hash::RandomState, alloc::Global>(), &[
+        (1655_usize, 2427_i32),
+        (1992_usize, 2910_i32),
+        (783_usize,  603_i32),
+        (376_usize,  834_i32),
+    ]);
+
+    let _ = map.shift_remove_index::<usize, i32, hash::RandomState, alloc::Global>(3);
+    assert_eq!(map.len(), 3);
+    assert_eq!(map.as_slice::<usize, i32, hash::RandomState, alloc::Global>(), &[
+        (1655_usize, 2427_i32),
+        (1992_usize, 2910_i32),
+        (783_usize,  603_i32),
+    ]);
+
+    let _ = map.shift_remove_index::<usize, i32, hash::RandomState, alloc::Global>(2);
+    assert_eq!(map.len(), 2);
+    assert_eq!(map.as_slice::<usize, i32, hash::RandomState, alloc::Global>(), &[
+        (1655_usize, 2427_i32),
+        (1992_usize, 2910_i32),
+    ]);
+
+    let _ = map.shift_remove_index::<usize, i32, hash::RandomState, alloc::Global>(1);
+    assert_eq!(map.len(), 1);
+    assert_eq!(map.as_slice::<usize, i32, hash::RandomState, alloc::Global>(), &[
+        (1655_usize, 2427_i32),
+    ]);
+
+    let _ = map.shift_remove_index::<usize, i32, hash::RandomState, alloc::Global>(0);
+    assert_eq!(map.len(), 0);
+    assert_eq!(map.as_slice::<usize, i32, hash::RandomState, alloc::Global>(), &[]);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_erased_index_map_shift_remove_index4() {
+    let mut map = TypeErasedIndexMap::from([
+        (1655_usize, 2427_i32),
+        (1992_usize, 2910_i32),
+        (783_usize,  603_i32),
+        (376_usize,  834_i32),
+        (199_usize,  1881_i32),
+        (1098_usize, 1466_i32),
+    ]);
+
+    assert_eq!(map.shift_remove_index::<usize, i32, hash::RandomState, alloc::Global>(5), Some((1098_usize, 1466_i32)));
+    assert_eq!(map.shift_remove_index::<usize, i32, hash::RandomState, alloc::Global>(4), Some((199_usize, 1881_i32)));
+    assert_eq!(map.shift_remove_index::<usize, i32, hash::RandomState, alloc::Global>(3), Some((376_usize, 834_i32)));
+    assert_eq!(map.shift_remove_index::<usize, i32, hash::RandomState, alloc::Global>(2), Some((783_usize, 603_i32)));
+    assert_eq!(map.shift_remove_index::<usize, i32, hash::RandomState, alloc::Global>(1), Some((1992_usize, 2910_i32)));
+    assert_eq!(map.shift_remove_index::<usize, i32, hash::RandomState, alloc::Global>(0), Some((1655_usize, 2427_i32)));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_erased_index_map_shift_remove_index_out_of_bounds1() {
+    let mut map = TypeErasedIndexMap::new::<usize, i32>();
+
+    for i in 0..65536 {
+        assert_eq!(map.shift_remove_index::<usize, i32, hash::RandomState, alloc::Global>(i), None);
+    }
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_erased_index_map_shift_remove_index_out_of_bounds2() {
+    let mut map = TypeErasedIndexMap::from([
+        (1_usize, 20_i32),
+        (2_usize, 2043_i32),
+        (3_usize, 4904_i32),
+        (4_usize, 20994_i32),
+        (5_usize, 302_i32),
+        (6_usize, 5_i32),
+    ]);
+
+    for i in map.len()..65536 {
+        assert_eq!(map.shift_remove_index::<usize, i32, hash::RandomState, alloc::Global>(i), None);
+    }
 }
 
 #[rustfmt::skip]

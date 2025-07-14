@@ -2249,6 +2249,191 @@ fn test_type_projected_index_set_swap_remove_full4() {
 
 #[rustfmt::skip]
 #[test]
+fn test_type_projected_index_set_swap_remove_index1() {
+    let mut set = TypeProjectedIndexSet::from([
+        (1_usize, 20_i32),
+        (2_usize, 2043_i32),
+        (3_usize, 4904_i32),
+        (4_usize, 20994_i32),
+        (5_usize, 302_i32),
+        (6_usize, 5_i32),
+    ]);
+
+    assert_eq!(set.swap_remove_index(0), Some((1_usize, 20_i32)));
+    assert_eq!(set.swap_remove_index(1), Some((2_usize, 2043_i32)));
+    assert_eq!(set.swap_remove_index(2), Some((3_usize, 4904_i32)));
+    assert_eq!(set.swap_remove_index(2), Some((4_usize, 20994_i32)));
+    assert_eq!(set.swap_remove_index(1), Some((5_usize, 302_i32)));
+    assert_eq!(set.swap_remove_index(0), Some((6_usize, 5_i32)));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_set_swap_remove_index2() {
+    let mut set = TypeProjectedIndexSet::from([
+        (1_usize, 20_i32),
+        (2_usize, 2043_i32),
+        (3_usize, 4904_i32),
+        (4_usize, 20994_i32),
+        (5_usize, 302_i32),
+        (6_usize, 5_i32),
+    ]);
+
+    assert_eq!(set.len(), 6);
+
+    let _ = set.swap_remove_index(0);
+    assert_eq!(set.len(), 5);
+    assert_eq!(set.as_slice(), &[
+        (6_usize, 5_i32),
+        (2_usize, 2043_i32),
+        (3_usize, 4904_i32),
+        (4_usize, 20994_i32),
+        (5_usize, 302_i32),
+    ]);
+
+    let _ = set.swap_remove_index(1);
+    assert_eq!(set.len(), 4);
+    assert_eq!(set.as_slice(), &[
+        (6_usize, 5_i32),
+        (5_usize, 302_i32),
+        (3_usize, 4904_i32),
+        (4_usize, 20994_i32),
+    ]);
+
+    let _ = set.swap_remove_index(2);
+    assert_eq!(set.len(), 3);
+    assert_eq!(set.as_slice(), &[
+        (6_usize, 5_i32),
+        (5_usize, 302_i32),
+        (4_usize, 20994_i32),
+    ]);
+
+    let _ = set.swap_remove_index(2);
+    assert_eq!(set.len(), 2);
+    assert_eq!(set.as_slice(), &[
+        (6_usize, 5_i32),
+        (5_usize, 302_i32),
+    ]);
+
+    let _ = set.swap_remove_index(1);
+    assert_eq!(set.len(), 1);
+    assert_eq!(set.as_slice(), &[
+        (6_usize, 5_i32),
+    ]);
+
+    let _ = set.swap_remove_index(0);
+    assert_eq!(set.len(), 0);
+    assert_eq!(set.as_slice(), &[]);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_set_swap_remove_index3() {
+    let mut set = TypeProjectedIndexSet::from([
+        (1_usize, 20_i32),
+        (2_usize, 2043_i32),
+        (3_usize, 4904_i32),
+        (4_usize, 20994_i32),
+        (5_usize, 302_i32),
+        (6_usize, 5_i32),
+    ]);
+
+    assert_eq!(set.len(), 6);
+
+    let _ = set.swap_remove_index(5);
+    assert_eq!(set.len(), 5);
+    assert_eq!(set.as_slice(), &[
+        (1_usize, 20_i32),
+        (2_usize, 2043_i32),
+        (3_usize, 4904_i32),
+        (4_usize, 20994_i32),
+        (5_usize, 302_i32),
+    ]);
+
+    let _ = set.swap_remove_index(4);
+    assert_eq!(set.len(), 4);
+    assert_eq!(set.as_slice(), &[
+        (1_usize, 20_i32),
+        (2_usize, 2043_i32),
+        (3_usize, 4904_i32),
+        (4_usize, 20994_i32),
+    ]);
+
+    let _ = set.swap_remove_index(3);
+    assert_eq!(set.len(), 3);
+    assert_eq!(set.as_slice(), &[
+        (1_usize, 20_i32),
+        (2_usize, 2043_i32),
+        (3_usize, 4904_i32),
+    ]);
+
+    let _ = set.swap_remove_index(2);
+    assert_eq!(set.len(), 2);
+    assert_eq!(set.as_slice(), &[
+        (1_usize, 20_i32),
+        (2_usize, 2043_i32),
+    ]);
+
+    let _ = set.swap_remove_index(1);
+    assert_eq!(set.len(), 1);
+    assert_eq!(set.as_slice(), &[
+        (1_usize, 20_i32),
+    ]);
+
+    let _ = set.swap_remove_index(0);
+    assert_eq!(set.len(), 0);
+    assert_eq!(set.as_slice(), &[]);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_set_swap_remove_index4() {
+    let mut set = TypeProjectedIndexSet::from([
+        (1_usize, 20_i32),
+        (2_usize, 2043_i32),
+        (3_usize, 4904_i32),
+        (4_usize, 20994_i32),
+        (5_usize, 302_i32),
+        (6_usize, 5_i32),
+    ]);
+
+    assert_eq!(set.swap_remove_index(5), Some((6_usize, 5_i32)));
+    assert_eq!(set.swap_remove_index(4), Some((5_usize, 302_i32)));
+    assert_eq!(set.swap_remove_index(3), Some((4_usize, 20994_i32)));
+    assert_eq!(set.swap_remove_index(2), Some((3_usize, 4904_i32)));
+    assert_eq!(set.swap_remove_index(1), Some((2_usize, 2043_i32)));
+    assert_eq!(set.swap_remove_index(0), Some((1_usize, 20_i32)));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_insert_set_swap_remove_index_out_of_bounds1() {
+    let mut set: TypeProjectedIndexSet<(usize, i32)> = TypeProjectedIndexSet::new();
+
+    for i in 0..65536 {
+        assert_eq!(set.swap_remove_index(i), None);
+    }
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_insert_set_swap_remove_index_out_of_bounds2() {
+    let mut set = TypeProjectedIndexSet::from([
+        (1_usize, 20_i32),
+        (2_usize, 2043_i32),
+        (3_usize, 4904_i32),
+        (4_usize, 20994_i32),
+        (5_usize, 302_i32),
+        (6_usize, 5_i32),
+    ]);
+
+    for i in set.len()..65536 {
+        assert_eq!(set.swap_remove_index(i), None);
+    }
+}
+
+#[rustfmt::skip]
+#[test]
 fn test_type_projected_index_set_shift_remove1() {
     let mut set = TypeProjectedIndexSet::from([
         (1655_usize, 2427_i32),
@@ -2561,6 +2746,191 @@ fn test_type_projected_index_set_shift_remove_full4() {
     assert_eq!(set.shift_remove_full(&(783_usize,  603_i32)),  Some((2, (783_usize, 603_i32))));
     assert_eq!(set.shift_remove_full(&(1992_usize, 2910_i32)), Some((1, (1992_usize, 2910_i32))));
     assert_eq!(set.shift_remove_full(&(1655_usize, 2427_i32)), Some((0, (1655_usize, 2427_i32))));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_set_shift_remove_index1() {
+    let mut set = TypeProjectedIndexSet::from([
+        (1655_usize, 2427_i32),
+        (1992_usize, 2910_i32),
+        (783_usize,  603_i32),
+        (376_usize,  834_i32),
+        (199_usize,  1881_i32),
+        (1098_usize, 1466_i32),
+    ]);
+
+    assert_eq!(set.shift_remove_index(0), Some((1655_usize, 2427_i32)));
+    assert_eq!(set.shift_remove_index(0), Some((1992_usize, 2910_i32)));
+    assert_eq!(set.shift_remove_index(0), Some((783_usize,  603_i32)));
+    assert_eq!(set.shift_remove_index(0), Some((376_usize,  834_i32)));
+    assert_eq!(set.shift_remove_index(0), Some((199_usize,  1881_i32)));
+    assert_eq!(set.shift_remove_index(0), Some((1098_usize, 1466_i32)));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_set_shift_remove_index2() {
+    let mut set = TypeProjectedIndexSet::from([
+        (1655_usize, 2427_i32),
+        (1992_usize, 2910_i32),
+        (783_usize,  603_i32),
+        (376_usize,  834_i32),
+        (199_usize,  1881_i32),
+        (1098_usize, 1466_i32),
+    ]);
+
+    assert_eq!(set.len(), 6);
+
+    let _ = set.shift_remove_index(0);
+    assert_eq!(set.len(), 5);
+    assert_eq!(set.as_slice(), &[
+        (1992_usize, 2910_i32),
+        (783_usize,  603_i32),
+        (376_usize,  834_i32),
+        (199_usize,  1881_i32),
+        (1098_usize, 1466_i32),
+    ]);
+
+    let _ = set.shift_remove_index(0);
+    assert_eq!(set.len(), 4);
+    assert_eq!(set.as_slice(), &[
+        (783_usize,  603_i32),
+        (376_usize,  834_i32),
+        (199_usize,  1881_i32),
+        (1098_usize, 1466_i32),
+    ]);
+
+    let _ = set.shift_remove_index(0);
+    assert_eq!(set.len(), 3);
+    assert_eq!(set.as_slice(), &[
+        (376_usize,  834_i32),
+        (199_usize,  1881_i32),
+        (1098_usize, 1466_i32),
+    ]);
+
+    let _ = set.shift_remove_index(0);
+    assert_eq!(set.len(), 2);
+    assert_eq!(set.as_slice(), &[
+        (199_usize, 1881_i32),
+        (1098_usize, 1466_i32),
+    ]);
+
+    let _ = set.shift_remove_index(0);
+    assert_eq!(set.len(), 1);
+    assert_eq!(set.as_slice(), &[
+        (1098_usize, 1466_i32),
+    ]);
+
+    let _ = set.shift_remove_index(0);
+    assert_eq!(set.len(), 0);
+    assert_eq!(set.as_slice(), &[]);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_set_shift_remove_index3() {
+    let mut set = TypeProjectedIndexSet::from([
+        (1655_usize, 2427_i32),
+        (1992_usize, 2910_i32),
+        (783_usize,  603_i32),
+        (376_usize,  834_i32),
+        (199_usize,  1881_i32),
+        (1098_usize, 1466_i32),
+    ]);
+
+    assert_eq!(set.len(), 6);
+
+    let _ = set.shift_remove_index(5);
+    assert_eq!(set.len(), 5);
+    assert_eq!(set.as_slice(), &[
+        (1655_usize, 2427_i32),
+        (1992_usize, 2910_i32),
+        (783_usize,  603_i32),
+        (376_usize,  834_i32),
+        (199_usize,  1881_i32),
+    ]);
+
+    let _ = set.shift_remove_index(4);
+    assert_eq!(set.len(), 4);
+    assert_eq!(set.as_slice(), &[
+        (1655_usize, 2427_i32),
+        (1992_usize, 2910_i32),
+        (783_usize,  603_i32),
+        (376_usize,  834_i32),
+    ]);
+
+    let _ = set.shift_remove_index(3);
+    assert_eq!(set.len(), 3);
+    assert_eq!(set.as_slice(), &[
+        (1655_usize, 2427_i32),
+        (1992_usize, 2910_i32),
+        (783_usize,  603_i32),
+    ]);
+
+    let _ = set.shift_remove_index(2);
+    assert_eq!(set.len(), 2);
+    assert_eq!(set.as_slice(), &[
+        (1655_usize, 2427_i32),
+        (1992_usize, 2910_i32),
+    ]);
+
+    let _ = set.shift_remove_index(1);
+    assert_eq!(set.len(), 1);
+    assert_eq!(set.as_slice(), &[
+        (1655_usize, 2427_i32),
+    ]);
+
+    let _ = set.shift_remove_index(0);
+    assert_eq!(set.len(), 0);
+    assert_eq!(set.as_slice(), &[]);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_set_shift_remove_index4() {
+    let mut set = TypeProjectedIndexSet::from([
+        (1655_usize, 2427_i32),
+        (1992_usize, 2910_i32),
+        (783_usize,  603_i32),
+        (376_usize,  834_i32),
+        (199_usize,  1881_i32),
+        (1098_usize, 1466_i32),
+    ]);
+
+    assert_eq!(set.shift_remove_index(5), Some((1098_usize, 1466_i32)));
+    assert_eq!(set.shift_remove_index(4), Some((199_usize, 1881_i32)));
+    assert_eq!(set.shift_remove_index(3), Some((376_usize, 834_i32)));
+    assert_eq!(set.shift_remove_index(2), Some((783_usize, 603_i32)));
+    assert_eq!(set.shift_remove_index(1), Some((1992_usize, 2910_i32)));
+    assert_eq!(set.shift_remove_index(0), Some((1655_usize, 2427_i32)));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_insert_set_shift_remove_index_out_of_bounds1() {
+    let mut set: TypeProjectedIndexSet<(usize, i32)> = TypeProjectedIndexSet::new();
+
+    for i in 0..65536 {
+        assert_eq!(set.shift_remove_index(i), None);
+    }
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_insert_set_shift_remove_index_out_of_bounds2() {
+    let mut set = TypeProjectedIndexSet::from([
+        (1_usize, 20_i32),
+        (2_usize, 2043_i32),
+        (3_usize, 4904_i32),
+        (4_usize, 20994_i32),
+        (5_usize, 302_i32),
+        (6_usize, 5_i32),
+    ]);
+
+    for i in set.len()..65536 {
+        assert_eq!(set.shift_remove_index(i), None);
+    }
 }
 
 #[rustfmt::skip]
