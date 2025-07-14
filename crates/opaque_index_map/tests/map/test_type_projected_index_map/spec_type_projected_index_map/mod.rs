@@ -29,3 +29,7 @@ mod spec_sort_by_values;
 mod spec_sort_unstable_keys;
 mod spec_sort_unstable_by_keys;
 mod spec_sort_unstable_by_values;
+mod spec_sorted_by_keys;
+mod spec_sorted_by_values;
+mod spec_sorted_unstable_by_keys;
+mod spec_sorted_unstable_by_values;
