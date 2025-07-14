@@ -73,7 +73,7 @@ where
     (drop_counter, set)
 }
 
-fn run_test_type_projected_index_map_into_iter_drop<S, A>(length: usize, build_hasher: S, alloc: A)
+fn run_test_type_erased_index_map_into_iter_drop<S, A>(length: usize, build_hasher: S, alloc: A)
 where
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
@@ -130,7 +130,7 @@ fn test_type_erased_index_set_into_iter_drop() {
     let alloc = alloc::Global;
     for length in 0..max_length {
         for take_count in 0..length {
-            run_test_type_projected_index_map_into_iter_drop(length, build_hasher.clone(), alloc.clone());
+            run_test_type_erased_index_map_into_iter_drop(length, build_hasher.clone(), alloc.clone());
         }
     }
 }
