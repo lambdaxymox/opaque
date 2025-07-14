@@ -109,14 +109,14 @@ impl<T> hash::Hash for UnhashedValueWrapper<T> {
 #[cfg_attr(not(panic = "unwind"), ignore = "test requires unwinding support")]
 fn test_truncate_on_panic_drop_count1() {
     let mut triggering_panic_cell = PanicCell::new((), 0);
-    let mut map = TypeProjectedIndexSet::new();
+    let mut set = TypeProjectedIndexSet::new();
 
-    map.insert(UnhashedValueWrapper::new(0, triggering_panic_cell.clone()));
+    set.insert(UnhashedValueWrapper::new(0, triggering_panic_cell.clone()));
 
     assert_eq!(triggering_panic_cell.drop_count(), 0);
 
     let result = panic::catch_unwind(AssertUnwindSafe(|| {
-        map.clear();
+        set.clear();
     }));
 
     assert!(result.is_err());

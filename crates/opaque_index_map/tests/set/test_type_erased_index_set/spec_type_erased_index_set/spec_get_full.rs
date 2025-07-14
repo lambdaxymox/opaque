@@ -22,14 +22,14 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let map = entries.clone::<T, S, A>();
-    for ref_value in map.iter::<T, S, A>() {
+    let set = entries.clone::<T, S, A>();
+    for ref_value in set.iter::<T, S, A>() {
         let expected = {
-            let maybe_index = map.get_index_of::<_, T, S, A>(ref_value);
+            let maybe_index = set.get_index_of::<_, T, S, A>(ref_value);
 
             prop_assert!(maybe_index.is_some());
 
-            let maybe_value = map.get::<_, T, S, A>(ref_value);
+            let maybe_value = set.get::<_, T, S, A>(ref_value);
 
             prop_assert!(maybe_value.is_some());
 
@@ -38,7 +38,7 @@ where
 
             Some((index, value))
         };
-        let result = map.get_full::<_, T, S, A>(ref_value);
+        let result = set.get_full::<_, T, S, A>(ref_value);
 
         prop_assert_eq!(result, expected);
     }

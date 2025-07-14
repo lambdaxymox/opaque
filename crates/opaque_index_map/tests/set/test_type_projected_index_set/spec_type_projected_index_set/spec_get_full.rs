@@ -23,14 +23,14 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let map = entries.clone();
-    for ref_value in map.iter() {
+    let set = entries.clone();
+    for ref_value in set.iter() {
         let expected = {
-            let maybe_index = map.get_index_of(ref_value);
+            let maybe_index = set.get_index_of(ref_value);
 
             prop_assert!(maybe_index.is_some());
 
-            let maybe_value = map.get(ref_value);
+            let maybe_value = set.get(ref_value);
 
             prop_assert!(maybe_value.is_some());
 
@@ -39,7 +39,7 @@ where
 
             Some((index, value))
         };
-        let result = map.get_full(ref_value);
+        let result = set.get_full(ref_value);
 
         prop_assert_eq!(result, expected);
     }
