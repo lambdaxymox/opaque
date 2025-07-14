@@ -10,7 +10,7 @@ use std::alloc;
 #[cfg(not(feature = "nightly"))]
 use opaque_allocator_api::alloc;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 struct DropCounter {
     count: Rc<RefCell<usize>>,
 }
