@@ -26,3 +26,7 @@ mod spec_intersection;
 mod spec_union;
 mod spec_shift_remove_index;
 mod spec_swap_remove_index;
+mod spec_sort;
+mod spec_sort_by;
+mod spec_sort_unstable;
+mod spec_sort_unstable_by;
