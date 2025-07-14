@@ -44,6 +44,54 @@ where
     set
 }
 
+fn from_union_in<T, S1, S2, A>(
+    entries1: &TypeProjectedIndexSet<T, S1, A>,
+    entries2: &TypeProjectedIndexSet<T, S2, A>,
+) -> TypeProjectedIndexSet<T, S1, A>
+where
+    T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
+    S1: any::Any + hash::BuildHasher + Send + Sync + Clone + Default,
+    S1::Hasher: any::Any + hash::Hasher + Send + Sync,
+    S2: any::Any + hash::BuildHasher + Send + Sync + Clone + Default,
+    S2::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
+{
+    let mut set = TypeProjectedIndexSet::with_hasher_proj_in(
+        entries1.hasher().clone(),
+        entries1.allocator().clone(),
+    );
+
+    for value in entries1.union(&entries2).cloned() {
+        set.insert(value);
+    }
+
+    set
+}
+
+fn from_intersection_in<T, S1, S2, A>(
+    entries1: &TypeProjectedIndexSet<T, S1, A>,
+    entries2: &TypeProjectedIndexSet<T, S2, A>,
+) -> TypeProjectedIndexSet<T, S1, A>
+where
+    T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
+    S1: any::Any + hash::BuildHasher + Send + Sync + Clone + Default,
+    S1::Hasher: any::Any + hash::Hasher + Send + Sync,
+    S2: any::Any + hash::BuildHasher + Send + Sync + Clone + Default,
+    S2::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
+{
+    let mut set = TypeProjectedIndexSet::with_hasher_proj_in(
+        entries1.hasher().clone(),
+        entries1.allocator().clone(),
+    );
+
+    for value in entries1.intersection(&entries2).cloned() {
+        set.insert(value);
+    }
+
+    set
+}
+
 fn prop_difference_with_self<T, S, A>(entries: TypeProjectedIndexSet<T, S, A>) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
@@ -94,6 +142,29 @@ where
     let set = from_difference_in(&empty_set, &entries);
 
     prop_assert!(set.is_empty());
+
+    Ok(())
+}
+
+fn prop_difference_union_intersection<T, S1, S2, A>(entries1: TypeProjectedIndexSet<T, S1, A>, entries2: TypeProjectedIndexSet<T, S2, A>) -> Result<(), TestCaseError>
+where
+    T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
+    S1: any::Any + hash::BuildHasher + Send + Sync + Clone + Default,
+    S1::Hasher: any::Any + hash::Hasher + Send + Sync,
+    S2: any::Any + hash::BuildHasher + Send + Sync + Clone + Default,
+    S2::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
+{
+    let lhs = from_difference_in(
+        &from_union_in(&entries1, &entries2),
+        &from_intersection_in(&entries1, &entries2),
+    );
+    let rhs = from_union_in(
+        &from_difference_in(&entries1, &entries2),
+        &from_difference_in(&entries2, &entries1),
+    );
+
+    prop_assert_eq!(lhs, rhs);
 
     Ok(())
 }
@@ -293,6 +364,16 @@ macro_rules! generate_props {
                 fn prop_difference_with_empty2(entries in super::$set_gen::<$value_typ, $build_hasher_typ1, $alloc_typ>($max_length)) {
                     let entries: super::TypeProjectedIndexSet<$value_typ, $build_hasher_typ1, $alloc_typ> = entries;
                     super::prop_difference_with_empty2::<$value_typ, $build_hasher_typ1, $build_hasher_typ2, $alloc_typ>(entries)?
+                }
+
+                #[test]
+                fn prop_difference_union_intersection(
+                    entries1 in super::$set_gen::<$value_typ, $build_hasher_typ1, $alloc_typ>($max_length),
+                    entries2 in super::$set_gen::<$value_typ, $build_hasher_typ2, $alloc_typ>($max_length),
+                ) {
+                    let entries1: super::TypeProjectedIndexSet<$value_typ, $build_hasher_typ1, $alloc_typ> = entries1;
+                    let entries2: super::TypeProjectedIndexSet<$value_typ, $build_hasher_typ2, $alloc_typ> = entries2;
+                    super::prop_difference_union_intersection(entries1, entries2)?
                 }
 
                 #[test]
