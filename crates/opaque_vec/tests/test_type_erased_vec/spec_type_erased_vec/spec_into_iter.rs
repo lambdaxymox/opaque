@@ -82,6 +82,25 @@ where
     Ok(())
 }
 
+fn prop_into_iter_ordering<T, A>(values: TypeErasedVec) -> Result<(), TestCaseError>
+where
+    T: any::Any + PartialEq + Clone + Default + fmt::Debug,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
+{
+    let vec = values.clone::<T, A>();
+    let mut iter = vec.clone::<T, A>().into_iter::<T, A>();
+    for i in 0..vec.len() {
+        let expected = vec.get::<_, T, A>(i).cloned();
+        let result = iter.next();
+
+        prop_assert_eq!(result, expected);
+    }
+
+    prop_assert_eq!(iter.next(), None);
+
+    Ok(())
+}
+
 macro_rules! generate_props {
     ($module_name:ident, $typ:ty, $alloc_typ:ty, $max_length:expr, $vec_gen:ident) => {
         mod $module_name {
@@ -103,6 +122,12 @@ macro_rules! generate_props {
                 fn prop_into_iter_take_none(values in super::$vec_gen::<$typ, $alloc_typ>($max_length)) {
                     let values: super::TypeErasedVec = values;
                     super::prop_into_iter_take_none::<$typ, $alloc_typ>(values)?
+                }
+
+                #[test]
+                fn prop_into_iter_ordering(values in super::$vec_gen::<$typ, $alloc_typ>($max_length)) {
+                    let values: super::TypeErasedVec = values;
+                    super::prop_into_iter_ordering::<$typ, $alloc_typ>(values)?
                 }
             }
         }

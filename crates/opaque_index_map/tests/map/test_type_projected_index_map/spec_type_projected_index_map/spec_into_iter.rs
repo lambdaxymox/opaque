@@ -127,6 +127,28 @@ where
     Ok(())
 }
 
+fn prop_into_iter_ordering<K, V, S, A>(entries: TypeProjectedIndexMap<K, V, S, A>) -> Result<(), TestCaseError>
+where
+    K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
+    V: any::Any + Clone + Eq + fmt::Debug,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
+{
+    let map = entries.clone();
+    let mut iter = map.clone().into_iter();
+    for i in 0..map.len() {
+        let expected = map.get_index(i).map(|(k, v)| (k.clone(), v.clone()));
+        let result = iter.next();
+
+        prop_assert_eq!(result, expected);
+    }
+
+    prop_assert_eq!(iter.next(), None);
+
+    Ok(())
+}
+
 macro_rules! generate_props {
     (
         $module_name:ident,
@@ -174,6 +196,12 @@ macro_rules! generate_props {
                 fn prop_into_iter_get_key_value(entries in super::$map_gen::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
                     let entries: super::TypeProjectedIndexMap<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ> = entries;
                     super::prop_into_iter_get_key_value(entries)?
+                }
+
+                #[test]
+                fn prop_into_iter_ordering(entries in super::$map_gen::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
+                    let entries: super::TypeProjectedIndexMap<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ> = entries;
+                    super::prop_into_iter_ordering(entries)?
                 }
             }
         }

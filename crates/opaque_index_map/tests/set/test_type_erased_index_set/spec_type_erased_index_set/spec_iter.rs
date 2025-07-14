@@ -103,6 +103,27 @@ where
     Ok(())
 }
 
+fn prop_iter_ordering<T, S, A>(entries: TypeErasedIndexSet) -> Result<(), TestCaseError>
+where
+    T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
+{
+    let set = entries.clone::<T, S, A>();
+    let mut iter = set.iter::<T, S, A>();
+    for i in 0..set.len() {
+        let expected = set.get_index::<T, S, A>(i);
+        let result = iter.next();
+
+        prop_assert_eq!(result, expected);
+    }
+
+    assert_eq!(iter.next(), None);
+
+    Ok(())
+}
+
 macro_rules! generate_props {
     (
         $module_name:ident,
@@ -143,6 +164,12 @@ macro_rules! generate_props {
                 fn prop_iter_get_index_of(entries in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
                     let entries: super::TypeErasedIndexSet = entries;
                     super::prop_iter_get_index_of::<$value_typ, $build_hasher_typ, $alloc_typ>(entries)?
+                }
+
+                #[test]
+                fn prop_iter_ordering(entries in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
+                    let entries: super::TypeErasedIndexSet = entries;
+                    super::prop_iter_ordering::<$value_typ, $build_hasher_typ, $alloc_typ>(entries)?
                 }
             }
         }
