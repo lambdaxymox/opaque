@@ -37,3 +37,4 @@ mod spec_values;
 mod spec_into_keys;
 mod spec_into_values;
 mod spec_iter_mut;
+mod spec_values_mut;
