@@ -281,7 +281,7 @@ where
     Ok(())
 }
 
-fn prop_intersection_len<T, S1, S2, A>(entries1: TypeProjectedIndexSet<T, S1, A>, entries2: TypeProjectedIndexSet<T, S2, A>) -> Result<(), TestCaseError>
+fn prop_intersection_len1<T, S1, S2, A>(entries1: TypeProjectedIndexSet<T, S1, A>, entries2: TypeProjectedIndexSet<T, S2, A>) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     S1: any::Any + hash::BuildHasher + Send + Sync + Clone + Default,
@@ -294,6 +294,45 @@ where
 
     prop_assert!(set.len() <= entries1.len());
     prop_assert!(set.len() <= entries2.len());
+
+    Ok(())
+}
+
+fn prop_intersection_len2<T, S1, S2, A>(entries1: TypeProjectedIndexSet<T, S1, A>, entries2: TypeProjectedIndexSet<T, S2, A>) -> Result<(), TestCaseError>
+where
+    T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
+    S1: any::Any + hash::BuildHasher + Send + Sync + Clone + Default,
+    S1::Hasher: any::Any + hash::Hasher + Send + Sync,
+    S2: any::Any + hash::BuildHasher + Send + Sync + Clone + Default,
+    S2::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
+{
+    let set = from_intersection_in(&entries1, &entries2);
+
+    prop_assert!(set.len() <= usize::min(entries1.len(), entries2.len()));
+
+    Ok(())
+}
+
+fn prop_intersection_ordering<T, S1, S2, A>(entries1: TypeProjectedIndexSet<T, S1, A>, entries2: TypeProjectedIndexSet<T, S2, A>) -> Result<(), TestCaseError>
+where
+    T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
+    S1: any::Any + hash::BuildHasher + Send + Sync + Clone + Default,
+    S1::Hasher: any::Any + hash::Hasher + Send + Sync,
+    S2: any::Any + hash::BuildHasher + Send + Sync + Clone + Default,
+    S2::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
+{
+    let set = from_intersection_in(&entries1, &entries2);
+
+    for i in 1..set.len() {
+        let previous_index = entries1.get_index_of(&set[i - 1]);
+        let current_index = entries1.get_index_of(&set[i]);
+
+        prop_assert!(previous_index.is_some());
+        prop_assert!(current_index.is_some());
+        prop_assert!(previous_index < current_index);
+    }
 
     Ok(())
 }
@@ -409,13 +448,33 @@ macro_rules! generate_props {
                 }
 
                 #[test]
-                fn prop_intersection_len(
+                fn prop_intersection_len1(
                     entries1 in super::$set_gen::<$value_typ, $build_hasher_typ1, $alloc_typ>($max_length),
                     entries2 in super::$set_gen::<$value_typ, $build_hasher_typ2, $alloc_typ>($max_length),
                 ) {
                     let entries1: super::TypeProjectedIndexSet<$value_typ, $build_hasher_typ1, $alloc_typ> = entries1;
                     let entries2: super::TypeProjectedIndexSet<$value_typ, $build_hasher_typ2, $alloc_typ> = entries2;
-                    super::prop_intersection_len(entries1, entries2)?
+                    super::prop_intersection_len1(entries1, entries2)?
+                }
+
+                #[test]
+                fn prop_intersection_len2(
+                    entries1 in super::$set_gen::<$value_typ, $build_hasher_typ1, $alloc_typ>($max_length),
+                    entries2 in super::$set_gen::<$value_typ, $build_hasher_typ2, $alloc_typ>($max_length),
+                ) {
+                    let entries1: super::TypeProjectedIndexSet<$value_typ, $build_hasher_typ1, $alloc_typ> = entries1;
+                    let entries2: super::TypeProjectedIndexSet<$value_typ, $build_hasher_typ2, $alloc_typ> = entries2;
+                    super::prop_intersection_len2(entries1, entries2)?
+                }
+
+                #[test]
+                fn prop_intersection_ordering(
+                    entries1 in super::$set_gen::<$value_typ, $build_hasher_typ1, $alloc_typ>($max_length),
+                    entries2 in super::$set_gen::<$value_typ, $build_hasher_typ2, $alloc_typ>($max_length),
+                ) {
+                    let entries1: super::TypeProjectedIndexSet<$value_typ, $build_hasher_typ1, $alloc_typ> = entries1;
+                    let entries2: super::TypeProjectedIndexSet<$value_typ, $build_hasher_typ2, $alloc_typ> = entries2;
+                    super::prop_intersection_ordering(entries1, entries2)?
                 }
             }
         }

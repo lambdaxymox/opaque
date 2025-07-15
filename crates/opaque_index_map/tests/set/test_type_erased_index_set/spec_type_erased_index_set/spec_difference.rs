@@ -329,6 +329,28 @@ where
     Ok(())
 }
 
+fn prop_difference_ordering<T, S1, S2, A>(entries1: TypeErasedIndexSet, entries2: TypeErasedIndexSet) -> Result<(), TestCaseError>
+where
+    T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
+    S1: any::Any + hash::BuildHasher + Send + Sync + Clone + Default,
+    S1::Hasher: any::Any + hash::Hasher + Send + Sync,
+    S2: any::Any + hash::BuildHasher + Send + Sync + Clone + Default,
+    S2::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
+{
+    let set = from_difference_in::<T, S1, S2, A>(&entries1, &entries2);
+    for i in 1..set.len() {
+        let previous_index = entries1.get_index_of::<_, T, S1, A>(&set.as_slice::<T, S1, A>()[i - 1]);
+        let current_index = entries1.get_index_of::<_, T, S1, A>(&set.as_slice::<T, S1, A>()[i]);
+
+        prop_assert!(previous_index.is_some());
+        prop_assert!(current_index.is_some());
+        prop_assert!(previous_index < current_index);
+    }
+
+    Ok(())
+}
+
 macro_rules! generate_props {
     (
         $module_name:ident,
@@ -458,6 +480,16 @@ macro_rules! generate_props {
                     let entries1: super::TypeErasedIndexSet = entries1;
                     let entries2: super::TypeErasedIndexSet = entries2;
                     super::prop_difference_len::<$value_typ, $build_hasher_typ1, $build_hasher_typ2, $alloc_typ>(entries1, entries2)?
+                }
+
+                #[test]
+                fn prop_difference_ordering(
+                    entries1 in super::$set_gen::<$value_typ, $build_hasher_typ1, $alloc_typ>($max_length),
+                    entries2 in super::$set_gen::<$value_typ, $build_hasher_typ2, $alloc_typ>($max_length),
+                ) {
+                    let entries1: super::TypeErasedIndexSet = entries1;
+                    let entries2: super::TypeErasedIndexSet = entries2;
+                    super::prop_difference_ordering::<$value_typ, $build_hasher_typ1, $build_hasher_typ2, $alloc_typ>(entries1, entries2)?
                 }
             }
         }
