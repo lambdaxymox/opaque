@@ -123,6 +123,90 @@ where
     Ok(())
 }
 
+fn prop_move_index_ordering_min_to_max<T, S, A>(entries: TypeErasedIndexSet, from: usize, to: usize) -> Result<(), TestCaseError>
+where
+    T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
+{
+    let mut set = entries.clone::<T, S, A>();
+    let min = usize::min(from, to);
+    let max = usize::max(from, to);
+    set.move_index::<T, S, A>(min, max);
+
+    // Every entry in `[0, min)` is untouched.
+    for i in 0..min {
+        let expected = entries.get_index::<T, S, A>(i);
+        let result = set.get_index::<T, S, A>(i);
+
+        prop_assert_eq!(result, expected);
+    }
+
+    // Every entry in `[min + 1, max)` shifts down one unit in the map's storage.
+    for i in (min + 1)..max {
+        let expected = entries.get_index::<T, S, A>(i);
+        let result = set.get_index::<T, S, A>(i - 1);
+
+        prop_assert_eq!(result, expected);
+    }
+
+    // The entry at `min` moves to `max`.
+    prop_assert_eq!(set.get_index::<T, S, A>(max), entries.get_index::<T, S, A>(min));
+
+    // Every entry in `[max + 1, set.len())` is untouched.
+    for i in (max + 1)..set.len() {
+        let expected = entries.get_index::<T, S, A>(i);
+        let result = set.get_index::<T, S, A>(i);
+
+        prop_assert_eq!(result, expected);
+    }
+
+    Ok(())
+}
+
+fn prop_move_index_ordering_max_to_min<T, S, A>(entries: TypeErasedIndexSet, from: usize, to: usize) -> Result<(), TestCaseError>
+where
+    T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
+{
+    let mut set = entries.clone::<T, S, A>();
+    let min = usize::min(from, to);
+    let max = usize::max(from, to);
+    set.move_index::<T, S, A>(max, min);
+
+    // Every entry in `[0, min)` is untouched.
+    for i in 0..min {
+        let expected = entries.get_index::<T, S, A>(i);
+        let result = set.get_index::<T, S, A>(i);
+
+        prop_assert_eq!(result, expected);
+    }
+
+    // The entry at `max` moves to `min`.
+    prop_assert_eq!(set.get_index::<T, S, A>(min), entries.get_index::<T, S, A>(max));
+
+    // Every entry in `[min, max - 1)` shifts up one unit.
+    for i in (min + 1)..max {
+        let expected = entries.get_index::<T, S, A>(i - 1);
+        let result = set.get_index::<T, S, A>(i);
+
+        prop_assert_eq!(result, expected);
+    }
+
+    // Every entry in `[max + 1, set.len())` is untouched.
+    for i in (max + 1)..set.len() {
+        let expected = entries.get_index::<T, S, A>(i);
+        let result = set.get_index::<T, S, A>(i);
+
+        prop_assert_eq!(result, expected);
+    }
+
+    Ok(())
+}
+
 macro_rules! generate_props {
     (
         $module_name:ident,
@@ -163,6 +247,18 @@ macro_rules! generate_props {
                 fn prop_move_index_get_index((entries, from, to) in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
                     let entries: super::TypeErasedIndexSet = entries;
                     super::prop_move_index_get_index::<$value_typ, $build_hasher_typ, $alloc_typ>(entries, from, to)?
+                }
+
+                #[test]
+                fn prop_move_index_ordering_min_to_max((entries, from, to) in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
+                    let entries: super::TypeErasedIndexSet = entries;
+                    super::prop_move_index_ordering_min_to_max::<$value_typ, $build_hasher_typ, $alloc_typ>(entries, from, to)?
+                }
+
+                #[test]
+                fn prop_move_index_ordering_max_to_min((entries, from, to) in super::$set_gen::<$value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
+                    let entries: super::TypeErasedIndexSet = entries;
+                    super::prop_move_index_ordering_max_to_min::<$value_typ, $build_hasher_typ, $alloc_typ>(entries, from, to)?
                 }
             }
         }

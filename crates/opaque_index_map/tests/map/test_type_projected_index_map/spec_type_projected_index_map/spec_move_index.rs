@@ -129,6 +129,92 @@ where
     Ok(())
 }
 
+fn prop_move_index_ordering_min_to_max<K, V, S, A>(entries: TypeProjectedIndexMap<K, V, S, A>, from: usize, to: usize) -> Result<(), TestCaseError>
+where
+    K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
+    V: any::Any + Clone + Eq + fmt::Debug,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
+{
+    let mut map = entries.clone();
+    let min = usize::min(from, to);
+    let max = usize::max(from, to);
+    map.move_index(min, max);
+
+    // Every entry in `[0, min)` is untouched.
+    for i in 0..min {
+        let expected = entries.get_index(i);
+        let result = map.get_index(i);
+
+        prop_assert_eq!(result, expected);
+    }
+
+    // Every entry in `[min + 1, max)` shifts down one unit in the map's storage.
+    for i in (min + 1)..max {
+        let expected = entries.get_index(i);
+        let result = map.get_index(i - 1);
+
+        prop_assert_eq!(result, expected);
+    }
+
+    // The entry at `min` moves to `max`.
+    prop_assert_eq!(map.get_index(max), entries.get_index(min));
+
+    // Every entry in `[max + 1, map.len())` is untouched.
+    for i in (max + 1)..map.len() {
+        let expected = entries.get_index(i);
+        let result = map.get_index(i);
+
+        prop_assert_eq!(result, expected);
+    }
+
+    Ok(())
+}
+
+fn prop_move_index_ordering_max_to_min<K, V, S, A>(entries: TypeProjectedIndexMap<K, V, S, A>, from: usize, to: usize) -> Result<(), TestCaseError>
+where
+    K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
+    V: any::Any + Clone + Eq + fmt::Debug,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
+{
+    let mut map = entries.clone();
+    let min = usize::min(from, to);
+    let max = usize::max(from, to);
+    map.move_index(max, min);
+
+    // Every entry in `[0, min)` is untouched.
+    for i in 0..min {
+        let expected = entries.get_index(i);
+        let result = map.get_index(i);
+
+        prop_assert_eq!(result, expected);
+    }
+
+    // The entry at `max` moves to `min`.
+    prop_assert_eq!(map.get_index(min), entries.get_index(max));
+
+    // Every entry in `[min, max - 1)` shifts up one unit.
+    for i in (min + 1)..max {
+        let expected = entries.get_index(i - 1);
+        let result = map.get_index(i);
+
+        prop_assert_eq!(result, expected);
+    }
+
+    // Every entry in `[max + 1, map.len())` is untouched.
+    for i in (max + 1)..map.len() {
+        let expected = entries.get_index(i);
+        let result = map.get_index(i);
+
+        prop_assert_eq!(result, expected);
+    }
+
+    Ok(())
+}
+
 macro_rules! generate_props {
     (
         $module_name:ident,
@@ -170,6 +256,18 @@ macro_rules! generate_props {
                 fn prop_move_index_get_index((entries, from, to) in super::$map_gen::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
                     let entries: super::TypeProjectedIndexMap<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ> = entries;
                     super::prop_move_index_get_index(entries, from, to)?
+                }
+
+                #[test]
+                fn prop_move_index_ordering_min_to_max((entries, from, to) in super::$map_gen::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
+                    let entries: super::TypeProjectedIndexMap<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ> = entries;
+                    super::prop_move_index_ordering_min_to_max(entries, from, to)?
+                }
+
+                #[test]
+                fn prop_move_index_ordering_max_to_min((entries, from, to) in super::$map_gen::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
+                    let entries: super::TypeProjectedIndexMap<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ> = entries;
+                    super::prop_move_index_ordering_max_to_min(entries, from, to)?
                 }
             }
         }

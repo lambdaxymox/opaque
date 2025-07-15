@@ -130,6 +130,92 @@ where
     Ok(())
 }
 
+fn prop_move_index_ordering_min_to_max<K, V, S, A>(entries: TypeErasedIndexMap, from: usize, to: usize) -> Result<(), TestCaseError>
+where
+    K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
+    V: any::Any + Clone + Eq + fmt::Debug,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
+{
+    let mut map = entries.clone::<K, V, S, A>();
+    let min = usize::min(from, to);
+    let max = usize::max(from, to);
+    map.move_index::<K, V, S, A>(min, max);
+
+    // Every entry in `[0, min)` is untouched.
+    for i in 0..min {
+        let expected = entries.get_index::<K, V, S, A>(i);
+        let result = map.get_index::<K, V, S, A>(i);
+
+        prop_assert_eq!(result, expected);
+    }
+
+    // Every entry in `[min + 1, max)` shifts down one unit in the map's storage.
+    for i in (min + 1)..max {
+        let expected = entries.get_index::<K, V, S, A>(i);
+        let result = map.get_index::<K, V, S, A>(i - 1);
+
+        prop_assert_eq!(result, expected);
+    }
+
+    // The entry at `min` moves to `max`.
+    prop_assert_eq!(map.get_index::<K, V, S, A>(max), entries.get_index::<K, V, S, A>(min));
+
+    // Every entry in `[max + 1, map.len())` is untouched.
+    for i in (max + 1)..map.len() {
+        let expected = entries.get_index::<K, V, S, A>(i);
+        let result = map.get_index::<K, V, S, A>(i);
+
+        prop_assert_eq!(result, expected);
+    }
+
+    Ok(())
+}
+
+fn prop_move_index_ordering_max_to_min<K, V, S, A>(entries: TypeErasedIndexMap, from: usize, to: usize) -> Result<(), TestCaseError>
+where
+    K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
+    V: any::Any + Clone + Eq + fmt::Debug,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
+{
+    let mut map = entries.clone::<K, V, S, A>();
+    let min = usize::min(from, to);
+    let max = usize::max(from, to);
+    map.move_index::<K, V, S, A>(max, min);
+
+    // Every entry in `[0, min)` is untouched.
+    for i in 0..min {
+        let expected = entries.get_index::<K, V, S, A>(i);
+        let result = map.get_index::<K, V, S, A>(i);
+
+        prop_assert_eq!(result, expected);
+    }
+
+    // The entry at `max` moves to `min`.
+    prop_assert_eq!(map.get_index::<K, V, S, A>(min), entries.get_index::<K, V, S, A>(max));
+
+    // Every entry in `[min, max - 1)` shifts up one unit.
+    for i in (min + 1)..max {
+        let expected = entries.get_index::<K, V, S, A>(i - 1);
+        let result = map.get_index::<K, V, S, A>(i);
+
+        prop_assert_eq!(result, expected);
+    }
+
+    // Every entry in `[max + 1, map.len())` is untouched.
+    for i in (max + 1)..map.len() {
+        let expected = entries.get_index::<K, V, S, A>(i);
+        let result = map.get_index::<K, V, S, A>(i);
+
+        prop_assert_eq!(result, expected);
+    }
+
+    Ok(())
+}
+
 macro_rules! generate_props {
     (
         $module_name:ident,
@@ -171,6 +257,18 @@ macro_rules! generate_props {
                 fn prop_move_index_get_index((entries, from, to) in super::$map_gen::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
                     let entries: super::TypeErasedIndexMap = entries;
                     super::prop_move_index_get_index::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>(entries, from, to)?
+                }
+
+                #[test]
+                fn prop_move_index_ordering_min_to_max((entries, from, to) in super::$map_gen::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
+                    let entries: super::TypeErasedIndexMap = entries;
+                    super::prop_move_index_ordering_min_to_max::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>(entries, from, to)?
+                }
+
+                #[test]
+                fn prop_move_index_ordering_max_to_min((entries, from, to) in super::$map_gen::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>($max_length)) {
+                    let entries: super::TypeErasedIndexMap = entries;
+                    super::prop_move_index_ordering_max_to_min::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>(entries, from, to)?
                 }
             }
         }
