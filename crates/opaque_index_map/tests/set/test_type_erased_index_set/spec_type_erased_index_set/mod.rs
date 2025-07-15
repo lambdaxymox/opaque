@@ -32,3 +32,5 @@ mod spec_sort_unstable;
 mod spec_sort_unstable_by;
 mod spec_sorted_by;
 mod spec_sorted_unstable_by;
+mod spec_move_index;
+mod spec_swap_indices;
