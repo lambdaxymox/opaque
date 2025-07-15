@@ -36,3 +36,4 @@ mod spec_sorted_unstable_by_values;
 mod spec_values;
 mod spec_into_keys;
 mod spec_into_values;
+mod spec_iter_mut;

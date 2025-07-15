@@ -28,3 +28,4 @@ mod spec_truncate;
 mod spec_extract_if;
 mod spec_iter;
 mod spec_splice;
+mod spec_iter_mut;
