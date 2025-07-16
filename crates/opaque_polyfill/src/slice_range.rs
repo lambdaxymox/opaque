@@ -19,8 +19,7 @@ fn slice_end_index_len_fail(index: usize, len: usize) -> ! {
     */
     panic!(
         "slice end index is out of range for slice: range end index {} out of range for slice of length {}",
-        index,
-        len,
+        index, len,
     )
 }
 
@@ -40,8 +39,7 @@ fn slice_index_order_fail(index: usize, end: usize) -> ! {
     */
     panic!(
         "slice index start is larger than end: slice index starts at {} but ends at {}",
-        index,
-        end,
+        index, end,
     )
 }
 
@@ -98,16 +96,12 @@ where
 
     let start = match range.start_bound() {
         ops::Bound::Included(&start) => start,
-        ops::Bound::Excluded(start) => {
-            start.checked_add(1).unwrap_or_else(|| slice_start_index_overflow_fail())
-        }
+        ops::Bound::Excluded(start) => start.checked_add(1).unwrap_or_else(|| slice_start_index_overflow_fail()),
         ops::Bound::Unbounded => 0,
     };
 
     let end = match range.end_bound() {
-        ops::Bound::Included(end) => {
-            end.checked_add(1).unwrap_or_else(|| slice_end_index_overflow_fail())
-        }
+        ops::Bound::Included(end) => end.checked_add(1).unwrap_or_else(|| slice_end_index_overflow_fail()),
         ops::Bound::Excluded(&end) => end,
         ops::Bound::Unbounded => len,
     };

@@ -6,9 +6,12 @@ use opaque_index_map::TypeErasedIndexMap;
 
 use core::any;
 use core::fmt;
-use std::{hash, ops};
 use std::format;
 use std::string::String;
+use std::{
+    hash,
+    ops,
+};
 
 #[cfg(feature = "nightly")]
 use std::alloc;
@@ -27,11 +30,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
     fn clamped_interval(max_length: usize) -> ops::RangeInclusive<usize> {
-        if max_length == 0 {
-            1..=1
-        } else {
-            1..=max_length
-        }
+        if max_length == 0 { 1..=1 } else { 1..=max_length }
     }
 
     clamped_interval(max_length).prop_flat_map(move |length| {

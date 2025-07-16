@@ -43,4 +43,8 @@ fn bench_type_erased_index_map_get_key_value(c: &mut Criterion) {
     });
 }
 
-criterion_group!(bench_get_key_value, bench_type_erased_index_map_get_key_value, bench_index_map_get_key_value);
+criterion_group!(
+    bench_get_key_value,
+    bench_type_erased_index_map_get_key_value,
+    bench_index_map_get_key_value
+);

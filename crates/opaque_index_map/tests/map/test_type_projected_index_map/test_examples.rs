@@ -1,4 +1,7 @@
-use opaque_index_map::{GetDisjointMutError, TypeProjectedIndexMap};
+use opaque_index_map::{
+    GetDisjointMutError,
+    TypeProjectedIndexMap,
+};
 use opaque_vec::TypeProjectedVec;
 
 use std::string::String;

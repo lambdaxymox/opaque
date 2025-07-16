@@ -1,10 +1,10 @@
 use crate::common::erased::strategy_type_erased_vec_max_len;
-use opaque_vec::TypeErasedVec;
 use opaque_alloc::TypeProjectedAlloc;
+use opaque_vec::TypeErasedVec;
 
+use alloc_crate::boxed::Box;
 use core::any;
 use core::fmt;
-use alloc_crate::boxed::Box;
 use std::format;
 use std::string::String;
 
@@ -65,8 +65,7 @@ macro_rules! generate_props {
     ($module_name:ident, $typ:ty, $alloc_typ:ty, $max_length:expr, $vec_gen:ident) => {
         mod $module_name {
             use super::*;
-            proptest! {
-            }
+            proptest! {}
         }
     };
 }

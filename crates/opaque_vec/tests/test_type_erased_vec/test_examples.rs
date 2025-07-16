@@ -1,7 +1,7 @@
 use opaque_vec::TypeErasedVec;
 
-use std::string::String;
 use std::format;
+use std::string::String;
 
 #[cfg(feature = "nightly")]
 use std::alloc;
@@ -322,14 +322,7 @@ fn test_type_erased_vec_clear1() {
 
 #[test]
 fn test_type_erased_vec_clear2() {
-    let mut vec = TypeErasedVec::from([
-        444_i32,
-        127_i32,
-        780_i32,
-        59_i32,
-        920_i32,
-        496_i32,
-    ]);
+    let mut vec = TypeErasedVec::from([444_i32, 127_i32, 780_i32, 59_i32, 920_i32, 496_i32]);
 
     assert_eq!(vec.len(), 6);
     assert!(!vec.is_empty());
@@ -354,7 +347,10 @@ fn test_type_erased_vec_clone1() {
     let vec = TypeErasedVec::new::<isize>();
     let cloned_vec = vec.clone::<isize, alloc::Global>();
 
-    assert_eq!(vec.as_slice::<isize, alloc::Global>(), cloned_vec.as_slice::<isize, alloc::Global>());
+    assert_eq!(
+        vec.as_slice::<isize, alloc::Global>(),
+        cloned_vec.as_slice::<isize, alloc::Global>()
+    );
 }
 
 #[test]
@@ -364,7 +360,10 @@ fn test_type_erased_vec_clone2() {
 
     let cloned_vec = vec.clone::<isize, alloc::Global>();
 
-    assert_eq!(vec.as_slice::<isize, alloc::Global>(), cloned_vec.as_slice::<isize, alloc::Global>());
+    assert_eq!(
+        vec.as_slice::<isize, alloc::Global>(),
+        cloned_vec.as_slice::<isize, alloc::Global>()
+    );
 }
 
 #[test]
@@ -378,7 +377,10 @@ fn test_type_erased_vec_clone3() {
 
     let cloned_vec = vec.clone::<isize, alloc::Global>();
 
-    assert_eq!(vec.as_slice::<isize, alloc::Global>(), cloned_vec.as_slice::<isize, alloc::Global>());
+    assert_eq!(
+        vec.as_slice::<isize, alloc::Global>(),
+        cloned_vec.as_slice::<isize, alloc::Global>()
+    );
 }
 
 #[test]
@@ -439,12 +441,27 @@ fn test_type_erased_vec_slice_from_ref() {
     assert_eq!(&vec.as_slice::<i32, alloc::Global>()[1..5], &[2_i32, 3_i32, 4_i32, 5_i32]);
     assert_eq!(&vec.as_slice::<i32, alloc::Global>()[2..6], &[3_i32, 4_i32, 5_i32, 6_i32]);
 
-    assert_eq!(&vec.as_slice::<i32, alloc::Global>()[0..5], &[1_i32, 2_i32, 3_i32, 4_i32, 5_i32]);
-    assert_eq!(&vec.as_slice::<i32, alloc::Global>()[1..6], &[2_i32, 3_i32, 4_i32, 5_i32, 6_i32]);
+    assert_eq!(
+        &vec.as_slice::<i32, alloc::Global>()[0..5],
+        &[1_i32, 2_i32, 3_i32, 4_i32, 5_i32]
+    );
+    assert_eq!(
+        &vec.as_slice::<i32, alloc::Global>()[1..6],
+        &[2_i32, 3_i32, 4_i32, 5_i32, 6_i32]
+    );
 
-    assert_eq!(&vec.as_slice::<i32, alloc::Global>()[0..6], &[1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32]);
-    assert_eq!(&vec.as_slice::<i32, alloc::Global>()[..], &[1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32]);
-    assert_eq!(vec.as_slice::<i32, alloc::Global>(), &[1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32]);
+    assert_eq!(
+        &vec.as_slice::<i32, alloc::Global>()[0..6],
+        &[1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32]
+    );
+    assert_eq!(
+        &vec.as_slice::<i32, alloc::Global>()[..],
+        &[1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32]
+    );
+    assert_eq!(
+        vec.as_slice::<i32, alloc::Global>(),
+        &[1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32]
+    );
 }
 
 #[test]
@@ -460,7 +477,10 @@ fn test_type_erased_vec_slice_from_mut1() {
         }
     }
 
-    assert_eq!(vec.as_slice::<i32, alloc::Global>(), &[21_i32, 22_i32, 3_i32, 4_i32, 5_i32, 6_i32]);
+    assert_eq!(
+        vec.as_slice::<i32, alloc::Global>(),
+        &[21_i32, 22_i32, 3_i32, 4_i32, 5_i32, 6_i32]
+    );
 }
 
 #[test]
@@ -476,7 +496,10 @@ fn test_type_erased_vec_slice_from_mut2() {
         }
     }
 
-    assert_eq!(vec.as_slice::<i32, alloc::Global>(), &[1_i32, 2_i32, 23_i32, 24_i32, 25_i32, 26_i32]);
+    assert_eq!(
+        vec.as_slice::<i32, alloc::Global>(),
+        &[1_i32, 2_i32, 23_i32, 24_i32, 25_i32, 26_i32]
+    );
 }
 
 #[test]
@@ -487,18 +510,9 @@ fn test_type_erased_vec_dedup() {
         assert_eq!(vec.as_slice::<i32, alloc::Global>(), that.as_slice::<i32, alloc::Global>());
     }
 
-    test_case(
-        TypeErasedVec::new::<i32>(),
-        TypeErasedVec::new::<i32>(),
-    );
-    test_case(
-        TypeErasedVec::from(&[1_i32]),
-        TypeErasedVec::from(&[1_i32]),
-    );
-    test_case(
-        TypeErasedVec::from(&[1_i32, 1_i32]),
-        TypeErasedVec::from(&[1_i32]),
-    );
+    test_case(TypeErasedVec::new::<i32>(), TypeErasedVec::new::<i32>());
+    test_case(TypeErasedVec::from(&[1_i32]), TypeErasedVec::from(&[1_i32]));
+    test_case(TypeErasedVec::from(&[1_i32, 1_i32]), TypeErasedVec::from(&[1_i32]));
     test_case(
         TypeErasedVec::from(&[1_i32, 2_i32, 3_i32]),
         TypeErasedVec::from(&[1_i32, 2_i32, 3_i32]),
@@ -533,18 +547,9 @@ fn test_type_erased_vec_dedup_by_key() {
         assert_eq!(vec.as_slice::<i32, alloc::Global>(), that.as_slice::<i32, alloc::Global>());
     }
 
-    test_case(
-        TypeErasedVec::new::<i32>(),
-        TypeErasedVec::new::<i32>(),
-    );
-    test_case(
-        TypeErasedVec::from(&[10_i32]),
-        TypeErasedVec::from(&[10_i32]),
-    );
-    test_case(
-        TypeErasedVec::from(&[10_i32, 11_i32]),
-        TypeErasedVec::from(&[10_i32]),
-    );
+    test_case(TypeErasedVec::new::<i32>(), TypeErasedVec::new::<i32>());
+    test_case(TypeErasedVec::from(&[10_i32]), TypeErasedVec::from(&[10_i32]));
+    test_case(TypeErasedVec::from(&[10_i32, 11_i32]), TypeErasedVec::from(&[10_i32]));
     test_case(
         TypeErasedVec::from(&[10_i32, 20_i32, 30_i32]),
         TypeErasedVec::from(&[10_i32, 20_i32, 30_i32]),
@@ -583,16 +588,7 @@ fn test_type_erased_vec_swap_remove_out_of_bounds2() {
 
 #[test]
 fn test_type_erased_vec_truncate1() {
-    let mut vec = TypeErasedVec::from([
-        899_i32,
-        615_i32,
-        623_i32,
-        487_i32,
-        935_i32,
-        806_i32,
-        381_i32,
-        967_i32,
-    ]);
+    let mut vec = TypeErasedVec::from([899_i32, 615_i32, 623_i32, 487_i32, 935_i32, 806_i32, 381_i32, 967_i32]);
     let expected = TypeErasedVec::from([899_i32, 615_i32, 623_i32, 487_i32]);
     vec.truncate::<i32, alloc::Global>(4);
 
@@ -601,26 +597,8 @@ fn test_type_erased_vec_truncate1() {
 
 #[test]
 fn test_type_erased_vec_truncate2() {
-    let mut vec = TypeErasedVec::from([
-        899_i32,
-        615_i32,
-        623_i32,
-        487_i32,
-        935_i32,
-        806_i32,
-        381_i32,
-        967_i32,
-    ]);
-    let expected = TypeErasedVec::from([
-        899_i32,
-        615_i32,
-        623_i32,
-        487_i32,
-        935_i32,
-        806_i32,
-        381_i32,
-        967_i32,
-    ]);
+    let mut vec = TypeErasedVec::from([899_i32, 615_i32, 623_i32, 487_i32, 935_i32, 806_i32, 381_i32, 967_i32]);
+    let expected = TypeErasedVec::from([899_i32, 615_i32, 623_i32, 487_i32, 935_i32, 806_i32, 381_i32, 967_i32]);
     vec.truncate::<i32, alloc::Global>(vec.len());
 
     assert_eq!(vec.as_proj::<i32, alloc::Global>(), expected.as_proj::<i32, alloc::Global>());
@@ -628,16 +606,7 @@ fn test_type_erased_vec_truncate2() {
 
 #[test]
 fn test_type_erased_vec_truncate3() {
-    let mut vec = TypeErasedVec::from([
-        899_i32,
-        615_i32,
-        623_i32,
-        487_i32,
-        935_i32,
-        806_i32,
-        381_i32,
-        967_i32,
-    ]);
+    let mut vec = TypeErasedVec::from([899_i32, 615_i32, 623_i32, 487_i32, 935_i32, 806_i32, 381_i32, 967_i32]);
     let expected = TypeErasedVec::new::<i32>();
     vec.truncate::<i32, alloc::Global>(0);
 
@@ -672,17 +641,25 @@ fn test_type_erased_vec_truncate_len2() {
 fn test_type_erased_vec_truncate_drop1() {
     static mut DROP_COUNT: usize = 0;
 
-    fn get_drop_count() -> usize { unsafe { DROP_COUNT } }
+    fn get_drop_count() -> usize {
+        unsafe { DROP_COUNT }
+    }
 
-    struct Value { _data: i32 }
+    struct Value {
+        _data: i32,
+    }
 
     impl Value {
-        fn new(data: i32) -> Self { Self { _data: data, } }
+        fn new(data: i32) -> Self {
+            Self { _data: data }
+        }
     }
 
     impl Drop for Value {
         fn drop(&mut self) {
-            unsafe { DROP_COUNT += 1; }
+            unsafe {
+                DROP_COUNT += 1;
+            }
         }
     }
 
@@ -698,17 +675,25 @@ fn test_type_erased_vec_truncate_drop1() {
 fn test_type_erased_vec_truncate_drop2() {
     static mut DROP_COUNT: usize = 0;
 
-    fn get_drop_count() -> usize { unsafe { DROP_COUNT } }
+    fn get_drop_count() -> usize {
+        unsafe { DROP_COUNT }
+    }
 
-    struct Value { _data: i32 }
+    struct Value {
+        _data: i32,
+    }
 
     impl Value {
-        fn new(data: i32) -> Self { Self { _data: data, } }
+        fn new(data: i32) -> Self {
+            Self { _data: data }
+        }
     }
 
     impl Drop for Value {
         fn drop(&mut self) {
-            unsafe { DROP_COUNT += 1; }
+            unsafe {
+                DROP_COUNT += 1;
+            }
         }
     }
 
@@ -734,15 +719,19 @@ fn test_type_erased_vec_truncate_drop2() {
 #[test]
 #[should_panic]
 fn test_type_erased_vec_truncate_fail() {
-    struct BadValue { data: usize, }
+    struct BadValue {
+        data: usize,
+    }
 
     impl BadValue {
-        fn new(data: usize) -> Self { BadValue { data, } }
+        fn new(data: usize) -> Self {
+            BadValue { data }
+        }
     }
 
     impl Drop for BadValue {
         fn drop(&mut self) {
-            let BadValue { ref mut data} = *self;
+            let BadValue { ref mut data } = *self;
             if *data == 0xbadbeef_usize {
                 panic!("BadElem panic: 0xbadbeef")
             }
@@ -778,7 +767,10 @@ fn test_type_erased_vec_into_iter_clone1() {
         cloned_vec.push::<i32, alloc::Global>(value);
     }
 
-    assert_eq!(cloned_vec.as_slice::<i32, alloc::Global>(), vec.as_slice::<i32, alloc::Global>());
+    assert_eq!(
+        cloned_vec.as_slice::<i32, alloc::Global>(),
+        vec.as_slice::<i32, alloc::Global>()
+    );
 }
 
 #[test]
@@ -789,7 +781,10 @@ fn test_type_erased_vec_into_iter_clone2() {
         cloned_vec.push::<i32, alloc::Global>(value);
     }
 
-    assert_eq!(cloned_vec.as_slice::<i32, alloc::Global>(), vec.as_slice::<i32, alloc::Global>());
+    assert_eq!(
+        cloned_vec.as_slice::<i32, alloc::Global>(),
+        vec.as_slice::<i32, alloc::Global>()
+    );
 }
 
 #[test]
@@ -800,7 +795,10 @@ fn test_type_erased_vec_into_iter_clone3() {
         cloned_vec.push::<i32, alloc::Global>(value);
     }
 
-    assert_eq!(cloned_vec.as_slice::<i32, alloc::Global>(), vec.as_slice::<i32, alloc::Global>());
+    assert_eq!(
+        cloned_vec.as_slice::<i32, alloc::Global>(),
+        vec.as_slice::<i32, alloc::Global>()
+    );
 }
 
 #[test]
@@ -811,7 +809,10 @@ fn test_type_erased_vec_into_iter_clone4() {
         cloned_vec.push::<String, alloc::Global>(value);
     }
 
-    assert_eq!(cloned_vec.as_slice::<String, alloc::Global>(), vec.as_slice::<String, alloc::Global>());
+    assert_eq!(
+        cloned_vec.as_slice::<String, alloc::Global>(),
+        vec.as_slice::<String, alloc::Global>()
+    );
 }
 
 #[test]
@@ -822,23 +823,24 @@ fn test_type_erased_vec_into_iter_clone5() {
         cloned_vec.push::<String, alloc::Global>(value);
     }
 
-    assert_eq!(cloned_vec.as_slice::<String, alloc::Global>(), vec.as_slice::<String, alloc::Global>());
+    assert_eq!(
+        cloned_vec.as_slice::<String, alloc::Global>(),
+        vec.as_slice::<String, alloc::Global>()
+    );
 }
 
 #[test]
 fn test_type_erased_vec_into_iter_clone6() {
-    let vec = TypeErasedVec::from([
-        String::from("foo"),
-        String::from("bar"),
-        String::from("baz"),
-        String::from("quux"),
-    ]);
+    let vec = TypeErasedVec::from([String::from("foo"), String::from("bar"), String::from("baz"), String::from("quux")]);
     let mut cloned_vec = TypeErasedVec::new::<String>();
     for value in vec.clone::<String, alloc::Global>().into_iter::<String, alloc::Global>() {
         cloned_vec.push::<String, alloc::Global>(value);
     }
 
-    assert_eq!(cloned_vec.as_slice::<String, alloc::Global>(), vec.as_slice::<String, alloc::Global>());
+    assert_eq!(
+        cloned_vec.as_slice::<String, alloc::Global>(),
+        vec.as_slice::<String, alloc::Global>()
+    );
 }
 
 #[test]
@@ -861,7 +863,10 @@ fn test_type_erased_vec_into_iter_partial0() {
         result.push::<String, alloc::Global>(value);
     }
 
-    assert_eq!(result.as_slice::<String, alloc::Global>(), expected.as_slice::<String, alloc::Global>());
+    assert_eq!(
+        result.as_slice::<String, alloc::Global>(),
+        expected.as_slice::<String, alloc::Global>()
+    );
 }
 
 #[test]
@@ -874,9 +879,7 @@ fn test_type_erased_vec_into_iter_partial1() {
         String::from("quuz"),
         String::from("garply"),
     ]);
-    let expected = TypeErasedVec::from([
-        String::from("foo"),
-    ]);
+    let expected = TypeErasedVec::from([String::from("foo")]);
     let mut result = TypeErasedVec::new::<String>();
     for value in vec
         .clone::<String, alloc::Global>()
@@ -886,7 +889,10 @@ fn test_type_erased_vec_into_iter_partial1() {
         result.push::<String, alloc::Global>(value);
     }
 
-    assert_eq!(result.as_slice::<String, alloc::Global>(), expected.as_slice::<String, alloc::Global>());
+    assert_eq!(
+        result.as_slice::<String, alloc::Global>(),
+        expected.as_slice::<String, alloc::Global>()
+    );
 }
 
 #[test]
@@ -899,10 +905,7 @@ fn test_type_erased_vec_into_iter_partial2() {
         String::from("quuz"),
         String::from("garply"),
     ]);
-    let expected = TypeErasedVec::from([
-        String::from("foo"),
-        String::from("bar"),
-    ]);
+    let expected = TypeErasedVec::from([String::from("foo"), String::from("bar")]);
     let mut result = TypeErasedVec::new::<String>();
     for value in vec
         .clone::<String, alloc::Global>()
@@ -912,7 +915,10 @@ fn test_type_erased_vec_into_iter_partial2() {
         result.push::<String, alloc::Global>(value);
     }
 
-    assert_eq!(result.as_slice::<String, alloc::Global>(), expected.as_slice::<String, alloc::Global>());
+    assert_eq!(
+        result.as_slice::<String, alloc::Global>(),
+        expected.as_slice::<String, alloc::Global>()
+    );
 }
 
 #[test]
@@ -925,11 +931,7 @@ fn test_type_erased_vec_into_iter_partial3() {
         String::from("quuz"),
         String::from("garply"),
     ]);
-    let expected = TypeErasedVec::from([
-        String::from("foo"),
-        String::from("bar"),
-        String::from("baz"),
-    ]);
+    let expected = TypeErasedVec::from([String::from("foo"), String::from("bar"), String::from("baz")]);
     let mut result = TypeErasedVec::new::<String>();
     for value in vec
         .clone::<String, alloc::Global>()
@@ -939,7 +941,10 @@ fn test_type_erased_vec_into_iter_partial3() {
         result.push::<String, alloc::Global>(value);
     }
 
-    assert_eq!(result.as_slice::<String, alloc::Global>(), expected.as_slice::<String, alloc::Global>());
+    assert_eq!(
+        result.as_slice::<String, alloc::Global>(),
+        expected.as_slice::<String, alloc::Global>()
+    );
 }
 
 #[test]
@@ -952,12 +957,7 @@ fn test_type_erased_vec_into_iter_partial4() {
         String::from("quuz"),
         String::from("garply"),
     ]);
-    let expected = TypeErasedVec::from([
-        String::from("foo"),
-        String::from("bar"),
-        String::from("baz"),
-        String::from("quux"),
-    ]);
+    let expected = TypeErasedVec::from([String::from("foo"), String::from("bar"), String::from("baz"), String::from("quux")]);
     let mut result = TypeErasedVec::new::<String>();
     for value in vec
         .clone::<String, alloc::Global>()
@@ -967,7 +967,10 @@ fn test_type_erased_vec_into_iter_partial4() {
         result.push::<String, alloc::Global>(value);
     }
 
-    assert_eq!(result.as_slice::<String, alloc::Global>(), expected.as_slice::<String, alloc::Global>());
+    assert_eq!(
+        result.as_slice::<String, alloc::Global>(),
+        expected.as_slice::<String, alloc::Global>()
+    );
 }
 
 #[test]
@@ -996,7 +999,10 @@ fn test_type_erased_vec_into_iter_partial5() {
         result.push::<String, alloc::Global>(value);
     }
 
-    assert_eq!(result.as_slice::<String, alloc::Global>(), expected.as_slice::<String, alloc::Global>());
+    assert_eq!(
+        result.as_slice::<String, alloc::Global>(),
+        expected.as_slice::<String, alloc::Global>()
+    );
 }
 
 #[test]
@@ -1055,7 +1061,10 @@ fn test_type_erased_vec_drain_empty() {
     let expected = TypeErasedVec::new::<i32>();
     let result: TypeErasedVec = vec.drain::<_, i32, alloc::Global>(..).collect();
 
-    assert_eq!(result.as_slice::<i32, alloc::Global>(), expected.as_slice::<i32, alloc::Global>());
+    assert_eq!(
+        result.as_slice::<i32, alloc::Global>(),
+        expected.as_slice::<i32, alloc::Global>()
+    );
 }
 
 #[test]
@@ -1069,7 +1078,10 @@ fn test_type_erased_vec_drain_entire_range1() {
         result_from_drain.as_slice::<i32, alloc::Global>(),
         expected_from_drain.as_slice::<i32, alloc::Global>(),
     );
-    assert_eq!(vec.as_slice::<i32, alloc::Global>(), expected_vec.as_slice::<i32, alloc::Global>());
+    assert_eq!(
+        vec.as_slice::<i32, alloc::Global>(),
+        expected_vec.as_slice::<i32, alloc::Global>()
+    );
 }
 
 #[test]
@@ -1083,7 +1095,10 @@ fn test_type_erased_vec_drain_entire_range2() {
         result_from_drain.as_slice::<i32, alloc::Global>(),
         expected_from_drain.as_slice::<i32, alloc::Global>(),
     );
-    assert_eq!(vec.as_slice::<i32, alloc::Global>(), expected_vec.as_slice::<i32, alloc::Global>());
+    assert_eq!(
+        vec.as_slice::<i32, alloc::Global>(),
+        expected_vec.as_slice::<i32, alloc::Global>()
+    );
 }
 
 #[test]
@@ -1097,7 +1112,10 @@ fn test_type_erased_vec_drain_entire_range3() {
         result_from_drain.as_slice::<i32, alloc::Global>(),
         expected_from_drain.as_slice::<i32, alloc::Global>(),
     );
-    assert_eq!(vec.as_slice::<i32, alloc::Global>(), expected_vec.as_slice::<i32, alloc::Global>());
+    assert_eq!(
+        vec.as_slice::<i32, alloc::Global>(),
+        expected_vec.as_slice::<i32, alloc::Global>()
+    );
 }
 
 #[test]
@@ -1153,12 +1171,7 @@ fn test_type_erased_vec_drain_entire_range6() {
 
 #[test]
 fn test_type_erased_vec_drain_entire_range7() {
-    let mut vec = TypeErasedVec::from([
-        String::from("foo"),
-        String::from("bar"),
-        String::from("baz"),
-        String::from("quux"),
-    ]);
+    let mut vec = TypeErasedVec::from([String::from("foo"), String::from("bar"), String::from("baz"), String::from("quux")]);
     let expected_from_drain = vec.clone::<String, alloc::Global>();
     let result_from_drain: TypeErasedVec = vec.drain::<_, String, alloc::Global>(..).collect();
     let expected_vec = TypeErasedVec::new::<String>();
@@ -1175,22 +1188,10 @@ fn test_type_erased_vec_drain_entire_range7() {
 
 #[test]
 fn test_type_erased_vec_drain_partial_range1() {
-    let mut vec = TypeErasedVec::from([
-        String::from("foo"),
-        String::from("bar"),
-        String::from("baz"),
-        String::from("quux"),
-    ]);
-    let expected_from_drain: TypeErasedVec = vec
-        .as_slice::<String, alloc::Global>()[0..2]
-        .iter()
-        .cloned()
-        .collect();
+    let mut vec = TypeErasedVec::from([String::from("foo"), String::from("bar"), String::from("baz"), String::from("quux")]);
+    let expected_from_drain: TypeErasedVec = vec.as_slice::<String, alloc::Global>()[0..2].iter().cloned().collect();
     let result_from_drain: TypeErasedVec = vec.drain::<_, String, alloc::Global>(0..2).collect();
-    let expected_vec = TypeErasedVec::from([
-        String::from("baz"),
-        String::from("quux"),
-    ]);
+    let expected_vec = TypeErasedVec::from([String::from("baz"), String::from("quux")]);
 
     assert_eq!(
         result_from_drain.as_slice::<String, alloc::Global>(),
@@ -1204,22 +1205,10 @@ fn test_type_erased_vec_drain_partial_range1() {
 
 #[test]
 fn test_type_erased_vec_drain_partial_range2() {
-    let mut vec = TypeErasedVec::from([
-        String::from("foo"),
-        String::from("bar"),
-        String::from("baz"),
-        String::from("quux"),
-    ]);
-    let expected_from_drain: TypeErasedVec = vec
-        .as_slice::<String, alloc::Global>()[1..3]
-        .iter()
-        .cloned()
-        .collect();
+    let mut vec = TypeErasedVec::from([String::from("foo"), String::from("bar"), String::from("baz"), String::from("quux")]);
+    let expected_from_drain: TypeErasedVec = vec.as_slice::<String, alloc::Global>()[1..3].iter().cloned().collect();
     let result_from_drain: TypeErasedVec = vec.drain::<_, String, alloc::Global>(1..3).collect();
-    let expected_vec = TypeErasedVec::from([
-        String::from("foo"),
-        String::from("quux"),
-    ]);
+    let expected_vec = TypeErasedVec::from([String::from("foo"), String::from("quux")]);
 
     assert_eq!(
         result_from_drain.as_slice::<String, alloc::Global>(),
@@ -1233,21 +1222,10 @@ fn test_type_erased_vec_drain_partial_range2() {
 
 #[test]
 fn test_type_erased_vec_drain_partial_range3() {
-    let mut vec = TypeErasedVec::from([
-        String::from("foo"),
-        String::from("bar"),
-        String::from("baz"),
-        String::from("quux"),
-    ]);
-    let expected_from_drain: TypeErasedVec = vec
-        .as_slice::<String, alloc::Global>()[1..]
-        .iter()
-        .cloned()
-        .collect();
+    let mut vec = TypeErasedVec::from([String::from("foo"), String::from("bar"), String::from("baz"), String::from("quux")]);
+    let expected_from_drain: TypeErasedVec = vec.as_slice::<String, alloc::Global>()[1..].iter().cloned().collect();
     let result_from_drain: TypeErasedVec = vec.drain::<_, String, alloc::Global>(1..).collect();
-    let expected_vec = TypeErasedVec::from([
-        String::from("foo"),
-    ]);
+    let expected_vec = TypeErasedVec::from([String::from("foo")]);
 
     assert_eq!(
         result_from_drain.as_slice::<String, alloc::Global>(),
@@ -1261,25 +1239,10 @@ fn test_type_erased_vec_drain_partial_range3() {
 
 #[test]
 fn test_type_erased_vec_drain_partial_range4() {
-    let mut vec = TypeErasedVec::from([
-        String::from("foo"),
-        String::from("bar"),
-        String::from("baz"),
-        String::from("quux"),
-    ]);
-    let expected_from_drain: TypeErasedVec = vec
-        .as_slice::<String, alloc::Global>()[3..]
-        .iter()
-        .cloned()
-        .collect();
-    let result_from_drain: TypeErasedVec = vec
-        .drain::<_, String, alloc::Global>(3..)
-        .collect();
-    let expected_vec = TypeErasedVec::from([
-        String::from("foo"),
-        String::from("bar"),
-        String::from("baz"),
-    ]);
+    let mut vec = TypeErasedVec::from([String::from("foo"), String::from("bar"), String::from("baz"), String::from("quux")]);
+    let expected_from_drain: TypeErasedVec = vec.as_slice::<String, alloc::Global>()[3..].iter().cloned().collect();
+    let result_from_drain: TypeErasedVec = vec.drain::<_, String, alloc::Global>(3..).collect();
+    let expected_vec = TypeErasedVec::from([String::from("foo"), String::from("bar"), String::from("baz")]);
 
     assert_eq!(
         result_from_drain.as_slice::<String, alloc::Global>(),
@@ -1321,7 +1284,10 @@ fn test_type_erased_vec_splice3() {
     let splice_data = [i32::MAX, i32::MAX, i32::MAX, i32::MAX];
     vec.splice::<_, _, i32, alloc::Global>(0.., splice_data);
 
-    assert_eq!(vec.as_slice::<i32, alloc::Global>(), &[i32::MAX, i32::MAX, i32::MAX, i32::MAX]);
+    assert_eq!(
+        vec.as_slice::<i32, alloc::Global>(),
+        &[i32::MAX, i32::MAX, i32::MAX, i32::MAX]
+    );
 }
 
 #[test]
@@ -1539,8 +1505,14 @@ fn test_type_erased_vec_append1() {
     let mut vec2 = TypeErasedVec::from([4_i32, 5_i32, 6_i32, 7_i32]);
     vec1.append::<i32, alloc::Global>(&mut vec2);
 
-    assert_eq!(&**vec1.as_proj::<i32, alloc::Global>(), &[1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32, 7_i32]);
-    assert_eq!(vec1.as_slice::<i32, alloc::Global>(), &[1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32, 7_i32]);
+    assert_eq!(
+        &**vec1.as_proj::<i32, alloc::Global>(),
+        &[1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32, 7_i32]
+    );
+    assert_eq!(
+        vec1.as_slice::<i32, alloc::Global>(),
+        &[1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32, 7_i32]
+    );
     assert!(vec2.is_empty());
 }
 
@@ -1576,7 +1548,10 @@ fn test_type_erased_vec_split_off2() {
 
     let split_vec = vec.split_off::<i32, alloc::Global>(0);
     assert_eq!(vec.as_slice::<i32, alloc::Global>(), []);
-    assert_eq!(split_vec.as_slice::<i32, alloc::Global>(), [1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32]);
+    assert_eq!(
+        split_vec.as_slice::<i32, alloc::Global>(),
+        [1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32]
+    );
     assert_eq!(vec.capacity(), old_capacity);
     assert_eq!(vec.as_ptr::<i32, alloc::Global>(), vec_ptr);
 }
@@ -1588,7 +1563,10 @@ fn test_type_erased_vec_split_off3() {
     let old_capacity = vec.capacity();
 
     let split_vec = vec.split_off::<i32, alloc::Global>(6);
-    assert_eq!(vec.as_slice::<i32, alloc::Global>(), [1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32]);
+    assert_eq!(
+        vec.as_slice::<i32, alloc::Global>(),
+        [1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32]
+    );
     assert_eq!(split_vec.as_slice::<i32, alloc::Global>(), []);
     assert_eq!(vec.capacity(), old_capacity);
     assert_eq!(vec.as_ptr::<i32, alloc::Global>(), vec_ptr);
@@ -1596,83 +1574,56 @@ fn test_type_erased_vec_split_off3() {
 
 #[test]
 fn test_type_erased_vec_split_off4() {
-    let mut vec = TypeErasedVec::from([
-        899_i32,
-        615_i32,
-        623_i32,
-        487_i32,
-        935_i32,
-        806_i32,
-        381_i32,
-        967_i32,
-    ]);
+    let mut vec = TypeErasedVec::from([899_i32, 615_i32, 623_i32, 487_i32, 935_i32, 806_i32, 381_i32, 967_i32]);
     let expected1 = TypeErasedVec::from([899_i32, 615_i32, 623_i32, 487_i32]);
     let expected2 = TypeErasedVec::from([935_i32, 806_i32, 381_i32, 967_i32]);
     let result2 = vec.split_off::<i32, alloc::Global>(4);
     let result1 = vec.clone::<i32, alloc::Global>();
 
-    assert_eq!(result1.as_slice::<i32, alloc::Global>(), expected1.as_slice::<i32, alloc::Global>());
-    assert_eq!(result2.as_slice::<i32, alloc::Global>(), expected2.as_slice::<i32, alloc::Global>());
+    assert_eq!(
+        result1.as_slice::<i32, alloc::Global>(),
+        expected1.as_slice::<i32, alloc::Global>()
+    );
+    assert_eq!(
+        result2.as_slice::<i32, alloc::Global>(),
+        expected2.as_slice::<i32, alloc::Global>()
+    );
 }
 
 #[test]
 fn test_type_erased_vec_split_off5() {
-    let mut vec = TypeErasedVec::from([
-        899_i32,
-        615_i32,
-        623_i32,
-        487_i32,
-        935_i32,
-        806_i32,
-        381_i32,
-        967_i32,
-    ]);
-    let expected1 = TypeErasedVec::from([
-        899_i32,
-        615_i32,
-        623_i32,
-        487_i32,
-        935_i32,
-        806_i32,
-        381_i32,
-        967_i32,
-    ]);
+    let mut vec = TypeErasedVec::from([899_i32, 615_i32, 623_i32, 487_i32, 935_i32, 806_i32, 381_i32, 967_i32]);
+    let expected1 = TypeErasedVec::from([899_i32, 615_i32, 623_i32, 487_i32, 935_i32, 806_i32, 381_i32, 967_i32]);
     let expected2 = TypeErasedVec::new::<i32>();
     let result2 = vec.split_off::<i32, alloc::Global>(vec.len());
     let result1 = vec.clone::<i32, alloc::Global>();
 
-    assert_eq!(result1.as_slice::<i32, alloc::Global>(), expected1.as_slice::<i32, alloc::Global>());
-    assert_eq!(result2.as_slice::<i32, alloc::Global>(), expected2.as_slice::<i32, alloc::Global>());
+    assert_eq!(
+        result1.as_slice::<i32, alloc::Global>(),
+        expected1.as_slice::<i32, alloc::Global>()
+    );
+    assert_eq!(
+        result2.as_slice::<i32, alloc::Global>(),
+        expected2.as_slice::<i32, alloc::Global>()
+    );
 }
 
 #[test]
 fn test_type_erased_vec_split_off6() {
-    let mut vec = TypeErasedVec::from([
-        899_i32,
-        615_i32,
-        623_i32,
-        487_i32,
-        935_i32,
-        806_i32,
-        381_i32,
-        967_i32,
-    ]);
+    let mut vec = TypeErasedVec::from([899_i32, 615_i32, 623_i32, 487_i32, 935_i32, 806_i32, 381_i32, 967_i32]);
     let expected1 = TypeErasedVec::new::<i32>();
-    let expected2 = TypeErasedVec::from([
-        899_i32,
-        615_i32,
-        623_i32,
-        487_i32,
-        935_i32,
-        806_i32,
-        381_i32,
-        967_i32,
-    ]);
+    let expected2 = TypeErasedVec::from([899_i32, 615_i32, 623_i32, 487_i32, 935_i32, 806_i32, 381_i32, 967_i32]);
     let result2 = vec.split_off::<i32, alloc::Global>(0);
     let result1 = vec.clone::<i32, alloc::Global>();
 
-    assert_eq!(result1.as_slice::<i32, alloc::Global>(), expected1.as_slice::<i32, alloc::Global>());
-    assert_eq!(result2.as_slice::<i32, alloc::Global>(), expected2.as_slice::<i32, alloc::Global>());
+    assert_eq!(
+        result1.as_slice::<i32, alloc::Global>(),
+        expected1.as_slice::<i32, alloc::Global>()
+    );
+    assert_eq!(
+        result2.as_slice::<i32, alloc::Global>(),
+        expected2.as_slice::<i32, alloc::Global>()
+    );
 }
 
 #[test]
@@ -1704,13 +1655,13 @@ fn test_type_erased_vec_extract_if_empty_true() {
     {
         let mut iter = vec.extract_if::<_, _, i32, alloc::Global>(.., |_| true);
         assert_eq!(iter.next(), None);
-        assert_eq!(iter.size_hint(),(0, Some(0)));
+        assert_eq!(iter.size_hint(), (0, Some(0)));
         assert_eq!(iter.next(), None);
-        assert_eq!(iter.size_hint(),(0, Some(0)));
+        assert_eq!(iter.size_hint(), (0, Some(0)));
         assert_eq!(iter.next(), None);
-        assert_eq!(iter.size_hint(),(0, Some(0)));
+        assert_eq!(iter.size_hint(), (0, Some(0)));
         assert_eq!(iter.next(), None);
-        assert_eq!(iter.size_hint(),(0, Some(0)));
+        assert_eq!(iter.size_hint(), (0, Some(0)));
     }
 
     assert_eq!(vec.len(), 0);
@@ -1724,13 +1675,13 @@ fn test_type_erased_vec_extract_if_empty_false() {
     {
         let mut iter = vec.extract_if::<_, _, i32, alloc::Global>(.., |_| false);
         assert_eq!(iter.next(), None);
-        assert_eq!(iter.size_hint(),(0, Some(0)));
+        assert_eq!(iter.size_hint(), (0, Some(0)));
         assert_eq!(iter.next(), None);
-        assert_eq!(iter.size_hint(),(0, Some(0)));
+        assert_eq!(iter.size_hint(), (0, Some(0)));
         assert_eq!(iter.next(), None);
-        assert_eq!(iter.size_hint(),(0, Some(0)));
+        assert_eq!(iter.size_hint(), (0, Some(0)));
         assert_eq!(iter.next(), None);
-        assert_eq!(iter.size_hint(),(0, Some(0)));
+        assert_eq!(iter.size_hint(), (0, Some(0)));
     }
 
     assert_eq!(vec.len(), 0);
@@ -1739,19 +1690,7 @@ fn test_type_erased_vec_extract_if_empty_false() {
 
 #[test]
 fn test_type_erased_vec_extract_if_total_true() {
-    let mut vec = TypeErasedVec::from([
-        0_i32,
-        1_i32,
-        2_i32,
-        3_i32,
-        4_i32,
-        5_i32,
-        6_i32,
-        7_i32,
-        8_i32,
-        9_i32,
-        10_i32,
-    ]);
+    let mut vec = TypeErasedVec::from([0_i32, 1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32, 7_i32, 8_i32, 9_i32, 10_i32]);
     let old_length = vec.len();
     let mut count = 0;
     {
@@ -1773,19 +1712,7 @@ fn test_type_erased_vec_extract_if_total_true() {
 
 #[test]
 fn test_type_erased_vec_extract_if_total_false() {
-    let mut vec = TypeErasedVec::from([
-        0_i32,
-        1_i32,
-        2_i32,
-        3_i32,
-        4_i32,
-        5_i32,
-        6_i32,
-        7_i32,
-        8_i32,
-        9_i32,
-        10_i32,
-    ]);
+    let mut vec = TypeErasedVec::from([0_i32, 1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32, 7_i32, 8_i32, 9_i32, 10_i32]);
     let old_length = vec.len();
     let mut count = 0;
     {
@@ -1810,19 +1737,7 @@ fn test_type_erased_vec_extract_if_total_false() {
 
 #[test]
 fn test_type_erased_vec_extract_if_partial_true() {
-    let mut vec = TypeErasedVec::from([
-        0_i32,
-        1_i32,
-        2_i32,
-        3_i32,
-        4_i32,
-        5_i32,
-        6_i32,
-        7_i32,
-        8_i32,
-        9_i32,
-        10_i32,
-    ]);
+    let mut vec = TypeErasedVec::from([0_i32, 1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32, 7_i32, 8_i32, 9_i32, 10_i32]);
     let old_length = vec.len();
     let mut count = 0;
     {
@@ -1843,19 +1758,7 @@ fn test_type_erased_vec_extract_if_partial_true() {
 
 #[test]
 fn test_type_erased_vec_extract_if_partial_false() {
-    let mut vec = TypeErasedVec::from([
-        0_i32,
-        1_i32,
-        2_i32,
-        3_i32,
-        4_i32,
-        5_i32,
-        6_i32,
-        7_i32,
-        8_i32,
-        9_i32,
-        10_i32,
-    ]);
+    let mut vec = TypeErasedVec::from([0_i32, 1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32, 7_i32, 8_i32, 9_i32, 10_i32]);
     let old_length = vec.len();
     let mut count = 0;
     {
@@ -1888,19 +1791,7 @@ fn test_type_erased_vec_extract_if_out_of_bounds() {
 
 #[test]
 fn test_type_erased_vec_extract_if_retains_unvisited_elements() {
-    let mut vec = TypeErasedVec::from([
-        0_i32,
-        1_i32,
-        2_i32,
-        3_i32,
-        4_i32,
-        5_i32,
-        6_i32,
-        7_i32,
-        8_i32,
-        9_i32,
-        10_i32,
-    ]);
+    let mut vec = TypeErasedVec::from([0_i32, 1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32, 7_i32, 8_i32, 9_i32, 10_i32]);
     let mut count = 0;
     {
         let mut iter = vec.extract_if::<_, _, i32, alloc::Global>(.., |_| true);
@@ -2019,7 +1910,10 @@ fn test_type_erased_vec_retain2() {
     let mut vec = TypeErasedVec::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32]);
     vec.retain::<_, i32, alloc::Global>(|_| true);
 
-    assert_eq!(vec.as_slice::<i32, alloc::Global>(), [1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32]);
+    assert_eq!(
+        vec.as_slice::<i32, alloc::Global>(),
+        [1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32]
+    );
 }
 
 #[test]
@@ -2072,7 +1966,10 @@ fn test_type_erased_vec_shift_insert_middle() {
     assert_eq!(vec.as_slice::<i32, alloc::Global>(), &[i32::MAX, 2_i32, 1_i32, i32::MAX]);
     vec.shift_insert::<i32, alloc::Global>(1, 3_i32);
     assert_eq!(vec.len(), 5);
-    assert_eq!(vec.as_slice::<i32, alloc::Global>(), &[i32::MAX, 3_i32, 2_i32, 1_i32, i32::MAX]);
+    assert_eq!(
+        vec.as_slice::<i32, alloc::Global>(),
+        &[i32::MAX, 3_i32, 2_i32, 1_i32, i32::MAX]
+    );
 }
 
 #[test]
@@ -2313,7 +2210,10 @@ fn test_type_erased_vec_reserve3() {
 
         assert!(current_start < current_end);
         assert_eq!(vec.as_slice::<usize, alloc::Global>()[current_start], usize::MAX);
-        for value in vec.as_slice::<usize, alloc::Global>()[(current_start + 1)..current_end].iter().copied() {
+        for value in vec.as_slice::<usize, alloc::Global>()[(current_start + 1)..current_end]
+            .iter()
+            .copied()
+        {
             assert_eq!(value, i);
         }
         assert_eq!(vec.as_slice::<usize, alloc::Global>()[current_end], usize::MAX);
@@ -2402,7 +2302,10 @@ fn test_type_erased_vec_reserve_exact3() {
 
         assert!(current_start < current_end);
         assert_eq!(vec.as_slice::<usize, alloc::Global>()[current_start], usize::MAX);
-        for value in vec.as_slice::<usize, alloc::Global>()[(current_start + 1)..current_end].iter().copied() {
+        for value in vec.as_slice::<usize, alloc::Global>()[(current_start + 1)..current_end]
+            .iter()
+            .copied()
+        {
             assert_eq!(value, i);
         }
         assert_eq!(vec.as_slice::<usize, alloc::Global>()[current_end], usize::MAX);
@@ -2487,7 +2390,10 @@ fn test_type_erased_vec_try_reserve3() {
 
         assert!(current_start < current_end);
         assert_eq!(vec.as_slice::<usize, alloc::Global>()[current_start], usize::MAX);
-        for value in vec.as_slice::<usize, alloc::Global>()[(current_start + 1)..current_end].iter().copied() {
+        for value in vec.as_slice::<usize, alloc::Global>()[(current_start + 1)..current_end]
+            .iter()
+            .copied()
+        {
             assert_eq!(value, i);
         }
         assert_eq!(vec.as_slice::<usize, alloc::Global>()[current_end], usize::MAX);
@@ -2572,7 +2478,10 @@ fn test_type_erased_vec_try_reserve_exact3() {
 
         assert!(current_start < current_end);
         assert_eq!(vec.as_slice::<usize, alloc::Global>()[current_start], usize::MAX);
-        for value in vec.as_slice::<usize, alloc::Global>()[(current_start + 1)..current_end].iter().copied() {
+        for value in vec.as_slice::<usize, alloc::Global>()[(current_start + 1)..current_end]
+            .iter()
+            .copied()
+        {
             assert_eq!(value, i);
         }
         assert_eq!(vec.as_slice::<usize, alloc::Global>()[current_end], usize::MAX);
@@ -2587,11 +2496,7 @@ fn test_type_erased_vec_shrink_to_fit1() {
     let mut vec = TypeErasedVec::with_capacity::<(usize, usize)>(10);
     assert_eq!(vec.capacity(), 10);
 
-    vec.extend::<_, (usize, usize), alloc::Global>([
-        (1_usize, usize::MAX),
-        (2_usize, usize::MAX),
-        (3_usize, usize::MAX),
-    ]);
+    vec.extend::<_, (usize, usize), alloc::Global>([(1_usize, usize::MAX), (2_usize, usize::MAX), (3_usize, usize::MAX)]);
     assert!(vec.len() <= vec.capacity());
 
     assert_eq!(vec.as_slice::<(usize, usize), alloc::Global>()[0], (1_usize, usize::MAX));

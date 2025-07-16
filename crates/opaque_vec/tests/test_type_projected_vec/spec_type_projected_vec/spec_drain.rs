@@ -9,7 +9,10 @@ use opaque_vec::TypeProjectedVec;
 use core::any;
 use core::fmt;
 use std::format;
-use std::string::{String, ToString};
+use std::string::{
+    String,
+    ToString,
+};
 
 #[cfg(feature = "nightly")]
 use std::alloc;
@@ -23,13 +26,41 @@ trait SingleDrainValue {
     fn drain_value() -> Self;
 }
 
-impl SingleDrainValue for () { fn drain_value() -> Self { () } }
-impl SingleDrainValue for u8 { fn drain_value() -> Self { u8::MAX } }
-impl SingleDrainValue for u16 { fn drain_value() -> Self { u16::MAX } }
-impl SingleDrainValue for u32 { fn drain_value() -> Self { u32::MAX } }
-impl SingleDrainValue for u64 { fn drain_value() -> Self { u64::MAX } }
-impl SingleDrainValue for usize { fn drain_value() -> Self { usize::MAX } }
-impl SingleDrainValue for String { fn drain_value() -> Self { usize::MAX.to_string() } }
+impl SingleDrainValue for () {
+    fn drain_value() -> Self {
+        ()
+    }
+}
+impl SingleDrainValue for u8 {
+    fn drain_value() -> Self {
+        u8::MAX
+    }
+}
+impl SingleDrainValue for u16 {
+    fn drain_value() -> Self {
+        u16::MAX
+    }
+}
+impl SingleDrainValue for u32 {
+    fn drain_value() -> Self {
+        u32::MAX
+    }
+}
+impl SingleDrainValue for u64 {
+    fn drain_value() -> Self {
+        u64::MAX
+    }
+}
+impl SingleDrainValue for usize {
+    fn drain_value() -> Self {
+        usize::MAX
+    }
+}
+impl SingleDrainValue for String {
+    fn drain_value() -> Self {
+        usize::MAX.to_string()
+    }
+}
 
 fn strategy_single_drain_value<T>() -> impl Strategy<Value = T>
 where
@@ -38,14 +69,22 @@ where
     Just(<T as SingleDrainValue>::drain_value())
 }
 
-fn strategy_prop_drain_partial_vec<T, A>(max_length: usize, max_count: usize) -> impl Strategy<Value = (TypeProjectedVec<T, A>, T, usize, usize)>
+fn strategy_prop_drain_partial_vec<T, A>(
+    max_length: usize,
+    max_count: usize,
+) -> impl Strategy<Value = (TypeProjectedVec<T, A>, T, usize, usize)>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary + SingleBoundedValue + SingleDrainValue,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
-    (1..=max_length).prop_flat_map(move |length|
-        (strategy_type_projected_vec_len(length), strategy_single_drain_value(), 0..=max_count, 0..length)
-    )
+    (1..=max_length).prop_flat_map(move |length| {
+        (
+            strategy_type_projected_vec_len(length),
+            strategy_single_drain_value(),
+            0..=max_count,
+            0..length,
+        )
+    })
 }
 
 fn prop_drain_entire_vec<T, A>(values: TypeProjectedVec<T, A>) -> Result<(), TestCaseError>
@@ -92,7 +131,9 @@ where
     Ok(())
 }
 
-fn prop_drain_partial_vec<T, A>((values, drain_value, count, index): (TypeProjectedVec<T, A>, T, usize, usize)) -> Result<(), TestCaseError>
+fn prop_drain_partial_vec<T, A>(
+    (values, drain_value, count, index): (TypeProjectedVec<T, A>, T, usize, usize),
+) -> Result<(), TestCaseError>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,

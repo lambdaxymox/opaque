@@ -3,10 +3,10 @@ use opaque_index_map::TypeErasedIndexSet;
 
 use core::any;
 use core::fmt;
-use std::hash;
-use std::vec::Vec;
 use std::format;
+use std::hash;
 use std::string::String;
+use std::vec::Vec;
 
 #[cfg(feature = "nightly")]
 use std::alloc;
@@ -30,11 +30,7 @@ where
         S::Hasher: any::Any + hash::Hasher + Send + Sync,
         A: any::Any + alloc::Allocator + Send + Sync + Clone,
     {
-        let vec: Vec<T> = set
-            .iter::<T, S, A>()
-            .cloned()
-            .take(len)
-            .collect();
+        let vec: Vec<T> = set.iter::<T, S, A>().cloned().take(len).collect();
 
         vec
     }
@@ -49,14 +45,11 @@ where
         let mut cloned_set = set.clone::<T, S, A>();
         cloned_set.truncate::<T, S, A>(len);
 
-        let vec: Vec<T> = cloned_set
-            .iter::<T, S, A>()
-            .cloned()
-            .collect();
+        let vec: Vec<T> = cloned_set.iter::<T, S, A>().cloned().collect();
 
         vec
     }
-    
+
     for len in 0..entries.len() {
         let set = entries.clone::<T, S, A>();
         let expected_entries = expected::<T, S, A>(&entries, len);
@@ -84,11 +77,7 @@ where
         S::Hasher: any::Any + hash::Hasher + Send + Sync,
         A: any::Any + alloc::Allocator + Send + Sync + Clone,
     {
-        let vec: Vec<T> = set
-            .iter::<T, S, A>()
-            .cloned()
-            .take(len)
-            .collect();
+        let vec: Vec<T> = set.iter::<T, S, A>().cloned().take(len).collect();
 
         vec
     }
@@ -103,14 +92,11 @@ where
         let mut cloned_set = set.clone::<T, S, A>();
         cloned_set.truncate::<T, S, A>(len);
 
-        let vec: Vec<T> = cloned_set
-            .iter::<T, S, A>()
-            .cloned()
-            .collect();
+        let vec: Vec<T> = cloned_set.iter::<T, S, A>().cloned().collect();
 
         vec
     }
-    
+
     for len in 0..entries.len() {
         let set = entries.clone::<T, S, A>();
         let expected = expected::<T, S, A>(&entries, len);

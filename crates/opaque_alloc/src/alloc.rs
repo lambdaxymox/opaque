@@ -1,5 +1,11 @@
-use crate::alloc_inner::{TypeProjectedAllocInner, TypeErasedAllocInner};
-use crate::try_project_alloc_error::{TryProjectAllocErrorKind, TryProjectAllocError};
+use crate::alloc_inner::{
+    TypeErasedAllocInner,
+    TypeProjectedAllocInner,
+};
+use crate::try_project_alloc_error::{
+    TryProjectAllocError,
+    TryProjectAllocErrorKind,
+};
 
 use core::any;
 use core::fmt;
@@ -137,7 +143,7 @@ where
     pub fn new(alloc: A) -> Self {
         let inner = TypeProjectedAllocInner::new(alloc);
 
-        Self { inner, }
+        Self { inner }
     }
 
     /// Constructs a new type-projected memory allocator from a boxed memory allocator.
@@ -167,7 +173,7 @@ where
     pub fn from_boxed_alloc(alloc: Box<A>) -> Self {
         let inner = TypeProjectedAllocInner::from_boxed_alloc(alloc);
 
-        Self { inner, }
+        Self { inner }
     }
 
     /// Returns a reference to the underlying memory allocator.
@@ -652,7 +658,7 @@ impl TypeErasedAlloc {
             return Err(TryProjectAllocError::new(
                 TryProjectAllocErrorKind::Allocator,
                 self.allocator_type_id(),
-                any::TypeId::of::<A>()
+                any::TypeId::of::<A>(),
             ));
         }
 
@@ -702,7 +708,7 @@ impl TypeErasedAlloc {
             return Err(TryProjectAllocError::new(
                 TryProjectAllocErrorKind::Allocator,
                 self.allocator_type_id(),
-                any::TypeId::of::<A>()
+                any::TypeId::of::<A>(),
             ));
         }
 
@@ -751,7 +757,7 @@ impl TypeErasedAlloc {
             return Err(TryProjectAllocError::new(
                 TryProjectAllocErrorKind::Allocator,
                 self.allocator_type_id(),
-                any::TypeId::of::<A>()
+                any::TypeId::of::<A>(),
             ));
         }
 
@@ -1011,7 +1017,10 @@ mod alloc_layout_tests {
         let expected = mem::align_of::<TypeProjectedAlloc<A>>();
         let result = mem::align_of::<TypeErasedAlloc>();
 
-        assert_eq!(result, expected, "Type Erased and Type Projected data types alignment mismatch");
+        assert_eq!(
+            result, expected,
+            "Type Erased and Type Projected data types alignment mismatch"
+        );
     }
 
     fn run_test_type_erased_alloc_match_offsets<A>()

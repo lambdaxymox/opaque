@@ -43,8 +43,4 @@ fn bench_type_projected_index_map_insert(c: &mut Criterion) {
     });
 }
 
-criterion_group!(
-    bench_insert,
-    bench_type_projected_index_map_insert,
-    bench_index_map_insert
-);
+criterion_group!(bench_insert, bench_type_projected_index_map_insert, bench_index_map_insert);

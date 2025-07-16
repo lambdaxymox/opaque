@@ -1,7 +1,7 @@
 use opaque_vec::TypeProjectedVec;
 
-use std::string::String;
 use std::format;
+use std::string::String;
 
 #[cfg(feature = "nightly")]
 use std::alloc;
@@ -322,14 +322,7 @@ fn test_type_projected_vec_clear1() {
 
 #[test]
 fn test_type_projected_vec_clear2() {
-    let mut vec: TypeProjectedVec<i32> = TypeProjectedVec::from([
-        444_i32,
-        127_i32,
-        780_i32,
-        59_i32,
-        920_i32,
-        496_i32,
-    ]);
+    let mut vec: TypeProjectedVec<i32> = TypeProjectedVec::from([444_i32, 127_i32, 780_i32, 59_i32, 920_i32, 496_i32]);
 
     assert_eq!(vec.len(), 6);
     assert!(!vec.is_empty());
@@ -487,18 +480,9 @@ fn test_type_projected_vec_dedup() {
         assert_eq!(vec, that);
     }
 
-    test_case(
-        TypeProjectedVec::new(),
-        TypeProjectedVec::new(),
-    );
-    test_case(
-        TypeProjectedVec::from(&[1_i32]),
-        TypeProjectedVec::from(&[1_i32]),
-    );
-    test_case(
-        TypeProjectedVec::from(&[1_i32, 1_i32]),
-        TypeProjectedVec::from(&[1_i32]),
-    );
+    test_case(TypeProjectedVec::new(), TypeProjectedVec::new());
+    test_case(TypeProjectedVec::from(&[1_i32]), TypeProjectedVec::from(&[1_i32]));
+    test_case(TypeProjectedVec::from(&[1_i32, 1_i32]), TypeProjectedVec::from(&[1_i32]));
     test_case(
         TypeProjectedVec::from(&[1_i32, 2_i32, 3_i32]),
         TypeProjectedVec::from(&[1_i32, 2_i32, 3_i32]),
@@ -520,7 +504,9 @@ fn test_type_projected_vec_dedup() {
         TypeProjectedVec::from(&[1_i32, 2_i32, 3_i32]),
     );
     test_case(
-        TypeProjectedVec::from(&[1_i32, 1_i32, 2_i32, 2_i32, 2_i32, 3_i32, 3_i32, 4_i32, 5_i32, 5_i32, 5_i32, 6_i32, 7_i32, 7_i32]),
+        TypeProjectedVec::from(&[
+            1_i32, 1_i32, 2_i32, 2_i32, 2_i32, 3_i32, 3_i32, 4_i32, 5_i32, 5_i32, 5_i32, 6_i32, 7_i32, 7_i32,
+        ]),
         TypeProjectedVec::from(&[1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32, 7_i32]),
     );
 }
@@ -533,18 +519,9 @@ fn test_type_projected_vec_dedup_by_key() {
         assert_eq!(vec, that);
     }
 
-    test_case(
-        TypeProjectedVec::new(),
-        TypeProjectedVec::new(),
-    );
-    test_case(
-        TypeProjectedVec::from(&[10_i32]),
-        TypeProjectedVec::from(&[10_i32]),
-    );
-    test_case(
-        TypeProjectedVec::from(&[10_i32, 11_i32]),
-        TypeProjectedVec::from(&[10_i32]),
-    );
+    test_case(TypeProjectedVec::new(), TypeProjectedVec::new());
+    test_case(TypeProjectedVec::from(&[10_i32]), TypeProjectedVec::from(&[10_i32]));
+    test_case(TypeProjectedVec::from(&[10_i32, 11_i32]), TypeProjectedVec::from(&[10_i32]));
     test_case(
         TypeProjectedVec::from(&[10_i32, 20_i32, 30_i32]),
         TypeProjectedVec::from(&[10_i32, 20_i32, 30_i32]),
@@ -583,16 +560,7 @@ fn test_type_projected_vec_swap_remove_out_of_bounds2() {
 
 #[test]
 fn test_type_projected_vec_truncate1() {
-    let mut vec = TypeProjectedVec::from([
-        899_i32,
-        615_i32,
-        623_i32,
-        487_i32,
-        935_i32,
-        806_i32,
-        381_i32,
-        967_i32,
-    ]);
+    let mut vec = TypeProjectedVec::from([899_i32, 615_i32, 623_i32, 487_i32, 935_i32, 806_i32, 381_i32, 967_i32]);
     let expected = TypeProjectedVec::from([899_i32, 615_i32, 623_i32, 487_i32]);
     vec.truncate(4);
 
@@ -601,26 +569,8 @@ fn test_type_projected_vec_truncate1() {
 
 #[test]
 fn test_type_projected_vec_truncate2() {
-    let mut vec = TypeProjectedVec::from([
-        899_i32,
-        615_i32,
-        623_i32,
-        487_i32,
-        935_i32,
-        806_i32,
-        381_i32,
-        967_i32,
-    ]);
-    let expected = TypeProjectedVec::from([
-        899_i32,
-        615_i32,
-        623_i32,
-        487_i32,
-        935_i32,
-        806_i32,
-        381_i32,
-        967_i32,
-    ]);
+    let mut vec = TypeProjectedVec::from([899_i32, 615_i32, 623_i32, 487_i32, 935_i32, 806_i32, 381_i32, 967_i32]);
+    let expected = TypeProjectedVec::from([899_i32, 615_i32, 623_i32, 487_i32, 935_i32, 806_i32, 381_i32, 967_i32]);
     vec.truncate(vec.len());
 
     assert_eq!(vec, expected);
@@ -628,16 +578,7 @@ fn test_type_projected_vec_truncate2() {
 
 #[test]
 fn test_type_projected_vec_truncate3() {
-    let mut vec = TypeProjectedVec::from([
-        899_i32,
-        615_i32,
-        623_i32,
-        487_i32,
-        935_i32,
-        806_i32,
-        381_i32,
-        967_i32,
-    ]);
+    let mut vec = TypeProjectedVec::from([899_i32, 615_i32, 623_i32, 487_i32, 935_i32, 806_i32, 381_i32, 967_i32]);
     let expected = TypeProjectedVec::new();
     vec.truncate(0);
 
@@ -672,17 +613,25 @@ fn test_type_projected_vec_truncate_len2() {
 fn test_type_projected_vec_truncate_drop1() {
     static mut DROP_COUNT: usize = 0;
 
-    fn get_drop_count() -> usize { unsafe { DROP_COUNT } }
+    fn get_drop_count() -> usize {
+        unsafe { DROP_COUNT }
+    }
 
-    struct Value { _data: i32 }
+    struct Value {
+        _data: i32,
+    }
 
     impl Value {
-        fn new(data: i32) -> Self { Self { _data: data, } }
+        fn new(data: i32) -> Self {
+            Self { _data: data }
+        }
     }
 
     impl Drop for Value {
         fn drop(&mut self) {
-            unsafe { DROP_COUNT += 1; }
+            unsafe {
+                DROP_COUNT += 1;
+            }
         }
     }
 
@@ -698,17 +647,25 @@ fn test_type_projected_vec_truncate_drop1() {
 fn test_type_projected_vec_truncate_drop2() {
     static mut DROP_COUNT: usize = 0;
 
-    fn get_drop_count() -> usize { unsafe { DROP_COUNT } }
+    fn get_drop_count() -> usize {
+        unsafe { DROP_COUNT }
+    }
 
-    struct Value { _data: i32 }
+    struct Value {
+        _data: i32,
+    }
 
     impl Value {
-        fn new(data: i32) -> Self { Self { _data: data, } }
+        fn new(data: i32) -> Self {
+            Self { _data: data }
+        }
     }
 
     impl Drop for Value {
         fn drop(&mut self) {
-            unsafe { DROP_COUNT += 1; }
+            unsafe {
+                DROP_COUNT += 1;
+            }
         }
     }
 
@@ -734,15 +691,19 @@ fn test_type_projected_vec_truncate_drop2() {
 #[test]
 #[should_panic]
 fn test_type_projected_vec_truncate_fail() {
-    struct BadValue { data: usize, }
+    struct BadValue {
+        data: usize,
+    }
 
     impl BadValue {
-        fn new(data: usize) -> Self { BadValue { data, } }
+        fn new(data: usize) -> Self {
+            BadValue { data }
+        }
     }
 
     impl Drop for BadValue {
         fn drop(&mut self) {
-            let BadValue { ref mut data} = *self;
+            let BadValue { ref mut data } = *self;
             if *data == 0xbadbeef_usize {
                 panic!("BadElem panic: 0xbadbeef")
             }
@@ -827,12 +788,7 @@ fn test_type_projected_vec_into_iter_clone5() {
 
 #[test]
 fn test_type_projected_vec_into_iter_clone6() {
-    let vec = TypeProjectedVec::from([
-        String::from("foo"),
-        String::from("bar"),
-        String::from("baz"),
-        String::from("quux"),
-    ]);
+    let vec = TypeProjectedVec::from([String::from("foo"), String::from("bar"), String::from("baz"), String::from("quux")]);
     let mut cloned_vec = TypeProjectedVec::new();
     for value in vec.clone().into_iter() {
         cloned_vec.push(value);
@@ -870,9 +826,7 @@ fn test_type_projected_vec_into_iter_partial1() {
         String::from("quuz"),
         String::from("garply"),
     ]);
-    let expected = TypeProjectedVec::from([
-        String::from("foo"),
-    ]);
+    let expected = TypeProjectedVec::from([String::from("foo")]);
     let mut result = TypeProjectedVec::new();
     for value in vec.clone().into_iter().take(1) {
         result.push(value);
@@ -891,10 +845,7 @@ fn test_type_projected_vec_into_iter_partial2() {
         String::from("quuz"),
         String::from("garply"),
     ]);
-    let expected = TypeProjectedVec::from([
-        String::from("foo"),
-        String::from("bar"),
-    ]);
+    let expected = TypeProjectedVec::from([String::from("foo"), String::from("bar")]);
     let mut result = TypeProjectedVec::new();
     for value in vec.clone().into_iter().take(2) {
         result.push(value);
@@ -913,11 +864,7 @@ fn test_type_projected_vec_into_iter_partial3() {
         String::from("quuz"),
         String::from("garply"),
     ]);
-    let expected = TypeProjectedVec::from([
-        String::from("foo"),
-        String::from("bar"),
-        String::from("baz"),
-    ]);
+    let expected = TypeProjectedVec::from([String::from("foo"), String::from("bar"), String::from("baz")]);
     let mut result = TypeProjectedVec::new();
     for value in vec.clone().into_iter().take(3) {
         result.push(value);
@@ -936,12 +883,7 @@ fn test_type_projected_vec_into_iter_partial4() {
         String::from("quuz"),
         String::from("garply"),
     ]);
-    let expected = TypeProjectedVec::from([
-        String::from("foo"),
-        String::from("bar"),
-        String::from("baz"),
-        String::from("quux"),
-    ]);
+    let expected = TypeProjectedVec::from([String::from("foo"), String::from("bar"), String::from("baz"), String::from("quux")]);
     let mut result = TypeProjectedVec::new();
     for value in vec.clone().into_iter().take(4) {
         result.push(value);
@@ -1102,12 +1044,7 @@ fn test_type_projected_vec_drain_entire_range6() {
 
 #[test]
 fn test_type_projected_vec_drain_entire_range7() {
-    let mut vec = TypeProjectedVec::from([
-        String::from("foo"),
-        String::from("bar"),
-        String::from("baz"),
-        String::from("quux"),
-    ]);
+    let mut vec = TypeProjectedVec::from([String::from("foo"), String::from("bar"), String::from("baz"), String::from("quux")]);
     let expected_from_drain = vec.clone();
     let result_from_drain: TypeProjectedVec<String> = vec.drain(..).collect();
     let expected_vec: TypeProjectedVec<String> = TypeProjectedVec::new();
@@ -1118,18 +1055,10 @@ fn test_type_projected_vec_drain_entire_range7() {
 
 #[test]
 fn test_type_projected_vec_drain_partial_range1() {
-    let mut vec = TypeProjectedVec::from([
-        String::from("foo"),
-        String::from("bar"),
-        String::from("baz"),
-        String::from("quux"),
-    ]);
+    let mut vec = TypeProjectedVec::from([String::from("foo"), String::from("bar"), String::from("baz"), String::from("quux")]);
     let expected_from_drain: TypeProjectedVec<String> = vec[0..2].iter().cloned().collect();
     let result_from_drain: TypeProjectedVec<String> = vec.drain(0..2).collect();
-    let expected_vec: TypeProjectedVec<String> = TypeProjectedVec::from([
-        String::from("baz"),
-        String::from("quux"),
-    ]);
+    let expected_vec: TypeProjectedVec<String> = TypeProjectedVec::from([String::from("baz"), String::from("quux")]);
 
     assert_eq!(result_from_drain.as_slice(), expected_from_drain.as_slice());
     assert_eq!(vec.as_slice(), expected_vec.as_slice());
@@ -1137,18 +1066,10 @@ fn test_type_projected_vec_drain_partial_range1() {
 
 #[test]
 fn test_type_projected_vec_drain_partial_range2() {
-    let mut vec = TypeProjectedVec::from([
-        String::from("foo"),
-        String::from("bar"),
-        String::from("baz"),
-        String::from("quux"),
-    ]);
+    let mut vec = TypeProjectedVec::from([String::from("foo"), String::from("bar"), String::from("baz"), String::from("quux")]);
     let expected_from_drain: TypeProjectedVec<String> = vec[1..3].iter().cloned().collect();
     let result_from_drain: TypeProjectedVec<String> = vec.drain(1..3).collect();
-    let expected_vec: TypeProjectedVec<String> = TypeProjectedVec::from([
-        String::from("foo"),
-        String::from("quux"),
-    ]);
+    let expected_vec: TypeProjectedVec<String> = TypeProjectedVec::from([String::from("foo"), String::from("quux")]);
 
     assert_eq!(result_from_drain.as_slice(), expected_from_drain.as_slice());
     assert_eq!(vec.as_slice(), expected_vec.as_slice());
@@ -1156,17 +1077,10 @@ fn test_type_projected_vec_drain_partial_range2() {
 
 #[test]
 fn test_type_projected_vec_drain_partial_range3() {
-    let mut vec = TypeProjectedVec::from([
-        String::from("foo"),
-        String::from("bar"),
-        String::from("baz"),
-        String::from("quux"),
-    ]);
+    let mut vec = TypeProjectedVec::from([String::from("foo"), String::from("bar"), String::from("baz"), String::from("quux")]);
     let expected_from_drain: TypeProjectedVec<String> = vec[1..].iter().cloned().collect();
     let result_from_drain: TypeProjectedVec<String> = vec.drain(1..).collect();
-    let expected_vec: TypeProjectedVec<String> = TypeProjectedVec::from([
-        String::from("foo"),
-    ]);
+    let expected_vec: TypeProjectedVec<String> = TypeProjectedVec::from([String::from("foo")]);
 
     assert_eq!(result_from_drain.as_slice(), expected_from_drain.as_slice());
     assert_eq!(vec.as_slice(), expected_vec.as_slice());
@@ -1174,19 +1088,11 @@ fn test_type_projected_vec_drain_partial_range3() {
 
 #[test]
 fn test_type_projected_vec_drain_partial_range4() {
-    let mut vec = TypeProjectedVec::from([
-        String::from("foo"),
-        String::from("bar"),
-        String::from("baz"),
-        String::from("quux"),
-    ]);
+    let mut vec = TypeProjectedVec::from([String::from("foo"), String::from("bar"), String::from("baz"), String::from("quux")]);
     let expected_from_drain: TypeProjectedVec<String> = vec[3..].iter().cloned().collect();
     let result_from_drain: TypeProjectedVec<String> = vec.drain(3..).collect();
-    let expected_vec: TypeProjectedVec<String> = TypeProjectedVec::from([
-        String::from("foo"),
-        String::from("bar"),
-        String::from("baz"),
-    ]);
+    let expected_vec: TypeProjectedVec<String> =
+        TypeProjectedVec::from([String::from("foo"), String::from("bar"), String::from("baz")]);
 
     assert_eq!(result_from_drain.as_slice(), expected_from_drain.as_slice());
     assert_eq!(vec.as_slice(), expected_vec.as_slice());
@@ -1198,7 +1104,10 @@ fn test_type_projected_vec_splice1() {
     let splice_data = [i32::MAX, i32::MAX, i32::MAX, i32::MAX];
     vec.splice(2..4, splice_data);
 
-    assert_eq!(vec.as_slice(), &[1_i32, 2_i32, i32::MAX, i32::MAX, i32::MAX, i32::MAX, 5_i32, 6_i32]);
+    assert_eq!(
+        vec.as_slice(),
+        &[1_i32, 2_i32, i32::MAX, i32::MAX, i32::MAX, i32::MAX, 5_i32, 6_i32]
+    );
 }
 
 #[test]
@@ -1207,7 +1116,10 @@ fn test_type_projected_vec_splice2() {
     let splice_data = [i32::MAX, i32::MAX, i32::MAX, i32::MAX];
     vec.splice(4.., splice_data);
 
-    assert_eq!(vec.as_slice(), &[1_i32, 2_i32, 3_i32, 4_i32, i32::MAX, i32::MAX, i32::MAX, i32::MAX]);
+    assert_eq!(
+        vec.as_slice(),
+        &[1_i32, 2_i32, 3_i32, 4_i32, i32::MAX, i32::MAX, i32::MAX, i32::MAX]
+    );
 }
 
 #[test]
@@ -1225,7 +1137,10 @@ fn test_type_projected_vec_splice4() {
     let splice_data = [i32::MAX, i32::MAX, i32::MAX, i32::MAX];
     vec.splice(0..1, splice_data);
 
-    assert_eq!(vec.as_slice(), &[i32::MAX, i32::MAX, i32::MAX, i32::MAX, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32]);
+    assert_eq!(
+        vec.as_slice(),
+        &[i32::MAX, i32::MAX, i32::MAX, i32::MAX, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32]
+    );
 }
 
 #[test]
@@ -1488,16 +1403,7 @@ fn test_type_projected_vec_split_off3() {
 
 #[test]
 fn test_type_projected_vec_split_off4() {
-    let mut vec = TypeProjectedVec::from([
-        899_i32,
-        615_i32,
-        623_i32,
-        487_i32,
-        935_i32,
-        806_i32,
-        381_i32,
-        967_i32,
-    ]);
+    let mut vec = TypeProjectedVec::from([899_i32, 615_i32, 623_i32, 487_i32, 935_i32, 806_i32, 381_i32, 967_i32]);
     let expected1 = TypeProjectedVec::from([899_i32, 615_i32, 623_i32, 487_i32]);
     let expected2 = TypeProjectedVec::from([935_i32, 806_i32, 381_i32, 967_i32]);
     let result2 = vec.split_off(4);
@@ -1509,26 +1415,8 @@ fn test_type_projected_vec_split_off4() {
 
 #[test]
 fn test_type_projected_vec_split_off5() {
-    let mut vec = TypeProjectedVec::from([
-        899_i32,
-        615_i32,
-        623_i32,
-        487_i32,
-        935_i32,
-        806_i32,
-        381_i32,
-        967_i32,
-    ]);
-    let expected1 = TypeProjectedVec::from([
-        899_i32,
-        615_i32,
-        623_i32,
-        487_i32,
-        935_i32,
-        806_i32,
-        381_i32,
-        967_i32,
-    ]);
+    let mut vec = TypeProjectedVec::from([899_i32, 615_i32, 623_i32, 487_i32, 935_i32, 806_i32, 381_i32, 967_i32]);
+    let expected1 = TypeProjectedVec::from([899_i32, 615_i32, 623_i32, 487_i32, 935_i32, 806_i32, 381_i32, 967_i32]);
     let expected2 = TypeProjectedVec::new();
     let result2 = vec.split_off(vec.len());
     let result1 = vec.clone();
@@ -1539,27 +1427,9 @@ fn test_type_projected_vec_split_off5() {
 
 #[test]
 fn test_type_projected_vec_split_off6() {
-    let mut vec = TypeProjectedVec::from([
-        899_i32,
-        615_i32,
-        623_i32,
-        487_i32,
-        935_i32,
-        806_i32,
-        381_i32,
-        967_i32,
-    ]);
+    let mut vec = TypeProjectedVec::from([899_i32, 615_i32, 623_i32, 487_i32, 935_i32, 806_i32, 381_i32, 967_i32]);
     let expected1 = TypeProjectedVec::new();
-    let expected2 = TypeProjectedVec::from([
-        899_i32,
-        615_i32,
-        623_i32,
-        487_i32,
-        935_i32,
-        806_i32,
-        381_i32,
-        967_i32,
-    ]);
+    let expected2 = TypeProjectedVec::from([899_i32, 615_i32, 623_i32, 487_i32, 935_i32, 806_i32, 381_i32, 967_i32]);
     let result2 = vec.split_off(0);
     let result1 = vec.clone();
 
@@ -1596,13 +1466,13 @@ fn test_type_projected_vec_extract_if_empty_true() {
     {
         let mut iter = vec.extract_if(.., |_| true);
         assert_eq!(iter.next(), None);
-        assert_eq!(iter.size_hint(),(0, Some(0)));
+        assert_eq!(iter.size_hint(), (0, Some(0)));
         assert_eq!(iter.next(), None);
-        assert_eq!(iter.size_hint(),(0, Some(0)));
+        assert_eq!(iter.size_hint(), (0, Some(0)));
         assert_eq!(iter.next(), None);
-        assert_eq!(iter.size_hint(),(0, Some(0)));
+        assert_eq!(iter.size_hint(), (0, Some(0)));
         assert_eq!(iter.next(), None);
-        assert_eq!(iter.size_hint(),(0, Some(0)));
+        assert_eq!(iter.size_hint(), (0, Some(0)));
     }
 
     assert_eq!(vec.len(), 0);
@@ -1616,13 +1486,13 @@ fn test_type_projected_vec_extract_if_empty_false() {
     {
         let mut iter = vec.extract_if(.., |_| false);
         assert_eq!(iter.next(), None);
-        assert_eq!(iter.size_hint(),(0, Some(0)));
+        assert_eq!(iter.size_hint(), (0, Some(0)));
         assert_eq!(iter.next(), None);
-        assert_eq!(iter.size_hint(),(0, Some(0)));
+        assert_eq!(iter.size_hint(), (0, Some(0)));
         assert_eq!(iter.next(), None);
-        assert_eq!(iter.size_hint(),(0, Some(0)));
+        assert_eq!(iter.size_hint(), (0, Some(0)));
         assert_eq!(iter.next(), None);
-        assert_eq!(iter.size_hint(),(0, Some(0)));
+        assert_eq!(iter.size_hint(), (0, Some(0)));
     }
 
     assert_eq!(vec.len(), 0);
@@ -1631,19 +1501,7 @@ fn test_type_projected_vec_extract_if_empty_false() {
 
 #[test]
 fn test_type_projected_vec_extract_if_total_true() {
-    let mut vec = TypeProjectedVec::from([
-        0_i32,
-        1_i32,
-        2_i32,
-        3_i32,
-        4_i32,
-        5_i32,
-        6_i32,
-        7_i32,
-        8_i32,
-        9_i32,
-        10_i32,
-    ]);
+    let mut vec = TypeProjectedVec::from([0_i32, 1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32, 7_i32, 8_i32, 9_i32, 10_i32]);
     let old_length = vec.len();
     let mut count = 0;
     {
@@ -1665,19 +1523,7 @@ fn test_type_projected_vec_extract_if_total_true() {
 
 #[test]
 fn test_type_projected_vec_extract_if_total_false() {
-    let mut vec = TypeProjectedVec::from([
-        0_i32,
-        1_i32,
-        2_i32,
-        3_i32,
-        4_i32,
-        5_i32,
-        6_i32,
-        7_i32,
-        8_i32,
-        9_i32,
-        10_i32,
-    ]);
+    let mut vec = TypeProjectedVec::from([0_i32, 1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32, 7_i32, 8_i32, 9_i32, 10_i32]);
     let old_length = vec.len();
     let mut count = 0;
     {
@@ -1694,24 +1540,15 @@ fn test_type_projected_vec_extract_if_total_false() {
 
     assert_eq!(count, 0);
     assert_eq!(vec.len(), old_length);
-    assert_eq!(vec.as_slice(), [0_i32, 1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32, 7_i32, 8_i32, 9_i32, 10_i32]);
+    assert_eq!(
+        vec.as_slice(),
+        [0_i32, 1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32, 7_i32, 8_i32, 9_i32, 10_i32]
+    );
 }
 
 #[test]
 fn test_type_projected_vec_extract_if_partial_true() {
-    let mut vec = TypeProjectedVec::from([
-        0_i32,
-        1_i32,
-        2_i32,
-        3_i32,
-        4_i32,
-        5_i32,
-        6_i32,
-        7_i32,
-        8_i32,
-        9_i32,
-        10_i32,
-    ]);
+    let mut vec = TypeProjectedVec::from([0_i32, 1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32, 7_i32, 8_i32, 9_i32, 10_i32]);
     let old_length = vec.len();
     let mut count = 0;
     {
@@ -1732,19 +1569,7 @@ fn test_type_projected_vec_extract_if_partial_true() {
 
 #[test]
 fn test_type_projected_vec_extract_if_partial_false() {
-    let mut vec = TypeProjectedVec::from([
-        0_i32,
-        1_i32,
-        2_i32,
-        3_i32,
-        4_i32,
-        5_i32,
-        6_i32,
-        7_i32,
-        8_i32,
-        9_i32,
-        10_i32,
-    ]);
+    let mut vec = TypeProjectedVec::from([0_i32, 1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32, 7_i32, 8_i32, 9_i32, 10_i32]);
     let old_length = vec.len();
     let mut count = 0;
     {
@@ -1760,7 +1585,10 @@ fn test_type_projected_vec_extract_if_partial_false() {
 
     assert_eq!(count, 0);
     assert_eq!(vec.len(), old_length);
-    assert_eq!(vec.as_slice(), [0_i32, 1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32, 7_i32, 8_i32, 9_i32, 10_i32]);
+    assert_eq!(
+        vec.as_slice(),
+        [0_i32, 1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32, 7_i32, 8_i32, 9_i32, 10_i32]
+    );
 }
 
 #[test]
@@ -1774,19 +1602,7 @@ fn test_type_projected_vec_extract_if_out_of_bounds() {
 
 #[test]
 fn test_type_projected_vec_extract_if_retains_unvisited_elements() {
-    let mut vec = TypeProjectedVec::from([
-        0_i32,
-        1_i32,
-        2_i32,
-        3_i32,
-        4_i32,
-        5_i32,
-        6_i32,
-        7_i32,
-        8_i32,
-        9_i32,
-        10_i32,
-    ]);
+    let mut vec = TypeProjectedVec::from([0_i32, 1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32, 7_i32, 8_i32, 9_i32, 10_i32]);
     let mut count = 0;
     {
         let mut iter = vec.extract_if(.., |_| true);

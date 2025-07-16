@@ -3,10 +3,10 @@ use opaque_index_map::TypeProjectedIndexMap;
 
 use core::any;
 use core::fmt;
-use std::hash;
-use std::vec::Vec;
 use std::format;
+use std::hash;
 use std::string::String;
+use std::vec::Vec;
 
 #[cfg(feature = "nightly")]
 use std::alloc;
@@ -16,7 +16,9 @@ use opaque_allocator_api::alloc;
 
 use proptest::prelude::*;
 
-fn prop_truncate_len_length_less_than_or_equal_to<K, V, S, A>(entries: TypeProjectedIndexMap<K, V, S, A>) -> Result<(), TestCaseError>
+fn prop_truncate_len_length_less_than_or_equal_to<K, V, S, A>(
+    entries: TypeProjectedIndexMap<K, V, S, A>,
+) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
@@ -32,11 +34,7 @@ where
         S::Hasher: any::Any + hash::Hasher + Send + Sync,
         A: any::Any + alloc::Allocator + Send + Sync + Clone,
     {
-        let vec: Vec<(K, V)> = entries
-            .iter()
-            .map(|(k, v)| (k.clone(), v.clone()))
-            .take(len)
-            .collect();
+        let vec: Vec<(K, V)> = entries.iter().map(|(k, v)| (k.clone(), v.clone())).take(len).collect();
 
         vec
     }
@@ -52,14 +50,11 @@ where
         let mut cloned_map = map.clone();
         cloned_map.truncate(len);
 
-        let vec: Vec<(K, V)> = cloned_map
-            .iter()
-            .map(|(k, v)| (k.clone(), v.clone()))
-            .collect();
+        let vec: Vec<(K, V)> = cloned_map.iter().map(|(k, v)| (k.clone(), v.clone())).collect();
 
         vec
     }
-    
+
     for len in 0..entries.len() {
         let map = entries.clone();
         let expected_entries = expected(&entries, len);
@@ -89,11 +84,7 @@ where
         S::Hasher: any::Any + hash::Hasher + Send + Sync,
         A: any::Any + alloc::Allocator + Send + Sync + Clone,
     {
-        let vec: Vec<(K, V)> = entries
-            .iter()
-            .map(|(k, v)| (k.clone(), v.clone()))
-            .take(len)
-            .collect();
+        let vec: Vec<(K, V)> = entries.iter().map(|(k, v)| (k.clone(), v.clone())).take(len).collect();
 
         vec
     }
@@ -109,14 +100,11 @@ where
         let mut cloned_map = map.clone();
         cloned_map.truncate(len);
 
-        let vec: Vec<(K, V)> = cloned_map
-            .iter()
-            .map(|(k, v)| (k.clone(), v.clone()))
-            .collect();
+        let vec: Vec<(K, V)> = cloned_map.iter().map(|(k, v)| (k.clone(), v.clone())).collect();
 
         vec
     }
-    
+
     for len in 0..entries.len() {
         let map = entries.clone();
         let expected = expected(&entries, len);

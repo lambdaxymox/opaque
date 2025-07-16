@@ -42,7 +42,7 @@ where
 
         vec
     }
-    
+
     let expected = expected(&values);
     let result = result(&values);
 

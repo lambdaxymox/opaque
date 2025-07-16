@@ -43,7 +43,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn new(alloc: A) -> Self {
-        Self { alloc, }
+        Self { alloc }
     }
 }
 
@@ -56,18 +56,14 @@ where
     }
 
     unsafe fn deallocate(&self, ptr: NonNull<u8>, layout: alloc::Layout) {
-        unsafe {
-            self.alloc.deallocate(ptr, layout)
-        }
+        unsafe { self.alloc.deallocate(ptr, layout) }
     }
 }
 
 #[test]
 fn test_type_erased_index_set_into_proj_correct_type1() {
-    let opaque_set = TypeErasedIndexSet::with_hasher_in::<i32, hash::RandomState, alloc::Global>(
-        hash::RandomState::default(),
-        alloc::Global,
-    );
+    let opaque_set =
+        TypeErasedIndexSet::with_hasher_in::<i32, hash::RandomState, alloc::Global>(hash::RandomState::default(), alloc::Global);
     let _ = opaque_set.into_proj::<i32, hash::RandomState, alloc::Global>();
 }
 
@@ -82,10 +78,8 @@ fn test_type_erased_index_set_into_proj_correct_type2() {
 
 #[test]
 fn test_type_erased_index_set_into_proj_correct_type3() {
-    let mut opaque_set = TypeErasedIndexSet::with_hasher_in::<i32, hash::RandomState, alloc::Global>(
-        hash::RandomState::default(),
-        alloc::Global,
-    );
+    let mut opaque_set =
+        TypeErasedIndexSet::with_hasher_in::<i32, hash::RandomState, alloc::Global>(hash::RandomState::default(), alloc::Global);
     for _ in 0..65536 {
         let proj_set = opaque_set.into_proj::<i32, hash::RandomState, alloc::Global>();
         opaque_set = TypeErasedIndexSet::from_proj(proj_set);
@@ -106,10 +100,8 @@ fn test_type_erased_index_set_into_proj_correct_type4() {
 
 #[test]
 fn test_type_erased_index_set_into_proj_correct_type5() {
-    let opaque_set = TypeErasedIndexSet::with_hasher_in::<i32, hash::RandomState, alloc::Global>(
-        hash::RandomState::default(),
-        alloc::Global,
-    );
+    let opaque_set =
+        TypeErasedIndexSet::with_hasher_in::<i32, hash::RandomState, alloc::Global>(hash::RandomState::default(), alloc::Global);
     let _ = opaque_set.into_proj::<i32, hash::RandomState, alloc::Global>();
 }
 
@@ -136,10 +128,11 @@ fn test_type_erased_index_set_into_proj_correct_type7() {
 
 #[test]
 fn test_type_erased_index_set_into_proj_correct_type8() {
-    let mut opaque_set = TypeErasedIndexSet::with_hasher_in::<i32, WrappingBuildHasher<hash::RandomState>, WrappingAlloc<alloc::Global>>(
-        WrappingBuildHasher::new(hash::RandomState::default()),
-        WrappingAlloc::new(alloc::Global),
-    );
+    let mut opaque_set =
+        TypeErasedIndexSet::with_hasher_in::<i32, WrappingBuildHasher<hash::RandomState>, WrappingAlloc<alloc::Global>>(
+            WrappingBuildHasher::new(hash::RandomState::default()),
+            WrappingAlloc::new(alloc::Global),
+        );
     for _ in 0..65536 {
         let proj_set = opaque_set.into_proj::<i32, WrappingBuildHasher<hash::RandomState>, WrappingAlloc<alloc::Global>>();
         opaque_set = TypeErasedIndexSet::from_proj(proj_set);
@@ -149,10 +142,8 @@ fn test_type_erased_index_set_into_proj_correct_type8() {
 #[test]
 #[should_panic]
 fn test_type_erased_index_set_into_proj_panics_wrong_type1() {
-    let opaque_set = TypeErasedIndexSet::with_hasher_in::<i32, hash::RandomState, alloc::Global>(
-        hash::RandomState::default(),
-        alloc::Global,
-    );
+    let opaque_set =
+        TypeErasedIndexSet::with_hasher_in::<i32, hash::RandomState, alloc::Global>(hash::RandomState::default(), alloc::Global);
     let _ = opaque_set.into_proj::<i32, hash::RandomState, WrappingAlloc<alloc::Global>>();
 }
 
@@ -169,30 +160,27 @@ fn test_type_erased_index_set_into_proj_panics_wrong_type2() {
 #[test]
 #[should_panic]
 fn test_type_erased_index_set_into_proj_panics_wrong_type3() {
-    let opaque_set = TypeErasedIndexSet::with_hasher_in::<i32, hash::RandomState, alloc::Global>(
-        hash::RandomState::default(),
-        alloc::Global,
-    );
+    let opaque_set =
+        TypeErasedIndexSet::with_hasher_in::<i32, hash::RandomState, alloc::Global>(hash::RandomState::default(), alloc::Global);
     let _ = opaque_set.into_proj::<i32, WrappingBuildHasher<hash::RandomState>, alloc::Global>();
 }
 
 #[test]
 #[should_panic]
 fn test_type_erased_index_set_into_proj_panics_wrong_type4() {
-    let opaque_set = TypeErasedIndexSet::with_hasher_in::<i32, WrappingBuildHasher<hash::RandomState>, WrappingAlloc<alloc::Global>>(
-        WrappingBuildHasher::new(hash::RandomState::default()),
-        WrappingAlloc::new(alloc::Global),
-    );
+    let opaque_set =
+        TypeErasedIndexSet::with_hasher_in::<i32, WrappingBuildHasher<hash::RandomState>, WrappingAlloc<alloc::Global>>(
+            WrappingBuildHasher::new(hash::RandomState::default()),
+            WrappingAlloc::new(alloc::Global),
+        );
     let _ = opaque_set.into_proj::<i32, hash::RandomState, WrappingAlloc<alloc::Global>>();
 }
 
 #[test]
 #[should_panic]
 fn test_type_erased_index_set_into_proj_panics_wrong_type5() {
-    let opaque_set = TypeErasedIndexSet::with_hasher_in::<i32, hash::RandomState, alloc::Global>(
-        hash::RandomState::default(),
-        alloc::Global,
-    );
+    let opaque_set =
+        TypeErasedIndexSet::with_hasher_in::<i32, hash::RandomState, alloc::Global>(hash::RandomState::default(), alloc::Global);
     let _ = opaque_set.into_proj::<u32, hash::RandomState, WrappingAlloc<alloc::Global>>();
 }
 
@@ -209,29 +197,26 @@ fn test_type_erased_index_set_into_proj_panics_wrong_type6() {
 #[test]
 #[should_panic]
 fn test_type_erased_index_set_into_proj_panics_wrong_type7() {
-    let opaque_set = TypeErasedIndexSet::with_hasher_in::<i32, hash::RandomState, alloc::Global>(
-        hash::RandomState::default(),
-        alloc::Global,
-    );
+    let opaque_set =
+        TypeErasedIndexSet::with_hasher_in::<i32, hash::RandomState, alloc::Global>(hash::RandomState::default(), alloc::Global);
     let _ = opaque_set.into_proj::<u32, WrappingBuildHasher<hash::RandomState>, alloc::Global>();
 }
 
 #[test]
 #[should_panic]
 fn test_type_erased_index_set_into_proj_panics_wrong_type8() {
-    let opaque_set = TypeErasedIndexSet::with_hasher_in::<i32, WrappingBuildHasher<hash::RandomState>, WrappingAlloc<alloc::Global>>(
-        WrappingBuildHasher::new(hash::RandomState::default()),
-        WrappingAlloc::new(alloc::Global),
-    );
+    let opaque_set =
+        TypeErasedIndexSet::with_hasher_in::<i32, WrappingBuildHasher<hash::RandomState>, WrappingAlloc<alloc::Global>>(
+            WrappingBuildHasher::new(hash::RandomState::default()),
+            WrappingAlloc::new(alloc::Global),
+        );
     let _ = opaque_set.into_proj::<u32, hash::RandomState, WrappingAlloc<alloc::Global>>();
 }
 
 #[test]
 fn test_type_erased_index_set_as_proj_correct_type1() {
-    let opaque_set = TypeErasedIndexSet::with_hasher_in::<i32, hash::RandomState, alloc::Global>(
-        hash::RandomState::default(),
-        alloc::Global,
-    );
+    let opaque_set =
+        TypeErasedIndexSet::with_hasher_in::<i32, hash::RandomState, alloc::Global>(hash::RandomState::default(), alloc::Global);
     let _ = opaque_set.as_proj::<i32, hash::RandomState, alloc::Global>();
 }
 
@@ -246,10 +231,8 @@ fn test_type_erased_index_set_as_proj_correct_type2() {
 
 #[test]
 fn test_type_erased_index_set_as_proj_correct_type3() {
-    let opaque_set = TypeErasedIndexSet::with_hasher_in::<i32, hash::RandomState, alloc::Global>(
-        hash::RandomState::default(),
-        alloc::Global,
-    );
+    let opaque_set =
+        TypeErasedIndexSet::with_hasher_in::<i32, hash::RandomState, alloc::Global>(hash::RandomState::default(), alloc::Global);
     for _ in 0..65536 {
         let _ = opaque_set.as_proj::<i32, hash::RandomState, alloc::Global>();
     }
@@ -268,7 +251,7 @@ fn test_type_erased_index_set_as_proj_correct_type4() {
 
 #[test]
 fn test_type_erased_index_set_as_proj_correct_type5() {
-    let opaque_set = TypeErasedIndexSet::with_hasher_in::<i32,  WrappingBuildHasher<hash::RandomState>, alloc::Global>(
+    let opaque_set = TypeErasedIndexSet::with_hasher_in::<i32, WrappingBuildHasher<hash::RandomState>, alloc::Global>(
         WrappingBuildHasher::new(hash::RandomState::default()),
         alloc::Global,
     );
@@ -277,10 +260,11 @@ fn test_type_erased_index_set_as_proj_correct_type5() {
 
 #[test]
 fn test_type_erased_index_set_as_proj_correct_type6() {
-    let opaque_set = TypeErasedIndexSet::with_hasher_in::<i32,  WrappingBuildHasher<hash::RandomState>, WrappingAlloc<alloc::Global>>(
-        WrappingBuildHasher::new(hash::RandomState::default()),
-        WrappingAlloc::new(alloc::Global),
-    );
+    let opaque_set =
+        TypeErasedIndexSet::with_hasher_in::<i32, WrappingBuildHasher<hash::RandomState>, WrappingAlloc<alloc::Global>>(
+            WrappingBuildHasher::new(hash::RandomState::default()),
+            WrappingAlloc::new(alloc::Global),
+        );
     let _ = opaque_set.as_proj::<i32, WrappingBuildHasher<hash::RandomState>, WrappingAlloc<alloc::Global>>();
 }
 
@@ -297,10 +281,11 @@ fn test_type_erased_index_set_as_proj_correct_type7() {
 
 #[test]
 fn test_type_erased_index_set_as_proj_correct_type8() {
-    let opaque_set = TypeErasedIndexSet::with_hasher_in::<i32, WrappingBuildHasher<hash::RandomState>, WrappingAlloc<alloc::Global>>(
-        WrappingBuildHasher::new(hash::RandomState::default()),
-        WrappingAlloc::new(alloc::Global),
-    );
+    let opaque_set =
+        TypeErasedIndexSet::with_hasher_in::<i32, WrappingBuildHasher<hash::RandomState>, WrappingAlloc<alloc::Global>>(
+            WrappingBuildHasher::new(hash::RandomState::default()),
+            WrappingAlloc::new(alloc::Global),
+        );
     for _ in 0..65536 {
         let _ = opaque_set.as_proj::<i32, WrappingBuildHasher<hash::RandomState>, WrappingAlloc<alloc::Global>>();
     }
@@ -309,10 +294,8 @@ fn test_type_erased_index_set_as_proj_correct_type8() {
 #[test]
 #[should_panic]
 fn test_type_erased_index_set_as_proj_panics_wrong_type1() {
-    let opaque_set = TypeErasedIndexSet::with_hasher_in::<i32, hash::RandomState, alloc::Global>(
-        hash::RandomState::default(),
-        alloc::Global,
-    );
+    let opaque_set =
+        TypeErasedIndexSet::with_hasher_in::<i32, hash::RandomState, alloc::Global>(hash::RandomState::default(), alloc::Global);
     let _ = opaque_set.as_proj::<i32, hash::RandomState, WrappingAlloc<alloc::Global>>();
 }
 
@@ -329,30 +312,27 @@ fn test_type_erased_index_set_as_proj_panics_wrong_type2() {
 #[test]
 #[should_panic]
 fn test_type_erased_index_set_as_proj_panics_wrong_type3() {
-    let opaque_set = TypeErasedIndexSet::with_hasher_in::<i32, hash::RandomState, alloc::Global>(
-        hash::RandomState::default(),
-        alloc::Global,
-    );
+    let opaque_set =
+        TypeErasedIndexSet::with_hasher_in::<i32, hash::RandomState, alloc::Global>(hash::RandomState::default(), alloc::Global);
     let _ = opaque_set.as_proj::<i32, WrappingBuildHasher<hash::RandomState>, alloc::Global>();
 }
 
 #[test]
 #[should_panic]
 fn test_type_erased_index_set_as_proj_panics_wrong_type4() {
-    let opaque_set = TypeErasedIndexSet::with_hasher_in::<i32, WrappingBuildHasher<hash::RandomState>, WrappingAlloc<alloc::Global>>(
-        WrappingBuildHasher::new(hash::RandomState::default()),
-        WrappingAlloc::new(alloc::Global),
-    );
+    let opaque_set =
+        TypeErasedIndexSet::with_hasher_in::<i32, WrappingBuildHasher<hash::RandomState>, WrappingAlloc<alloc::Global>>(
+            WrappingBuildHasher::new(hash::RandomState::default()),
+            WrappingAlloc::new(alloc::Global),
+        );
     let _ = opaque_set.as_proj::<i32, hash::RandomState, WrappingAlloc<alloc::Global>>();
 }
 
 #[test]
 #[should_panic]
 fn test_type_erased_index_set_as_proj_panics_wrong_type5() {
-    let opaque_set = TypeErasedIndexSet::with_hasher_in::<i32, hash::RandomState, alloc::Global>(
-        hash::RandomState::default(),
-        alloc::Global,
-    );
+    let opaque_set =
+        TypeErasedIndexSet::with_hasher_in::<i32, hash::RandomState, alloc::Global>(hash::RandomState::default(), alloc::Global);
     let _ = opaque_set.as_proj::<u32, hash::RandomState, WrappingAlloc<alloc::Global>>();
 }
 
@@ -369,29 +349,26 @@ fn test_type_erased_index_set_as_proj_panics_wrong_type6() {
 #[test]
 #[should_panic]
 fn test_type_erased_index_set_as_proj_panics_wrong_type7() {
-    let opaque_set = TypeErasedIndexSet::with_hasher_in::<i32, hash::RandomState, alloc::Global>(
-        hash::RandomState::default(),
-        alloc::Global,
-    );
+    let opaque_set =
+        TypeErasedIndexSet::with_hasher_in::<i32, hash::RandomState, alloc::Global>(hash::RandomState::default(), alloc::Global);
     let _ = opaque_set.as_proj::<u32, WrappingBuildHasher<hash::RandomState>, alloc::Global>();
 }
 
 #[test]
 #[should_panic]
 fn test_type_erased_index_set_as_proj_panics_wrong_type8() {
-    let opaque_set = TypeErasedIndexSet::with_hasher_in::<i32, WrappingBuildHasher<hash::RandomState>, WrappingAlloc<alloc::Global>>(
-        WrappingBuildHasher::new(hash::RandomState::default()),
-        WrappingAlloc::new(alloc::Global),
-    );
+    let opaque_set =
+        TypeErasedIndexSet::with_hasher_in::<i32, WrappingBuildHasher<hash::RandomState>, WrappingAlloc<alloc::Global>>(
+            WrappingBuildHasher::new(hash::RandomState::default()),
+            WrappingAlloc::new(alloc::Global),
+        );
     let _ = opaque_set.as_proj::<u32, hash::RandomState, WrappingAlloc<alloc::Global>>();
 }
 
 #[test]
 fn test_type_erased_index_set_as_proj_mut_correct_type1() {
-    let mut opaque_set = TypeErasedIndexSet::with_hasher_in::<i32, hash::RandomState, alloc::Global>(
-        hash::RandomState::default(),
-        alloc::Global,
-    );
+    let mut opaque_set =
+        TypeErasedIndexSet::with_hasher_in::<i32, hash::RandomState, alloc::Global>(hash::RandomState::default(), alloc::Global);
     let _ = opaque_set.as_proj_mut::<i32, hash::RandomState, alloc::Global>();
 }
 
@@ -406,10 +383,8 @@ fn test_type_erased_index_set_as_proj_mut_correct_type2() {
 
 #[test]
 fn test_type_erased_index_set_as_proj_mut_correct_type3() {
-    let mut opaque_set = TypeErasedIndexSet::with_hasher_in::<i32, hash::RandomState, alloc::Global>(
-        hash::RandomState::default(),
-        alloc::Global,
-    );
+    let mut opaque_set =
+        TypeErasedIndexSet::with_hasher_in::<i32, hash::RandomState, alloc::Global>(hash::RandomState::default(), alloc::Global);
     for _ in 0..65536 {
         let _ = opaque_set.as_proj_mut::<i32, hash::RandomState, alloc::Global>();
     }
@@ -428,7 +403,7 @@ fn test_type_erased_index_set_as_proj_mut_correct_type4() {
 
 #[test]
 fn test_type_erased_index_set_as_proj_mut_correct_type5() {
-    let mut opaque_set = TypeErasedIndexSet::with_hasher_in::<i32,  WrappingBuildHasher<hash::RandomState>, alloc::Global>(
+    let mut opaque_set = TypeErasedIndexSet::with_hasher_in::<i32, WrappingBuildHasher<hash::RandomState>, alloc::Global>(
         WrappingBuildHasher::new(hash::RandomState::default()),
         alloc::Global,
     );
@@ -437,10 +412,11 @@ fn test_type_erased_index_set_as_proj_mut_correct_type5() {
 
 #[test]
 fn test_type_erased_index_set_as_proj_mut_correct_type6() {
-    let mut opaque_set = TypeErasedIndexSet::with_hasher_in::<i32,  WrappingBuildHasher<hash::RandomState>, WrappingAlloc<alloc::Global>>(
-        WrappingBuildHasher::new(hash::RandomState::default()),
-        WrappingAlloc::new(alloc::Global),
-    );
+    let mut opaque_set =
+        TypeErasedIndexSet::with_hasher_in::<i32, WrappingBuildHasher<hash::RandomState>, WrappingAlloc<alloc::Global>>(
+            WrappingBuildHasher::new(hash::RandomState::default()),
+            WrappingAlloc::new(alloc::Global),
+        );
     let _ = opaque_set.as_proj_mut::<i32, WrappingBuildHasher<hash::RandomState>, WrappingAlloc<alloc::Global>>();
 }
 
@@ -457,10 +433,11 @@ fn test_type_erased_index_set_as_proj_mut_correct_type7() {
 
 #[test]
 fn test_type_erased_index_set_as_proj_mut_correct_type8() {
-    let mut opaque_set = TypeErasedIndexSet::with_hasher_in::<i32, WrappingBuildHasher<hash::RandomState>, WrappingAlloc<alloc::Global>>(
-        WrappingBuildHasher::new(hash::RandomState::default()),
-        WrappingAlloc::new(alloc::Global),
-    );
+    let mut opaque_set =
+        TypeErasedIndexSet::with_hasher_in::<i32, WrappingBuildHasher<hash::RandomState>, WrappingAlloc<alloc::Global>>(
+            WrappingBuildHasher::new(hash::RandomState::default()),
+            WrappingAlloc::new(alloc::Global),
+        );
     for _ in 0..65536 {
         let _ = opaque_set.as_proj_mut::<i32, WrappingBuildHasher<hash::RandomState>, WrappingAlloc<alloc::Global>>();
     }
@@ -469,10 +446,8 @@ fn test_type_erased_index_set_as_proj_mut_correct_type8() {
 #[test]
 #[should_panic]
 fn test_type_erased_index_set_as_proj_mut_panics_wrong_type1() {
-    let mut opaque_set = TypeErasedIndexSet::with_hasher_in::<i32, hash::RandomState, alloc::Global>(
-        hash::RandomState::default(),
-        alloc::Global,
-    );
+    let mut opaque_set =
+        TypeErasedIndexSet::with_hasher_in::<i32, hash::RandomState, alloc::Global>(hash::RandomState::default(), alloc::Global);
     let _ = opaque_set.as_proj_mut::<i32, hash::RandomState, WrappingAlloc<alloc::Global>>();
 }
 
@@ -489,30 +464,27 @@ fn test_type_erased_index_set_as_proj_mut_panics_wrong_type2() {
 #[test]
 #[should_panic]
 fn test_type_erased_index_set_as_proj_mut_panics_wrong_type3() {
-    let mut opaque_set = TypeErasedIndexSet::with_hasher_in::<i32, hash::RandomState, alloc::Global>(
-        hash::RandomState::default(),
-        alloc::Global,
-    );
+    let mut opaque_set =
+        TypeErasedIndexSet::with_hasher_in::<i32, hash::RandomState, alloc::Global>(hash::RandomState::default(), alloc::Global);
     let _ = opaque_set.as_proj_mut::<i32, WrappingBuildHasher<hash::RandomState>, alloc::Global>();
 }
 
 #[test]
 #[should_panic]
 fn test_type_erased_index_set_as_proj_mut_panics_wrong_type4() {
-    let mut opaque_set = TypeErasedIndexSet::with_hasher_in::<i32, WrappingBuildHasher<hash::RandomState>, WrappingAlloc<alloc::Global>>(
-        WrappingBuildHasher::new(hash::RandomState::default()),
-        WrappingAlloc::new(alloc::Global),
-    );
+    let mut opaque_set =
+        TypeErasedIndexSet::with_hasher_in::<i32, WrappingBuildHasher<hash::RandomState>, WrappingAlloc<alloc::Global>>(
+            WrappingBuildHasher::new(hash::RandomState::default()),
+            WrappingAlloc::new(alloc::Global),
+        );
     let _ = opaque_set.as_proj_mut::<i32, hash::RandomState, WrappingAlloc<alloc::Global>>();
 }
 
 #[test]
 #[should_panic]
 fn test_type_erased_index_set_as_proj_mut_panics_wrong_type5() {
-    let mut opaque_set = TypeErasedIndexSet::with_hasher_in::<i32, hash::RandomState, alloc::Global>(
-        hash::RandomState::default(),
-        alloc::Global,
-    );
+    let mut opaque_set =
+        TypeErasedIndexSet::with_hasher_in::<i32, hash::RandomState, alloc::Global>(hash::RandomState::default(), alloc::Global);
     let _ = opaque_set.as_proj_mut::<u32, hash::RandomState, WrappingAlloc<alloc::Global>>();
 }
 
@@ -529,19 +501,18 @@ fn test_type_erased_index_set_as_proj_mut_panics_wrong_type6() {
 #[test]
 #[should_panic]
 fn test_type_erased_index_set_as_proj_mut_panics_wrong_type7() {
-    let mut opaque_set = TypeErasedIndexSet::with_hasher_in::<i32, hash::RandomState, alloc::Global>(
-        hash::RandomState::default(),
-        alloc::Global,
-    );
+    let mut opaque_set =
+        TypeErasedIndexSet::with_hasher_in::<i32, hash::RandomState, alloc::Global>(hash::RandomState::default(), alloc::Global);
     let _ = opaque_set.as_proj_mut::<u32, WrappingBuildHasher<hash::RandomState>, alloc::Global>();
 }
 
 #[test]
 #[should_panic]
 fn test_type_erased_index_set_as_proj_mut_panics_wrong_type8() {
-    let mut opaque_set = TypeErasedIndexSet::with_hasher_in::<i32, WrappingBuildHasher<hash::RandomState>, WrappingAlloc<alloc::Global>>(
-        WrappingBuildHasher::new(hash::RandomState::default()),
-        WrappingAlloc::new(alloc::Global),
-    );
+    let mut opaque_set =
+        TypeErasedIndexSet::with_hasher_in::<i32, WrappingBuildHasher<hash::RandomState>, WrappingAlloc<alloc::Global>>(
+            WrappingBuildHasher::new(hash::RandomState::default()),
+            WrappingAlloc::new(alloc::Global),
+        );
     let _ = opaque_set.as_proj_mut::<u32, hash::RandomState, WrappingAlloc<alloc::Global>>();
 }

@@ -3,8 +3,8 @@ use opaque_index_map::TypeProjectedIndexSet;
 
 use core::any;
 use core::fmt;
-use std::hash;
 use std::format;
+use std::hash;
 use std::string::String;
 
 #[cfg(feature = "nightly")]
@@ -104,7 +104,7 @@ generate_props!(
     u64,
     hash::RandomState,
     alloc::Global,
-    32, 
+    32,
     strategy_type_projected_index_set_max_len,
 );
 generate_props!(
@@ -112,7 +112,7 @@ generate_props!(
     usize,
     hash::RandomState,
     alloc::Global,
-    32, 
+    32,
     strategy_type_projected_index_set_max_len,
 );
 generate_props!(
@@ -120,6 +120,6 @@ generate_props!(
     String,
     hash::RandomState,
     alloc::Global,
-    32, 
+    32,
     strategy_type_projected_index_set_max_len,
 );

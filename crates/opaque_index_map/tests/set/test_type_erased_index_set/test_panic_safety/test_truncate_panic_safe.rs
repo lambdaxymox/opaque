@@ -1,7 +1,7 @@
 use opaque_index_map::set::TypeErasedIndexSet;
 
-use std::hash;
 use std::cell::RefCell;
+use std::hash;
 use std::panic;
 use std::panic::AssertUnwindSafe;
 use std::rc::Rc;
@@ -96,7 +96,9 @@ struct UnhashedValueWrapper<T> {
 
 impl<T> UnhashedValueWrapper<T> {
     #[inline]
-    const fn new(index: usize, value: T) -> Self { Self { index, value, }}
+    const fn new(index: usize, value: T) -> Self {
+        Self { index, value }
+    }
 }
 
 impl<T> hash::Hash for UnhashedValueWrapper<T> {
@@ -111,7 +113,10 @@ fn test_truncate_on_panic_drop_count1() {
     let mut triggering_panic_cell = PanicCell::new((), 0);
     let mut set = TypeErasedIndexSet::new::<UnhashedValueWrapper<PanicCell<()>>>();
 
-    set.insert::<UnhashedValueWrapper<PanicCell<()>>, hash::RandomState, alloc::Global>(UnhashedValueWrapper::new(0, triggering_panic_cell.clone()));
+    set.insert::<UnhashedValueWrapper<PanicCell<()>>, hash::RandomState, alloc::Global>(UnhashedValueWrapper::new(
+        0,
+        triggering_panic_cell.clone(),
+    ));
 
     assert_eq!(triggering_panic_cell.drop_count(), 0);
 
@@ -133,8 +138,14 @@ fn test_truncate_on_panic_drop_count2() {
     let mut panic_cell = PanicCell::new((), 2);
     let mut set = TypeErasedIndexSet::new::<UnhashedValueWrapper<PanicCell<()>>>();
 
-    set.insert::<UnhashedValueWrapper<PanicCell<()>>, hash::RandomState, alloc::Global>(UnhashedValueWrapper::new(0, triggering_panic_cell.clone()));
-    set.insert::<UnhashedValueWrapper<PanicCell<()>>, hash::RandomState, alloc::Global>(UnhashedValueWrapper::new(1, panic_cell.clone()));
+    set.insert::<UnhashedValueWrapper<PanicCell<()>>, hash::RandomState, alloc::Global>(UnhashedValueWrapper::new(
+        0,
+        triggering_panic_cell.clone(),
+    ));
+    set.insert::<UnhashedValueWrapper<PanicCell<()>>, hash::RandomState, alloc::Global>(UnhashedValueWrapper::new(
+        1,
+        panic_cell.clone(),
+    ));
 
     assert_eq!(triggering_panic_cell.drop_count(), 0);
     assert_eq!(panic_cell.drop_count(), 0);
@@ -164,9 +175,18 @@ fn test_truncate_on_panic_drop_count3() {
     let mut panic_cell = PanicCell::new((), 4);
     let mut set = TypeErasedIndexSet::new::<UnhashedValueWrapper<PanicCell<()>>>();
 
-    set.insert::<UnhashedValueWrapper<PanicCell<()>>, hash::RandomState, alloc::Global>(UnhashedValueWrapper::new(0, panic_cell.clone()));
-    set.insert::<UnhashedValueWrapper<PanicCell<()>>, hash::RandomState, alloc::Global>(UnhashedValueWrapper::new(1, triggering_panic_cell.clone()));
-    set.insert::<UnhashedValueWrapper<PanicCell<()>>, hash::RandomState, alloc::Global>(UnhashedValueWrapper::new(2, panic_cell.clone()));
+    set.insert::<UnhashedValueWrapper<PanicCell<()>>, hash::RandomState, alloc::Global>(UnhashedValueWrapper::new(
+        0,
+        panic_cell.clone(),
+    ));
+    set.insert::<UnhashedValueWrapper<PanicCell<()>>, hash::RandomState, alloc::Global>(UnhashedValueWrapper::new(
+        1,
+        triggering_panic_cell.clone(),
+    ));
+    set.insert::<UnhashedValueWrapper<PanicCell<()>>, hash::RandomState, alloc::Global>(UnhashedValueWrapper::new(
+        2,
+        panic_cell.clone(),
+    ));
 
     assert_eq!(triggering_panic_cell.drop_count(), 0);
     assert_eq!(panic_cell.drop_count(), 0);
@@ -194,7 +214,10 @@ fn test_truncate_on_success_drop_count() {
     let mut panic_cell = PanicCell::new((), 2);
     let mut set = TypeErasedIndexSet::new::<UnhashedValueWrapper<PanicCell<()>>>();
 
-    set.insert::<UnhashedValueWrapper<PanicCell<()>>, hash::RandomState, alloc::Global>(UnhashedValueWrapper::new(0, panic_cell.clone()));
+    set.insert::<UnhashedValueWrapper<PanicCell<()>>, hash::RandomState, alloc::Global>(UnhashedValueWrapper::new(
+        0,
+        panic_cell.clone(),
+    ));
 
     assert_eq!(panic_cell.drop_count(), 0);
 

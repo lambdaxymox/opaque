@@ -3,10 +3,10 @@ use opaque_index_map::TypeProjectedIndexSet;
 
 use core::any;
 use core::fmt;
-use std::hash;
-use std::vec::Vec;
 use std::format;
+use std::hash;
 use std::string::String;
+use std::vec::Vec;
 
 #[cfg(feature = "nightly")]
 use std::alloc;
@@ -30,11 +30,7 @@ where
         S::Hasher: any::Any + hash::Hasher + Send + Sync,
         A: any::Any + alloc::Allocator + Send + Sync + Clone,
     {
-        let vec: Vec<T> = set
-            .iter()
-            .cloned()
-            .take(len)
-            .collect();
+        let vec: Vec<T> = set.iter().cloned().take(len).collect();
 
         vec
     }
@@ -49,14 +45,11 @@ where
         let mut cloned_set = set.clone();
         cloned_set.truncate(len);
 
-        let vec: Vec<T> = cloned_set
-            .iter()
-            .cloned()
-            .collect();
+        let vec: Vec<T> = cloned_set.iter().cloned().collect();
 
         vec
     }
-    
+
     for len in 0..entries.len() {
         let set = entries.clone();
         let expected_entries = expected(&entries, len);
@@ -84,11 +77,7 @@ where
         S::Hasher: any::Any + hash::Hasher + Send + Sync,
         A: any::Any + alloc::Allocator + Send + Sync + Clone,
     {
-        let vec: Vec<T> = set
-            .iter()
-            .cloned()
-            .take(len)
-            .collect();
+        let vec: Vec<T> = set.iter().cloned().take(len).collect();
 
         vec
     }
@@ -103,14 +92,11 @@ where
         let mut cloned_set = set.clone();
         cloned_set.truncate(len);
 
-        let vec: Vec<T> = cloned_set
-            .iter()
-            .cloned()
-            .collect();
+        let vec: Vec<T> = cloned_set.iter().cloned().collect();
 
         vec
     }
-    
+
     for len in 0..entries.len() {
         let set = entries.clone();
         let expected = expected(&entries, len);
@@ -155,7 +141,7 @@ generate_props!(
     u64,
     hash::RandomState,
     alloc::Global,
-    32, 
+    32,
     strategy_type_projected_index_set_max_len,
 );
 generate_props!(
@@ -163,7 +149,7 @@ generate_props!(
     usize,
     hash::RandomState,
     alloc::Global,
-    32, 
+    32,
     strategy_type_projected_index_set_max_len,
 );
 generate_props!(
@@ -171,6 +157,6 @@ generate_props!(
     String,
     hash::RandomState,
     alloc::Global,
-    32, 
+    32,
     strategy_type_projected_index_set_max_len,
 );

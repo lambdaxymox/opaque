@@ -43,7 +43,10 @@ fn bench_type_erased_index_map_swap_remove(c: &mut Criterion) {
         b.iter_batched(
             || TypeErasedIndexMap::from_iter(keys.clone().zip(values.clone())),
             |mut opaque_map| {
-                let keys: Vec<i32> = opaque_map.keys::<i32, i32, hash::RandomState, alloc::Global>().cloned().collect();
+                let keys: Vec<i32> = opaque_map
+                    .keys::<i32, i32, hash::RandomState, alloc::Global>()
+                    .cloned()
+                    .collect();
                 for key in keys.iter() {
                     let _ = core::hint::black_box(opaque_map.swap_remove::<i32, i32, i32, hash::RandomState, alloc::Global>(key));
                 }
@@ -53,4 +56,8 @@ fn bench_type_erased_index_map_swap_remove(c: &mut Criterion) {
     });
 }
 
-criterion_group!(bench_swap_remove, bench_type_erased_index_map_swap_remove, bench_index_map_swap_remove);
+criterion_group!(
+    bench_swap_remove,
+    bench_type_erased_index_map_swap_remove,
+    bench_index_map_swap_remove
+);

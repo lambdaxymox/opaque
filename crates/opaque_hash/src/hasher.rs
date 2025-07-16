@@ -1,10 +1,16 @@
-use crate::hasher_inner::{TypeErasedHasherInner, TypeProjectedHasherInner};
-use crate::try_project_hasher_error::{TryProjectHasherError, TryProjectHasherErrorKind};
+use crate::hasher_inner::{
+    TypeErasedHasherInner,
+    TypeProjectedHasherInner,
+};
+use crate::try_project_hasher_error::{
+    TryProjectHasherError,
+    TryProjectHasherErrorKind,
+};
 
+use alloc_crate::boxed::Box;
 use core::any;
 use core::fmt;
 use core::marker;
-use alloc_crate::boxed::Box;
 
 #[cfg(feature = "std")]
 use std::hash;
@@ -112,7 +118,7 @@ where
     pub fn new(hasher: H) -> Self {
         let inner = TypeProjectedHasherInner::new(hasher);
 
-        Self { inner, }
+        Self { inner }
     }
 
     /// Constructs a new type-projected hasher from a boxed hasher.
@@ -143,7 +149,7 @@ where
     pub fn from_boxed_hasher(hasher: Box<H>) -> Self {
         let inner = TypeProjectedHasherInner::from_boxed_hasher(hasher);
 
-        Self { inner, }
+        Self { inner }
     }
 
     /// Returns a reference to the underlying hasher.
@@ -322,7 +328,7 @@ impl TypeErasedHasher {
     /// Determines whether the underlying hasher has the given hasher type.
     ///
     /// Returns `true` if `self` has the specified hasher type. Returns `false` otherwise.
-    /// 
+    ///
     /// # Examples
     ///
     /// ```
@@ -547,7 +553,7 @@ impl TypeErasedHasher {
             return Err(TryProjectHasherError::new(
                 TryProjectHasherErrorKind::Hasher,
                 self.hasher_type_id(),
-                any::TypeId::of::<H>()
+                any::TypeId::of::<H>(),
             ));
         }
 
@@ -591,7 +597,7 @@ impl TypeErasedHasher {
             return Err(TryProjectHasherError::new(
                 TryProjectHasherErrorKind::Hasher,
                 self.hasher_type_id(),
-                any::TypeId::of::<H>()
+                any::TypeId::of::<H>(),
             ));
         }
 
@@ -634,7 +640,7 @@ impl TypeErasedHasher {
             return Err(TryProjectHasherError::new(
                 TryProjectHasherErrorKind::Hasher,
                 self.hasher_type_id(),
-                any::TypeId::of::<H>()
+                any::TypeId::of::<H>(),
             ));
         }
 
@@ -854,7 +860,10 @@ mod hasher_layout_tests {
         let expected = core::mem::align_of::<TypeProjectedHasher<H>>();
         let result = core::mem::align_of::<TypeErasedHasher>();
 
-        assert_eq!(result, expected, "Type Erased and Type Projected data types alignment mismatch");
+        assert_eq!(
+            result, expected,
+            "Type Erased and Type Projected data types alignment mismatch"
+        );
     }
 
     fn run_test_type_erased_hasher_match_offsets<H>()

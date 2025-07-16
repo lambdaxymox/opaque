@@ -1,6 +1,6 @@
+use alloc_crate::boxed::Box;
 use core::any;
 use core::marker;
-use alloc_crate::boxed::Box;
 
 #[cfg(feature = "std")]
 use std::hash;
@@ -90,9 +90,7 @@ where
         debug_assert_eq!(self.hasher_type_id(), any::TypeId::of::<H>());
 
         let any_hasher = self.hasher.as_ref() as &dyn any::Any;
-        let alloc_ref = any_hasher
-            .downcast_ref::<H>()
-            .unwrap();
+        let alloc_ref = any_hasher.downcast_ref::<H>().unwrap();
         let cloned_alloc = alloc_ref.clone();
 
         TypeProjectedHasherInner::new(cloned_alloc)
@@ -136,7 +134,7 @@ impl TypeErasedHasherInner {
 
         Self {
             hasher: boxed_hasher,
-            hasher_type_id: type_id
+            hasher_type_id: type_id,
         }
     }
 
@@ -266,7 +264,10 @@ mod hasher_inner_layout_tests {
         let expected = core::mem::align_of::<TypeProjectedHasherInner<H>>();
         let result = core::mem::align_of::<TypeErasedHasherInner>();
 
-        assert_eq!(result, expected, "Type Erased and Type Projected data types alignment mismatch");
+        assert_eq!(
+            result, expected,
+            "Type Erased and Type Projected data types alignment mismatch"
+        );
     }
 
     fn run_test_type_erased_hasher_match_offsets<H>()

@@ -3,8 +3,8 @@ use opaque_index_map::TypeProjectedIndexMap;
 
 use core::any;
 use core::fmt;
-use std::hash;
 use std::format;
+use std::hash;
 use std::string::String;
 
 #[cfg(feature = "nightly")]
@@ -23,10 +23,7 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let expected = TypeProjectedIndexMap::with_hasher_proj_in(
-        entries.hasher().clone(),
-        entries.allocator().clone(),
-    );
+    let expected = TypeProjectedIndexMap::with_hasher_proj_in(entries.hasher().clone(), entries.allocator().clone());
     let result = {
         let mut map = entries.clone();
         map.clear();

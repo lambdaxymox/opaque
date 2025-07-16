@@ -1,8 +1,8 @@
 use opaque_index_map::map::TypeErasedIndexMap;
 
 use core::any;
-use std::hash;
 use std::cell::RefCell;
+use std::hash;
 use std::rc::Rc;
 
 #[cfg(feature = "nightly")]
@@ -44,11 +44,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let drop_counter = DropCounter::new(Rc::new(RefCell::new(0)));
-    let mut map = TypeErasedIndexMap::with_capacity_and_hasher_in::<usize, DropCounter, S, A>(
-        len,
-        build_hasher,
-        alloc,
-    );
+    let mut map = TypeErasedIndexMap::with_capacity_and_hasher_in::<usize, DropCounter, S, A>(len, build_hasher, alloc);
     for i in 0..len {
         map.insert::<usize, DropCounter, S, A>(i, drop_counter.clone());
     }
@@ -77,16 +73,9 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let (drop_counter, map) = create_drop_counter_index_map_in(
-        length,
-        build_hasher.clone(),
-        alloc.clone(),
-    );
-    let mut taken_map = TypeErasedIndexMap::with_capacity_and_hasher_in::<usize, usize, S, A>(
-        take_count,
-        build_hasher.clone(),
-        alloc.clone(),
-    );
+    let (drop_counter, map) = create_drop_counter_index_map_in(length, build_hasher.clone(), alloc.clone());
+    let mut taken_map =
+        TypeErasedIndexMap::with_capacity_and_hasher_in::<usize, usize, S, A>(take_count, build_hasher.clone(), alloc.clone());
     {
         let mut iterator = map.into_keys::<usize, DropCounter, S, A>();
 

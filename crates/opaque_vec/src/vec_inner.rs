@@ -4,24 +4,27 @@
 //   * Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
 //   * MIT license (http://opensource.org/licenses/MIT)
 // at your option.
-use crate::raw_vec::{TypeErasedRawVec, TypeProjectedRawVec};
 use crate::drain::Drain;
 use crate::extract_if::ExtractIf;
+use crate::raw_vec::{
+    TypeErasedRawVec,
+    TypeProjectedRawVec,
+};
 use crate::splice::Splice;
 
+use alloc_crate::boxed::Box;
+use alloc_crate::vec::Vec;
 use core::any;
 use core::cmp;
 use core::mem;
-use core::ops;
-use core::slice;
-use core::ptr;
-use core::ptr::NonNull;
 use core::mem::{
     ManuallyDrop,
     MaybeUninit,
 };
-use alloc_crate::boxed::Box;
-use alloc_crate::vec::Vec;
+use core::ops;
+use core::ptr;
+use core::ptr::NonNull;
+use core::slice;
 
 #[cfg(feature = "nightly")]
 use alloc_crate::alloc;
@@ -38,9 +41,7 @@ use opaque_error::TryReserveError;
 unsafe fn drop_fn<T>(value: NonNull<u8>) {
     let to_drop = value.as_ptr() as *mut T;
 
-    unsafe {
-        ptr::drop_in_place(to_drop)
-    }
+    unsafe { ptr::drop_in_place(to_drop) }
 }
 
 #[inline(always)]
@@ -96,7 +97,13 @@ where
         let allocator_type_id = any::TypeId::of::<A>();
         let drop_fn = get_drop_fn::<T>();
 
-        Self { data, length, element_type_id, allocator_type_id, drop_fn, }
+        Self {
+            data,
+            length,
+            element_type_id,
+            allocator_type_id,
+            drop_fn,
+        }
     }
 
     #[inline]
@@ -109,7 +116,13 @@ where
         let allocator_type_id = any::TypeId::of::<A>();
         let drop_fn = get_drop_fn::<T>();
 
-        Self { data, length, element_type_id, allocator_type_id, drop_fn, }
+        Self {
+            data,
+            length,
+            element_type_id,
+            allocator_type_id,
+            drop_fn,
+        }
     }
 
     #[inline]
@@ -120,31 +133,55 @@ where
         let allocator_type_id = any::TypeId::of::<A>();
         let drop_fn = get_drop_fn::<T>();
 
-        Ok(Self { data, length, element_type_id, allocator_type_id, drop_fn, })
+        Ok(Self {
+            data,
+            length,
+            element_type_id,
+            allocator_type_id,
+            drop_fn,
+        })
     }
 
     #[inline]
-    pub(crate) unsafe fn from_raw_parts_proj_in(ptr: *mut T, length: usize, capacity: usize, proj_alloc: TypeProjectedAlloc<A>) -> Self {
-        let data = unsafe {
-            TypeProjectedRawVec::from_raw_parts_in(ptr, capacity, proj_alloc)
-        };
+    pub(crate) unsafe fn from_raw_parts_proj_in(
+        ptr: *mut T,
+        length: usize,
+        capacity: usize,
+        proj_alloc: TypeProjectedAlloc<A>,
+    ) -> Self {
+        let data = unsafe { TypeProjectedRawVec::from_raw_parts_in(ptr, capacity, proj_alloc) };
         let element_type_id = any::TypeId::of::<T>();
         let allocator_type_id = any::TypeId::of::<A>();
         let drop_fn = get_drop_fn::<T>();
 
-        Self { data, length, element_type_id, allocator_type_id, drop_fn, }
+        Self {
+            data,
+            length,
+            element_type_id,
+            allocator_type_id,
+            drop_fn,
+        }
     }
 
     #[inline]
-    pub(crate) unsafe fn from_parts_proj_in(ptr: NonNull<T>, length: usize, capacity: usize, proj_alloc: TypeProjectedAlloc<A>) -> Self {
-        let data = unsafe {
-            TypeProjectedRawVec::from_non_null_in(ptr, capacity, proj_alloc)
-        };
+    pub(crate) unsafe fn from_parts_proj_in(
+        ptr: NonNull<T>,
+        length: usize,
+        capacity: usize,
+        proj_alloc: TypeProjectedAlloc<A>,
+    ) -> Self {
+        let data = unsafe { TypeProjectedRawVec::from_non_null_in(ptr, capacity, proj_alloc) };
         let element_type_id = any::TypeId::of::<T>();
         let allocator_type_id = any::TypeId::of::<A>();
         let drop_fn = get_drop_fn::<T>();
 
-        Self { data, length, element_type_id, allocator_type_id, drop_fn, }
+        Self {
+            data,
+            length,
+            element_type_id,
+            allocator_type_id,
+            drop_fn,
+        }
     }
 
     #[inline]
@@ -176,18 +213,14 @@ where
     pub(crate) unsafe fn from_raw_parts_in(ptr: *mut T, length: usize, capacity: usize, alloc: A) -> Self {
         let proj_alloc = TypeProjectedAlloc::new(alloc);
 
-        unsafe {
-            Self::from_raw_parts_proj_in(ptr, length, capacity, proj_alloc)
-        }
+        unsafe { Self::from_raw_parts_proj_in(ptr, length, capacity, proj_alloc) }
     }
 
     #[inline]
     pub(crate) unsafe fn from_parts_in(ptr: NonNull<T>, length: usize, capacity: usize, alloc: A) -> Self {
         let proj_alloc = TypeProjectedAlloc::new(alloc);
 
-        unsafe {
-            Self::from_parts_proj_in(ptr, length, capacity, proj_alloc)
-        }
+        unsafe { Self::from_parts_proj_in(ptr, length, capacity, proj_alloc) }
     }
 }
 
@@ -216,16 +249,12 @@ where
 
     #[inline]
     pub(crate) unsafe fn from_raw_parts(ptr: *mut T, length: usize, capacity: usize) -> Self {
-        unsafe {
-            Self::from_raw_parts_in(ptr, length, capacity, alloc::Global)
-        }
+        unsafe { Self::from_raw_parts_in(ptr, length, capacity, alloc::Global) }
     }
 
     #[inline]
     pub(crate) unsafe fn from_parts(ptr: NonNull<T>, length: usize, capacity: usize) -> Self {
-        unsafe {
-            Self::from_parts_in(ptr, length, capacity, alloc::Global)
-        }
+        unsafe { Self::from_parts_in(ptr, length, capacity, alloc::Global) }
     }
 }
 
@@ -304,9 +333,7 @@ where
         debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
         debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
 
-        unsafe {
-            self.as_slice().get_unchecked(index)
-        }
+        unsafe { self.as_slice().get_unchecked(index) }
     }
 
     #[inline]
@@ -318,9 +345,7 @@ where
         debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
         debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
 
-        unsafe {
-            self.as_mut_slice().get_unchecked_mut(index)
-        }
+        unsafe { self.as_mut_slice().get_unchecked_mut(index) }
     }
 
     #[inline]
@@ -370,7 +395,9 @@ where
         #[track_caller]
         #[cfg_attr(feature = "nightly", optimize(size))]
         fn index_out_of_bounds_failure(index: usize, length: usize) -> ! {
-            panic!("replace_insert index out of bounds: Got index `{index}`. Need index `{index}` <= len, where len is `{length}`.");
+            panic!(
+                "replace_insert index out of bounds: Got index `{index}`. Need index `{index}` <= len, where len is `{length}`."
+            );
         }
 
         let length = self.len();
@@ -410,7 +437,9 @@ where
         #[track_caller]
         #[cfg_attr(feature = "nightly", optimize(size))]
         fn index_out_of_bounds_failure(index: usize, length: usize) -> ! {
-            panic!("shift_insert index out of bounds: Got index `{index}`. Need index `{index}` <= len, where len is `{length}`.");
+            panic!(
+                "shift_insert index out of bounds: Got index `{index}`. Need index `{index}` <= len, where len is `{length}`."
+            );
         }
 
         let length = self.len();
@@ -795,9 +824,7 @@ where
         let count = other.len();
         self.reserve(count);
         let length = self.len();
-        unsafe {
-            ptr::copy_nonoverlapping(other as *const T, self.as_mut_ptr().add(length), count)
-        };
+        unsafe { ptr::copy_nonoverlapping(other as *const T, self.as_mut_ptr().add(length), count) };
 
         self.length += count;
     }
@@ -1370,7 +1397,7 @@ where
     pub(crate) fn splice<R, I>(&mut self, range: R, replace_with: I) -> Splice<'_, I::IntoIter, A>
     where
         R: ops::RangeBounds<usize>,
-        I: IntoIterator<Item=T>,
+        I: IntoIterator<Item = T>,
     {
         debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
         debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
@@ -1394,7 +1421,7 @@ where
     pub(crate) fn truncate(&mut self, len: usize) {
         debug_assert_eq!(self.element_type_id(), any::TypeId::of::<T>());
         debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
-        
+
         if len > self.len() {
             return;
         }
@@ -1537,9 +1564,7 @@ where
             let _ptr: NonNull<T> = unsafe { NonNull::new_unchecked(slice_ptr.as_ptr() as *mut T) };
             (_ptr, _alloc)
         };
-        let vec = unsafe {
-            TypeProjectedVecInner::from_parts_proj_in(ptr, length, capacity, alloc)
-        };
+        let vec = unsafe { TypeProjectedVecInner::from_parts_proj_in(ptr, length, capacity, alloc) };
 
         vec
     }
@@ -1623,9 +1648,7 @@ where
     fn from(vec: Vec<T, A>) -> Self {
         let (ptr, length, capacity, alloc) = vec.into_parts_with_alloc();
 
-        unsafe {
-            TypeProjectedVecInner::from_parts_in(ptr, length, capacity, alloc)
-        }
+        unsafe { TypeProjectedVecInner::from_parts_in(ptr, length, capacity, alloc) }
     }
 }
 
@@ -1640,9 +1663,7 @@ where
         let length = vec.len();
         let capacity = vec.capacity();
 
-        unsafe {
-            TypeProjectedVecInner::from_raw_parts(ptr, length, capacity)
-        }
+        unsafe { TypeProjectedVecInner::from_raw_parts(ptr, length, capacity) }
     }
 }
 
@@ -1720,9 +1741,7 @@ where
         let capacity = me.len();
         let ptr = me.as_mut_ptr();
 
-        unsafe {
-            Self::from_raw_parts(ptr, len, capacity)
-        }
+        unsafe { Self::from_raw_parts(ptr, len, capacity) }
     }
 }
 
@@ -1902,8 +1921,8 @@ impl Drop for TypeErasedVecInner {
 
 mod dummy {
     use super::*;
-    use core::ptr::NonNull;
     use core::marker;
+    use core::ptr::NonNull;
 
     #[allow(dead_code)]
     pub(super) struct DummyAlloc {
@@ -1974,7 +1993,10 @@ mod vec_inner_layout_tests {
         let expected = mem::align_of::<TypeProjectedVecInner<T, A>>();
         let result = mem::align_of::<TypeErasedVecInner>();
 
-        assert_eq!(result, expected, "Type Erased and Type Projected data types alignment mismatch");
+        assert_eq!(
+            result, expected,
+            "Type Erased and Type Projected data types alignment mismatch"
+        );
     }
 
     fn run_test_type_erased_vec_inner_match_offsets<T, A>()
@@ -2038,17 +2060,33 @@ mod vec_inner_layout_tests {
     layout_tests!(u32_global, u32, alloc::Global);
     layout_tests!(u64_global, u64, alloc::Global);
     layout_tests!(tangent_space_global, layout_testing_types::TangentSpace, alloc::Global);
-    layout_tests!(surface_differential_global, layout_testing_types::SurfaceDifferential, alloc::Global);
+    layout_tests!(
+        surface_differential_global,
+        layout_testing_types::SurfaceDifferential,
+        alloc::Global
+    );
     layout_tests!(oct_tree_node_global, layout_testing_types::OctTreeNode, alloc::Global);
 
     layout_tests!(unit_zst_dummy_alloc, (), dummy::DummyAlloc);
-    layout_tests!(u8_dummy_alloc,  u8, dummy::DummyAlloc);
+    layout_tests!(u8_dummy_alloc, u8, dummy::DummyAlloc);
     layout_tests!(u16_dummy_alloc, u16, dummy::DummyAlloc);
     layout_tests!(u32_dummy_alloc, u32, dummy::DummyAlloc);
     layout_tests!(u64_dummy_alloc, u64, dummy::DummyAlloc);
-    layout_tests!(tangent_space_dummy_alloc, layout_testing_types::TangentSpace, dummy::DummyAlloc);
-    layout_tests!(surface_differential_dummy_alloc, layout_testing_types::SurfaceDifferential, dummy::DummyAlloc);
-    layout_tests!(oct_tree_node_dummy_alloc, layout_testing_types::OctTreeNode, dummy::DummyAlloc);
+    layout_tests!(
+        tangent_space_dummy_alloc,
+        layout_testing_types::TangentSpace,
+        dummy::DummyAlloc
+    );
+    layout_tests!(
+        surface_differential_dummy_alloc,
+        layout_testing_types::SurfaceDifferential,
+        dummy::DummyAlloc
+    );
+    layout_tests!(
+        oct_tree_node_dummy_alloc,
+        layout_testing_types::OctTreeNode,
+        dummy::DummyAlloc
+    );
 }
 
 #[cfg(test)]

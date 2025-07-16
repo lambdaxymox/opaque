@@ -6,10 +6,10 @@ use opaque_index_map::TypeErasedIndexSet;
 
 use core::any;
 use core::fmt;
-use std::hash;
-use std::vec::Vec;
 use std::format;
+use std::hash;
 use std::string::String;
+use std::vec::Vec;
 
 #[cfg(feature = "nightly")]
 use std::alloc;
@@ -26,11 +26,10 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
-    strategy_type_erased_index_set_max_len_nonempty::<T, S, A>(max_length + 1)
-        .prop_map(move |mut set| {
-            let new_entry = set.pop::<T, S, A>().unwrap();
-            (set, new_entry)
-        })
+    strategy_type_erased_index_set_max_len_nonempty::<T, S, A>(max_length + 1).prop_map(move |mut set| {
+        let new_entry = set.pop::<T, S, A>().unwrap();
+        (set, new_entry)
+    })
 }
 
 fn prop_insert_preserves_order_new_entry<T, S, A>((entries, new_entry): (TypeErasedIndexSet, T)) -> Result<(), TestCaseError>

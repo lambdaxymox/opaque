@@ -3,8 +3,11 @@ use opaque_index_map::TypeErasedIndexSet;
 
 use core::any;
 use core::fmt;
-use std::{format, hash};
 use std::string::String;
+use std::{
+    format,
+    hash,
+};
 
 #[cfg(feature = "nightly")]
 use std::alloc;

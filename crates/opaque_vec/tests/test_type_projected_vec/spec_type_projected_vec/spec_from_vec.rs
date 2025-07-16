@@ -1,9 +1,9 @@
 use crate::common::projected::strategy_type_projected_vec_max_len;
 use opaque_vec::TypeProjectedVec;
 
+use alloc_crate::vec::Vec;
 use core::any;
 use core::fmt;
-use alloc_crate::vec::Vec;
 use std::format;
 use std::string::String;
 
@@ -64,8 +64,7 @@ macro_rules! generate_props {
     ($module_name:ident, $typ:ty, $alloc_typ:ty, $max_length:expr, $vec_gen:ident) => {
         mod $module_name {
             use super::*;
-            proptest! {
-            }
+            proptest! {}
         }
     };
 }

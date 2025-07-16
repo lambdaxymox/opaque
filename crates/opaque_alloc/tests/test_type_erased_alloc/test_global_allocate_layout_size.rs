@@ -1,7 +1,7 @@
 use opaque_alloc::TypeErasedAlloc;
 
-use core::any;
 use alloc_crate::format;
+use core::any;
 
 #[cfg(feature = "nightly")]
 use alloc_crate::alloc;

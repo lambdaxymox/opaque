@@ -3,8 +3,11 @@ use opaque_index_map::TypeProjectedIndexSet;
 
 use core::any;
 use core::fmt;
-use std::{format, hash};
 use std::string::String;
+use std::{
+    format,
+    hash,
+};
 
 #[cfg(feature = "nightly")]
 use std::alloc;
@@ -23,10 +26,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let mut remaining = entries.clone();
-    let mut extracted = TypeProjectedIndexSet::with_hasher_proj_in(
-        entries.hasher().clone(),
-        entries.allocator().clone(),
-    );
+    let mut extracted = TypeProjectedIndexSet::with_hasher_proj_in(entries.hasher().clone(), entries.allocator().clone());
     for value in remaining.extract_if(.., |v| filter(v)) {
         extracted.shift_insert(extracted.len(), value);
     }
@@ -45,10 +45,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let mut remaining = entries.clone();
-    let mut extracted = TypeProjectedIndexSet::with_hasher_proj_in(
-        entries.hasher().clone(),
-        entries.allocator().clone(),
-    );
+    let mut extracted = TypeProjectedIndexSet::with_hasher_proj_in(entries.hasher().clone(), entries.allocator().clone());
     for value in remaining.extract_if(.., |v| filter(v)) {
         extracted.shift_insert(extracted.len(), value);
     }
@@ -69,10 +66,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let mut remaining = entries.clone();
-    let mut extracted = TypeProjectedIndexSet::with_hasher_proj_in(
-        entries.hasher().clone(),
-        entries.allocator().clone(),
-    );
+    let mut extracted = TypeProjectedIndexSet::with_hasher_proj_in(entries.hasher().clone(), entries.allocator().clone());
     for value in remaining.extract_if(.., |v| filter(v)) {
         extracted.shift_insert(extracted.len(), value);
     }

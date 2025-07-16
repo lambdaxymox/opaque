@@ -8,8 +8,8 @@ use crate::vec_inner::TypeProjectedVecInner;
 
 use core::any;
 use core::fmt;
-use core::slice;
 use core::ops;
+use core::slice;
 
 #[cfg(feature = "nightly")]
 use alloc_crate::alloc;

@@ -4,13 +4,16 @@
 //   * Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
 //   * MIT license (http://opensource.org/licenses/MIT)
 // at your option.
+use alloc_crate::boxed::Box;
 use core::any;
 use core::marker;
 use core::mem;
-use core::mem::{ManuallyDrop, MaybeUninit};
+use core::mem::{
+    ManuallyDrop,
+    MaybeUninit,
+};
 use core::ptr;
 use core::ptr::NonNull;
-use alloc_crate::boxed::Box;
 
 #[cfg(feature = "nightly")]
 use alloc_crate::alloc;
@@ -18,9 +21,15 @@ use alloc_crate::alloc;
 #[cfg(not(feature = "nightly"))]
 use opaque_allocator_api::alloc;
 
+use opaque_alloc::{
+    TypeErasedAlloc,
+    TypeProjectedAlloc,
+};
+use opaque_error::{
+    TryReserveError,
+    TryReserveErrorKind,
+};
 use opaque_polyfill::range_types::UsizeNoHighBit;
-use opaque_alloc::{TypeErasedAlloc, TypeProjectedAlloc};
-use opaque_error::{TryReserveError, TryReserveErrorKind};
 
 // One central function responsible for reporting capacity overflows. This will
 // ensure that the code generation related to these panics is minimal as there's
@@ -136,9 +145,7 @@ fn layout_array(capacity: usize, element_layout: alloc::Layout) -> Result<alloc:
 #[inline]
 fn alloc_guard(alloc_size: usize) -> Result<(), TryReserveError> {
     if usize::BITS < 64 && alloc_size > isize::MAX as usize {
-        Err(TryReserveError::from(
-            TryReserveErrorKind::CapacityOverflow,
-        ))
+        Err(TryReserveError::from(TryReserveErrorKind::CapacityOverflow))
     } else {
         Ok(())
     }
@@ -258,7 +265,10 @@ where
         let element_layout = alloc::Layout::new::<T>();
 
         match RawVecMemory::try_with_capacity_in(capacity, alloc, element_layout) {
-            Ok(inner) => Ok(Self { inner, _marker: marker::PhantomData }),
+            Ok(inner) => Ok(Self {
+                inner,
+                _marker: marker::PhantomData,
+            }),
             Err(e) => Err(e),
         }
     }
@@ -316,7 +326,7 @@ where
 
             Self {
                 inner: RawVecMemory::from_non_null_in(ptr, capacity, element_layout, alloc),
-                _marker: marker::PhantomData
+                _marker: marker::PhantomData,
             }
         }
     }
@@ -343,11 +353,7 @@ where
         self.inner.grow_one(alloc::Layout::new::<T>())
     }
 
-    pub(crate) fn try_reserve(
-        &mut self,
-        len: usize,
-        additional: usize,
-    ) -> Result<(), TryReserveError> {
+    pub(crate) fn try_reserve(&mut self, len: usize, additional: usize) -> Result<(), TryReserveError> {
         debug_assert_eq!(self.inner.allocator_type_id(), any::TypeId::of::<A>());
 
         self.inner.try_reserve(len, additional, alloc::Layout::new::<T>())
@@ -360,11 +366,7 @@ where
         self.inner.reserve_exact(len, additional, alloc::Layout::new::<T>())
     }
 
-    pub(crate) fn try_reserve_exact(
-        &mut self,
-        len: usize,
-        additional: usize,
-    ) -> Result<(), TryReserveError> {
+    pub(crate) fn try_reserve_exact(&mut self, len: usize, additional: usize) -> Result<(), TryReserveError> {
         debug_assert_eq!(self.inner.allocator_type_id(), any::TypeId::of::<A>());
 
         self.inner.try_reserve_exact(len, additional, alloc::Layout::new::<T>())
@@ -490,7 +492,11 @@ impl RawVecMemory {
 
     #[inline]
     const fn capacity(&self, element_size: usize) -> usize {
-        if element_size == 0 { usize::MAX } else { self.capacity.as_inner() }
+        if element_size == 0 {
+            usize::MAX
+        } else {
+            self.capacity.as_inner()
+        }
     }
 }
 
@@ -532,7 +538,12 @@ impl RawVecMemory {
         }
     }
 
-    fn try_allocate_in<A>(capacity: usize, init: AllocInit, proj_alloc: TypeProjectedAlloc<A>, element_layout: alloc::Layout) -> Result<Self, TryReserveError>
+    fn try_allocate_in<A>(
+        capacity: usize,
+        init: AllocInit,
+        proj_alloc: TypeProjectedAlloc<A>,
+        element_layout: alloc::Layout,
+    ) -> Result<Self, TryReserveError>
     where
         A: any::Any + alloc::Allocator + Send + Sync,
     {
@@ -543,9 +554,7 @@ impl RawVecMemory {
         let layout = match layout_array(capacity, element_layout) {
             Ok(layout) => layout,
             Err(_) => {
-                return Err(TryReserveError::from(
-                    TryReserveErrorKind::CapacityOverflow,
-                ));
+                return Err(TryReserveError::from(TryReserveErrorKind::CapacityOverflow));
             }
         };
 
@@ -580,7 +589,11 @@ impl RawVecMemory {
     }
 
     #[inline]
-    fn try_with_capacity_in<A>(capacity: usize, proj_alloc: TypeProjectedAlloc<A>, element_layout: alloc::Layout) -> Result<Self, TryReserveError>
+    fn try_with_capacity_in<A>(
+        capacity: usize,
+        proj_alloc: TypeProjectedAlloc<A>,
+        element_layout: alloc::Layout,
+    ) -> Result<Self, TryReserveError>
     where
         A: any::Any + alloc::Allocator + Send + Sync,
     {
@@ -618,7 +631,12 @@ impl RawVecMemory {
     }
 
     #[inline]
-    unsafe fn from_raw_parts_in<A>(ptr: *mut u8, capacity: Capacity, element_layout: alloc::Layout, proj_alloc: TypeProjectedAlloc<A>) -> Self
+    unsafe fn from_raw_parts_in<A>(
+        ptr: *mut u8,
+        capacity: Capacity,
+        element_layout: alloc::Layout,
+        proj_alloc: TypeProjectedAlloc<A>,
+    ) -> Self
     where
         A: any::Any + alloc::Allocator + Send + Sync,
     {
@@ -633,7 +651,12 @@ impl RawVecMemory {
     }
 
     #[inline]
-    unsafe fn from_non_null_in<A>(ptr: NonNull<u8>, capacity: Capacity, element_layout: alloc::Layout, proj_alloc: TypeProjectedAlloc<A>) -> Self
+    unsafe fn from_non_null_in<A>(
+        ptr: NonNull<u8>,
+        capacity: Capacity,
+        element_layout: alloc::Layout,
+        proj_alloc: TypeProjectedAlloc<A>,
+    ) -> Self
     where
         A: any::Any + alloc::Allocator + Send + Sync,
     {
@@ -669,12 +692,7 @@ impl RawVecMemory {
         }
     }
 
-    fn try_reserve(
-        &mut self,
-        len: usize,
-        additional: usize,
-        element_layout: alloc::Layout,
-    ) -> Result<(), TryReserveError> {
+    fn try_reserve(&mut self, len: usize, additional: usize, element_layout: alloc::Layout) -> Result<(), TryReserveError> {
         debug_assert_eq!(self.element_layout(), element_layout);
 
         if self.needs_to_grow(len, additional, element_layout) {
@@ -687,12 +705,7 @@ impl RawVecMemory {
         Ok(())
     }
 
-    fn try_reserve_exact(
-        &mut self,
-        len: usize,
-        additional: usize,
-        element_layout: alloc::Layout,
-    ) -> Result<(), TryReserveError> {
+    fn try_reserve_exact(&mut self, len: usize, additional: usize, element_layout: alloc::Layout) -> Result<(), TryReserveError> {
         debug_assert_eq!(self.element_layout(), element_layout);
 
         if self.needs_to_grow(len, additional, element_layout) {
@@ -771,15 +784,11 @@ impl RawVecMemory {
         if element_layout.size() == 0 {
             // Since we return a capacity of `usize::MAX` when `elem_size` is
             // 0, getting to here necessarily means the `RawVec` is overfull.
-            return Err(TryReserveError::from(
-                TryReserveErrorKind::CapacityOverflow,
-            ));
+            return Err(TryReserveError::from(TryReserveErrorKind::CapacityOverflow));
         }
 
         // Nothing we can really do about these checks, sadly.
-        let required_capacity = length
-            .checked_add(additional)
-            .ok_or(TryReserveErrorKind::CapacityOverflow)?;
+        let required_capacity = length.checked_add(additional).ok_or(TryReserveErrorKind::CapacityOverflow)?;
 
         // This guarantees exponential growth. The doubling cannot overflow
         // because `capacity <= isize::MAX` and the type of `capacity` is `usize`.
@@ -802,14 +811,12 @@ impl RawVecMemory {
         if element_layout.size() == 0 {
             // Since we return a capacity of `usize::MAX` when the type size is
             // 0, getting to here necessarily means the `RawVec` is overfull.
-            return Err(TryReserveError::from(
-                TryReserveErrorKind::CapacityOverflow,
-            ));
+            return Err(TryReserveError::from(TryReserveErrorKind::CapacityOverflow));
         }
 
-        let capacity = len.checked_add(additional).ok_or(TryReserveError::from(
-            TryReserveErrorKind::CapacityOverflow,
-        ))?;
+        let capacity = len
+            .checked_add(additional)
+            .ok_or(TryReserveError::from(TryReserveErrorKind::CapacityOverflow))?;
         let new_layout = layout_array(capacity, element_layout)?;
 
         let ptr = finish_grow(new_layout, self.current_memory(element_layout), &mut self.alloc)?;
@@ -983,7 +990,10 @@ mod raw_vec_layout_tests {
         let expected = mem::align_of::<TypeProjectedRawVec<T, A>>();
         let result = mem::align_of::<TypeErasedRawVec>();
 
-        assert_eq!(result, expected, "Type Erased and Type Projected data types alignment mismatch");
+        assert_eq!(
+            result, expected,
+            "Type Erased and Type Projected data types alignment mismatch"
+        );
     }
 
     fn run_test_type_erased_raw_vec_match_offsets<T, A>()
@@ -1026,17 +1036,33 @@ mod raw_vec_layout_tests {
     layout_tests!(u32_global, u32, alloc::Global);
     layout_tests!(u64_global, u64, alloc::Global);
     layout_tests!(tangent_space_global, layout_testing_types::TangentSpace, alloc::Global);
-    layout_tests!(surface_differential_global, layout_testing_types::SurfaceDifferential, alloc::Global);
+    layout_tests!(
+        surface_differential_global,
+        layout_testing_types::SurfaceDifferential,
+        alloc::Global
+    );
     layout_tests!(oct_tree_node_global, layout_testing_types::OctTreeNode, alloc::Global);
 
     layout_tests!(unit_zst_dummy_alloc, (), dummy::DummyAlloc);
-    layout_tests!(u8_dummy_alloc,  u8, dummy::DummyAlloc);
+    layout_tests!(u8_dummy_alloc, u8, dummy::DummyAlloc);
     layout_tests!(u16_dummy_alloc, u16, dummy::DummyAlloc);
     layout_tests!(u32_dummy_alloc, u32, dummy::DummyAlloc);
     layout_tests!(u64_dummy_alloc, u64, dummy::DummyAlloc);
-    layout_tests!(tangent_space_dummy_alloc, layout_testing_types::TangentSpace, dummy::DummyAlloc);
-    layout_tests!(surface_differential_dummy_alloc, layout_testing_types::SurfaceDifferential, dummy::DummyAlloc);
-    layout_tests!(oct_tree_node_dummy_alloc, layout_testing_types::OctTreeNode, dummy::DummyAlloc);
+    layout_tests!(
+        tangent_space_dummy_alloc,
+        layout_testing_types::TangentSpace,
+        dummy::DummyAlloc
+    );
+    layout_tests!(
+        surface_differential_dummy_alloc,
+        layout_testing_types::SurfaceDifferential,
+        dummy::DummyAlloc
+    );
+    layout_tests!(
+        oct_tree_node_dummy_alloc,
+        layout_testing_types::OctTreeNode,
+        dummy::DummyAlloc
+    );
 }
 
 #[cfg(test)]

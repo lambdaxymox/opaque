@@ -4,10 +4,10 @@ use opaque_index_map::TypeErasedIndexMap;
 use core::any;
 use core::cmp;
 use core::fmt;
-use std::hash;
-use std::vec::Vec;
 use std::format;
+use std::hash;
 use std::string::String;
+use std::vec::Vec;
 
 #[cfg(feature = "nightly")]
 use std::alloc;
@@ -48,10 +48,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let map = entries.clone::<K, V, S, A>();
-    let sorted_map: TypeErasedIndexMap = from_sorted_unstable_by_in::<_, K, V, S, A>(
-        &entries,
-        |_k1, v1, _k2, v2| { v1.cmp(v2) },
-    );
+    let sorted_map: TypeErasedIndexMap = from_sorted_unstable_by_in::<_, K, V, S, A>(&entries, |_k1, v1, _k2, v2| v1.cmp(v2));
 
     for key in map.keys::<K, V, S, A>() {
         prop_assert!(sorted_map.contains_key::<_, K, V, S, A>(key));
@@ -73,10 +70,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let map = entries.clone::<K, V, S, A>();
-    let sorted_map: TypeErasedIndexMap = from_sorted_unstable_by_in::<_, K, V, S, A>(
-        &entries,
-        |_k1, v1, _k2, v2| { v1.cmp(v2) },
-    );
+    let sorted_map: TypeErasedIndexMap = from_sorted_unstable_by_in::<_, K, V, S, A>(&entries, |_k1, v1, _k2, v2| v1.cmp(v2));
 
     for key in map.keys::<K, V, S, A>() {
         let expected = map.get::<_, K, V, S, A>(key);
@@ -97,10 +91,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let map = entries.clone::<K, V, S, A>();
-    let sorted_map: TypeErasedIndexMap = from_sorted_unstable_by_in::<_, K, V, S, A>(
-        &entries,
-        |_k1, v1, _k2, v2| { v1.cmp(v2) },
-    );
+    let sorted_map: TypeErasedIndexMap = from_sorted_unstable_by_in::<_, K, V, S, A>(&entries, |_k1, v1, _k2, v2| v1.cmp(v2));
 
     for key in sorted_map.keys::<K, V, S, A>() {
         let expected = sorted_map.get::<_, K, V, S, A>(key);
@@ -121,10 +112,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let map = entries.clone::<K, V, S, A>();
-    let sorted_map: TypeErasedIndexMap = from_sorted_unstable_by_in::<_, K, V, S, A>(
-        &entries,
-        |_k1, v1, _k2, v2| { v1.cmp(v2) },
-    );
+    let sorted_map: TypeErasedIndexMap = from_sorted_unstable_by_in::<_, K, V, S, A>(&entries, |_k1, v1, _k2, v2| v1.cmp(v2));
 
     for key in map.keys::<K, V, S, A>() {
         let expected = map.get_key_value::<_, K, V, S, A>(key);
@@ -145,10 +133,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let map = entries.clone::<K, V, S, A>();
-    let sorted_map: TypeErasedIndexMap = from_sorted_unstable_by_in::<_, K, V, S, A>(
-        &entries,
-        |_k1, v1, _k2, v2| { v1.cmp(v2) },
-    );
+    let sorted_map: TypeErasedIndexMap = from_sorted_unstable_by_in::<_, K, V, S, A>(&entries, |_k1, v1, _k2, v2| v1.cmp(v2));
 
     for key in sorted_map.keys::<K, V, S, A>() {
         let expected = sorted_map.get_key_value::<_, K, V, S, A>(key);
@@ -169,10 +154,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let map = entries.clone::<K, V, S, A>();
-    let sorted_map: TypeErasedIndexMap = from_sorted_unstable_by_in::<_, K, V, S, A>(
-        &entries,
-        |_k1, v1, _k2, v2| { v1.cmp(v2) },
-    );
+    let sorted_map: TypeErasedIndexMap = from_sorted_unstable_by_in::<_, K, V, S, A>(&entries, |_k1, v1, _k2, v2| v1.cmp(v2));
 
     prop_assert_eq!(sorted_map.len(), map.len());
 
@@ -187,10 +169,7 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let sorted_map: TypeErasedIndexMap = from_sorted_unstable_by_in::<_, K, V, S, A>(
-        &entries,
-        |_k1, v1, _k2, v2| { v1.cmp(v2) },
-    );
+    let sorted_map: TypeErasedIndexMap = from_sorted_unstable_by_in::<_, K, V, S, A>(&entries, |_k1, v1, _k2, v2| v1.cmp(v2));
 
     let values: Vec<V> = sorted_map.values::<K, V, S, A>().cloned().collect();
     for i in 1..values.len() {

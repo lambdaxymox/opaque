@@ -43,4 +43,8 @@ fn bench_type_projected_index_map_get_full(c: &mut Criterion) {
     });
 }
 
-criterion_group!(bench_get_full, bench_type_projected_index_map_get_full, bench_index_map_get_full);
+criterion_group!(
+    bench_get_full,
+    bench_type_projected_index_map_get_full,
+    bench_index_map_get_full
+);

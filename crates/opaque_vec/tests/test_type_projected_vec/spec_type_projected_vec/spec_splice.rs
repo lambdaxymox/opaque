@@ -1,4 +1,7 @@
-use crate::common::projected::{SingleBoundedValue, strategy_type_projected_vec_len};
+use crate::common::projected::{
+    SingleBoundedValue,
+    strategy_type_projected_vec_len,
+};
 use opaque_vec::TypeProjectedVec;
 
 use core::any;
@@ -21,7 +24,7 @@ fn strategy_vec_range(max_length: usize) -> impl Strategy<Value = ops::Range<usi
 
 fn strategy_prop_splice_equivalent_to_drain_and_shift_insert<T, A>(
     max_length: usize,
-    max_splice_length: usize
+    max_splice_length: usize,
 ) -> impl Strategy<Value = (TypeProjectedVec<T, A>, ops::Range<usize>, TypeProjectedVec<T, A>)>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug + Arbitrary + SingleBoundedValue,
@@ -39,7 +42,7 @@ where
 fn prop_splice_equivalent_to_drain_and_shift_insert<T, A>(
     values: TypeProjectedVec<T, A>,
     range: ops::Range<usize>,
-    splice_values: TypeProjectedVec<T, A>
+    splice_values: TypeProjectedVec<T, A>,
 ) -> Result<(), TestCaseError>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
@@ -66,7 +69,11 @@ where
     Ok(())
 }
 
-fn prop_splice_len<T, A>(values: TypeProjectedVec<T, A>, range: ops::Range<usize>, splice_values: TypeProjectedVec<T, A>) -> Result<(), TestCaseError>
+fn prop_splice_len<T, A>(
+    values: TypeProjectedVec<T, A>,
+    range: ops::Range<usize>,
+    splice_values: TypeProjectedVec<T, A>,
+) -> Result<(), TestCaseError>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
@@ -114,10 +121,59 @@ macro_rules! generate_props {
     };
 }
 
-generate_props!(unit, (), alloc::Global, 32, 16, strategy_prop_splice_equivalent_to_drain_and_shift_insert);
-generate_props!(u8, u8, alloc::Global, 32, 16, strategy_prop_splice_equivalent_to_drain_and_shift_insert);
-generate_props!(u16, u16, alloc::Global, 32, 16, strategy_prop_splice_equivalent_to_drain_and_shift_insert);
-generate_props!(u32, u32, alloc::Global, 32, 16, strategy_prop_splice_equivalent_to_drain_and_shift_insert);
-generate_props!(u64, u64, alloc::Global, 32, 16, strategy_prop_splice_equivalent_to_drain_and_shift_insert);
-generate_props!(usize, usize, alloc::Global, 32, 16, strategy_prop_splice_equivalent_to_drain_and_shift_insert);
-generate_props!(string, String, alloc::Global, 32, 16, strategy_prop_splice_equivalent_to_drain_and_shift_insert);
+generate_props!(
+    unit,
+    (),
+    alloc::Global,
+    32,
+    16,
+    strategy_prop_splice_equivalent_to_drain_and_shift_insert
+);
+generate_props!(
+    u8,
+    u8,
+    alloc::Global,
+    32,
+    16,
+    strategy_prop_splice_equivalent_to_drain_and_shift_insert
+);
+generate_props!(
+    u16,
+    u16,
+    alloc::Global,
+    32,
+    16,
+    strategy_prop_splice_equivalent_to_drain_and_shift_insert
+);
+generate_props!(
+    u32,
+    u32,
+    alloc::Global,
+    32,
+    16,
+    strategy_prop_splice_equivalent_to_drain_and_shift_insert
+);
+generate_props!(
+    u64,
+    u64,
+    alloc::Global,
+    32,
+    16,
+    strategy_prop_splice_equivalent_to_drain_and_shift_insert
+);
+generate_props!(
+    usize,
+    usize,
+    alloc::Global,
+    32,
+    16,
+    strategy_prop_splice_equivalent_to_drain_and_shift_insert
+);
+generate_props!(
+    string,
+    String,
+    alloc::Global,
+    32,
+    16,
+    strategy_prop_splice_equivalent_to_drain_and_shift_insert
+);

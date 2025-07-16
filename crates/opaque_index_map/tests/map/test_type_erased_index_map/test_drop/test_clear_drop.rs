@@ -1,8 +1,8 @@
 use opaque_index_map::map::TypeErasedIndexMap;
 
 use core::any;
-use std::hash;
 use std::cell::RefCell;
+use std::hash;
 use std::rc::Rc;
 
 #[cfg(feature = "nightly")]

@@ -1,11 +1,17 @@
+use crate::build_hasher_inner::{
+    TypeErasedBuildHasherInner,
+    TypeProjectedBuildHasherInner,
+};
 use crate::hasher::TypeProjectedHasher;
-use crate::build_hasher_inner::{TypeErasedBuildHasherInner, TypeProjectedBuildHasherInner};
-use crate::try_project_build_hasher_error::{TryProjectBuildHasherError, TryProjectBuildHasherErrorKind};
+use crate::try_project_build_hasher_error::{
+    TryProjectBuildHasherError,
+    TryProjectBuildHasherErrorKind,
+};
 
+use alloc_crate::boxed::Box;
 use core::any;
 use core::fmt;
 use core::marker;
-use alloc_crate::boxed::Box;
 
 #[cfg(feature = "std")]
 use std::hash;
@@ -146,7 +152,7 @@ where
     pub fn new(build_hasher: S) -> Self {
         let inner = TypeProjectedBuildHasherInner::new(build_hasher);
 
-        Self { inner, }
+        Self { inner }
     }
 
     /// Constructs a new type-projected hash builder from a boxed hash builder.
@@ -169,7 +175,7 @@ where
     pub fn from_boxed_build_hasher(build_hasher: Box<S>) -> Self {
         let inner = TypeProjectedBuildHasherInner::from_boxed_build_hasher(build_hasher);
 
-        Self { inner, }
+        Self { inner }
     }
 
     /// Returns a reference to the underlying hash builder.
@@ -681,7 +687,7 @@ impl TypeErasedBuildHasher {
             return Err(TryProjectBuildHasherError::new(
                 TryProjectBuildHasherErrorKind::BuildHasher,
                 self.build_hasher_type_id(),
-                any::TypeId::of::<S>()
+                any::TypeId::of::<S>(),
             ));
         }
 
@@ -727,7 +733,7 @@ impl TypeErasedBuildHasher {
             return Err(TryProjectBuildHasherError::new(
                 TryProjectBuildHasherErrorKind::BuildHasher,
                 self.build_hasher_type_id(),
-                any::TypeId::of::<S>()
+                any::TypeId::of::<S>(),
             ));
         }
 
@@ -772,7 +778,7 @@ impl TypeErasedBuildHasher {
             return Err(TryProjectBuildHasherError::new(
                 TryProjectBuildHasherErrorKind::BuildHasher,
                 self.build_hasher_type_id(),
-                any::TypeId::of::<S>()
+                any::TypeId::of::<S>(),
             ));
         }
 
@@ -1055,7 +1061,10 @@ mod build_hasher_layout_tests {
         let expected = mem::align_of::<TypeProjectedBuildHasher<S>>();
         let result = mem::align_of::<TypeErasedBuildHasher>();
 
-        assert_eq!(result, expected, "Type Erased and Type Projected data types alignment mismatch");
+        assert_eq!(
+            result, expected,
+            "Type Erased and Type Projected data types alignment mismatch"
+        );
     }
 
     fn run_test_type_erased_build_hasher_match_offsets<S>()

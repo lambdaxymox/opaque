@@ -1,24 +1,30 @@
-use crate::into_iter::IntoIter;
 use crate::drain::Drain;
 use crate::extract_if::ExtractIf;
+use crate::into_iter::IntoIter;
 use crate::splice::Splice;
-use crate::vec_inner::{TypeErasedVecInner, TypeProjectedVecInner};
-use crate::try_project_vec_error::{TryProjectVecErrorKind, TryProjectVecError};
+use crate::try_project_vec_error::{
+    TryProjectVecError,
+    TryProjectVecErrorKind,
+};
+use crate::vec_inner::{
+    TypeErasedVecInner,
+    TypeProjectedVecInner,
+};
 
+use alloc_crate::borrow;
+use alloc_crate::boxed::Box;
+use alloc_crate::vec::Vec;
 use core::any;
 use core::cmp;
-use core::hash;
-use core::ops;
-use core::slice;
 use core::fmt;
-use core::ptr::NonNull;
+use core::hash;
 use core::mem::{
     ManuallyDrop,
     MaybeUninit,
 };
-use alloc_crate::borrow;
-use alloc_crate::boxed::Box;
-use alloc_crate::vec::Vec;
+use core::ops;
+use core::ptr::NonNull;
+use core::slice;
 
 #[cfg(feature = "nightly")]
 use alloc_crate::alloc;
@@ -281,7 +287,7 @@ where
     pub fn new_proj_in(proj_alloc: TypeProjectedAlloc<A>) -> Self {
         let inner = TypeProjectedVecInner::new_proj_in(proj_alloc);
 
-        Self { inner, }
+        Self { inner }
     }
 
     /// Constructs a new empty type-projected vector using a specific type-projected memory
@@ -349,7 +355,7 @@ where
     pub fn with_capacity_proj_in(capacity: usize, proj_alloc: TypeProjectedAlloc<A>) -> Self {
         let inner = TypeProjectedVecInner::with_capacity_proj_in(capacity, proj_alloc);
 
-        Self { inner, }
+        Self { inner }
     }
 
     /// Constructs a new empty type-projected vector using a specific type-projected memory
@@ -424,7 +430,7 @@ where
     pub fn try_with_capacity_proj_in(capacity: usize, proj_alloc: TypeProjectedAlloc<A>) -> Result<Self, TryReserveError> {
         let inner = TypeProjectedVecInner::try_with_capacity_proj_in(capacity, proj_alloc)?;
 
-        Ok(Self { inner, })
+        Ok(Self { inner })
     }
 
     /// Constructs a type-projected vector directly from a pointer, a length, a capacity, and a
@@ -580,11 +586,9 @@ where
     /// [`dealloc`]: std::alloc::Allocator::dealloc
     #[inline]
     pub unsafe fn from_raw_parts_proj_in(ptr: *mut T, length: usize, capacity: usize, proj_alloc: TypeProjectedAlloc<A>) -> Self {
-        let inner = unsafe {
-            TypeProjectedVecInner::from_raw_parts_proj_in(ptr, length, capacity, proj_alloc)
-        };
+        let inner = unsafe { TypeProjectedVecInner::from_raw_parts_proj_in(ptr, length, capacity, proj_alloc) };
 
-        Self { inner, }
+        Self { inner }
     }
 
     /// Constructs a type-projected vector directly from a non-null pointer, a length, a capacity,
@@ -742,11 +746,9 @@ where
     /// [`dealloc`]: std::alloc::Allocator::dealloc
     #[inline]
     pub unsafe fn from_parts_proj_in(ptr: NonNull<T>, length: usize, capacity: usize, proj_alloc: TypeProjectedAlloc<A>) -> Self {
-        let inner = unsafe {
-            TypeProjectedVecInner::from_parts_proj_in(ptr, length, capacity, proj_alloc)
-        };
+        let inner = unsafe { TypeProjectedVecInner::from_parts_proj_in(ptr, length, capacity, proj_alloc) };
 
-        Self { inner, }
+        Self { inner }
     }
 
     /// Constructs a new empty type-projected vector using a specific memory allocator.
@@ -777,7 +779,7 @@ where
     pub fn new_in(alloc: A) -> Self {
         let inner = TypeProjectedVecInner::new_in(alloc);
 
-        Self { inner, }
+        Self { inner }
     }
 
     /// Constructs a new empty type-projected vector using a specific memory allocator and a
@@ -841,7 +843,7 @@ where
     pub fn with_capacity_in(capacity: usize, alloc: A) -> Self {
         let inner = TypeProjectedVecInner::with_capacity_in(capacity, alloc);
 
-        Self { inner, }
+        Self { inner }
     }
 
     /// Constructs a new empty type-projected vector using a specific memory allocator and a
@@ -912,7 +914,7 @@ where
     pub fn try_with_capacity_in(capacity: usize, alloc: A) -> Result<Self, TryReserveError> {
         let inner = TypeProjectedVecInner::try_with_capacity_in(capacity, alloc)?;
 
-        Ok(Self { inner, })
+        Ok(Self { inner })
     }
 
     /// Constructs a type-projected vector directly from a pointer, a length, a capacity, and a
@@ -1067,11 +1069,9 @@ where
     /// [`dealloc`]: std::alloc::Allocator::dealloc
     #[inline]
     pub unsafe fn from_raw_parts_in(ptr: *mut T, length: usize, capacity: usize, alloc: A) -> Self {
-        let inner = unsafe {
-            TypeProjectedVecInner::from_raw_parts_in(ptr, length, capacity, alloc)
-        };
+        let inner = unsafe { TypeProjectedVecInner::from_raw_parts_in(ptr, length, capacity, alloc) };
 
-        Self { inner, }
+        Self { inner }
     }
 
     /// Constructs a type-projected vector directly from a pointer, a length, a capacity, and a
@@ -1227,11 +1227,9 @@ where
     /// [`dealloc`]: std::alloc::Allocator::dealloc
     #[inline]
     pub unsafe fn from_parts_in(ptr: NonNull<T>, length: usize, capacity: usize, alloc: A) -> Self {
-        let inner = unsafe {
-            TypeProjectedVecInner::from_parts_in(ptr, length, capacity, alloc)
-        };
+        let inner = unsafe { TypeProjectedVecInner::from_parts_in(ptr, length, capacity, alloc) };
 
-        Self { inner, }
+        Self { inner }
     }
 }
 
@@ -1267,7 +1265,7 @@ where
     pub fn new() -> Self {
         let inner = TypeProjectedVecInner::new();
 
-        Self { inner, }
+        Self { inner }
     }
 
     /// Constructs a new empty type-projected vector using a specific capacity.
@@ -1330,7 +1328,7 @@ where
     pub fn with_capacity(capacity: usize) -> Self {
         let inner = TypeProjectedVecInner::with_capacity(capacity);
 
-        Self { inner, }
+        Self { inner }
     }
 
     /// Constructs a new empty type-projected vector using a specific capacity.
@@ -1400,7 +1398,7 @@ where
     pub fn try_with_capacity(capacity: usize) -> Result<Self, TryReserveError> {
         let inner = TypeProjectedVecInner::try_with_capacity(capacity)?;
 
-        Ok(Self { inner, })
+        Ok(Self { inner })
     }
 
     /// Constructs a type-projected vector directly from a pointer, a length, and a capacity.
@@ -1551,11 +1549,9 @@ where
     /// [`dealloc`]: std::alloc::Allocator::dealloc
     #[inline]
     pub unsafe fn from_raw_parts(ptr: *mut T, length: usize, capacity: usize) -> Self {
-        let inner = unsafe {
-            TypeProjectedVecInner::from_raw_parts(ptr, length, capacity)
-        };
+        let inner = unsafe { TypeProjectedVecInner::from_raw_parts(ptr, length, capacity) };
 
-        Self { inner, }
+        Self { inner }
     }
 
     /// Constructs a type-projected vector directly from a pointer, a length, and a capacity.
@@ -1707,11 +1703,9 @@ where
     /// [`dealloc`]: std::alloc::Allocator::dealloc
     #[inline]
     pub unsafe fn from_parts(ptr: NonNull<T>, length: usize, capacity: usize) -> Self {
-        let inner = unsafe {
-            TypeProjectedVecInner::from_parts(ptr, length, capacity)
-        };
+        let inner = unsafe { TypeProjectedVecInner::from_parts(ptr, length, capacity) };
 
-        Self { inner, }
+        Self { inner }
     }
 }
 
@@ -2017,9 +2011,7 @@ where
     /// [`clear`]: TypeProjectedVec::clear
     #[inline]
     pub unsafe fn set_len(&mut self, new_len: usize) {
-        unsafe {
-            self.inner.set_len(new_len)
-        }
+        unsafe { self.inner.set_len(new_len) }
     }
 
     /// Returns a reference to an element or subslice of a type-projected vector, if it exists at
@@ -2066,9 +2058,7 @@ where
     where
         I: slice::SliceIndex<[T]>,
     {
-        unsafe {
-            self.inner.get_unchecked(index)
-        }
+        unsafe { self.inner.get_unchecked(index) }
     }
 
     /// Returns a mutable reference to an element or subslice of a type-projected vector, if it
@@ -2115,9 +2105,7 @@ where
     where
         I: slice::SliceIndex<[T]>,
     {
-        unsafe {
-            self.inner.get_mut_unchecked(index)
-        }
+        unsafe { self.inner.get_mut_unchecked(index) }
     }
 
     /// Returns a reference to an element or subslice of a type-projected vector, if it exists at
@@ -2486,11 +2474,7 @@ where
         F: FnOnce(&mut T) -> bool,
     {
         let last = self.last_mut()?;
-        if predicate(last) {
-            self.pop()
-        } else {
-            None
-        }
+        if predicate(last) { self.pop() } else { None }
     }
 
     /// Inserts a new value into a type-projected vector, replacing the old value.
@@ -3773,7 +3757,7 @@ where
     {
         let inner = self.inner.split_off(at);
 
-        Self { inner, }
+        Self { inner }
     }
 
     /// Resizes the type-projected vector in place so that is length equals `new_len`.
@@ -5167,9 +5151,7 @@ where
     fn clone(&self) -> Self {
         let cloned_inner = self.inner.clone();
 
-        Self {
-            inner: cloned_inner,
-        }
+        Self { inner: cloned_inner }
     }
 }
 
@@ -5225,7 +5207,7 @@ where
     {
         let inner = TypeProjectedVecInner::from_iter(iterable);
 
-        Self { inner, }
+        Self { inner }
     }
 }
 
@@ -5472,7 +5454,7 @@ where
     fn from(slice: &[T]) -> TypeProjectedVec<T, alloc::Global> {
         let inner = TypeProjectedVecInner::from(slice);
 
-        Self { inner, }
+        Self { inner }
     }
 }
 
@@ -5484,7 +5466,7 @@ where
     fn from(slice: &mut [T]) -> TypeProjectedVec<T, alloc::Global> {
         let inner = TypeProjectedVecInner::from(slice);
 
-        Self { inner, }
+        Self { inner }
     }
 }
 
@@ -5516,7 +5498,7 @@ where
     fn from(slice: [T; N]) -> TypeProjectedVec<T, alloc::Global> {
         let inner = TypeProjectedVecInner::from(slice);
 
-        Self { inner, }
+        Self { inner }
     }
 }
 
@@ -5540,7 +5522,7 @@ where
     fn from(slice: Box<[T], TypeProjectedAlloc<A>>) -> Self {
         let inner = TypeProjectedVecInner::from(slice);
 
-        Self { inner, }
+        Self { inner }
     }
 }
 
@@ -5554,7 +5536,7 @@ where
     fn from(vec: Vec<T, A>) -> Self {
         let inner = TypeProjectedVecInner::from(vec);
 
-        Self { inner, }
+        Self { inner }
     }
 }
 
@@ -5567,7 +5549,7 @@ where
     fn from(vec: Vec<T>) -> Self {
         let inner = TypeProjectedVecInner::from(vec);
 
-        Self { inner, }
+        Self { inner }
     }
 }
 
@@ -5581,7 +5563,7 @@ where
     fn from(vec: &Vec<T, A>) -> Self {
         let inner = TypeProjectedVecInner::from(vec);
 
-        Self { inner, }
+        Self { inner }
     }
 }
 
@@ -5594,7 +5576,7 @@ where
     fn from(vec: &Vec<T>) -> Self {
         let inner = TypeProjectedVecInner::from(vec);
 
-        Self { inner, }
+        Self { inner }
     }
 }
 
@@ -5608,7 +5590,7 @@ where
     fn from(vec: &mut Vec<T, A>) -> Self {
         let inner = TypeProjectedVecInner::from(vec);
 
-        Self { inner, }
+        Self { inner }
     }
 }
 
@@ -5621,7 +5603,7 @@ where
     fn from(vec: &mut Vec<T>) -> Self {
         let inner = TypeProjectedVecInner::from(vec);
 
-        Self { inner, }
+        Self { inner }
     }
 }
 
@@ -6188,7 +6170,7 @@ impl TypeErasedVec {
             return Err(TryProjectVecError::new(
                 TryProjectVecErrorKind::Element,
                 self.element_type_id(),
-                any::TypeId::of::<T>()
+                any::TypeId::of::<T>(),
             ));
         }
 
@@ -6196,7 +6178,7 @@ impl TypeErasedVec {
             return Err(TryProjectVecError::new(
                 TryProjectVecErrorKind::Allocator,
                 self.allocator_type_id(),
-                any::TypeId::of::<A>()
+                any::TypeId::of::<A>(),
             ));
         }
 
@@ -6249,7 +6231,7 @@ impl TypeErasedVec {
             return Err(TryProjectVecError::new(
                 TryProjectVecErrorKind::Element,
                 self.element_type_id(),
-                any::TypeId::of::<T>()
+                any::TypeId::of::<T>(),
             ));
         }
 
@@ -6257,7 +6239,7 @@ impl TypeErasedVec {
             return Err(TryProjectVecError::new(
                 TryProjectVecErrorKind::Allocator,
                 self.allocator_type_id(),
-                any::TypeId::of::<A>()
+                any::TypeId::of::<A>(),
             ));
         }
 
@@ -6309,7 +6291,7 @@ impl TypeErasedVec {
             return Err(TryProjectVecError::new(
                 TryProjectVecErrorKind::Element,
                 self.element_type_id(),
-                any::TypeId::of::<T>()
+                any::TypeId::of::<T>(),
             ));
         }
 
@@ -6317,11 +6299,11 @@ impl TypeErasedVec {
             return Err(TryProjectVecError::new(
                 TryProjectVecErrorKind::Allocator,
                 self.allocator_type_id(),
-                any::TypeId::of::<A>()
+                any::TypeId::of::<A>(),
             ));
         }
 
-        let result =  TypeProjectedVec {
+        let result = TypeProjectedVec {
             inner: self.inner.into_proj_assuming_type::<T, A>(),
         };
 
@@ -6697,14 +6679,17 @@ impl TypeErasedVec {
     ///
     /// [`dealloc`]: std::alloc::Allocator::dealloc
     #[inline]
-    pub unsafe fn from_raw_parts_proj_in<T, A>(ptr: *mut T, length: usize, capacity: usize, proj_alloc: TypeProjectedAlloc<A>) -> Self
+    pub unsafe fn from_raw_parts_proj_in<T, A>(
+        ptr: *mut T,
+        length: usize,
+        capacity: usize,
+        proj_alloc: TypeProjectedAlloc<A>,
+    ) -> Self
     where
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        let proj_vec = unsafe {
-            TypeProjectedVec::<T, A>::from_raw_parts_proj_in(ptr, length, capacity, proj_alloc)
-        };
+        let proj_vec = unsafe { TypeProjectedVec::<T, A>::from_raw_parts_proj_in(ptr, length, capacity, proj_alloc) };
 
         Self::from_proj(proj_vec)
     }
@@ -6869,14 +6854,17 @@ impl TypeErasedVec {
     ///
     /// [`dealloc`]: std::alloc::Allocator::dealloc
     #[inline]
-    pub unsafe fn from_parts_proj_in<T, A>(ptr: NonNull<T>, length: usize, capacity: usize, proj_alloc: TypeProjectedAlloc<A>) -> Self
+    pub unsafe fn from_parts_proj_in<T, A>(
+        ptr: NonNull<T>,
+        length: usize,
+        capacity: usize,
+        proj_alloc: TypeProjectedAlloc<A>,
+    ) -> Self
     where
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        let proj_vec = unsafe {
-            TypeProjectedVec::<T, A>::from_parts_proj_in(ptr, length, capacity, proj_alloc)
-        };
+        let proj_vec = unsafe { TypeProjectedVec::<T, A>::from_parts_proj_in(ptr, length, capacity, proj_alloc) };
 
         Self::from_proj(proj_vec)
     }
@@ -7235,9 +7223,7 @@ impl TypeErasedVec {
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        let proj_vec = unsafe {
-            TypeProjectedVec::<T, A>::from_raw_parts_in(ptr, length, capacity, alloc)
-        };
+        let proj_vec = unsafe { TypeProjectedVec::<T, A>::from_raw_parts_in(ptr, length, capacity, alloc) };
 
         Self::from_proj(proj_vec)
     }
@@ -7405,9 +7391,7 @@ impl TypeErasedVec {
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        let proj_vec = unsafe {
-            TypeProjectedVec::<T, A>::from_parts_in(ptr, length, capacity, alloc)
-        };
+        let proj_vec = unsafe { TypeProjectedVec::<T, A>::from_parts_in(ptr, length, capacity, alloc) };
 
         Self::from_proj(proj_vec)
     }
@@ -7758,9 +7742,7 @@ impl TypeErasedVec {
     where
         T: any::Any,
     {
-        let proj_vec = unsafe {
-            TypeProjectedVec::<T, alloc::Global>::from_raw_parts(ptr, length, capacity)
-        };
+        let proj_vec = unsafe { TypeProjectedVec::<T, alloc::Global>::from_raw_parts(ptr, length, capacity) };
 
         Self::from_proj(proj_vec)
     }
@@ -7923,9 +7905,7 @@ impl TypeErasedVec {
     where
         T: any::Any,
     {
-        let proj_vec = unsafe {
-            TypeProjectedVec::<T, alloc::Global>::from_parts(ptr, length, capacity)
-        };
+        let proj_vec = unsafe { TypeProjectedVec::<T, alloc::Global>::from_parts(ptr, length, capacity) };
 
         Self::from_proj(proj_vec)
     }
@@ -8360,9 +8340,7 @@ impl TypeErasedVec {
         I: slice::SliceIndex<[T]>,
     {
         let proj_self = self.as_proj::<T, A>();
-        unsafe {
-            proj_self.get_unchecked(index)
-        }
+        unsafe { proj_self.get_unchecked(index) }
     }
 
     /// Returns a mutable reference to an element or subslice of a type-erased vector, if it
@@ -8419,9 +8397,7 @@ impl TypeErasedVec {
         I: slice::SliceIndex<[T]>,
     {
         let proj_self = self.as_proj_mut::<T, A>();
-        unsafe {
-            proj_self.get_mut_unchecked(index)
-        }
+        unsafe { proj_self.get_mut_unchecked(index) }
     }
 
     /// Returns a reference to an element or subslice of a type-erased vector, if it exists at
@@ -12377,7 +12353,7 @@ impl TypeErasedVec {
     where
         T: any::Any,
         A: any::Any + alloc::Allocator + Send + Sync,
-        I: IntoIterator<Item=T>,
+        I: IntoIterator<Item = T>,
     {
         let proj_self = self.as_proj_mut::<T, A>();
 
@@ -12553,9 +12529,7 @@ impl TypeErasedVec {
 
 impl fmt::Debug for TypeErasedVec {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter
-            .debug_struct("TypeErasedVec")
-            .finish()
+        formatter.debug_struct("TypeErasedVec").finish()
     }
 }
 
@@ -12771,7 +12745,10 @@ mod vec_layout_tests {
         let expected = mem::align_of::<TypeProjectedVec<T, A>>();
         let result = mem::align_of::<TypeErasedVec>();
 
-        assert_eq!(result, expected, "Type Erased and Type Projected data types alignment mismatch");
+        assert_eq!(
+            result, expected,
+            "Type Erased and Type Projected data types alignment mismatch"
+        );
     }
 
     fn run_test_type_erased_vec_match_offsets<T, A>()
@@ -12814,17 +12791,33 @@ mod vec_layout_tests {
     layout_tests!(u32_global, u32, alloc::Global);
     layout_tests!(u64_global, u64, alloc::Global);
     layout_tests!(tangent_space_global, layout_testing_types::TangentSpace, alloc::Global);
-    layout_tests!(surface_differential_global, layout_testing_types::SurfaceDifferential, alloc::Global);
+    layout_tests!(
+        surface_differential_global,
+        layout_testing_types::SurfaceDifferential,
+        alloc::Global
+    );
     layout_tests!(oct_tree_node_global, layout_testing_types::OctTreeNode, alloc::Global);
 
     layout_tests!(unit_zst_dummy_alloc, (), dummy::DummyAlloc);
-    layout_tests!(u8_dummy_alloc,  u8, dummy::DummyAlloc);
+    layout_tests!(u8_dummy_alloc, u8, dummy::DummyAlloc);
     layout_tests!(u16_dummy_alloc, u16, dummy::DummyAlloc);
     layout_tests!(u32_dummy_alloc, u32, dummy::DummyAlloc);
     layout_tests!(u64_dummy_alloc, u64, dummy::DummyAlloc);
-    layout_tests!(tangent_space_dummy_alloc, layout_testing_types::TangentSpace, dummy::DummyAlloc);
-    layout_tests!(surface_differential_dummy_alloc, layout_testing_types::SurfaceDifferential, dummy::DummyAlloc);
-    layout_tests!(oct_tree_node_dummy_alloc, layout_testing_types::OctTreeNode, dummy::DummyAlloc);
+    layout_tests!(
+        tangent_space_dummy_alloc,
+        layout_testing_types::TangentSpace,
+        dummy::DummyAlloc
+    );
+    layout_tests!(
+        surface_differential_dummy_alloc,
+        layout_testing_types::SurfaceDifferential,
+        dummy::DummyAlloc
+    );
+    layout_tests!(
+        oct_tree_node_dummy_alloc,
+        layout_testing_types::OctTreeNode,
+        dummy::DummyAlloc
+    );
 }
 
 #[cfg(test)]

@@ -1,6 +1,6 @@
+use alloc_crate::boxed::Box;
 use core::any;
 use core::marker;
-use alloc_crate::boxed::Box;
 
 #[cfg(feature = "std")]
 use std::hash;
@@ -290,7 +290,10 @@ mod build_hasher_inner_layout_tests {
         let expected = core::mem::align_of::<TypeProjectedBuildHasherInner<S>>();
         let result = core::mem::align_of::<TypeErasedBuildHasherInner>();
 
-        assert_eq!(result, expected, "Type Erased and Type Projected data types alignment mismatch");
+        assert_eq!(
+            result, expected,
+            "Type Erased and Type Projected data types alignment mismatch"
+        );
     }
 
     fn run_test_type_erased_hasher_match_offsets<S>()

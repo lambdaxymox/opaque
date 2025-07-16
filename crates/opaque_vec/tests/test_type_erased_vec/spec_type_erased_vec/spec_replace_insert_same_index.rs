@@ -175,10 +175,59 @@ macro_rules! generate_props {
     };
 }
 
-generate_props!(unit, (), alloc::Global, strategy_single_value, strategy_single_value, strategy_alloc);
-generate_props!(u8, u8, alloc::Global, strategy_single_value, strategy_single_value, strategy_alloc);
-generate_props!(u16, u16, alloc::Global, strategy_single_value, strategy_single_value, strategy_alloc);
-generate_props!(u32, u32, alloc::Global, strategy_single_value, strategy_single_value, strategy_alloc);
-generate_props!(u64, u64, alloc::Global, strategy_single_value, strategy_single_value, strategy_alloc);
-generate_props!(usize, usize, alloc::Global, strategy_single_value, strategy_single_value, strategy_alloc);
-generate_props!(string, String, alloc::Global, strategy_single_value, strategy_single_value, strategy_alloc);
+generate_props!(
+    unit,
+    (),
+    alloc::Global,
+    strategy_single_value,
+    strategy_single_value,
+    strategy_alloc
+);
+generate_props!(
+    u8,
+    u8,
+    alloc::Global,
+    strategy_single_value,
+    strategy_single_value,
+    strategy_alloc
+);
+generate_props!(
+    u16,
+    u16,
+    alloc::Global,
+    strategy_single_value,
+    strategy_single_value,
+    strategy_alloc
+);
+generate_props!(
+    u32,
+    u32,
+    alloc::Global,
+    strategy_single_value,
+    strategy_single_value,
+    strategy_alloc
+);
+generate_props!(
+    u64,
+    u64,
+    alloc::Global,
+    strategy_single_value,
+    strategy_single_value,
+    strategy_alloc
+);
+generate_props!(
+    usize,
+    usize,
+    alloc::Global,
+    strategy_single_value,
+    strategy_single_value,
+    strategy_alloc
+);
+generate_props!(
+    string,
+    String,
+    alloc::Global,
+    strategy_single_value,
+    strategy_single_value,
+    strategy_alloc
+);

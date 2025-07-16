@@ -4,13 +4,13 @@ use crate::set::common::projected::{
     WrappingBuildHasher3,
     strategy_type_projected_index_set_max_len,
 };
-use opaque_index_map::TypeProjectedIndexSet;
 use opaque_hash::TypeProjectedBuildHasher;
+use opaque_index_map::TypeProjectedIndexSet;
 
 use core::any;
 use core::fmt;
-use std::hash;
 use std::format;
+use std::hash;
 use std::string::String;
 
 #[cfg(feature = "nightly")]
@@ -33,10 +33,7 @@ where
     S2::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let mut set = TypeProjectedIndexSet::with_hasher_proj_in(
-        entries1.hasher().clone(),
-        entries1.allocator().clone(),
-    );
+    let mut set = TypeProjectedIndexSet::with_hasher_proj_in(entries1.hasher().clone(), entries1.allocator().clone());
 
     for value in entries1.union(&entries2).cloned() {
         set.insert(value);
@@ -57,10 +54,7 @@ where
     S2::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let mut set = TypeProjectedIndexSet::with_hasher_proj_in(
-        entries1.hasher().clone(),
-        entries1.allocator().clone(),
-    );
+    let mut set = TypeProjectedIndexSet::with_hasher_proj_in(entries1.hasher().clone(), entries1.allocator().clone());
 
     for value in entries1.intersection(&entries2).cloned() {
         set.insert(value);
@@ -92,10 +86,8 @@ where
     S2::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let empty_set = TypeProjectedIndexSet::with_hasher_proj_in(
-        TypeProjectedBuildHasher::new(S2::default()),
-        entries.allocator().clone(),
-    );
+    let empty_set =
+        TypeProjectedIndexSet::with_hasher_proj_in(TypeProjectedBuildHasher::new(S2::default()), entries.allocator().clone());
     let set = from_union_in(&entries, &empty_set);
 
     prop_assert_eq!(set, entries);
@@ -103,7 +95,10 @@ where
     Ok(())
 }
 
-fn prop_union_contains<T, S1, S2, A>(entries1: TypeProjectedIndexSet<T, S1, A>, entries2: TypeProjectedIndexSet<T, S2, A>) -> Result<(), TestCaseError>
+fn prop_union_contains<T, S1, S2, A>(
+    entries1: TypeProjectedIndexSet<T, S1, A>,
+    entries2: TypeProjectedIndexSet<T, S2, A>,
+) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     S1: any::Any + hash::BuildHasher + Send + Sync + Clone + Default,
@@ -125,7 +120,10 @@ where
     Ok(())
 }
 
-fn prop_union_get<T, S1, S2, A>(entries1: TypeProjectedIndexSet<T, S1, A>, entries2: TypeProjectedIndexSet<T, S2, A>) -> Result<(), TestCaseError>
+fn prop_union_get<T, S1, S2, A>(
+    entries1: TypeProjectedIndexSet<T, S1, A>,
+    entries2: TypeProjectedIndexSet<T, S2, A>,
+) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     S1: any::Any + hash::BuildHasher + Send + Sync + Clone + Default,
@@ -147,7 +145,10 @@ where
     Ok(())
 }
 
-fn prop_union_get_full<T, S1, S2, A>(entries1: TypeProjectedIndexSet<T, S1, A>, entries2: TypeProjectedIndexSet<T, S2, A>) -> Result<(), TestCaseError>
+fn prop_union_get_full<T, S1, S2, A>(
+    entries1: TypeProjectedIndexSet<T, S1, A>,
+    entries2: TypeProjectedIndexSet<T, S2, A>,
+) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     S1: any::Any + hash::BuildHasher + Send + Sync + Clone + Default,
@@ -204,14 +205,8 @@ where
     S3::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let lhs = from_union_in(
-        &from_union_in(&entries1, &entries2),
-        &entries3,
-    );
-    let rhs = from_union_in(
-        &entries1,
-        &from_union_in(&entries2, &entries3),
-    );
+    let lhs = from_union_in(&from_union_in(&entries1, &entries2), &entries3);
+    let rhs = from_union_in(&entries1, &from_union_in(&entries2, &entries3));
 
     prop_assert_eq!(lhs, rhs);
 
@@ -233,21 +228,18 @@ where
     S3::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let lhs = from_union_in(
-        &entries1,
-        &from_intersection_in(&entries2, &entries3),
-    );
-    let rhs = from_intersection_in(
-        &from_union_in(&entries1, &entries2),
-        &from_union_in(&entries1, &entries3),
-    );
+    let lhs = from_union_in(&entries1, &from_intersection_in(&entries2, &entries3));
+    let rhs = from_intersection_in(&from_union_in(&entries1, &entries2), &from_union_in(&entries1, &entries3));
 
     prop_assert_eq!(lhs, rhs);
 
     Ok(())
 }
 
-fn prop_union_is_subset<T, S1, S2, A>(entries1: TypeProjectedIndexSet<T, S1, A>, entries2: TypeProjectedIndexSet<T, S2, A>) -> Result<(), TestCaseError>
+fn prop_union_is_subset<T, S1, S2, A>(
+    entries1: TypeProjectedIndexSet<T, S1, A>,
+    entries2: TypeProjectedIndexSet<T, S2, A>,
+) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     S1: any::Any + hash::BuildHasher + Send + Sync + Clone + Default,
@@ -264,7 +256,10 @@ where
     Ok(())
 }
 
-fn prop_union_is_superset<T, S1, S2, A>(entries1: TypeProjectedIndexSet<T, S1, A>, entries2: TypeProjectedIndexSet<T, S2, A>) -> Result<(), TestCaseError>
+fn prop_union_is_superset<T, S1, S2, A>(
+    entries1: TypeProjectedIndexSet<T, S1, A>,
+    entries2: TypeProjectedIndexSet<T, S2, A>,
+) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     S1: any::Any + hash::BuildHasher + Send + Sync + Clone + Default,
@@ -281,7 +276,10 @@ where
     Ok(())
 }
 
-fn prop_union_len1<T, S1, S2, A>(entries1: TypeProjectedIndexSet<T, S1, A>, entries2: TypeProjectedIndexSet<T, S2, A>) -> Result<(), TestCaseError>
+fn prop_union_len1<T, S1, S2, A>(
+    entries1: TypeProjectedIndexSet<T, S1, A>,
+    entries2: TypeProjectedIndexSet<T, S2, A>,
+) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     S1: any::Any + hash::BuildHasher + Send + Sync + Clone + Default,
@@ -298,7 +296,10 @@ where
     Ok(())
 }
 
-fn prop_union_len2<T, S1, S2, A>(entries1: TypeProjectedIndexSet<T, S1, A>, entries2: TypeProjectedIndexSet<T, S2, A>) -> Result<(), TestCaseError>
+fn prop_union_len2<T, S1, S2, A>(
+    entries1: TypeProjectedIndexSet<T, S1, A>,
+    entries2: TypeProjectedIndexSet<T, S2, A>,
+) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     S1: any::Any + hash::BuildHasher + Send + Sync + Clone + Default,
@@ -314,7 +315,10 @@ where
     Ok(())
 }
 
-fn prop_union_ordering1<T, S1, S2, A>(entries1: TypeProjectedIndexSet<T, S1, A>, entries2: TypeProjectedIndexSet<T, S2, A>) -> Result<(), TestCaseError>
+fn prop_union_ordering1<T, S1, S2, A>(
+    entries1: TypeProjectedIndexSet<T, S1, A>,
+    entries2: TypeProjectedIndexSet<T, S2, A>,
+) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     S1: any::Any + hash::BuildHasher + Send + Sync + Clone + Default,
@@ -346,7 +350,10 @@ where
     Ok(())
 }
 
-fn prop_union_ordering2<T, S1, S2, A>(entries1: TypeProjectedIndexSet<T, S1, A>, entries2: TypeProjectedIndexSet<T, S2, A>) -> Result<(), TestCaseError>
+fn prop_union_ordering2<T, S1, S2, A>(
+    entries1: TypeProjectedIndexSet<T, S1, A>,
+    entries2: TypeProjectedIndexSet<T, S2, A>,
+) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     S1: any::Any + hash::BuildHasher + Send + Sync + Clone + Default,

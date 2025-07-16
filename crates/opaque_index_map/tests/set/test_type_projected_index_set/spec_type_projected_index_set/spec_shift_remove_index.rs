@@ -3,10 +3,10 @@ use opaque_index_map::TypeProjectedIndexSet;
 
 use core::any;
 use core::fmt;
-use std::hash;
-use std::vec::Vec;
 use std::format;
+use std::hash;
 use std::string::String;
+use std::vec::Vec;
 
 #[cfg(feature = "nightly")]
 use std::alloc;
@@ -115,14 +115,11 @@ where
         let index = set.get_index_of(value).unwrap();
         new_set.shift_remove_index(index);
 
-        let ordered_entries: Vec<T> = new_set
-            .iter()
-            .cloned()
-            .collect();
+        let ordered_entries: Vec<T> = new_set.iter().cloned().collect();
 
         ordered_entries
     }
-    
+
     let base_set = entries.clone();
     let base_values: Vec<T> = base_set.iter().cloned().collect();
     for (index, value) in base_values.iter().enumerate() {
@@ -180,7 +177,7 @@ generate_props!(
     u64,
     hash::RandomState,
     alloc::Global,
-    32, 
+    32,
     strategy_type_projected_index_set_max_len,
 );
 generate_props!(
@@ -188,7 +185,7 @@ generate_props!(
     usize,
     hash::RandomState,
     alloc::Global,
-    32, 
+    32,
     strategy_type_projected_index_set_max_len,
 );
 generate_props!(
@@ -196,6 +193,6 @@ generate_props!(
     String,
     hash::RandomState,
     alloc::Global,
-    32, 
+    32,
     strategy_type_projected_index_set_max_len,
 );

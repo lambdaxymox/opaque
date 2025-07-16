@@ -1,16 +1,23 @@
-use crate::map_inner;
-use crate::map_inner::{Bucket, TypeErasedIndexMapInner, TypeProjectedIndexMapInner};
 use crate::equivalent::Equivalent;
 use crate::get_disjoint_mut_error::GetDisjointMutError;
-use crate::try_project_index_map_error::{TryProjectIndexMapError, TryProjectIndexMapErrorKind};
+use crate::map_inner;
+use crate::map_inner::{
+    Bucket,
+    TypeErasedIndexMapInner,
+    TypeProjectedIndexMapInner,
+};
+use crate::try_project_index_map_error::{
+    TryProjectIndexMapError,
+    TryProjectIndexMapErrorKind,
+};
 
+use alloc_crate::boxed::Box;
 use core::any;
 use core::cmp;
 use core::fmt;
 use core::iter;
 use core::mem;
 use core::ops;
-use alloc_crate::boxed::Box;
 
 #[cfg(feature = "std")]
 use std::hash;
@@ -519,7 +526,7 @@ pub struct Keys<'a, K, V> {
 impl<'a, K, V> Keys<'a, K, V> {
     /// Constructs a new key iterator.
     fn new(iter: map_inner::Keys<'a, K, V>) -> Self {
-        Self { iter, }
+        Self { iter }
     }
 }
 
@@ -658,7 +665,7 @@ where
 {
     /// Constructs a new moving key iterator.
     fn new(iter: map_inner::IntoKeys<K, V, A>) -> Self {
-        Self { iter, }
+        Self { iter }
     }
 }
 
@@ -812,7 +819,7 @@ impl<'a, K, V> Values<'a, K, V> {
     /// Construct a new value iterator.
     #[inline]
     const fn new(iter: map_inner::Values<'a, K, V>) -> Self {
-        Self { iter, }
+        Self { iter }
     }
 }
 
@@ -859,7 +866,9 @@ where
 
 impl<K, V> Default for Values<'_, K, V> {
     fn default() -> Self {
-        Self { iter: Default::default() }
+        Self {
+            iter: Default::default(),
+        }
     }
 }
 
@@ -966,7 +975,7 @@ impl<'a, K, V> ValuesMut<'a, K, V> {
     /// Constructs a new mutable value iterator.
     #[inline]
     const fn new(iter: map_inner::ValuesMut<'a, K, V>) -> Self {
-        Self { iter, }
+        Self { iter }
     }
 }
 
@@ -1007,7 +1016,9 @@ where
 
 impl<K, V> Default for ValuesMut<'_, K, V> {
     fn default() -> Self {
-        Self { iter: Default::default() }
+        Self {
+            iter: Default::default(),
+        }
     }
 }
 
@@ -1098,7 +1109,7 @@ where
     /// Constructs a new moving value iterator.
     #[inline]
     const fn new(iter: map_inner::IntoValues<K, V, A>) -> Self {
-        Self { iter, }
+        Self { iter }
     }
 }
 
@@ -3622,10 +3633,7 @@ impl<K, V> Slice<K, V> {
     /// assert_eq!(result[2], (&5_isize, &mut '@'));
     /// ```
     #[track_caller]
-    pub fn get_disjoint_mut<const N: usize>(
-        &mut self,
-        indices: [usize; N],
-    ) -> Result<[(&K, &mut V); N], GetDisjointMutError> {
+    pub fn get_disjoint_mut<const N: usize>(&mut self, indices: [usize; N]) -> Result<[(&K, &mut V); N], GetDisjointMutError> {
         self.entries.get_disjoint_mut(indices)
     }
 }
@@ -3937,7 +3945,7 @@ impl<'a, K, V> Iter<'a, K, V> {
     /// Constructs a new index map iterator from an inner index map iterator.
     #[inline]
     fn new(iter: map_inner::Iter<'a, K, V>) -> Self {
-        Self { iter, }
+        Self { iter }
     }
 
     /// Returns a slice of the remaining entries in the iterator.
@@ -4066,7 +4074,9 @@ where
 
 impl<K, V> Default for Iter<'_, K, V> {
     fn default() -> Self {
-        Self { iter: Default::default() }
+        Self {
+            iter: Default::default(),
+        }
     }
 }
 
@@ -4150,7 +4160,7 @@ impl<'a, K, V> IterMut<'a, K, V> {
     /// Constructs a new mutable index map iterator from a mutable inner index map iterator.
     #[inline]
     const fn new(iter: map_inner::IterMut<'a, K, V>) -> Self {
-        Self { iter, }
+        Self { iter }
     }
 
     /// Returns a mutable slice of the remaining entries in the iterator.
@@ -4340,7 +4350,9 @@ where
 
 impl<K, V> Default for IterMut<'_, K, V> {
     fn default() -> Self {
-        Self { iter: Default::default() }
+        Self {
+            iter: Default::default(),
+        }
     }
 }
 
@@ -4435,7 +4447,7 @@ where
     /// Constructs new a moving iterator from an inner moving iterator.
     #[inline]
     const fn new(iter: map_inner::IntoIter<K, V, A>) -> Self {
-        Self { iter, }
+        Self { iter }
     }
 
     /// Returns a slice of the remaining entries in the moving iterator.
@@ -4814,7 +4826,7 @@ where
     where
         R: ops::RangeBounds<usize>,
     {
-        Self { inner, }
+        Self { inner }
     }
 }
 
@@ -5434,11 +5446,10 @@ where
     V: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
-
     /// Constructs a new occupied entry.
     #[inline]
     pub(crate) const fn new(inner: map_inner::OccupiedEntry<'a, K, V, A>) -> Self {
-        Self { inner, }
+        Self { inner }
     }
 
     /// Returns the storage index of the occupied entry in the index map.
@@ -6126,7 +6137,8 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.debug_struct("OccupiedEntry")
+        formatter
+            .debug_struct("OccupiedEntry")
             .field("key", self.key())
             .field("value", self.get())
             .finish()
@@ -6164,7 +6176,7 @@ where
     /// Constructs a new vacant entry.
     #[inline]
     const fn new(inner: map_inner::VacantEntry<'a, K, V, A>) -> Self {
-        Self { inner, }
+        Self { inner }
     }
 
     /// Returns the storage index the entry would have when inserted into the index map.
@@ -6651,9 +6663,7 @@ where
     where
         K: Ord,
     {
-        Self {
-            inner,
-        }
+        Self { inner }
     }
 
     /// Returns the storage index of the indexed entry in the index map.
@@ -7287,7 +7297,8 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.debug_struct("IndexedEntry")
+        formatter
+            .debug_struct("IndexedEntry")
             .field("index", &self.index())
             .field("key", self.key())
             .field("value", self.get())
@@ -7616,9 +7627,7 @@ where
     pub fn with_hasher_proj_in(proj_build_hasher: TypeProjectedBuildHasher<S>, proj_alloc: TypeProjectedAlloc<A>) -> Self {
         let proj_inner = TypeProjectedIndexMapInner::<K, V, S, A>::with_hasher_proj_in(proj_build_hasher, proj_alloc);
 
-        Self {
-            inner: proj_inner,
-        }
+        Self { inner: proj_inner }
     }
 
     /// Constructs a new index map with the given capacity, type-projected hash builder, and
@@ -7688,15 +7697,21 @@ where
     /// assert_eq!(proj_map.capacity(), 0);
     /// ```
     #[inline]
-    pub fn with_capacity_and_hasher_proj_in(capacity: usize, proj_build_hasher: TypeProjectedBuildHasher<S>, proj_alloc: TypeProjectedAlloc<A>) -> Self {
+    pub fn with_capacity_and_hasher_proj_in(
+        capacity: usize,
+        proj_build_hasher: TypeProjectedBuildHasher<S>,
+        proj_alloc: TypeProjectedAlloc<A>,
+    ) -> Self {
         if capacity == 0 {
             Self::with_hasher_proj_in(proj_build_hasher, proj_alloc)
         } else {
-            let proj_inner = TypeProjectedIndexMapInner::<K, V, S, A>::with_capacity_and_hasher_proj_in(capacity, proj_build_hasher, proj_alloc);
+            let proj_inner = TypeProjectedIndexMapInner::<K, V, S, A>::with_capacity_and_hasher_proj_in(
+                capacity,
+                proj_build_hasher,
+                proj_alloc,
+            );
 
-            Self {
-                inner: proj_inner,
-            }
+            Self { inner: proj_inner }
         }
     }
 }
@@ -7740,9 +7755,7 @@ where
     pub fn new_proj_in(proj_alloc: TypeProjectedAlloc<A>) -> Self {
         let proj_inner = TypeProjectedIndexMapInner::<K, V, hash::RandomState, A>::new_proj_in(proj_alloc);
 
-        Self {
-            inner : proj_inner,
-        }
+        Self { inner: proj_inner }
     }
 
     /// Constructs a new index map with the given capacity and type-projected memory allocator.
@@ -7810,9 +7823,7 @@ where
     pub fn with_capacity_proj_in(capacity: usize, proj_alloc: TypeProjectedAlloc<A>) -> Self {
         let proj_inner = TypeProjectedIndexMapInner::<K, V, hash::RandomState, A>::with_capacity_proj_in(capacity, proj_alloc);
 
-        Self {
-            inner: proj_inner,
-        }
+        Self { inner: proj_inner }
     }
 }
 
@@ -7858,9 +7869,7 @@ where
     pub fn with_hasher_in(build_hasher: S, alloc: A) -> Self {
         let proj_inner = TypeProjectedIndexMapInner::<K, V, S, A>::with_hasher_in(build_hasher, alloc);
 
-        Self {
-            inner: proj_inner,
-        }
+        Self { inner: proj_inner }
     }
 
     /// Constructs a new index map with the given capacity, hash builder, and memory allocator.
@@ -7931,9 +7940,7 @@ where
         } else {
             let proj_inner = TypeProjectedIndexMapInner::<K, V, S, A>::with_capacity_and_hasher_in(capacity, build_hasher, alloc);
 
-            Self {
-                inner: proj_inner,
-            }
+            Self { inner: proj_inner }
         }
     }
 }
@@ -7976,9 +7983,7 @@ where
     pub fn new_in(alloc: A) -> Self {
         let proj_inner = TypeProjectedIndexMapInner::<K, V, hash::RandomState, A>::new_in(alloc);
 
-        Self {
-            inner : proj_inner,
-        }
+        Self { inner: proj_inner }
     }
 
     /// Constructs a new index map with the given capacity and memory allocator.
@@ -8044,9 +8049,7 @@ where
     pub fn with_capacity_in(capacity: usize, alloc: A) -> Self {
         let proj_inner = TypeProjectedIndexMapInner::<K, V, hash::RandomState, A>::with_capacity_in(capacity, alloc);
 
-        Self {
-            inner: proj_inner,
-        }
+        Self { inner: proj_inner }
     }
 }
 
@@ -8191,9 +8194,7 @@ where
     pub fn new() -> Self {
         let proj_inner = TypeProjectedIndexMapInner::new();
 
-        Self {
-            inner : proj_inner,
-        }
+        Self { inner: proj_inner }
     }
 
     /// Constructs a new index map with the given capacity.
@@ -8257,9 +8258,7 @@ where
     pub fn with_capacity(capacity: usize) -> Self {
         let proj_inner = TypeProjectedIndexMapInner::with_capacity(capacity);
 
-        Self {
-            inner : proj_inner,
-        }
+        Self { inner: proj_inner }
     }
 }
 
@@ -15475,9 +15474,8 @@ where
     #[track_caller]
     pub fn get_disjoint_indices_mut<const N: usize>(
         &mut self,
-        indices: [usize; N]
-    ) -> Result<[(&K, &mut V); N], GetDisjointMutError>
-    {
+        indices: [usize; N],
+    ) -> Result<[(&K, &mut V); N], GetDisjointMutError> {
         self.inner.get_disjoint_indices_mut(indices)
     }
 
@@ -16551,9 +16549,7 @@ where
     fn clone(&self) -> Self {
         let cloned_inner = Clone::clone(&self.inner);
 
-        Self {
-            inner: cloned_inner,
-        }
+        Self { inner: cloned_inner }
     }
 
     fn clone_from(&mut self, other: &Self) {
@@ -16629,7 +16625,9 @@ where
     A: any::Any + alloc::Allocator + Send + Sync + Default,
 {
     fn default() -> Self {
-        Self { inner: TypeProjectedIndexMapInner::default(), }
+        Self {
+            inner: TypeProjectedIndexMapInner::default(),
+        }
     }
 }
 
@@ -16650,8 +16648,7 @@ where
             return false;
         }
 
-        self.iter()
-            .all(|(key, value)| other.get(key).map_or(false, |v| *value == *v))
+        self.iter().all(|(key, value)| other.get(key).map_or(false, |v| *value == *v))
     }
 }
 
@@ -17383,7 +17380,7 @@ impl TypeErasedIndexMap {
             return Err(TryProjectIndexMapError::new(
                 TryProjectIndexMapErrorKind::Key,
                 self.key_type_id(),
-                any::TypeId::of::<K>()
+                any::TypeId::of::<K>(),
             ));
         }
 
@@ -17391,7 +17388,7 @@ impl TypeErasedIndexMap {
             return Err(TryProjectIndexMapError::new(
                 TryProjectIndexMapErrorKind::Value,
                 self.value_type_id(),
-                any::TypeId::of::<V>()
+                any::TypeId::of::<V>(),
             ));
         }
 
@@ -17399,7 +17396,7 @@ impl TypeErasedIndexMap {
             return Err(TryProjectIndexMapError::new(
                 TryProjectIndexMapErrorKind::BuildHasher,
                 self.build_hasher_type_id(),
-                any::TypeId::of::<S>()
+                any::TypeId::of::<S>(),
             ));
         }
 
@@ -17407,7 +17404,7 @@ impl TypeErasedIndexMap {
             return Err(TryProjectIndexMapError::new(
                 TryProjectIndexMapErrorKind::Allocator,
                 self.allocator_type_id(),
-                any::TypeId::of::<A>()
+                any::TypeId::of::<A>(),
             ));
         }
 
@@ -17470,7 +17467,7 @@ impl TypeErasedIndexMap {
             return Err(TryProjectIndexMapError::new(
                 TryProjectIndexMapErrorKind::Key,
                 self.key_type_id(),
-                any::TypeId::of::<K>()
+                any::TypeId::of::<K>(),
             ));
         }
 
@@ -17478,7 +17475,7 @@ impl TypeErasedIndexMap {
             return Err(TryProjectIndexMapError::new(
                 TryProjectIndexMapErrorKind::Value,
                 self.value_type_id(),
-                any::TypeId::of::<V>()
+                any::TypeId::of::<V>(),
             ));
         }
 
@@ -17486,7 +17483,7 @@ impl TypeErasedIndexMap {
             return Err(TryProjectIndexMapError::new(
                 TryProjectIndexMapErrorKind::BuildHasher,
                 self.build_hasher_type_id(),
-                any::TypeId::of::<S>()
+                any::TypeId::of::<S>(),
             ));
         }
 
@@ -17494,7 +17491,7 @@ impl TypeErasedIndexMap {
             return Err(TryProjectIndexMapError::new(
                 TryProjectIndexMapErrorKind::Allocator,
                 self.allocator_type_id(),
-                any::TypeId::of::<A>()
+                any::TypeId::of::<A>(),
             ));
         }
 
@@ -17556,7 +17553,7 @@ impl TypeErasedIndexMap {
             return Err(TryProjectIndexMapError::new(
                 TryProjectIndexMapErrorKind::Key,
                 self.key_type_id(),
-                any::TypeId::of::<K>()
+                any::TypeId::of::<K>(),
             ));
         }
 
@@ -17564,7 +17561,7 @@ impl TypeErasedIndexMap {
             return Err(TryProjectIndexMapError::new(
                 TryProjectIndexMapErrorKind::Value,
                 self.value_type_id(),
-                any::TypeId::of::<V>()
+                any::TypeId::of::<V>(),
             ));
         }
 
@@ -17572,7 +17569,7 @@ impl TypeErasedIndexMap {
             return Err(TryProjectIndexMapError::new(
                 TryProjectIndexMapErrorKind::BuildHasher,
                 self.build_hasher_type_id(),
-                any::TypeId::of::<S>()
+                any::TypeId::of::<S>(),
             ));
         }
 
@@ -17580,7 +17577,7 @@ impl TypeErasedIndexMap {
             return Err(TryProjectIndexMapError::new(
                 TryProjectIndexMapErrorKind::Allocator,
                 self.allocator_type_id(),
-                any::TypeId::of::<A>()
+                any::TypeId::of::<A>(),
             ));
         }
 
@@ -17632,7 +17629,10 @@ impl TypeErasedIndexMap {
     /// assert_eq!(opaque_map.capacity(), 0);
     /// ```
     #[inline]
-    pub fn with_hasher_proj_in<K, V, S, A>(proj_build_hasher: TypeProjectedBuildHasher<S>, proj_alloc: TypeProjectedAlloc<A>) -> Self
+    pub fn with_hasher_proj_in<K, V, S, A>(
+        proj_build_hasher: TypeProjectedBuildHasher<S>,
+        proj_alloc: TypeProjectedAlloc<A>,
+    ) -> Self
     where
         K: any::Any,
         V: any::Any,
@@ -17722,7 +17722,11 @@ impl TypeErasedIndexMap {
     /// assert_eq!(opaque_map.capacity(), 0);
     /// ```
     #[inline]
-    pub fn with_capacity_and_hasher_proj_in<K, V, S, A>(capacity: usize, proj_build_hasher: TypeProjectedBuildHasher<S>, proj_alloc: TypeProjectedAlloc<A>) -> Self
+    pub fn with_capacity_and_hasher_proj_in<K, V, S, A>(
+        capacity: usize,
+        proj_build_hasher: TypeProjectedBuildHasher<S>,
+        proj_alloc: TypeProjectedAlloc<A>,
+    ) -> Self
     where
         K: any::Any,
         V: any::Any,
@@ -17730,7 +17734,8 @@ impl TypeErasedIndexMap {
         S::Hasher: any::Any + hash::Hasher + Send + Sync,
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        let proj_index_map = TypeProjectedIndexMap::<K, V, S, A>::with_capacity_and_hasher_proj_in(capacity, proj_build_hasher, proj_alloc);
+        let proj_index_map =
+            TypeProjectedIndexMap::<K, V, S, A>::with_capacity_and_hasher_proj_in(capacity, proj_build_hasher, proj_alloc);
 
         Self::from_proj(proj_index_map)
     }
@@ -21290,7 +21295,7 @@ impl TypeErasedIndexMap {
         S::Hasher: any::Any + hash::Hasher + Send + Sync,
         A: any::Any + alloc::Allocator + Send + Sync + Clone,
     {
-        let proj_self =  self.as_proj_mut::<K, V, S, A>();
+        let proj_self = self.as_proj_mut::<K, V, S, A>();
         let proj_split = proj_self.split_off(at);
 
         Self::from_proj(proj_split)
@@ -27308,7 +27313,10 @@ impl TypeErasedIndexMap {
     /// assert_eq!(result[2], (&5_isize, &mut '@'));
     /// ```
     #[track_caller]
-    pub fn get_disjoint_indices_mut<const N: usize, K, V, S, A>(&mut self, indices: [usize; N]) -> Result<[(&K, &mut V); N], GetDisjointMutError>
+    pub fn get_disjoint_indices_mut<const N: usize, K, V, S, A>(
+        &mut self,
+        indices: [usize; N],
+    ) -> Result<[(&K, &mut V); N], GetDisjointMutError>
     where
         K: any::Any + Ord,
         V: any::Any,
@@ -28851,9 +28859,7 @@ impl TypeErasedIndexMap {
 
 impl fmt::Debug for TypeErasedIndexMap {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter
-            .debug_struct("TypeErasedIndexMap")
-            .finish()
+        formatter.debug_struct("TypeErasedIndexMap").finish()
     }
 }
 
@@ -28865,7 +28871,7 @@ where
 {
     fn from_iter<I>(iterable: I) -> Self
     where
-        I: IntoIterator<Item = (K, V)>
+        I: IntoIterator<Item = (K, V)>,
     {
         let proj_map = TypeProjectedIndexMap::<K, V, hash::RandomState, alloc::Global>::from_iter(iterable);
 
@@ -28888,8 +28894,8 @@ where
 
 mod dummy {
     use super::*;
-    use core::ptr::NonNull;
     use core::marker;
+    use core::ptr::NonNull;
 
     #[allow(dead_code)]
     pub(super) struct DummyHasher {
@@ -28995,7 +29001,10 @@ mod index_map_layout_tests {
         let expected = mem::align_of::<TypeProjectedIndexMap<K, V, S, A>>();
         let result = mem::align_of::<TypeErasedIndexMap>();
 
-        assert_eq!(result, expected, "Type Erased and Type Projected data types alignment mismatch");
+        assert_eq!(
+            result, expected,
+            "Type Erased and Type Projected data types alignment mismatch"
+        );
     }
 
     fn run_test_type_erased_index_map_match_offsets<K, V, S, A>()
@@ -29045,16 +29054,40 @@ mod index_map_layout_tests {
     layout_tests!(unit_zst_u64random_state_global, (), u64, hash::RandomState, alloc::Global);
 
     #[cfg(feature = "std")]
-    layout_tests!(unit_zst_strrandom_state_global, (), &'static str, hash::RandomState, alloc::Global);
+    layout_tests!(
+        unit_zst_strrandom_state_global,
+        (),
+        &'static str,
+        hash::RandomState,
+        alloc::Global
+    );
 
     #[cfg(feature = "std")]
-    layout_tests!(unit_zst_tangent_spacerandom_state_global, (), layout_testing_types::TangentSpace, hash::RandomState, alloc::Global);
+    layout_tests!(
+        unit_zst_tangent_spacerandom_state_global,
+        (),
+        layout_testing_types::TangentSpace,
+        hash::RandomState,
+        alloc::Global
+    );
 
     #[cfg(feature = "std")]
-    layout_tests!(unit_zst_surface_differentialrandom_state_global, (), layout_testing_types::SurfaceDifferential, hash::RandomState, alloc::Global);
+    layout_tests!(
+        unit_zst_surface_differentialrandom_state_global,
+        (),
+        layout_testing_types::SurfaceDifferential,
+        hash::RandomState,
+        alloc::Global
+    );
 
     #[cfg(feature = "std")]
-    layout_tests!(unit_zst_oct_tree_noderandom_state_global, (), layout_testing_types::OctTreeNode, hash::RandomState, alloc::Global);
+    layout_tests!(
+        unit_zst_oct_tree_noderandom_state_global,
+        (),
+        layout_testing_types::OctTreeNode,
+        hash::RandomState,
+        alloc::Global
+    );
 
     #[cfg(feature = "std")]
     layout_tests!(u8_unit_zstrandom_state_global, u8, (), hash::RandomState, alloc::Global);
@@ -29069,13 +29102,31 @@ mod index_map_layout_tests {
     layout_tests!(u8_strrandom_state_global, u8, &'static str, hash::RandomState, alloc::Global);
 
     #[cfg(feature = "std")]
-    layout_tests!(u8_tangent_spacerandom_state_global, u8, layout_testing_types::TangentSpace, hash::RandomState, alloc::Global);
+    layout_tests!(
+        u8_tangent_spacerandom_state_global,
+        u8,
+        layout_testing_types::TangentSpace,
+        hash::RandomState,
+        alloc::Global
+    );
 
     #[cfg(feature = "std")]
-    layout_tests!(u8_surface_differentialrandom_state_global, u8, layout_testing_types::SurfaceDifferential, hash::RandomState, alloc::Global);
+    layout_tests!(
+        u8_surface_differentialrandom_state_global,
+        u8,
+        layout_testing_types::SurfaceDifferential,
+        hash::RandomState,
+        alloc::Global
+    );
 
     #[cfg(feature = "std")]
-    layout_tests!(u8_oct_tree_noderandom_state_global, u8, layout_testing_types::OctTreeNode, hash::RandomState, alloc::Global);
+    layout_tests!(
+        u8_oct_tree_noderandom_state_global,
+        u8,
+        layout_testing_types::OctTreeNode,
+        hash::RandomState,
+        alloc::Global
+    );
 
     #[cfg(feature = "std")]
     layout_tests!(u64_unit_zstrandom_state_global, u64, (), hash::RandomState, alloc::Global);
@@ -29087,40 +29138,190 @@ mod index_map_layout_tests {
     layout_tests!(u64_u64random_state_global, u64, u64, hash::RandomState, alloc::Global);
 
     #[cfg(feature = "std")]
-    layout_tests!(u64_strrandom_state_global, u64, &'static str, hash::RandomState, alloc::Global);
+    layout_tests!(
+        u64_strrandom_state_global,
+        u64,
+        &'static str,
+        hash::RandomState,
+        alloc::Global
+    );
 
     #[cfg(feature = "std")]
-    layout_tests!(u64_tangent_spacerandom_state_global, u64, layout_testing_types::TangentSpace, hash::RandomState, alloc::Global);
+    layout_tests!(
+        u64_tangent_spacerandom_state_global,
+        u64,
+        layout_testing_types::TangentSpace,
+        hash::RandomState,
+        alloc::Global
+    );
 
     #[cfg(feature = "std")]
-    layout_tests!(u64_surface_differentialrandom_state_global, u64, layout_testing_types::SurfaceDifferential, hash::RandomState, alloc::Global);
+    layout_tests!(
+        u64_surface_differentialrandom_state_global,
+        u64,
+        layout_testing_types::SurfaceDifferential,
+        hash::RandomState,
+        alloc::Global
+    );
 
     #[cfg(feature = "std")]
-    layout_tests!(u64_oct_tree_noderandom_state_global, u64, layout_testing_types::OctTreeNode, hash::RandomState, alloc::Global);
+    layout_tests!(
+        u64_oct_tree_noderandom_state_global,
+        u64,
+        layout_testing_types::OctTreeNode,
+        hash::RandomState,
+        alloc::Global
+    );
 
-    layout_tests!(unit_zst_unit_zst_dummy_hasher_dummy_alloc, (), (), dummy::DummyBuildHasher, dummy::DummyAlloc);
-    layout_tests!(unit_zst_u8_dummy_hasher_dummy_alloc, (), u8, dummy::DummyBuildHasher, dummy::DummyAlloc);
-    layout_tests!(unit_zst_u64_dummy_hasher_dummy_alloc, (), u64, dummy::DummyBuildHasher, dummy::DummyAlloc);
-    layout_tests!(unit_zst_str_dummy_hasher_dummy_alloc, (), &'static str, dummy::DummyBuildHasher, dummy::DummyAlloc);
-    layout_tests!(unit_zst_tangent_space_dummy_hasher_dummy_alloc, (), layout_testing_types::TangentSpace, dummy::DummyBuildHasher, dummy::DummyAlloc);
-    layout_tests!(unit_zst_surface_differential_dummy_hasher_dummy_alloc, (), layout_testing_types::SurfaceDifferential, dummy::DummyBuildHasher, dummy::DummyAlloc);
-    layout_tests!(unit_zst_oct_tree_node_dummy_hasher_dummy_alloc, (), layout_testing_types::OctTreeNode, dummy::DummyBuildHasher, dummy::DummyAlloc);
+    layout_tests!(
+        unit_zst_unit_zst_dummy_hasher_dummy_alloc,
+        (),
+        (),
+        dummy::DummyBuildHasher,
+        dummy::DummyAlloc
+    );
+    layout_tests!(
+        unit_zst_u8_dummy_hasher_dummy_alloc,
+        (),
+        u8,
+        dummy::DummyBuildHasher,
+        dummy::DummyAlloc
+    );
+    layout_tests!(
+        unit_zst_u64_dummy_hasher_dummy_alloc,
+        (),
+        u64,
+        dummy::DummyBuildHasher,
+        dummy::DummyAlloc
+    );
+    layout_tests!(
+        unit_zst_str_dummy_hasher_dummy_alloc,
+        (),
+        &'static str,
+        dummy::DummyBuildHasher,
+        dummy::DummyAlloc
+    );
+    layout_tests!(
+        unit_zst_tangent_space_dummy_hasher_dummy_alloc,
+        (),
+        layout_testing_types::TangentSpace,
+        dummy::DummyBuildHasher,
+        dummy::DummyAlloc
+    );
+    layout_tests!(
+        unit_zst_surface_differential_dummy_hasher_dummy_alloc,
+        (),
+        layout_testing_types::SurfaceDifferential,
+        dummy::DummyBuildHasher,
+        dummy::DummyAlloc
+    );
+    layout_tests!(
+        unit_zst_oct_tree_node_dummy_hasher_dummy_alloc,
+        (),
+        layout_testing_types::OctTreeNode,
+        dummy::DummyBuildHasher,
+        dummy::DummyAlloc
+    );
 
-    layout_tests!(u8_unit_zst_dummy_hasher_dummy_alloc, u8, (), dummy::DummyBuildHasher, dummy::DummyAlloc);
-    layout_tests!(u8_u8_dummy_hasher_dummy_alloc, u8, u8, dummy::DummyBuildHasher, dummy::DummyAlloc);
-    layout_tests!(u8_u64_dummy_hasher_dummy_alloc, u8, u64, dummy::DummyBuildHasher, dummy::DummyAlloc);
-    layout_tests!(u8_str_dummy_hasher_dummy_alloc, u8, &'static str, dummy::DummyBuildHasher, dummy::DummyAlloc);
-    layout_tests!(u8_tangent_space_dummy_hasher_dummy_alloc, u8, layout_testing_types::TangentSpace, dummy::DummyBuildHasher, dummy::DummyAlloc);
-    layout_tests!(u8_surface_differential_dummy_hasher_dummy_alloc, u8, layout_testing_types::SurfaceDifferential, dummy::DummyBuildHasher, dummy::DummyAlloc);
-    layout_tests!(u8_oct_tree_node_dummy_hasher_dummy_alloc, u8, layout_testing_types::OctTreeNode, dummy::DummyBuildHasher, dummy::DummyAlloc);
+    layout_tests!(
+        u8_unit_zst_dummy_hasher_dummy_alloc,
+        u8,
+        (),
+        dummy::DummyBuildHasher,
+        dummy::DummyAlloc
+    );
+    layout_tests!(
+        u8_u8_dummy_hasher_dummy_alloc,
+        u8,
+        u8,
+        dummy::DummyBuildHasher,
+        dummy::DummyAlloc
+    );
+    layout_tests!(
+        u8_u64_dummy_hasher_dummy_alloc,
+        u8,
+        u64,
+        dummy::DummyBuildHasher,
+        dummy::DummyAlloc
+    );
+    layout_tests!(
+        u8_str_dummy_hasher_dummy_alloc,
+        u8,
+        &'static str,
+        dummy::DummyBuildHasher,
+        dummy::DummyAlloc
+    );
+    layout_tests!(
+        u8_tangent_space_dummy_hasher_dummy_alloc,
+        u8,
+        layout_testing_types::TangentSpace,
+        dummy::DummyBuildHasher,
+        dummy::DummyAlloc
+    );
+    layout_tests!(
+        u8_surface_differential_dummy_hasher_dummy_alloc,
+        u8,
+        layout_testing_types::SurfaceDifferential,
+        dummy::DummyBuildHasher,
+        dummy::DummyAlloc
+    );
+    layout_tests!(
+        u8_oct_tree_node_dummy_hasher_dummy_alloc,
+        u8,
+        layout_testing_types::OctTreeNode,
+        dummy::DummyBuildHasher,
+        dummy::DummyAlloc
+    );
 
-    layout_tests!(u64_unit_zst_dummy_hasher_dummy_alloc, u64, (), dummy::DummyBuildHasher, dummy::DummyAlloc);
-    layout_tests!(u64_u8_dummy_hasher_dummy_alloc, u64, u8, dummy::DummyBuildHasher, dummy::DummyAlloc);
-    layout_tests!(u64_u64_dummy_hasher_dummy_alloc, u64, u64, dummy::DummyBuildHasher, dummy::DummyAlloc);
-    layout_tests!(u64_str_dummy_hasher_dummy_alloc, u64, &'static str, dummy::DummyBuildHasher, dummy::DummyAlloc);
-    layout_tests!(u64_tangent_space_dummy_hasher_dummy_alloc, u64, layout_testing_types::TangentSpace, dummy::DummyBuildHasher, dummy::DummyAlloc);
-    layout_tests!(u64_surface_differential_dummy_hasher_dummy_alloc, u64, layout_testing_types::SurfaceDifferential, dummy::DummyBuildHasher, dummy::DummyAlloc);
-    layout_tests!(u64_oct_tree_node_dummy_hasher_dummy_alloc, u64, layout_testing_types::OctTreeNode, dummy::DummyBuildHasher, dummy::DummyAlloc);
+    layout_tests!(
+        u64_unit_zst_dummy_hasher_dummy_alloc,
+        u64,
+        (),
+        dummy::DummyBuildHasher,
+        dummy::DummyAlloc
+    );
+    layout_tests!(
+        u64_u8_dummy_hasher_dummy_alloc,
+        u64,
+        u8,
+        dummy::DummyBuildHasher,
+        dummy::DummyAlloc
+    );
+    layout_tests!(
+        u64_u64_dummy_hasher_dummy_alloc,
+        u64,
+        u64,
+        dummy::DummyBuildHasher,
+        dummy::DummyAlloc
+    );
+    layout_tests!(
+        u64_str_dummy_hasher_dummy_alloc,
+        u64,
+        &'static str,
+        dummy::DummyBuildHasher,
+        dummy::DummyAlloc
+    );
+    layout_tests!(
+        u64_tangent_space_dummy_hasher_dummy_alloc,
+        u64,
+        layout_testing_types::TangentSpace,
+        dummy::DummyBuildHasher,
+        dummy::DummyAlloc
+    );
+    layout_tests!(
+        u64_surface_differential_dummy_hasher_dummy_alloc,
+        u64,
+        layout_testing_types::SurfaceDifferential,
+        dummy::DummyBuildHasher,
+        dummy::DummyAlloc
+    );
+    layout_tests!(
+        u64_oct_tree_node_dummy_hasher_dummy_alloc,
+        u64,
+        layout_testing_types::OctTreeNode,
+        dummy::DummyBuildHasher,
+        dummy::DummyAlloc
+    );
 }
 
 #[cfg(test)]

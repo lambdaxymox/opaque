@@ -1,8 +1,11 @@
-use opaque_index_map::map::{Slice, TypeErasedIndexMap};
+use opaque_index_map::map::{
+    Slice,
+    TypeErasedIndexMap,
+};
 
 use core::any;
-use std::hash;
 use std::cell::RefCell;
+use std::hash;
 use std::rc::Rc;
 
 #[cfg(feature = "nightly")]
@@ -89,7 +92,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     fn count_even_indices(slice: &Slice<usize, DropCounter>) -> usize {
-        slice.iter().fold(0, |acc, (i, _)| { if i % 2 == 0 { acc + 1 } else { acc } })
+        slice.iter().fold(0, |acc, (i, _)| if i % 2 == 0 { acc + 1 } else { acc })
     }
 
     let (drop_counter, mut map) = create_drop_counter_index_map_in(length, build_hasher, alloc);
@@ -108,7 +111,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     fn count_odd_indices(slice: &Slice<usize, DropCounter>) -> usize {
-        slice.iter().fold(0, |acc, (i, _)| { if i % 2 != 0 { acc + 1 } else { acc } })
+        slice.iter().fold(0, |acc, (i, _)| if i % 2 != 0 { acc + 1 } else { acc })
     }
 
     let (drop_counter, mut map) = create_drop_counter_index_map_in(length, build_hasher, alloc);

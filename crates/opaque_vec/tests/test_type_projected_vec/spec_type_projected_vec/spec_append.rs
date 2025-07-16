@@ -14,7 +14,10 @@ use opaque_allocator_api::alloc;
 
 use proptest::prelude::*;
 
-fn prop_append_as_slice_source<T, A>(values1: TypeProjectedVec<T, A>, values2: TypeProjectedVec<T, A>) -> Result<(), TestCaseError>
+fn prop_append_as_slice_source<T, A>(
+    values1: TypeProjectedVec<T, A>,
+    values2: TypeProjectedVec<T, A>,
+) -> Result<(), TestCaseError>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
@@ -35,7 +38,10 @@ where
     Ok(())
 }
 
-fn prop_append_as_slice_destination<T, A>(values1: TypeProjectedVec<T, A>, values2: TypeProjectedVec<T, A>) -> Result<(), TestCaseError>
+fn prop_append_as_slice_destination<T, A>(
+    values1: TypeProjectedVec<T, A>,
+    values2: TypeProjectedVec<T, A>,
+) -> Result<(), TestCaseError>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
@@ -68,7 +74,10 @@ where
     Ok(())
 }
 
-fn prop_append_len_destination<T, A>(values1: TypeProjectedVec<T, A>, values2: TypeProjectedVec<T, A>) -> Result<(), TestCaseError>
+fn prop_append_len_destination<T, A>(
+    values1: TypeProjectedVec<T, A>,
+    values2: TypeProjectedVec<T, A>,
+) -> Result<(), TestCaseError>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,

@@ -3,10 +3,10 @@ use opaque_index_map::TypeErasedIndexSet;
 
 use core::any;
 use core::fmt;
-use std::hash;
-use std::vec::Vec;
 use std::format;
+use std::hash;
 use std::string::String;
+use std::vec::Vec;
 
 #[cfg(feature = "nightly")]
 use std::alloc;
@@ -115,10 +115,7 @@ where
         let index = set.get_index_of::<_, T, S, A>(value).unwrap();
         new_set.shift_remove_index::<T, S, A>(index);
 
-        let ordered_entries: Vec<T> = new_set
-            .iter::<T, S, A>()
-            .cloned()
-            .collect();
+        let ordered_entries: Vec<T> = new_set.iter::<T, S, A>().cloned().collect();
 
         ordered_entries
     }

@@ -8,10 +8,10 @@ use opaque_index_map::TypeErasedIndexSet;
 
 use core::any;
 use core::fmt;
-use std::hash;
-use std::vec::Vec;
 use std::format;
+use std::hash;
 use std::string::String;
+use std::vec::Vec;
 
 #[cfg(feature = "nightly")]
 use std::alloc;
@@ -77,10 +77,7 @@ where
     Ok(())
 }
 
-fn prop_append_get_source<T, S1, S2, A>(
-    entries1: TypeErasedIndexSet,
-    entries2: TypeErasedIndexSet,
-) -> Result<(), TestCaseError>
+fn prop_append_get_source<T, S1, S2, A>(entries1: TypeErasedIndexSet, entries2: TypeErasedIndexSet) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
     S1: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -263,10 +260,7 @@ where
     Ok(())
 }
 
-fn prop_append_len_source<T, S1, S2, A>(
-    entries1: TypeErasedIndexSet,
-    entries2: TypeErasedIndexSet,
-) -> Result<(), TestCaseError>
+fn prop_append_len_source<T, S1, S2, A>(entries1: TypeErasedIndexSet, entries2: TypeErasedIndexSet) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug + Ord,
     S1: any::Any + hash::BuildHasher + Send + Sync + Clone,

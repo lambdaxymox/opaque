@@ -3,10 +3,10 @@ use opaque_index_map::TypeErasedIndexMap;
 
 use core::any;
 use core::fmt;
-use std::hash;
-use std::vec::Vec;
 use std::format;
+use std::hash;
 use std::string::String;
+use std::vec::Vec;
 
 #[cfg(feature = "nightly")]
 use std::alloc;
@@ -29,11 +29,7 @@ where
         entries.allocator::<K, V, S, A>().clone(),
     );
 
-    for (key, value) in entries
-        .as_slice::<K, V, S, A>()
-        .iter()
-        .map(|(k, v)| (k.clone(), v.clone()))
-    {
+    for (key, value) in entries.as_slice::<K, V, S, A>().iter().map(|(k, v)| (k.clone(), v.clone())) {
         map.insert_full::<K, V, S, A>(key, value);
     }
 
@@ -84,7 +80,7 @@ where
 {
     let mut map = TypeErasedIndexMap::with_hasher_proj_in::<K, V, S, A>(
         entries.hasher::<K, V, S, A>().clone(),
-        entries.allocator::<K, V, S, A>().clone()
+        entries.allocator::<K, V, S, A>().clone(),
     );
 
     for key in entries.iter::<K, V, S, A>().map(|tuple| tuple.0) {
@@ -276,14 +272,8 @@ where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let map = from_entries_insert_full_in::<K, V, S, A>(&entries);
-    let expected: Vec<V> = entries
-        .values::<K, V, S, A>()
-        .cloned()
-        .collect();
-    let result: Vec<V> = map
-        .values::<K, V, S, A>()
-        .cloned()
-        .collect();
+    let expected: Vec<V> = entries.values::<K, V, S, A>().cloned().collect();
+    let result: Vec<V> = map.values::<K, V, S, A>().cloned().collect();
 
     prop_assert_eq!(result, expected);
 
@@ -299,14 +289,8 @@ where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let mut map = from_entries_insert_full_in::<K, V, S, A>(&entries);
-    let expected: Vec<V> = entries
-        .values_mut::<K, V, S, A>()
-        .map(|value| value.clone())
-        .collect();
-    let result: Vec<V> = map
-        .values_mut::<K, V, S, A>()
-        .map(|value| value.clone())
-        .collect();
+    let expected: Vec<V> = entries.values_mut::<K, V, S, A>().map(|value| value.clone()).collect();
+    let result: Vec<V> = map.values_mut::<K, V, S, A>().map(|value| value.clone()).collect();
 
     prop_assert_eq!(result, expected);
 

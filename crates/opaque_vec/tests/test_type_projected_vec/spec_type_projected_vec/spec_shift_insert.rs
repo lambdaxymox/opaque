@@ -44,7 +44,7 @@ where
 
         vec
     }
-    
+
     let expected_vec = expected(&values);
     let result_vec = result(&values);
 

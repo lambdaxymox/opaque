@@ -3,10 +3,10 @@ use opaque_index_map::TypeProjectedIndexSet;
 
 use core::any;
 use core::fmt;
-use std::hash;
-use std::vec::Vec;
 use std::format;
+use std::hash;
 use std::string::String;
+use std::vec::Vec;
 
 #[cfg(feature = "nightly")]
 use std::alloc;
@@ -46,12 +46,8 @@ where
     let mut set = entries.clone();
     let values: Vec<T> = set.iter().cloned().collect();
     for value in values.iter() {
-        let expected = set
-            .get(value)
-            .cloned();
-        let result = set
-            .shift_remove_full(value)
-            .map(|(_i, v)| v);
+        let expected = set.get(value).cloned();
+        let result = set.shift_remove_full(value).map(|(_i, v)| v);
 
         prop_assert_eq!(result, expected);
     }
@@ -69,9 +65,7 @@ where
     let mut set = entries.clone();
     let values: Vec<T> = set.iter().cloned().collect();
     for value in values.iter() {
-        let expected = set
-            .get_full(value)
-            .map(|(i, v)| (i, v.clone()));
+        let expected = set.get_full(value).map(|(i, v)| (i, v.clone()));
         let result = set.shift_remove_full(value);
 
         prop_assert_eq!(result, expected);
@@ -131,10 +125,7 @@ where
         let mut new_set = set.clone();
         new_set.shift_remove_full(value);
 
-        let ordered_entries: Vec<T> = new_set
-            .iter()
-            .cloned()
-            .collect();
+        let ordered_entries: Vec<T> = new_set.iter().cloned().collect();
 
         ordered_entries
     }
@@ -202,7 +193,7 @@ generate_props!(
     u64,
     hash::RandomState,
     alloc::Global,
-    32, 
+    32,
     strategy_type_projected_index_set_max_len,
 );
 generate_props!(
@@ -210,7 +201,7 @@ generate_props!(
     usize,
     hash::RandomState,
     alloc::Global,
-    32, 
+    32,
     strategy_type_projected_index_set_max_len,
 );
 generate_props!(
@@ -218,6 +209,6 @@ generate_props!(
     String,
     hash::RandomState,
     alloc::Global,
-    32, 
+    32,
     strategy_type_projected_index_set_max_len,
 );

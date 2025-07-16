@@ -6,10 +6,10 @@ use opaque_index_map::TypeProjectedIndexMap;
 
 use core::any;
 use core::fmt;
-use std::hash;
-use std::vec::Vec;
 use std::format;
+use std::hash;
 use std::string::String;
+use std::vec::Vec;
 
 #[cfg(feature = "nightly")]
 use std::alloc;
@@ -19,7 +19,9 @@ use opaque_allocator_api::alloc;
 
 use proptest::prelude::*;
 
-fn strategy_prop_insert_full_preserves_order_new_entry<K, V, S, A>(max_length: usize) -> impl Strategy<Value = (TypeProjectedIndexMap<K, V, S, A>, (K, V))>
+fn strategy_prop_insert_full_preserves_order_new_entry<K, V, S, A>(
+    max_length: usize,
+) -> impl Strategy<Value = (TypeProjectedIndexMap<K, V, S, A>, (K, V))>
 where
     K: any::Any + Clone + Eq + hash::Hash + Ord + Default + fmt::Debug + Arbitrary + SingleBoundedValue,
     V: any::Any + Clone + Eq + Default + fmt::Debug + Arbitrary + SingleBoundedValue,
@@ -27,14 +29,15 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
-    strategy_type_projected_index_map_max_len_nonempty(max_length + 1)
-        .prop_map(move |mut map| {
-            let new_entry = map.pop().unwrap();
-            (map, new_entry)
-        })
+    strategy_type_projected_index_map_max_len_nonempty(max_length + 1).prop_map(move |mut map| {
+        let new_entry = map.pop().unwrap();
+        (map, new_entry)
+    })
 }
 
-fn prop_insert_full_preserves_order_new_entry<K, V, S, A>((entries, new_entry): (TypeProjectedIndexMap<K, V, S, A>, (K, V))) -> Result<(), TestCaseError>
+fn prop_insert_full_preserves_order_new_entry<K, V, S, A>(
+    (entries, new_entry): (TypeProjectedIndexMap<K, V, S, A>, (K, V)),
+) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,

@@ -1,4 +1,7 @@
-use opaque_hash::{TypeErasedHasher, TypeErasedBuildHasher};
+use opaque_hash::{
+    TypeErasedBuildHasher,
+    TypeErasedHasher,
+};
 
 use std::hash;
 

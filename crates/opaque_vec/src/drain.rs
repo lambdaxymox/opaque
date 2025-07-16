@@ -6,8 +6,8 @@
 // at your option.
 use crate::vec_inner::TypeProjectedVecInner;
 
-use core::fmt;
 use core::any;
+use core::fmt;
 use core::iter;
 use core::mem::ManuallyDrop;
 use core::ptr;
@@ -104,7 +104,12 @@ where
 {
     /// Construct a new draining iterator from its constituent components.
     #[inline]
-    pub(crate) const fn from_parts(tail_start: usize, tail_len: usize, iter: slice::Iter<'a, T>, vec: NonNull<TypeProjectedVecInner<T, A>>) -> Self {
+    pub(crate) const fn from_parts(
+        tail_start: usize,
+        tail_len: usize,
+        iter: slice::Iter<'a, T>,
+        vec: NonNull<TypeProjectedVecInner<T, A>>,
+    ) -> Self {
         Self {
             tail_start,
             tail_len,
@@ -320,7 +325,7 @@ where
         // 2. Move [tail] to a new start at `start + len(unyielded)`
         // 3. Update length of the original vec to `len(head) + len(unyielded) + len(tail)`
         //    a. In case of ZST, this is the only thing we want to do
-        // 4. Do **not** drop self, as everything is put in a consistent state already, there is 
+        // 4. Do **not** drop self, as everything is put in a consistent state already, there is
         //    nothing to do
         let mut this = ManuallyDrop::new(self);
 
@@ -367,9 +372,7 @@ where
         let vec = unsafe { self.vec.as_mut() };
         let range_start = vec.len();
         let range_end = self.tail_start;
-        let range_slice = unsafe {
-            slice::from_raw_parts_mut(vec.as_mut_ptr().add(range_start), range_end - range_start)
-        };
+        let range_slice = unsafe { slice::from_raw_parts_mut(vec.as_mut_ptr().add(range_start), range_end - range_start) };
 
         for place in range_slice {
             if let Some(new_item) = replace_with.next() {
@@ -465,7 +468,7 @@ where
             T: any::Any,
             A: any::Any + alloc::Allocator + Send + Sync,
         {
-            inner: &'r mut Drain<'a, T, A>
+            inner: &'r mut Drain<'a, T, A>,
         }
 
         impl<'r, 'a, T, A> Drop for DropGuard<'r, 'a, T, A>
@@ -497,8 +500,8 @@ where
         let mut vec = self.vec;
 
         if crate::zst::is_zst::<T>() {
-            // ZSTs have no identity, so we don't need to move them around, we only need to drop 
-            // the correct amount. this can be achieved by manipulating the Vec length instead of 
+            // ZSTs have no identity, so we don't need to move them around, we only need to drop
+            // the correct amount. this can be achieved by manipulating the Vec length instead of
             // moving values out from `iter`.
             unsafe {
                 let vec = vec.as_mut();
@@ -510,7 +513,7 @@ where
             return;
         }
 
-        // ensure elements are moved back into their appropriate places, even when drop_in_place 
+        // ensure elements are moved back into their appropriate places, even when drop_in_place
         // panics
         let _guard = DropGuard { inner: self };
 

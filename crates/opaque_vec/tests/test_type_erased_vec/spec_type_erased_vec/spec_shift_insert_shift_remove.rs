@@ -86,10 +86,59 @@ macro_rules! generate_props {
     };
 }
 
-generate_props!(unit, (), alloc::Global, 32, strategy_type_erased_vec_max_len, strategy_single_value);
-generate_props!(u8, u8, alloc::Global, 32, strategy_type_erased_vec_max_len, strategy_single_value);
-generate_props!(u16, u16, alloc::Global, 32, strategy_type_erased_vec_max_len, strategy_single_value);
-generate_props!(u32, u32, alloc::Global, 32, strategy_type_erased_vec_max_len, strategy_single_value);
-generate_props!(u64, u64, alloc::Global, 32, strategy_type_erased_vec_max_len, strategy_single_value);
-generate_props!(usize, usize, alloc::Global, 32, strategy_type_erased_vec_max_len, strategy_single_value);
-generate_props!(string, String, alloc::Global, 32, strategy_type_erased_vec_max_len, strategy_single_value);
+generate_props!(
+    unit,
+    (),
+    alloc::Global,
+    32,
+    strategy_type_erased_vec_max_len,
+    strategy_single_value
+);
+generate_props!(
+    u8,
+    u8,
+    alloc::Global,
+    32,
+    strategy_type_erased_vec_max_len,
+    strategy_single_value
+);
+generate_props!(
+    u16,
+    u16,
+    alloc::Global,
+    32,
+    strategy_type_erased_vec_max_len,
+    strategy_single_value
+);
+generate_props!(
+    u32,
+    u32,
+    alloc::Global,
+    32,
+    strategy_type_erased_vec_max_len,
+    strategy_single_value
+);
+generate_props!(
+    u64,
+    u64,
+    alloc::Global,
+    32,
+    strategy_type_erased_vec_max_len,
+    strategy_single_value
+);
+generate_props!(
+    usize,
+    usize,
+    alloc::Global,
+    32,
+    strategy_type_erased_vec_max_len,
+    strategy_single_value
+);
+generate_props!(
+    string,
+    String,
+    alloc::Global,
+    32,
+    strategy_type_erased_vec_max_len,
+    strategy_single_value
+);

@@ -6,10 +6,10 @@ use opaque_index_map::TypeProjectedIndexSet;
 
 use core::any;
 use core::fmt;
-use std::hash;
-use std::vec::Vec;
 use std::format;
+use std::hash;
 use std::string::String;
+use std::vec::Vec;
 
 #[cfg(feature = "nightly")]
 use std::alloc;
@@ -19,21 +19,24 @@ use opaque_allocator_api::alloc;
 
 use proptest::prelude::*;
 
-fn strategy_prop_insert_full_preserves_order_new_entry<T, S, A>(max_length: usize) -> impl Strategy<Value = (TypeProjectedIndexSet<T, S, A>, T)>
+fn strategy_prop_insert_full_preserves_order_new_entry<T, S, A>(
+    max_length: usize,
+) -> impl Strategy<Value = (TypeProjectedIndexSet<T, S, A>, T)>
 where
     T: any::Any + Clone + Eq + hash::Hash + Ord + Default + fmt::Debug + Arbitrary + SingleBoundedValue,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone + Default + fmt::Debug,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
-    strategy_type_projected_index_set_max_len_nonempty(max_length + 1)
-        .prop_map(move |mut set| {
-            let new_entry = set.pop().unwrap();
-            (set, new_entry)
-        })
+    strategy_type_projected_index_set_max_len_nonempty(max_length + 1).prop_map(move |mut set| {
+        let new_entry = set.pop().unwrap();
+        (set, new_entry)
+    })
 }
 
-fn prop_insert_full_preserves_order_new_entry<T, S, A>((entries, new_entry): (TypeProjectedIndexSet<T, S, A>, T)) -> Result<(), TestCaseError>
+fn prop_insert_full_preserves_order_new_entry<T, S, A>(
+    (entries, new_entry): (TypeProjectedIndexSet<T, S, A>, T),
+) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -90,7 +93,7 @@ generate_props!(
     u64,
     hash::RandomState,
     alloc::Global,
-    32, 
+    32,
     strategy_prop_insert_full_preserves_order_new_entry,
 );
 generate_props!(
@@ -98,7 +101,7 @@ generate_props!(
     usize,
     hash::RandomState,
     alloc::Global,
-    32, 
+    32,
     strategy_prop_insert_full_preserves_order_new_entry,
 );
 generate_props!(
@@ -106,6 +109,6 @@ generate_props!(
     String,
     hash::RandomState,
     alloc::Global,
-    32, 
+    32,
     strategy_prop_insert_full_preserves_order_new_entry,
 );

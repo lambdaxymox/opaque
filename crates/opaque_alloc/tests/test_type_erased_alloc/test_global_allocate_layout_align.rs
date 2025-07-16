@@ -1,7 +1,7 @@
 use opaque_alloc::TypeErasedAlloc;
 
-use core::any;
 use alloc_crate::format;
+use core::any;
 
 #[cfg(feature = "nightly")]
 use alloc_crate::alloc;
@@ -18,7 +18,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     use alloc::Allocator;
-    
+
     let expected = 0;
     let result = unsafe {
         let proj_alloc = opaque_alloc.as_proj::<A>();

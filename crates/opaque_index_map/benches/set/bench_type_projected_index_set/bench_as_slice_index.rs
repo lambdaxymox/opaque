@@ -43,4 +43,8 @@ fn bench_type_projected_index_set_as_slice_index(c: &mut Criterion) {
     });
 }
 
-criterion_group!(bench_as_slice_index, bench_type_projected_index_set_as_slice_index, bench_index_set_as_slice_index);
+criterion_group!(
+    bench_as_slice_index,
+    bench_type_projected_index_set_as_slice_index,
+    bench_index_set_as_slice_index
+);

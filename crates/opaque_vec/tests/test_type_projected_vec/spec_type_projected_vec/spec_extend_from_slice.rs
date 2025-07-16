@@ -14,7 +14,10 @@ use opaque_allocator_api::alloc;
 
 use proptest::prelude::*;
 
-fn prop_extend_from_slice_values<T, A>(values: TypeProjectedVec<T, A>, extension_values: TypeProjectedVec<T, A>) -> Result<(), TestCaseError>
+fn prop_extend_from_slice_values<T, A>(
+    values: TypeProjectedVec<T, A>,
+    extension_values: TypeProjectedVec<T, A>,
+) -> Result<(), TestCaseError>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
@@ -36,7 +39,10 @@ where
     Ok(())
 }
 
-fn prop_extend_from_slice_len<T, A>(values: TypeProjectedVec<T, A>, extension_values: TypeProjectedVec<T, A>) -> Result<(), TestCaseError>
+fn prop_extend_from_slice_len<T, A>(
+    values: TypeProjectedVec<T, A>,
+    extension_values: TypeProjectedVec<T, A>,
+) -> Result<(), TestCaseError>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,

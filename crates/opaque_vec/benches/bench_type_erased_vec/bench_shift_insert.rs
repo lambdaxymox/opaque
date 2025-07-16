@@ -43,4 +43,8 @@ fn bench_type_erased_vec_shift_insert_last(c: &mut Criterion) {
     });
 }
 
-criterion_group!(bench_shift_insert, bench_type_erased_vec_shift_insert_last, bench_vec_shift_insert_last);
+criterion_group!(
+    bench_shift_insert,
+    bench_type_erased_vec_shift_insert_last,
+    bench_vec_shift_insert_last
+);

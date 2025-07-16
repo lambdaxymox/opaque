@@ -3,10 +3,13 @@ use opaque_index_map::TypeProjectedIndexSet;
 
 use core::any;
 use core::fmt;
-use std::{cmp, hash};
-use std::vec::Vec;
 use std::format;
 use std::string::String;
+use std::vec::Vec;
+use std::{
+    cmp,
+    hash,
+};
 
 #[cfg(feature = "nightly")]
 use std::alloc;
@@ -45,10 +48,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let set = entries.clone();
-    let sorted_set = from_sorted_unstable_by_in(
-        &entries,
-        |v1, v2| { v1.cmp(v2) },
-    );
+    let sorted_set = from_sorted_unstable_by_in(&entries, |v1, v2| v1.cmp(v2));
 
     for value in set.iter() {
         prop_assert!(sorted_set.contains(value));
@@ -69,10 +69,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let set = entries.clone();
-    let sorted_set = from_sorted_unstable_by_in(
-        &entries,
-        |v1, v2| { v1.cmp(v2) },
-    );
+    let sorted_set = from_sorted_unstable_by_in(&entries, |v1, v2| v1.cmp(v2));
 
     for value in set.iter() {
         let expected = set.get(value);
@@ -92,10 +89,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let set = entries.clone();
-    let sorted_set = from_sorted_unstable_by_in(
-        &entries,
-        |v1, v2| { v1.cmp(v2) },
-    );
+    let sorted_set = from_sorted_unstable_by_in(&entries, |v1, v2| v1.cmp(v2));
 
     for value in sorted_set.iter() {
         let expected = sorted_set.get(value);
@@ -115,10 +109,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let set = entries.clone();
-    let sorted_set = from_sorted_unstable_by_in(
-        &entries,
-        |v1, v2| { v1.cmp(v2) },
-    );
+    let sorted_set = from_sorted_unstable_by_in(&entries, |v1, v2| v1.cmp(v2));
 
     prop_assert_eq!(sorted_set.len(), set.len());
 
@@ -132,10 +123,7 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let sorted_set = from_sorted_unstable_by_in(
-        &entries,
-        |v1, v2| { v1.cmp(v2) },
-    );
+    let sorted_set = from_sorted_unstable_by_in(&entries, |v1, v2| v1.cmp(v2));
 
     let values: Vec<T> = sorted_set.iter().cloned().collect();
     for i in 1..values.len() {

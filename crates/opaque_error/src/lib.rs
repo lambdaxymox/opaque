@@ -6,9 +6,9 @@ extern crate alloc as alloc_crate;
 #[cfg(feature = "std")]
 extern crate std;
 
+use alloc_crate::alloc;
 use core::error;
 use core::fmt;
-use alloc_crate::alloc;
 
 /// The error type for `try_reserve` methods.
 #[derive(Clone, PartialEq, Eq, Debug)]

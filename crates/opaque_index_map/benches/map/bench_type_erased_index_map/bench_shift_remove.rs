@@ -43,9 +43,13 @@ fn bench_type_erased_index_map_shift_remove(c: &mut Criterion) {
         b.iter_batched(
             || TypeErasedIndexMap::from_iter(keys.clone().zip(values.clone())),
             |mut opaque_map| {
-                let keys: Vec<i32> = opaque_map.keys::<i32, i32, hash::RandomState, alloc::Global>().cloned().collect();
+                let keys: Vec<i32> = opaque_map
+                    .keys::<i32, i32, hash::RandomState, alloc::Global>()
+                    .cloned()
+                    .collect();
                 for key in keys.iter() {
-                    let _ = core::hint::black_box(opaque_map.shift_remove::<i32, i32, i32, hash::RandomState, alloc::Global>(key));
+                    let _ =
+                        core::hint::black_box(opaque_map.shift_remove::<i32, i32, i32, hash::RandomState, alloc::Global>(key));
                 }
             },
             criterion::BatchSize::NumIterations(1000),
@@ -53,4 +57,8 @@ fn bench_type_erased_index_map_shift_remove(c: &mut Criterion) {
     });
 }
 
-criterion_group!(bench_shift_remove, bench_type_erased_index_map_shift_remove, bench_index_map_shift_remove);
+criterion_group!(
+    bench_shift_remove,
+    bench_type_erased_index_map_shift_remove,
+    bench_index_map_shift_remove
+);

@@ -3,10 +3,10 @@ use opaque_index_map::TypeProjectedIndexSet;
 
 use core::any;
 use core::fmt;
-use std::hash;
-use std::vec::Vec;
 use std::format;
+use std::hash;
 use std::string::String;
+use std::vec::Vec;
 
 #[cfg(feature = "nightly")]
 use std::alloc;
@@ -23,16 +23,10 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let mut set: TypeProjectedIndexSet<T, S, A> = TypeProjectedIndexSet::with_hasher_proj_in(
-        entries.hasher().clone(),
-        entries.allocator().clone(),
-    );
+    let mut set: TypeProjectedIndexSet<T, S, A> =
+        TypeProjectedIndexSet::with_hasher_proj_in(entries.hasher().clone(), entries.allocator().clone());
 
-    for value in entries
-        .as_slice()
-        .iter()
-        .cloned()
-    {
+    for value in entries.as_slice().iter().cloned() {
         set.insert_full(value);
     }
 
@@ -86,10 +80,7 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let mut set = TypeProjectedIndexSet::with_hasher_proj_in(
-        entries.hasher().clone(),
-        entries.allocator().clone(),
-    );
+    let mut set = TypeProjectedIndexSet::with_hasher_proj_in(entries.hasher().clone(), entries.allocator().clone());
 
     for value in entries.iter() {
         prop_assert!(!set.contains(value));
@@ -271,7 +262,7 @@ generate_props!(
     u64,
     hash::RandomState,
     alloc::Global,
-    32, 
+    32,
     strategy_type_projected_index_set_max_len,
 );
 generate_props!(
@@ -279,7 +270,7 @@ generate_props!(
     usize,
     hash::RandomState,
     alloc::Global,
-    32, 
+    32,
     strategy_type_projected_index_set_max_len,
 );
 generate_props!(
@@ -287,6 +278,6 @@ generate_props!(
     String,
     hash::RandomState,
     alloc::Global,
-    32, 
+    32,
     strategy_type_projected_index_set_max_len,
 );

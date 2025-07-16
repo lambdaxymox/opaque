@@ -4,13 +4,17 @@
 //   * Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
 //   * MIT license (http://opensource.org/licenses/MIT)
 // at your option.
+use alloc_crate::alloc;
 use core::error;
 use core::fmt;
 use core::ptr;
 use core::ptr::NonNull;
-use alloc_crate::alloc;
 
-pub use alloc_crate::alloc::{Layout, LayoutError, handle_alloc_error};
+pub use alloc_crate::alloc::{
+    Layout,
+    LayoutError,
+    handle_alloc_error,
+};
 
 use opaque_polyfill::alloc_layout_extra;
 use opaque_polyfill::slice_ptr_get;
@@ -79,12 +83,7 @@ pub unsafe trait Allocator {
     }
     */
 
-    unsafe fn grow(
-        &self,
-        ptr: NonNull<u8>,
-        old_layout: Layout,
-        new_layout: Layout,
-    ) -> Result<NonNull<[u8]>, AllocError> {
+    unsafe fn grow(&self, ptr: NonNull<u8>, old_layout: Layout, new_layout: Layout) -> Result<NonNull<[u8]>, AllocError> {
         debug_assert!(
             new_layout.size() >= old_layout.size(),
             "`new_layout.size()` must be greater than or equal to `old_layout.size()`"
@@ -133,12 +132,7 @@ pub unsafe trait Allocator {
     }
     */
 
-    unsafe fn grow_zeroed(
-        &self,
-        ptr: NonNull<u8>,
-        old_layout: Layout,
-        new_layout: Layout,
-    ) -> Result<NonNull<[u8]>, AllocError> {
+    unsafe fn grow_zeroed(&self, ptr: NonNull<u8>, old_layout: Layout, new_layout: Layout) -> Result<NonNull<[u8]>, AllocError> {
         debug_assert!(
             new_layout.size() >= old_layout.size(),
             "`new_layout.size()` must be greater than or equal to `old_layout.size()`"
@@ -186,12 +180,7 @@ pub unsafe trait Allocator {
         Ok(new_ptr)
     }
     */
-    unsafe fn shrink(
-        &self,
-        ptr: NonNull<u8>,
-        old_layout: Layout,
-        new_layout: Layout,
-    ) -> Result<NonNull<[u8]>, AllocError> {
+    unsafe fn shrink(&self, ptr: NonNull<u8>, old_layout: Layout, new_layout: Layout) -> Result<NonNull<[u8]>, AllocError> {
         debug_assert!(
             new_layout.size() <= old_layout.size(),
             "`new_layout.size()` must be smaller than or equal to `old_layout.size()`"
@@ -235,7 +224,11 @@ impl Global {
             0 => Ok(NonNull::slice_from_raw_parts(alloc_layout_extra::dangling(&layout), 0)),
             // SAFETY: `layout` is non-zero in size,
             size => unsafe {
-                let raw_ptr = if zeroed { alloc::alloc_zeroed(layout) } else { alloc::alloc(layout) };
+                let raw_ptr = if zeroed {
+                    alloc::alloc_zeroed(layout)
+                } else {
+                    alloc::alloc(layout)
+                };
                 let ptr = NonNull::new(raw_ptr).ok_or(AllocError)?;
                 Ok(NonNull::slice_from_raw_parts(ptr, size))
             },
@@ -370,24 +363,14 @@ unsafe impl Allocator for Global {
 
     #[inline]
     #[cfg_attr(miri, track_caller)] // even without panics, this helps for Miri backtraces
-    unsafe fn grow(
-        &self,
-        ptr: NonNull<u8>,
-        old_layout: Layout,
-        new_layout: Layout,
-    ) -> Result<NonNull<[u8]>, AllocError> {
+    unsafe fn grow(&self, ptr: NonNull<u8>, old_layout: Layout, new_layout: Layout) -> Result<NonNull<[u8]>, AllocError> {
         // SAFETY: all conditions must be upheld by the caller
         unsafe { self.grow_impl(ptr, old_layout, new_layout, false) }
     }
 
     #[inline]
     #[cfg_attr(miri, track_caller)] // even without panics, this helps for Miri backtraces
-    unsafe fn grow_zeroed(
-        &self,
-        ptr: NonNull<u8>,
-        old_layout: Layout,
-        new_layout: Layout,
-    ) -> Result<NonNull<[u8]>, AllocError> {
+    unsafe fn grow_zeroed(&self, ptr: NonNull<u8>, old_layout: Layout, new_layout: Layout) -> Result<NonNull<[u8]>, AllocError> {
         // SAFETY: all conditions must be upheld by the caller
         unsafe { self.grow_impl(ptr, old_layout, new_layout, true) }
     }
@@ -438,12 +421,7 @@ unsafe impl Allocator for Global {
     }
     */
     #[inline]
-    unsafe fn shrink(
-        &self,
-        ptr: NonNull<u8>,
-        old_layout: Layout,
-        new_layout: Layout,
-    ) -> Result<NonNull<[u8]>, AllocError> {
+    unsafe fn shrink(&self, ptr: NonNull<u8>, old_layout: Layout, new_layout: Layout) -> Result<NonNull<[u8]>, AllocError> {
         debug_assert!(
             new_layout.size() <= old_layout.size(),
             "`new_layout.size()` must be smaller than or equal to `old_layout.size()`"

@@ -36,7 +36,7 @@ fn test_type_erased_alloc_clone_wrapping_alloc() {
         A: any::Any + alloc::Allocator + Send + Sync,
     {
         fn new(alloc: A) -> Self {
-            Self { alloc, }
+            Self { alloc }
         }
     }
 
@@ -49,12 +49,10 @@ fn test_type_erased_alloc_clone_wrapping_alloc() {
         }
 
         unsafe fn deallocate(&self, ptr: NonNull<u8>, layout: alloc::Layout) {
-            unsafe {
-                self.alloc.deallocate(ptr, layout)
-            }
+            unsafe { self.alloc.deallocate(ptr, layout) }
         }
     }
-    
+
     let alloc = WrappingAlloc::new(alloc::Global);
 
     run_test_type_erased_alloc_clone(alloc);
@@ -70,9 +68,7 @@ fn test_type_erased_alloc_clone_dummy_allocator() {
             alloc::Global.allocate(layout)
         }
         unsafe fn deallocate(&self, ptr: NonNull<u8>, layout: alloc::Layout) {
-            unsafe {
-                alloc::Global.deallocate(ptr, layout)
-            }
+            unsafe { alloc::Global.deallocate(ptr, layout) }
         }
     }
 

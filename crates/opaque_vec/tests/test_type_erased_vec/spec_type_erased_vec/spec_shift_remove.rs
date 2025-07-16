@@ -51,7 +51,7 @@ where
 
         vec
     }
-    
+
     let mut vec = values.clone::<T, A>();
 
     for i in 0..values.len() {
@@ -140,10 +140,59 @@ macro_rules! generate_props {
     };
 }
 
-generate_props!(unit, (), alloc::Global, 32, strategy_type_erased_vec_max_len, strategy_type_erased_vec_max_len_nonempty);
-generate_props!(u8, u8, alloc::Global, 32, strategy_type_erased_vec_max_len, strategy_type_erased_vec_max_len_nonempty);
-generate_props!(u16, u16, alloc::Global, 32, strategy_type_erased_vec_max_len, strategy_type_erased_vec_max_len_nonempty);
-generate_props!(u32, u32, alloc::Global, 32, strategy_type_erased_vec_max_len, strategy_type_erased_vec_max_len_nonempty);
-generate_props!(u64, u64, alloc::Global, 32, strategy_type_erased_vec_max_len, strategy_type_erased_vec_max_len_nonempty);
-generate_props!(usize, usize, alloc::Global, 32, strategy_type_erased_vec_max_len, strategy_type_erased_vec_max_len_nonempty);
-generate_props!(string, String, alloc::Global, 32, strategy_type_erased_vec_max_len, strategy_type_erased_vec_max_len_nonempty);
+generate_props!(
+    unit,
+    (),
+    alloc::Global,
+    32,
+    strategy_type_erased_vec_max_len,
+    strategy_type_erased_vec_max_len_nonempty
+);
+generate_props!(
+    u8,
+    u8,
+    alloc::Global,
+    32,
+    strategy_type_erased_vec_max_len,
+    strategy_type_erased_vec_max_len_nonempty
+);
+generate_props!(
+    u16,
+    u16,
+    alloc::Global,
+    32,
+    strategy_type_erased_vec_max_len,
+    strategy_type_erased_vec_max_len_nonempty
+);
+generate_props!(
+    u32,
+    u32,
+    alloc::Global,
+    32,
+    strategy_type_erased_vec_max_len,
+    strategy_type_erased_vec_max_len_nonempty
+);
+generate_props!(
+    u64,
+    u64,
+    alloc::Global,
+    32,
+    strategy_type_erased_vec_max_len,
+    strategy_type_erased_vec_max_len_nonempty
+);
+generate_props!(
+    usize,
+    usize,
+    alloc::Global,
+    32,
+    strategy_type_erased_vec_max_len,
+    strategy_type_erased_vec_max_len_nonempty
+);
+generate_props!(
+    string,
+    String,
+    alloc::Global,
+    32,
+    strategy_type_erased_vec_max_len,
+    strategy_type_erased_vec_max_len_nonempty
+);

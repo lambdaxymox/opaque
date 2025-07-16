@@ -3,10 +3,10 @@ use opaque_index_map::TypeProjectedIndexMap;
 
 use core::any;
 use core::fmt;
-use std::hash;
-use std::vec::Vec;
 use std::format;
+use std::hash;
 use std::string::String;
+use std::vec::Vec;
 
 #[cfg(feature = "nightly")]
 use std::alloc;
@@ -48,12 +48,8 @@ where
     let mut map = entries.clone();
     let keys: Vec<K> = map.keys().cloned().collect();
     for key in keys.iter() {
-        let expected = map
-            .get(key)
-            .cloned();
-        let result = map
-            .swap_remove_entry(key)
-            .map(|(_k, v)| v);
+        let expected = map.get(key).cloned();
+        let result = map.swap_remove_entry(key).map(|(_k, v)| v);
 
         prop_assert_eq!(result, expected);
     }
@@ -72,11 +68,8 @@ where
     let mut map = entries.clone();
     let keys: Vec<K> = map.keys().cloned().collect();
     for key in keys.iter() {
-        let expected = map
-            .get_key_value(key)
-            .map(|(k, v)| (k.clone(), v.clone()));
-        let result = map
-            .swap_remove_entry(key);
+        let expected = map.get_key_value(key).map(|(k, v)| (k.clone(), v.clone()));
+        let result = map.swap_remove_entry(key);
 
         prop_assert_eq!(result, expected);
     }
@@ -95,12 +88,8 @@ where
     let mut map = entries.clone();
     let keys: Vec<K> = map.keys().cloned().collect();
     for key in keys.iter() {
-        let expected = map
-            .get_mut(key)
-            .cloned();
-        let result = map
-            .swap_remove_entry(key)
-            .map(|(_k, v)| v);
+        let expected = map.get_mut(key).cloned();
+        let result = map.swap_remove_entry(key).map(|(_k, v)| v);
 
         prop_assert_eq!(result, expected);
     }
@@ -147,10 +136,7 @@ where
         A: any::Any + alloc::Allocator + Send + Sync + Clone,
     {
         let mut entries = Vec::new();
-        for entry in map.as_slice()[0..index]
-            .iter()
-            .map(|(k, v)| (k.clone(), v.clone()))
-        {
+        for entry in map.as_slice()[0..index].iter().map(|(k, v)| (k.clone(), v.clone())) {
             entries.push(entry);
         }
 
@@ -162,8 +148,7 @@ where
 
             entries.push(last_entry);
 
-            for entry in map
-                .as_slice()[(index + 1)..(map.len() - 1)]
+            for entry in map.as_slice()[(index + 1)..(map.len() - 1)]
                 .iter()
                 .map(|(k, v)| (k.clone(), v.clone()))
             {
@@ -185,10 +170,7 @@ where
         let mut new_map = map.clone();
         new_map.swap_remove_entry(key);
 
-        let entries: Vec<(K, V)> = new_map
-            .iter()
-            .map(|(key, value)| (key.clone(), value.clone()))
-            .collect();
+        let entries: Vec<(K, V)> = new_map.iter().map(|(key, value)| (key.clone(), value.clone())).collect();
 
         entries
     }

@@ -3,13 +3,13 @@ use crate::set::common::erased::{
     WrappingBuildHasher2,
     strategy_type_erased_index_set_max_len,
 };
-use opaque_index_map::TypeErasedIndexSet;
 use opaque_hash::TypeProjectedBuildHasher;
+use opaque_index_map::TypeErasedIndexSet;
 
 use core::any;
 use core::fmt;
-use std::hash;
 use std::format;
+use std::hash;
 use std::string::String;
 
 #[cfg(feature = "nightly")]
@@ -62,10 +62,7 @@ where
     set
 }
 
-fn from_intersection_in<T, S1, S2, A>(
-    entries1: &TypeErasedIndexSet,
-    entries2: &TypeErasedIndexSet,
-) -> TypeErasedIndexSet
+fn from_intersection_in<T, S1, S2, A>(entries1: &TypeErasedIndexSet, entries2: &TypeErasedIndexSet) -> TypeErasedIndexSet
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     S1: any::Any + hash::BuildHasher + Send + Sync + Clone + Default,
@@ -140,7 +137,10 @@ where
     Ok(())
 }
 
-fn prop_difference_union_intersection<T, S1, S2, A>(entries1: TypeErasedIndexSet, entries2: TypeErasedIndexSet) -> Result<(), TestCaseError>
+fn prop_difference_union_intersection<T, S1, S2, A>(
+    entries1: TypeErasedIndexSet,
+    entries2: TypeErasedIndexSet,
+) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     S1: any::Any + hash::BuildHasher + Send + Sync + Clone + Default,
@@ -225,7 +225,10 @@ where
     Ok(())
 }
 
-fn prop_difference_get_index<T, S1, S2, A>(entries1: TypeErasedIndexSet, entries2: TypeErasedIndexSet) -> Result<(), TestCaseError>
+fn prop_difference_get_index<T, S1, S2, A>(
+    entries1: TypeErasedIndexSet,
+    entries2: TypeErasedIndexSet,
+) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     S1: any::Any + hash::BuildHasher + Send + Sync + Clone + Default,
@@ -245,7 +248,10 @@ where
     Ok(())
 }
 
-fn prop_difference_get_index_of<T, S1, S2, A>(entries1: TypeErasedIndexSet, entries2: TypeErasedIndexSet) -> Result<(), TestCaseError>
+fn prop_difference_get_index_of<T, S1, S2, A>(
+    entries1: TypeErasedIndexSet,
+    entries2: TypeErasedIndexSet,
+) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     S1: any::Any + hash::BuildHasher + Send + Sync + Clone + Default,
@@ -265,7 +271,10 @@ where
     Ok(())
 }
 
-fn prop_difference_is_subset<T, S1, S2, A>(entries1: TypeErasedIndexSet, entries2: TypeErasedIndexSet) -> Result<(), TestCaseError>
+fn prop_difference_is_subset<T, S1, S2, A>(
+    entries1: TypeErasedIndexSet,
+    entries2: TypeErasedIndexSet,
+) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     S1: any::Any + hash::BuildHasher + Send + Sync + Clone + Default,
@@ -281,7 +290,10 @@ where
     Ok(())
 }
 
-fn prop_difference_is_superset<T, S1, S2, A>(entries1: TypeErasedIndexSet, entries2: TypeErasedIndexSet) -> Result<(), TestCaseError>
+fn prop_difference_is_superset<T, S1, S2, A>(
+    entries1: TypeErasedIndexSet,
+    entries2: TypeErasedIndexSet,
+) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     S1: any::Any + hash::BuildHasher + Send + Sync + Clone + Default,
@@ -297,7 +309,10 @@ where
     Ok(())
 }
 
-fn prop_difference_is_disjoint<T, S1, S2, A>(entries1: TypeErasedIndexSet, entries2: TypeErasedIndexSet) -> Result<(), TestCaseError>
+fn prop_difference_is_disjoint<T, S1, S2, A>(
+    entries1: TypeErasedIndexSet,
+    entries2: TypeErasedIndexSet,
+) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     S1: any::Any + hash::BuildHasher + Send + Sync + Clone + Default,

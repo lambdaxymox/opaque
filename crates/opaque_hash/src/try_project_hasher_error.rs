@@ -24,11 +24,7 @@ impl TryProjectHasherError {
     /// Constructs a new type projection error.
     #[inline]
     pub(crate) const fn new(kind: TryProjectHasherErrorKind, expected: any::TypeId, result: any::TypeId) -> Self {
-        Self {
-            kind,
-            expected,
-            result,
-        }
+        Self { kind, expected, result }
     }
 
     /// Returns which data type did not match.

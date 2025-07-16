@@ -3,10 +3,10 @@ use opaque_index_map::TypeErasedIndexMap;
 
 use core::any;
 use core::fmt;
-use std::hash;
-use std::vec::Vec;
 use std::format;
+use std::hash;
 use std::string::String;
+use std::vec::Vec;
 
 #[cfg(feature = "nightly")]
 use std::alloc;
@@ -68,9 +68,7 @@ where
     let mut map = entries.clone::<K, V, S, A>();
     let keys: Vec<K> = map.keys::<K, V, S, A>().cloned().collect();
     for key in keys.iter() {
-        let expected = map
-            .get_key_value::<_, K, V, S, A>(key)
-            .map(|(k, v)| (k.clone(), v.clone()));
+        let expected = map.get_key_value::<_, K, V, S, A>(key).map(|(k, v)| (k.clone(), v.clone()));
         let result = {
             let maybe_value = map.shift_remove::<_, K, V, S, A>(key);
             maybe_value.map(|value| (key.clone(), value))
@@ -148,8 +146,7 @@ where
             entries.push(entry);
         }
 
-        for entry in map
-            .as_slice::<K, V, S, A>()[(index + 1)..map.len()]
+        for entry in map.as_slice::<K, V, S, A>()[(index + 1)..map.len()]
             .iter()
             .map(|(k, v)| (k.clone(), v.clone()))
         {

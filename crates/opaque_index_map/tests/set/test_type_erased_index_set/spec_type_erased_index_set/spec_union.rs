@@ -4,13 +4,13 @@ use crate::set::common::erased::{
     WrappingBuildHasher3,
     strategy_type_erased_index_set_max_len,
 };
-use opaque_index_map::TypeErasedIndexSet;
 use opaque_hash::TypeProjectedBuildHasher;
+use opaque_index_map::TypeErasedIndexSet;
 
 use core::any;
 use core::fmt;
-use std::hash;
 use std::format;
+use std::hash;
 use std::string::String;
 
 #[cfg(feature = "nightly")]
@@ -42,10 +42,7 @@ where
     set
 }
 
-fn from_intersection_in<T, S1, S2, A>(
-    entries1: &TypeErasedIndexSet,
-    entries2: &TypeErasedIndexSet,
-) -> TypeErasedIndexSet
+fn from_intersection_in<T, S1, S2, A>(entries1: &TypeErasedIndexSet, entries2: &TypeErasedIndexSet) -> TypeErasedIndexSet
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     S1: any::Any + hash::BuildHasher + Send + Sync + Clone + Default,
@@ -166,10 +163,7 @@ where
     Ok(())
 }
 
-fn prop_union_commutative<T, S1, S2, A>(
-    entries1: TypeErasedIndexSet,
-    entries2: TypeErasedIndexSet,
-) -> Result<(), TestCaseError>
+fn prop_union_commutative<T, S1, S2, A>(entries1: TypeErasedIndexSet, entries2: TypeErasedIndexSet) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     S1: any::Any + hash::BuildHasher + Send + Sync + Clone + Default,
@@ -201,14 +195,8 @@ where
     S3::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let lhs = from_union_in::<T, S1, S3, A>(
-        &from_union_in::<T, S1, S2, A>(&entries1, &entries2),
-        &entries3,
-    );
-    let rhs = from_union_in::<T, S1, S2, A>(
-        &entries1,
-        &from_union_in::<T, S2, S3, A>(&entries2, &entries3),
-    );
+    let lhs = from_union_in::<T, S1, S3, A>(&from_union_in::<T, S1, S2, A>(&entries1, &entries2), &entries3);
+    let rhs = from_union_in::<T, S1, S2, A>(&entries1, &from_union_in::<T, S2, S3, A>(&entries2, &entries3));
 
     prop_assert_eq!(lhs.as_proj::<T, S1, A>(), rhs.as_proj::<T, S1, A>());
 
@@ -230,10 +218,7 @@ where
     S3::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let lhs = from_union_in::<T, S1, S2, A>(
-        &entries1,
-        &from_intersection_in::<T, S2, S3, A>(&entries2, &entries3),
-    );
+    let lhs = from_union_in::<T, S1, S2, A>(&entries1, &from_intersection_in::<T, S2, S3, A>(&entries2, &entries3));
     let rhs = from_intersection_in::<T, S1, S1, A>(
         &from_union_in::<T, S1, S2, A>(&entries1, &entries2),
         &from_union_in::<T, S1, S3, A>(&entries1, &entries3),

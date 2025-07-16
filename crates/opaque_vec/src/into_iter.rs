@@ -10,10 +10,10 @@ use crate::vec_inner::TypeProjectedVecInner;
 use core::any;
 use core::fmt;
 use core::iter;
-use core::ops;
-use core::slice;
 use core::mem::ManuallyDrop;
+use core::ops;
 use core::ptr::NonNull;
+use core::slice;
 
 #[cfg(feature = "nightly")]
 use alloc_crate::alloc;
@@ -122,8 +122,20 @@ where
 {
     /// Construct a new moving iterator from its constituent components.
     #[inline]
-    pub(crate) const unsafe fn from_parts(buf: NonNull<T>, cap: usize, alloc: ManuallyDrop<TypeProjectedAlloc<A>>, ptr: NonNull<T>, end: *const T) -> Self {
-        Self { buf, cap, alloc, ptr, end, }
+    pub(crate) const unsafe fn from_parts(
+        buf: NonNull<T>,
+        cap: usize,
+        alloc: ManuallyDrop<TypeProjectedAlloc<A>>,
+        ptr: NonNull<T>,
+        end: *const T,
+    ) -> Self {
+        Self {
+            buf,
+            cap,
+            alloc,
+            ptr,
+            end,
+        }
     }
 
     /// Returns the remaining items in the moving iterator as a slice.
@@ -533,7 +545,7 @@ where
             }
         }
     }
-    
+
     /*
     #[inline]
     fn advance_back_by(&mut self, n: usize) -> Result<(), core::num::NonZero<usize>> {
@@ -599,7 +611,13 @@ where
             };
             let cap = me.capacity();
 
-            IntoIter { buf: data_ptr, cap, alloc: read_alloc, ptr: data_ptr, end, }
+            IntoIter {
+                buf: data_ptr,
+                cap,
+                alloc: read_alloc,
+                ptr: data_ptr,
+                end,
+            }
         }
     }
 }
@@ -615,7 +633,7 @@ where
             T: any::Any,
             A: any::Any + alloc::Allocator + Send + Sync,
         {
-            inner: &'a mut IntoIter<T, A>
+            inner: &'a mut IntoIter<T, A>,
         }
 
         impl<T, A> Drop for DropGuard<'_, T, A>

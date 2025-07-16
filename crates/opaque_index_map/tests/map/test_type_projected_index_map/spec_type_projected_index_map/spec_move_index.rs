@@ -6,9 +6,12 @@ use opaque_index_map::TypeProjectedIndexMap;
 
 use core::any;
 use core::fmt;
-use std::{hash, ops};
 use std::format;
 use std::string::String;
+use std::{
+    hash,
+    ops,
+};
 
 #[cfg(feature = "nightly")]
 use std::alloc;
@@ -18,7 +21,9 @@ use opaque_allocator_api::alloc;
 
 use proptest::prelude::*;
 
-fn strategy_prop_move_index<K, V, S, A>(max_length: usize) -> impl Strategy<Value = (TypeProjectedIndexMap<K, V, S, A>, usize, usize)>
+fn strategy_prop_move_index<K, V, S, A>(
+    max_length: usize,
+) -> impl Strategy<Value = (TypeProjectedIndexMap<K, V, S, A>, usize, usize)>
 where
     K: any::Any + Clone + Eq + hash::Hash + Ord + Default + fmt::Debug + Arbitrary + SingleBoundedValue,
     V: any::Any + Clone + Eq + Default + fmt::Debug + Arbitrary + SingleBoundedValue,
@@ -27,11 +32,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
     fn clamped_interval(max_length: usize) -> ops::RangeInclusive<usize> {
-        if max_length == 0 {
-            1..=1
-        } else {
-            1..=max_length
-        }
+        if max_length == 0 { 1..=1 } else { 1..=max_length }
     }
 
     clamped_interval(max_length).prop_flat_map(move |length| {
@@ -56,7 +57,11 @@ where
     Ok(())
 }
 
-fn prop_move_index_move_index<K, V, S, A>(entries: TypeProjectedIndexMap<K, V, S, A>, from: usize, to: usize) -> Result<(), TestCaseError>
+fn prop_move_index_move_index<K, V, S, A>(
+    entries: TypeProjectedIndexMap<K, V, S, A>,
+    from: usize,
+    to: usize,
+) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
@@ -73,7 +78,11 @@ where
     Ok(())
 }
 
-fn prop_move_index_values<K, V, S, A>(entries: TypeProjectedIndexMap<K, V, S, A>, from: usize, to: usize) -> Result<(), TestCaseError>
+fn prop_move_index_values<K, V, S, A>(
+    entries: TypeProjectedIndexMap<K, V, S, A>,
+    from: usize,
+    to: usize,
+) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
@@ -90,7 +99,11 @@ where
     Ok(())
 }
 
-fn prop_move_index_len<K, V, S, A>(entries: TypeProjectedIndexMap<K, V, S, A>, from: usize, to: usize) -> Result<(), TestCaseError>
+fn prop_move_index_len<K, V, S, A>(
+    entries: TypeProjectedIndexMap<K, V, S, A>,
+    from: usize,
+    to: usize,
+) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
@@ -106,7 +119,11 @@ where
     Ok(())
 }
 
-fn prop_move_index_get_index<K, V, S, A>(entries: TypeProjectedIndexMap<K, V, S, A>, from: usize, to: usize) -> Result<(), TestCaseError>
+fn prop_move_index_get_index<K, V, S, A>(
+    entries: TypeProjectedIndexMap<K, V, S, A>,
+    from: usize,
+    to: usize,
+) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
@@ -129,7 +146,11 @@ where
     Ok(())
 }
 
-fn prop_move_index_ordering_min_to_max<K, V, S, A>(entries: TypeProjectedIndexMap<K, V, S, A>, from: usize, to: usize) -> Result<(), TestCaseError>
+fn prop_move_index_ordering_min_to_max<K, V, S, A>(
+    entries: TypeProjectedIndexMap<K, V, S, A>,
+    from: usize,
+    to: usize,
+) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
@@ -172,7 +193,11 @@ where
     Ok(())
 }
 
-fn prop_move_index_ordering_max_to_min<K, V, S, A>(entries: TypeProjectedIndexMap<K, V, S, A>, from: usize, to: usize) -> Result<(), TestCaseError>
+fn prop_move_index_ordering_max_to_min<K, V, S, A>(
+    entries: TypeProjectedIndexMap<K, V, S, A>,
+    from: usize,
+    to: usize,
+) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,

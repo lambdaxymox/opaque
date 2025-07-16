@@ -3,10 +3,10 @@ use opaque_index_map::TypeErasedIndexSet;
 
 use core::any;
 use core::fmt;
-use std::hash;
-use std::vec::Vec;
 use std::format;
+use std::hash;
 use std::string::String;
+use std::vec::Vec;
 
 #[cfg(feature = "nightly")]
 use std::alloc;
@@ -28,11 +28,7 @@ where
         entries.allocator::<T, S, A>().clone(),
     );
 
-    for value in entries
-        .as_slice::<T, S, A>()
-        .iter()
-        .cloned()
-    {
+    for value in entries.as_slice::<T, S, A>().iter().cloned() {
         set.insert::<T, S, A>(value);
     }
 

@@ -1,4 +1,7 @@
-use opaque_index_map::{GetDisjointMutError, TypeErasedIndexMap};
+use opaque_index_map::{
+    GetDisjointMutError,
+    TypeErasedIndexMap,
+};
 use opaque_vec::TypeProjectedVec;
 
 use std::hash;

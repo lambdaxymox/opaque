@@ -41,4 +41,8 @@ fn bench_type_erased_vec_as_slice_index(c: &mut Criterion) {
     });
 }
 
-criterion_group!(bench_as_slice_index, bench_type_erased_vec_as_slice_index, bench_vec_as_slice_index);
+criterion_group!(
+    bench_as_slice_index,
+    bench_type_erased_vec_as_slice_index,
+    bench_vec_as_slice_index
+);

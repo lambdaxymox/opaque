@@ -3,10 +3,10 @@ use opaque_index_map::TypeProjectedIndexMap;
 
 use core::any;
 use core::fmt;
-use std::hash;
-use std::vec::Vec;
 use std::format;
+use std::hash;
 use std::string::String;
+use std::vec::Vec;
 
 #[cfg(feature = "nightly")]
 use std::alloc;
@@ -24,16 +24,10 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let mut map: TypeProjectedIndexMap<K, V, S, A> = TypeProjectedIndexMap::with_hasher_proj_in(
-        entries.hasher().clone(),
-        entries.allocator().clone(),
-    );
+    let mut map: TypeProjectedIndexMap<K, V, S, A> =
+        TypeProjectedIndexMap::with_hasher_proj_in(entries.hasher().clone(), entries.allocator().clone());
 
-    for (key, value) in entries
-        .as_slice()
-        .iter()
-        .map(|(k, v)| (k.clone(), v.clone()))
-    {
+    for (key, value) in entries.as_slice().iter().map(|(k, v)| (k.clone(), v.clone())) {
         map.insert(key, value);
     }
 
@@ -82,10 +76,7 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let mut map = TypeProjectedIndexMap::with_hasher_proj_in(
-        entries.hasher().clone(),
-        entries.allocator().clone()
-    );
+    let mut map = TypeProjectedIndexMap::with_hasher_proj_in(entries.hasher().clone(), entries.allocator().clone());
 
     for key in entries.iter().map(|tuple| tuple.0) {
         prop_assert!(!map.contains_key(key));
@@ -276,14 +267,8 @@ where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let map = from_entries_insert_in(&entries);
-    let expected: Vec<V> = entries
-        .values()
-        .cloned()
-        .collect();
-    let result: Vec<V> = map
-        .values()
-        .cloned()
-        .collect();
+    let expected: Vec<V> = entries.values().cloned().collect();
+    let result: Vec<V> = map.values().cloned().collect();
 
     prop_assert_eq!(result, expected);
 
@@ -299,14 +284,8 @@ where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let mut map = from_entries_insert_in(&entries);
-    let expected: Vec<V> = entries
-        .values_mut()
-        .map(|value| value.clone())
-        .collect();
-    let result: Vec<V> = map
-        .values_mut()
-        .map(|value| value.clone())
-        .collect();
+    let expected: Vec<V> = entries.values_mut().map(|value| value.clone()).collect();
+    let result: Vec<V> = map.values_mut().map(|value| value.clone()).collect();
 
     prop_assert_eq!(result, expected);
 

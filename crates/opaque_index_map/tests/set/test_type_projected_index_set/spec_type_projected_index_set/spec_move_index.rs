@@ -6,9 +6,12 @@ use opaque_index_map::TypeProjectedIndexSet;
 
 use core::any;
 use core::fmt;
-use std::{hash, ops};
 use std::format;
 use std::string::String;
+use std::{
+    hash,
+    ops,
+};
 
 #[cfg(feature = "nightly")]
 use std::alloc;
@@ -26,11 +29,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
     fn clamped_interval(max_length: usize) -> ops::RangeInclusive<usize> {
-        if max_length == 0 {
-            1..=1
-        } else {
-            1..=max_length
-        }
+        if max_length == 0 { 1..=1 } else { 1..=max_length }
     }
 
     clamped_interval(max_length).prop_flat_map(move |length| {
@@ -54,7 +53,11 @@ where
     Ok(())
 }
 
-fn prop_move_index_move_index<T, S, A>(entries: TypeProjectedIndexSet<T, S, A>, from: usize, to: usize) -> Result<(), TestCaseError>
+fn prop_move_index_move_index<T, S, A>(
+    entries: TypeProjectedIndexSet<T, S, A>,
+    from: usize,
+    to: usize,
+) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -101,7 +104,11 @@ where
     Ok(())
 }
 
-fn prop_move_index_get_index<T, S, A>(entries: TypeProjectedIndexSet<T, S, A>, from: usize, to: usize) -> Result<(), TestCaseError>
+fn prop_move_index_get_index<T, S, A>(
+    entries: TypeProjectedIndexSet<T, S, A>,
+    from: usize,
+    to: usize,
+) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -123,7 +130,11 @@ where
     Ok(())
 }
 
-fn prop_move_index_ordering_min_to_max<T, S, A>(entries: TypeProjectedIndexSet<T, S, A>, from: usize, to: usize) -> Result<(), TestCaseError>
+fn prop_move_index_ordering_min_to_max<T, S, A>(
+    entries: TypeProjectedIndexSet<T, S, A>,
+    from: usize,
+    to: usize,
+) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -165,7 +176,11 @@ where
     Ok(())
 }
 
-fn prop_move_index_ordering_max_to_min<T, S, A>(entries: TypeProjectedIndexSet<T, S, A>, from: usize, to: usize) -> Result<(), TestCaseError>
+fn prop_move_index_ordering_max_to_min<T, S, A>(
+    entries: TypeProjectedIndexSet<T, S, A>,
+    from: usize,
+    to: usize,
+) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -265,27 +280,6 @@ macro_rules! generate_props {
     };
 }
 
-generate_props!(
-    u64,
-    u64,
-    hash::RandomState,
-    alloc::Global,
-    32,
-    strategy_prop_move_index,
-);
-generate_props!(
-    usize,
-    usize,
-    hash::RandomState,
-    alloc::Global,
-    32,
-    strategy_prop_move_index,
-);
-generate_props!(
-    string,
-    String,
-    hash::RandomState,
-    alloc::Global,
-    32,
-    strategy_prop_move_index,
-);
+generate_props!(u64, u64, hash::RandomState, alloc::Global, 32, strategy_prop_move_index,);
+generate_props!(usize, usize, hash::RandomState, alloc::Global, 32, strategy_prop_move_index,);
+generate_props!(string, String, hash::RandomState, alloc::Global, 32, strategy_prop_move_index,);

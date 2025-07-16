@@ -7,8 +7,8 @@ use opaque_index_map::TypeErasedIndexMap;
 use core::any;
 use core::fmt;
 use core::ops;
-use std::hash;
 use std::format;
+use std::hash;
 use std::string::String;
 
 #[cfg(feature = "nightly")]
@@ -28,11 +28,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
     fn clamped_interval(max_length: usize) -> ops::RangeInclusive<usize> {
-        if max_length == 0 {
-            1..=1
-        } else {
-            1..=max_length
-        }
+        if max_length == 0 { 1..=1 } else { 1..=max_length }
     }
 
     clamped_interval(max_length).prop_flat_map(move |length| {
@@ -130,7 +126,11 @@ where
     Ok(())
 }
 
-fn prop_move_index_ordering_min_to_max<K, V, S, A>(entries: TypeErasedIndexMap, from: usize, to: usize) -> Result<(), TestCaseError>
+fn prop_move_index_ordering_min_to_max<K, V, S, A>(
+    entries: TypeErasedIndexMap,
+    from: usize,
+    to: usize,
+) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,
@@ -173,7 +173,11 @@ where
     Ok(())
 }
 
-fn prop_move_index_ordering_max_to_min<K, V, S, A>(entries: TypeErasedIndexMap, from: usize, to: usize) -> Result<(), TestCaseError>
+fn prop_move_index_ordering_max_to_min<K, V, S, A>(
+    entries: TypeErasedIndexMap,
+    from: usize,
+    to: usize,
+) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,

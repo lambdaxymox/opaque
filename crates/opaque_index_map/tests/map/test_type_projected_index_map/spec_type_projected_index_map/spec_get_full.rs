@@ -3,8 +3,8 @@ use opaque_index_map::TypeProjectedIndexMap;
 
 use core::any;
 use core::fmt;
-use std::hash;
 use std::format;
+use std::hash;
 use std::string::String;
 
 #[cfg(feature = "nightly")]
@@ -15,7 +15,9 @@ use opaque_allocator_api::alloc;
 
 use proptest::prelude::*;
 
-fn prop_insert_get_full_equiv_get_index_of_get_key_value<K, V, S, A>(entries: TypeProjectedIndexMap<K, V, S, A>) -> Result<(), TestCaseError>
+fn prop_insert_get_full_equiv_get_index_of_get_key_value<K, V, S, A>(
+    entries: TypeProjectedIndexMap<K, V, S, A>,
+) -> Result<(), TestCaseError>
 where
     K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + fmt::Debug,

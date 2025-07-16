@@ -4,11 +4,12 @@
 //   * Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
 //   * MIT license (http://opensource.org/licenses/MIT)
 // at your option.
-use crate::range_ops;
-use crate::slice_eq;
 use crate::equivalent::Equivalent;
 use crate::get_disjoint_mut_error::GetDisjointMutError;
+use crate::range_ops;
+use crate::slice_eq;
 
+use alloc_crate::boxed::Box;
 use core::any;
 use core::cmp;
 use core::error;
@@ -16,7 +17,6 @@ use core::fmt;
 use core::iter;
 use core::mem;
 use core::ops;
-use alloc_crate::boxed::Box;
 
 #[cfg(feature = "std")]
 use std::hash;
@@ -37,8 +37,14 @@ use opaque_error::{
     TryReserveError,
     TryReserveErrorKind,
 };
-use opaque_hash::{TypeErasedBuildHasher, TypeProjectedBuildHasher};
-use opaque_vec::{TypeErasedVec, TypeProjectedVec};
+use opaque_hash::{
+    TypeErasedBuildHasher,
+    TypeProjectedBuildHasher,
+};
+use opaque_vec::{
+    TypeErasedVec,
+    TypeProjectedVec,
+};
 
 pub(crate) struct Drain<'a, K, V, A>
 where
@@ -292,7 +298,9 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn new(entries: TypeProjectedVec<Bucket<K, V>, A>) -> Self {
-        Self { iter: entries.into_iter() }
+        Self {
+            iter: entries.into_iter(),
+        }
     }
 }
 
@@ -431,7 +439,9 @@ pub(crate) struct ValuesMut<'a, K, V> {
 
 impl<'a, K, V> ValuesMut<'a, K, V> {
     fn new(entries: &'a mut [Bucket<K, V>]) -> Self {
-        Self { iter: entries.iter_mut() }
+        Self {
+            iter: entries.iter_mut(),
+        }
     }
 }
 
@@ -493,7 +503,9 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn new(entries: TypeProjectedVec<Bucket<K, V>, A>) -> Self {
-        Self { iter: entries.into_iter() }
+        Self {
+            iter: entries.into_iter(),
+        }
     }
 }
 
@@ -994,7 +1006,9 @@ where
     V: PartialEq<V2>,
 {
     fn eq(&self, other: &Slice<K2, V2>) -> bool {
-        slice_eq::slice_eq(&self.entries, &other.entries, |b1, b2| b1.key == b2.key && b1.value == b2.value)
+        slice_eq::slice_eq(&self.entries, &other.entries, |b1, b2| {
+            b1.key == b2.key && b1.value == b2.value
+        })
     }
 }
 
@@ -1091,7 +1105,7 @@ impl<K, V> ops::Index<usize> for Slice<K, V> {
 }
 
 impl<K, V> ops::IndexMut<usize> for Slice<K, V> {
-    fn index_mut(&mut self, index: usize) -> &mut Self::Output{
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         &mut self.entries[index]
     }
 }
@@ -1194,7 +1208,9 @@ pub(crate) struct IterMut<'a, K, V> {
 impl<'a, K, V> IterMut<'a, K, V> {
     #[inline]
     fn new(entries: &'a mut [Bucket<K, V>]) -> Self {
-        Self { iter: entries.iter_mut() }
+        Self {
+            iter: entries.iter_mut(),
+        }
     }
 
     #[cfg(feature = "nightly")]
@@ -1504,7 +1520,8 @@ where
 {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         // Follow `vec::Splice` in only printing the drain and replacement
-        formatter.debug_struct("Splice")
+        formatter
+            .debug_struct("Splice")
             .field("drain", &self.drain)
             .field("replace_with", &self.replace_with)
             .finish()
@@ -1671,10 +1688,7 @@ where
 {
     #[inline]
     fn new(indices: &'a mut hashbrown::HashTable<usize>, entries: &'a mut TypeProjectedVec<Bucket<K, V>, A>) -> Self {
-        Self {
-            indices,
-            entries,
-        }
+        Self { indices, entries }
     }
 
     #[inline]
@@ -1685,9 +1699,7 @@ where
     fn insert_unique(self, hash: HashValue, key: K, value: V) -> OccupiedEntry<'a, K, V, A> {
         let i = self.indices.len();
         debug_assert_eq!(i, self.entries.len());
-        let entry = self
-            .indices
-            .insert_unique(hash.get(), i, get_hash(self.entries.as_slice()));
+        let entry = self.indices.insert_unique(hash.get(), i, get_hash(self.entries.as_slice()));
         if self.entries.len() == self.entries.capacity() {
             // We can't call `indices.capacity()` while this `entry` has borrowed it, so we'll have
             // to amortize growth on our own. It's still an improvement over the basic `Vec::push`
@@ -1834,10 +1846,7 @@ where
         // We'll get a "nice" bounds-check from indexing `entries`,
         // and then we expect to find it in the table as well.
         match self.indices.get_many_mut(
-            [
-                self.entries.as_slice()[a].hash.get(),
-                self.entries.as_slice()[b].hash.get(),
-            ],
+            [self.entries.as_slice()[a].hash.get(), self.entries.as_slice()[b].hash.get()],
             move |i, &x| if i == 0 { x == a } else { x == b },
         ) {
             [Some(ref_a), Some(ref_b)] => {
@@ -2269,8 +2278,7 @@ where
         debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
         debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
 
-        self.indices
-            .shrink_to(min_capacity, get_hash(self.entries.as_slice()));
+        self.indices.shrink_to(min_capacity, get_hash(self.entries.as_slice()));
         self.entries.shrink_to(min_capacity);
     }
 
@@ -2353,10 +2361,7 @@ where
             hash_table::Entry::Occupied(entry) => {
                 let i = *entry.get();
                 let entry = &mut self.entries[i];
-                let kv = (
-                    mem::replace(&mut entry.key, key),
-                    mem::replace(&mut entry.value, value),
-                );
+                let kv = (mem::replace(&mut entry.key, key), mem::replace(&mut entry.value, value));
                 (i, Some(kv))
             }
             hash_table::Entry::Vacant(entry) => {
@@ -2573,10 +2578,7 @@ where
         let entries = &mut self.entries;
         let eq = equivalent(&key, entries.as_slice());
         match self.indices.find_entry(hash.get(), eq) {
-            Ok(index) => Entry::Occupied(OccupiedEntry {
-                entries,
-                index,
-            }),
+            Ok(index) => Entry::Occupied(OccupiedEntry { entries, index }),
             Err(absent) => Entry::Vacant(VacantEntry {
                 map: RefMut::new(absent.into_table(), entries),
                 hash,
@@ -2852,10 +2854,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     pub(crate) fn new(entries: &'a mut TypeProjectedVec<Bucket<K, V>, A>, index: hash_table::OccupiedEntry<'a, usize>) -> Self {
-        Self {
-            entries,
-            index,
-        }
+        Self { entries, index }
     }
 
     #[inline]
@@ -2945,7 +2944,8 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.debug_struct("OccupiedEntry")
+        formatter
+            .debug_struct("OccupiedEntry")
             .field("key", self.key())
             .field("value", self.get())
             .finish()
@@ -2960,16 +2960,13 @@ where
 {
     fn from(other: IndexedEntry<'a, K, V, A>) -> Self {
         let IndexedEntry {
-            map: RefMut { indices, entries, },
+            map: RefMut { indices, entries },
             index,
         } = other;
         let hash = entries.as_slice()[index].hash;
         let index = indices.find_entry(hash.get(), move |&i| i == index).expect("index not found");
 
-        Self {
-            entries,
-            index,
-        }
+        Self { entries, index }
     }
 }
 
@@ -3136,7 +3133,8 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.debug_struct("IndexedEntry")
+        formatter
+            .debug_struct("IndexedEntry")
             .field("index", &self.index)
             .field("key", self.key())
             .field("value", self.get())
@@ -3265,7 +3263,11 @@ where
     }
 
     #[inline]
-    pub(crate) fn with_capacity_and_hasher_proj_in(capacity: usize, proj_build_hasher: TypeProjectedBuildHasher<S>, proj_alloc: TypeProjectedAlloc<A>) -> Self {
+    pub(crate) fn with_capacity_and_hasher_proj_in(
+        capacity: usize,
+        proj_build_hasher: TypeProjectedBuildHasher<S>,
+        proj_alloc: TypeProjectedAlloc<A>,
+    ) -> Self {
         if capacity == 0 {
             Self::with_hasher_proj_in(proj_build_hasher, proj_alloc)
         } else {
@@ -3291,7 +3293,7 @@ where
         let proj_build_hasher = TypeProjectedBuildHasher::new(hash::RandomState::new());
 
         Self {
-            inner : proj_inner,
+            inner: proj_inner,
             build_hasher: proj_build_hasher,
         }
     }
@@ -3301,7 +3303,7 @@ where
         let proj_build_hasher = TypeProjectedBuildHasher::new(hash::RandomState::new());
 
         Self {
-            inner : proj_inner,
+            inner: proj_inner,
             build_hasher: proj_build_hasher,
         }
     }
@@ -3321,7 +3323,7 @@ where
         let proj_build_hasher = TypeProjectedBuildHasher::new(build_hasher);
 
         Self {
-            inner : proj_inner,
+            inner: proj_inner,
             build_hasher: proj_build_hasher,
         }
     }
@@ -3354,7 +3356,7 @@ where
         let proj_build_hasher = TypeProjectedBuildHasher::<hash::RandomState>::new(hash::RandomState::default());
 
         Self {
-            inner : proj_inner,
+            inner: proj_inner,
             build_hasher: proj_build_hasher,
         }
     }
@@ -3608,9 +3610,7 @@ where
         let indices = keys.map(|key| self.get_index_of(key));
         match self.as_mut_slice().get_disjoint_opt_mut(indices) {
             Err(GetDisjointMutError::IndexOutOfBounds) => {
-                unreachable!(
-                    "Internal error: indices should never be OOB as we got them from get_index_of"
-                );
+                unreachable!("Internal error: indices should never be OOB as we got them from get_index_of");
             }
             Err(GetDisjointMutError::OverlappingIndices) => {
                 panic!("duplicate keys found");
@@ -4015,7 +4015,7 @@ where
         K: Eq + hash::Hash,
         A: Clone,
         R: ops::RangeBounds<usize>,
-        I: IntoIterator<Item=(K, V)>,
+        I: IntoIterator<Item = (K, V)>,
     {
         debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
         debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
@@ -4468,9 +4468,8 @@ where
 
     pub(crate) fn get_disjoint_indices_mut<const N: usize>(
         &mut self,
-        indices: [usize; N]
-    ) -> Result<[(&K, &mut V); N], GetDisjointMutError>
-    {
+        indices: [usize; N],
+    ) -> Result<[(&K, &mut V); N], GetDisjointMutError> {
         debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
         debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
         debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
@@ -4603,7 +4602,7 @@ where
         debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
         debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
         debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
-        
+
         self.inner.swap_indices(a, b)
     }
 }
@@ -4732,8 +4731,8 @@ impl TypeErasedIndexMapInner {
 
 mod dummy {
     use super::*;
-    use core::ptr::NonNull;
     use core::marker;
+    use core::ptr::NonNull;
 
     #[allow(dead_code)]
     pub(super) struct DummyHasher {
@@ -4835,7 +4834,10 @@ mod index_map_core_layout_tests {
         let expected = mem::align_of::<TypeProjectedIndexMapCore<K, V, A>>();
         let result = mem::align_of::<TypeErasedIndexMapCore>();
 
-        assert_eq!(result, expected, "Type Erased and Type Projected data types alignment mismatch");
+        assert_eq!(
+            result, expected,
+            "Type Erased and Type Projected data types alignment mismatch"
+        );
     }
 
     fn run_test_type_erased_index_map_core_match_offsets<K, V, A>()
@@ -4898,49 +4900,129 @@ mod index_map_core_layout_tests {
     layout_tests!(unit_zst_u8_global, (), u8, alloc::Global);
     layout_tests!(unit_zst_u64_global, (), u64, alloc::Global);
     layout_tests!(unit_zst_str_global, (), &'static str, alloc::Global);
-    layout_tests!(unit_zst_tangent_space_global, (), layout_testing_types::TangentSpace, alloc::Global);
-    layout_tests!(unit_zst_surface_differential_global, (), layout_testing_types::SurfaceDifferential, alloc::Global);
-    layout_tests!(unit_zst_oct_tree_node_global, (), layout_testing_types::OctTreeNode, alloc::Global);
+    layout_tests!(
+        unit_zst_tangent_space_global,
+        (),
+        layout_testing_types::TangentSpace,
+        alloc::Global
+    );
+    layout_tests!(
+        unit_zst_surface_differential_global,
+        (),
+        layout_testing_types::SurfaceDifferential,
+        alloc::Global
+    );
+    layout_tests!(
+        unit_zst_oct_tree_node_global,
+        (),
+        layout_testing_types::OctTreeNode,
+        alloc::Global
+    );
 
     layout_tests!(u8_unit_zst_global, u8, (), alloc::Global);
     layout_tests!(u8_u8_global, u8, u8, alloc::Global);
     layout_tests!(u8_u64_global, u8, u64, alloc::Global);
     layout_tests!(u8_str_global, u8, &'static str, alloc::Global);
     layout_tests!(u8_tangent_space_global, u8, layout_testing_types::TangentSpace, alloc::Global);
-    layout_tests!(u8_surface_differential_global, u8, layout_testing_types::SurfaceDifferential, alloc::Global);
+    layout_tests!(
+        u8_surface_differential_global,
+        u8,
+        layout_testing_types::SurfaceDifferential,
+        alloc::Global
+    );
     layout_tests!(u8_oct_tree_node_global, u8, layout_testing_types::OctTreeNode, alloc::Global);
 
     layout_tests!(u64_unit_zst_global, u64, (), alloc::Global);
     layout_tests!(u64_u8_global, u64, u8, alloc::Global);
     layout_tests!(u64_u64_global, u64, u64, alloc::Global);
     layout_tests!(u64_str_global, u64, &'static str, alloc::Global);
-    layout_tests!(u64_tangent_space_global, u64, layout_testing_types::TangentSpace, alloc::Global);
-    layout_tests!(u64_surface_differential_global, u64, layout_testing_types::SurfaceDifferential, alloc::Global);
-    layout_tests!(u64_oct_tree_node_global, u64, layout_testing_types::OctTreeNode, alloc::Global);
+    layout_tests!(
+        u64_tangent_space_global,
+        u64,
+        layout_testing_types::TangentSpace,
+        alloc::Global
+    );
+    layout_tests!(
+        u64_surface_differential_global,
+        u64,
+        layout_testing_types::SurfaceDifferential,
+        alloc::Global
+    );
+    layout_tests!(
+        u64_oct_tree_node_global,
+        u64,
+        layout_testing_types::OctTreeNode,
+        alloc::Global
+    );
 
     layout_tests!(unit_zst_unit_zst_dummy_alloc, (), (), dummy::DummyAlloc);
     layout_tests!(unit_zst_u8_dummy_alloc, (), u8, dummy::DummyAlloc);
     layout_tests!(unit_zst_u64_dummy_alloc, (), u64, dummy::DummyAlloc);
     layout_tests!(unit_zst_str_dummy_alloc, (), &'static str, dummy::DummyAlloc);
-    layout_tests!(unit_zst_tangent_space_dummy_alloc, (), layout_testing_types::TangentSpace, dummy::DummyAlloc);
-    layout_tests!(unit_zst_surface_differential_dummy_alloc, (), layout_testing_types::SurfaceDifferential, dummy::DummyAlloc);
-    layout_tests!(unit_zst_oct_tree_node_dummy_alloc, (), layout_testing_types::OctTreeNode, dummy::DummyAlloc);
+    layout_tests!(
+        unit_zst_tangent_space_dummy_alloc,
+        (),
+        layout_testing_types::TangentSpace,
+        dummy::DummyAlloc
+    );
+    layout_tests!(
+        unit_zst_surface_differential_dummy_alloc,
+        (),
+        layout_testing_types::SurfaceDifferential,
+        dummy::DummyAlloc
+    );
+    layout_tests!(
+        unit_zst_oct_tree_node_dummy_alloc,
+        (),
+        layout_testing_types::OctTreeNode,
+        dummy::DummyAlloc
+    );
 
     layout_tests!(u8_unit_zst_dummy_alloc, u8, (), dummy::DummyAlloc);
     layout_tests!(u8_u8_dummy_alloc, u8, u8, dummy::DummyAlloc);
     layout_tests!(u8_u64_dummy_alloc, u8, u64, dummy::DummyAlloc);
     layout_tests!(u8_str_dummy_alloc, u8, &'static str, dummy::DummyAlloc);
-    layout_tests!(u8_tangent_space_dummy_alloc, u8, layout_testing_types::TangentSpace, dummy::DummyAlloc);
-    layout_tests!(u8_surface_differential_dummy_alloc, u8, layout_testing_types::SurfaceDifferential, dummy::DummyAlloc);
-    layout_tests!(u8_oct_tree_node_dummy_alloc, u8, layout_testing_types::OctTreeNode, dummy::DummyAlloc);
+    layout_tests!(
+        u8_tangent_space_dummy_alloc,
+        u8,
+        layout_testing_types::TangentSpace,
+        dummy::DummyAlloc
+    );
+    layout_tests!(
+        u8_surface_differential_dummy_alloc,
+        u8,
+        layout_testing_types::SurfaceDifferential,
+        dummy::DummyAlloc
+    );
+    layout_tests!(
+        u8_oct_tree_node_dummy_alloc,
+        u8,
+        layout_testing_types::OctTreeNode,
+        dummy::DummyAlloc
+    );
 
     layout_tests!(u64_unit_zst_dummy_alloc, u64, (), dummy::DummyAlloc);
     layout_tests!(u64_u8_dummy_alloc, u64, u8, dummy::DummyAlloc);
     layout_tests!(u64_u64_dummy_alloc, u64, u64, dummy::DummyAlloc);
     layout_tests!(u64_str_dummy_alloc, u64, &'static str, dummy::DummyAlloc);
-    layout_tests!(u64_tangent_space_dummy_alloc, u64, layout_testing_types::TangentSpace, dummy::DummyAlloc);
-    layout_tests!(u64_surface_differential_dummy_alloc, u64, layout_testing_types::SurfaceDifferential, dummy::DummyAlloc);
-    layout_tests!(u64_oct_tree_node_dummy_alloc, u64, layout_testing_types::OctTreeNode, dummy::DummyAlloc);
+    layout_tests!(
+        u64_tangent_space_dummy_alloc,
+        u64,
+        layout_testing_types::TangentSpace,
+        dummy::DummyAlloc
+    );
+    layout_tests!(
+        u64_surface_differential_dummy_alloc,
+        u64,
+        layout_testing_types::SurfaceDifferential,
+        dummy::DummyAlloc
+    );
+    layout_tests!(
+        u64_oct_tree_node_dummy_alloc,
+        u64,
+        layout_testing_types::OctTreeNode,
+        dummy::DummyAlloc
+    );
 }
 
 #[cfg(test)]
@@ -5006,7 +5088,10 @@ mod index_map_inner_layout_tests {
         let expected = mem::align_of::<TypeProjectedIndexMapInner<K, V, S, A>>();
         let result = mem::align_of::<TypeErasedIndexMapInner>();
 
-        assert_eq!(result, expected, "Type Erased and Type Projected data types alignment mismatch");
+        assert_eq!(
+            result, expected,
+            "Type Erased and Type Projected data types alignment mismatch"
+        );
     }
 
     fn run_test_type_erased_index_map_inner_match_offsets<K, V, S, A>()
@@ -5041,7 +5126,8 @@ mod index_map_inner_layout_tests {
 
                 #[test]
                 fn test_type_erased_index_map_inner_layout_match_alignments() {
-                    run_test_type_erased_index_map_inner_match_alignments::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>();
+                    run_test_type_erased_index_map_inner_match_alignments::<$key_typ, $value_typ, $build_hasher_typ, $alloc_typ>(
+                    );
                 }
 
                 #[test]
@@ -5062,16 +5148,40 @@ mod index_map_inner_layout_tests {
     layout_tests!(unit_zst_u64random_state_global, (), u64, hash::RandomState, alloc::Global);
 
     #[cfg(feature = "std")]
-    layout_tests!(unit_zst_strrandom_state_global, (), &'static str, hash::RandomState, alloc::Global);
+    layout_tests!(
+        unit_zst_strrandom_state_global,
+        (),
+        &'static str,
+        hash::RandomState,
+        alloc::Global
+    );
 
     #[cfg(feature = "std")]
-    layout_tests!(unit_zst_tangent_spacerandom_state_global, (), layout_testing_types::TangentSpace, hash::RandomState, alloc::Global);
+    layout_tests!(
+        unit_zst_tangent_spacerandom_state_global,
+        (),
+        layout_testing_types::TangentSpace,
+        hash::RandomState,
+        alloc::Global
+    );
 
     #[cfg(feature = "std")]
-    layout_tests!(unit_zst_surface_differentialrandom_state_global, (), layout_testing_types::SurfaceDifferential, hash::RandomState, alloc::Global);
+    layout_tests!(
+        unit_zst_surface_differentialrandom_state_global,
+        (),
+        layout_testing_types::SurfaceDifferential,
+        hash::RandomState,
+        alloc::Global
+    );
 
     #[cfg(feature = "std")]
-    layout_tests!(unit_zst_oct_tree_noderandom_state_global, (), layout_testing_types::OctTreeNode, hash::RandomState, alloc::Global);
+    layout_tests!(
+        unit_zst_oct_tree_noderandom_state_global,
+        (),
+        layout_testing_types::OctTreeNode,
+        hash::RandomState,
+        alloc::Global
+    );
 
     #[cfg(feature = "std")]
     layout_tests!(u8_unit_zstrandom_state_global, u8, (), hash::RandomState, alloc::Global);
@@ -5086,13 +5196,31 @@ mod index_map_inner_layout_tests {
     layout_tests!(u8_strrandom_state_global, u8, &'static str, hash::RandomState, alloc::Global);
 
     #[cfg(feature = "std")]
-    layout_tests!(u8_tangent_spacerandom_state_global, u8, layout_testing_types::TangentSpace, hash::RandomState, alloc::Global);
+    layout_tests!(
+        u8_tangent_spacerandom_state_global,
+        u8,
+        layout_testing_types::TangentSpace,
+        hash::RandomState,
+        alloc::Global
+    );
 
     #[cfg(feature = "std")]
-    layout_tests!(u8_surface_differentialrandom_state_global, u8, layout_testing_types::SurfaceDifferential, hash::RandomState, alloc::Global);
+    layout_tests!(
+        u8_surface_differentialrandom_state_global,
+        u8,
+        layout_testing_types::SurfaceDifferential,
+        hash::RandomState,
+        alloc::Global
+    );
 
     #[cfg(feature = "std")]
-    layout_tests!(u8_oct_tree_noderandom_state_global, u8, layout_testing_types::OctTreeNode, hash::RandomState, alloc::Global);
+    layout_tests!(
+        u8_oct_tree_noderandom_state_global,
+        u8,
+        layout_testing_types::OctTreeNode,
+        hash::RandomState,
+        alloc::Global
+    );
 
     #[cfg(feature = "std")]
     layout_tests!(u64_unit_zstrandom_state_global, u64, (), hash::RandomState, alloc::Global);
@@ -5104,40 +5232,190 @@ mod index_map_inner_layout_tests {
     layout_tests!(u64_u64random_state_global, u64, u64, hash::RandomState, alloc::Global);
 
     #[cfg(feature = "std")]
-    layout_tests!(u64_strrandom_state_global, u64, &'static str, hash::RandomState, alloc::Global);
+    layout_tests!(
+        u64_strrandom_state_global,
+        u64,
+        &'static str,
+        hash::RandomState,
+        alloc::Global
+    );
 
     #[cfg(feature = "std")]
-    layout_tests!(u64_tangent_spacerandom_state_global, u64, layout_testing_types::TangentSpace, hash::RandomState, alloc::Global);
+    layout_tests!(
+        u64_tangent_spacerandom_state_global,
+        u64,
+        layout_testing_types::TangentSpace,
+        hash::RandomState,
+        alloc::Global
+    );
 
     #[cfg(feature = "std")]
-    layout_tests!(u64_surface_differentialrandom_state_global, u64, layout_testing_types::SurfaceDifferential, hash::RandomState, alloc::Global);
+    layout_tests!(
+        u64_surface_differentialrandom_state_global,
+        u64,
+        layout_testing_types::SurfaceDifferential,
+        hash::RandomState,
+        alloc::Global
+    );
 
     #[cfg(feature = "std")]
-    layout_tests!(u64_oct_tree_noderandom_state_global, u64, layout_testing_types::OctTreeNode, hash::RandomState, alloc::Global);
+    layout_tests!(
+        u64_oct_tree_noderandom_state_global,
+        u64,
+        layout_testing_types::OctTreeNode,
+        hash::RandomState,
+        alloc::Global
+    );
 
-    layout_tests!(unit_zst_unit_zst_dummy_hasher_dummy_alloc, (), (), dummy::DummyBuildHasher, dummy::DummyAlloc);
-    layout_tests!(unit_zst_u8_dummy_hasher_dummy_alloc, (), u8, dummy::DummyBuildHasher, dummy::DummyAlloc);
-    layout_tests!(unit_zst_u64_dummy_hasher_dummy_alloc, (), u64, dummy::DummyBuildHasher, dummy::DummyAlloc);
-    layout_tests!(unit_zst_str_dummy_hasher_dummy_alloc, (), &'static str, dummy::DummyBuildHasher, dummy::DummyAlloc);
-    layout_tests!(unit_zst_tangent_space_dummy_hasher_dummy_alloc, (), layout_testing_types::TangentSpace, dummy::DummyBuildHasher, dummy::DummyAlloc);
-    layout_tests!(unit_zst_surface_differential_dummy_hasher_dummy_alloc, (), layout_testing_types::SurfaceDifferential, dummy::DummyBuildHasher, dummy::DummyAlloc);
-    layout_tests!(unit_zst_oct_tree_node_dummy_hasher_dummy_alloc, (), layout_testing_types::OctTreeNode, dummy::DummyBuildHasher, dummy::DummyAlloc);
+    layout_tests!(
+        unit_zst_unit_zst_dummy_hasher_dummy_alloc,
+        (),
+        (),
+        dummy::DummyBuildHasher,
+        dummy::DummyAlloc
+    );
+    layout_tests!(
+        unit_zst_u8_dummy_hasher_dummy_alloc,
+        (),
+        u8,
+        dummy::DummyBuildHasher,
+        dummy::DummyAlloc
+    );
+    layout_tests!(
+        unit_zst_u64_dummy_hasher_dummy_alloc,
+        (),
+        u64,
+        dummy::DummyBuildHasher,
+        dummy::DummyAlloc
+    );
+    layout_tests!(
+        unit_zst_str_dummy_hasher_dummy_alloc,
+        (),
+        &'static str,
+        dummy::DummyBuildHasher,
+        dummy::DummyAlloc
+    );
+    layout_tests!(
+        unit_zst_tangent_space_dummy_hasher_dummy_alloc,
+        (),
+        layout_testing_types::TangentSpace,
+        dummy::DummyBuildHasher,
+        dummy::DummyAlloc
+    );
+    layout_tests!(
+        unit_zst_surface_differential_dummy_hasher_dummy_alloc,
+        (),
+        layout_testing_types::SurfaceDifferential,
+        dummy::DummyBuildHasher,
+        dummy::DummyAlloc
+    );
+    layout_tests!(
+        unit_zst_oct_tree_node_dummy_hasher_dummy_alloc,
+        (),
+        layout_testing_types::OctTreeNode,
+        dummy::DummyBuildHasher,
+        dummy::DummyAlloc
+    );
 
-    layout_tests!(u8_unit_zst_dummy_hasher_dummy_alloc, u8, (), dummy::DummyBuildHasher, dummy::DummyAlloc);
-    layout_tests!(u8_u8_dummy_hasher_dummy_alloc, u8, u8, dummy::DummyBuildHasher, dummy::DummyAlloc);
-    layout_tests!(u8_u64_dummy_hasher_dummy_alloc, u8, u64, dummy::DummyBuildHasher, dummy::DummyAlloc);
-    layout_tests!(u8_str_dummy_hasher_dummy_alloc, u8, &'static str, dummy::DummyBuildHasher, dummy::DummyAlloc);
-    layout_tests!(u8_tangent_space_dummy_hasher_dummy_alloc, u8, layout_testing_types::TangentSpace, dummy::DummyBuildHasher, dummy::DummyAlloc);
-    layout_tests!(u8_surface_differential_dummy_hasher_dummy_alloc, u8, layout_testing_types::SurfaceDifferential, dummy::DummyBuildHasher, dummy::DummyAlloc);
-    layout_tests!(u8_oct_tree_node_dummy_hasher_dummy_alloc, u8, layout_testing_types::OctTreeNode, dummy::DummyBuildHasher, dummy::DummyAlloc);
+    layout_tests!(
+        u8_unit_zst_dummy_hasher_dummy_alloc,
+        u8,
+        (),
+        dummy::DummyBuildHasher,
+        dummy::DummyAlloc
+    );
+    layout_tests!(
+        u8_u8_dummy_hasher_dummy_alloc,
+        u8,
+        u8,
+        dummy::DummyBuildHasher,
+        dummy::DummyAlloc
+    );
+    layout_tests!(
+        u8_u64_dummy_hasher_dummy_alloc,
+        u8,
+        u64,
+        dummy::DummyBuildHasher,
+        dummy::DummyAlloc
+    );
+    layout_tests!(
+        u8_str_dummy_hasher_dummy_alloc,
+        u8,
+        &'static str,
+        dummy::DummyBuildHasher,
+        dummy::DummyAlloc
+    );
+    layout_tests!(
+        u8_tangent_space_dummy_hasher_dummy_alloc,
+        u8,
+        layout_testing_types::TangentSpace,
+        dummy::DummyBuildHasher,
+        dummy::DummyAlloc
+    );
+    layout_tests!(
+        u8_surface_differential_dummy_hasher_dummy_alloc,
+        u8,
+        layout_testing_types::SurfaceDifferential,
+        dummy::DummyBuildHasher,
+        dummy::DummyAlloc
+    );
+    layout_tests!(
+        u8_oct_tree_node_dummy_hasher_dummy_alloc,
+        u8,
+        layout_testing_types::OctTreeNode,
+        dummy::DummyBuildHasher,
+        dummy::DummyAlloc
+    );
 
-    layout_tests!(u64_unit_zst_dummy_hasher_dummy_alloc, u64, (), dummy::DummyBuildHasher, dummy::DummyAlloc);
-    layout_tests!(u64_u8_dummy_hasher_dummy_alloc, u64, u8, dummy::DummyBuildHasher, dummy::DummyAlloc);
-    layout_tests!(u64_u64_dummy_hasher_dummy_alloc, u64, u64, dummy::DummyBuildHasher, dummy::DummyAlloc);
-    layout_tests!(u64_str_dummy_hasher_dummy_alloc, u64, &'static str, dummy::DummyBuildHasher, dummy::DummyAlloc);
-    layout_tests!(u64_tangent_space_dummy_hasher_dummy_alloc, u64, layout_testing_types::TangentSpace, dummy::DummyBuildHasher, dummy::DummyAlloc);
-    layout_tests!(u64_surface_differential_dummy_hasher_dummy_alloc, u64, layout_testing_types::SurfaceDifferential, dummy::DummyBuildHasher, dummy::DummyAlloc);
-    layout_tests!(u64_oct_tree_node_dummy_hasher_dummy_alloc, u64, layout_testing_types::OctTreeNode, dummy::DummyBuildHasher, dummy::DummyAlloc);
+    layout_tests!(
+        u64_unit_zst_dummy_hasher_dummy_alloc,
+        u64,
+        (),
+        dummy::DummyBuildHasher,
+        dummy::DummyAlloc
+    );
+    layout_tests!(
+        u64_u8_dummy_hasher_dummy_alloc,
+        u64,
+        u8,
+        dummy::DummyBuildHasher,
+        dummy::DummyAlloc
+    );
+    layout_tests!(
+        u64_u64_dummy_hasher_dummy_alloc,
+        u64,
+        u64,
+        dummy::DummyBuildHasher,
+        dummy::DummyAlloc
+    );
+    layout_tests!(
+        u64_str_dummy_hasher_dummy_alloc,
+        u64,
+        &'static str,
+        dummy::DummyBuildHasher,
+        dummy::DummyAlloc
+    );
+    layout_tests!(
+        u64_tangent_space_dummy_hasher_dummy_alloc,
+        u64,
+        layout_testing_types::TangentSpace,
+        dummy::DummyBuildHasher,
+        dummy::DummyAlloc
+    );
+    layout_tests!(
+        u64_surface_differential_dummy_hasher_dummy_alloc,
+        u64,
+        layout_testing_types::SurfaceDifferential,
+        dummy::DummyBuildHasher,
+        dummy::DummyAlloc
+    );
+    layout_tests!(
+        u64_oct_tree_node_dummy_hasher_dummy_alloc,
+        u64,
+        layout_testing_types::OctTreeNode,
+        dummy::DummyBuildHasher,
+        dummy::DummyAlloc
+    );
 }
 
 #[cfg(test)]

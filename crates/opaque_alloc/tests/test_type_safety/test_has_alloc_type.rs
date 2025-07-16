@@ -19,7 +19,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn new(alloc: A) -> Self {
-        Self { alloc, }
+        Self { alloc }
     }
 }
 
@@ -32,9 +32,7 @@ where
     }
 
     unsafe fn deallocate(&self, ptr: NonNull<u8>, layout: alloc::Layout) {
-        unsafe {
-            self.alloc.deallocate(ptr, layout)
-        }
+        unsafe { self.alloc.deallocate(ptr, layout) }
     }
 }
 

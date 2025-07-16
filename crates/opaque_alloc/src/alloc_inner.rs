@@ -223,7 +223,10 @@ mod alloc_inner_layout_tests {
         let expected = mem::align_of::<TypeProjectedAllocInner<A>>();
         let result = mem::align_of::<TypeErasedAllocInner>();
 
-        assert_eq!(result, expected, "Type Erased and Type Projected data types alignment mismatch");
+        assert_eq!(
+            result, expected,
+            "Type Erased and Type Projected data types alignment mismatch"
+        );
     }
 
     fn run_test_type_erased_alloc_inner_match_offsets<A>()

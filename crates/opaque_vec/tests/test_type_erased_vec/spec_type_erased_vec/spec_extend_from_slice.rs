@@ -30,7 +30,10 @@ where
     }
 
     for j in 0..extension_values.len() {
-        prop_assert_eq!(&result.as_slice::<T, A>()[values.len() + j], &extension_values.as_slice::<T, A>()[j]);
+        prop_assert_eq!(
+            &result.as_slice::<T, A>()[values.len() + j],
+            &extension_values.as_slice::<T, A>()[j]
+        );
     }
 
     Ok(())

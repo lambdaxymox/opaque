@@ -3,8 +3,8 @@ use opaque_index_map::TypeErasedIndexMap;
 
 use core::any;
 use core::fmt;
-use std::hash;
 use std::format;
+use std::hash;
 use std::string::String;
 
 #[cfg(feature = "nightly")]
@@ -61,7 +61,10 @@ where
 
     let length = entries.len();
     for i in 0..map.len() {
-        prop_assert_eq!(map.get_index::<K, V, S, A>(i), entries.get_index::<K, V, S, A>((length - 1) - i));
+        prop_assert_eq!(
+            map.get_index::<K, V, S, A>(i),
+            entries.get_index::<K, V, S, A>((length - 1) - i)
+        );
     }
 
     Ok(())

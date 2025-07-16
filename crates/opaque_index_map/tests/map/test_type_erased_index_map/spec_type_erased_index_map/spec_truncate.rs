@@ -3,10 +3,10 @@ use opaque_index_map::TypeErasedIndexMap;
 
 use core::any;
 use core::fmt;
-use std::hash;
-use std::vec::Vec;
 use std::format;
+use std::hash;
 use std::string::String;
+use std::vec::Vec;
 
 #[cfg(feature = "nightly")]
 use std::alloc;
@@ -52,14 +52,11 @@ where
         let mut cloned_map = map.clone::<K, V, S, A>();
         cloned_map.truncate::<K, V, S, A>(len);
 
-        let vec: Vec<(K, V)> = cloned_map
-            .iter::<K, V, S, A>()
-            .map(|(k, v)| (k.clone(), v.clone()))
-            .collect();
+        let vec: Vec<(K, V)> = cloned_map.iter::<K, V, S, A>().map(|(k, v)| (k.clone(), v.clone())).collect();
 
         vec
     }
-    
+
     for len in 0..entries.len() {
         let map = entries.clone::<K, V, S, A>();
         let expected_entries = expected::<K, V, S, A>(&entries, len);
@@ -109,14 +106,11 @@ where
         let mut cloned_map = map.clone::<K, V, S, A>();
         cloned_map.truncate::<K, V, S, A>(len);
 
-        let vec: Vec<(K, V)> = cloned_map
-            .iter::<K, V, S, A>()
-            .map(|(k, v)| (k.clone(), v.clone()))
-            .collect();
+        let vec: Vec<(K, V)> = cloned_map.iter::<K, V, S, A>().map(|(k, v)| (k.clone(), v.clone())).collect();
 
         vec
     }
-    
+
     for len in 0..entries.len() {
         let map = entries.clone::<K, V, S, A>();
         let expected = expected::<K, V, S, A>(&entries, len);

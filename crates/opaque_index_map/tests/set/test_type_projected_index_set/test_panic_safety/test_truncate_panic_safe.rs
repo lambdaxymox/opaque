@@ -1,7 +1,7 @@
 use opaque_index_map::set::TypeProjectedIndexSet;
 
-use std::hash;
 use std::cell::RefCell;
+use std::hash;
 use std::panic;
 use std::panic::AssertUnwindSafe;
 use std::rc::Rc;
@@ -96,7 +96,9 @@ struct UnhashedValueWrapper<T> {
 
 impl<T> UnhashedValueWrapper<T> {
     #[inline]
-    const fn new(index: usize, value: T) -> Self { Self { index, value, }}
+    const fn new(index: usize, value: T) -> Self {
+        Self { index, value }
+    }
 }
 
 impl<T> hash::Hash for UnhashedValueWrapper<T> {

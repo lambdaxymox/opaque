@@ -47,4 +47,8 @@ fn bench_type_projected_vec_shift_remove_last(c: &mut Criterion) {
     });
 }
 
-criterion_group!(bench_shift_remove, bench_type_projected_vec_shift_remove_last, bench_vec_shift_remove_last);
+criterion_group!(
+    bench_shift_remove,
+    bench_type_projected_vec_shift_remove_last,
+    bench_vec_shift_remove_last
+);

@@ -1,16 +1,22 @@
+use crate::equivalent::Equivalent;
 use crate::map_inner;
-use crate::map_inner::{Bucket, TypeErasedIndexMapInner};
+use crate::map_inner::{
+    Bucket,
+    TypeErasedIndexMapInner,
+};
 use crate::range_ops;
 use crate::slice_eq;
-use crate::equivalent::Equivalent;
-use crate::try_project_index_set_error::{TryProjectIndexSetError, TryProjectIndexSetErrorKind};
+use crate::try_project_index_set_error::{
+    TryProjectIndexSetError,
+    TryProjectIndexSetErrorKind,
+};
 
+use alloc_crate::boxed::Box;
 use core::any;
 use core::cmp;
 use core::fmt;
 use core::iter;
 use core::ops;
-use alloc_crate::boxed::Box;
 
 #[cfg(feature = "std")]
 use std::hash;
@@ -25,9 +31,9 @@ use alloc_crate::alloc;
 use opaque_allocator_api::alloc;
 
 use opaque_alloc::TypeProjectedAlloc;
+use opaque_error::TryReserveError;
 use opaque_hash::TypeProjectedBuildHasher;
 use opaque_vec::TypeProjectedVec;
-use opaque_error::TryReserveError;
 
 /// A dynamically-sized slice of values in an index set.
 ///
@@ -98,9 +104,7 @@ impl<T> Slice<T> {
         A: any::Any + alloc::Allocator + Send + Sync,
     {
         let (ptr, alloc) = Box::into_raw_with_allocator(entries);
-        unsafe {
-            Box::from_raw_in(ptr as *const Self as *mut Self, alloc)
-        }
+        unsafe { Box::from_raw_in(ptr as *const Self as *mut Self, alloc) }
     }
 
     /// Converts an index set slice into a boxed inner index set slice.
@@ -109,9 +113,7 @@ impl<T> Slice<T> {
         A: any::Any + alloc::Allocator + Send + Sync,
     {
         let (ptr, alloc) = Box::into_raw_with_allocator(self);
-        unsafe {
-            Box::from_raw_in(ptr as *const map_inner::Slice<T, ()> as *mut map_inner::Slice<T, ()>, alloc)
-        }
+        unsafe { Box::from_raw_in(ptr as *const map_inner::Slice<T, ()> as *mut map_inner::Slice<T, ()>, alloc) }
     }
 
     /// Converts an index set slice into a vector of entries.
@@ -532,7 +534,9 @@ impl<T> Slice<T> {
     /// assert_eq!(tail, &[2_i32, 3_i32, 4_i32, 5_i32]);
     /// ```
     pub fn split_first(&self) -> Option<(&T, &Self)> {
-        self.entries.split_first().map(|((first, _), rest)| (first, Self::from_slice(rest)))
+        self.entries
+            .split_first()
+            .map(|((first, _), rest)| (first, Self::from_slice(rest)))
     }
 
     /// Divides an index set slice into the last entry and a prefix of the original slice.
@@ -569,7 +573,9 @@ impl<T> Slice<T> {
     /// assert_eq!(prefix, &[1_i32, 2_i32, 3_i32,4_i32]);
     /// ```
     pub fn split_last(&self) -> Option<(&T, &Self)> {
-        self.entries.split_last().map(|((last, _), rest)| (last, Self::from_slice(rest)))
+        self.entries
+            .split_last()
+            .map(|((last, _), rest)| (last, Self::from_slice(rest)))
     }
 
     /// Returns an iterator over the values in the index set slice.
@@ -1013,7 +1019,9 @@ where
     T: PartialEq<U>,
 {
     fn eq(&self, other: &Slice<U>) -> bool {
-        slice_eq::slice_eq(self.entries.as_entries(), other.entries.as_entries(), |b1, b2| b1.key_ref() == b2.key_ref())
+        slice_eq::slice_eq(self.entries.as_entries(), other.entries.as_entries(), |b1, b2| {
+            b1.key_ref() == b2.key_ref()
+        })
     }
 }
 
@@ -1053,11 +1061,7 @@ where
     }
 }
 
-impl<T> Eq for Slice<T>
-where
-    T: Eq,
-{
-}
+impl<T> Eq for Slice<T> where T: Eq {}
 
 impl<T> PartialOrd for Slice<T>
 where
@@ -1166,9 +1170,7 @@ pub struct Iter<'a, T> {
 impl<'a, T> Iter<'a, T> {
     /// Constructs a new iterator.
     fn new(entries: &'a map_inner::Slice<T, ()>) -> Self {
-        Self {
-            iter: entries.iter(),
-        }
+        Self { iter: entries.iter() }
     }
 
     /// Returns a slice of the remaining items in the iterator.
@@ -1233,9 +1235,7 @@ impl<T> iter::FusedIterator for Iter<'_, T> {}
 
 impl<T> Clone for Iter<'_, T> {
     fn clone(&self) -> Self {
-        Iter {
-            iter: self.iter.clone(),
-        }
+        Iter { iter: self.iter.clone() }
     }
 }
 
@@ -1250,7 +1250,9 @@ where
 
 impl<T> Default for Iter<'_, T> {
     fn default() -> Self {
-        Self { iter: map_inner::Slice::new().iter() }
+        Self {
+            iter: map_inner::Slice::new().iter(),
+        }
     }
 }
 
@@ -1303,9 +1305,7 @@ where
     /// Constructs a new moving iterator.
     #[inline]
     const fn new(iter: map_inner::IntoIter<T, (), A>) -> Self {
-        Self {
-            iter,
-        }
+        Self { iter }
     }
 
     /// Returns a slice of the remaining values in the moving iterator.
@@ -1458,7 +1458,7 @@ where
 {
     /// Constructs a new draining iterator.
     fn new(iter: map_inner::Drain<'a, T, (), A>) -> Self {
-        Self { iter, }
+        Self { iter }
     }
 
     /// Returns a slice of the remaining values in the draining iterator.
@@ -1823,10 +1823,7 @@ where
         S1: any::Any + hash::BuildHasher + Send + Sync,
         S1::Hasher: any::Any + hash::Hasher + Send + Sync,
     {
-        Self {
-            iter: set.iter(),
-            other,
-        }
+        Self { iter: set.iter(), other }
     }
 }
 
@@ -2008,10 +2005,7 @@ where
         S1: any::Any + hash::BuildHasher + Send + Sync,
         S1::Hasher: any::Any + hash::Hasher + Send + Sync,
     {
-        Self {
-            iter: set.iter(),
-            other,
-        }
+        Self { iter: set.iter(), other }
     }
 }
 
@@ -2269,9 +2263,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn clone(&self) -> Self {
-        SymmetricDifference {
-            iter: self.iter.clone(),
-        }
+        SymmetricDifference { iter: self.iter.clone() }
     }
 }
 
@@ -2457,9 +2449,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn clone(&self) -> Self {
-        Union {
-            iter: self.iter.clone(),
-        }
+        Union { iter: self.iter.clone() }
     }
 }
 
@@ -2971,9 +2961,7 @@ where
     pub fn with_hasher_proj_in(proj_build_hasher: TypeProjectedBuildHasher<S>, proj_alloc: TypeProjectedAlloc<A>) -> Self {
         let proj_inner = map_inner::TypeProjectedIndexMapInner::<T, (), S, A>::with_hasher_proj_in(proj_build_hasher, proj_alloc);
 
-        Self {
-            inner: proj_inner,
-        }
+        Self { inner: proj_inner }
     }
 
     /// Constructs a new index set with the given capacity, type-projected hash builder, and
@@ -3043,15 +3031,21 @@ where
     /// assert_eq!(proj_set.capacity(), 0);
     /// ```
     #[inline]
-    pub fn with_capacity_and_hasher_proj_in(capacity: usize, proj_build_hasher: TypeProjectedBuildHasher<S>, proj_alloc: TypeProjectedAlloc<A>) -> Self {
+    pub fn with_capacity_and_hasher_proj_in(
+        capacity: usize,
+        proj_build_hasher: TypeProjectedBuildHasher<S>,
+        proj_alloc: TypeProjectedAlloc<A>,
+    ) -> Self {
         if capacity == 0 {
             Self::with_hasher_proj_in(proj_build_hasher, proj_alloc)
         } else {
-            let proj_inner = map_inner::TypeProjectedIndexMapInner::<T, (), S, A>::with_capacity_and_hasher_proj_in(capacity, proj_build_hasher, proj_alloc);
+            let proj_inner = map_inner::TypeProjectedIndexMapInner::<T, (), S, A>::with_capacity_and_hasher_proj_in(
+                capacity,
+                proj_build_hasher,
+                proj_alloc,
+            );
 
-            Self {
-                inner: proj_inner,
-            }
+            Self { inner: proj_inner }
         }
     }
 }
@@ -3094,9 +3088,7 @@ where
     pub fn new_proj_in(proj_alloc: TypeProjectedAlloc<A>) -> Self {
         let proj_inner = map_inner::TypeProjectedIndexMapInner::<T, (), hash::RandomState, A>::new_proj_in(proj_alloc);
 
-        Self {
-            inner : proj_inner,
-        }
+        Self { inner: proj_inner }
     }
 
     /// Constructs a new index set with the given capacity and type-projected memory allocator.
@@ -3162,11 +3154,10 @@ where
     /// ```
     #[inline]
     pub fn with_capacity_proj_in(capacity: usize, proj_alloc: TypeProjectedAlloc<A>) -> Self {
-        let proj_inner = map_inner::TypeProjectedIndexMapInner::<T, (), hash::RandomState, A>::with_capacity_proj_in(capacity, proj_alloc);
+        let proj_inner =
+            map_inner::TypeProjectedIndexMapInner::<T, (), hash::RandomState, A>::with_capacity_proj_in(capacity, proj_alloc);
 
-        Self {
-            inner: proj_inner,
-        }
+        Self { inner: proj_inner }
     }
 }
 
@@ -3211,9 +3202,7 @@ where
     pub fn with_hasher_in(build_hasher: S, alloc: A) -> Self {
         let proj_inner = map_inner::TypeProjectedIndexMapInner::with_hasher_in(build_hasher, alloc);
 
-        TypeProjectedIndexSet {
-            inner: proj_inner,
-        }
+        TypeProjectedIndexSet { inner: proj_inner }
     }
 
     /// Constructs a new index set with the given capacity, hash builder, and memory allocator.
@@ -3281,9 +3270,7 @@ where
     pub fn with_capacity_and_hasher_in(capacity: usize, build_hasher: S, alloc: A) -> Self {
         let proj_inner = map_inner::TypeProjectedIndexMapInner::with_capacity_and_hasher_in(capacity, build_hasher, alloc);
 
-        TypeProjectedIndexSet {
-            inner: proj_inner,
-        }
+        TypeProjectedIndexSet { inner: proj_inner }
     }
 }
 
@@ -3324,9 +3311,7 @@ where
     pub fn new_in(alloc: A) -> Self {
         let proj_inner = map_inner::TypeProjectedIndexMapInner::<T, (), hash::RandomState, A>::new_in(alloc);
 
-        Self {
-            inner : proj_inner,
-        }
+        Self { inner: proj_inner }
     }
 
     /// Constructs a new index set with the given capacity and memory allocator.
@@ -3392,9 +3377,7 @@ where
     pub fn with_capacity_in(capacity: usize, alloc: A) -> Self {
         let proj_inner = map_inner::TypeProjectedIndexMapInner::<T, (), hash::RandomState, A>::with_capacity_in(capacity, alloc);
 
-        Self {
-            inner: proj_inner,
-        }
+        Self { inner: proj_inner }
     }
 }
 
@@ -10667,7 +10650,9 @@ where
     A: any::Any + alloc::Allocator + Send + Sync + Default,
 {
     fn default() -> Self {
-        Self { inner: map_inner::TypeProjectedIndexMapInner::default(), }
+        Self {
+            inner: map_inner::TypeProjectedIndexMapInner::default(),
+        }
     }
 }
 
@@ -11397,7 +11382,7 @@ impl TypeErasedIndexSet {
             return Err(TryProjectIndexSetError::new(
                 TryProjectIndexSetErrorKind::Value,
                 self.value_type_id(),
-                any::TypeId::of::<T>()
+                any::TypeId::of::<T>(),
             ));
         }
 
@@ -11405,7 +11390,7 @@ impl TypeErasedIndexSet {
             return Err(TryProjectIndexSetError::new(
                 TryProjectIndexSetErrorKind::BuildHasher,
                 self.build_hasher_type_id(),
-                any::TypeId::of::<S>()
+                any::TypeId::of::<S>(),
             ));
         }
 
@@ -11413,7 +11398,7 @@ impl TypeErasedIndexSet {
             return Err(TryProjectIndexSetError::new(
                 TryProjectIndexSetErrorKind::Allocator,
                 self.allocator_type_id(),
-                any::TypeId::of::<A>()
+                any::TypeId::of::<A>(),
             ));
         }
 
@@ -11473,7 +11458,7 @@ impl TypeErasedIndexSet {
             return Err(TryProjectIndexSetError::new(
                 TryProjectIndexSetErrorKind::Value,
                 self.value_type_id(),
-                any::TypeId::of::<T>()
+                any::TypeId::of::<T>(),
             ));
         }
 
@@ -11481,7 +11466,7 @@ impl TypeErasedIndexSet {
             return Err(TryProjectIndexSetError::new(
                 TryProjectIndexSetErrorKind::BuildHasher,
                 self.build_hasher_type_id(),
-                any::TypeId::of::<S>()
+                any::TypeId::of::<S>(),
             ));
         }
 
@@ -11489,7 +11474,7 @@ impl TypeErasedIndexSet {
             return Err(TryProjectIndexSetError::new(
                 TryProjectIndexSetErrorKind::Allocator,
                 self.allocator_type_id(),
-                any::TypeId::of::<A>()
+                any::TypeId::of::<A>(),
             ));
         }
 
@@ -11548,7 +11533,7 @@ impl TypeErasedIndexSet {
             return Err(TryProjectIndexSetError::new(
                 TryProjectIndexSetErrorKind::Value,
                 self.value_type_id(),
-                any::TypeId::of::<T>()
+                any::TypeId::of::<T>(),
             ));
         }
 
@@ -11556,7 +11541,7 @@ impl TypeErasedIndexSet {
             return Err(TryProjectIndexSetError::new(
                 TryProjectIndexSetErrorKind::BuildHasher,
                 self.build_hasher_type_id(),
-                any::TypeId::of::<S>()
+                any::TypeId::of::<S>(),
             ));
         }
 
@@ -11564,7 +11549,7 @@ impl TypeErasedIndexSet {
             return Err(TryProjectIndexSetError::new(
                 TryProjectIndexSetErrorKind::Allocator,
                 self.allocator_type_id(),
-                any::TypeId::of::<A>()
+                any::TypeId::of::<A>(),
             ));
         }
 
@@ -11690,14 +11675,19 @@ impl TypeErasedIndexSet {
     /// assert_eq!(opaque_set.capacity(), 0);
     /// ```
     #[inline]
-    pub fn with_capacity_and_hasher_proj_in<T, S, A>(capacity: usize, proj_build_hasher: TypeProjectedBuildHasher<S>, proj_alloc: TypeProjectedAlloc<A>) -> Self
+    pub fn with_capacity_and_hasher_proj_in<T, S, A>(
+        capacity: usize,
+        proj_build_hasher: TypeProjectedBuildHasher<S>,
+        proj_alloc: TypeProjectedAlloc<A>,
+    ) -> Self
     where
         T: any::Any,
         S: any::Any + hash::BuildHasher + Send + Sync,
         S::Hasher: any::Any + hash::Hasher + Send + Sync,
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        let proj_index_set = TypeProjectedIndexSet::<T, S, A>::with_capacity_and_hasher_proj_in(capacity, proj_build_hasher, proj_alloc);
+        let proj_index_set =
+            TypeProjectedIndexSet::<T, S, A>::with_capacity_and_hasher_proj_in(capacity, proj_build_hasher, proj_alloc);
 
         Self::from_proj(proj_index_set)
     }
@@ -13929,7 +13919,7 @@ impl TypeErasedIndexSet {
         S::Hasher: any::Any + hash::Hasher + Send + Sync,
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        let proj_self =  self.as_proj_mut::<T, S, A>();
+        let proj_self = self.as_proj_mut::<T, S, A>();
 
         proj_self.insert_full(value)
     }
@@ -14939,7 +14929,7 @@ impl TypeErasedIndexSet {
         S::Hasher: any::Any + hash::Hasher + Send + Sync,
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        let  proj_self = self.as_proj_mut::<T, S, A>();
+        let proj_self = self.as_proj_mut::<T, S, A>();
 
         proj_self.replace_full(value)
     }
@@ -15687,7 +15677,7 @@ impl TypeErasedIndexSet {
         A: any::Any + alloc::Allocator + Send + Sync,
         Q: any::Any + ?Sized + hash::Hash + Equivalent<T>,
     {
-        let proj_self =  self.as_proj::<T, S, A>();
+        let proj_self = self.as_proj::<T, S, A>();
 
         proj_self.contains(value)
     }
@@ -15854,7 +15844,7 @@ impl TypeErasedIndexSet {
         A: any::Any + alloc::Allocator + Send + Sync,
         Q: any::Any + ?Sized + hash::Hash + Equivalent<T>,
     {
-        let proj_self =  self.as_proj::<T, S, A>();
+        let proj_self = self.as_proj::<T, S, A>();
 
         proj_self.get(value)
     }
@@ -16022,7 +16012,7 @@ impl TypeErasedIndexSet {
         A: any::Any + alloc::Allocator + Send + Sync,
         Q: any::Any + ?Sized + hash::Hash + Equivalent<T>,
     {
-        let proj_self =  self.as_proj::<T, S, A>();
+        let proj_self = self.as_proj::<T, S, A>();
 
         proj_self.get_full(value)
     }
@@ -16189,7 +16179,7 @@ impl TypeErasedIndexSet {
         A: any::Any + alloc::Allocator + Send + Sync,
         Q: any::Any + ?Sized + hash::Hash + Equivalent<T>,
     {
-        let proj_self =  self.as_proj::<T, S, A>();
+        let proj_self = self.as_proj::<T, S, A>();
 
         proj_self.get_index_of(value)
     }
@@ -16463,7 +16453,7 @@ impl TypeErasedIndexSet {
         A: any::Any + alloc::Allocator + Send + Sync,
         Q: any::Any + ?Sized + hash::Hash + Equivalent<T>,
     {
-        let proj_self =  self.as_proj_mut::<T, S, A>();
+        let proj_self = self.as_proj_mut::<T, S, A>();
 
         proj_self.swap_remove(value)
     }
@@ -16738,7 +16728,7 @@ impl TypeErasedIndexSet {
         A: any::Any + alloc::Allocator + Send + Sync,
         Q: any::Any + ?Sized + hash::Hash + Equivalent<T>,
     {
-        let proj_self =  self.as_proj_mut::<T, S, A>();
+        let proj_self = self.as_proj_mut::<T, S, A>();
 
         proj_self.shift_remove(value)
     }
@@ -21102,9 +21092,7 @@ impl TypeErasedIndexSet {
 
 impl fmt::Debug for TypeErasedIndexSet {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter
-            .debug_struct("TypeErasedIndexSet")
-            .finish()
+        formatter.debug_struct("TypeErasedIndexSet").finish()
     }
 }
 
@@ -21137,8 +21125,8 @@ where
 
 mod dummy {
     use super::*;
-    use core::ptr::NonNull;
     use core::marker;
+    use core::ptr::NonNull;
 
     #[allow(dead_code)]
     pub(super) struct DummyHasher {
@@ -21242,7 +21230,10 @@ mod index_set_layout_tests {
         let expected = mem::align_of::<TypeProjectedIndexSet<T, S, A>>();
         let result = mem::align_of::<TypeErasedIndexSet>();
 
-        assert_eq!(result, expected, "Type Erased and Type Projected data types alignment mismatch");
+        assert_eq!(
+            result, expected,
+            "Type Erased and Type Projected data types alignment mismatch"
+        );
     }
 
     fn run_test_type_erased_index_set_match_offsets<T, S, A>()
@@ -21294,21 +21285,61 @@ mod index_set_layout_tests {
     layout_tests!(str_random_state_global, &'static str, hash::RandomState, alloc::Global);
 
     #[cfg(feature = "std")]
-    layout_tests!(tangent_space_random_state_global, layout_testing_types::TangentSpace, hash::RandomState, alloc::Global);
+    layout_tests!(
+        tangent_space_random_state_global,
+        layout_testing_types::TangentSpace,
+        hash::RandomState,
+        alloc::Global
+    );
 
     #[cfg(feature = "std")]
-    layout_tests!(surface_differential_random_state_global, layout_testing_types::SurfaceDifferential, hash::RandomState, alloc::Global);
+    layout_tests!(
+        surface_differential_random_state_global,
+        layout_testing_types::SurfaceDifferential,
+        hash::RandomState,
+        alloc::Global
+    );
 
     #[cfg(feature = "std")]
-    layout_tests!(oct_tree_node_random_state_global, layout_testing_types::OctTreeNode, hash::RandomState, alloc::Global);
+    layout_tests!(
+        oct_tree_node_random_state_global,
+        layout_testing_types::OctTreeNode,
+        hash::RandomState,
+        alloc::Global
+    );
 
-    layout_tests!(unit_zst_dummy_hasher_dummy_alloc, (), dummy::DummyBuildHasher, dummy::DummyAlloc);
+    layout_tests!(
+        unit_zst_dummy_hasher_dummy_alloc,
+        (),
+        dummy::DummyBuildHasher,
+        dummy::DummyAlloc
+    );
     layout_tests!(u8_dummy_hasher_dummy_alloc, u8, dummy::DummyBuildHasher, dummy::DummyAlloc);
     layout_tests!(u64_dummy_hasher_dummy_alloc, u64, dummy::DummyBuildHasher, dummy::DummyAlloc);
-    layout_tests!(str_dummy_hasher_dummy_alloc, &'static str, dummy::DummyBuildHasher, dummy::DummyAlloc);
-    layout_tests!(tangent_space_dummy_hasher_dummy_alloc, layout_testing_types::TangentSpace, dummy::DummyBuildHasher, dummy::DummyAlloc);
-    layout_tests!(surface_differential_dummy_hasher_dummy_alloc, layout_testing_types::SurfaceDifferential, dummy::DummyBuildHasher, dummy::DummyAlloc);
-    layout_tests!(oct_tree_node_dummy_hasher_dummy_alloc, layout_testing_types::OctTreeNode, dummy::DummyBuildHasher, dummy::DummyAlloc);
+    layout_tests!(
+        str_dummy_hasher_dummy_alloc,
+        &'static str,
+        dummy::DummyBuildHasher,
+        dummy::DummyAlloc
+    );
+    layout_tests!(
+        tangent_space_dummy_hasher_dummy_alloc,
+        layout_testing_types::TangentSpace,
+        dummy::DummyBuildHasher,
+        dummy::DummyAlloc
+    );
+    layout_tests!(
+        surface_differential_dummy_hasher_dummy_alloc,
+        layout_testing_types::SurfaceDifferential,
+        dummy::DummyBuildHasher,
+        dummy::DummyAlloc
+    );
+    layout_tests!(
+        oct_tree_node_dummy_hasher_dummy_alloc,
+        layout_testing_types::OctTreeNode,
+        dummy::DummyBuildHasher,
+        dummy::DummyAlloc
+    );
 }
 
 #[cfg(test)]

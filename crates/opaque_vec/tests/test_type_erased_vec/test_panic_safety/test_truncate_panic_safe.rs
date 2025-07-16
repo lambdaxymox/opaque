@@ -180,7 +180,7 @@ fn test_truncate_on_success_drop_count() {
     vec.push::<PanicCell<()>, alloc::Global>(panic_cell.clone());
 
     assert_eq!(panic_cell.drop_count(), 0);
-    
+
     vec.truncate::<PanicCell<()>, alloc::Global>(0);
     panic_cell.disable_panics();
 

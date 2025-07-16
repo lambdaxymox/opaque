@@ -43,4 +43,8 @@ fn bench_type_erased_index_map_get_index_of(c: &mut Criterion) {
     });
 }
 
-criterion_group!(bench_get_index_of, bench_type_erased_index_map_get_index_of, bench_index_map_get_index_of);
+criterion_group!(
+    bench_get_index_of,
+    bench_type_erased_index_map_get_index_of,
+    bench_index_map_get_index_of
+);

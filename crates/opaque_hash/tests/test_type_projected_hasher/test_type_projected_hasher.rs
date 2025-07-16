@@ -2,7 +2,10 @@ use opaque_hash::TypeProjectedBuildHasher;
 
 use core::any;
 use std::hash;
-use std::hash::{BuildHasher, Hasher};
+use std::hash::{
+    BuildHasher,
+    Hasher,
+};
 
 fn run_hashers<T>(value: T) -> (u64, u64)
 where
@@ -50,12 +53,20 @@ fn test_type_projected_hasher_i32() {
 
 #[test]
 fn test_type_projected_hasher_i64() {
-    run_test_type_projected_hasher((i64::MIN..i64::MAX).step_by((i64::MAX as usize) / (i16::MAX as usize)).into_iter());
+    run_test_type_projected_hasher(
+        (i64::MIN..i64::MAX)
+            .step_by((i64::MAX as usize) / (i16::MAX as usize))
+            .into_iter(),
+    );
 }
 
 #[test]
 fn test_type_projected_hasher_isize() {
-    run_test_type_projected_hasher((isize::MIN..isize::MAX).step_by((isize::MAX as usize) / (i16::MAX as usize)).into_iter());
+    run_test_type_projected_hasher(
+        (isize::MIN..isize::MAX)
+            .step_by((isize::MAX as usize) / (i16::MAX as usize))
+            .into_iter(),
+    );
 }
 
 #[test]
@@ -75,10 +86,18 @@ fn test_type_projected_hasher_u32() {
 
 #[test]
 fn test_type_projected_hasher_u64() {
-    run_test_type_projected_hasher((u64::MIN..u64::MAX).step_by((u64::MAX as usize) / (u16::MAX as usize)).into_iter());
+    run_test_type_projected_hasher(
+        (u64::MIN..u64::MAX)
+            .step_by((u64::MAX as usize) / (u16::MAX as usize))
+            .into_iter(),
+    );
 }
 
 #[test]
 fn test_type_projected_hasher_usize() {
-    run_test_type_projected_hasher((usize::MIN..usize::MAX).step_by((usize::MAX) / (u16::MAX as usize)).into_iter());
+    run_test_type_projected_hasher(
+        (usize::MIN..usize::MAX)
+            .step_by((usize::MAX) / (u16::MAX as usize))
+            .into_iter(),
+    );
 }

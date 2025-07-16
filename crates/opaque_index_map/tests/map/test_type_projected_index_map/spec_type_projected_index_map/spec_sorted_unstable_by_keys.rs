@@ -4,10 +4,10 @@ use opaque_index_map::TypeProjectedIndexMap;
 use core::any;
 use core::cmp;
 use core::fmt;
-use std::hash;
-use std::vec::Vec;
 use std::format;
+use std::hash;
 use std::string::String;
+use std::vec::Vec;
 
 #[cfg(feature = "nightly")]
 use std::alloc;
@@ -17,7 +17,10 @@ use opaque_allocator_api::alloc;
 
 use proptest::prelude::*;
 
-fn from_sorted_unstable_by_in<F, K, V, S, A>(entries: &TypeProjectedIndexMap<K, V, S, A>, cmp: F) -> TypeProjectedIndexMap<K, V, S, A>
+fn from_sorted_unstable_by_in<F, K, V, S, A>(
+    entries: &TypeProjectedIndexMap<K, V, S, A>,
+    cmp: F,
+) -> TypeProjectedIndexMap<K, V, S, A>
 where
     K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
     V: any::Any + Clone + Eq + Ord + fmt::Debug,
@@ -48,10 +51,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let map = entries.clone();
-    let sorted_map: TypeProjectedIndexMap<K, V, S, A> = from_sorted_unstable_by_in(
-        &entries,
-        |k1, _v1, k2, _v2| { k1.cmp(k2) },
-    );
+    let sorted_map: TypeProjectedIndexMap<K, V, S, A> = from_sorted_unstable_by_in(&entries, |k1, _v1, k2, _v2| k1.cmp(k2));
 
     for key in map.keys() {
         prop_assert!(sorted_map.contains_key(key));
@@ -73,10 +73,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let map = entries.clone();
-    let sorted_map: TypeProjectedIndexMap<K, V, S, A> = from_sorted_unstable_by_in(
-        &entries,
-        |k1, _v1, k2, _v2| { k1.cmp(k2) },
-    );
+    let sorted_map: TypeProjectedIndexMap<K, V, S, A> = from_sorted_unstable_by_in(&entries, |k1, _v1, k2, _v2| k1.cmp(k2));
 
     for key in map.keys() {
         let expected = map.get(key);
@@ -97,10 +94,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let map = entries.clone();
-    let sorted_map: TypeProjectedIndexMap<K, V, S, A> = from_sorted_unstable_by_in(
-        &entries,
-        |k1, _v1, k2, _v2| { k1.cmp(k2) },
-    );
+    let sorted_map: TypeProjectedIndexMap<K, V, S, A> = from_sorted_unstable_by_in(&entries, |k1, _v1, k2, _v2| k1.cmp(k2));
 
     for key in sorted_map.keys() {
         let expected = sorted_map.get(key);
@@ -121,10 +115,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let map = entries.clone();
-    let sorted_map: TypeProjectedIndexMap<K, V, S, A> = from_sorted_unstable_by_in(
-        &entries,
-        |k1, _v1, k2, _v2| { k1.cmp(k2) },
-    );
+    let sorted_map: TypeProjectedIndexMap<K, V, S, A> = from_sorted_unstable_by_in(&entries, |k1, _v1, k2, _v2| k1.cmp(k2));
 
     for key in map.keys() {
         let expected = map.get_key_value(key);
@@ -145,10 +136,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let map = entries.clone();
-    let sorted_map: TypeProjectedIndexMap<K, V, S, A> = from_sorted_unstable_by_in(
-        &entries,
-        |k1, _v1, k2, _v2| { k1.cmp(k2) },
-    );
+    let sorted_map: TypeProjectedIndexMap<K, V, S, A> = from_sorted_unstable_by_in(&entries, |k1, _v1, k2, _v2| k1.cmp(k2));
 
     for key in sorted_map.keys() {
         let expected = sorted_map.get_key_value(key);
@@ -169,10 +157,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let map = entries.clone();
-    let sorted_map: TypeProjectedIndexMap<K, V, S, A> = from_sorted_unstable_by_in(
-        &entries,
-        |k1, _v1, k2, _v2| { k1.cmp(k2) },
-    );
+    let sorted_map: TypeProjectedIndexMap<K, V, S, A> = from_sorted_unstable_by_in(&entries, |k1, _v1, k2, _v2| k1.cmp(k2));
 
     prop_assert_eq!(sorted_map.len(), map.len());
 
@@ -187,10 +172,7 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let sorted_map: TypeProjectedIndexMap<K, V, S, A> = from_sorted_unstable_by_in(
-        &entries,
-        |k1, _v1, k2, _v2| { k1.cmp(k2) },
-    );
+    let sorted_map: TypeProjectedIndexMap<K, V, S, A> = from_sorted_unstable_by_in(&entries, |k1, _v1, k2, _v2| k1.cmp(k2));
 
     let keys: Vec<K> = sorted_map.keys().cloned().collect();
     for i in 1..keys.len() {

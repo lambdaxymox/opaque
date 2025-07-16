@@ -3,10 +3,10 @@ use opaque_index_map::TypeErasedIndexMap;
 
 use core::any;
 use core::fmt;
-use std::hash;
-use std::vec::Vec;
 use std::format;
+use std::hash;
 use std::string::String;
+use std::vec::Vec;
 
 #[cfg(feature = "nightly")]
 use std::alloc;
@@ -48,12 +48,8 @@ where
     let mut map = entries.clone::<K, V, S, A>();
     let keys: Vec<K> = map.keys::<K, V, S, A>().cloned().collect();
     for key in keys.iter() {
-        let expected = map
-            .get::<_, K, V, S, A>(key)
-            .cloned();
-        let result = map
-            .swap_remove_entry::<_, K, V, S, A>(key)
-            .map(|(_k, v)| v);
+        let expected = map.get::<_, K, V, S, A>(key).cloned();
+        let result = map.swap_remove_entry::<_, K, V, S, A>(key).map(|(_k, v)| v);
 
         prop_assert_eq!(result, expected);
     }
@@ -72,11 +68,8 @@ where
     let mut map = entries.clone::<K, V, S, A>();
     let keys: Vec<K> = map.keys::<K, V, S, A>().cloned().collect();
     for key in keys.iter() {
-        let expected = map
-            .get_key_value::<_, K, V, S, A>(key)
-            .map(|(k, v)| (k.clone(), v.clone()));
-        let result = map
-            .swap_remove_entry::<_, K, V, S, A>(key);
+        let expected = map.get_key_value::<_, K, V, S, A>(key).map(|(k, v)| (k.clone(), v.clone()));
+        let result = map.swap_remove_entry::<_, K, V, S, A>(key);
 
         prop_assert_eq!(result, expected);
     }
@@ -95,12 +88,8 @@ where
     let mut map = entries.clone::<K, V, S, A>();
     let keys: Vec<K> = map.keys::<K, V, S, A>().cloned().collect();
     for key in keys.iter() {
-        let expected = map
-            .get_mut::<_, K, V, S, A>(key)
-            .cloned();
-        let result = map
-            .swap_remove_entry::<_, K, V, S, A>(key)
-            .map(|(_k, v)| v);
+        let expected = map.get_mut::<_, K, V, S, A>(key).cloned();
+        let result = map.swap_remove_entry::<_, K, V, S, A>(key).map(|(_k, v)| v);
 
         prop_assert_eq!(result, expected);
     }
@@ -162,8 +151,7 @@ where
 
             entries.push(last_entry);
 
-            for entry in map
-                .as_slice::<K, V, S, A>()[(index + 1)..(map.len() - 1)]
+            for entry in map.as_slice::<K, V, S, A>()[(index + 1)..(map.len() - 1)]
                 .iter()
                 .map(|(k, v)| (k.clone(), v.clone()))
             {

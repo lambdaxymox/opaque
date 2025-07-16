@@ -53,4 +53,8 @@ fn bench_type_projected_index_map_shift_remove(c: &mut Criterion) {
     });
 }
 
-criterion_group!(bench_shift_remove, bench_type_projected_index_map_shift_remove, bench_index_map_shift_remove);
+criterion_group!(
+    bench_shift_remove,
+    bench_type_projected_index_map_shift_remove,
+    bench_index_map_shift_remove
+);

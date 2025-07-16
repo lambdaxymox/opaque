@@ -1,8 +1,8 @@
 use opaque_index_map::set::TypeProjectedIndexSet;
 
 use core::any;
-use std::hash;
 use std::cell::RefCell;
+use std::hash;
 use std::rc::Rc;
 
 #[cfg(feature = "nightly")]
@@ -45,7 +45,9 @@ struct UnhashedValueWrapper<T> {
 
 impl<T> UnhashedValueWrapper<T> {
     #[inline]
-    const fn new(index: usize, value: T) -> Self { Self { index, value, }}
+    const fn new(index: usize, value: T) -> Self {
+        Self { index, value }
+    }
 }
 
 impl<T> hash::Hash for UnhashedValueWrapper<T> {
@@ -54,7 +56,11 @@ impl<T> hash::Hash for UnhashedValueWrapper<T> {
     }
 }
 
-fn create_drop_counter_index_set_in<S, A>(len: usize, build_hasher: S, alloc: A) -> (DropCounter, TypeProjectedIndexSet<UnhashedValueWrapper<DropCounter>, S, A>)
+fn create_drop_counter_index_set_in<S, A>(
+    len: usize,
+    build_hasher: S,
+    alloc: A,
+) -> (DropCounter, TypeProjectedIndexSet<UnhashedValueWrapper<DropCounter>, S, A>)
 where
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
@@ -90,16 +96,8 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    let (drop_counter, set) = create_drop_counter_index_set_in(
-        length,
-        build_hasher.clone(),
-        alloc.clone(),
-    );
-    let mut taken_set = TypeProjectedIndexSet::with_capacity_and_hasher_in(
-        take_count,
-        build_hasher.clone(),
-        alloc.clone(),
-    );
+    let (drop_counter, set) = create_drop_counter_index_set_in(length, build_hasher.clone(), alloc.clone());
+    let mut taken_set = TypeProjectedIndexSet::with_capacity_and_hasher_in(take_count, build_hasher.clone(), alloc.clone());
     {
         let mut iterator = set.into_iter();
 

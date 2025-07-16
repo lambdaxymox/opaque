@@ -51,4 +51,8 @@ fn bench_type_projected_index_set_swap_remove(c: &mut Criterion) {
     });
 }
 
-criterion_group!(bench_swap_remove, bench_type_projected_index_set_swap_remove, bench_index_set_swap_remove);
+criterion_group!(
+    bench_swap_remove,
+    bench_type_projected_index_set_swap_remove,
+    bench_index_set_swap_remove
+);

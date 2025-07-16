@@ -155,10 +155,10 @@ macro_rules! generate_props {
     };
 }
 
-generate_props!(unit,   (),     strategy_array);
-generate_props!(u8,     u8,     strategy_array);
-generate_props!(u16,    u16,    strategy_array);
-generate_props!(u32,    u32,    strategy_array);
-generate_props!(u64,    u64,    strategy_array);
-generate_props!(usize,  usize,  strategy_array);
+generate_props!(unit, (), strategy_array);
+generate_props!(u8, u8, strategy_array);
+generate_props!(u16, u16, strategy_array);
+generate_props!(u32, u32, strategy_array);
+generate_props!(u64, u64, strategy_array);
+generate_props!(usize, usize, strategy_array);
 generate_props!(string, String, strategy_array);

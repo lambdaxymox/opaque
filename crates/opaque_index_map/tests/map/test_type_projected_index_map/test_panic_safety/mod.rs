@@ -1,2 +1,2 @@
-mod test_truncate_panic_safe;
 mod test_clear_panic_safe;
+mod test_truncate_panic_safe;

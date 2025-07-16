@@ -1,8 +1,11 @@
-use opaque_index_map::set::{Slice, TypeErasedIndexSet};
+use opaque_index_map::set::{
+    Slice,
+    TypeErasedIndexSet,
+};
 
 use core::any;
-use std::hash;
 use std::cell::RefCell;
+use std::hash;
 use std::rc::Rc;
 
 #[cfg(feature = "nightly")]
@@ -45,7 +48,9 @@ struct UnhashedValueWrapper<T> {
 
 impl<T> UnhashedValueWrapper<T> {
     #[inline]
-    const fn new(index: usize, value: T) -> Self { Self { index, value, }}
+    const fn new(index: usize, value: T) -> Self {
+        Self { index, value }
+    }
 }
 
 impl<T> hash::Hash for UnhashedValueWrapper<T> {
@@ -61,11 +66,8 @@ where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     let drop_counter = DropCounter::new(Rc::new(RefCell::new(0)));
-    let mut set = TypeErasedIndexSet::with_capacity_and_hasher_in::<UnhashedValueWrapper<DropCounter>, S, A>(
-        len,
-        build_hasher,
-        alloc,
-    );
+    let mut set =
+        TypeErasedIndexSet::with_capacity_and_hasher_in::<UnhashedValueWrapper<DropCounter>, S, A>(len, build_hasher, alloc);
     for i in 0..len {
         set.insert::<UnhashedValueWrapper<DropCounter>, S, A>(UnhashedValueWrapper::new(i, drop_counter.clone()));
     }
@@ -110,7 +112,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     fn count_even_indices(slice: &Slice<UnhashedValueWrapper<DropCounter>>) -> usize {
-        slice.iter().fold(0, |acc, v| { if v.index % 2 == 0 { acc + 1 } else { acc } })
+        slice.iter().fold(0, |acc, v| if v.index % 2 == 0 { acc + 1 } else { acc })
     }
 
     let (drop_counter, mut set) = create_drop_counter_index_set_in(length, build_hasher, alloc);
@@ -129,7 +131,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     fn count_odd_indices(slice: &Slice<UnhashedValueWrapper<DropCounter>>) -> usize {
-        slice.iter().fold(0, |acc, v| { if v.index % 2 != 0 { acc + 1 } else { acc } })
+        slice.iter().fold(0, |acc, v| if v.index % 2 != 0 { acc + 1 } else { acc })
     }
 
     let (drop_counter, mut set) = create_drop_counter_index_set_in(length, build_hasher, alloc);

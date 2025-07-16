@@ -1,6 +1,6 @@
 use core::alloc;
-use core::ptr::NonNull;
 use core::num::NonZero;
+use core::ptr::NonNull;
 
 /// Creates a `NonNull` that is dangling, but well-aligned for this Layout.
 ///

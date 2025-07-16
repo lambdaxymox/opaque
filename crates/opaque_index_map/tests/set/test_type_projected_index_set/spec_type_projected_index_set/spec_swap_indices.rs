@@ -7,8 +7,8 @@ use opaque_index_map::TypeProjectedIndexSet;
 use core::any;
 use core::fmt;
 use core::ops;
-use std::hash;
 use std::format;
+use std::hash;
 use std::string::String;
 
 #[cfg(feature = "nightly")]
@@ -27,11 +27,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync + Clone + Default + fmt::Debug,
 {
     fn clamped_interval(max_length: usize) -> ops::RangeInclusive<usize> {
-        if max_length == 0 {
-            1..=1
-        } else {
-            1..=max_length
-        }
+        if max_length == 0 { 1..=1 } else { 1..=max_length }
     }
 
     clamped_interval(max_length).prop_flat_map(move |length| {
@@ -55,7 +51,11 @@ where
     Ok(())
 }
 
-fn prop_swap_indices_swap_indices<T, S, A>(entries: TypeProjectedIndexSet<T, S, A>, a: usize, b: usize) -> Result<(), TestCaseError>
+fn prop_swap_indices_swap_indices<T, S, A>(
+    entries: TypeProjectedIndexSet<T, S, A>,
+    a: usize,
+    b: usize,
+) -> Result<(), TestCaseError>
 where
     T: any::Any + Clone + Eq + hash::Hash + fmt::Debug,
     S: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -169,22 +169,8 @@ macro_rules! generate_props {
     };
 }
 
-generate_props!(
-    u64,
-    u64,
-    hash::RandomState,
-    alloc::Global,
-    32,
-    strategy_prop_swap_indices,
-);
-generate_props!(
-    usize,
-    usize,
-    hash::RandomState,
-    alloc::Global,
-    32,
-    strategy_prop_swap_indices,
-);
+generate_props!(u64, u64, hash::RandomState, alloc::Global, 32, strategy_prop_swap_indices,);
+generate_props!(usize, usize, hash::RandomState, alloc::Global, 32, strategy_prop_swap_indices,);
 generate_props!(
     string,
     String,

@@ -45,8 +45,18 @@ bench_hasher!(bench_default_hasher_i8, bench_type_erased_default_hasher_i8, i8, 
 bench_hasher!(bench_default_hasher_i16, bench_type_erased_default_hasher_i16, i16, i16::MAX);
 bench_hasher!(bench_default_hasher_i32, bench_type_erased_default_hasher_i32, i32, i32::MAX);
 bench_hasher!(bench_default_hasher_i64, bench_type_erased_default_hasher_i64, i64, i64::MAX);
-bench_hasher!(bench_default_hasher_i128, bench_type_erased_default_hasher_i128, i128, i128::MAX);
-bench_hasher!(bench_default_hasher_isize, bench_type_erased_default_hasher_isize, isize, isize::MAX);
+bench_hasher!(
+    bench_default_hasher_i128,
+    bench_type_erased_default_hasher_i128,
+    i128,
+    i128::MAX
+);
+bench_hasher!(
+    bench_default_hasher_isize,
+    bench_type_erased_default_hasher_isize,
+    isize,
+    isize::MAX
+);
 
 bench_hasher!(
     bench_default_hasher_str1,

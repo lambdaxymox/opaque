@@ -4,8 +4,8 @@
 //   * Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
 //   * MIT license (http://opensource.org/licenses/MIT)
 // at your option.
-use core::any;
 use alloc_crate::vec::Vec;
+use core::any;
 
 #[cfg(feature = "nightly")]
 use alloc_crate::alloc;

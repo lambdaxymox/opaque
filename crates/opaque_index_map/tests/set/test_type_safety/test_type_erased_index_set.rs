@@ -2,9 +2,9 @@ use opaque_index_map::set::TypeErasedIndexSet;
 
 use core::any;
 use core::ptr::NonNull;
+use std::boxed::Box;
 use std::hash;
 use std::hash::RandomState;
-use std::boxed::Box;
 use std::string::String;
 
 #[cfg(feature = "nightly")]
@@ -29,7 +29,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn new(alloc: A) -> Self {
-        Self { alloc, }
+        Self { alloc }
     }
 }
 
@@ -42,9 +42,7 @@ where
     }
 
     unsafe fn deallocate(&self, ptr: NonNull<u8>, layout: alloc::Layout) {
-        unsafe {
-            self.alloc.deallocate(ptr, layout)
-        }
+        unsafe { self.alloc.deallocate(ptr, layout) }
     }
 }
 
@@ -157,14 +155,20 @@ macro_rules! generate_tests {
             fn test_type_erased_index_set_with_hasher_in_has_type() {
                 let build_hasher: $build_hasher_typ = Default::default();
                 let alloc: $alloc_typ = Default::default();
-                run_test_type_erased_index_set_with_hasher_in_has_type::<$value_typ, $build_hasher_typ, $alloc_typ>(build_hasher, alloc);
+                run_test_type_erased_index_set_with_hasher_in_has_type::<$value_typ, $build_hasher_typ, $alloc_typ>(
+                    build_hasher,
+                    alloc,
+                );
             }
 
             #[test]
             fn test_type_erased_index_set_with_capacity_and_hasher_in_has_type() {
                 let build_hasher: $build_hasher_typ = Default::default();
                 let alloc: $alloc_typ = Default::default();
-                run_test_type_erased_index_set_with_capacity_and_hasher_in_has_type::<$value_typ, $build_hasher_typ, $alloc_typ>(build_hasher, alloc);
+                run_test_type_erased_index_set_with_capacity_and_hasher_in_has_type::<$value_typ, $build_hasher_typ, $alloc_typ>(
+                    build_hasher,
+                    alloc,
+                );
             }
 
             #[test]
@@ -238,4 +242,9 @@ generate_tests!(char_random_state_wrapping, char, RandomState, WrappingAlloc<Glo
 generate_tests!(string_random_state_global, String, RandomState, Global);
 generate_tests!(string_random_state_wrapping, String, RandomState, WrappingAlloc<Global>);
 generate_tests!(box_any_random_state_global, Box<dyn any::Any>, RandomState, Global);
-generate_tests!(box_any_random_state_wrapping, Box<dyn any::Any>, RandomState, WrappingAlloc<Global>);
+generate_tests!(
+    box_any_random_state_wrapping,
+    Box<dyn any::Any>,
+    RandomState,
+    WrappingAlloc<Global>
+);

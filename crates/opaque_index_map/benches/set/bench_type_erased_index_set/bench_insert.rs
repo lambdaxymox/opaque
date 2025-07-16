@@ -43,8 +43,4 @@ fn bench_type_erased_index_set_insert(c: &mut Criterion) {
     });
 }
 
-criterion_group!(
-    bench_insert,
-    bench_type_erased_index_set_insert,
-    bench_index_set_insert
-);
+criterion_group!(bench_insert, bench_type_erased_index_set_insert, bench_index_set_insert);

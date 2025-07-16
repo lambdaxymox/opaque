@@ -96,7 +96,9 @@ struct UnhashedValueWrapper<T> {
 
 impl<T> UnhashedValueWrapper<T> {
     #[inline]
-    const fn new(index: usize, value: T) -> Self { Self { index, value, }}
+    const fn new(index: usize, value: T) -> Self {
+        Self { index, value }
+    }
 }
 
 impl<T> hash::Hash for UnhashedValueWrapper<T> {

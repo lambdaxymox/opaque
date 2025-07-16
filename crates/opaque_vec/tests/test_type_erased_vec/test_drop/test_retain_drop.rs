@@ -80,7 +80,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     fn count_even_indices(slice: &[(usize, DropCounter)]) -> usize {
-        slice.iter().fold(0, |acc, (i, _)| { if i % 2 == 0 { acc + 1 } else { acc } })
+        slice.iter().fold(0, |acc, (i, _)| if i % 2 == 0 { acc + 1 } else { acc })
     }
 
     let (drop_counter, mut vec) = create_drop_counter_vec_in(length, alloc);
@@ -97,7 +97,7 @@ where
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
     fn count_odd_indices(slice: &[(usize, DropCounter)]) -> usize {
-        slice.iter().fold(0, |acc, (i, _)| { if i % 2 != 0 { acc + 1 } else { acc } })
+        slice.iter().fold(0, |acc, (i, _)| if i % 2 != 0 { acc + 1 } else { acc })
     }
 
     let (drop_counter, mut vec) = create_drop_counter_vec_in(length, alloc);
