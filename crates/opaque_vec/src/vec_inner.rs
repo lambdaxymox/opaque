@@ -930,6 +930,7 @@ where
         }
     }
 }
+
 impl<T, A> TypeProjectedVecInner<T, A>
 where
     T: any::Any,
