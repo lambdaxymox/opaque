@@ -381,7 +381,7 @@ where
 /// assert_eq!(extracted.as_slice(), expected_extracted.as_slice());
 /// assert_eq!(remainder.as_slice(), expected_remainder.as_slice());
 /// ```
-pub struct ExtractIf<'a, K, V, F, A>
+pub struct ExtractIf<'a, K, V, F, A = alloc::Global>
 where
     K: any::Any,
     V: any::Any,

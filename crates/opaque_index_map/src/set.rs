@@ -1660,7 +1660,7 @@ where
 /// assert_eq!(extracted.as_slice(), expected_extracted.as_slice());
 /// assert_eq!(remainder.as_slice(), expected_remainder.as_slice());
 /// ```
-pub struct ExtractIf<'a, T, F, A>
+pub struct ExtractIf<'a, T, F, A = alloc::Global>
 where
     T: any::Any,
     F: FnMut(&T) -> bool,
