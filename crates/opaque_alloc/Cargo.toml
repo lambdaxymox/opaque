@@ -1,6 +1,6 @@
 [package]
 name = "opaque_alloc"
-version = "1.1.0"
+version = "1.2.0"
 edition = "2024"
 
 [features]
@@ -11,11 +11,11 @@ nightly = []
 [dependencies]
 
 [dependencies.opaque_allocator_api]
-version = "1.1.0"
+version = "1.2.0"
 path = "../opaque_allocator_api"
 
 [dependencies.opaque_polyfill]
-version = "1.1.0"
+version = "1.2.0"
 path = "../opaque_polyfill"
 
 [dev-dependencies]
