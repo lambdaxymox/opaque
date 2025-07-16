@@ -42,7 +42,7 @@ library. To use `nightly` add
 
 ```toml
 [dependencies.opaque]
-version = "0.2.0"
+version = "1.0.0"
 features = ["nightly"]
 ```
 
