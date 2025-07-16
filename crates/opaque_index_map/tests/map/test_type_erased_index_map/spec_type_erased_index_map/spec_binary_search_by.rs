@@ -25,7 +25,7 @@ where
 {
     let map = {
         let mut _map = entries.clone::<K, V, S, A>();
-        _map.sort_by::<_, K, V, S, A>(|k1, v1, k2, v2| k1.cmp(k2));
+        _map.sort_by::<_, K, V, S, A>(|k1, _v1, k2, _v2| k1.cmp(k2));
         _map
     };
 
@@ -46,7 +46,7 @@ where
 {
     let map = {
         let mut _map = entries.clone::<K, V, S, A>();
-        _map.sort_by::<_, K, V, S, A>(|k1, v1, k2, v2| v1.cmp(v2));
+        _map.sort_by::<_, K, V, S, A>(|_k1, v1, _k2, v2| v1.cmp(v2));
         _map
     };
 
@@ -67,7 +67,7 @@ where
 {
     let map = {
         let mut _map = entries.clone::<K, V, S, A>();
-        _map.sort_by::<_, K, V, S, A>(|k1, v1, k2, v2| k1.cmp(k2));
+        _map.sort_by::<_, K, V, S, A>(|k1, _v1, k2, _v2| k1.cmp(k2));
         _map
     };
 

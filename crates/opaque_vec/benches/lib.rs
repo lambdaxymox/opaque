@@ -18,6 +18,7 @@ use criterion::criterion_main;
 criterion_main!(
     bench_type_erased_vec::bench_as_slice_index,
     bench_type_erased_vec::bench_get,
+    bench_type_erased_vec::bench_pop,
     bench_type_erased_vec::bench_push,
     bench_type_erased_vec::bench_replace_insert,
     bench_type_erased_vec::bench_shift_insert,
@@ -25,6 +26,7 @@ criterion_main!(
     bench_type_erased_vec::bench_swap_remove,
     bench_type_projected_vec::bench_as_slice_index,
     bench_type_projected_vec::bench_get,
+    bench_type_projected_vec::bench_pop,
     bench_type_projected_vec::bench_push,
     bench_type_projected_vec::bench_replace_insert,
     bench_type_projected_vec::bench_shift_insert,

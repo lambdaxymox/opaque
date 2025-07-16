@@ -316,7 +316,6 @@ mod hasher_inner_layout_tests {
 
 #[cfg(test)]
 mod assert_send_sync {
-    use crate::TypeProjectedBuildHasher;
     use super::*;
 
     #[cfg(feature = "std")]

@@ -4,7 +4,6 @@ use opaque_index_map::TypeProjectedIndexSet;
 use core::any;
 use core::fmt;
 use std::hash;
-use std::vec::Vec;
 use std::format;
 use std::string::String;
 

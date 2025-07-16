@@ -223,7 +223,7 @@ where
     let set = from_difference_in(&entries1, &entries2);
     for value in set.iter() {
         let expected = Some(value.clone());
-        let result = set.get_full(value).map(|(i, v)| v.clone());
+        let result = set.get_full(value).map(|(_i, v)| v.clone());
 
         prop_assert_eq!(result, expected);
     }

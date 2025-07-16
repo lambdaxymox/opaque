@@ -226,8 +226,8 @@ where
     };
 
     for (index, value) in expected_vec.iter().enumerate() {
-        let expected = Some(value);
-        let result = source.get::<_, T, S1, A>(value);
+        let expected = Some(index);
+        let result = source.get_index_of::<_, T, S1, A>(value);
 
         prop_assert_eq!(result, expected);
     }

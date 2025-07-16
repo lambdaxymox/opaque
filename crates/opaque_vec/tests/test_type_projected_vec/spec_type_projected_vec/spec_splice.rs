@@ -1,5 +1,5 @@
 use crate::common::projected::{SingleBoundedValue, strategy_type_projected_vec_len};
-use opaque_vec::{TypeErasedVec, TypeProjectedVec};
+use opaque_vec::TypeProjectedVec;
 
 use core::any;
 use core::fmt;

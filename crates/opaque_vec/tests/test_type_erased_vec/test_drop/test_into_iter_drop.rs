@@ -42,7 +42,7 @@ where
 {
     let drop_counter = DropCounter::new(Rc::new(RefCell::new(0)));
     let mut vec = TypeErasedVec::with_capacity_in::<DropCounter, A>(len, alloc);
-    for i in 0..len {
+    for _ in 0..len {
         vec.push::<DropCounter, A>(drop_counter.clone());
     }
 
@@ -91,9 +91,7 @@ fn test_type_erased_vec_into_iter_drop() {
     let max_length = 128;
     let alloc = alloc::Global;
     for length in 0..max_length {
-        for take_count in 0..length {
-            run_test_type_erased_vec_into_iter_drop(length, alloc.clone());
-        }
+        run_test_type_erased_vec_into_iter_drop(length, alloc.clone());
     }
 }
 

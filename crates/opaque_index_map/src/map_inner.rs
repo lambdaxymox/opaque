@@ -1841,7 +1841,7 @@ where
             move |i, &x| if i == 0 { x == a } else { x == b },
         ) {
             [Some(ref_a), Some(ref_b)] => {
-                core::mem::swap(ref_a, ref_b);
+                mem::swap(ref_a, ref_b);
                 self.entries.as_mut_slice().swap(a, b);
             }
             _ => panic!("indices not found"),
@@ -2612,9 +2612,11 @@ where
         }
     }
 
+    /*
     fn clone_from(&mut self, other: &Self) {
         todo!()
     }
+    */
 }
 
 #[repr(C)]
@@ -3914,7 +3916,7 @@ where
         match self.binary_search_keys(&key) {
             Ok(i) => {
                 let destination = self.get_index_mut(i).unwrap().1;
-                let old_value = core::mem::replace(destination, value);
+                let old_value = mem::replace(destination, value);
 
                 (i, Some(old_value))
             }
@@ -3947,7 +3949,7 @@ where
                     // keeping the entry at the original index unmoved.
                     index -= 1;
                 }
-                let old = core::mem::replace(entry.get_mut(), value);
+                let old = mem::replace(entry.get_mut(), value);
                 entry.move_index(index);
 
                 (index, Some(old))
@@ -3975,7 +3977,7 @@ where
             Entry::Occupied(mut entry) => {
                 assert!(index < len, "index out of bounds: the len is {len} but the index is {index}");
 
-                let old = core::mem::replace(entry.get_mut(), value);
+                let old = mem::replace(entry.get_mut(), value);
                 entry.move_index(index);
 
                 Some(old)
@@ -4088,9 +4090,11 @@ where
         }
     }
 
+    /*
     fn clone_from(&mut self, other: &Self) {
         todo!()
     }
+    */
 }
 
 impl<K, V, S, A> Extend<(K, V)> for TypeProjectedIndexMapInner<K, V, S, A>

@@ -4,7 +4,6 @@ use opaque_index_map::TypeProjectedIndexMap;
 use core::any;
 use core::fmt;
 use std::hash;
-use std::vec::Vec;
 use std::format;
 use std::string::String;
 
@@ -62,7 +61,7 @@ where
     let map = entries.clone();
     for (key, value) in map.clone().into_iter() {
         let expected = Some((key.clone(), value.clone()));
-        let result = map.get_full(&key).map(|(i, k, v)| (k.clone(), v.clone()));
+        let result = map.get_full(&key).map(|(_i, k, v)| (k.clone(), v.clone()));
 
         prop_assert_eq!(result, expected);
     }

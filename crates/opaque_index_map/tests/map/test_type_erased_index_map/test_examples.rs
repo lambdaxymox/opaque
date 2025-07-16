@@ -101,7 +101,7 @@ fn test_type_erased_index_map_get_index_of1() {
 #[rustfmt::skip]
 #[test]
 fn test_type_erased_index_map_get_index_of2() {
-    let mut map = TypeErasedIndexMap::from([
+    let map = TypeErasedIndexMap::from([
         (0_usize, 1_i32),
         (1_usize, 2_i32),
         (2_usize, 3_i32),
@@ -979,7 +979,7 @@ fn test_type_erased_index_map_iter1() {
         (81_usize, 36_i32),
     ]);
 
-    for (key, value) in map.iter::<usize, i32, hash::RandomState, alloc::Global>() {
+    for (key, _value) in map.iter::<usize, i32, hash::RandomState, alloc::Global>() {
         assert!(map.contains_key::<_, usize, i32, hash::RandomState, alloc::Global>(key));
     }
 }
@@ -1077,7 +1077,7 @@ fn test_type_erased_index_map_into_iter1() {
         (81_usize, 36_i32),
     ]);
 
-    for (key, value) in map
+    for (key, _value) in map
         .clone::<usize, i32, hash::RandomState, alloc::Global>()
         .into_iter::<usize, i32, hash::RandomState, alloc::Global>()
     {

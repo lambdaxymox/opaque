@@ -83,7 +83,7 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    fn expected<T, S, A>(entries: &TypeProjectedIndexSet<T, S, A>, index: usize, value: &T) -> Vec<T>
+    fn expected<T, S, A>(entries: &TypeProjectedIndexSet<T, S, A>, index: usize) -> Vec<T>
     where
         T: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
         S: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -118,7 +118,7 @@ where
     let base_set = entries.clone();
     let base_values: Vec<T> = base_set.iter().cloned().collect();
     for (index, value) in base_values.iter().enumerate() {
-        let expected = expected(&entries, index, &value);
+        let expected = expected(&entries, index);
         let result = result(&base_set, value);
 
         prop_assert_eq!(result, expected);

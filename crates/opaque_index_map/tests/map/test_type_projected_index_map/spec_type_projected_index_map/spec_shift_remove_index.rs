@@ -51,7 +51,7 @@ where
     for key in keys.iter() {
         let expected = map.get(key).cloned();
         let index = map.get_index_of(key).unwrap();
-        let result = map.shift_remove_index(index).map(|(k, v)| v);
+        let result = map.shift_remove_index(index).map(|(_k, v)| v);
 
         prop_assert_eq!(result, expected);
     }
@@ -95,7 +95,7 @@ where
     for key in keys.iter() {
         let expected = map.get_mut(key).cloned();
         let index = map.get_index_of(key).unwrap();
-        let result = map.shift_remove_index(index).map(|(k, v)| v);
+        let result = map.shift_remove_index(index).map(|(_k, v)| v);
 
         prop_assert_eq!(result, expected);
     }
@@ -134,7 +134,7 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    fn expected<K, V, S, A>(map: &TypeProjectedIndexMap<K, V, S, A>, index: usize, key: &K) -> Vec<(K, V)>
+    fn expected<K, V, S, A>(map: &TypeProjectedIndexMap<K, V, S, A>, index: usize) -> Vec<(K, V)>
     where
         K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
         V: any::Any + Clone + Eq + fmt::Debug,
@@ -184,7 +184,7 @@ where
     let base_map = entries.clone();
     let base_keys: Vec<K> = base_map.keys().cloned().collect();
     for (index, key) in base_keys.iter().enumerate() {
-        let expected = expected(&entries, index, &key);
+        let expected = expected(&entries, index);
         let result = result(&base_map, key);
 
         prop_assert_eq!(result, expected);

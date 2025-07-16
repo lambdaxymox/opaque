@@ -596,7 +596,7 @@ where
         let ptr = me.as_mut_ptr();
         let len = me.len();
         let capacity = me.capacity();
-        let alloc = unsafe { core::ptr::read(me.allocator()) };
+        let alloc = unsafe { ptr::read(me.allocator()) };
 
         (ptr, len, capacity, alloc)
     }
@@ -616,7 +616,7 @@ where
         let ptr = unsafe { NonNull::new_unchecked(me.as_mut_ptr()) };
         let len = me.len();
         let capacity = me.capacity();
-        let alloc = unsafe { core::ptr::read(me.allocator()) };
+        let alloc = unsafe { ptr::read(me.allocator()) };
 
         (ptr, len, capacity, alloc)
     }
@@ -642,8 +642,8 @@ where
             let mut me = ManuallyDrop::new(self);
             let len = me.len();
             let ptr = me.as_mut_ptr();
-            let slice_ptr = core::ptr::slice_from_raw_parts_mut(ptr, len);
-            let alloc = core::ptr::read(me.allocator());
+            let slice_ptr = ptr::slice_from_raw_parts_mut(ptr, len);
+            let alloc = ptr::read(me.allocator());
 
             Box::from_raw_in(slice_ptr, alloc)
         }
@@ -1130,7 +1130,7 @@ where
                 if self.deleted_cnt > 0 {
                     // SAFETY: Trailing unchecked items must be valid since we never touch them.
                     unsafe {
-                        core::ptr::copy(
+                        ptr::copy(
                             self.v.as_ptr().add(self.processed_len),
                             self.v.as_mut_ptr().add(self.processed_len - self.deleted_cnt),
                             self.original_len - self.processed_len,
@@ -1165,7 +1165,7 @@ where
                     g.processed_len += 1;
                     g.deleted_cnt += 1;
                     // SAFETY: We never touch this element again after dropped.
-                    unsafe { core::ptr::drop_in_place(cur) };
+                    unsafe { ptr::drop_in_place(cur) };
                     // We already advanced the counter.
                     if DELETED {
                         continue;
@@ -1178,7 +1178,7 @@ where
                     // We use copy for move, and never touch this element again.
                     unsafe {
                         let hole_slot = g.v.as_mut_ptr().add(g.processed_len - g.deleted_cnt);
-                        core::ptr::copy_nonoverlapping(cur, hole_slot, 1);
+                        ptr::copy_nonoverlapping(cur, hole_slot, 1);
                     }
                 }
                 g.processed_len += 1;
@@ -1275,7 +1275,7 @@ where
 
                     // Copy `vec[read..]` to `vec[write..write+items_left]`.
                     // The slices can overlap, so `copy_nonoverlapping` cannot be used
-                    core::ptr::copy(valid_ptr, dropped_ptr, items_left);
+                    ptr::copy(valid_ptr, dropped_ptr, items_left);
 
                     // How many items have been already dropped
                     // Basically vec[read..write].len()
@@ -1299,7 +1299,7 @@ where
         unsafe {
             // SAFETY: we checked that first_duplicate_idx in bounds before.
             // If drop panics, `gap` would remove this item without drop.
-            core::ptr::drop_in_place(start.add(first_duplicate_idx));
+            ptr::drop_in_place(start.add(first_duplicate_idx));
         }
 
         // SAFETY: Because of the invariant, read_ptr, prev_ptr and write_ptr
@@ -1315,13 +1315,13 @@ where
                     // Increase `gap.read` now since the drop may panic.
                     gap.read += 1;
                     // We have found duplicate, drop it in-place
-                    core::ptr::drop_in_place(read_ptr);
+                    ptr::drop_in_place(read_ptr);
                 } else {
                     let write_ptr = start.add(gap.write);
 
                     // read_ptr cannot be equal to write_ptr because at this point
                     // we guaranteed to skip at least one element (before loop starts).
-                    core::ptr::copy_nonoverlapping(read_ptr, write_ptr, 1);
+                    ptr::copy_nonoverlapping(read_ptr, write_ptr, 1);
 
                     /* We have filled that place, so go further */
                     gap.write += 1;

@@ -1,4 +1,4 @@
-use crate::{map_inner, TypeErasedIndexMap};
+use crate::map_inner;
 use crate::map_inner::{Bucket, TypeErasedIndexMapInner};
 use crate::range_ops;
 use crate::slice_eq;
@@ -720,7 +720,7 @@ impl<T> Slice<T> {
     where
         F: FnMut(&T) -> cmp::Ordering,
     {
-        self.entries.binary_search_by(move |a, b| f(a))
+        self.entries.binary_search_by(move |a, _b| f(a))
     }
 
     /// Binary searches the index set slice with a key extraction function.
@@ -926,7 +926,7 @@ impl<T> Slice<T> {
     where
         P: FnMut(&T) -> bool,
     {
-        self.entries.partition_point(move |a, b| pred(a))
+        self.entries.partition_point(move |a, _b| pred(a))
     }
 }
 
@@ -10931,7 +10931,7 @@ where
 /// ```
 #[repr(transparent)]
 pub struct TypeErasedIndexSet {
-    inner: map_inner::TypeErasedIndexMapInner,
+    inner: TypeErasedIndexMapInner,
 }
 
 impl TypeErasedIndexSet {

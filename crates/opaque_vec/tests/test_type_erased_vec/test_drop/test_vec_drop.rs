@@ -61,7 +61,7 @@ fn test_type_erased_vec_drop_all_items1() {
     let counter = DropCounter::new(ref_count.clone());
     {
         let mut vec = TypeErasedVec::new::<DropCounter>();
-        for i in 0..count {
+        for _ in 0..count {
             vec.push::<DropCounter, alloc::Global>(counter.clone());
         }
     }

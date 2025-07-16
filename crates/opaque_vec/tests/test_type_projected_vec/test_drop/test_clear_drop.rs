@@ -42,7 +42,7 @@ where
 {
     let drop_counter = DropCounter::new(Rc::new(RefCell::new(0)));
     let mut vec = TypeProjectedVec::with_capacity_in(len, alloc);
-    for i in 0..len {
+    for _ in 0..len {
         vec.push(drop_counter.clone());
     }
 

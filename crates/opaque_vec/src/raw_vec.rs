@@ -520,7 +520,7 @@ impl RawVecMemory {
     where
         A: any::Any + alloc::Allocator + Send + Sync,
     {
-        let ptr = unsafe { core::mem::transmute(element_layout.align()) };
+        let ptr = unsafe { mem::transmute(element_layout.align()) };
         let capacity = ZERO_CAPACITY;
         let opaque_alloc = TypeErasedAlloc::from_proj(proj_alloc);
 

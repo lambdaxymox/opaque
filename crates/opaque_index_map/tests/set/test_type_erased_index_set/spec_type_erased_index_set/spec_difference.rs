@@ -217,7 +217,7 @@ where
     let set = from_difference_in::<T, S1, S2, A>(&entries1, &entries2);
     for value in set.iter::<T, S1, A>() {
         let expected = Some(value.clone());
-        let result = set.get_full::<_, T, S1, A>(value).map(|(i, v)| v.clone());
+        let result = set.get_full::<_, T, S1, A>(value).map(|(_i, v)| v.clone());
 
         prop_assert_eq!(result, expected);
     }

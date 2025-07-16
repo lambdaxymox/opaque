@@ -1,5 +1,5 @@
 use crate::common::erased::strategy_type_erased_vec_max_len;
-use opaque_vec::{TypeErasedVec, TypeProjectedVec};
+use opaque_vec::TypeErasedVec;
 
 use core::any;
 use core::fmt;

@@ -27,7 +27,7 @@ use opaque_allocator_api::alloc;
 use opaque_alloc::TypeProjectedAlloc;
 use opaque_error::TryReserveError;
 use opaque_hash::TypeProjectedBuildHasher;
-use opaque_vec::{TryProjectVecError, TryProjectVecErrorKind, TypeProjectedVec};
+use opaque_vec::TypeProjectedVec;
 
 /// A draining iterator over the entries of a [`TypeProjectedIndexMap`] or [`TypeErasedIndexMap`].
 ///

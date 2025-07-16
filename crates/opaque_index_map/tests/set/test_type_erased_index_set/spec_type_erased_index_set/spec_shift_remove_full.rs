@@ -51,7 +51,7 @@ where
             .cloned();
         let result = set
             .shift_remove_full::<_, T, S, A>(value)
-            .map(|(i, v)| v);
+            .map(|(_i, v)| v);
 
         prop_assert_eq!(result, expected);
     }
@@ -108,7 +108,7 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    fn expected<T, S, A>(set: &TypeErasedIndexSet, index: usize, value: &T) -> Vec<T>
+    fn expected<T, S, A>(set: &TypeErasedIndexSet, index: usize) -> Vec<T>
     where
         T: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
         S: any::Any + hash::BuildHasher + Send + Sync + Clone,
@@ -142,7 +142,7 @@ where
     let base_set = entries.clone::<T, S, A>();
     let base_values: Vec<T> = base_set.iter::<T, S, A>().cloned().collect();
     for (index, value) in base_values.iter().enumerate() {
-        let expected = expected::<T, S, A>(&entries, index, &value);
+        let expected = expected::<T, S, A>(&entries, index);
         let result = result::<T, S, A>(&base_set, value);
 
         prop_assert_eq!(result, expected);

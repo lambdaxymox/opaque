@@ -80,5 +80,5 @@ fn test_type_erased_hasher_u64() {
 
 #[test]
 fn test_type_erased_hasher_usize() {
-    run_test_type_erased_hasher((usize::MIN..usize::MAX).step_by((usize::MAX as usize) / (u16::MAX as usize)).into_iter());
+    run_test_type_erased_hasher((usize::MIN..usize::MAX).step_by((usize::MAX) / (u16::MAX as usize)).into_iter());
 }

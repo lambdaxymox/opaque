@@ -53,7 +53,7 @@ where
             .cloned();
         let result = map
             .swap_remove_entry::<_, K, V, S, A>(key)
-            .map(|(k, v)| v);
+            .map(|(_k, v)| v);
 
         prop_assert_eq!(result, expected);
     }
@@ -100,7 +100,7 @@ where
             .cloned();
         let result = map
             .swap_remove_entry::<_, K, V, S, A>(key)
-            .map(|(k, v)| v);
+            .map(|(_k, v)| v);
 
         prop_assert_eq!(result, expected);
     }
@@ -138,7 +138,7 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync + Clone,
 {
-    fn expected<K, V, S, A>(map: &TypeErasedIndexMap, index: usize, key: &K) -> Vec<(K, V)>
+    fn expected<K, V, S, A>(map: &TypeErasedIndexMap, index: usize) -> Vec<(K, V)>
     where
         K: any::Any + Clone + Eq + Ord + hash::Hash + fmt::Debug,
         V: any::Any + Clone + Eq + fmt::Debug,
@@ -196,7 +196,7 @@ where
     let base_map = entries.clone::<K, V, S, A>();
     let base_keys: Vec<K> = base_map.keys::<K, V, S, A>().cloned().collect();
     for (index, key) in base_keys.iter().enumerate() {
-        let expected = expected::<K, V, S, A>(&entries, index, &key);
+        let expected = expected::<K, V, S, A>(&entries, index);
         let result = result::<K, V, S, A>(&base_map, key);
 
         prop_assert_eq!(result, expected);

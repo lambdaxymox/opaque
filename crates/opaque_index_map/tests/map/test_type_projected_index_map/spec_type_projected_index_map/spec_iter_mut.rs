@@ -62,7 +62,7 @@ where
     let map = entries.clone();
     for (key, value) in map.clone().iter_mut() {
         let expected = Some((key.clone(), value.clone()));
-        let result = map.get_full(key).map(|(i, k, v)| (k.clone(), v.clone()));
+        let result = map.get_full(key).map(|(_i, k, v)| (k.clone(), v.clone()));
 
         prop_assert_eq!(result, expected);
     }

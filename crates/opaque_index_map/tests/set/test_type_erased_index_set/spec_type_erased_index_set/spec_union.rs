@@ -493,7 +493,7 @@ macro_rules! generate_props {
                 ) {
                     let entries1: super::TypeErasedIndexSet = entries1;
                     let entries2: super::TypeErasedIndexSet = entries2;
-                    super::prop_union_len1::<$value_typ, $build_hasher_typ1, $build_hasher_typ2, $alloc_typ>(entries1, entries2)?
+                    super::prop_union_len2::<$value_typ, $build_hasher_typ1, $build_hasher_typ2, $alloc_typ>(entries1, entries2)?
                 }
 
                 #[test]

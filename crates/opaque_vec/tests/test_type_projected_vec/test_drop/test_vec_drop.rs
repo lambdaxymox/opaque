@@ -61,7 +61,7 @@ fn test_type_projected_vec_drop_all_items1() {
     let counter = DropCounter::new(ref_count.clone());
     {
         let mut vec = TypeProjectedVec::new();
-        for i in 0..count {
+        for _ in 0..count {
             vec.push(counter.clone());
         }
     }

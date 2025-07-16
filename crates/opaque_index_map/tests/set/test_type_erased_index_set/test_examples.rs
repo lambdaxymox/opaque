@@ -1,9 +1,6 @@
 use opaque_index_map::set::TypeErasedIndexSet;
 use opaque_vec::TypeProjectedVec;
 
-use core::any;
-use core::fmt;
-use std::iter;
 use std::hash;
 use std::string::String;
 
@@ -1188,7 +1185,7 @@ fn test_type_erased_index_set_get_index_of1() {
 #[rustfmt::skip]
 #[test]
 fn test_type_erased_index_set_get_index_of2() {
-    let mut set = TypeErasedIndexSet::from([
+    let set = TypeErasedIndexSet::from([
         0_usize,
         1_usize,
         2_usize,

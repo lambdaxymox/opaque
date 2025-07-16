@@ -1,6 +1,5 @@
 use opaque_index_map::set::TypeProjectedIndexSet;
 
-use core::any;
 use std::hash;
 use std::cell::RefCell;
 use std::panic;

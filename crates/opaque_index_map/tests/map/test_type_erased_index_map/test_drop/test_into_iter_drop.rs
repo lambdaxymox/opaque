@@ -112,9 +112,7 @@ fn test_type_erased_index_map_into_iter_drop() {
     let build_hasher = hash::RandomState::default();
     let alloc = alloc::Global;
     for length in 0..max_length {
-        for take_count in 0..length {
-            run_test_type_erased_index_map_into_iter_drop(length, build_hasher.clone(), alloc.clone());
-        }
+        run_test_type_erased_index_map_into_iter_drop(length, build_hasher.clone(), alloc.clone());
     }
 }
 

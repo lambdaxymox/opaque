@@ -39,11 +39,11 @@ where
 
     source.append(&mut destination);
 
-    for key in entries1.iter().map(|(k, v)| k) {
+    for key in entries1.iter().map(|(k, _v)| k) {
         prop_assert!(source.contains_key(key));
     }
 
-    for key in entries2.iter().map(|(k, v)| k) {
+    for key in entries2.iter().map(|(k, _v)| k) {
         prop_assert!(source.contains_key(key));
     }
 
@@ -68,11 +68,11 @@ where
 
     source.append(&mut destination);
 
-    for key in entries1.iter().map(|(k, v)| k) {
+    for key in entries1.iter().map(|(k, _v)| k) {
         prop_assert!(!destination.contains_key(key));
     }
 
-    for key in entries2.iter().map(|(k, v)| k) {
+    for key in entries2.iter().map(|(k, _v)| k) {
         prop_assert!(!destination.contains_key(key));
     }
 

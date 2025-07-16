@@ -12,7 +12,6 @@ use std::hash;
 
 #[cfg(not(feature = "std"))]
 use core::hash;
-use crate::try_project_hasher_error::{TryProjectHasherError, TryProjectHasherErrorKind};
 
 /// A type-projected hash builder.
 ///
@@ -1006,7 +1005,7 @@ mod dummy {
         _do_not_construct: marker::PhantomData<()>,
     }
 
-    impl hash::Hasher for dummy::DummyHasher {
+    impl hash::Hasher for DummyHasher {
         #[inline]
         fn finish(&self) -> u64 {
             panic!("[`DummyHasher::finish`] should never actually be called. Its purpose is to test struct layouts.");
@@ -1023,8 +1022,8 @@ mod dummy {
         _do_not_construct: marker::PhantomData<()>,
     }
 
-    impl hash::BuildHasher for dummy::DummyBuildHasher {
-        type Hasher = dummy::DummyHasher;
+    impl hash::BuildHasher for DummyBuildHasher {
+        type Hasher = DummyHasher;
         fn build_hasher(&self) -> Self::Hasher {
             panic!("[`DummyBuildHasher::build_hasher`] should never actually be called. Its purpose is to test struct layouts.");
         }

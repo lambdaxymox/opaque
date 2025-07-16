@@ -96,7 +96,7 @@ macro_rules! generate_props {
     };
 }
 
-generate_props!(unit, (), alloc::Global, 32, strategy_type_erased_vec_max_len, |v| { true });
+generate_props!(unit, (), alloc::Global, 32, strategy_type_erased_vec_max_len, |_v| { true });
 generate_props!(u8, u8, alloc::Global, 32, strategy_type_erased_vec_max_len, |v| { v % 2 == 0 });
 generate_props!(u16, u16, alloc::Global, 32, strategy_type_erased_vec_max_len, |v| { v % 2 == 0 });
 generate_props!(u32, u32, alloc::Global, 32, strategy_type_erased_vec_max_len, |v| { v % 2 == 0 });

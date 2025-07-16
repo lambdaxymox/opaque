@@ -131,7 +131,7 @@ generate_props!(
     alloc::Global,
     32,
     strategy_type_erased_index_map_max_len,
-    |k, v| { v % 2 == 0 },
+    |_k, v| { v % 2 == 0 },
 );
 generate_props!(
     usize_i64,
@@ -141,7 +141,7 @@ generate_props!(
     alloc::Global,
     32,
     strategy_type_erased_index_map_max_len,
-    |k, v| { v % 2 == 0 },
+    |_k, v| { v % 2 == 0 },
 );
 generate_props!(
     string_i64,
@@ -151,7 +151,7 @@ generate_props!(
     alloc::Global,
     32,
     strategy_type_erased_index_map_max_len,
-    |k, v| { v % 2 == 0 },
+    |_k, v| { v % 2 == 0 },
 );
 generate_props!(
     string_string,
@@ -161,5 +161,5 @@ generate_props!(
     alloc::Global,
     32,
     strategy_type_erased_index_map_max_len,
-    |k, v| { k.len() % 2 == 0 },
+    |k, _v| { k.len() % 2 == 0 },
 );

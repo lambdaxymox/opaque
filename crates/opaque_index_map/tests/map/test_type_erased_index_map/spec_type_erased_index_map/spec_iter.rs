@@ -62,7 +62,7 @@ where
     let map = entries.clone::<K, V, S, A>();
     for (key, value) in map.iter::<K, V, S, A>() {
         let expected = Some((key.clone(), value.clone()));
-        let result = map.get_full::<_, K, V, S, A>(key).map(|(i, k, v)| (k.clone(), v.clone()));
+        let result = map.get_full::<_, K, V, S, A>(key).map(|(_i, k, v)| (k.clone(), v.clone()));
 
         prop_assert_eq!(result, expected);
     }

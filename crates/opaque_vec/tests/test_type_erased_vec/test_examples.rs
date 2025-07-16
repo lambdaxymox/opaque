@@ -91,7 +91,7 @@ fn test_type_erased_vec_push_index3() {
     let mut vec = TypeErasedVec::new::<usize>();
     let len = 32;
 
-    for i in 0..len {
+    for _ in 0..len {
         vec.push::<usize, alloc::Global>(usize::MAX);
     }
 
@@ -128,7 +128,7 @@ fn test_type_erased_vec_push_len3() {
     let mut vec = TypeErasedVec::new::<usize>();
     let len = 32;
 
-    for i in 0..len {
+    for _ in 0..len {
         vec.push::<usize, alloc::Global>(usize::MAX);
     }
 
@@ -150,7 +150,7 @@ fn test_type_erased_vec_pop_empty() {
 
     assert_eq!(vec.pop::<i32, alloc::Global>(), None);
 
-    for i in 0..32 {
+    for _ in 0..32 {
         assert_eq!(vec.pop::<i32, alloc::Global>(), None);
     }
 }
@@ -192,11 +192,11 @@ fn test_type_erased_vec_pop3() {
     let mut vec = TypeErasedVec::new::<usize>();
     let len = 32;
 
-    for i in 0..len {
+    for _ in 0..len {
         vec.push::<usize, alloc::Global>(usize::MAX);
     }
 
-    for i in 0..len {
+    for _ in 0..len {
         assert_eq!(vec.pop::<usize, alloc::Global>(), Some(usize::MAX));
     }
 
@@ -674,10 +674,10 @@ fn test_type_erased_vec_truncate_drop1() {
 
     fn get_drop_count() -> usize { unsafe { DROP_COUNT } }
 
-    struct Value { data: i32 }
+    struct Value { _data: i32 }
 
     impl Value {
-        fn new(data: i32) -> Self { Self { data, } }
+        fn new(data: i32) -> Self { Self { _data: data, } }
     }
 
     impl Drop for Value {
@@ -700,10 +700,10 @@ fn test_type_erased_vec_truncate_drop2() {
 
     fn get_drop_count() -> usize { unsafe { DROP_COUNT } }
 
-    struct Value { data: i32 }
+    struct Value { _data: i32 }
 
     impl Value {
-        fn new(data: i32) -> Self { Self { data, } }
+        fn new(data: i32) -> Self { Self { _data: data, } }
     }
 
     impl Drop for Value {
@@ -1837,7 +1837,7 @@ fn test_type_erased_vec_extract_if_partial_true() {
     }
 
     assert_eq!(count, 6);
-    assert_eq!(vec.len(), 5);
+    assert_eq!(vec.len(), old_length - count);
     assert_eq!(vec.as_slice::<i32, alloc::Global>(), [0_i32, 1_i32, 8_i32, 9_i32, 10_i32]);
 }
 
@@ -2017,7 +2017,7 @@ fn test_type_erased_vec_retain1() {
 #[test]
 fn test_type_erased_vec_retain2() {
     let mut vec = TypeErasedVec::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32]);
-    vec.retain::<_, i32, alloc::Global>(|&x| true);
+    vec.retain::<_, i32, alloc::Global>(|_| true);
 
     assert_eq!(vec.as_slice::<i32, alloc::Global>(), [1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32]);
 }
@@ -2025,7 +2025,7 @@ fn test_type_erased_vec_retain2() {
 #[test]
 fn test_type_erased_vec_retain3() {
     let mut vec = TypeErasedVec::from([1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32]);
-    vec.retain::<_, i32, alloc::Global>(|&x| false);
+    vec.retain::<_, i32, alloc::Global>(|_| false);
 
     assert_eq!(vec.as_slice::<i32, alloc::Global>(), []);
 }
@@ -2259,7 +2259,7 @@ fn test_type_erased_vec_reserve2() {
 
     let old_capacity = vec.capacity();
     vec.push::<usize, alloc::Global>(usize::MAX);
-    for i in 1..(vec.capacity() - 1) {
+    for _ in 1..(vec.capacity() - 1) {
         vec.push::<usize, alloc::Global>(0_usize);
     }
 
@@ -2292,7 +2292,7 @@ fn test_type_erased_vec_reserve3() {
 
         let length = vec.len();
         vec.push::<usize, alloc::Global>(usize::MAX);
-        for j in (length + 1)..(vec.capacity() - 1) {
+        for _ in (length + 1)..(vec.capacity() - 1) {
             vec.push::<usize, alloc::Global>(i);
         }
         vec.push::<usize, alloc::Global>(usize::MAX);
@@ -2381,7 +2381,7 @@ fn test_type_erased_vec_reserve_exact3() {
 
         let length = vec.len();
         vec.push::<usize, alloc::Global>(usize::MAX);
-        for j in (length + 1)..(vec.capacity() - 1) {
+        for _ in (length + 1)..(vec.capacity() - 1) {
             vec.push::<usize, alloc::Global>(i);
         }
         vec.push::<usize, alloc::Global>(usize::MAX);
@@ -2433,7 +2433,7 @@ fn test_type_erased_vec_try_reserve2() {
 
     let old_capacity = vec.capacity();
     vec.push::<usize, alloc::Global>(usize::MAX);
-    for i in 1..(vec.capacity() - 1) {
+    for _ in 1..(vec.capacity() - 1) {
         vec.push::<usize, alloc::Global>(0_usize);
     }
 
@@ -2466,7 +2466,7 @@ fn test_type_erased_vec_try_reserve3() {
 
         let length = vec.len();
         vec.push::<usize, alloc::Global>(usize::MAX);
-        for j in (length + 1)..(vec.capacity() - 1) {
+        for _ in (length + 1)..(vec.capacity() - 1) {
             vec.push::<usize, alloc::Global>(i);
         }
         vec.push::<usize, alloc::Global>(usize::MAX);
@@ -2518,7 +2518,7 @@ fn test_type_erased_vec_try_reserve_exact2() {
 
     let old_capacity = vec.capacity();
     vec.push::<usize, alloc::Global>(usize::MAX);
-    for i in 1..(vec.capacity() - 1) {
+    for _ in 1..(vec.capacity() - 1) {
         vec.push::<usize, alloc::Global>(0_usize);
     }
 
@@ -2551,7 +2551,7 @@ fn test_type_erased_vec_try_reserve_exact3() {
 
         let length = vec.len();
         vec.push::<usize, alloc::Global>(usize::MAX);
-        for j in (length + 1)..(vec.capacity() - 1) {
+        for _ in (length + 1)..(vec.capacity() - 1) {
             vec.push::<usize, alloc::Global>(i);
         }
         vec.push::<usize, alloc::Global>(usize::MAX);

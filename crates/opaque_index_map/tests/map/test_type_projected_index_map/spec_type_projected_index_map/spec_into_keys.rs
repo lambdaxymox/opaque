@@ -92,7 +92,7 @@ where
     let map = entries.clone();
     for (index, key) in map.clone().into_keys().enumerate() {
         let expected = Some(key.clone());
-        let result = map.get_index(index).map(|(k, v)| k.clone());
+        let result = map.get_index(index).map(|(k, _v)| k.clone());
 
         prop_assert_eq!(result, expected);
     }

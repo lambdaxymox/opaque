@@ -92,7 +92,7 @@ where
     let map = entries.clone::<K, V, S, A>();
     for (index, key) in map.clone::<K, V, S, A>().into_keys::<K, V, S, A>().enumerate() {
         let expected = Some(key.clone());
-        let result = map.get_index::<K, V, S, A>(index).map(|(k, v)| k.clone());
+        let result = map.get_index::<K, V, S, A>(index).map(|(k, _v)| k.clone());
 
         prop_assert_eq!(result, expected);
     }

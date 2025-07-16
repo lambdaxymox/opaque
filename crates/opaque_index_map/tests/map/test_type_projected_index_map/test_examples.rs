@@ -100,7 +100,7 @@ fn test_type_projected_index_map_get_index_of1() {
 #[rustfmt::skip]
 #[test]
 fn test_type_projected_index_map_get_index_of2() {
-    let mut map = TypeProjectedIndexMap::from([
+    let map = TypeProjectedIndexMap::from([
         (0_usize, 1_i32),
         (1_usize, 2_i32),
         (2_usize, 3_i32),
@@ -978,7 +978,7 @@ fn test_type_projected_index_map_iter1() {
         (81_usize, 36_i32),
     ]);
 
-    for (key, value) in map.iter() {
+    for (key, _value) in map.iter() {
         assert!(map.contains_key(key));
     }
 }
@@ -1076,7 +1076,7 @@ fn test_type_projected_index_map_into_iter1() {
         (81_usize, 36_i32),
     ]);
 
-    for (key, value) in map.clone().into_iter() {
+    for (key, _value) in map.clone().into_iter() {
         assert!(map.contains_key(&key));
     }
 }

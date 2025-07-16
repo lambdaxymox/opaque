@@ -202,7 +202,7 @@ where
 {
     let indices = first_and_last_index_per_key(entries);
     let mut result = Vec::new();
-    for (key, index_tuple) in indices.iter() {
+    for (_key, index_tuple) in indices.iter() {
         let key_value_tuple = entries[index_tuple.1].clone();
         result.push((key_value_tuple, *index_tuple));
     }

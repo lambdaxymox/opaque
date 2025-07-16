@@ -342,14 +342,14 @@ where
                     let src = unyielded_ptr;
                     let dst = start_ptr;
 
-                    core::ptr::copy(src, dst, unyielded_len);
+                    ptr::copy(src, dst, unyielded_len);
                 }
 
                 // memmove back untouched tail
                 if tail != (start + unyielded_len) {
                     let src = source_vec.as_ptr().add(tail);
                     let dst = start_ptr.add(unyielded_len);
-                    core::ptr::copy(src, dst, this.tail_len);
+                    ptr::copy(src, dst, this.tail_len);
                 }
             }
 
@@ -434,7 +434,7 @@ where
 
     #[inline]
     fn next(&mut self) -> Option<T> {
-        self.iter.next().map(|elt| unsafe { core::ptr::read(elt as *const _) })
+        self.iter.next().map(|elt| unsafe { ptr::read(elt as *const _) })
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
@@ -449,7 +449,7 @@ where
 {
     #[inline]
     fn next_back(&mut self) -> Option<T> {
-        self.iter.next_back().map(|elt| unsafe { core::ptr::read(elt as *const _) })
+        self.iter.next_back().map(|elt| unsafe { ptr::read(elt as *const _) })
     }
 }
 
@@ -483,7 +483,7 @@ where
                         if tail != start {
                             let src = source_vec.as_ptr().add(tail);
                             let dst = source_vec.as_mut_ptr().add(start);
-                            core::ptr::copy(src, dst, self.inner.tail_len);
+                            ptr::copy(src, dst, self.inner.tail_len);
                         }
                         source_vec.set_len(start + self.inner.tail_len);
                     }
@@ -531,8 +531,8 @@ where
             // invalidate raw pointers to it which some unsafe code might rely on.
             let vec_ptr = vec.as_mut().as_mut_ptr();
             let drop_offset = drop_ptr.offset_from_unsigned(vec_ptr);
-            let to_drop = core::ptr::slice_from_raw_parts_mut(vec_ptr.add(drop_offset), drop_len);
-            core::ptr::drop_in_place(to_drop);
+            let to_drop = ptr::slice_from_raw_parts_mut(vec_ptr.add(drop_offset), drop_len);
+            ptr::drop_in_place(to_drop);
         }
     }
 }

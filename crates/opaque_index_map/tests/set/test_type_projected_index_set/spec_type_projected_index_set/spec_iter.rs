@@ -4,7 +4,6 @@ use opaque_index_map::TypeProjectedIndexSet;
 use core::any;
 use core::fmt;
 use std::hash;
-use std::vec::Vec;
 use std::format;
 use std::string::String;
 
@@ -59,7 +58,7 @@ where
     let set = entries.clone();
     for value in set.iter() {
         let expected = Some(value.clone());
-        let result = set.get_full(value).map(|(i, v)| v.clone());
+        let result = set.get_full(value).map(|(_i, v)| v.clone());
 
         prop_assert_eq!(result, expected);
     }

@@ -4,7 +4,6 @@ use opaque_index_map::TypeErasedIndexSet;
 use core::any;
 use core::fmt;
 use std::hash;
-use std::vec::Vec;
 use std::format;
 use std::string::String;
 
@@ -59,7 +58,7 @@ where
     let set = entries.clone::<T, S, A>();
     for value in set.iter::<T, S, A>() {
         let expected = Some(value.clone());
-        let result = set.get_full::<_, T, S, A>(value).map(|(i, v)| v.clone());
+        let result = set.get_full::<_, T, S, A>(value).map(|(_i, v)| v.clone());
 
         prop_assert_eq!(result, expected);
     }
