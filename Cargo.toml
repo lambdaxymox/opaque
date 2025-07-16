@@ -2,6 +2,26 @@
 name = "opaque"
 version = "0.1.0"
 edition = "2024"
+authors = ["LambdaXymox <lambda.xymox@gmail.com>"]
+description = "A library for type-erased generic data structures using runtime type information."
+categories = [
+    "data-structures",
+    "no-std",
+]
+keywords = [
+    "no_std",
+    "type-erased",
+    "hetergeneous",
+    "containers",
+]
+license = "Apache-2.0 OR MIT"
+readme = "README.md"
+repository = "https://github.com/lambdaxymox/opaque"
+
+[lib]
+name = "opaque"
+path = "src/lib.rs"
+crate-type = ["rlib", "cdylib"]
 
 [features]
 default = ["std"]
@@ -11,14 +31,14 @@ std = [
     "opaque_hash/std",
     "opaque_index_map/std",
     "opaque_vec/std",
-    "opaque_allocator_api/std"
+    "opaque_allocator_api/std",
 ]
 nightly = [
     "opaque_alloc/nightly",
     "opaque_hash/nightly",
     "opaque_index_map/nightly",
     "opaque_vec/nightly",
-    "opaque_allocator_api/nightly"
+    "opaque_allocator_api/nightly",
 ]
 
 [dependencies]

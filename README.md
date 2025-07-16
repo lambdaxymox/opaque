@@ -85,7 +85,6 @@ This library has numerous features:
   Either direction can always be done no matter what as long as the user supplies the correct type information.
 * Support for type-erasable memory allocators.
 * Support for type-erasable hashing functions and hash builders.
-* Support for type-erasable fixed length heap-allocated arrays.
 * Support for type-erasable vectors.
 * Support for type-erasable hash maps and hash sets with compact storage.
 * Support for custom memory allocators on all collections on both Rust nightly and Rust stable, where stable support 
