@@ -34,7 +34,7 @@ To use this library in your project, add the **opaque** crate as a dependency in
 
 ```toml
 [dependencies]
-opaque = "0.2.0"
+opaque = "1.0.0"
 ```
 
 This library has a `nightly` feature to unlock using custom memory allocators for all the collections in the 
@@ -50,7 +50,7 @@ or
 
 ```toml
 [dependencies]
-opaque = { version = "0.2.0", features = ["nightly"] }
+opaque = { version = "1.0.0", features = ["nightly"] }
 ```
 
 to your `Cargo.toml` file. Optionally, you can add the crate declaration
