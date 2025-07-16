@@ -282,6 +282,14 @@ impl<'a, K, V> ops::Index<usize> for Keys<'a, K, V> {
     }
 }
 
+impl<'a, K, V> Default for Keys<'a, K, V> {
+    fn default() -> Self {
+        Self {
+            iter: Default::default(),
+        }
+    }
+}
+
 pub(crate) struct IntoKeys<K, V, A>
 where
     K: any::Any,

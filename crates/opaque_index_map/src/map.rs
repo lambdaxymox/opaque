@@ -579,6 +579,14 @@ impl<'a, K, V> ops::Index<usize> for Keys<'a, K, V> {
     }
 }
 
+impl<'a, K, V> Default for Keys<'a, K, V> {
+    fn default() -> Self {
+        Self {
+            iter: Default::default(),
+        }
+    }
+}
+
 /// A moving iterator over the keys of the entries of the index map.
 ///
 /// This iterator returns the keys in the storage order of the entries in the index map. Moving key
