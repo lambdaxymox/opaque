@@ -1671,8 +1671,7 @@ fn test_type_erased_index_set_into_iter3() {
         81_usize,
     ]);
     let result: TypeProjectedVec<usize> = set
-        .iter::<usize, hash::RandomState, alloc::Global>()
-        .cloned()
+        .into_iter::<usize, hash::RandomState, alloc::Global>()
         .collect();
 
     assert_eq!(result, expected);

@@ -1131,8 +1131,7 @@ fn test_type_erased_index_map_into_iter3() {
         (81_usize, 36_i32),
     ]);
     let result: TypeProjectedVec<(usize, i32)> = map
-        .iter::<usize, i32, hash::RandomState, alloc::Global>()
-        .map(|(k, v)| (k.clone(), v.clone()))
+        .into_iter::<usize, i32, hash::RandomState, alloc::Global>()
         .collect();
 
     assert_eq!(result, expected);

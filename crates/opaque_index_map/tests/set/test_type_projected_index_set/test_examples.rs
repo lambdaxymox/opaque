@@ -1659,8 +1659,7 @@ fn test_type_projected_index_set_into_iter3() {
         81_usize,
     ]);
     let result: TypeProjectedVec<usize> = set
-        .iter()
-        .cloned()
+        .into_iter()
         .collect();
 
     assert_eq!(result, expected);

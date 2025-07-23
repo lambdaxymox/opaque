@@ -1124,8 +1124,7 @@ fn test_type_projected_index_map_into_iter3() {
         (81_usize, 36_i32),
     ]);
     let result: TypeProjectedVec<(usize, i32)> = map
-        .iter()
-        .map(|(k, v)| (k.clone(), v.clone()))
+        .into_iter()
         .collect();
 
     assert_eq!(result, expected);
