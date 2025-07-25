@@ -3588,6 +3588,23 @@ where
         }
     }
 
+    pub(crate) fn get_key_value_mut<Q>(&mut self, key: &Q) -> Option<(&K, &mut V)>
+    where
+        Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
+    {
+        debug_assert_eq!(self.key_type_id(), any::TypeId::of::<K>());
+        debug_assert_eq!(self.value_type_id(), any::TypeId::of::<V>());
+        debug_assert_eq!(self.build_hasher_type_id(), any::TypeId::of::<S>());
+        debug_assert_eq!(self.allocator_type_id(), any::TypeId::of::<A>());
+
+        if let Some(i) = self.get_index_of::<Q>(key) {
+            let entry = &mut self.as_entries_mut()[i];
+            Some((&entry.key, &mut entry.value))
+        } else {
+            None
+        }
+    }
+
     pub(crate) fn get_full_mut<Q>(&mut self, key: &Q) -> Option<(usize, &K, &mut V)>
     where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,

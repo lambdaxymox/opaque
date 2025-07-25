@@ -8939,8 +8939,8 @@ where
         self.inner.get(key)
     }
 
-    /// Returns a reference to the key and a reference to the value, of the key-value pair with the
-    /// given lookup key, if it exists in the index map.
+    /// Returns a reference to the key and a reference to the value, of the key-value pair
+    /// with the given lookup key, if it exists in the index map.
     ///
     /// This method returns `Some((&eq_key, &value))` where `eq_key` is the equivalent key to `key`
     /// stored in the map, and `value` is the value corresponding to the key `eq_key` in `self`,
@@ -9399,6 +9399,160 @@ where
         Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
     {
         self.inner.get_mut(key)
+    }
+
+    /// Returns a mutable reference to the key and a reference to the value, of the key-value pair
+    /// with the given lookup key, if it exists in the index map.
+    ///
+    /// This method returns `Some((&eq_key, &mut value))` where `eq_key` is the equivalent key to
+    /// `key` stored in the map, and `value` is the value corresponding to the key `eq_key` in
+    /// `self`, if the equivalent key `eq_key` to `key` exists in `self`. This method returns
+    /// `None` if the equivalent key to `key` does not exist in `self`.
+    ///
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
+    ///
+    /// Let `map` be an index map with keys of type `K` and values of type `V`.
+    ///
+    /// ## Hashing And Equivalence
+    ///
+    /// A **hashing type** is a triple `(X, ~, h)` where `~` is an equivalence relation on
+    /// `X`, and `h` is a hash function such that
+    ///
+    /// ```text
+    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b).
+    /// ```
+    ///
+    /// A type `X` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(X, ~, h)` is a hashing type.
+    ///
+    /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
+    /// `f: Q → X` and `g: K → X` be functions. We say that
+    /// **`q` is equivalent to `k` using `f` and `g`** if and only if
+    ///
+    /// ```test
+    /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
+    /// ```
+    ///
+    /// Note that by the definition of `~`
+    ///
+    /// ```text
+    /// ∀ q :: Q. ∀ k :: K. f(q) ∼ g(k) ⇒ h(f(q)) = h(g(k)).
+    /// ```
+    ///
+    /// This is an implication, not an equivalence, because practical hashing functions can have
+    /// collisions, i.e. for a practical hashing function `h`,
+    /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
+    /// **`Q` is equivalent to `K` using `f` and `g`** if and only if
+    ///
+    /// ```text
+    /// equiv(X, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(X, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
+    /// ```
+    ///
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` using `X`**
+    /// if and only if
+    ///
+    /// ```text
+    /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
+    /// ```
+    ///
+    /// Key equality is a special case of key equivalence. Let `K` be a hashable data type. Let
+    /// `Q = K`, and `f = g = id`. Then
+    ///
+    /// ```text
+    /// ∀ k1, k2 :: K. k1 = k2 = id(k1) = id(k2) ⇒ h(id(k1)) = h(id(k2)) = h(k1) = h(k2)
+    /// ```
+    ///
+    /// so that we have `equiv(K, id, id)(K, K)` which implies `equiv(K, K, K)`, i.e. `K` is
+    /// equivalent to `K` using `K` when `K` is a hashable type.
+    ///
+    /// Let `Q` be a type equivalent to the key type `K` using `K`. Let `f: Q → K` and `id: K → K`
+    /// be the identity. We say that **`q` is equivalent to `k`** if and only if
+    ///
+    /// ```text
+    /// equiv(q, k) := equiv(K, f, id)(q, k).
+    /// ```
+    ///
+    /// Let `Q` be a data type equivalent to key type `K` using `K`. We say that `q` is an
+    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
+    /// only if
+    ///
+    /// ```text
+    /// q ~∈ map ⇔ ∃ i ∈ [0, map.len()). equiv(q, map[i].key()).
+    /// ```
+    ///
+    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
+    ///
+    /// When `K` is a hashable type, we see that `k ~∈ map ⇔ k ∈ map`, so that equivalent
+    /// containment indeed generalizes containment.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// The **index** of an equivalent key `q :: Q` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, q) := i such that equiv(q, map[i].key()).
+    /// ```
+    ///
+    /// ## Method Specification
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { key ~∈ map }
+    /// map.get_key_value(key)
+    /// { result = Some(map[index(map, key)]) }
+    ///
+    /// { key ~∉ map }
+    /// map.get_key_value(key)
+    /// { result = None }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
+    /// # use opaque_index_map::TypeProjectedIndexMap;
+    /// # use opaque_hash::TypeProjectedBuildHasher;
+    /// # use opaque_alloc::TypeProjectedAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
+    /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
+    /// #
+    /// let mut proj_map: TypeProjectedIndexMap<usize, f64> = TypeProjectedIndexMap::from([
+    ///     (1_usize, 2_f64),
+    ///     (2_usize, 3_f64),
+    ///     (3_usize, 4_f64),
+    /// ]);
+    ///
+    /// assert_eq!(proj_map.get_key_value_mut(&1_usize), Some((&1_usize, &mut 2_f64)));
+    /// assert_eq!(proj_map.get_key_value_mut(&2_usize), Some((&2_usize, &mut 3_f64)));
+    /// assert_eq!(proj_map.get_key_value_mut(&3_usize), Some((&3_usize, &mut 4_f64)));
+    /// assert_eq!(proj_map.get_key_value_mut(&4_usize), None);
+    /// assert_eq!(proj_map.get_key_value_mut(&usize::MAX), None);
+    /// ```
+    pub fn get_key_value_mut<Q>(&mut self, key: &Q) -> Option<(&K, &mut V)>
+    where
+        Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
+    {
+        self.inner.get_key_value_mut(key)
     }
 
     /// Returns the storage index, a reference to the key and a mutable reference to the value, of
@@ -19691,6 +19845,181 @@ impl TypeErasedIndexMap {
         let proj_self = self.as_proj_mut::<K, V, S, A>();
 
         proj_self.get_mut(key)
+    }
+
+    /// Returns a mutable reference to the key and a reference to the value, of the key-value pair
+    /// with the given lookup key, if it exists in the index map.
+    ///
+    /// This method returns `Some((&eq_key, &mut value))` where `eq_key` is the equivalent key to
+    /// `key` stored in the map, and `value` is the value corresponding to the key `eq_key` in
+    /// `self`, if the equivalent key `eq_key` to `key` exists in `self`. This method returns
+    /// `None` if the equivalent key to `key` does not exist in `self`.
+    ///
+    /// # Formal Properties (Optional Section)
+    ///
+    /// ***Note: This section is optional for most users and contains advanced material.
+    /// It explains the precise axiomatic (formal, logic-based) semantics of these operations for
+    /// those seeking a thorough understanding.***
+    ///
+    /// Let `map` be an index map with keys of type `K` and values of type `V`.
+    ///
+    /// ## Hashing And Equivalence
+    ///
+    /// A **hashing type** is a triple `(X, ~, h)` where `~` is an equivalence relation on
+    /// `X`, and `h` is a hash function such that
+    ///
+    /// ```text
+    /// ∀ a :: X. ∀ b :: X. a ~ b ⇒ h(a) = h(b).
+    /// ```
+    ///
+    /// A type `X` is a **hashable type** if there is an equivalence relation `~` and a hashing
+    /// function `h` such that `(X, ~, h)` is a hashing type.
+    ///
+    /// Let `K` be the type of the keys of the index map `map`. Let `Q` be a data type. Let
+    /// `q :: Q` be a value of type `Q`, and let `k :: K` be a key. let `X` be a hashable type. Let
+    /// `f: Q → X` and `g: K → X` be functions. We say that
+    /// **`q` is equivalent to `k` using `f` and `g`** if and only if
+    ///
+    /// ```test
+    /// equiv(X, f, g)(q, k) := f(q) ∼ g(k).
+    /// ```
+    ///
+    /// Note that by the definition of `~`
+    ///
+    /// ```text
+    /// ∀ q :: Q. ∀ k :: K. f(q) ∼ g(k) ⇒ h(f(q)) = h(g(k)).
+    /// ```
+    ///
+    /// This is an implication, not an equivalence, because practical hashing functions can have
+    /// collisions, i.e. for a practical hashing function `h`,
+    /// `∃ a, b :: X. ¬(a ~ b) ∧ h(a) = h(b)`. We say that the type
+    /// **`Q` is equivalent to `K` using `f` and `g`** if and only if
+    ///
+    /// ```text
+    /// equiv(X, f, g)(Q, K) :=
+    ///     (∀ q :: Q. ∃ k :: K. equiv(X, f, g)(q, k))
+    ///     ∧ (∀ k :: K. ∃ q :: Q. equiv(X, f, g)(q, k)).
+    /// ```
+    ///
+    /// Let `X` be a hashable type. Then the type **`Q` is equivalent to the type `K` using `X`**
+    /// if and only if
+    ///
+    /// ```text
+    /// equiv(X, Q, K) := ∃ f: Q → X. ∃ g: K → X. equiv(X, f, g)(Q, K).
+    /// ```
+    ///
+    /// Key equality is a special case of key equivalence. Let `K` be a hashable data type. Let
+    /// `Q = K`, and `f = g = id`. Then
+    ///
+    /// ```text
+    /// ∀ k1, k2 :: K. k1 = k2 = id(k1) = id(k2) ⇒ h(id(k1)) = h(id(k2)) = h(k1) = h(k2)
+    /// ```
+    ///
+    /// so that we have `equiv(K, id, id)(K, K)` which implies `equiv(K, K, K)`, i.e. `K` is
+    /// equivalent to `K` using `K` when `K` is a hashable type.
+    ///
+    /// Let `Q` be a type equivalent to the key type `K` using `K`. Let `f: Q → K` and `id: K → K`
+    /// be the identity. We say that **`q` is equivalent to `k`** if and only if
+    ///
+    /// ```text
+    /// equiv(q, k) := equiv(K, f, id)(q, k).
+    /// ```
+    ///
+    /// Let `Q` be a data type equivalent to key type `K` using `K`. We say that `q` is an
+    /// **equivalent element of** the map `map`, or that **`map` equivalently contains `q`** if and
+    /// only if
+    ///
+    /// ```text
+    /// q ~∈ map ⇔ ∃ i ∈ [0, map.len()). equiv(q, map[i].key()).
+    /// ```
+    ///
+    /// If `q` is not an equivalent element of `map`, we write `q ~∉ map`.
+    ///
+    /// When `K` is a hashable type, we see that `k ~∈ map ⇔ k ∈ map`, so that equivalent
+    /// containment indeed generalizes containment.
+    ///
+    /// ## Specification Definitions
+    ///
+    /// The **index** of an equivalent key `q :: Q` in `map` is defined by
+    ///
+    /// ```text
+    /// index(map, q) := i such that equiv(q, map[i].key()).
+    /// ```
+    ///
+    /// ## Method Specification
+    ///
+    /// This method satisfies:
+    ///
+    /// ```text
+    /// { key ~∈ map }
+    /// map.get_key_value(key)
+    /// { result = Some(map[index(map, key)]) }
+    ///
+    /// { key ~∉ map }
+    /// map.get_key_value(key)
+    /// { result = None }
+    /// ```
+    ///
+    /// where `{P} S {Q}` is the Hoare triple indicating how this method acts on `map`.
+    ///
+    /// # Complexity Characteristics
+    ///
+    /// This method runs in **O(1)** time.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the [`TypeId`] of the keys of `self`, the [`TypeId`] of the values of
+    /// `self`, the [`TypeId`] for the hash builder of `self`, and the [`TypeId`] of the memory
+    /// allocator of `self` do not match the requested key type `K`, value type `V`, hash builder
+    /// type `S`, and allocator type `A`, respectively.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
+    /// # use opaque_index_map::TypeErasedIndexMap;
+    /// # use opaque_hash::TypeProjectedBuildHasher;
+    /// # use opaque_alloc::TypeProjectedAlloc;
+    /// # use std::any::TypeId;
+    /// # use std::hash::RandomState;
+    /// #
+    /// # #[cfg(feature = "nightly")]
+    /// # use std::alloc::Global;
+    /// #
+    /// # #[cfg(not(feature = "nightly"))]
+    /// # use opaque_allocator_api::alloc::Global;
+    /// #
+    /// let mut opaque_map = TypeErasedIndexMap::from([
+    ///     (1_usize, 2_f64),
+    ///     (2_usize, 3_f64),
+    ///     (3_usize, 4_f64),
+    /// ]);
+    /// #
+    /// # assert!(opaque_map.has_key_type::<usize>());
+    /// # assert!(opaque_map.has_value_type::<f64>());
+    /// # assert!(opaque_map.has_build_hasher_type::<RandomState>());
+    /// # assert!(opaque_map.has_allocator_type::<Global>());
+    /// #
+    ///
+    /// assert_eq!(opaque_map.get_key_value_mut::<_, usize, f64, RandomState, Global>(&1_usize), Some((&1_usize, &mut 2_f64)));
+    /// assert_eq!(opaque_map.get_key_value_mut::<_, usize, f64, RandomState, Global>(&2_usize), Some((&2_usize, &mut 3_f64)));
+    /// assert_eq!(opaque_map.get_key_value_mut::<_, usize, f64, RandomState, Global>(&3_usize), Some((&3_usize, &mut 4_f64)));
+    /// assert_eq!(opaque_map.get_key_value_mut::<_, usize, f64, RandomState, Global>(&4_usize), None);
+    /// assert_eq!(opaque_map.get_key_value_mut::<_, usize, f64, RandomState, Global>(&usize::MAX), None);
+    /// ```
+    #[track_caller]
+    pub fn get_key_value_mut<Q, K, V, S, A>(&mut self, key: &Q) -> Option<(&K, &mut V)>
+    where
+        K: any::Any,
+        V: any::Any,
+        S: any::Any + hash::BuildHasher + Send + Sync,
+        S::Hasher: any::Any + hash::Hasher + Send + Sync,
+        A: any::Any + alloc::Allocator + Send + Sync,
+        Q: any::Any + ?Sized + hash::Hash + Equivalent<K>,
+    {
+        let proj_self = self.as_proj_mut::<K, V, S, A>();
+
+        proj_self.get_key_value_mut(key)
     }
 
     /// Returns the storage index, a reference to the key and a mutable reference to the value, of
