@@ -1,5 +1,5 @@
 use crate::equivalent::Equivalent;
-use crate::map_inner;
+use crate::{map_inner, TypeProjectedIndexMap};
 use crate::map_inner::{
     Bucket,
     TypeErasedIndexMapInner,
@@ -10598,6 +10598,18 @@ where
     }
 }
 
+impl<T, S, A> From<TypeProjectedIndexMap<T, (), S, A>> for TypeProjectedIndexSet<T, S, A>
+where
+    T: any::Any + Clone,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
+{
+    fn from(map: TypeProjectedIndexMap<T, (), S, A>) -> Self {
+        Self { inner: map.into_inner() }
+    }
+}
+
 impl<T, S, A> Clone for TypeProjectedIndexSet<T, S, A>
 where
     T: any::Any + Clone,
@@ -21118,6 +21130,20 @@ where
 {
     fn from(array: [T; N]) -> Self {
         let proj_set = TypeProjectedIndexSet::<T, hash::RandomState, alloc::Global>::from(array);
+
+        Self::from_proj(proj_set)
+    }
+}
+
+impl<T, S, A> From<TypeProjectedIndexMap<T, (), S, A>> for TypeErasedIndexSet
+where
+    T: any::Any + Clone,
+    S: any::Any + hash::BuildHasher + Send + Sync + Clone,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync + Clone,
+{
+    fn from(map: TypeProjectedIndexMap<T, (), S, A>) -> Self {
+        let proj_set = TypeProjectedIndexSet { inner: map.into_inner() };
 
         Self::from_proj(proj_set)
     }

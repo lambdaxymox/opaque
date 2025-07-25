@@ -7489,6 +7489,21 @@ where
     S::Hasher: any::Any + hash::Hasher + Send + Sync,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
+    /// Converts a type-projected index map into an inner type-projected index map.
+    #[inline]
+    pub(crate) fn into_inner(self) -> TypeProjectedIndexMapInner<K, V, S, A> {
+        self.inner
+    }
+}
+
+impl<K, V, S, A> TypeProjectedIndexMap<K, V, S, A>
+where
+    K: any::Any,
+    V: any::Any,
+    S: any::Any + hash::BuildHasher + Send + Sync,
+    S::Hasher: any::Any + hash::Hasher + Send + Sync,
+    A: any::Any + alloc::Allocator + Send + Sync,
+{
     /// Returns the [`TypeId`] of the keys contained in the type-projected index map.
     ///
     /// # Examples
