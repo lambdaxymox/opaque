@@ -1,6 +1,6 @@
 [package]
 name = "opaque_index_map"
-version = "1.2.0"
+version = "1.3.0"
 edition = "2024"
 
 [features]
@@ -19,7 +19,7 @@ default-features = false
 version = "0.15.4"
 
 [dependencies.opaque_allocator_api]
-version = "1.2.0"
+version = "1.3.0"
 path = "../opaque_allocator_api"
 
 [dependencies.opaque_alloc]

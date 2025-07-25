@@ -1,6 +1,6 @@
 [package]
 name = "opaque"
-version = "1.2.0"
+version = "1.3.0"
 edition = "2024"
 authors = ["LambdaXymox <lambda.xymox@gmail.com>"]
 description = "A library for working with type-erased generic collections."
