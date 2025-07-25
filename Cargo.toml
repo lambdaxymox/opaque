@@ -3,7 +3,7 @@ name = "opaque"
 version = "1.2.0"
 edition = "2024"
 authors = ["LambdaXymox <lambda.xymox@gmail.com>"]
-description = "A library for working with type-erased generic collections using runtime type information."
+description = "A library for working with type-erased generic collections."
 categories = [
     "data-structures",
     "no-std",
