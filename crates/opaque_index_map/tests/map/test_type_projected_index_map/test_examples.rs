@@ -587,6 +587,410 @@ fn test_type_projected_index_map_get_index6() {
 
 #[rustfmt::skip]
 #[test]
+fn test_type_projected_index_map_get_mut1() {
+    let mut map = TypeProjectedIndexMap::new();
+
+    assert_eq!(map.get_mut(&"a"), None);
+    assert_eq!(map.get_mut(&"b"), None);
+    assert_eq!(map.get_mut(&"c"), None);
+    assert_eq!(map.get_mut(&"d"), None);
+
+    map.insert("a", 1_i32);
+    map.insert("b", 2_i32);
+    map.insert("c", 3_i32);
+
+    assert_eq!(map.get_mut(&"a"), Some(&mut 1));
+    assert_eq!(map.get_mut(&"b"), Some(&mut 2));
+    assert_eq!(map.get_mut(&"c"), Some(&mut 3));
+    assert_eq!(map.get_mut(&"d"), None);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_get_mut2() {
+    let mut map = TypeProjectedIndexMap::from([
+        (0_usize, 1_i32),
+        (1_usize, 2_i32),
+        (2_usize, 3_i32),
+        (3_usize, 4_i32),
+        (4_usize, 5_i32),
+        (5_usize, 6_i32),
+    ]);
+
+    assert_eq!(map.get_mut(&0_usize), Some(&mut 1_i32));
+    assert_eq!(map.get_mut(&1_usize), Some(&mut 2_i32));
+    assert_eq!(map.get_mut(&2_usize), Some(&mut 3_i32));
+    assert_eq!(map.get_mut(&3_usize), Some(&mut 4_i32));
+    assert_eq!(map.get_mut(&4_usize), Some(&mut 5_i32));
+    assert_eq!(map.get_mut(&5_usize), Some(&mut 6_i32));
+    assert_eq!(map.get_mut(&6_usize), None);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_get_mut3() {
+    let mut map = TypeProjectedIndexMap::from([("a", 1_i32), ("b", 2_i32), ("c", 3_i32)]);
+
+    assert_eq!(map.get_mut(&"a"), Some(&mut 1_i32));
+    assert_eq!(map.get_mut(&"c"), Some(&mut 3_i32));
+    assert_eq!(map.get_mut(&"b"), Some(&mut 2_i32));
+
+    map.swap_remove("b");
+
+    assert_eq!(map.get_mut(&"a"), Some(&mut 1_i32));
+    assert_eq!(map.get_mut(&"c"), Some(&mut 3_i32));
+    assert_eq!(map.get_mut(&"b"), None);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_get_mut4() {
+    let mut map: TypeProjectedIndexMap<char, ()> = ('a'..='z').map(|c| (c, ())).collect();
+    assert_eq!(map.get_mut(&'*'), None);
+
+    map.insert_before(10, '*', ());
+    assert_eq!(map.get_mut(&'*'), Some(&mut ()));
+
+    map.insert_before(10, 'a', ());
+    assert_eq!(map.get_mut(&'a'), Some(&mut ()));
+    assert_eq!(map.get_mut(&'*'), Some(&mut ()));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_get_mut5() {
+    let mut map: TypeProjectedIndexMap<char, ()> = ('a'..='z').map(|c| (c, ())).collect();
+    assert_eq!(map.get_mut(&'*'), None);
+
+    map.shift_insert(10, '*', ());
+    assert_eq!(map.get_mut(&'*'), Some(&mut ()));
+
+    map.shift_insert(10, 'a', ());
+    assert_eq!(map.get_mut(&'a'), Some(&mut ()));
+    assert_eq!(map.get_mut(&'*'), Some(&mut ()));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_get_mut6() {
+    let mut map = TypeProjectedIndexMap::from([("a", 1_i32), ("b", 2_i32)]);
+
+    assert_eq!(map.get_mut(&"a"), Some(&mut 1_i32));
+    assert_eq!(map.get_mut(&"b"), Some(&mut 2_i32));
+    assert_eq!(map.get_mut(&"c"), None);
+
+    map.insert("c", 3_i32);
+
+    assert_eq!(map.get_mut(&"a"), Some(&mut 1_i32));
+    assert_eq!(map.get_mut(&"b"), Some(&mut 2_i32));
+    assert_eq!(map.get_mut(&"c"), Some(&mut 3_i32));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_get_key_value_mut1() {
+    let mut map = TypeProjectedIndexMap::new();
+
+    assert_eq!(map.get_key_value_mut(&"a"), None);
+    assert_eq!(map.get_key_value_mut(&"b"), None);
+    assert_eq!(map.get_key_value_mut(&"c"), None);
+    assert_eq!(map.get_key_value_mut(&"d"), None);
+
+    map.insert("a", 1_i32);
+    map.insert("b", 2_i32);
+    map.insert("c", 3_i32);
+
+    assert_eq!(map.get_key_value_mut(&"a"), Some((&"a", &mut 1_i32)));
+    assert_eq!(map.get_key_value_mut(&"b"), Some((&"b", &mut 2_i32)));
+    assert_eq!(map.get_key_value_mut(&"c"), Some((&"c", &mut 3_i32)));
+    assert_eq!(map.get_key_value_mut(&"d"), None);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_get_key_value_mut2() {
+    let mut map = TypeProjectedIndexMap::from([
+        (0_usize, 1_i32),
+        (1_usize, 2_i32),
+        (2_usize, 3_i32),
+        (3_usize, 4_i32),
+        (4_usize, 5_i32),
+        (5_usize, 6_i32),
+    ]);
+
+    assert_eq!(map.get_key_value_mut(&0_usize), Some((&0_usize, &mut 1_i32)));
+    assert_eq!(map.get_key_value_mut(&1_usize), Some((&1_usize, &mut 2_i32)));
+    assert_eq!(map.get_key_value_mut(&2_usize), Some((&2_usize, &mut 3_i32)));
+    assert_eq!(map.get_key_value_mut(&3_usize), Some((&3_usize, &mut 4_i32)));
+    assert_eq!(map.get_key_value_mut(&4_usize), Some((&4_usize, &mut 5_i32)));
+    assert_eq!(map.get_key_value_mut(&5_usize), Some((&5_usize, &mut 6_i32)));
+    assert_eq!(map.get_key_value_mut(&6_usize), None);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_get_key_value_mut3() {
+    let mut map = TypeProjectedIndexMap::from([("a", 1_i32), ("b", 2_i32), ("c", 3_i32)]);
+
+    assert_eq!(map.get_key_value_mut(&"a"), Some((&"a", &mut 1_i32)));
+    assert_eq!(map.get_key_value_mut(&"c"), Some((&"c", &mut 3_i32)));
+    assert_eq!(map.get_key_value_mut(&"b"), Some((&"b", &mut 2_i32)));
+
+    map.swap_remove("b");
+
+    assert_eq!(map.get_key_value_mut(&"a"), Some((&"a", &mut 1_i32)));
+    assert_eq!(map.get_key_value_mut(&"c"), Some((&"c", &mut 3_i32)));
+    assert_eq!(map.get_key_value_mut(&"b"), None);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_get_key_value_mut4() {
+    let mut map: TypeProjectedIndexMap<char, ()> = ('a'..='z').map(|c| (c, ())).collect();
+    assert_eq!(map.get_key_value_mut(&'*'), None);
+
+    map.insert_before(10, '*', ());
+    assert_eq!(map.get_key_value_mut(&'*'), Some((&'*', &mut ())));
+
+    map.insert_before(10, 'a', ());
+    assert_eq!(map.get_key_value_mut(&'a'), Some((&'a', &mut ())));
+    assert_eq!(map.get_key_value_mut(&'*'), Some((&'*', &mut ())));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_get_key_value_mut5() {
+    let mut map: TypeProjectedIndexMap<char, ()> = ('a'..='z').map(|c| (c, ())).collect();
+    assert_eq!(map.get_key_value_mut(&'*'), None);
+
+    map.shift_insert(10, '*', ());
+    assert_eq!(map.get_key_value_mut(&'*'), Some((&'*', &mut ())));
+
+    map.shift_insert(10, 'a', ());
+    assert_eq!(map.get_key_value_mut(&'a'), Some((&'a', &mut ())));
+    assert_eq!(map.get_key_value_mut(&'*'), Some((&'*', &mut ())));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_get_key_value_mut6() {
+    let mut map = TypeProjectedIndexMap::from([("a", 1_i32), ("b", 2_i32)]);
+
+    assert_eq!(map.get_key_value_mut(&"a"), Some((&"a", &mut 1_i32)));
+    assert_eq!(map.get_key_value_mut(&"b"), Some((&"b", &mut 2_i32)));
+    assert_eq!(map.get_key_value_mut(&"c"), None);
+
+    map.insert("c", 3_i32);
+
+    assert_eq!(map.get_key_value_mut(&"a"), Some((&"a", &mut 1_i32)));
+    assert_eq!(map.get_key_value_mut(&"b"), Some((&"b", &mut 2_i32)));
+    assert_eq!(map.get_key_value_mut(&"c"), Some((&"c", &mut 3_i32)));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_get_full_mut1() {
+    let mut map = TypeProjectedIndexMap::new();
+
+    assert_eq!(map.get_full_mut(&"a"), None);
+    assert_eq!(map.get_full_mut(&"b"), None);
+    assert_eq!(map.get_full_mut(&"c"), None);
+    assert_eq!(map.get_full_mut(&"d"), None);
+
+    map.insert("a", 1_i32);
+    map.insert("b", 2_i32);
+    map.insert("c", 3_i32);
+
+    assert_eq!(map.get_full_mut(&"a"), Some((0, &"a", &mut 1_i32)));
+    assert_eq!(map.get_full_mut(&"b"), Some((1, &"b", &mut 2_i32)));
+    assert_eq!(map.get_full_mut(&"c"), Some((2, &"c", &mut 3_i32)));
+    assert_eq!(map.get_full_mut(&"d"), None);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_get_full_mut2() {
+    let mut map = TypeProjectedIndexMap::from([
+        (0_usize, 1_i32),
+        (1_usize, 2_i32),
+        (2_usize, 3_i32),
+        (3_usize, 4_i32),
+        (4_usize, 5_i32),
+        (5_usize, 6_i32),
+    ]);
+
+    assert_eq!(map.get_full_mut(&0_usize), Some((0, &0_usize, &mut 1_i32)));
+    assert_eq!(map.get_full_mut(&1_usize), Some((1, &1_usize, &mut 2_i32)));
+    assert_eq!(map.get_full_mut(&2_usize), Some((2, &2_usize, &mut 3_i32)));
+    assert_eq!(map.get_full_mut(&3_usize), Some((3, &3_usize, &mut 4_i32)));
+    assert_eq!(map.get_full_mut(&4_usize), Some((4, &4_usize, &mut 5_i32)));
+    assert_eq!(map.get_full_mut(&5_usize), Some((5, &5_usize, &mut 6_i32)));
+    assert_eq!(map.get_full_mut(&6_usize), None);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_get_full_mut3() {
+    let mut map = TypeProjectedIndexMap::from([("a", 1_i32), ("b", 2_i32), ("c", 3_i32)]);
+
+    assert_eq!(map.get_full_mut(&"a"), Some((0, &"a", &mut 1_i32)));
+    assert_eq!(map.get_full_mut(&"c"), Some((2, &"c", &mut 3_i32)));
+    assert_eq!(map.get_full_mut(&"b"), Some((1, &"b", &mut 2_i32)));
+
+    map.swap_remove("b");
+
+    assert_eq!(map.get_full_mut(&"a"), Some((0, &"a", &mut 1_i32)));
+    assert_eq!(map.get_full_mut(&"c"), Some((1, &"c", &mut 3_i32)));
+    assert_eq!(map.get_full_mut(&"b"), None);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_get_full_mut4() {
+    let mut map: TypeProjectedIndexMap<char, ()> = ('a'..='z').map(|c| (c, ())).collect();
+    assert_eq!(map.get_full_mut(&'*'), None);
+
+    map.insert_before(10, '*', ());
+    assert_eq!(map.get_full_mut(&'*'), Some((10, &'*', &mut ())));
+
+    map.insert_before(10, 'a', ());
+    assert_eq!(map.get_full_mut(&'a'), Some((9, &'a', &mut ())));
+    assert_eq!(map.get_full_mut(&'*'), Some((10, &'*', &mut ())));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_get_full_mut5() {
+    let mut map: TypeProjectedIndexMap<char, ()> = ('a'..='z').map(|c| (c, ())).collect();
+    assert_eq!(map.get_full_mut(&'*'), None);
+
+    map.shift_insert(10, '*', ());
+    assert_eq!(map.get_full_mut(&'*'), Some((10, &'*', &mut ())));
+
+    map.shift_insert(10, 'a', ());
+    assert_eq!(map.get_full_mut(&'a'), Some((10, &'a', &mut ())));
+    assert_eq!(map.get_full_mut(&'*'), Some((9, &'*', &mut ())));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_get_full_mut6() {
+    let mut map = TypeProjectedIndexMap::from([("a", 1_i32), ("b", 2_i32)]);
+
+    assert_eq!(map.get_full_mut(&"a"), Some((0, &"a", &mut 1_i32)));
+    assert_eq!(map.get_full_mut(&"b"), Some((1, &"b", &mut 2_i32)));
+    assert_eq!(map.get_full_mut(&"c"), None);
+
+    map.insert("c", 3_i32);
+
+    assert_eq!(map.get_full_mut(&"a"), Some((0, &"a", &mut 1_i32)));
+    assert_eq!(map.get_full_mut(&"b"), Some((1, &"b", &mut 2_i32)));
+    assert_eq!(map.get_full_mut(&"c"), Some((2, &"c", &mut 3_i32)));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_get_index_mut1() {
+    let mut map = TypeProjectedIndexMap::new();
+
+    assert_eq!(map.get_index_mut(0), None);
+    assert_eq!(map.get_index_mut(1), None);
+    assert_eq!(map.get_index_mut(2), None);
+    assert_eq!(map.get_index_mut(3), None);
+
+    map.insert("a", 1_i32);
+    map.insert("b", 2_i32);
+    map.insert("c", 3_i32);
+
+    assert_eq!(map.get_index_mut(0), Some((&"a", &mut 1_i32)));
+    assert_eq!(map.get_index_mut(1), Some((&"b", &mut 2_i32)));
+    assert_eq!(map.get_index_mut(2), Some((&"c", &mut 3_i32)));
+    assert_eq!(map.get_index_mut(3), None);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_get_index_mut_mut2() {
+    let mut map = TypeProjectedIndexMap::from([
+        (0_usize, 1_i32),
+        (1_usize, 2_i32),
+        (2_usize, 3_i32),
+        (3_usize, 4_i32),
+        (4_usize, 5_i32),
+        (5_usize, 6_i32),
+    ]);
+
+    assert_eq!(map.get_index_mut(0), Some((&0_usize, &mut 1_i32)));
+    assert_eq!(map.get_index_mut(1), Some((&1_usize, &mut 2_i32)));
+    assert_eq!(map.get_index_mut(2), Some((&2_usize, &mut 3_i32)));
+    assert_eq!(map.get_index_mut(3), Some((&3_usize, &mut 4_i32)));
+    assert_eq!(map.get_index_mut(4), Some((&4_usize, &mut 5_i32)));
+    assert_eq!(map.get_index_mut(5), Some((&5_usize, &mut 6_i32)));
+    assert_eq!(map.get_index_mut(6), None);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_get_index_mut3() {
+    let mut map = TypeProjectedIndexMap::from([("a", 1_i32), ("b", 2_i32), ("c", 3_i32)]);
+
+    assert_eq!(map.get_index_mut(0), Some((&"a", &mut 1_i32)));
+    assert_eq!(map.get_index_mut(2), Some((&"c", &mut 3_i32)));
+    assert_eq!(map.get_index_mut(1), Some((&"b", &mut 2_i32)));
+
+    map.swap_remove("b");
+
+    assert_eq!(map.get_index_mut(0), Some((&"a", &mut 1_i32)));
+    assert_eq!(map.get_index_mut(2), None);
+    assert_eq!(map.get_index_mut(1), Some((&"c", &mut 3_i32)));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_get_index_mut4() {
+    let mut map: TypeProjectedIndexMap<char, ()> = ('a'..='z').map(|c| (c, ())).collect();
+    assert_eq!(map.get_index_mut(10), Some((&'k', &mut ())));
+
+    map.insert_before(10, '*', ());
+    assert_eq!(map.get_index_mut(10), Some((&'*', &mut ())));
+
+    map.insert_before(10, 'a', ());
+    assert_eq!(map.get_index_mut(10), Some((&'*', &mut ())));
+    assert_eq!(map.get_index_mut(9), Some((&'a', &mut ())));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_get_index_mut5() {
+    let mut map: TypeProjectedIndexMap<char, ()> = ('a'..='z').map(|c| (c, ())).collect();
+    assert_eq!(map.get_index_mut(10), Some((&'k', &mut ())));
+
+    map.shift_insert(10, '*', ());
+    assert_eq!(map.get_index_mut(10), Some((&'*', &mut ())));
+
+    map.shift_insert(10, 'a', ());
+    assert_eq!(map.get_index_mut(0),  Some((&'b', &mut ())));
+    assert_eq!(map.get_index_mut(10), Some((&'a', &mut ())));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_projected_index_map_get_index_mut6() {
+    let mut map = TypeProjectedIndexMap::from([("a", 1_i32), ("b", 2_i32)]);
+
+    assert_eq!(map.get_index_mut(0), Some((&"a", &mut 1_i32)));
+    assert_eq!(map.get_index_mut(1), Some((&"b", &mut 2_i32)));
+    assert_eq!(map.get_index_mut(2), None);
+
+    map.insert("c", 3_i32);
+
+    assert_eq!(map.get_index_mut(0), Some((&"a", &mut 1_i32)));
+    assert_eq!(map.get_index_mut(1), Some((&"b", &mut 2_i32)));
+    assert_eq!(map.get_index_mut(2), Some((&"c", &mut 3_i32)));
+}
+
+#[rustfmt::skip]
+#[test]
 fn test_type_projected_index_map_get_disjoint_mut1() {
     let mut map: TypeProjectedIndexMap<&str, i32> = TypeProjectedIndexMap::new();
     let expected = [None, None, None, None, None, None];

@@ -1,7 +1,4 @@
-use opaque_index_map::{
-    GetDisjointMutError,
-    TypeErasedIndexMap,
-};
+use opaque_index_map::{GetDisjointMutError, TypeErasedIndexMap};
 use opaque_vec::TypeProjectedVec;
 
 use std::hash;
@@ -584,6 +581,411 @@ fn test_type_erased_index_map_get_index6() {
     assert_eq!(map.get_index::<&str, i32, hash::RandomState, alloc::Global>(0), Some((&"a", &1_i32)));
     assert_eq!(map.get_index::<&str, i32, hash::RandomState, alloc::Global>(1), Some((&"b", &2_i32)));
     assert_eq!(map.get_index::<&str, i32, hash::RandomState, alloc::Global>(2), Some((&"c", &3_i32)));
+}
+
+
+#[rustfmt::skip]
+#[test]
+fn test_type_erased_index_map_get_mut1() {
+    let mut map = TypeErasedIndexMap::new::<&str, i32>();
+
+    assert_eq!(map.get_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"a"), None);
+    assert_eq!(map.get_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"b"), None);
+    assert_eq!(map.get_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"c"), None);
+    assert_eq!(map.get_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"d"), None);
+
+    map.insert::<&str, i32, hash::RandomState, alloc::Global>("a", 1_i32);
+    map.insert::<&str, i32, hash::RandomState, alloc::Global>("b", 2_i32);
+    map.insert::<&str, i32, hash::RandomState, alloc::Global>("c", 3_i32);
+
+    assert_eq!(map.get_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"a"), Some(&mut 1));
+    assert_eq!(map.get_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"b"), Some(&mut 2));
+    assert_eq!(map.get_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"c"), Some(&mut 3));
+    assert_eq!(map.get_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"d"), None);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_erased_index_map_get_mut2() {
+    let mut map = TypeErasedIndexMap::from([
+        (0_usize, 1_i32),
+        (1_usize, 2_i32),
+        (2_usize, 3_i32),
+        (3_usize, 4_i32),
+        (4_usize, 5_i32),
+        (5_usize, 6_i32),
+    ]);
+
+    assert_eq!(map.get_mut::<_, usize, i32, hash::RandomState, alloc::Global>(&0_usize), Some(&mut 1_i32));
+    assert_eq!(map.get_mut::<_, usize, i32, hash::RandomState, alloc::Global>(&1_usize), Some(&mut 2_i32));
+    assert_eq!(map.get_mut::<_, usize, i32, hash::RandomState, alloc::Global>(&2_usize), Some(&mut 3_i32));
+    assert_eq!(map.get_mut::<_, usize, i32, hash::RandomState, alloc::Global>(&3_usize), Some(&mut 4_i32));
+    assert_eq!(map.get_mut::<_, usize, i32, hash::RandomState, alloc::Global>(&4_usize), Some(&mut 5_i32));
+    assert_eq!(map.get_mut::<_, usize, i32, hash::RandomState, alloc::Global>(&5_usize), Some(&mut 6_i32));
+    assert_eq!(map.get_mut::<_, usize, i32, hash::RandomState, alloc::Global>(&6_usize), None);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_erased_index_map_get_mut3() {
+    let mut map = TypeErasedIndexMap::from([("a", 1_i32), ("b", 2_i32), ("c", 3_i32)]);
+
+    assert_eq!(map.get_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"a"), Some(&mut 1_i32));
+    assert_eq!(map.get_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"c"), Some(&mut 3_i32));
+    assert_eq!(map.get_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"b"), Some(&mut 2_i32));
+
+    map.swap_remove::<_, &str, i32, hash::RandomState, alloc::Global>("b");
+
+    assert_eq!(map.get_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"a"), Some(&mut 1_i32));
+    assert_eq!(map.get_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"c"), Some(&mut 3_i32));
+    assert_eq!(map.get_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"b"), None);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_erased_index_map_get_mut4() {
+    let mut map: TypeErasedIndexMap = ('a'..='z').map(|c| (c, ())).collect();
+    assert_eq!(map.get_mut::<_, char, (), hash::RandomState, alloc::Global>(&'*'), None);
+
+    map.insert_before::<char, (), hash::RandomState, alloc::Global>(10, '*', ());
+    assert_eq!(map.get_mut::<_, char, (), hash::RandomState, alloc::Global>(&'*'), Some(&mut ()));
+
+    map.insert_before::<char, (), hash::RandomState, alloc::Global>(10, 'a', ());
+    assert_eq!(map.get_mut::<_, char, (), hash::RandomState, alloc::Global>(&'a'), Some(&mut ()));
+    assert_eq!(map.get_mut::<_, char, (), hash::RandomState, alloc::Global>(&'*'), Some(&mut ()));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_erased_index_map_get_mut5() {
+    let mut map: TypeErasedIndexMap = ('a'..='z').map(|c| (c, ())).collect();
+    assert_eq!(map.get_mut::<_, char, (), hash::RandomState, alloc::Global>(&'*'), None);
+
+    map.shift_insert::<char, (), hash::RandomState, alloc::Global>(10, '*', ());
+    assert_eq!(map.get_mut::<_, char, (), hash::RandomState, alloc::Global>(&'*'), Some(&mut ()));
+
+    map.shift_insert::<char, (), hash::RandomState, alloc::Global>(10, 'a', ());
+    assert_eq!(map.get_mut::<_, char, (), hash::RandomState, alloc::Global>(&'a'), Some(&mut ()));
+    assert_eq!(map.get_mut::<_, char, (), hash::RandomState, alloc::Global>(&'*'), Some(&mut ()));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_erased_index_map_get_mut6() {
+    let mut map = TypeErasedIndexMap::from([("a", 1_i32), ("b", 2_i32)]);
+
+    assert_eq!(map.get_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"a"), Some(&mut 1_i32));
+    assert_eq!(map.get_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"b"), Some(&mut 2_i32));
+    assert_eq!(map.get_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"c"), None);
+
+    map.insert::<&str, i32, hash::RandomState, alloc::Global>("c", 3_i32);
+
+    assert_eq!(map.get_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"a"), Some(&mut 1_i32));
+    assert_eq!(map.get_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"b"), Some(&mut 2_i32));
+    assert_eq!(map.get_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"c"), Some(&mut 3_i32));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_erased_index_map_get_key_value_mut1() {
+    let mut map = TypeErasedIndexMap::new::<&str, i32>();
+
+    assert_eq!(map.get_key_value_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"a"), None);
+    assert_eq!(map.get_key_value_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"b"), None);
+    assert_eq!(map.get_key_value_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"c"), None);
+    assert_eq!(map.get_key_value_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"d"), None);
+
+    map.insert::<&str, i32, hash::RandomState, alloc::Global>("a", 1_i32);
+    map.insert::<&str, i32, hash::RandomState, alloc::Global>("b", 2_i32);
+    map.insert::<&str, i32, hash::RandomState, alloc::Global>("c", 3_i32);
+
+    assert_eq!(map.get_key_value_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"a"), Some((&"a", &mut 1_i32)));
+    assert_eq!(map.get_key_value_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"b"), Some((&"b", &mut 2_i32)));
+    assert_eq!(map.get_key_value_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"c"), Some((&"c", &mut 3_i32)));
+    assert_eq!(map.get_key_value_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"d"), None);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_erased_index_map_get_key_value_mut2() {
+    let mut map = TypeErasedIndexMap::from([
+        (0_usize, 1_i32),
+        (1_usize, 2_i32),
+        (2_usize, 3_i32),
+        (3_usize, 4_i32),
+        (4_usize, 5_i32),
+        (5_usize, 6_i32),
+    ]);
+
+    assert_eq!(map.get_key_value_mut::<_, usize, i32, hash::RandomState, alloc::Global>(&0_usize), Some((&0_usize, &mut 1_i32)));
+    assert_eq!(map.get_key_value_mut::<_, usize, i32, hash::RandomState, alloc::Global>(&1_usize), Some((&1_usize, &mut 2_i32)));
+    assert_eq!(map.get_key_value_mut::<_, usize, i32, hash::RandomState, alloc::Global>(&2_usize), Some((&2_usize, &mut 3_i32)));
+    assert_eq!(map.get_key_value_mut::<_, usize, i32, hash::RandomState, alloc::Global>(&3_usize), Some((&3_usize, &mut 4_i32)));
+    assert_eq!(map.get_key_value_mut::<_, usize, i32, hash::RandomState, alloc::Global>(&4_usize), Some((&4_usize, &mut 5_i32)));
+    assert_eq!(map.get_key_value_mut::<_, usize, i32, hash::RandomState, alloc::Global>(&5_usize), Some((&5_usize, &mut 6_i32)));
+    assert_eq!(map.get_key_value_mut::<_, usize, i32, hash::RandomState, alloc::Global>(&6_usize), None);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_erased_index_map_get_key_value_mut3() {
+    let mut map = TypeErasedIndexMap::from([("a", 1_i32), ("b", 2_i32), ("c", 3_i32)]);
+
+    assert_eq!(map.get_key_value_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"a"), Some((&"a", &mut 1_i32)));
+    assert_eq!(map.get_key_value_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"c"), Some((&"c", &mut 3_i32)));
+    assert_eq!(map.get_key_value_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"b"), Some((&"b", &mut 2_i32)));
+
+    map.swap_remove::<_, &str, i32, hash::RandomState, alloc::Global>("b");
+
+    assert_eq!(map.get_key_value_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"a"), Some((&"a", &mut 1_i32)));
+    assert_eq!(map.get_key_value_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"c"), Some((&"c", &mut 3_i32)));
+    assert_eq!(map.get_key_value_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"b"), None);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_erased_index_map_get_key_value_mut4() {
+    let mut map: TypeErasedIndexMap = ('a'..='z').map(|c| (c, ())).collect();
+    assert_eq!(map.get_key_value_mut::<_, char, (), hash::RandomState, alloc::Global>(&'*'), None);
+
+    map.insert_before::<char, (), hash::RandomState, alloc::Global>(10, '*', ());
+    assert_eq!(map.get_key_value_mut::<_, char, (), hash::RandomState, alloc::Global>(&'*'), Some((&'*', &mut ())));
+
+    map.insert_before::<char, (), hash::RandomState, alloc::Global>(10, 'a', ());
+    assert_eq!(map.get_key_value_mut::<_, char, (), hash::RandomState, alloc::Global>(&'a'), Some((&'a', &mut ())));
+    assert_eq!(map.get_key_value_mut::<_, char, (), hash::RandomState, alloc::Global>(&'*'), Some((&'*', &mut ())));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_erased_index_map_get_key_value_mut5() {
+    let mut map: TypeErasedIndexMap = ('a'..='z').map(|c| (c, ())).collect();
+    assert_eq!(map.get_key_value_mut::<_, char, (), hash::RandomState, alloc::Global>(&'*'), None);
+
+    map.shift_insert::<char, (), hash::RandomState, alloc::Global>(10, '*', ());
+    assert_eq!(map.get_key_value_mut::<_, char, (), hash::RandomState, alloc::Global>(&'*'), Some((&'*', &mut ())));
+
+    map.shift_insert::<char, (), hash::RandomState, alloc::Global>(10, 'a', ());
+    assert_eq!(map.get_key_value_mut::<_, char, (), hash::RandomState, alloc::Global>(&'a'), Some((&'a', &mut ())));
+    assert_eq!(map.get_key_value_mut::<_, char, (), hash::RandomState, alloc::Global>(&'*'), Some((&'*', &mut ())));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_erased_index_map_get_key_value_mut6() {
+    let mut map = TypeErasedIndexMap::from([("a", 1_i32), ("b", 2_i32)]);
+
+    assert_eq!(map.get_key_value_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"a"), Some((&"a", &mut 1_i32)));
+    assert_eq!(map.get_key_value_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"b"), Some((&"b", &mut 2_i32)));
+    assert_eq!(map.get_key_value_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"c"), None);
+
+    map.insert::<&str, i32, hash::RandomState, alloc::Global>("c", 3_i32);
+
+    assert_eq!(map.get_key_value_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"a"), Some((&"a", &mut 1_i32)));
+    assert_eq!(map.get_key_value_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"b"), Some((&"b", &mut 2_i32)));
+    assert_eq!(map.get_key_value_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"c"), Some((&"c", &mut 3_i32)));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_erased_index_map_get_full_mut1() {
+    let mut map = TypeErasedIndexMap::new::<&str, i32>();
+
+    assert_eq!(map.get_full_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"a"), None);
+    assert_eq!(map.get_full_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"b"), None);
+    assert_eq!(map.get_full_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"c"), None);
+    assert_eq!(map.get_full_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"d"), None);
+
+    map.insert::<&str, i32, hash::RandomState, alloc::Global>("a", 1_i32);
+    map.insert::<&str, i32, hash::RandomState, alloc::Global>("b", 2_i32);
+    map.insert::<&str, i32, hash::RandomState, alloc::Global>("c", 3_i32);
+
+    assert_eq!(map.get_full_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"a"), Some((0, &"a", &mut 1_i32)));
+    assert_eq!(map.get_full_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"b"), Some((1, &"b", &mut 2_i32)));
+    assert_eq!(map.get_full_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"c"), Some((2, &"c", &mut 3_i32)));
+    assert_eq!(map.get_full_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"d"), None);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_erased_index_map_get_full_mut2() {
+    let mut map = TypeErasedIndexMap::from([
+        (0_usize, 1_i32),
+        (1_usize, 2_i32),
+        (2_usize, 3_i32),
+        (3_usize, 4_i32),
+        (4_usize, 5_i32),
+        (5_usize, 6_i32),
+    ]);
+
+    assert_eq!(map.get_full_mut::<_, usize, i32, hash::RandomState, alloc::Global>(&0_usize), Some((0, &0_usize, &mut 1_i32)));
+    assert_eq!(map.get_full_mut::<_, usize, i32, hash::RandomState, alloc::Global>(&1_usize), Some((1, &1_usize, &mut 2_i32)));
+    assert_eq!(map.get_full_mut::<_, usize, i32, hash::RandomState, alloc::Global>(&2_usize), Some((2, &2_usize, &mut 3_i32)));
+    assert_eq!(map.get_full_mut::<_, usize, i32, hash::RandomState, alloc::Global>(&3_usize), Some((3, &3_usize, &mut 4_i32)));
+    assert_eq!(map.get_full_mut::<_, usize, i32, hash::RandomState, alloc::Global>(&4_usize), Some((4, &4_usize, &mut 5_i32)));
+    assert_eq!(map.get_full_mut::<_, usize, i32, hash::RandomState, alloc::Global>(&5_usize), Some((5, &5_usize, &mut 6_i32)));
+    assert_eq!(map.get_full_mut::<_, usize, i32, hash::RandomState, alloc::Global>(&6_usize), None);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_erased_index_map_get_full_mut3() {
+    let mut map = TypeErasedIndexMap::from([("a", 1_i32), ("b", 2_i32), ("c", 3_i32)]);
+
+    assert_eq!(map.get_full_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"a"), Some((0, &"a", &mut 1_i32)));
+    assert_eq!(map.get_full_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"c"), Some((2, &"c", &mut 3_i32)));
+    assert_eq!(map.get_full_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"b"), Some((1, &"b", &mut 2_i32)));
+
+    map.swap_remove::<_, &str, i32, hash::RandomState, alloc::Global>("b");
+
+    assert_eq!(map.get_full_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"a"), Some((0, &"a", &mut 1_i32)));
+    assert_eq!(map.get_full_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"c"), Some((1, &"c", &mut 3_i32)));
+    assert_eq!(map.get_full_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"b"), None);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_erased_index_map_get_full_mut4() {
+    let mut map: TypeErasedIndexMap = ('a'..='z').map(|c| (c, ())).collect();
+    assert_eq!(map.get_full_mut::<_, char, (), hash::RandomState, alloc::Global>(&'*'), None);
+
+    map.insert_before::<char, (), hash::RandomState, alloc::Global>(10, '*', ());
+    assert_eq!(map.get_full_mut::<_, char, (), hash::RandomState, alloc::Global>(&'*'), Some((10, &'*', &mut ())));
+
+    map.insert_before::<char, (), hash::RandomState, alloc::Global>(10, 'a', ());
+    assert_eq!(map.get_full_mut::<_, char, (), hash::RandomState, alloc::Global>(&'a'), Some((9, &'a', &mut ())));
+    assert_eq!(map.get_full_mut::<_, char, (), hash::RandomState, alloc::Global>(&'*'), Some((10, &'*', &mut ())));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_erased_index_map_get_full_mut5() {
+    let mut map: TypeErasedIndexMap = ('a'..='z').map(|c| (c, ())).collect();
+    assert_eq!(map.get_full_mut::<_, char, (), hash::RandomState, alloc::Global>(&'*'), None);
+
+    map.shift_insert::<char, (), hash::RandomState, alloc::Global>(10, '*', ());
+    assert_eq!(map.get_full_mut::<_, char, (), hash::RandomState, alloc::Global>(&'*'), Some((10, &'*', &mut ())));
+
+    map.shift_insert::<char, (), hash::RandomState, alloc::Global>(10, 'a', ());
+    assert_eq!(map.get_full_mut::<_, char, (), hash::RandomState, alloc::Global>(&'a'), Some((10, &'a', &mut ())));
+    assert_eq!(map.get_full_mut::<_, char, (), hash::RandomState, alloc::Global>(&'*'), Some((9, &'*', &mut ())));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_erased_index_map_get_full_mut6() {
+    let mut map = TypeErasedIndexMap::from([("a", 1_i32), ("b", 2_i32)]);
+
+    assert_eq!(map.get_full_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"a"), Some((0, &"a", &mut 1_i32)));
+    assert_eq!(map.get_full_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"b"), Some((1, &"b", &mut 2_i32)));
+    assert_eq!(map.get_full_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"c"), None);
+
+    map.insert::<&str, i32, hash::RandomState, alloc::Global>("c", 3_i32);
+
+    assert_eq!(map.get_full_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"a"), Some((0, &"a", &mut 1_i32)));
+    assert_eq!(map.get_full_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"b"), Some((1, &"b", &mut 2_i32)));
+    assert_eq!(map.get_full_mut::<_, &str, i32, hash::RandomState, alloc::Global>(&"c"), Some((2, &"c", &mut 3_i32)));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_erased_index_map_get_index_mut1() {
+    let mut map = TypeErasedIndexMap::new::<&str, i32>();
+
+    assert_eq!(map.get_index_mut::<&str, i32, hash::RandomState, alloc::Global>(0), None);
+    assert_eq!(map.get_index_mut::<&str, i32, hash::RandomState, alloc::Global>(1), None);
+    assert_eq!(map.get_index_mut::<&str, i32, hash::RandomState, alloc::Global>(2), None);
+    assert_eq!(map.get_index_mut::<&str, i32, hash::RandomState, alloc::Global>(3), None);
+
+    map.insert::<&str, i32, hash::RandomState, alloc::Global>("a", 1_i32);
+    map.insert::<&str, i32, hash::RandomState, alloc::Global>("b", 2_i32);
+    map.insert::<&str, i32, hash::RandomState, alloc::Global>("c", 3_i32);
+
+    assert_eq!(map.get_index_mut::<&str, i32, hash::RandomState, alloc::Global>(0), Some((&"a", &mut 1_i32)));
+    assert_eq!(map.get_index_mut::<&str, i32, hash::RandomState, alloc::Global>(1), Some((&"b", &mut 2_i32)));
+    assert_eq!(map.get_index_mut::<&str, i32, hash::RandomState, alloc::Global>(2), Some((&"c", &mut 3_i32)));
+    assert_eq!(map.get_index_mut::<&str, i32, hash::RandomState, alloc::Global>(3), None);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_erased_index_map_get_index_mut_mut2() {
+    let mut map = TypeErasedIndexMap::from([
+        (0_usize, 1_i32),
+        (1_usize, 2_i32),
+        (2_usize, 3_i32),
+        (3_usize, 4_i32),
+        (4_usize, 5_i32),
+        (5_usize, 6_i32),
+    ]);
+
+    assert_eq!(map.get_index_mut::<usize, i32, hash::RandomState, alloc::Global>(0), Some((&0_usize, &mut 1_i32)));
+    assert_eq!(map.get_index_mut::<usize, i32, hash::RandomState, alloc::Global>(1), Some((&1_usize, &mut 2_i32)));
+    assert_eq!(map.get_index_mut::<usize, i32, hash::RandomState, alloc::Global>(2), Some((&2_usize, &mut 3_i32)));
+    assert_eq!(map.get_index_mut::<usize, i32, hash::RandomState, alloc::Global>(3), Some((&3_usize, &mut 4_i32)));
+    assert_eq!(map.get_index_mut::<usize, i32, hash::RandomState, alloc::Global>(4), Some((&4_usize, &mut 5_i32)));
+    assert_eq!(map.get_index_mut::<usize, i32, hash::RandomState, alloc::Global>(5), Some((&5_usize, &mut 6_i32)));
+    assert_eq!(map.get_index_mut::<usize, i32, hash::RandomState, alloc::Global>(6), None);
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_erased_index_map_get_index_mut3() {
+    let mut map = TypeErasedIndexMap::from([("a", 1_i32), ("b", 2_i32), ("c", 3_i32)]);
+
+    assert_eq!(map.get_index_mut::<&str, i32, hash::RandomState, alloc::Global>(0), Some((&"a", &mut 1_i32)));
+    assert_eq!(map.get_index_mut::<&str, i32, hash::RandomState, alloc::Global>(2), Some((&"c", &mut 3_i32)));
+    assert_eq!(map.get_index_mut::<&str, i32, hash::RandomState, alloc::Global>(1), Some((&"b", &mut 2_i32)));
+
+    map.swap_remove::<_, &str, i32, hash::RandomState, alloc::Global>("b");
+
+    assert_eq!(map.get_index_mut::<&str, i32, hash::RandomState, alloc::Global>(0), Some((&"a", &mut 1_i32)));
+    assert_eq!(map.get_index_mut::<&str, i32, hash::RandomState, alloc::Global>(2), None);
+    assert_eq!(map.get_index_mut::<&str, i32, hash::RandomState, alloc::Global>(1), Some((&"c", &mut 3_i32)));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_erased_index_map_get_index_mut4() {
+    let mut map: TypeErasedIndexMap = ('a'..='z').map(|c| (c, ())).collect();
+    assert_eq!(map.get_index_mut::<char, (), hash::RandomState, alloc::Global>(10), Some((&'k', &mut ())));
+
+    map.insert_before::<char, (), hash::RandomState, alloc::Global>(10, '*', ());
+    assert_eq!(map.get_index_mut::<char, (), hash::RandomState, alloc::Global>(10), Some((&'*', &mut ())));
+
+    map.insert_before::<char, (), hash::RandomState, alloc::Global>(10, 'a', ());
+    assert_eq!(map.get_index_mut::<char, (), hash::RandomState, alloc::Global>(10), Some((&'*', &mut ())));
+    assert_eq!(map.get_index_mut::<char, (), hash::RandomState, alloc::Global>(9), Some((&'a', &mut ())));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_erased_index_map_get_index_mut5() {
+    let mut map: TypeErasedIndexMap = ('a'..='z').map(|c| (c, ())).collect();
+    assert_eq!(map.get_index_mut::<char, (), hash::RandomState, alloc::Global>(10), Some((&'k', &mut ())));
+
+    map.shift_insert::<char, (), hash::RandomState, alloc::Global>(10, '*', ());
+    assert_eq!(map.get_index_mut::<char, (), hash::RandomState, alloc::Global>(10), Some((&'*', &mut ())));
+
+    map.shift_insert::<char, (), hash::RandomState, alloc::Global>(10, 'a', ());
+    assert_eq!(map.get_index_mut::<char, (), hash::RandomState, alloc::Global>(0),  Some((&'b', &mut ())));
+    assert_eq!(map.get_index_mut::<char, (), hash::RandomState, alloc::Global>(10), Some((&'a', &mut ())));
+}
+
+#[rustfmt::skip]
+#[test]
+fn test_type_erased_index_map_get_index_mut6() {
+    let mut map = TypeErasedIndexMap::from([("a", 1_i32), ("b", 2_i32)]);
+
+    assert_eq!(map.get_index_mut::<&str, i32, hash::RandomState, alloc::Global>(0), Some((&"a", &mut 1_i32)));
+    assert_eq!(map.get_index_mut::<&str, i32, hash::RandomState, alloc::Global>(1), Some((&"b", &mut 2_i32)));
+    assert_eq!(map.get_index_mut::<&str, i32, hash::RandomState, alloc::Global>(2), None);
+
+    map.insert::<&str, i32, hash::RandomState, alloc::Global>("c", 3_i32);
+
+    assert_eq!(map.get_index_mut::<&str, i32, hash::RandomState, alloc::Global>(0), Some((&"a", &mut 1_i32)));
+    assert_eq!(map.get_index_mut::<&str, i32, hash::RandomState, alloc::Global>(1), Some((&"b", &mut 2_i32)));
+    assert_eq!(map.get_index_mut::<&str, i32, hash::RandomState, alloc::Global>(2), Some((&"c", &mut 3_i32)));
 }
 
 #[rustfmt::skip]
