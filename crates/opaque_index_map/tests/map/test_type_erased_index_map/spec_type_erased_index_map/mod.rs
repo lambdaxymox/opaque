@@ -40,3 +40,4 @@ mod spec_swap_remove_index;
 mod spec_truncate;
 mod spec_values;
 mod spec_values_mut;
+mod spec_get_full_mut;
