@@ -8,9 +8,6 @@ default = ["std"]
 std = ["opaque_alloc/std", "opaque_error/std", "opaque_hash/std", "opaque_vec/std"]
 nightly = ["opaque_alloc/nightly", "opaque_hash/nightly", "opaque_vec/nightly"]
 
-[dependencies]
-criterion = "0.6.0"
-
 [dependencies.equivalent]
 version = "1.0.2"
 default-features = false
@@ -35,6 +32,9 @@ path = "../opaque_hash"
 path = "../opaque_vec"
 
 [dev-dependencies]
+
+[dev-dependencies.criterion]
+version = "0.7.0"
 
 [dev-dependencies.proptest]
 version = "1.7.0"
