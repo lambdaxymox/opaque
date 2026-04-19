@@ -11,7 +11,7 @@ categories = [
 keywords = [
     "no_std",
     "type-erased",
-    "hetergeneous",
+    "heterogeneous",
     "containers",
 ]
 license = "Apache-2.0 OR MIT"
