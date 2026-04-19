@@ -6,7 +6,6 @@ extern crate alloc as alloc_crate;
 #[cfg(feature = "std")]
 extern crate std;
 
-pub mod alloc_layout_extra;
 pub mod range_types;
 pub mod slice_ptr_get;
 pub mod slice_range;
