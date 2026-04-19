@@ -8,3 +8,4 @@ Cargo.lock
 .vscode
 *.proptest-regressions
 proptest-regressions
+.idea/*
