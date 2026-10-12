@@ -2,6 +2,7 @@
 name = "opaque_index_map"
 version = "1.4.0"
 edition = "2024"
+publish = false
 
 [features]
 default = ["std"]
@@ -37,10 +38,10 @@ path = "../opaque_vec"
 version = "0.8.2"
 
 [dev-dependencies.proptest]
-version = "1.11.0"
+version = "1.12.0"
 
 [dev-dependencies.indexmap]
-version = "2.14.0"
+version = "2.14.2"
 
 [[bench]]
 name = "bench_type_erased_index_map"
