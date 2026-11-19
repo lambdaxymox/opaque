@@ -40,21 +40,11 @@ nightly = [
 ]
 
 [dependencies]
-
-[dependencies.opaque_alloc]
-path = "crates/opaque_alloc"
-
-[dependencies.opaque_error]
-path = "crates/opaque_error"
-
-[dependencies.opaque_hash]
-path = "crates/opaque_hash"
-
-[dependencies.opaque_vec]
-path = "crates/opaque_vec"
-
-[dependencies.opaque_index_map]
-path = "crates/opaque_index_map"
+opaque_alloc = { path = "crates/opaque_alloc", version = "1.4.0" }
+opaque_error = { path = "crates/opaque_error", version = "1.4.0" }
+opaque_hash = { path = "crates/opaque_hash", version = "1.4.0" }
+opaque_vec = { path = "crates/opaque_vec", version = "1.4.0" }
+opaque_index_map = { path = "crates/opaque_index_map", version = "1.4.0" }
 
 [workspace]
 members = [

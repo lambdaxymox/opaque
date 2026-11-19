@@ -9,35 +9,19 @@ default = ["std"]
 std = ["opaque_alloc/std", "opaque_error/std", "opaque_hash/std", "opaque_vec/std"]
 nightly = ["opaque_alloc/nightly", "opaque_hash/nightly", "opaque_vec/nightly"]
 
-[dependencies.equivalent]
-version = "1.0.2"
-default-features = false
+[dependencies]
+opaque_alloc = { path = "../opaque_alloc", version = "1.4.0" }
+opaque_error = { path = "../opaque_error", version = "1.4.0" }
+opaque_hash = { path = "../opaque_hash", version = "1.4.0" }
+opaque_vec = { path = "../opaque_vec", version = "1.4.0" }
 
-[dependencies.hashbrown]
-version = "0.15.4"
-
-[dependencies.opaque_alloc]
-path = "../opaque_alloc"
-
-[dependencies.opaque_error]
-path = "../opaque_error"
-
-[dependencies.opaque_hash]
-path = "../opaque_hash"
-
-[dependencies.opaque_vec]
-path = "../opaque_vec"
+equivalent = { version = "1.0.2", default-features = false }
+hashbrown = { version = "0.15.4" }
 
 [dev-dependencies]
-
-[dev-dependencies.criterion]
-version = "0.8.2"
-
-[dev-dependencies.proptest]
-version = "1.12.0"
-
-[dev-dependencies.indexmap]
-version = "2.14.2"
+criterion = { version = "0.8.2" }
+proptest = { version = "1.12.0"}
+indexmap = { version = "2.14.2" }
 
 [[bench]]
 name = "bench_type_erased_index_map"

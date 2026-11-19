@@ -12,9 +12,7 @@ nightly = []
 [dependencies]
 
 [dev-dependencies]
-
-[dev-dependencies.criterion]
-version = "0.8.2"
+criterion = { version = "0.8.2" }
 
 [[bench]]
 name = "bench_hasher"
