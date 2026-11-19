@@ -2,12 +2,7 @@ use opaque_vec::TypeErasedVec;
 
 use core::any;
 use core::ptr::NonNull;
-
-#[cfg(feature = "nightly")]
 use std::alloc;
-
-#[cfg(not(feature = "nightly"))]
-use opaque_allocator_api::alloc;
 
 #[derive(Clone, Default)]
 struct WrappingAlloc<A> {

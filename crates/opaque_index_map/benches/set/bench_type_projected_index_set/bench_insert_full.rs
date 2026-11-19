@@ -7,12 +7,6 @@ use criterion::{
 
 use indexmap::IndexSet;
 
-#[cfg(feature = "nightly")]
-use std::alloc;
-
-#[cfg(not(feature = "nightly"))]
-use opaque_allocator_api::alloc;
-
 fn bench_index_set_insert_full(c: &mut Criterion) {
     c.bench_function("index_set_insert_full", |b| {
         b.iter(|| {

@@ -6,16 +6,11 @@
 // at your option.
 use crate::vec_inner::TypeProjectedVecInner;
 
+use alloc_crate::alloc;
 use core::any;
 use core::fmt;
 use core::ops;
 use core::slice;
-
-#[cfg(feature = "nightly")]
-use alloc_crate::alloc;
-
-#[cfg(not(feature = "nightly"))]
-use opaque_allocator_api::alloc;
 
 use opaque_alloc::TypeProjectedAlloc;
 
@@ -29,14 +24,9 @@ use opaque_alloc::TypeProjectedAlloc;
 /// Using an extracting iterator on a type-projected vector.
 ///
 /// ```
-/// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
 /// # use opaque_vec::TypeProjectedVec;
 /// #
-/// # #[cfg(feature = "nightly")]
 /// # use std::alloc::Global;
-/// #
-/// # #[cfg(not(feature = "nightly"))]
-/// # use opaque_allocator_api::alloc::Global;
 /// #
 /// fn is_even(value: &mut i32) -> bool {
 ///     *value % 2 == 0
@@ -53,14 +43,9 @@ use opaque_alloc::TypeProjectedAlloc;
 /// Using an extracting iterator on a type-erased vector.
 ///
 /// ```
-/// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
 /// # use opaque_vec::TypeErasedVec;
 /// #
-/// # #[cfg(feature = "nightly")]
 /// # use std::alloc::Global;
-/// #
-/// # #[cfg(not(feature = "nightly"))]
-/// # use opaque_allocator_api::alloc::Global;
 /// #
 /// fn is_even(value: &mut i32) -> bool {
 ///     *value % 2 == 0
@@ -177,15 +162,10 @@ where
     /// Getting the allocator from the extracting iterator of a type-projected vector.
     ///
     /// ```
-    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_vec::TypeProjectedVec;
     /// # use opaque_alloc::TypeProjectedAlloc;
     /// #
-    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
-    /// #
-    /// # #[cfg(not(feature = "nightly"))]
-    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// fn is_even(value: &mut i32) -> bool {
     ///     *value % 2 == 0
@@ -200,15 +180,10 @@ where
     /// Getting the allocator from the extracting iterator of a type-erased vector.
     ///
     /// ```
-    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_vec::TypeErasedVec;
     /// # use opaque_alloc::TypeProjectedAlloc;
     /// #
-    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
-    /// #
-    /// # #[cfg(not(feature = "nightly"))]
-    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// fn is_even(value: &mut i32) -> bool {
     ///     *value % 2 == 0

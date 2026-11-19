@@ -4,14 +4,9 @@
 //   * Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
 //   * MIT license (http://opensource.org/licenses/MIT)
 // at your option.
+use alloc_crate::alloc;
 use alloc_crate::vec::Vec;
 use core::any;
-
-#[cfg(feature = "nightly")]
-use alloc_crate::alloc;
-
-#[cfg(not(feature = "nightly"))]
-use opaque_allocator_api::alloc;
 
 use crate::drain::Drain;
 
@@ -26,14 +21,9 @@ use crate::drain::Drain;
 /// Using a splicing iterator on a type-projected vector.
 ///
 /// ```
-/// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
 /// # use opaque_vec::TypeProjectedVec;
 /// #
-/// # #[cfg(feature = "nightly")]
 /// # use std::alloc::Global;
-/// #
-/// # #[cfg(not(feature = "nightly"))]
-/// # use opaque_allocator_api::alloc::Global;
 /// #
 /// let mut result = TypeProjectedVec::from([1, 2, 3, 4, 5]);
 /// let splice_data: [i32; 5] = [7, 8, 9, 10, 11];
@@ -46,14 +36,9 @@ use crate::drain::Drain;
 /// Using a splicing iterator on a type-erased vector.
 ///
 /// ```
-/// #![cfg_attr(feature = "nightly", feature(allocator_api))]
 /// # use opaque_vec::TypeErasedVec;
 /// #
-/// # #[cfg(feature = "nightly")]
 /// # use std::alloc::Global;
-/// #
-/// # #[cfg(not(feature = "nightly"))]
-/// # use opaque_allocator_api::alloc::Global;
 /// #
 /// let mut result = {
 ///     let array: [i32; 5] = [1, 2, 3, 4, 5];

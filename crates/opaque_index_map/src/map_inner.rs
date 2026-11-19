@@ -9,6 +9,7 @@ use crate::get_disjoint_mut_error::GetDisjointMutError;
 use crate::range_ops;
 use crate::slice_eq;
 
+use alloc_crate::alloc;
 use alloc_crate::boxed::Box;
 use core::any;
 use core::cmp;
@@ -23,12 +24,6 @@ use std::hash;
 
 #[cfg(not(feature = "std"))]
 use core::hash;
-
-#[cfg(feature = "nightly")]
-use alloc_crate::alloc;
-
-#[cfg(not(feature = "nightly"))]
-use opaque_allocator_api::alloc;
 
 use hashbrown::hash_table;
 

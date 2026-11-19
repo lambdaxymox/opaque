@@ -5,13 +5,8 @@ use criterion::{
     criterion_group,
 };
 
-use alloc_crate::vec::Vec;
-
-#[cfg(feature = "nightly")]
 use alloc_crate::alloc;
-
-#[cfg(not(feature = "nightly"))]
-use opaque_allocator_api::alloc;
+use alloc_crate::vec::Vec;
 
 fn bench_vec_shift_insert_last(c: &mut Criterion) {
     let dummy_data = 0_i32;

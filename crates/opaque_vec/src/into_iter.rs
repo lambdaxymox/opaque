@@ -7,6 +7,7 @@
 use crate::raw_vec::TypeProjectedRawVec;
 use crate::vec_inner::TypeProjectedVecInner;
 
+use alloc_crate::alloc;
 use core::any;
 use core::fmt;
 use core::iter;
@@ -14,12 +15,6 @@ use core::mem::ManuallyDrop;
 use core::ops;
 use core::ptr::NonNull;
 use core::slice;
-
-#[cfg(feature = "nightly")]
-use alloc_crate::alloc;
-
-#[cfg(not(feature = "nightly"))]
-use opaque_allocator_api::alloc;
 
 use opaque_alloc::TypeProjectedAlloc;
 
@@ -38,14 +33,9 @@ const fn assuming_non_null<T>(item: *const T) -> NonNull<T> {
 /// Using a moving iterator on a type-projected vector.
 ///
 /// ```
-/// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
 /// # use opaque_vec::TypeProjectedVec;
 /// #
-/// # #[cfg(feature = "nightly")]
 /// # use std::alloc::Global;
-/// #
-/// # #[cfg(not(feature = "nightly"))]
-/// # use opaque_allocator_api::alloc::Global;
 /// #
 /// let mut vec: TypeProjectedVec<i32> = TypeProjectedVec::from([1, 2, 3, 4, 5]);
 ///
@@ -59,14 +49,9 @@ const fn assuming_non_null<T>(item: *const T) -> NonNull<T> {
 /// Using a moving iterator on a type-erased vector.
 ///
 /// ```
-/// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
 /// # use opaque_vec::TypeErasedVec;
 /// #
-/// # #[cfg(feature = "nightly")]
 /// # use std::alloc::Global;
-/// #
-/// # #[cfg(not(feature = "nightly"))]
-/// # use opaque_allocator_api::alloc::Global;
 /// #
 /// let mut vec = {
 ///     let array: [i32; 5] = [1, 2, 3, 4, 5];
@@ -145,14 +130,9 @@ where
     /// Using a moving iterator on a type-projected vector.
     ///
     /// ```
-    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_vec::TypeProjectedVec;
     /// #
-    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
-    /// #
-    /// # #[cfg(not(feature = "nightly"))]
-    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let vec: TypeProjectedVec<i32> = TypeProjectedVec::from([1, 2, 3, 4, 5]);
     /// let mut iterator = vec.into_iter();
@@ -173,14 +153,9 @@ where
     /// Using a moving iterator on a type-erased vector.
     ///
     /// ```
-    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_vec::TypeErasedVec;
     /// #
-    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
-    /// #
-    /// # #[cfg(not(feature = "nightly"))]
-    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let vec = {
     ///     let array: [i32; 5] = [1, 2, 3, 4, 5];
@@ -219,14 +194,9 @@ where
     /// Using a moving iterator on a type-projected vector.
     ///
     /// ```
-    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_vec::TypeProjectedVec;
     /// #
-    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
-    /// #
-    /// # #[cfg(not(feature = "nightly"))]
-    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let vec: TypeProjectedVec<i32> = TypeProjectedVec::from([1, 2, 3, 4, 5]);
     /// let mut iterator = vec.into_iter();
@@ -247,14 +217,9 @@ where
     /// Using a moving iterator on a type-erased vector.
     ///
     /// ```
-    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_vec::TypeErasedVec;
     /// #
-    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
-    /// #
-    /// # #[cfg(not(feature = "nightly"))]
-    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let vec = {
     ///     let array: [i32; 5] = [1, 2, 3, 4, 5];
@@ -289,15 +254,10 @@ where
     /// Using a moving iterator on a type-projected vector.
     ///
     /// ```
-    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_vec::TypeProjectedVec;
     /// # use opaque_alloc::TypeProjectedAlloc;
     /// #
-    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
-    /// #
-    /// # #[cfg(not(feature = "nightly"))]
-    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let vec: TypeProjectedVec<i32> = TypeProjectedVec::from([1, 2, 3, 4, 5]);
     /// let mut iterator = vec.into_iter();
@@ -308,15 +268,10 @@ where
     /// Using a moving iterator on a type-erased vector.
     ///
     /// ```
-    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_vec::TypeErasedVec;
     /// # use opaque_alloc::TypeProjectedAlloc;
     /// #
-    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
-    /// #
-    /// # #[cfg(not(feature = "nightly"))]
-    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let vec = {
     ///     let array: [i32; 5] = [1, 2, 3, 4, 5];

@@ -12,6 +12,7 @@ use crate::raw_vec::{
 };
 use crate::splice::Splice;
 
+use alloc_crate::alloc;
 use alloc_crate::boxed::Box;
 use alloc_crate::vec::Vec;
 use core::any;
@@ -25,12 +26,6 @@ use core::ops;
 use core::ptr;
 use core::ptr::NonNull;
 use core::slice;
-
-#[cfg(feature = "nightly")]
-use alloc_crate::alloc;
-
-#[cfg(not(feature = "nightly"))]
-use opaque_allocator_api::alloc;
 
 #[cfg(not(feature = "nightly"))]
 use opaque_polyfill;

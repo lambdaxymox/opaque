@@ -7,12 +7,6 @@ use criterion::{
 
 use alloc_crate::vec::Vec;
 
-#[cfg(feature = "nightly")]
-use alloc_crate::alloc;
-
-#[cfg(not(feature = "nightly"))]
-use opaque_allocator_api::alloc;
-
 fn bench_vec_get(c: &mut Criterion) {
     let dummy_data = 0_i32;
     let vec = Vec::from_iter((0..1000).map(|_| dummy_data));

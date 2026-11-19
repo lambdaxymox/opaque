@@ -7,13 +7,8 @@ use criterion::{
 
 use indexmap::IndexSet;
 
-use std::hash;
-
-#[cfg(feature = "nightly")]
 use std::alloc;
-
-#[cfg(not(feature = "nightly"))]
-use opaque_allocator_api::alloc;
+use std::hash;
 
 fn bench_index_set_insert(c: &mut Criterion) {
     c.bench_function("index_set_insert", |b| {

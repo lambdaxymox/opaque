@@ -2,13 +2,8 @@ use core::any;
 use core::marker;
 use core::ptr::NonNull;
 
-use alloc_crate::boxed::Box;
-
-#[cfg(feature = "nightly")]
 use alloc_crate::alloc;
-
-#[cfg(not(feature = "nightly"))]
-use opaque_allocator_api::alloc;
+use alloc_crate::boxed::Box;
 
 /// This trait exists to define the [`TypeProjectedAllocInner`] data type. It is not meant for public use.
 trait AnyAllocator: any::Any + alloc::Allocator + Send + Sync {}

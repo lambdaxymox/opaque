@@ -65,6 +65,7 @@ use core::hash;
 ///
 /// ```
 /// # use opaque_hash::{TypeProjectedBuildHasher, TypeProjectedHasher};
+/// #
 /// # use std::any::TypeId;
 /// # use std::hash::{BuildHasher, DefaultHasher, RandomState};
 /// #
@@ -98,6 +99,7 @@ where
     ///
     /// ```
     /// # use opaque_hash::TypeProjectedBuildHasher;
+    /// #
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
     /// #
@@ -116,6 +118,7 @@ where
     ///
     /// ```
     /// # use opaque_hash::TypeProjectedBuildHasher;
+    /// #
     /// # use std::any::TypeId;
     /// # use std::hash::{DefaultHasher, RandomState};
     /// #
@@ -140,6 +143,7 @@ where
     ///
     /// ```
     /// # use opaque_hash::TypeProjectedBuildHasher;
+    /// #
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
     /// #
@@ -164,6 +168,7 @@ where
     ///
     /// ```
     /// # use opaque_hash::TypeProjectedBuildHasher;
+    /// #
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
     /// #
@@ -184,6 +189,7 @@ where
     ///
     /// ```
     /// # use opaque_hash::TypeProjectedBuildHasher;
+    /// #
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
     /// #
@@ -201,6 +207,7 @@ where
     ///
     /// ```
     /// # use opaque_hash::TypeProjectedBuildHasher;
+    /// #
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
     /// #
@@ -242,6 +249,7 @@ where
     ///
     /// ```
     /// # use opaque_hash::{TypeProjectedBuildHasher, TypeProjectedHasher};
+    /// #
     /// # use std::hash::{DefaultHasher, RandomState};
     /// #
     /// let proj_build_hasher = TypeProjectedBuildHasher::new(RandomState::new());
@@ -361,6 +369,7 @@ where
 ///
 /// ```
 /// # use opaque_hash::{TypeErasedBuildHasher, TypeProjectedHasher};
+/// #
 /// # use std::any::TypeId;
 /// # use std::hash::{DefaultHasher, RandomState};
 /// #
@@ -390,6 +399,7 @@ impl TypeErasedBuildHasher {
     ///
     /// ```
     /// # use opaque_hash::TypeErasedBuildHasher;
+    /// #
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
     /// #
@@ -408,6 +418,7 @@ impl TypeErasedBuildHasher {
     ///
     /// ```
     /// # use opaque_hash::TypeErasedBuildHasher;
+    /// #
     /// # use std::any::TypeId;
     /// # use std::hash::{DefaultHasher, RandomState};
     /// #
@@ -430,6 +441,7 @@ impl TypeErasedBuildHasher {
     ///
     /// ```
     /// # use opaque_hash::TypeErasedBuildHasher;
+    /// #
     /// # use std::any::TypeId;
     /// # use std::hash::RandomState;
     /// #
@@ -453,6 +465,7 @@ impl TypeErasedBuildHasher {
     ///
     /// ```
     /// # use opaque_hash::TypeErasedBuildHasher;
+    /// #
     /// # use std::any::TypeId;
     /// # use std::hash::{DefaultHasher, RandomState};
     /// #
@@ -515,6 +528,7 @@ impl TypeErasedBuildHasher {
     ///
     /// ```
     /// # use opaque_hash::{TypeErasedBuildHasher, TypeProjectedBuildHasher};
+    /// #
     /// # use std::hash::{DefaultHasher, RandomState};
     /// #
     /// let opaque_build_hasher = TypeErasedBuildHasher::new::<RandomState>(RandomState::new());
@@ -552,6 +566,7 @@ impl TypeErasedBuildHasher {
     ///
     /// ```
     /// # use opaque_hash::{TypeErasedBuildHasher, TypeProjectedBuildHasher};
+    /// #
     /// # use std::hash::{DefaultHasher, RandomState};
     /// #
     /// let mut opaque_build_hasher = TypeErasedBuildHasher::new::<RandomState>(RandomState::new());
@@ -588,6 +603,7 @@ impl TypeErasedBuildHasher {
     ///
     /// ```
     /// # use opaque_hash::{TypeErasedBuildHasher, TypeProjectedBuildHasher};
+    /// #
     /// # use std::hash::{DefaultHasher, RandomState};
     /// #
     /// let opaque_build_hasher = TypeErasedBuildHasher::new::<RandomState>(RandomState::new());
@@ -624,6 +640,7 @@ impl TypeErasedBuildHasher {
     ///
     /// ```
     /// # use opaque_hash::{TypeErasedBuildHasher, TypeProjectedBuildHasher};
+    /// #
     /// # use std::hash::{DefaultHasher, RandomState};
     /// #
     /// let proj_build_hasher: TypeProjectedBuildHasher<RandomState> = TypeProjectedBuildHasher::new(RandomState::new());
@@ -666,6 +683,7 @@ impl TypeErasedBuildHasher {
     ///
     /// ```
     /// # use opaque_hash::{TypeErasedBuildHasher, TypeProjectedBuildHasher};
+    /// #
     /// # use std::hash::{DefaultHasher, RandomState};
     /// #
     /// let opaque_build_hasher = TypeErasedBuildHasher::new::<RandomState>(RandomState::new());
@@ -712,6 +730,7 @@ impl TypeErasedBuildHasher {
     ///
     /// ```
     /// # use opaque_hash::{TypeErasedBuildHasher, TypeProjectedBuildHasher};
+    /// #
     /// # use std::hash::{DefaultHasher, RandomState};
     /// #
     /// let mut opaque_build_hasher = TypeErasedBuildHasher::new::<RandomState>(RandomState::new());
@@ -757,6 +776,7 @@ impl TypeErasedBuildHasher {
     ///
     /// ```
     /// # use opaque_hash::{TypeErasedBuildHasher, TypeProjectedBuildHasher};
+    /// #
     /// # use std::hash::{DefaultHasher, RandomState};
     /// #
     /// let opaque_build_hasher = TypeErasedBuildHasher::new::<RandomState>(RandomState::new());
@@ -797,6 +817,7 @@ impl TypeErasedBuildHasher {
     ///
     /// ```
     /// # use opaque_hash::TypeErasedBuildHasher;
+    /// #
     /// # use std::any::TypeId;
     /// # use std::hash::{DefaultHasher, RandomState};
     /// #
@@ -829,6 +850,7 @@ impl TypeErasedBuildHasher {
     ///
     /// ```
     /// # use opaque_hash::TypeErasedBuildHasher;
+    /// #
     /// # use std::any::TypeId;
     /// # use std::hash::{DefaultHasher, RandomState};
     /// #
@@ -863,6 +885,7 @@ impl TypeErasedBuildHasher {
     ///
     /// ```
     /// # use opaque_hash::TypeErasedBuildHasher;
+    /// #
     /// # use std::any::TypeId;
     /// # use std::hash::{DefaultHasher, RandomState};
     /// #
@@ -897,6 +920,7 @@ impl TypeErasedBuildHasher {
     ///
     /// ```
     /// # use opaque_hash::TypeErasedBuildHasher;
+    /// #
     /// # use std::any::TypeId;
     /// # use std::hash::{DefaultHasher, RandomState};
     /// #
@@ -940,6 +964,7 @@ impl TypeErasedBuildHasher {
     ///
     /// ```
     /// # use opaque_hash::{TypeErasedBuildHasher, TypeProjectedBuildHasher};
+    /// #
     /// # use std::hash::{DefaultHasher, RandomState};
     /// #
     /// let opaque_build_hasher = TypeErasedBuildHasher::new::<RandomState>(RandomState::new());
@@ -973,6 +998,7 @@ impl TypeErasedBuildHasher {
     ///
     /// ```
     /// # use opaque_hash::{TypeErasedBuildHasher, TypeProjectedBuildHasher, TypeProjectedHasher};
+    /// #
     /// # use std::hash::{DefaultHasher, RandomState};
     /// #
     /// let opaque_build_hasher = TypeErasedBuildHasher::new::<RandomState>(RandomState::new());

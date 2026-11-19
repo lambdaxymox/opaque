@@ -1,13 +1,8 @@
 use opaque_vec::TypeProjectedVec;
 
-use std::cell::RefCell;
-use std::rc::Rc;
-
-#[cfg(feature = "nightly")]
+use core::cell::RefCell;
 use std::alloc;
-
-#[cfg(not(feature = "nightly"))]
-use opaque_allocator_api::alloc;
+use std::rc::Rc;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct DropCounter {

@@ -2,22 +2,12 @@ use opaque_index_map::set::TypeErasedIndexSet;
 
 use core::any;
 use core::ptr::NonNull;
+use std::alloc;
+use std::alloc::Global;
 use std::boxed::Box;
 use std::hash;
 use std::hash::RandomState;
 use std::string::String;
-
-#[cfg(feature = "nightly")]
-use std::alloc;
-
-#[cfg(feature = "nightly")]
-use std::alloc::Global;
-
-#[cfg(not(feature = "nightly"))]
-use opaque_allocator_api::alloc;
-
-#[cfg(not(feature = "nightly"))]
-use opaque_allocator_api::alloc::Global;
 
 #[derive(Clone, Default)]
 struct WrappingAlloc<A> {

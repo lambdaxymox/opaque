@@ -7,13 +7,8 @@ use criterion::{
 
 use indexmap::IndexMap;
 
-use std::hash;
-
-#[cfg(feature = "nightly")]
 use std::alloc;
-
-#[cfg(not(feature = "nightly"))]
-use opaque_allocator_api::alloc;
+use std::hash;
 
 fn bench_index_map_get_full(c: &mut Criterion) {
     let keys = 0..1000;

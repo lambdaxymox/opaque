@@ -6,18 +6,11 @@ use opaque_index_map::TypeErasedIndexSet;
 
 use core::any;
 use core::fmt;
-use std::format;
-use std::string::String;
-use std::{
-    hash,
-    ops,
-};
-
-#[cfg(feature = "nightly")]
+use core::ops;
 use std::alloc;
-
-#[cfg(not(feature = "nightly"))]
-use opaque_allocator_api::alloc;
+use std::format;
+use std::hash;
+use std::string::String;
 
 use proptest::prelude::*;
 

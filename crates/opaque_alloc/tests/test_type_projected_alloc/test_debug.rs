@@ -1,12 +1,7 @@
 use opaque_alloc::TypeProjectedAlloc;
 
-use alloc_crate::format;
-
-#[cfg(feature = "nightly")]
 use alloc_crate::alloc;
-
-#[cfg(not(feature = "nightly"))]
-use opaque_allocator_api::alloc;
+use alloc_crate::format;
 
 #[test]
 fn test_type_projected_alloc_debug1() {

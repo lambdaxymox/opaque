@@ -4,15 +4,10 @@ use opaque_vec::TypeProjectedVec;
 
 use core::any;
 use core::fmt;
+use std::alloc;
 use std::format;
 use std::hash;
 use std::string::String;
-
-#[cfg(feature = "nightly")]
-use std::alloc;
-
-#[cfg(not(feature = "nightly"))]
-use opaque_allocator_api::alloc;
 
 use proptest::prelude::*;
 

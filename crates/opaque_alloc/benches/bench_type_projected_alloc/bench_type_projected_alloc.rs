@@ -3,11 +3,7 @@ use opaque_alloc::TypeProjectedAlloc;
 use criterion;
 use criterion::criterion_group;
 
-#[cfg(feature = "nightly")]
 use alloc_crate::alloc;
-
-#[cfg(not(feature = "nightly"))]
-use opaque_allocator_api::alloc;
 
 #[cfg(not(feature = "nightly"))]
 use opaque_polyfill::slice_ptr_get;

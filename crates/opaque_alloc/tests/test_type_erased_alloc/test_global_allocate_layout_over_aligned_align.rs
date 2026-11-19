@@ -1,18 +1,12 @@
 use opaque_alloc::TypeErasedAlloc;
 
+use alloc_crate::alloc;
+use alloc_crate::alloc::Allocator;
 use alloc_crate::format;
 use core::any;
 
-#[cfg(feature = "nightly")]
-use alloc_crate::alloc;
-
-#[cfg(not(feature = "nightly"))]
-use opaque_allocator_api::alloc;
-
 #[cfg(not(feature = "nightly"))]
 use opaque_polyfill::slice_ptr_get;
-
-use alloc::Allocator;
 
 #[cfg(feature = "nightly")]
 fn run_test_type_erased_alloc_allocate_align_with_layout_over_aligned_allocation<A>(

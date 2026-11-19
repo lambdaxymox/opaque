@@ -3,17 +3,10 @@ use opaque_index_map::TypeProjectedIndexSet;
 
 use core::any;
 use core::fmt;
-use std::string::String;
-use std::{
-    format,
-    hash,
-};
-
-#[cfg(feature = "nightly")]
 use std::alloc;
-
-#[cfg(not(feature = "nightly"))]
-use opaque_allocator_api::alloc;
+use std::format;
+use std::hash;
+use std::string::String;
 
 use proptest::prelude::*;
 

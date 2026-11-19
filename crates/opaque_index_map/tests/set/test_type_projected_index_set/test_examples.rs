@@ -1,14 +1,9 @@
 use opaque_index_map::set::TypeProjectedIndexSet;
 use opaque_vec::TypeProjectedVec;
 
+use std::alloc;
 use std::hash;
 use std::string::String;
-
-#[cfg(feature = "nightly")]
-use std::alloc;
-
-#[cfg(not(feature = "nightly"))]
-use opaque_allocator_api::alloc;
 
 #[test]
 fn test_type_projected_empty_len1() {

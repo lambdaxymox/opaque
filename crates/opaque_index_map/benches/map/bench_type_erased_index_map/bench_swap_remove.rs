@@ -7,14 +7,9 @@ use criterion::{
 
 use indexmap::IndexMap;
 
+use std::alloc;
 use std::hash;
 use std::vec::Vec;
-
-#[cfg(feature = "nightly")]
-use std::alloc;
-
-#[cfg(not(feature = "nightly"))]
-use opaque_allocator_api::alloc;
 
 fn bench_index_map_swap_remove(c: &mut Criterion) {
     let keys = 0..1000;

@@ -58,6 +58,7 @@ use core::hash;
 ///
 /// ```
 /// # use opaque_hash::TypeProjectedHasher;
+/// #
 /// # use std::any::TypeId;
 /// # use std::hash::DefaultHasher;
 /// #
@@ -83,6 +84,7 @@ where
     ///
     /// ```
     /// # use opaque_hash::TypeProjectedHasher;
+    /// #
     /// # use std::any::TypeId;
     /// # use std::hash::DefaultHasher;
     /// #
@@ -106,6 +108,7 @@ where
     ///
     /// ```
     /// # use opaque_hash::TypeProjectedHasher;
+    /// #
     /// # use std::any::TypeId;
     /// # use std::hash::DefaultHasher;
     /// #
@@ -130,6 +133,7 @@ where
     ///
     /// ```
     /// # use opaque_hash::TypeProjectedHasher;
+    /// #
     /// # use std::any::TypeId;
     /// # use std::hash::DefaultHasher;
     /// #
@@ -158,6 +162,7 @@ where
     ///
     /// ```
     /// # use opaque_hash::TypeProjectedHasher;
+    /// #
     /// # use std::any::TypeId;
     /// # use std::hash::DefaultHasher;
     /// #
@@ -176,6 +181,7 @@ where
     ///
     /// ```
     /// # use opaque_hash::TypeProjectedHasher;
+    /// #
     /// # use std::any::TypeId;
     /// # use std::hash::DefaultHasher;
     /// #
@@ -286,6 +292,7 @@ where
 ///
 /// ```
 /// # use opaque_hash::TypeErasedHasher;
+/// #
 /// # use std::any::TypeId;
 /// # use std::hash::DefaultHasher;
 /// #
@@ -308,6 +315,7 @@ impl TypeErasedHasher {
     ///
     /// ```
     /// # use opaque_hash::TypeErasedHasher;
+    /// #
     /// # use std::any::TypeId;
     /// # use std::hash::DefaultHasher;
     /// #
@@ -333,6 +341,7 @@ impl TypeErasedHasher {
     ///
     /// ```
     /// # use opaque_hash::TypeErasedHasher;
+    /// #
     /// # use std::any::TypeId;
     /// # use std::hash::DefaultHasher;
     /// #
@@ -392,6 +401,7 @@ impl TypeErasedHasher {
     ///
     /// ```
     /// # use opaque_hash::{TypeErasedHasher, TypeProjectedHasher};
+    /// #
     /// # use std::hash::DefaultHasher;
     /// #
     /// let opaque_hasher = TypeErasedHasher::new::<DefaultHasher>(DefaultHasher::new());
@@ -427,6 +437,7 @@ impl TypeErasedHasher {
     ///
     /// ```
     /// # use opaque_hash::{TypeErasedHasher, TypeProjectedHasher};
+    /// #
     /// # use std::hash::DefaultHasher;
     /// #
     /// let mut opaque_hasher = TypeErasedHasher::new::<DefaultHasher>(DefaultHasher::new());
@@ -461,6 +472,7 @@ impl TypeErasedHasher {
     ///
     /// ```
     /// # use opaque_hash::{TypeErasedHasher, TypeProjectedHasher};
+    /// #
     /// # use std::hash::DefaultHasher;
     /// #
     /// let opaque_hasher = TypeErasedHasher::new::<DefaultHasher>(DefaultHasher::new());
@@ -495,6 +507,7 @@ impl TypeErasedHasher {
     ///
     /// ```
     /// # use opaque_hash::{TypeErasedHasher, TypeProjectedHasher};
+    /// #
     /// # use std::hash::DefaultHasher;
     /// #
     /// let proj_hasher: TypeProjectedHasher<DefaultHasher> = TypeProjectedHasher::new(DefaultHasher::new());
@@ -534,6 +547,7 @@ impl TypeErasedHasher {
     ///
     /// ```
     /// # use opaque_hash::{TypeErasedHasher, TypeProjectedHasher};
+    /// #
     /// # use std::hash::DefaultHasher;
     /// #
     /// let opaque_hasher = TypeErasedHasher::new::<DefaultHasher>(DefaultHasher::new());
@@ -578,6 +592,7 @@ impl TypeErasedHasher {
     ///
     /// ```
     /// # use opaque_hash::{TypeErasedHasher, TypeProjectedHasher};
+    /// #
     /// # use std::hash::DefaultHasher;
     /// #
     /// let mut opaque_hasher = TypeErasedHasher::new::<DefaultHasher>(DefaultHasher::new());
@@ -621,6 +636,7 @@ impl TypeErasedHasher {
     ///
     /// ```
     /// # use opaque_hash::{TypeErasedHasher, TypeProjectedHasher};
+    /// #
     /// # use std::hash::DefaultHasher;
     /// #
     /// let opaque_hasher = TypeErasedHasher::new::<DefaultHasher>(DefaultHasher::new());
@@ -659,6 +675,7 @@ impl TypeErasedHasher {
     ///
     /// ```
     /// # use opaque_hash::TypeErasedHasher;
+    /// #
     /// # use std::any::TypeId;
     /// # use std::hash::DefaultHasher;
     /// #
@@ -689,6 +706,7 @@ impl TypeErasedHasher {
     ///
     /// ```
     /// # use opaque_hash::TypeErasedHasher;
+    /// #
     /// # use std::any::TypeId;
     /// # use std::hash::DefaultHasher;
     /// #
@@ -729,6 +747,7 @@ impl TypeErasedHasher {
     ///
     /// ```
     /// # use opaque_hash::TypeErasedHasher;
+    /// #
     /// # use std::any::TypeId;
     /// # use std::hash::DefaultHasher;
     /// #
@@ -761,6 +780,7 @@ impl TypeErasedHasher {
     ///
     /// ```
     /// # use opaque_hash::TypeErasedHasher;
+    /// #
     /// # use std::any::TypeId;
     /// # use std::hash::DefaultHasher;
     /// #

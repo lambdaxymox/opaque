@@ -1,15 +1,10 @@
 use opaque_index_map::map::TypeProjectedIndexMap;
 
 use core::any;
-use std::cell::RefCell;
+use core::cell::RefCell;
+use std::alloc;
 use std::hash;
 use std::rc::Rc;
-
-#[cfg(feature = "nightly")]
-use std::alloc;
-
-#[cfg(not(feature = "nightly"))]
-use opaque_allocator_api::alloc;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct DropCounter {

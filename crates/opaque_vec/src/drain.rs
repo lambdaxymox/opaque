@@ -6,6 +6,7 @@
 // at your option.
 use crate::vec_inner::TypeProjectedVecInner;
 
+use alloc_crate::alloc;
 use core::any;
 use core::fmt;
 use core::iter;
@@ -13,12 +14,6 @@ use core::mem::ManuallyDrop;
 use core::ptr;
 use core::ptr::NonNull;
 use core::slice;
-
-#[cfg(feature = "nightly")]
-use alloc_crate::alloc;
-
-#[cfg(not(feature = "nightly"))]
-use opaque_allocator_api::alloc;
 
 use opaque_alloc::TypeProjectedAlloc;
 
@@ -31,14 +26,9 @@ use opaque_alloc::TypeProjectedAlloc;
 /// Using a draining iterator on a type-projected vector.
 ///
 /// ```
-/// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
 /// # use opaque_vec::TypeProjectedVec;
 /// #
-/// # #[cfg(feature = "nightly")]
 /// # use std::alloc::Global;
-/// #
-/// # #[cfg(not(feature = "nightly"))]
-/// # use opaque_allocator_api::alloc::Global;
 /// #
 /// let mut result = TypeProjectedVec::from([1, i32::MAX, i32::MAX, i32::MAX, 2, 3]);
 /// let expected = TypeProjectedVec::from([1, 2, 3]);
@@ -50,14 +40,9 @@ use opaque_alloc::TypeProjectedAlloc;
 /// Using a draining iterator on a type-erased vector.
 ///
 /// ```
-/// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
 /// # use opaque_vec::TypeErasedVec;
 /// #
-/// # #[cfg(feature = "nightly")]
 /// # use std::alloc::Global;
-/// #
-/// # #[cfg(not(feature = "nightly"))]
-/// # use opaque_allocator_api::alloc::Global;
 /// #
 /// let mut result = TypeErasedVec::from([1, i32::MAX, i32::MAX, i32::MAX, 2, 3]);
 /// #
@@ -125,15 +110,10 @@ where
     /// Getting a slice of remaining elements from a draining iterator of a type-projected vector.
     ///
     /// ```
-    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_vec::TypeProjectedVec;
     /// # use opaque_alloc::TypeProjectedAlloc;
     /// #
-    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
-    /// #
-    /// # #[cfg(not(feature = "nightly"))]
-    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut vec = TypeProjectedVec::from([
     ///     "spam",
@@ -159,15 +139,10 @@ where
     /// Getting a slice of remaining elements from a draining iterator of a type-erased vector.
     ///
     /// ```
-    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_vec::TypeErasedVec;
     /// # use opaque_alloc::TypeProjectedAlloc;
     /// #
-    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
-    /// #
-    /// # #[cfg(not(feature = "nightly"))]
-    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut vec = TypeErasedVec::from([
     ///     "spam",
@@ -201,15 +176,10 @@ where
     /// Using a draining iterator on a type-projected vector.
     ///
     /// ```
-    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_vec::TypeProjectedVec;
     /// # use opaque_alloc::TypeProjectedAlloc;
     /// #
-    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
-    /// #
-    /// # #[cfg(not(feature = "nightly"))]
-    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut result = TypeProjectedVec::from([1, i32::MAX, i32::MAX, i32::MAX, 2, 3]);
     /// let iterator = result.drain(1..4);
@@ -220,15 +190,10 @@ where
     /// Using a draining iterator on a type-erased vector.
     ///
     /// ```
-    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_vec::TypeErasedVec;
     /// # use opaque_alloc::TypeProjectedAlloc;
     /// #
-    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
-    /// #
-    /// # #[cfg(not(feature = "nightly"))]
-    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut result = TypeErasedVec::from([1, i32::MAX, i32::MAX, i32::MAX, 2, 3]);
     /// #
@@ -252,14 +217,9 @@ where
     /// Using a draining iterator on a type-projected vector.
     ///
     /// ```
-    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_vec::TypeProjectedVec;
     /// #
-    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
-    /// #
-    /// # #[cfg(not(feature = "nightly"))]
-    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut vec = TypeProjectedVec::from([
     ///     "spam",
@@ -282,14 +242,9 @@ where
     /// Using a draining iterator on a type-erased vector.
     ///
     /// ```
-    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_vec::TypeErasedVec;
     /// #
-    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
-    /// #
-    /// # #[cfg(not(feature = "nightly"))]
-    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut vec = TypeErasedVec::from([
     ///     "spam",

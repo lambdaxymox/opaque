@@ -2,20 +2,13 @@ use crate::set::common::erased::strategy_type_erased_index_set_max_len;
 use opaque_index_map::TypeErasedIndexSet;
 
 use core::any;
+use core::cmp;
 use core::fmt;
+use std::alloc;
 use std::format;
+use std::hash;
 use std::string::String;
 use std::vec::Vec;
-use std::{
-    cmp,
-    hash,
-};
-
-#[cfg(feature = "nightly")]
-use std::alloc;
-
-#[cfg(not(feature = "nightly"))]
-use opaque_allocator_api::alloc;
 
 use proptest::prelude::*;
 

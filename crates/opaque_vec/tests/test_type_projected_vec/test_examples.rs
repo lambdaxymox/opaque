@@ -1,13 +1,8 @@
 use opaque_vec::TypeProjectedVec;
 
+use std::alloc;
 use std::format;
 use std::string::String;
-
-#[cfg(feature = "nightly")]
-use std::alloc;
-
-#[cfg(not(feature = "nightly"))]
-use opaque_allocator_api::alloc;
 
 #[test]
 fn test_type_projected_vec_empty_is_empty() {

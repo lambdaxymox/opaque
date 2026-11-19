@@ -2,7 +2,7 @@
 #![deny(private_interfaces)]
 #![cfg_attr(
     feature = "nightly",
-    feature(optimize_attribute, slice_range, allocator_api)
+    feature(optimize_attribute, slice_range)
 )]
 #![no_std]
 extern crate alloc as alloc_crate;

@@ -1,13 +1,8 @@
 use opaque_alloc::TypeErasedAlloc;
 
+use alloc_crate::alloc;
 use core::any;
 use core::ptr::NonNull;
-
-#[cfg(feature = "nightly")]
-use alloc_crate::alloc;
-
-#[cfg(not(feature = "nightly"))]
-use opaque_allocator_api::alloc;
 
 fn run_test_type_erased_alloc_clone<A>(alloc: A)
 where

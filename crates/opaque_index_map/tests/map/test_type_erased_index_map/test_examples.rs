@@ -1,14 +1,9 @@
 use opaque_index_map::{GetDisjointMutError, TypeErasedIndexMap};
 use opaque_vec::TypeProjectedVec;
 
+use std::alloc;
 use std::hash;
 use std::string::String;
-
-#[cfg(feature = "nightly")]
-use std::alloc;
-
-#[cfg(not(feature = "nightly"))]
-use opaque_allocator_api::alloc;
 
 #[rustfmt::skip]
 #[test]

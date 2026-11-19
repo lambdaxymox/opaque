@@ -12,13 +12,8 @@ use core::fmt;
 use core::marker;
 use core::ptr::NonNull;
 
-use alloc_crate::boxed::Box;
-
-#[cfg(feature = "nightly")]
 use alloc_crate::alloc;
-
-#[cfg(not(feature = "nightly"))]
-use opaque_allocator_api::alloc;
+use alloc_crate::boxed::Box;
 
 /// A type-projected memory allocator.
 ///
@@ -59,15 +54,10 @@ use opaque_allocator_api::alloc;
 /// Using a type-projected allocator.
 ///
 /// ```
-/// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
 /// # use opaque_alloc::TypeProjectedAlloc;
+/// #
 /// # use std::any::TypeId;
-/// #
-/// # #[cfg(feature = "nightly")]
 /// # use std::alloc::Global;
-/// #
-/// # #[cfg(not(feature = "nightly"))]
-/// # use opaque_allocator_api::alloc::Global;
 /// #
 /// let proj_alloc = TypeProjectedAlloc::new(Global);
 ///
@@ -92,15 +82,10 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_alloc::TypeProjectedAlloc;
+    /// #
     /// # use std::any::TypeId;
-    /// #
-    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
-    /// #
-    /// # #[cfg(not(feature = "nightly"))]
-    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_alloc = TypeProjectedAlloc::new(Global);
     ///
@@ -124,15 +109,10 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_alloc::TypeProjectedAlloc;
+    /// #
     /// # use std::any::TypeId;
-    /// #
-    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
-    /// #
-    /// # #[cfg(not(feature = "nightly"))]
-    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_alloc = TypeProjectedAlloc::new(Global);
     ///
@@ -154,15 +134,10 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_alloc::TypeProjectedAlloc;
+    /// #
     /// # use std::any::TypeId;
-    /// #
-    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
-    /// #
-    /// # #[cfg(not(feature = "nightly"))]
-    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_alloc = TypeProjectedAlloc::from_boxed_alloc(Box::new(Global));
     ///
@@ -181,14 +156,9 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_alloc::TypeProjectedAlloc;
     /// #
-    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
-    /// #
-    /// # #[cfg(not(feature = "nightly"))]
-    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_alloc = TypeProjectedAlloc::new(Global);
     ///
@@ -207,15 +177,10 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_alloc::TypeProjectedAlloc;
+    /// #
     /// # use std::any::TypeId;
-    /// #
-    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
-    /// #
-    /// # #[cfg(not(feature = "nightly"))]
-    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_alloc = TypeProjectedAlloc::new(Global);
     /// let boxed_alloc: Box<Global> = proj_alloc.into_boxed_alloc();
@@ -324,15 +289,10 @@ where
 /// Using a type-erased allocator.
 ///
 /// ```
-/// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
 /// # use opaque_alloc::TypeErasedAlloc;
+/// #
 /// # use std::any::TypeId;
-/// #
-/// # #[cfg(feature = "nightly")]
 /// # use std::alloc::Global;
-/// #
-/// # #[cfg(not(feature = "nightly"))]
-/// # use opaque_allocator_api::alloc::Global;
 /// #
 /// let opaque_alloc = TypeErasedAlloc::new::<Global>(Global);
 ///
@@ -351,15 +311,10 @@ impl TypeErasedAlloc {
     /// # Examples
     ///
     /// ```
-    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_alloc::TypeErasedAlloc;
+    /// #
     /// # use std::any::TypeId;
-    /// #
-    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
-    /// #
-    /// # #[cfg(not(feature = "nightly"))]
-    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_alloc = TypeErasedAlloc::new::<Global>(Global);
     ///
@@ -383,16 +338,11 @@ impl TypeErasedAlloc {
     /// # Examples
     ///
     /// ```
-    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_alloc::TypeErasedAlloc;
+    /// #
     /// # use std::any::{Any, TypeId};
     /// # use std::ptr::NonNull;
-    /// #
-    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::{Allocator, AllocError, Layout, Global};
-    /// #
-    /// # #[cfg(not(feature = "nightly"))]
-    /// # use opaque_allocator_api::alloc::{Allocator, AllocError, Layout, Global};
     /// #
     /// trait AnyAllocator: Any + Allocator + Send + Sync {}
     ///
@@ -466,14 +416,9 @@ impl TypeErasedAlloc {
     /// # Examples
     ///
     /// ```
-    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_alloc::{TypeErasedAlloc, TypeProjectedAlloc};
     /// #
-    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
-    /// #
-    /// # #[cfg(not(feature = "nightly"))]
-    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_alloc = TypeErasedAlloc::new::<Global>(Global);
     /// #
@@ -507,14 +452,9 @@ impl TypeErasedAlloc {
     /// # Examples
     ///
     /// ```
-    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_alloc::{TypeErasedAlloc, TypeProjectedAlloc};
     /// #
-    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
-    /// #
-    /// # #[cfg(not(feature = "nightly"))]
-    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_alloc = TypeErasedAlloc::new::<Global>(Global);
     /// #
@@ -547,14 +487,9 @@ impl TypeErasedAlloc {
     /// # Examples
     ///
     /// ```
-    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_alloc::{TypeErasedAlloc, TypeProjectedAlloc};
     /// #
-    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
-    /// #
-    /// # #[cfg(not(feature = "nightly"))]
-    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_alloc = TypeErasedAlloc::new::<Global>(Global);
     /// #
@@ -587,14 +522,9 @@ impl TypeErasedAlloc {
     /// # Examples
     ///
     /// ```
-    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_alloc::{TypeErasedAlloc, TypeProjectedAlloc};
     /// #
-    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
-    /// #
-    /// # #[cfg(not(feature = "nightly"))]
-    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_alloc: TypeProjectedAlloc<Global> = TypeProjectedAlloc::new(Global);
     /// let opaque_alloc: TypeErasedAlloc = TypeErasedAlloc::from_proj(proj_alloc);
@@ -632,14 +562,9 @@ impl TypeErasedAlloc {
     /// # Examples
     ///
     /// ```
-    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_alloc::{TypeErasedAlloc, TypeProjectedAlloc};
     /// #
-    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
-    /// #
-    /// # #[cfg(not(feature = "nightly"))]
-    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_alloc = TypeErasedAlloc::new::<Global>(Global);
     /// #
@@ -682,14 +607,9 @@ impl TypeErasedAlloc {
     /// # Examples
     ///
     /// ```
-    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_alloc::{TypeErasedAlloc, TypeProjectedAlloc};
     /// #
-    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
-    /// #
-    /// # #[cfg(not(feature = "nightly"))]
-    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let mut opaque_alloc = TypeErasedAlloc::new::<Global>(Global);
     /// #
@@ -731,14 +651,9 @@ impl TypeErasedAlloc {
     /// # Examples
     ///
     /// ```
-    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_alloc::{TypeErasedAlloc, TypeProjectedAlloc};
     /// #
-    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
-    /// #
-    /// # #[cfg(not(feature = "nightly"))]
-    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_alloc = TypeErasedAlloc::new::<Global>(Global);
     /// #
@@ -775,15 +690,10 @@ impl TypeErasedAlloc {
     /// # Examples
     ///
     /// ```
-    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_alloc::TypeErasedAlloc;
+    /// #
     /// # use std::any::TypeId;
-    /// #
-    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
-    /// #
-    /// # #[cfg(not(feature = "nightly"))]
-    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let proj_alloc = TypeErasedAlloc::new(Global);
     ///
@@ -808,15 +718,10 @@ impl TypeErasedAlloc {
     /// # Examples
     ///
     /// ```
-    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_alloc::TypeErasedAlloc;
+    /// #
     /// # use std::any::TypeId;
-    /// #
-    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
-    /// #
-    /// # #[cfg(not(feature = "nightly"))]
-    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_alloc = TypeErasedAlloc::from_boxed_alloc(Box::new(Global));
     ///
@@ -843,14 +748,9 @@ impl TypeErasedAlloc {
     /// # Examples
     ///
     /// ```
-    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_alloc::TypeErasedAlloc;
     /// #
-    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
-    /// #
-    /// # #[cfg(not(feature = "nightly"))]
-    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_alloc = TypeErasedAlloc::new(Global);
     /// #
@@ -883,15 +783,10 @@ impl TypeErasedAlloc {
     /// # Examples
     ///
     /// ```
-    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_alloc::TypeErasedAlloc;
+    /// #
     /// # use std::any::TypeId;
-    /// #
-    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
-    /// #
-    /// # #[cfg(not(feature = "nightly"))]
-    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_alloc = TypeErasedAlloc::new(Global);
     /// #
@@ -941,15 +836,10 @@ impl TypeErasedAlloc {
     /// # Examples
     ///
     /// ```
-    /// # #![cfg_attr(feature = "nightly", feature(allocator_api))]
     /// # use opaque_alloc::TypeErasedAlloc;
+    /// #
     /// # use std::any::TypeId;
-    /// #
-    /// # #[cfg(feature = "nightly")]
     /// # use std::alloc::Global;
-    /// #
-    /// # #[cfg(not(feature = "nightly"))]
-    /// # use opaque_allocator_api::alloc::Global;
     /// #
     /// let opaque_alloc = TypeErasedAlloc::new(Global);
     /// #

@@ -4,6 +4,7 @@
 //   * Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
 //   * MIT license (http://opensource.org/licenses/MIT)
 // at your option.
+use alloc_crate::alloc;
 use alloc_crate::boxed::Box;
 use core::any;
 use core::marker;
@@ -14,12 +15,6 @@ use core::mem::{
 };
 use core::ptr;
 use core::ptr::NonNull;
-
-#[cfg(feature = "nightly")]
-use alloc_crate::alloc;
-
-#[cfg(not(feature = "nightly"))]
-use opaque_allocator_api::alloc;
 
 use opaque_alloc::{
     TypeErasedAlloc,
