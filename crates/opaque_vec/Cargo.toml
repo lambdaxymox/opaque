@@ -1,6 +1,6 @@
 [package]
 name = "opaque_vec"
-version = "1.4.0"
+version = "2.0.0"
 edition = "2024"
 publish = false
 
@@ -10,9 +10,9 @@ std = ["opaque_alloc/std", "opaque_error/std", "opaque_polyfill/std"]
 nightly = ["opaque_alloc/nightly"]
 
 [dependencies]
-opaque_alloc = { path = "../opaque_alloc", version = "1.4.0" }
-opaque_error = { path = "../opaque_error", version = "1.4.0" }
-opaque_polyfill = { path = "../opaque_polyfill", version = "1.4.0" }
+opaque_alloc = { path = "../opaque_alloc", version = "2.0.0" }
+opaque_error = { path = "../opaque_error", version = "2.0.0" }
+opaque_polyfill = { path = "../opaque_polyfill", version = "2.0.0" }
 
 [dev-dependencies]
 criterion = { version = "0.8.2" }

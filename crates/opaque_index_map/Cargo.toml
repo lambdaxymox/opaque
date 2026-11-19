@@ -1,6 +1,6 @@
 [package]
 name = "opaque_index_map"
-version = "1.4.0"
+version = "2.0.0"
 edition = "2024"
 publish = false
 
@@ -10,13 +10,13 @@ std = ["opaque_alloc/std", "opaque_error/std", "opaque_hash/std", "opaque_vec/st
 nightly = ["opaque_alloc/nightly", "opaque_hash/nightly", "opaque_vec/nightly"]
 
 [dependencies]
-opaque_alloc = { path = "../opaque_alloc", version = "1.4.0" }
-opaque_error = { path = "../opaque_error", version = "1.4.0" }
-opaque_hash = { path = "../opaque_hash", version = "1.4.0" }
-opaque_vec = { path = "../opaque_vec", version = "1.4.0" }
+opaque_alloc = { path = "../opaque_alloc", version = "2.0.0" }
+opaque_error = { path = "../opaque_error", version = "2.0.0" }
+opaque_hash = { path = "../opaque_hash", version = "2.0.0" }
+opaque_vec = { path = "../opaque_vec", version = "2.0.0" }
 
 equivalent = { version = "1.0.3", default-features = false }
-hashbrown = { version = "0.15.5" }
+hashbrown = { version = "0.17.1" }
 
 [dev-dependencies]
 criterion = { version = "0.8.2" }

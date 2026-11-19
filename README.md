@@ -34,14 +34,14 @@ To use this library in your project, add the **opaque** crate as a dependency in
 
 ```toml
 [dependencies]
-opaque = "1.4.0"
+opaque = "2.0.0"
 ```
 
 This library has a `nightly` feature for compatibility reasons with certain Rust features that are nightly only.
 
 ```toml
 [dependencies.opaque]
-version = "1.4.0"
+version = "2.0.0"
 features = ["nightly"]
 ```
 
@@ -49,7 +49,7 @@ or
 
 ```toml
 [dependencies]
-opaque = { version = "1.4.0", features = ["nightly"] }
+opaque = { version = "2.0.0", features = ["nightly"] }
 ```
 
 to your `Cargo.toml` file. Optionally, you can add the crate declaration
