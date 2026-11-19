@@ -1474,7 +1474,6 @@ fn test_type_erased_vec_slice_out_of_bounds5() {
     assert!(true);
 }
 
-#[cfg(feature = "nightly")]
 #[test]
 fn test_type_erased_vec_into_boxed_slice() {
     let vec = TypeErasedVec::from([1_i32, 2_i32, 3_i32]);
@@ -1483,7 +1482,6 @@ fn test_type_erased_vec_into_boxed_slice() {
     assert_eq!(&*boxed_slice, [1_i32, 2_i32, 3_i32]);
 }
 
-#[cfg(feature = "nightly")]
 #[test]
 fn test_type_erased_vec_into_boxed_slice_from_boxed_slice() {
     let vec = TypeErasedVec::from([1_i32, 2_i32, 3_i32]);

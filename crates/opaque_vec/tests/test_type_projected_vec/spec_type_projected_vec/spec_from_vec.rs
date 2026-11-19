@@ -10,7 +10,6 @@ use std::string::String;
 
 use proptest::prelude::*;
 
-#[cfg(feature = "nightly")]
 fn prop_from_vec<T, A>(values: TypeProjectedVec<T, A>) -> Result<(), TestCaseError>
 where
     T: any::Any + PartialEq + Clone + Default + fmt::Debug,
@@ -38,7 +37,6 @@ where
     Ok(())
 }
 
-#[cfg(feature = "nightly")]
 macro_rules! generate_props {
     ($module_name:ident, $typ:ty, $alloc_typ:ty, $max_length:expr, $vec_gen:ident) => {
         mod $module_name {
@@ -50,16 +48,6 @@ macro_rules! generate_props {
                     super::prop_from_vec(values)?
                 }
             }
-        }
-    };
-}
-
-#[cfg(not(feature = "nightly"))]
-macro_rules! generate_props {
-    ($module_name:ident, $typ:ty, $alloc_typ:ty, $max_length:expr, $vec_gen:ident) => {
-        mod $module_name {
-            use super::*;
-            proptest! {}
         }
     };
 }

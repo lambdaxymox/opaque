@@ -37,8 +37,7 @@ To use this library in your project, add the **opaque** crate as a dependency in
 opaque = "1.4.0"
 ```
 
-This library has a `nightly` feature to unlock using custom memory allocators for all the collections in the 
-library. To use `nightly` add
+This library has a `nightly` feature for compatibility reasons with certain Rust features that are nightly only.
 
 ```toml
 [dependencies.opaque]
@@ -87,10 +86,7 @@ This library has numerous features:
 * Support for type-erasable hashing functions and hash builders.
 * Support for type-erasable vectors.
 * Support for type-erasable hash maps and hash sets with compact storage.
-* Support for custom memory allocators on all collections on both Rust nightly and Rust stable, where stable support 
-  comes through the `opaque_allocator_api` polyfill subcrate. This is a temporary feature until the `allocator_api` 
-  feature stabilizes. **This is a future breaking change. When `allocator_api` stabilizes, this feature will be 
-  removed**.
+* Support for custom memory allocators on all collections.
 * Extensive documentation including formal axiomatic semantics for the trickier to understand mutation operations.
 * The hash map, hash set, and vector APIs are designed to be almost identical to the standard library collection
   counterparts in terms of both the feature set, and the method names, to make them more familiar to work with.

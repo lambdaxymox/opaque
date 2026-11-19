@@ -1170,7 +1170,6 @@ impl<K, V> Slice<K, V> {
     }
 }
 
-#[cfg(feature = "nightly")]
 impl<K, V> Slice<K, V> {
     /// Constructs a new boxed slice from an inner boxed slice.
     fn from_boxed_slice<A>(entries: Box<map_inner::Slice<K, V>, TypeProjectedAlloc<A>>) -> Box<Self, TypeProjectedAlloc<A>>
@@ -2676,7 +2675,6 @@ impl<K, V> Slice<K, V> {
     }
 }
 
-#[cfg(feature = "nightly")]
 impl<K, V> Slice<K, V> {
     /// Returns a moving iterator over the keys in the index map slice.
     ///
@@ -2825,7 +2823,6 @@ impl<K, V> Slice<K, V> {
     }
 }
 
-#[cfg(feature = "nightly")]
 impl<K, V> Slice<K, V> {
     /// Returns a moving iterator over the values in the index map slice.
     ///
@@ -3282,7 +3279,6 @@ impl<'a, K, V> IntoIterator for &'a mut Slice<K, V> {
     }
 }
 
-#[cfg(feature = "nightly")]
 impl<K, V, A> IntoIterator for Box<Slice<K, V>, TypeProjectedAlloc<A>>
 where
     K: any::Any,
@@ -3310,7 +3306,6 @@ impl<K, V> Default for &'_ mut Slice<K, V> {
     }
 }
 
-#[cfg(feature = "nightly")]
 impl<K, V, A> Default for Box<Slice<K, V>, TypeProjectedAlloc<A>>
 where
     K: any::Any,
@@ -3322,7 +3317,6 @@ where
     }
 }
 
-#[cfg(feature = "nightly")]
 impl<K, V, A> Clone for Box<Slice<K, V>, TypeProjectedAlloc<A>>
 where
     K: any::Any + Clone,
@@ -3337,7 +3331,6 @@ where
     }
 }
 
-#[cfg(feature = "nightly")]
 impl<K, V> From<&Slice<K, V>> for Box<Slice<K, V>, TypeProjectedAlloc<alloc::Global>>
 where
     K: any::Any + Copy,
@@ -14140,7 +14133,6 @@ where
     }
 }
 
-#[cfg(feature = "nightly")]
 impl<K, V, S, A> TypeProjectedIndexMap<K, V, S, A>
 where
     K: any::Any,
@@ -25381,7 +25373,6 @@ impl TypeErasedIndexMap {
     }
 }
 
-#[cfg(feature = "nightly")]
 impl TypeErasedIndexMap {
     /// Converts an index map into a [`Box<[T]>`][owned slice].
     ///

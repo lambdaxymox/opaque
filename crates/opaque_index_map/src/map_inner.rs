@@ -601,7 +601,6 @@ impl<K, V> Slice<K, V> {
     }
 }
 
-#[cfg(feature = "nightly")]
 impl<K, V> Slice<K, V> {
     fn from_boxed_slice<A>(entries: Box<[Bucket<K, V>], A>) -> Box<Self, A>
     where
@@ -655,7 +654,6 @@ impl<K, V> Slice<K, V> {
     }
 }
 
-#[cfg(feature = "nightly")]
 impl<K, V> Slice<K, V> {
     pub(crate) fn from_entries_in<A>(vec: TypeProjectedVec<Bucket<K, V>, A>) -> Box<Self, TypeProjectedAlloc<A>>
     where
@@ -796,7 +794,6 @@ impl<K, V> Slice<K, V> {
     }
 }
 
-#[cfg(feature = "nightly")]
 impl<K, V> Slice<K, V> {
     pub(crate) fn into_keys<A>(self: Box<Self, TypeProjectedAlloc<A>>) -> IntoKeys<K, V, A>
     where
@@ -818,7 +815,6 @@ impl<K, V> Slice<K, V> {
     }
 }
 
-#[cfg(feature = "nightly")]
 impl<K, V> Slice<K, V> {
     pub(crate) fn into_values<A>(self: Box<Self, TypeProjectedAlloc<A>>) -> IntoValues<K, V, A>
     where
@@ -925,7 +921,6 @@ impl<'a, K, V> IntoIterator for &'a mut Slice<K, V> {
     }
 }
 
-#[cfg(feature = "nightly")]
 impl<K, V, A> IntoIterator for Box<Slice<K, V>, TypeProjectedAlloc<A>>
 where
     K: any::Any,
@@ -953,7 +948,6 @@ impl<K, V> Default for &'_ mut Slice<K, V> {
     }
 }
 
-#[cfg(feature = "nightly")]
 impl<K, V, A> Default for Box<Slice<K, V>, A>
 where
     K: any::Any,
@@ -978,7 +972,6 @@ where
     }
 }
 
-#[cfg(feature = "nightly")]
 impl<K, V> From<&Slice<K, V>> for Box<Slice<K, V>, TypeProjectedAlloc<alloc::Global>>
 where
     K: any::Any + Copy,
@@ -4425,7 +4418,6 @@ where
     }
 }
 
-#[cfg(feature = "nightly")]
 impl<K, V, S, A> TypeProjectedIndexMapInner<K, V, S, A>
 where
     K: any::Any,

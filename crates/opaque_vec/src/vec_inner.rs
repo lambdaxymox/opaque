@@ -646,7 +646,6 @@ where
     }
 }
 
-#[cfg(feature = "nightly")]
 impl<T, A> TypeProjectedVecInner<T, A>
 where
     T: any::Any,
@@ -1544,7 +1543,6 @@ where
     }
 }
 
-#[cfg(feature = "nightly")]
 impl<T, A> TypeProjectedVecInner<T, A>
 where
     T: any::Any,
@@ -1634,35 +1632,18 @@ where
     }
 }
 
-#[cfg(feature = "nightly")]
 impl<T, A> From<Vec<T, A>> for TypeProjectedVecInner<T, A>
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn from(vec: Vec<T, A>) -> Self {
-        let (ptr, length, capacity, alloc) = vec.into_parts_with_alloc();
+        let (ptr, length, capacity, alloc) = vec.into_parts_with_allocator();
 
         unsafe { TypeProjectedVecInner::from_parts_in(ptr, length, capacity, alloc) }
     }
 }
 
-#[cfg(not(feature = "nightly"))]
-impl<T> From<Vec<T>> for TypeProjectedVecInner<T, alloc::Global>
-where
-    T: any::Any,
-{
-    fn from(vec: Vec<T>) -> Self {
-        let mut vec = ManuallyDrop::new(vec);
-        let ptr = vec.as_mut_ptr();
-        let length = vec.len();
-        let capacity = vec.capacity();
-
-        unsafe { TypeProjectedVecInner::from_raw_parts(ptr, length, capacity) }
-    }
-}
-
-#[cfg(feature = "nightly")]
 impl<T, A> From<&Vec<T, A>> for TypeProjectedVecInner<T, A>
 where
     T: any::Any + Clone,
@@ -1673,17 +1654,6 @@ where
     }
 }
 
-#[cfg(not(feature = "nightly"))]
-impl<T> From<&Vec<T>> for TypeProjectedVecInner<T, alloc::Global>
-where
-    T: any::Any + Clone,
-{
-    fn from(vec: &Vec<T>) -> Self {
-        Self::from(vec.clone())
-    }
-}
-
-#[cfg(feature = "nightly")]
 impl<T, A> From<&mut Vec<T, A>> for TypeProjectedVecInner<T, A>
 where
     T: any::Any + Clone,
@@ -1694,17 +1664,6 @@ where
     }
 }
 
-#[cfg(not(feature = "nightly"))]
-impl<T> From<&mut Vec<T>> for TypeProjectedVecInner<T, alloc::Global>
-where
-    T: any::Any + Clone,
-{
-    fn from(vec: &mut Vec<T>) -> Self {
-        Self::from(vec.clone())
-    }
-}
-
-#[cfg(feature = "nightly")]
 impl<T, A> From<Box<[T], TypeProjectedAlloc<A>>> for TypeProjectedVecInner<T, A>
 where
     T: any::Any,
@@ -1715,28 +1674,12 @@ where
     }
 }
 
-#[cfg(feature = "nightly")]
 impl<const N: usize, T> From<[T; N]> for TypeProjectedVecInner<T, alloc::Global>
 where
     T: any::Any,
 {
     fn from(array: [T; N]) -> Self {
         Self::from_boxed_slice(Box::new_in(array, TypeProjectedAlloc::new(alloc::Global)))
-    }
-}
-
-#[cfg(not(feature = "nightly"))]
-impl<const N: usize, T> From<[T; N]> for TypeProjectedVecInner<T, alloc::Global>
-where
-    T: any::Any,
-{
-    fn from(array: [T; N]) -> Self {
-        let mut me = ManuallyDrop::new(Box::new(array));
-        let len = me.len();
-        let capacity = me.len();
-        let ptr = me.as_mut_ptr();
-
-        unsafe { Self::from_raw_parts(ptr, len, capacity) }
     }
 }
 

@@ -86,7 +86,6 @@ impl<T> Slice<T> {
     }
 }
 
-#[cfg(feature = "nightly")]
 impl<T> Slice<T> {
     /// Constructs a new index set slice from a boxed inner index set slice.
     fn from_boxed_slice<A>(entries: Box<map_inner::Slice<T, ()>, TypeProjectedAlloc<A>>) -> Box<Self, TypeProjectedAlloc<A>>
@@ -843,7 +842,6 @@ where
     }
 }
 
-#[cfg(feature = "nightly")]
 impl<T, A> IntoIterator for Box<Slice<T>, TypeProjectedAlloc<A>>
 where
     T: any::Any,
@@ -863,7 +861,6 @@ impl<T> Default for &'_ Slice<T> {
     }
 }
 
-#[cfg(feature = "nightly")]
 impl<T, A> Default for Box<Slice<T>, TypeProjectedAlloc<A>>
 where
     T: any::Any,
@@ -874,7 +871,6 @@ where
     }
 }
 
-#[cfg(feature = "nightly")]
 impl<T, A> Clone for Box<Slice<T>, TypeProjectedAlloc<A>>
 where
     T: any::Any + Clone,
@@ -888,7 +884,6 @@ where
     }
 }
 
-#[cfg(feature = "nightly")]
 impl<T> From<&Slice<T>> for Box<Slice<T>, TypeProjectedAlloc<alloc::Global>>
 where
     T: any::Any + Copy,
@@ -8747,7 +8742,6 @@ where
     }
 }
 
-#[cfg(feature = "nightly")]
 impl<T, S, A> TypeProjectedIndexSet<T, S, A>
 where
     T: any::Any,
@@ -18178,7 +18172,6 @@ impl TypeErasedIndexSet {
     }
 }
 
-#[cfg(feature = "nightly")]
 impl TypeErasedIndexSet {
     /// Converts an index set into a [`Box<[T]>`][owned slice].
     ///

@@ -3267,7 +3267,6 @@ where
     }
 }
 
-#[cfg(feature = "nightly")]
 impl<T, A> TypeProjectedVec<T, A>
 where
     T: any::Any,
@@ -4975,7 +4974,6 @@ where
     }
 }
 
-#[cfg(feature = "nightly")]
 impl<T, A> From<Box<[T], TypeProjectedAlloc<A>>> for TypeProjectedVec<T, A>
 where
     T: any::Any,
@@ -4988,7 +4986,6 @@ where
     }
 }
 
-#[cfg(feature = "nightly")]
 impl<T, A> From<Vec<T, A>> for TypeProjectedVec<T, A>
 where
     T: any::Any,
@@ -5002,20 +4999,6 @@ where
     }
 }
 
-#[cfg(not(feature = "nightly"))]
-impl<T> From<Vec<T>> for TypeProjectedVec<T, alloc::Global>
-where
-    T: any::Any,
-{
-    #[track_caller]
-    fn from(vec: Vec<T>) -> Self {
-        let inner = TypeProjectedVecInner::from(vec);
-
-        Self { inner }
-    }
-}
-
-#[cfg(feature = "nightly")]
 impl<T, A> From<&Vec<T, A>> for TypeProjectedVec<T, A>
 where
     T: any::Any + Clone,
@@ -5029,20 +5012,6 @@ where
     }
 }
 
-#[cfg(not(feature = "nightly"))]
-impl<T> From<&Vec<T>> for TypeProjectedVec<T, alloc::Global>
-where
-    T: any::Any + Clone,
-{
-    #[track_caller]
-    fn from(vec: &Vec<T>) -> Self {
-        let inner = TypeProjectedVecInner::from(vec);
-
-        Self { inner }
-    }
-}
-
-#[cfg(feature = "nightly")]
 impl<T, A> From<&mut Vec<T, A>> for TypeProjectedVec<T, A>
 where
     T: any::Any + Clone,
@@ -5056,20 +5025,6 @@ where
     }
 }
 
-#[cfg(not(feature = "nightly"))]
-impl<T> From<&mut Vec<T>> for TypeProjectedVec<T, alloc::Global>
-where
-    T: any::Any + Clone,
-{
-    #[track_caller]
-    fn from(vec: &mut Vec<T>) -> Self {
-        let inner = TypeProjectedVecInner::from(vec);
-
-        Self { inner }
-    }
-}
-
-#[cfg(feature = "nightly")]
 impl<T, A> From<TypeProjectedVec<T, A>> for Box<[T], TypeProjectedAlloc<A>>
 where
     T: any::Any,
@@ -9459,7 +9414,6 @@ impl TypeErasedVec {
     }
 }
 
-#[cfg(feature = "nightly")]
 impl TypeErasedVec {
     /// Converts a type-erased vector into a [`Box<[T]>`][owned slice].
     ///
@@ -11426,25 +11380,12 @@ where
     }
 }
 
-#[cfg(feature = "nightly")]
 impl<T, A> From<Vec<T, A>> for TypeErasedVec
 where
     T: any::Any,
     A: any::Any + alloc::Allocator + Send + Sync,
 {
     fn from(vec: Vec<T, A>) -> Self {
-        let proj_vec = TypeProjectedVec::from(vec);
-
-        Self::from_proj(proj_vec)
-    }
-}
-
-#[cfg(not(feature = "nightly"))]
-impl<T> From<Vec<T>> for TypeErasedVec
-where
-    T: any::Any,
-{
-    fn from(vec: Vec<T>) -> Self {
         let proj_vec = TypeProjectedVec::from(vec);
 
         Self::from_proj(proj_vec)
@@ -11473,7 +11414,6 @@ where
     }
 }
 
-#[cfg(feature = "nightly")]
 impl<T, A> From<Box<[T], TypeProjectedAlloc<A>>> for TypeErasedVec
 where
     T: any::Any,
