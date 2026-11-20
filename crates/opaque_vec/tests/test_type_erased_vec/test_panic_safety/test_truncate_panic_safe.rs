@@ -1,7 +1,7 @@
 use opaque_vec::TypeErasedVec;
 
-use std::alloc;
 use core::cell::RefCell;
+use std::alloc;
 use std::panic;
 use std::panic::AssertUnwindSafe;
 use std::rc::Rc;

@@ -45,7 +45,9 @@ where
 
             prop_assert!(maybe_index.is_some());
 
-            let maybe_key_value = map.get_key_value_mut::<_, K, V, S, A>(key).map(|(k, v)| (k.clone(), v.clone()));
+            let maybe_key_value = map
+                .get_key_value_mut::<_, K, V, S, A>(key)
+                .map(|(k, v)| (k.clone(), v.clone()));
 
             prop_assert!(maybe_key_value.is_some());
 
@@ -54,7 +56,9 @@ where
 
             Some((index, key_value.0, key_value.1))
         };
-        let result = map.get_full_mut::<_, K, V, S, A>(key).map(|(i, k, v)| (i, k.clone(), v.clone()));
+        let result = map
+            .get_full_mut::<_, K, V, S, A>(key)
+            .map(|(i, k, v)| (i, k.clone(), v.clone()));
 
         prop_assert_eq!(result, expected);
     }

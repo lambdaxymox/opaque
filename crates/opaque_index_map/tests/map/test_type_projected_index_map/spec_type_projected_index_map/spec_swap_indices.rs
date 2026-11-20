@@ -9,8 +9,8 @@ use core::fmt;
 use core::ops;
 use std::alloc;
 use std::format;
-use std::string::String;
 use std::hash;
+use std::string::String;
 
 use proptest::prelude::*;
 

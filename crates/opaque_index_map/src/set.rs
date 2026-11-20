@@ -1,5 +1,4 @@
 use crate::equivalent::Equivalent;
-use crate::{map_inner, TypeProjectedIndexMap};
 use crate::map_inner::{
     Bucket,
     TypeErasedIndexMapInner,
@@ -9,6 +8,10 @@ use crate::slice_eq;
 use crate::try_project_index_set_error::{
     TryProjectIndexSetError,
     TryProjectIndexSetErrorKind,
+};
+use crate::{
+    TypeProjectedIndexMap,
+    map_inner,
 };
 
 use alloc_crate::alloc;

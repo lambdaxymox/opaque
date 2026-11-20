@@ -232,7 +232,7 @@ where
             _marker: marker::PhantomData,
         }
     }
-    
+
     pub(crate) unsafe fn into_box(self, len: usize) -> Box<[MaybeUninit<T>], TypeProjectedAlloc<A>> {
         // Sanity-check one half of the safety requirement (we cannot check the other half).
         debug_assert!(
